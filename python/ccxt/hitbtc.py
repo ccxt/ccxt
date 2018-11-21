@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
@@ -16,7 +17,7 @@ class hitbtc (Exchange):
         return self.deep_extend(super(hitbtc, self).describe(), {
             'id': 'hitbtc',
             'name': 'HitBTC',
-            'countries': 'HK',
+            'countries': ['HK'],
             'rateLimit': 1500,
             'version': '1',
             'has': {
@@ -26,6 +27,7 @@ class hitbtc (Exchange):
                 'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchOrderTrades': True,
                 'withdraw': True,
             },
             'urls': {
@@ -493,6 +495,9 @@ class hitbtc (Exchange):
                 'DRK': 'DASH',
                 'EMGO': 'MGO',
                 'GET': 'Themis',
+                'HSR': 'HC',
+                'LNC': 'LinkerCoin',
+                'UNC': 'Unigame',
                 'USD': 'USDT',
                 'XBT': 'BTC',
             },
@@ -639,6 +644,10 @@ class hitbtc (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        side = None
+        tradeLength = len(trade)
+        if tradeLength > 3:
+            side = trade[4]
         return {
             'info': trade,
             'id': str(trade[0]),
@@ -646,7 +655,7 @@ class hitbtc (Exchange):
             'datetime': self.iso8601(trade[3]),
             'symbol': symbol,
             'type': None,
-            'side': trade[4],
+            'side': side,
             'price': float(trade[1]),
             'amount': float(trade[2]),
         }
@@ -684,7 +693,7 @@ class hitbtc (Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetSymbolTrades(self.extend({
+        request = {
             'symbol': market['id'],
             # 'from': 0,
             # 'till': 100,
@@ -698,8 +707,14 @@ class hitbtc (Exchange):
             # 'format_tid': 'string',
             # 'format_timestamp': 'millisecond',
             # 'format_wrap': False,
-            'side': 'true',
-        }, params))
+            # 'side': 'true',
+        }
+        if since is not None:
+            request['by'] = 'ts'
+            request['from'] = since
+        if limit is not None:
+            request['max_results'] = limit
+        response = self.publicGetSymbolTrades(self.extend(request, params))
         return self.parse_trades(response['trades'], market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -713,7 +728,7 @@ class hitbtc (Exchange):
         if abs(difference) > market['step']:
             raise ExchangeError(self.id + ' order amount should be evenly divisible by lot unit size of ' + str(market['lot']))
         clientOrderId = self.milliseconds()
-        order = {
+        request = {
             'clientOrderId': str(clientOrderId),
             'symbol': market['id'],
             'side': side,
@@ -721,11 +736,14 @@ class hitbtc (Exchange):
             'type': type,
         }
         if type == 'limit':
-            order['price'] = self.price_to_precision(symbol, price)
+            request['price'] = self.price_to_precision(symbol, price)
         else:
-            order['timeInForce'] = self.options['defaultTimeInForce']
-        response = self.tradingPostNewOrder(self.extend(order, params))
-        return self.parse_order(response['ExecutionReport'], market)
+            request['timeInForce'] = self.options['defaultTimeInForce']
+        response = self.tradingPostNewOrder(self.extend(request, params))
+        order = self.parse_order(response['ExecutionReport'], market)
+        if order['status'] == 'rejected':
+            raise InvalidOrder(self.id + ' order was rejected by the exchange ' + self.json(order))
+        return order
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -751,19 +769,14 @@ class hitbtc (Exchange):
         symbol = None
         if not market:
             market = self.markets_by_id[order['symbol']]
-        status = self.safe_string(order, 'orderStatus')
-        if status:
-            status = self.parse_order_status(status)
-        averagePrice = self.safe_float(order, 'avgPrice', 0.0)
+        status = self.parse_order_status(self.safe_string(order, 'orderStatus'))
         price = self.safe_float(order, 'orderPrice')
-        if price is None:
-            price = self.safe_float(order, 'price')
+        price = self.safe_float(order, 'price', price)
+        price = self.safe_float(order, 'avgPrice', price)
         amount = self.safe_float(order, 'orderQuantity')
-        if amount is None:
-            amount = self.safe_float(order, 'quantity')
+        amount = self.safe_float(order, 'quantity', amount)
         remaining = self.safe_float(order, 'quantityLeaves')
-        if remaining is None:
-            remaining = self.safe_float(order, 'leavesQuantity')
+        remaining = self.safe_float(order, 'leavesQuantity', remaining)
         filled = None
         cost = None
         amountDefined = (amount is not None)
@@ -781,7 +794,8 @@ class hitbtc (Exchange):
         if amountDefined:
             if remainingDefined:
                 filled = amount - remaining
-                cost = averagePrice * filled
+                if price is not None:
+                    cost = price * filled
         feeCost = self.safe_float(order, 'fee')
         feeCurrency = None
         if market is not None:
@@ -827,7 +841,7 @@ class hitbtc (Exchange):
             'sort': 'desc',
             'statuses': ','.join(statuses),
         }
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['symbols'] = market['id']
         response = self.tradingGetOrdersActive(self.extend(request, params))
@@ -842,7 +856,7 @@ class hitbtc (Exchange):
             'statuses': ','.join(statuses),
             'max_results': 1000,
         }
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['symbols'] = market['id']
         response = self.tradingGetOrdersRecent(self.extend(request, params))

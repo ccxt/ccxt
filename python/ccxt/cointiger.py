@@ -12,15 +12,16 @@ try:
 except NameError:
     basestring = str  # Python 2
 import hashlib
+import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.decimal_to_precision import ROUND
-from ccxt.base.decimal_to_precision import TRUNCATE
 
 
 class cointiger (huobipro):
@@ -29,13 +30,18 @@ class cointiger (huobipro):
         return self.deep_extend(super(cointiger, self).describe(), {
             'id': 'cointiger',
             'name': 'CoinTiger',
-            'countries': 'CN',
-            'hostname': 'api.cointiger.pro',
+            'countries': ['CN'],
+            'hostname': 'cointiger.pro',
             'has': {
                 'fetchCurrencies': False,
                 'fetchTickers': True,
                 'fetchTradingLimits': False,
-                'fetchOrder': False,
+                'fetchOrder': True,
+                'fetchOrders': True,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
+                'fetchOrderTrades': False,  # not tested yet
+                'cancelOrders': True,
             },
             'headers': {
                 'Language': 'en_US',
@@ -43,15 +49,35 @@ class cointiger (huobipro):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/39797261-d58df196-5363-11e8-9880-2ec78ec5bd25.jpg',
                 'api': {
-                    'public': 'https://api.cointiger.pro/exchange/trading/api/market',
-                    'private': 'https://api.cointiger.pro/exchange/trading/api',
-                    'exchange': 'https://www.cointiger.pro/exchange',
+                    'public': 'https://api.{hostname}/exchange/trading/api/market',
+                    'private': 'https://api.{hostname}/exchange/trading/api',
+                    'exchange': 'https://www.{hostname}/exchange',
+                    'v2public': 'https://api.{hostname}/exchange/trading/api/v2',
+                    'v2': 'https://api.{hostname}/exchange/trading/api/v2',
                 },
                 'www': 'https://www.cointiger.pro',
                 'referral': 'https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt',
                 'doc': 'https://github.com/cointiger/api-docs-en/wiki',
             },
             'api': {
+                'v2public': {
+                    'get': [
+                        'timestamp',
+                        'currencys',
+                    ],
+                },
+                'v2': {
+                    'get': [
+                        'order/orders',
+                        'order/match_results',
+                        'order/make_detail',
+                        'order/details',
+                    ],
+                    'post': [
+                        'order',
+                        'order/batch_cancel',
+                    ],
+                },
                 'public': {
                     'get': [
                         'history/kline',  # 获取K线数据
@@ -83,9 +109,19 @@ class cointiger (huobipro):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': False,
+                    'percentage': True,
+                    'maker': 0.0008,
+                    'taker': 0.0015,
+                },
+            },
             'exceptions': {
-                '1': InsufficientFunds,
-                '2': ExchangeError,
+                #    {"code":"1","msg":"系统错误","data":null}
+                #    {"code":"1","msg":"Balance insufficient,余额不足","data":null}
+                '1': ExchangeError,
+                '2': BadRequest,  # {"code":"2","msg":"Parameter error","data":null}
                 '5': InvalidOrder,
                 '6': InvalidOrder,
                 '8': OrderNotFound,
@@ -95,70 +131,85 @@ class cointiger (huobipro):
                 '100003': ExchangeError,
                 '100005': AuthenticationError,
             },
+            'commonCurrencies': {
+                'FGC': 'FoundGameCoin',
+                'TCT': 'The Tycoon Chain Token',
+            },
         })
 
     def fetch_markets(self):
-        result = [
-            {'precision': {'amount': 1, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'aacbtc', 'uppercaseId': 'AACBTC', 'symbol': 'AAC/BTC', 'base': 'AAC', 'quote': 'BTC', 'baseId': 'aac', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'afcbtc', 'uppercaseId': 'AFCBTC', 'symbol': 'AFC/BTC', 'base': 'AFC', 'quote': 'BTC', 'baseId': 'afc', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'avhbtc', 'uppercaseId': 'AVHBTC', 'symbol': 'AVH/BTC', 'base': 'AVH', 'quote': 'BTC', 'baseId': 'avh', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'baieth', 'uppercaseId': 'BAIETH', 'symbol': 'BAI/ETH', 'base': 'BAI', 'quote': 'ETH', 'baseId': 'bai', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 3, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'bchbtc', 'uppercaseId': 'BCHBTC', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'baseId': 'bch', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.001, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'bkbtbtc', 'uppercaseId': 'BKBTBTC', 'symbol': 'BKBT/BTC', 'base': 'BKBT', 'quote': 'BTC', 'baseId': 'bkbt', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'bkbteth', 'uppercaseId': 'BKBTETH', 'symbol': 'BKBT/ETH', 'base': 'BKBT', 'quote': 'ETH', 'baseId': 'bkbt', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'bptnbtc', 'uppercaseId': 'BPTNBTC', 'symbol': 'BPTN/BTC', 'base': 'BPTN', 'quote': 'BTC', 'baseId': 'bptn', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 100, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 4, 'price': 2}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'btcbitcny', 'uppercaseId': 'BTCBITCNY', 'symbol': 'BTC/BitCNY', 'base': 'BTC', 'quote': 'BitCNY', 'baseId': 'btc', 'quoteId': 'bitcny', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.0001, 'max': None}, 'price': {'min': 0.01, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'btmbtc', 'uppercaseId': 'BTMBTC', 'symbol': 'BTM/BTC', 'base': 'BTM', 'quote': 'BTC', 'baseId': 'btm', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 6}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'btmeth', 'uppercaseId': 'BTMETH', 'symbol': 'BTM/ETH', 'base': 'BTM', 'quote': 'ETH', 'baseId': 'btm', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 3}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'btsbitcny', 'uppercaseId': 'BTSBITCNY', 'symbol': 'BTS/BitCNY', 'base': 'BTS', 'quote': 'BitCNY', 'baseId': 'bts', 'quoteId': 'bitcny', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.001, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'btsbtc', 'uppercaseId': 'BTSBTC', 'symbol': 'BTS/BTC', 'base': 'BTS', 'quote': 'BTC', 'baseId': 'bts', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 6}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'btseth', 'uppercaseId': 'BTSETH', 'symbol': 'BTS/ETH', 'base': 'BTS', 'quote': 'ETH', 'baseId': 'bts', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'ctxcbtc', 'uppercaseId': 'CTXCBTC', 'symbol': 'CTXC/BTC', 'base': 'CTXC', 'quote': 'BTC', 'baseId': 'ctxc', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'ctxceth', 'uppercaseId': 'CTXCETH', 'symbol': 'CTXC/ETH', 'base': 'CTXC', 'quote': 'ETH', 'baseId': 'ctxc', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'elfbtc', 'uppercaseId': 'ELFBTC', 'symbol': 'ELF/BTC', 'base': 'ELF', 'quote': 'BTC', 'baseId': 'elf', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'eosbtc', 'uppercaseId': 'EOSBTC', 'symbol': 'EOS/BTC', 'base': 'EOS', 'quote': 'BTC', 'baseId': 'eos', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 6}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'eoseth', 'uppercaseId': 'EOSETH', 'symbol': 'EOS/ETH', 'base': 'EOS', 'quote': 'ETH', 'baseId': 'eos', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'etcbtc', 'uppercaseId': 'ETCBTC', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC', 'baseId': 'etc', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 3, 'price': 2}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'ethbitcny', 'uppercaseId': 'ETHBITCNY', 'symbol': 'ETH/BitCNY', 'base': 'ETH', 'quote': 'BitCNY', 'baseId': 'eth', 'quoteId': 'bitcny', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.001, 'max': None}, 'price': {'min': 0.01, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 3, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'ethbtc', 'uppercaseId': 'ETHBTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.001, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 2}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'gtobitcny', 'uppercaseId': 'GTOBITCNY', 'symbol': 'GTO/BitCNY', 'base': 'GTO', 'quote': 'BitCNY', 'baseId': 'gto', 'quoteId': 'bitcny', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.01, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'gusbtc', 'uppercaseId': 'GUSBTC', 'symbol': 'GUS/BTC', 'base': 'GUS', 'quote': 'BTC', 'baseId': 'gus', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 4, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'icxbtc', 'uppercaseId': 'ICXBTC', 'symbol': 'ICX/BTC', 'base': 'ICX', 'quote': 'BTC', 'baseId': 'icx', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.0001, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'incbtc', 'uppercaseId': 'INCBTC', 'symbol': 'INC/BTC', 'base': 'INC', 'quote': 'BTC', 'baseId': 'inc', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 5, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 6}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'inceth', 'uppercaseId': 'INCETH', 'symbol': 'INC/ETH', 'base': 'INC', 'quote': 'ETH', 'baseId': 'inc', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 5, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'kkgbtc', 'uppercaseId': 'KKGBTC', 'symbol': 'KKG/BTC', 'base': 'KKG', 'quote': 'BTC', 'baseId': 'kkg', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 6}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'kkgeth', 'uppercaseId': 'KKGETH', 'symbol': 'KKG/ETH', 'base': 'KKG', 'quote': 'ETH', 'baseId': 'kkg', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'ltcbtc', 'uppercaseId': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'mexbtc', 'uppercaseId': 'MEXBTC', 'symbol': 'MEX/BTC', 'base': 'MEX', 'quote': 'BTC', 'baseId': 'mex', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 100, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'mtbtc', 'uppercaseId': 'MTBTC', 'symbol': 'MT/BTC', 'base': 'MT', 'quote': 'BTC', 'baseId': 'mt', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'mteth', 'uppercaseId': 'MTETH', 'symbol': 'MT/ETH', 'base': 'MT', 'quote': 'ETH', 'baseId': 'mt', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 3}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'ocnbitcny', 'uppercaseId': 'OCNBITCNY', 'symbol': 'OCN/BitCNY', 'base': 'OCN', 'quote': 'BitCNY', 'baseId': 'ocn', 'quoteId': 'bitcny', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.001, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'ocnbtc', 'uppercaseId': 'OCNBTC', 'symbol': 'OCN/BTC', 'base': 'OCN', 'quote': 'BTC', 'baseId': 'ocn', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'olebtc', 'uppercaseId': 'OLEBTC', 'symbol': 'OLE/BTC', 'base': 'OLE', 'quote': 'BTC', 'baseId': 'ole', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'oleeth', 'uppercaseId': 'OLEETH', 'symbol': 'OLE/ETH', 'base': 'OLE', 'quote': 'ETH', 'baseId': 'ole', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'omgbtc', 'uppercaseId': 'OMGBTC', 'symbol': 'OMG/BTC', 'base': 'OMG', 'quote': 'BTC', 'baseId': 'omg', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'repbtc', 'uppercaseId': 'REPBTC', 'symbol': 'REP/BTC', 'base': 'REP', 'quote': 'BTC', 'baseId': 'rep', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'sdabtc', 'uppercaseId': 'SDABTC', 'symbol': 'SDA/BTC', 'base': 'SDA', 'quote': 'BTC', 'baseId': 'sda', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'sdaeth', 'uppercaseId': 'SDAETH', 'symbol': 'SDA/ETH', 'base': 'SDA', 'quote': 'ETH', 'baseId': 'sda', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'sntbtc', 'uppercaseId': 'SNTBTC', 'symbol': 'SNT/BTC', 'base': 'SNT', 'quote': 'BTC', 'baseId': 'snt', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 1, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'socbtc', 'uppercaseId': 'SOCBTC', 'symbol': 'SOC/BTC', 'base': 'SOC', 'quote': 'BTC', 'baseId': 'soc', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'sphbtc', 'uppercaseId': 'SPHBTC', 'symbol': 'SPH/BTC', 'base': 'SPH', 'quote': 'BTC', 'baseId': 'sph', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 100, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'storjbtc', 'uppercaseId': 'STORJBTC', 'symbol': 'STORJ/BTC', 'base': 'STORJ', 'quote': 'BTC', 'baseId': 'storj', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 1, 'price': 3}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'tchbitcny', 'uppercaseId': 'TCHBITCNY', 'symbol': 'TCH/BitCNY', 'base': 'TCH', 'quote': 'BitCNY', 'baseId': 'tch', 'quoteId': 'bitcny', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.1, 'max': None}, 'price': {'min': 0.001, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 1, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'tchbtc', 'uppercaseId': 'TCHBTC', 'symbol': 'TCH/BTC', 'base': 'TCH', 'quote': 'BTC', 'baseId': 'tch', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 3}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'trxbitcny', 'uppercaseId': 'TRXBITCNY', 'symbol': 'TRX/BitCNY', 'base': 'TRX', 'quote': 'BitCNY', 'baseId': 'trx', 'quoteId': 'bitcny', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.001, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'trxbtc', 'uppercaseId': 'TRXBTC', 'symbol': 'TRX/BTC', 'base': 'TRX', 'quote': 'BTC', 'baseId': 'trx', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'trxeth', 'uppercaseId': 'TRXETH', 'symbol': 'TRX/ETH', 'base': 'TRX', 'quote': 'ETH', 'baseId': 'trx', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'tusdbtc', 'uppercaseId': 'TUSDBTC', 'symbol': 'TUSD/BTC', 'base': 'TUSD', 'quote': 'BTC', 'baseId': 'tusd', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 6}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'tusdeth', 'uppercaseId': 'TUSDETH', 'symbol': 'TUSD/ETH', 'base': 'TUSD', 'quote': 'ETH', 'baseId': 'tusd', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 1, 'price': 2}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'xembitcny', 'uppercaseId': 'XEMBITCNY', 'symbol': 'XEM/BitCNY', 'base': 'XEM', 'quote': 'BitCNY', 'baseId': 'xem', 'quoteId': 'bitcny', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.1, 'max': None}, 'price': {'min': 0.01, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'yeebtc', 'uppercaseId': 'YEEBTC', 'symbol': 'YEE/BTC', 'base': 'YEE', 'quote': 'BTC', 'baseId': 'yee', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'yeeeth', 'uppercaseId': 'YEEETH', 'symbol': 'YEE/ETH', 'base': 'YEE', 'quote': 'ETH', 'baseId': 'yee', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 4, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'zrxbtc', 'uppercaseId': 'ZRXBTC', 'symbol': 'ZRX/BTC', 'base': 'ZRX', 'quote': 'BTC', 'baseId': 'zrx', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.0001, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 4, 'price': 2}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'btcusdt', 'uppercaseId': 'BTCUSDT', 'symbol': 'BTC/USDT', 'base': 'BTC', 'quote': 'USDT', 'baseId': 'btc', 'quoteId': 'usdt', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.0001, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 3, 'price': 2}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'ethusdt', 'uppercaseId': 'ETHUSDT', 'symbol': 'ETH/USDT', 'base': 'ETH', 'quote': 'USDT', 'baseId': 'eth', 'quoteId': 'usdt', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.001, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 2}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'ltcusdt', 'uppercaseId': 'LTCUSDT', 'symbol': 'LTC/USDT', 'base': 'LTC', 'quote': 'USDT', 'baseId': 'ltc', 'quoteId': 'usdt', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-        ]
+        response = self.v2publicGetCurrencys()
+        #
+        #     {
+        #         code: '0',
+        #         msg: 'suc',
+        #         data: {
+        #             'bitcny-partition': [
+        #                 {
+        #                     baseCurrency: 'btc',
+        #                     quoteCurrency: 'bitcny',
+        #                     pricePrecision: 2,
+        #                     amountPrecision: 4,
+        #                     withdrawFeeMin: 0.0005,
+        #                     withdrawFeeMax: 0.005,
+        #                     withdrawOneMin: 0.01,
+        #                     withdrawOneMax: 10,
+        #                     depthSelect: {step0: '0.01', step1: '0.1', step2: '1'}
+        #                 },
+        #                 ...
+        #             ],
+        #             ...
+        #         },
+        #     }
+        #
+        keys = list(response['data'].keys())
+        result = []
+        for i in range(0, len(keys)):
+            key = keys[i]
+            partition = response['data'][key]
+            for j in range(0, len(partition)):
+                market = partition[j]
+                baseId = self.safe_string(market, 'baseCurrency')
+                quoteId = self.safe_string(market, 'quoteCurrency')
+                base = baseId.upper()
+                quote = quoteId.upper()
+                base = self.common_currency_code(base)
+                quote = self.common_currency_code(quote)
+                id = baseId + quoteId
+                uppercaseId = id.upper()
+                symbol = base + '/' + quote
+                precision = {
+                    'amount': market['amountPrecision'],
+                    'price': market['pricePrecision'],
+                }
+                active = True
+                entry = {
+                    'id': id,
+                    'uppercaseId': uppercaseId,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'info': market,
+                    'active': active,
+                    'precision': precision,
+                    'limits': {
+                        'amount': {
+                            'min': math.pow(10, -precision['amount']),
+                            'max': None,
+                        },
+                        'price': {
+                            'min': math.pow(10, -precision['price']),
+                            'max': None,
+                        },
+                        'cost': {
+                            'min': 0,
+                            'max': None,
+                        },
+                    },
+                }
+                result.append(entry)
         self.options['marketsByUppercaseId'] = self.index_by(result, 'uppercaseId')
         return result
 
@@ -235,6 +286,19 @@ class cointiger (huobipro):
 
     def parse_trade(self, trade, market=None):
         #
+        #   {     volume: "0.014",
+        #          symbol: "ethbtc",
+        #         buy_fee: "0.00001400",
+        #         orderId:  32235710,
+        #           price: "0.06923825",
+        #         created:  1531605169000,
+        #              id:  3785005,
+        #          source:  1,
+        #            type: "buy-limit",
+        #     bid_user_id:  326317         }]}
+        #
+        # --------------------------------------------------------------------
+        #
         #     {
         #         "volume": {
         #             "amount": "1.000",
@@ -255,42 +319,62 @@ class cointiger (huobipro):
         #         "id": 138
         #     }
         #
-        side = self.safe_string(trade, 'side')
+        id = self.safe_string(trade, 'id')
+        orderId = self.safe_string(trade, 'orderId')
+        orderType = self.safe_string(trade, 'type')
+        type = None
+        side = None
+        if orderType is not None:
+            parts = orderType.split('-')
+            side = parts[0]
+            type = parts[1]
+        side = self.safe_string(trade, 'side', side)
         amount = None
         price = None
         cost = None
-        if side is not None:
-            side = side.lower()
-            price = self.safe_float(trade, 'price')
-            amount = self.safe_float(trade, 'amount')
-        else:
+        if side is None:
             price = self.safe_float(trade['price'], 'amount')
             amount = self.safe_float(trade['volume'], 'amount')
             cost = self.safe_float(trade['deal_price'], 'amount')
+        else:
+            side = side.lower()
+            price = self.safe_float(trade, 'price')
+            amount = self.safe_float_2(trade, 'amount', 'volume')
+        fee = None
+        feeCost = self.safe_float(trade, 'fee')
+        if feeCost is not None:
+            feeCurrency = None
+            if market is not None:
+                if side == 'buy':
+                    feeCurrency = market['base']
+                elif side == 'sell':
+                    feeCurrency = market['quote']
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            }
         if amount is not None:
             if price is not None:
                 if cost is None:
                     cost = amount * price
-        timestamp = self.safe_value(trade, 'created_at')
-        if timestamp is None:
-            timestamp = self.safe_value(trade, 'ts')
-        iso8601 = self.iso8601(timestamp) if (timestamp is not None) else None
+        timestamp = self.safe_integer_2(trade, 'created_at', 'ts')
+        timestamp = self.safe_integer_2(trade, 'created', 'mtime', timestamp)
         symbol = None
         if market is not None:
             symbol = market['symbol']
         return {
             'info': trade,
-            'id': str(trade['id']),
-            'order': None,
+            'id': id,
+            'order': orderId,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'type': None,
+            'type': type,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': None,
+            'fee': fee,
         }
 
     def fetch_trades(self, symbol, since=None, limit=1000, params={}):
@@ -306,7 +390,7 @@ class cointiger (huobipro):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         if limit is None:
@@ -317,6 +401,16 @@ class cointiger (huobipro):
             'limit': limit,
         }, params))
         return self.parse_trades(response['data']['list'], market, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        return [
+            ohlcv['id'] * 1000,
+            ohlcv['open'],
+            ohlcv['high'],
+            ohlcv['low'],
+            ohlcv['close'],
+            ohlcv['vol'],
+        ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1000, params={}):
         self.load_markets()
@@ -364,9 +458,37 @@ class cointiger (huobipro):
             result[code] = account
         return self.parse_balance(result)
 
-    def fetch_orders_by_status(self, status=None, symbol=None, since=None, limit=None, params={}):
+    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrderTrades requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'order_id': id,
+        }
+        response = self.v2GetOrderMakeDetail(self.extend(request, params))
+        #
+        # the above endpoint often returns an empty array
+        #
+        #     {code:   "0",
+        #        msg:   "suc",
+        #       data: [{     volume: "0.014",
+        #                      symbol: "ethbtc",
+        #                     buy_fee: "0.00001400",
+        #                     orderId:  32235710,
+        #                       price: "0.06923825",
+        #                     created:  1531605169000,
+        #                          id:  3785005,
+        #                      source:  1,
+        #                        type: "buy-limit",
+        #                 bid_user_id:  326317         }]}
+        #
+        return self.parse_trades(response['data'], market, since, limit)
+
+    def fetch_orders_by_status_v1(self, status=None, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         if limit is None:
@@ -377,17 +499,93 @@ class cointiger (huobipro):
             'offset': 1,
             'limit': limit,
         }, params))
-        return self.parse_orders(response['data']['list'], market, since, limit)
+        orders = response['data']['list']
+        result = []
+        for i in range(0, len(orders)):
+            order = self.extend(orders[i], {
+                'status': status,
+            })
+            result.append(self.parse_order(order, market))
+        return result
+
+    def fetch_open_orders_v1(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders_by_status_v1('open', symbol, since, limit, params)
+
+    def fetch_orders_v1(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders_by_status_v1(None, symbol, since, limit, params)
+
+    def fetch_orders_by_states_v2(self, states, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        if limit is None:
+            limit = 50
+        response = self.v2GetOrderOrders(self.extend({
+            'symbol': market['id'],
+            # 'types': 'buy-market,sell-market,buy-limit,sell-limit',
+            'states': states,  # 'new,part_filled,filled,canceled,expired'
+            # 'from': '0',  # id
+            'direct': 'next',  # or 'prev'
+            'size': limit,
+        }, params))
+        return self.parse_orders(response['data'], market, since, limit)
+
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders_by_states_v2('new,part_filled,filled,canceled,expired', symbol, since, limit, params)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders_by_status('open', symbol, since, limit, params)
+        return self.fetch_orders_by_states_v2('new,part_filled', symbol, since, limit, params)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders_by_status('closed', symbol, since, limit, params)
+        return self.fetch_orders_by_states_v2('filled,canceled', symbol, since, limit, params)
+
+    def fetch_order(self, id, symbol=None, params={}):
+        #
+        #     {code:   "0",
+        #        msg:   "suc",
+        #       data: {     symbol: "ethbtc",
+        #                       fee: "0.00000200",
+        #                 avg_price: "0.06863752",
+        #                    source:  1,
+        #                      type: "buy-limit",
+        #                     mtime:  1531340305000,
+        #                    volume: "0.002",
+        #                   user_id:  326317,
+        #                     price: "0.06863752",
+        #                     ctime:  1531340304000,
+        #               deal_volume: "0.00200000",
+        #                        id:  31920243,
+        #                deal_money: "0.00013727",
+        #                    status:  2              }}
+        #
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'order_id': str(id),
+        }
+        response = self.v2GetOrderDetails(self.extend(request, params))
+        return self.parse_order(response['data'], market)
+
+    def parse_order_status(self, status):
+        statuses = {
+            '0': 'open',  # pending
+            '1': 'open',
+            '2': 'closed',
+            '3': 'open',
+            '4': 'canceled',
+            '6': 'error',
+        }
+        if status in statuses:
+            return statuses[status]
+        return status
 
     def parse_order(self, order, market=None):
-        side = self.safe_string(order, 'side')
-        side = side.lower()
+        #
+        #  v1
         #
         #      {
         #            volume: {"amount": "0.054", "icon": "", "title": "volume"},
@@ -402,37 +600,93 @@ class cointiger (huobipro):
         #          side_msg: "Buy"
         #      },
         #
+        #  v2
+        #
+        #     {code:   "0",
+        #        msg:   "suc",
+        #       data: {     symbol: "ethbtc",
+        #                       fee: "0.00000200",
+        #                 avg_price: "0.06863752",
+        #                    source:  1,
+        #                      type: "buy-limit",
+        #                     mtime:  1531340305000,
+        #                    volume: "0.002",
+        #                   user_id:  326317,
+        #                     price: "0.06863752",
+        #                     ctime:  1531340304000,
+        #               deal_volume: "0.00200000",
+        #                        id:  31920243,
+        #                deal_money: "0.00013727",
+        #                    status:  2              }}
+        #
+        id = self.safe_string(order, 'id')
+        side = self.safe_string(order, 'side')
         type = None
-        status = None
+        orderType = self.safe_string(order, 'type')
+        status = self.parse_order_status(self.safe_string(order, 'status'))
+        timestamp = self.safe_integer_2(order, 'created_at', 'ctime')
+        lastTradeTimestamp = self.safe_integer_2(order, 'mtime', 'finished-at')
         symbol = None
+        if market is None:
+            marketId = self.safe_string(order, 'symbol')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
-        timestamp = order['created_at']
-        amount = self.safe_float(order['volume'], 'amount')
-        remaining = self.safe_float(order['remain_volume'], 'amount') if ('remain_volume' in list(order.keys())) else None
-        filled = self.safe_float(order['deal_volume'], 'amount') if ('deal_volume' in list(order.keys())) else None
-        price = self.safe_float(order['age_price'], 'amount') if ('age_price' in list(order.keys())) else None
-        if price is None:
-            price = self.safe_float(order['price'], 'amount') if ('price' in list(order.keys())) else None
+        remaining = None
+        amount = None
+        filled = None
+        price = None
         cost = None
+        fee = None
         average = None
+        if side is not None:
+            side = side.lower()
+            amount = self.safe_float(order['volume'], 'amount')
+            remaining = self.safe_float(order['remain_volume'], 'amount') if ('remain_volume' in list(order.keys())) else None
+            filled = self.safe_float(order['deal_volume'], 'amount') if ('deal_volume' in list(order.keys())) else None
+            price = self.safe_float(order['price'], 'amount') if ('price' in list(order.keys())) else None
+            average = self.safe_float(order['age_price'], 'amount') if ('age_price' in list(order.keys())) else None
+        else:
+            if orderType is not None:
+                parts = orderType.split('-')
+                side = parts[0]
+                type = parts[1]
+                cost = self.safe_float(order, 'deal_money')
+                price = self.safe_float(order, 'price')
+                average = self.safe_float(order, 'avg_price')
+                amount = self.safe_float_2(order, 'amount', 'volume')
+                filled = self.safe_float(order, 'deal_volume')
+                feeCost = self.safe_float(order, 'fee')
+                if feeCost is not None:
+                    feeCurrency = None
+                    if market is not None:
+                        if side == 'buy':
+                            feeCurrency = market['base']
+                        elif side == 'sell':
+                            feeCurrency = market['quote']
+                    fee = {
+                        'cost': feeCost,
+                        'currency': feeCurrency,
+                    }
         if amount is not None:
             if remaining is not None:
                 if filled is None:
-                    filled = amount - remaining
+                    filled = max(0, amount - remaining)
             elif filled is not None:
                 cost = filled * price
-                average = float(cost / filled)
                 if remaining is None:
-                    remaining = amount - filled
-        if (remaining is not None) and(remaining > 0):
-            status = 'open'
+                    remaining = max(0, amount - filled)
+        if status is None:
+            if remaining is not None:
+                if remaining == 0:
+                    status = 'closed'
         result = {
             'info': order,
-            'id': str(order['id']),
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
             'side': side,
@@ -443,21 +697,10 @@ class cointiger (huobipro):
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': None,
+            'fee': fee,
+            'trades': None,
         }
         return result
-
-    def cost_to_precision(self, symbol, cost):
-        return self.decimal_to_precision(cost, ROUND, self.markets[symbol]['precision']['price'])
-
-    def price_to_precision(self, symbol, price):
-        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'])
-
-    def amount_to_precision(self, symbol, amount):
-        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'])
-
-    def fee_to_precision(self, currency, fee):
-        return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'])
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -476,7 +719,7 @@ class cointiger (huobipro):
         if (type == 'market') and(side == 'buy'):
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder requires price argument for market buy orders to calculate total cost according to exchange rules')
-            order['volume'] = self.amount_to_precision(symbol, amount * price)
+            order['volume'] = self.amount_to_precision(symbol, float(amount) * float(price))
         if type == 'limit':
             order['price'] = self.price_to_precision(symbol, price)
         else:
@@ -511,7 +754,7 @@ class cointiger (huobipro):
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         if symbol is None:
-            raise ExchangeError(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
         market = self.market(symbol)
         response = self.privateDeleteOrder(self.extend({
             'symbol': market['id'],
@@ -523,10 +766,29 @@ class cointiger (huobipro):
             'info': response,
         }
 
+    def cancel_orders(self, ids, symbol=None, params={}):
+        self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelOrders requires a symbol argument')
+        market = self.market(symbol)
+        marketId = market['id']
+        orderIdList = {}
+        orderIdList[marketId] = ids
+        request = {
+            'orderIdList': self.json(orderIdList),
+        }
+        response = self.v2PostOrderBatchCancel(self.extend(request, params))
+        return {
+            'info': response,
+        }
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         self.check_required_credentials()
-        url = self.urls['api'][api] + '/' + self.implode_params(path, params)
-        if api == 'private':
+        url = self.implode_params(self.urls['api'][api], {
+            'hostname': self.hostname,
+        })
+        url += '/' + self.implode_params(path, params)
+        if api == 'private' or api == 'v2':
             timestamp = str(self.milliseconds())
             query = self.keysort(self.extend({
                 'time': timestamp,
@@ -534,11 +796,10 @@ class cointiger (huobipro):
             keys = list(query.keys())
             auth = ''
             for i in range(0, len(keys)):
-                auth += keys[i] + query[keys[i]]
+                auth += keys[i] + str(query[keys[i]])
             auth += self.secret
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
-            isCreateOrderMethod = (path == 'order') and(method == 'POST')
-            urlParams = {} if isCreateOrderMethod else query
+            urlParams = {} if (method == 'POST') else query
             url += '?' + self.urlencode(self.keysort(self.extend({
                 'api_key': self.apiKey,
                 'time': timestamp,
@@ -549,7 +810,7 @@ class cointiger (huobipro):
                 headers = {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 }
-        elif api == 'public':
+        elif api == 'public' or api == 'v2public':
             url += '?' + self.urlencode(self.extend({
                 'api_key': self.apiKey,
             }, params))
@@ -570,16 +831,45 @@ class cointiger (huobipro):
                 #     {"code": "100005", "msg": "request sign illegal", "data": null}
                 #
                 code = self.safe_string(response, 'code')
-                if (code is not None) and(code != '0'):
+                if code is not None:
                     message = self.safe_string(response, 'msg')
                     feedback = self.id + ' ' + self.json(response)
-                    exceptions = self.exceptions
-                    if code in exceptions:
-                        if code == 2:
-                            if message == 'offsetNot Null':
-                                raise ExchangeError(feedback)
-                            elif message == 'Parameter error':
-                                raise ExchangeError(feedback)
-                        raise exceptions[code](feedback)
+                    if code != '0':
+                        exceptions = self.exceptions
+                        if code in exceptions:
+                            if code == '1':
+                                #
+                                #    {"code":"1","msg":"系统错误","data":null}
+                                #    {“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null}
+                                #
+                                if message.find('Balance insufficient') >= 0:
+                                    raise InsufficientFunds(feedback)
+                            elif code == '2':
+                                if message == 'offsetNot Null':
+                                    raise ExchangeError(feedback)
+                                elif message == 'api_keyNot EXIST':
+                                    raise AuthenticationError(feedback)
+                                elif message == 'price precision exceed the limit':
+                                    raise InvalidOrder(feedback)
+                                elif message == 'Parameter error':
+                                    raise BadRequest(feedback)
+                            raise exceptions[code](feedback)
+                        else:
+                            raise ExchangeError(self.id + ' unknown "error" value: ' + self.json(response))
                     else:
-                        raise ExchangeError(self.id + ' unknown "error" value: ' + self.json(response))
+                        #
+                        # Google Translate:
+                        # 订单状态不能取消,订单取消失败 = Order status cannot be canceled
+                        # 根据订单号没有查询到订单,订单取消失败 = The order was not queried according to the order number
+                        #
+                        # {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"订单状态不能取消,订单取消失败","order-id":32857051,"err-code":"8"}]}}
+                        # {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"Parameter error","order-id":32857050,"err-code":"2"},{"err-msg":"订单状态不能取消,订单取消失败","order-id":32857050,"err-code":"8"}]}}
+                        # {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"Parameter error","order-id":98549677,"err-code":"2"},{"err-msg":"根据订单号没有查询到订单,订单取消失败","order-id":98549677,"err-code":"8"}]}}
+                        #
+                        if feedback.find('订单状态不能取消,订单取消失败') >= 0:
+                            if feedback.find('Parameter error') >= 0:
+                                raise OrderNotFound(feedback)
+                            else:
+                                raise InvalidOrder(feedback)
+                        elif feedback.find('根据订单号没有查询到订单,订单取消失败') >= 0:
+                            raise OrderNotFound(feedback)

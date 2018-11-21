@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, ExchangeNotAvailable } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -12,8 +12,9 @@ module.exports = class exx extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'exx',
             'name': 'EXX',
-            'countries': 'CN',
+            'countries': [ 'CN' ],
             'rateLimit': 1000 / 10,
+            'userAgent': this.userAgents['chrome'],
             'has': {
                 'fetchOrder': true,
                 'fetchTickers': true,
@@ -28,6 +29,7 @@ module.exports = class exx extends Exchange {
                 'www': 'https://www.exx.com/',
                 'doc': 'https://www.exx.com/help/restApi',
                 'fees': 'https://www.exx.com/help/rate',
+                'referral': 'https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f',
             },
             'api': {
                 'public': {
@@ -81,7 +83,10 @@ module.exports = class exx extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'CAN': 'Content and AD Network',
+                'TV': 'TIV', // Ti-Value
+            },
+            'exceptions': {
+                '103': AuthenticationError,
             },
         });
     }
@@ -104,7 +109,6 @@ module.exports = class exx extends Exchange {
                 'amount': parseInt (market['amountScale']),
                 'price': parseInt (market['priceScale']),
             };
-            let lot = Math.pow (10, -precision['amount']);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -113,11 +117,10 @@ module.exports = class exx extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'lot': lot,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': Math.pow (10, -precision['amount']),
                         'max': Math.pow (10, precision['amount']),
                     },
                     'price': {
@@ -260,7 +263,7 @@ module.exports = class exx extends Exchange {
         let cost = this.safeFloat (order, 'trade_money');
         let amount = this.safeFloat (order, 'total_amount');
         let filled = this.safeFloat (order, 'trade_amount', 0.0);
-        let remaining = this.amountToPrecision (symbol, amount - filled);
+        let remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
         let status = this.safeInteger (order, 'status');
         if (status === 1) {
             status = 'canceled';
@@ -281,7 +284,7 @@ module.exports = class exx extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
-            'status': 'open',
+            'status': status,
             'symbol': symbol,
             'type': 'limit',
             'side': order['type'],
@@ -341,9 +344,12 @@ module.exports = class exx extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let orders = await this.privateGetOpenOrders (this.extend ({
+        let orders = await this.privateGetGetOpenOrders (this.extend ({
             'currency': market['id'],
         }, params));
+        if (!Array.isArray (orders)) {
+            return [];
+        }
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -362,21 +368,53 @@ module.exports = class exx extends Exchange {
                 'accesskey': this.apiKey,
                 'nonce': this.nonce (),
             }, params)));
-            let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha512');
-            url += '?' + query + '&signature=' + signature;
+            let signed = this.hmac (this.encode (query), this.encode (this.secret), 'sha512');
+            url += '?' + query + '&signature=' + signed;
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        let code = this.safeInteger (response, 'code');
-        let message = this.safeString (response, 'message');
-        if (code && code !== 100 && message) {
-            if (code === 103)
-                throw new AuthenticationError (message);
-            throw new ExchangeError (message);
+    handleErrors (httpCode, reason, url, method, headers, body) {
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if ((body[0] === '{') || (body[0] === '[')) {
+            let response = JSON.parse (body);
+            //
+            //  {"result":false,"message":"服务端忙碌"}
+            //  ... and other formats
+            //
+            let code = this.safeString (response, 'code');
+            let message = this.safeString (response, 'message');
+            const feedback = this.id + ' ' + this.json (response);
+            if (code === '100')
+                return;
+            if (code !== undefined) {
+                const exceptions = this.exceptions;
+                if (code in exceptions) {
+                    throw new exceptions[code] (feedback);
+                } else if (code === '308') {
+                    // this is returned by the exchange when there are no open orders
+                    // {"code":308,"message":"Not Found Transaction Record"}
+                    return;
+                } else {
+                    throw new ExchangeError (feedback);
+                }
+            }
+            let result = this.safeValue (response, 'result');
+            if (result !== undefined) {
+                if (!result) {
+                    if (message === '服务端忙碌') {
+                        throw new ExchangeNotAvailable (feedback);
+                    } else {
+                        throw new ExchangeError (feedback);
+                    }
+                }
+            }
         }
-        return response;
     }
 };

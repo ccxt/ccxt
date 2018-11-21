@@ -13,7 +13,7 @@ class bitso extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitso',
             'name' => 'Bitso',
-            'countries' => 'MX', // Mexico
+            'countries' => array ( 'MX' ), // Mexico
             'rateLimit' => 2000, // 30 requests per minute
             'version' => 'v3',
             'has' => array (
@@ -115,14 +115,12 @@ class bitso extends Exchange {
                 'amount' => $this->precision_from_string($market['minimum_amount']),
                 'price' => $this->precision_from_string($market['minimum_price']),
             );
-            $lot = $limits['amount']['min'];
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'info' => $market,
-                'lot' => $lot,
                 'limits' => $limits,
                 'precision' => $precision,
             );
@@ -167,7 +165,9 @@ class bitso extends Exchange {
         $timestamp = $this->parse8601 ($ticker['created_at']);
         $vwap = $this->safe_float($ticker, 'vwap');
         $baseVolume = $this->safe_float($ticker, 'volume');
-        $quoteVolume = $baseVolume * $vwap;
+        $quoteVolume = null;
+        if ($baseVolume !== null && $vwap !== null)
+            $quoteVolume = $baseVolume * $vwap;
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
@@ -314,7 +314,7 @@ class bitso extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $side = $order['side'];
-        $status = $this->parse_order_status($order['status']);
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $symbol = null;
         if ($market === null) {
             $marketId = $order['book'];
@@ -388,7 +388,7 @@ class bitso extends Exchange {
         return $this->parse_order($response['payload'][0], $market);
     }
 
-    public function fetch_order_trades ($id, $symbol = null, $params = array ()) {
+    public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->privateGetOrderTradesOid (array (
@@ -416,7 +416,6 @@ class bitso extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'status' => 'ok',
             'info' => $response,
         );
     }

@@ -17,15 +17,21 @@ module.exports = subclass (
                     'PermissionDenied': {},
                     'AccountSuspended': {},
                 },
+                'ArgumentsRequired': {},
+                'BadRequest': {},
                 'BadResponse': {
                     'NullResponse': {},
                 },
                 'InsufficientFunds': {},
-                'InvalidAddress': {},
+                'InvalidAddress': {
+                    'AddressPending': {},
+                },
                 'InvalidOrder': {
                     'OrderNotFound': {},
                     'OrderNotCached': {},
                     'CancelPending': {},
+                    'OrderImmediatelyFillable': {},
+                    'OrderNotFillable': {},
                 },
                 'NotSupported': {},
             },

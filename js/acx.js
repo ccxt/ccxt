@@ -12,7 +12,7 @@ module.exports = class acx extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'acx',
             'name': 'ACX',
-            'countries': 'AU',
+            'countries': [ 'AU' ],
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
@@ -106,14 +106,30 @@ module.exports = class acx extends Exchange {
             let market = markets[p];
             let id = market['id'];
             let symbol = market['name'];
-            let [ base, quote ] = symbol.split ('/');
+            let baseId = this.safeString (market, 'base_unit');
+            let quoteId = this.safeString (market, 'quote_unit');
+            if ((baseId === undefined) || (quoteId === undefined)) {
+                let ids = symbol.split ('/');
+                baseId = ids[0].toLowerCase ();
+                quoteId = ids[1].toLowerCase ();
+            }
+            let base = baseId.toUpperCase ();
+            let quote = quoteId.toUpperCase ();
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
+            // todo: find out their undocumented precision and limits
+            let precision = {
+                'amount': 8,
+                'price': 8,
+            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'precision': precision,
                 'info': market,
             });
         }
@@ -146,7 +162,7 @@ module.exports = class acx extends Exchange {
         let request = {
             'market': market['id'],
         };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['limit'] = limit; // default = 300
         let orderbook = await this.publicGetDepth (this.extend (request, params));
         let timestamp = orderbook['timestamp'] * 1000;
@@ -259,14 +275,14 @@ module.exports = class acx extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (!limit)
+        if (limit === undefined)
             limit = 500; // default is 30
         let request = {
             'market': market['id'],
             'period': this.timeframes[timeframe],
             'limit': limit,
         };
-        if (typeof since !== 'undefined')
+        if (since !== undefined)
             request['timestamp'] = since;
         let response = await this.publicGetK (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -274,7 +290,7 @@ module.exports = class acx extends Exchange {
 
     parseOrder (order, market = undefined) {
         let symbol = undefined;
-        if (market) {
+        if (market !== undefined) {
             symbol = market['symbol'];
         } else {
             let marketId = order['market'];
@@ -344,14 +360,18 @@ module.exports = class acx extends Exchange {
         return order;
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let result = await this.privatePostWithdraw (this.extend ({
-            'currency': currency.toLowerCase (),
+        let currency = this.currency (code);
+        // they have XRP but no docs on memo/tag
+        let request = {
+            'currency': currency['id'],
             'sum': amount,
             'address': address,
-        }, params));
+        };
+        let result = await this.privatePostWithdraw (this.extend (request, params));
+        // withdrawal response is undocumented
         return {
             'info': result,
             'id': undefined,
@@ -398,8 +418,8 @@ module.exports = class acx extends Exchange {
                 'tonce': nonce,
             }, params));
             let auth = method + '|' + request + '|' + query;
-            let signature = this.hmac (this.encode (auth), this.encode (this.secret));
-            let suffix = query + '&signature=' + signature;
+            let signed = this.hmac (this.encode (auth), this.encode (this.secret));
+            let suffix = query + '&signature=' + signed;
             if (method === 'GET') {
                 url += '?' + suffix;
             } else {

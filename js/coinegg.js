@@ -42,18 +42,18 @@ module.exports = class coinegg extends Exchange {
                 },
                 'public': {
                     'get': [
-                        'ticker/{quote}',
-                        'depth/{quote}',
-                        'orders/{quote}',
+                        'ticker/region/{quote}',
+                        'depth/region/{quote}',
+                        'orders/region/{quote}',
                     ],
                 },
                 'private': {
                     'post': [
                         'balance',
-                        'trade_add/{quote}',
-                        'trade_cancel/{quote}',
-                        'trade_view/{quote}',
-                        'trade_list/{quote}',
+                        'trade_add/region/{quote}',
+                        'trade_cancel/region/{quote}',
+                        'trade_view/region/{quote}',
+                        'trade_list/region/{quote}',
                     ],
                 },
             },
@@ -142,7 +142,10 @@ module.exports = class coinegg extends Exchange {
                 '405': 'Currency transactions are temporarily closed',
             },
             'options': {
-                'quoteIds': [ 'btc', 'eth', 'usc' ],
+                'quoteIds': [ 'btc', 'eth', 'usc', 'usdt' ],
+            },
+            'commonCurrencies': {
+                'JBC': 'JubaoCoin',
             },
         });
     }
@@ -155,7 +158,7 @@ module.exports = class coinegg extends Exchange {
             let bases = await this.webGetQuoteAllcoin ({
                 'quote': quoteId,
             });
-            if (typeof bases === 'undefined')
+            if (bases === undefined)
                 throw new ExchangeNotAvailable (this.id + ' fetchMarkets() for "' + quoteId + '" returned: "' + this.json (bases) + '"');
             let baseIds = Object.keys (bases);
             let numBaseIds = baseIds.length;
@@ -174,7 +177,6 @@ module.exports = class coinegg extends Exchange {
                     'amount': 8,
                     'price': 8,
                 };
-                let lot = Math.pow (10, -precision['amount']);
                 result.push ({
                     'id': id,
                     'symbol': symbol,
@@ -183,11 +185,10 @@ module.exports = class coinegg extends Exchange {
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'active': true,
-                    'lot': lot,
                     'precision': precision,
                     'limits': {
                         'amount': {
-                            'min': lot,
+                            'min': Math.pow (10, -precision['amount']),
                             'max': Math.pow (10, precision['amount']),
                         },
                         'price': {
@@ -214,7 +215,7 @@ module.exports = class coinegg extends Exchange {
         let open = undefined;
         let change = undefined;
         let average = undefined;
-        if (typeof percentage !== 'undefined') {
+        if (percentage !== undefined) {
             let relativeChange = percentage / 100;
             open = last / this.sum (1, relativeChange);
             change = last - open;
@@ -247,7 +248,7 @@ module.exports = class coinegg extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let ticker = await this.publicGetTickerQuote (this.extend ({
+        let ticker = await this.publicGetTickerRegionQuote (this.extend ({
             'coin': market['baseId'],
             'quote': market['quoteId'],
         }, params));
@@ -293,7 +294,7 @@ module.exports = class coinegg extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let orderbook = await this.publicGetDepthQuote (this.extend ({
+        let orderbook = await this.publicGetDepthRegionQuote (this.extend ({
             'coin': market['baseId'],
             'quote': market['quoteId'],
         }, params));
@@ -325,7 +326,7 @@ module.exports = class coinegg extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let trades = await this.publicGetOrdersQuote (this.extend ({
+        let trades = await this.publicGetOrdersRegionQuote (this.extend ({
             'coin': market['baseId'],
             'quote': market['quoteId'],
         }, params));
@@ -400,7 +401,7 @@ module.exports = class coinegg extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.privatePostTradeAddQuote (this.extend ({
+        let response = await this.privatePostTradeAddRegionQuote (this.extend ({
             'coin': market['baseId'],
             'quote': market['quoteId'],
             'type': side,
@@ -424,7 +425,7 @@ module.exports = class coinegg extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.privatePostTradeCancelQuote (this.extend ({
+        let response = await this.privatePostTradeCancelRegionQuote (this.extend ({
             'id': id,
             'coin': market['baseId'],
             'quote': market['quoteId'],
@@ -435,7 +436,7 @@ module.exports = class coinegg extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.privatePostTradeViewQuote (this.extend ({
+        let response = await this.privatePostTradeViewRegionQuote (this.extend ({
             'id': id,
             'coin': market['baseId'],
             'quote': market['quoteId'],
@@ -450,9 +451,9 @@ module.exports = class coinegg extends Exchange {
             'coin': market['baseId'],
             'quote': market['quoteId'],
         };
-        if (typeof since !== 'undefined')
+        if (since !== undefined)
             request['since'] = since / 1000;
-        let orders = await this.privatePostTradeListQuote (this.extend (request, params));
+        let orders = await this.privatePostTradeListRegionQuote (this.extend (request, params));
         return this.parseOrders (orders['data'], market, since, limit);
     }
 
@@ -514,7 +515,7 @@ module.exports = class coinegg extends Exchange {
         // {"result":false,"code":"103"} - failure
         // {"code":0,"msg":"Suceess","data":{"uid":"2716039","btc_balance":"0.00000000","btc_lock":"0.00000000","xrp_balance":"0.00000000","xrp_lock":"0.00000000"}}
         let result = this.safeValue (response, 'result');
-        if (typeof result === 'undefined')
+        if (result === undefined)
             // public endpoint ← this comment left here by the contributor, in fact a missing result does not necessarily mean a public endpoint...
             // we should just check the code and don't rely on the result at all here...
             return;

@@ -15,6 +15,7 @@ import hashlib
 import math
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import OrderNotFound
@@ -28,7 +29,7 @@ class gateio (Exchange):
         return self.deep_extend(super(gateio, self).describe(), {
             'id': 'gateio',
             'name': 'Gate.io',
-            'countries': 'CN',
+            'countries': ['CN'],
             'version': '2',
             'rateLimit': 1000,
             'has': {
@@ -40,8 +41,10 @@ class gateio (Exchange):
                 'fetchDepositAddress': True,
                 'fetchClosedOrders': True,
                 'fetchOpenOrders': True,
+                'fetchOrderTrades': True,
                 'fetchOrders': True,
                 'fetchOrder': True,
+                'fetchMyTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
@@ -153,9 +156,9 @@ class gateio (Exchange):
             keys = list(market.keys())
             id = keys[0]
             details = market[id]
-            base, quote = id.split('_')
-            base = base.upper()
-            quote = quote.upper()
+            baseId, quoteId = id.split('_')
+            base = baseId.upper()
+            quote = quoteId.upper()
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
@@ -182,12 +185,16 @@ class gateio (Exchange):
                 'price': priceLimits,
                 'cost': costLimits,
             }
+            active = True
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
+                'active': active,
                 'maker': details['fee'] / 100,
                 'taker': details['fee'] / 100,
                 'precision': precision,
@@ -319,7 +326,9 @@ class gateio (Exchange):
             timestamp *= 1000
         id = self.safe_string(trade, 'tradeID')
         id = self.safe_string(trade, 'id', id)
+        # take either of orderid or orderId
         orderId = self.safe_string(trade, 'orderid')
+        orderId = self.safe_string(trade, 'orderNumber', orderId)
         price = self.safe_float(trade, 'rate')
         amount = self.safe_float(trade, 'amount')
         cost = None
@@ -372,6 +381,24 @@ class gateio (Exchange):
         return status
 
     def parse_order(self, order, market=None):
+        #
+        #    {'amount': '0.00000000',
+        #     'currencyPair': 'xlm_usdt',
+        #     'fee': '0.0113766632239302 USDT',
+        #     'feeCurrency': 'USDT',
+        #     'feePercentage': 0.18,
+        #     'feeValue': '0.0113766632239302',
+        #     'filledAmount': '30.14004987',
+        #     'filledRate': 0.2097,
+        #     'initialAmount': '30.14004987',
+        #     'initialRate': '0.2097',
+        #     'left': 0,
+        #     'orderNumber': '998307286',
+        #     'rate': '0.2097',
+        #     'status': 'closed',
+        #     'timestamp': 1531158583,
+        #     'type': 'sell'},
+        #
         id = self.safe_string(order, 'orderNumber')
         symbol = None
         marketId = self.safe_string(order, 'currencyPair')
@@ -379,14 +406,10 @@ class gateio (Exchange):
             market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
-        datetime = None
         timestamp = self.safe_integer(order, 'timestamp')
         if timestamp is not None:
             timestamp *= 1000
-            datetime = self.iso8601(timestamp)
-        status = self.safe_string(order, 'status')
-        if status is not None:
-            status = self.parse_order_status(status)
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         side = self.safe_string(order, 'type')
         price = self.safe_float(order, 'filledRate')
         amount = self.safe_float(order, 'initialAmount')
@@ -397,12 +420,15 @@ class gateio (Exchange):
             remaining = self.safe_float(order, 'left')
         feeCost = self.safe_float(order, 'feeValue')
         feeCurrency = self.safe_string(order, 'feeCurrency')
+        feeRate = self.safe_float(order, 'feePercentage')
+        if feeRate is not None:
+            feeRate = feeRate / 100
         if feeCurrency is not None:
             if feeCurrency in self.currencies_by_id:
                 feeCurrency = self.currencies_by_id[feeCurrency]['code']
         return {
             'id': id,
-            'datetime': datetime,
+            'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'status': status,
             'symbol': symbol,
@@ -417,6 +443,7 @@ class gateio (Exchange):
             'fee': {
                 'cost': feeCost,
                 'currency': feeCurrency,
+                'rate': feeRate,
             },
             'info': order,
         }
@@ -440,6 +467,8 @@ class gateio (Exchange):
         }, response), market)
 
     def cancel_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelOrder requires symbol argument')
         self.load_markets()
         return self.privatePostCancelOrder({
             'orderNumber': id,
@@ -458,14 +487,13 @@ class gateio (Exchange):
         if (address is not None) and(address.find('address') >= 0):
             raise InvalidAddress(self.id + ' queryDepositAddress ' + address)
         if code == 'XRP':
-            parts = address.split('/', 2)
+            parts = address.split(' ')
             address = parts[0]
             tag = parts[1]
         return {
             'currency': currency,
             'address': address,
             'tag': tag,
-            'status': 'ok' if (address is not None) else 'none',
             'info': response,
         }
 
@@ -483,6 +511,17 @@ class gateio (Exchange):
         response = self.privatePostOpenOrders()
         return self.parse_orders(response['orders'], market, since, limit)
 
+    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        response = self.privatePostTradeHistory(self.extend({
+            'currencyPair': market['id'],
+            'orderNumber': id,
+        }, params))
+        return self.parse_trades(response['trades'], market, since, limit)
+
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ExchangeError(self.id + ' fetchMyTrades requires symbol param')
@@ -492,11 +531,12 @@ class gateio (Exchange):
         response = self.privatePostTradeHistory(self.extend({'currencyPair': id}, params))
         return self.parse_trades(response['trades'], market, since, limit)
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
+        currency = self.currency(code)
         response = self.privatePostWithdraw(self.extend({
-            'currency': currency.lower(),
+            'currency': currency['id'],
             'amount': amount,
             'address': address,  # Address must exist in you AddressBook in security settings
         }, params))

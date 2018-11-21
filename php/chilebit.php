@@ -13,7 +13,7 @@ class chilebit extends foxbit {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'chilebit',
             'name' => 'ChileBit',
-            'countries' => 'CL',
+            'countries' => array ( 'CL' ),
             'has' => array (
                 'CORS' => false,
             ),

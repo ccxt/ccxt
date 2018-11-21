@@ -13,7 +13,7 @@ module.exports = class itbit extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'itbit',
             'name': 'itBit',
-            'countries': 'US',
+            'countries': [ 'US' ],
             'rateLimit': 2000,
             'version': 'v1',
             'has': {
@@ -85,14 +85,14 @@ module.exports = class itbit extends Exchange {
         let ticker = await this.publicGetMarketsSymbolTicker (this.extend ({
             'symbol': this.marketId (symbol),
         }, params));
-        let serverTimeUTC = ('serverTimeUTC' in ticker);
+        let serverTimeUTC = this.safeString (ticker, 'serverTimeUTC');
         if (!serverTimeUTC)
             throw new ExchangeError (this.id + ' fetchTicker returned a bad response: ' + this.json (ticker));
-        let timestamp = this.parse8601 (ticker['serverTimeUTC']);
+        let timestamp = this.parse8601 (serverTimeUTC);
         let vwap = this.safeFloat (ticker, 'vwap24h');
         let baseVolume = this.safeFloat (ticker, 'volume24h');
         let quoteVolume = undefined;
-        if (typeof baseVolume !== 'undefined' && typeof vwap !== 'undefined')
+        if (baseVolume !== undefined && vwap !== undefined)
             quoteVolume = baseVolume * vwap;
         let last = this.safeFloat (ticker, 'lastPrice');
         return {
@@ -162,13 +162,13 @@ module.exports = class itbit extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchWallets () {
-        if (!this.userId)
-            throw new AuthenticationError (this.id + ' fetchWallets requires userId in API settings');
-        let params = {
-            'userId': this.userId,
+    async fetchWallets (params = {}) {
+        if (!this.uid)
+            throw new AuthenticationError (this.id + ' fetchWallets requires uid API credential');
+        let request = {
+            'userId': this.uid,
         };
-        return this.privateGetWallets (params);
+        return this.privateGetWallets (this.extend (request, params));
     }
 
     async fetchWallet (walletId, params = {}) {

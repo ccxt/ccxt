@@ -16,7 +16,7 @@ class coinspot (Exchange):
         return self.deep_extend(super(coinspot, self).describe(), {
             'id': 'coinspot',
             'name': 'CoinSpot',
-            'countries': 'AU',  # Australia
+            'countries': ['AU'],  # Australia
             'rateLimit': 1000,
             'has': {
                 'CORS': False,

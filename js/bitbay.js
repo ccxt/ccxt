@@ -177,7 +177,9 @@ module.exports = class bitbay extends Exchange {
         let timestamp = this.milliseconds ();
         let baseVolume = this.safeFloat (ticker, 'volume');
         let vwap = this.safeFloat (ticker, 'vwap');
-        let quoteVolume = baseVolume * vwap;
+        let quoteVolume = undefined;
+        if (baseVolume !== undefined && vwap !== undefined)
+            quoteVolume = baseVolume * vwap;
         let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -270,7 +272,7 @@ module.exports = class bitbay extends Exchange {
             // request['bic'] = '';
         } else {
             method = 'privatePostTransfer';
-            if (typeof tag !== 'undefined')
+            if (tag !== undefined)
                 address += '?dt=' + tag.toString ();
             request['address'] = address;
         }

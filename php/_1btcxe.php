@@ -13,7 +13,7 @@ class _1btcxe extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => '_1btcxe',
             'name' => '1BTCXE',
-            'countries' => 'PA', // Panama
+            'countries' => array ( 'PA' ), // Panama
             'comment' => 'Crypto Capital API',
             'has' => array (
                 'CORS' => true,
@@ -210,14 +210,16 @@ class _1btcxe extends Exchange {
         return $this->privatePostOrdersCancel (array ( 'id' => $id ));
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $response = $this->privatePostWithdrawalsNew (array_merge (array (
-            'currency' => $currency,
+        $currency = $this->currency ($code);
+        $request = array (
+            'currency' => $currency['id'],
             'amount' => floatval ($amount),
             'address' => $address,
-        ), $params));
+        );
+        $response = $this->privatePostWithdrawalsNew (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => $response['result']['uuid'],

@@ -13,7 +13,7 @@ class bitbank extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitbank',
             'name' => 'bitbank',
-            'countries' => 'JP',
+            'countries' => array ( 'JP' ),
             'version' => 'v1',
             'has' => array (
                 'fetchOHLCV' => true,
@@ -51,7 +51,7 @@ class bitbank extends Exchange {
                         '{pair}/depth',
                         '{pair}/transactions',
                         '{pair}/transactions/{yyyymmdd}',
-                        '{pair}/candlestick/array (candle-type)/{yyyymmdd}',
+                        '{pair}/candlestick/{candletype}/{yyyymmdd}',
                     ),
                 ),
                 'private' => array (
@@ -228,9 +228,9 @@ class bitbank extends Exchange {
         $date = $this->milliseconds ();
         $date = $this->ymd ($date);
         $date = explode ('-', $date);
-        $response = $this->publicGetPairCandlestickCandleTypeYyyymmdd (array_merge (array (
+        $response = $this->publicGetPairCandlestickCandletypeYyyymmdd (array_merge (array (
             'pair' => $market['id'],
-            'candle-type' => $this->timeframes[$timeframe],
+            'candletype' => $this->timeframes[$timeframe],
             'yyyymmdd' => implode ('', $date),
         ), $params));
         $ohlcv = $response['data']['candlestick'][0]['ohlcv'];
@@ -319,7 +319,7 @@ class bitbank extends Exchange {
             throw new InvalidOrder ($this->id . ' createOrder requires a $price argument for both $market and limit orders');
         $request = array (
             'pair' => $market['id'],
-            'amount' => $this->amount_to_string($symbol, $amount),
+            'amount' => $this->amount_to_precision($symbol, $amount),
             'price' => $this->price_to_precision($symbol, $price),
             'side' => $side,
             'type' => $type,
@@ -357,9 +357,9 @@ class bitbank extends Exchange {
         $request = array (
             'pair' => $market['id'],
         );
-        if ($limit)
+        if ($limit !== null)
             $request['count'] = $limit;
-        if ($since)
+        if ($since !== null)
             $request['since'] = intval ($since / 1000);
         $orders = $this->privateGetUserSpotActiveOrders (array_merge ($request, $params));
         return $this->parse_orders($orders['data']['orders'], $market, $since, $limit);
@@ -391,12 +391,10 @@ class bitbank extends Exchange {
         // Not sure about this if there could be more than one account...
         $accounts = $response['data']['accounts'];
         $address = $this->safe_string($accounts[0], 'address');
-        $status = $address ? 'ok' : 'none';
         return array (
             'currency' => $currency,
             'address' => $address,
             'tag' => null,
-            'status' => $status,
             'info' => $response,
         );
     }
@@ -518,6 +516,8 @@ class bitbank extends Exchange {
                 '70004' => 'We are unable to accept orders as the transaction is currently suspended',
                 '70005' => 'Order can not be accepted because purchase order is currently suspended',
                 '70006' => 'We can not accept orders because we are currently unsubscribed ',
+                '70009' => 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
+                '70010' => 'We are temporarily raising the minimum order quantity as the system load is now rising.',
             );
             $errorClasses = $this->exceptions;
             $code = $this->safe_string($data, 'code');

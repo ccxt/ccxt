@@ -26,6 +26,7 @@ class coinmate (Exchange):
                     'http://docs.coinmate.apiary.io',
                     'https://coinmate.io/developers',
                 ],
+                'referral': 'https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0',
             },
             'requiredCredentials': {
                 'apiKey': True,

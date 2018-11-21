@@ -19,7 +19,7 @@ class bitbank (Exchange):
         return self.deep_extend(super(bitbank, self).describe(), {
             'id': 'bitbank',
             'name': 'bitbank',
-            'countries': 'JP',
+            'countries': ['JP'],
             'version': 'v1',
             'has': {
                 'fetchOHLCV': True,
@@ -57,7 +57,7 @@ class bitbank (Exchange):
                         '{pair}/depth',
                         '{pair}/transactions',
                         '{pair}/transactions/{yyyymmdd}',
-                        '{pair}/candlestick/{candle-type}/{yyyymmdd}',
+                        '{pair}/candlestick/{candletype}/{yyyymmdd}',
                     ],
                 },
                 'private': {
@@ -225,9 +225,9 @@ class bitbank (Exchange):
         date = self.milliseconds()
         date = self.ymd(date)
         date = date.split('-')
-        response = self.publicGetPairCandlestickCandleTypeYyyymmdd(self.extend({
+        response = self.publicGetPairCandlestickCandletypeYyyymmdd(self.extend({
             'pair': market['id'],
-            'candle-type': self.timeframes[timeframe],
+            'candletype': self.timeframes[timeframe],
             'yyyymmdd': ''.join(date),
         }, params))
         ohlcv = response['data']['candlestick'][0]['ohlcv']
@@ -309,7 +309,7 @@ class bitbank (Exchange):
             raise InvalidOrder(self.id + ' createOrder requires a price argument for both market and limit orders')
         request = {
             'pair': market['id'],
-            'amount': self.amount_to_string(symbol, amount),
+            'amount': self.amount_to_precision(symbol, amount),
             'price': self.price_to_precision(symbol, price),
             'side': side,
             'type': type,
@@ -344,9 +344,9 @@ class bitbank (Exchange):
         request = {
             'pair': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['count'] = limit
-        if since:
+        if since is not None:
             request['since'] = int(since / 1000)
         orders = self.privateGetUserSpotActiveOrders(self.extend(request, params))
         return self.parse_orders(orders['data']['orders'], market, since, limit)
@@ -375,12 +375,10 @@ class bitbank (Exchange):
         # Not sure about self if there could be more than one account...
         accounts = response['data']['accounts']
         address = self.safe_string(accounts[0], 'address')
-        status = 'ok' if address else 'none'
         return {
             'currency': currency,
             'address': address,
             'tag': None,
-            'status': status,
             'info': response,
         }
 
@@ -494,6 +492,8 @@ class bitbank (Exchange):
                 '70004': 'We are unable to accept orders as the transaction is currently suspended',
                 '70005': 'Order can not be accepted because purchase order is currently suspended',
                 '70006': 'We can not accept orders because we are currently unsubscribed ',
+                '70009': 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
+                '70010': 'We are temporarily raising the minimum order quantity as the system load is now rising.',
             }
             errorClasses = self.exceptions
             code = self.safe_string(data, 'code')

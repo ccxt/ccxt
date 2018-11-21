@@ -294,10 +294,11 @@ class bitlish (Exchange):
         self.load_markets()
         return self.privatePostCancelTrade({'id': id})
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
-        if currency != 'BTC':
+        currency = self.currency(code)
+        if code != 'BTC':
             # they did not document other types...
             raise NotSupported(self.id + ' currently supports BTC withdrawals only, until they document other currencies...')
         response = self.privatePostWithdraw(self.extend({

@@ -10,10 +10,13 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.decimal_to_precision import TRUNCATE
 
 
 class kucoin (Exchange):
@@ -22,7 +25,7 @@ class kucoin (Exchange):
         return self.deep_extend(super(kucoin, self).describe(), {
             'id': 'kucoin',
             'name': 'Kucoin',
-            'countries': 'HK',  # Hong Kong
+            'countries': ['HK'],  # Hong Kong
             'version': 'v1',
             'rateLimit': 2000,
             'userAgent': self.userAgents['chrome'],
@@ -97,6 +100,7 @@ class kucoin (Exchange):
                         'account/{coin}/balance',
                         'account/promotion/info',
                         'account/promotion/sum',
+                        'account/transfer-records',
                         'deal-orders',
                         'order/active',
                         'order/active-map',
@@ -125,55 +129,187 @@ class kucoin (Exchange):
                     'tierBased': False,
                     'percentage': False,
                     'withdraw': {
-                        'KCS': 2.0,
-                        'BTC': 0.0005,
-                        'USDT': 10.0,
-                        'ETH': 0.01,
-                        'LTC': 0.001,
-                        'NEO': 0.0,
-                        'GAS': 0.0,
-                        'KNC': 0.5,
-                        'BTM': 5.0,
-                        'QTUM': 0.1,
-                        'EOS': 0.5,
-                        'CVC': 3.0,
-                        'OMG': 0.1,
-                        'PAY': 0.5,
-                        'SNT': 20.0,
-                        'BHC': 1.0,
-                        'HSR': 0.01,
-                        'WTC': 0.1,
-                        'VEN': 2.0,
-                        'MTH': 10.0,
-                        'RPX': 1.0,
-                        'REQ': 20.0,
-                        'EVX': 0.5,
-                        'MOD': 0.5,
-                        'NEBL': 0.1,
-                        'DGB': 0.5,
-                        'CAG': 2.0,
-                        'CFD': 0.5,
-                        'RDN': 0.5,
-                        'UKG': 5.0,
-                        'BCPT': 5.0,
-                        'PPT': 0.1,
+                        'ABT': 2.0,
+                        'ACAT': 10.0,
+                        'ACT': 1.0,
+                        'ADB': 10.0,
+                        'AGI': 40.0,
+                        'AION': 3.5,
+                        'AIX': 2.0,
+                        'AMB': 10.0,
+                        'AOA': 20.0,
+                        'APH': 3.0,
+                        'ARN': 6.0,
+                        'ARY': 10.0,
+                        'AXP': 25.0,
+                        'BAX': 1000.0,
+                        'BCD': 1.0,
                         'BCH': 0.0005,
-                        'STX': 2.0,
-                        'NULS': 1.0,
-                        'GVT': 0.1,
-                        'HST': 2.0,
-                        'PURA': 0.5,
-                        'SUB': 2.0,
-                        'QSP': 5.0,
-                        'POWR': 1.0,
-                        'FLIXX': 10.0,
-                        'LEND': 20.0,
-                        'AMB': 3.0,
-                        'RHOC': 2.0,
-                        'R': 2.0,
-                        'DENT': 50.0,
+                        'BCPT': 20.0,
+                        'BHC': 1.0,
+                        'BNTY': 50.0,
+                        'BOS': 1.0,
+                        'BPT': 5.0,
+                        'BRD': 3.0,
+                        'BTC': 0.0005,
+                        'BTG': 0.01,
+                        'BTM': 5.0,
+                        'BU': 0.5,
+                        'CAG': 2.0,
+                        'CAN': 1.0,
+                        'CAPP': 20.0,
+                        'CAT': 20.0,
+                        'CBC': 5.0,
+                        'CHP': 25.0,
+                        'CHSB': 70.0,
+                        'COFI': 5.0,
+                        'COSM': 50.0,
+                        'COV': 3.0,
+                        'CPC': 10.0,
+                        'CS': 3.0,
+                        'CV': 30.0,
+                        'CVC': 12.0,
+                        'CXO': 30.0,
+                        'DACC': 800.0,
+                        'DADI': 6.0,
+                        'DAG': 80.0,
+                        'DASH': 0.002,
+                        'DAT': 20.0,
+                        'DATX': 70.0,
+                        'DBC': 1.0,
+                        'DCC': 60.0,
+                        'DCR': 0.01,
+                        'DEB': 7.0,
+                        'DENT': 700.0,
+                        'DGB': 0.5,
+                        'DNA': 3.0,
+                        'DOCK': 100.0,
                         'DRGN': 1.0,
-                        'ACT': 0.1,
+                        'DTA': 100.0,
+                        'EBTC': 3.0,
+                        'EDR': 20.0,
+                        'EGT': 200.0,
+                        'ELA': 0.1,
+                        'ELEC': 32.0,
+                        'ELF': 4.0,
+                        'ELIX': 3.0,
+                        'ENJ': 40.0,
+                        'EOS': 0.5,
+                        'ETC': 0.01,
+                        'ETH': 0.01,
+                        'ETN': 50.0,
+                        'EXY': 3.0,
+                        'FLIXX': 10.0,
+                        'FOTA': 1.0,
+                        'GAS': 0.0,
+                        'GAT': 140.0,
+                        'GLA': 4.0,
+                        'GO': 1.0,
+                        'GVT': 0.3,
+                        'HAT': 0.5,
+                        'HAV': 5.0,
+                        'HKN': 0.5,
+                        'HPB': 0.5,
+                        'HSR': 0.01,
+                        'HST': 2.0,
+                        'IHT': 20.0,
+                        'ING': 3.0,
+                        'INS': 5.0,
+                        'IOST': 100.0,
+                        'IOTX': 150.0,
+                        'ITC': 1.0,
+                        'J8T': 30.0,
+                        'JNT': 5.0,
+                        'KCS': 0.5,
+                        'KEY': 200.0,
+                        'KICK': 35.0,
+                        'KNC': 3.5,
+                        'LA': 5.0,
+                        'LALA': 50.0,
+                        'LEND': 130.0,
+                        'LOC': 3.0,
+                        'LOCI': 4.0,
+                        'LOOM': 10.0,
+                        'LTC': 0.001,
+                        'LYM': 20.0,
+                        'MAN': 2.0,
+                        'MANA': 15.0,
+                        'MOBI': 30.0,
+                        'MOD': 2.0,
+                        'MTH': 75.0,
+                        'MTN': 10.0,
+                        'MVP': 100.0,
+                        'MWAT': 20.0,
+                        'NEBL': 0.1,
+                        'NEO': 0.0,
+                        'NULS': 1.0,
+                        'NUSD': 2.0,
+                        'OCN': 100.0,
+                        'OLT': 3.0,
+                        'OMG': 0.4,
+                        'OMX': 50.0,
+                        'ONION': 0.1,
+                        'ONT': 1.0,
+                        'OPEN': 15.0,
+                        'PARETO': 40.0,
+                        'PAY': 0.5,
+                        'PBL': 5.0,
+                        'PLAY': 40.0,
+                        'POLL': 0.5,
+                        'POLY': 10.0,
+                        'POWR': 8.0,
+                        'PPT': 0.3,
+                        'PRL': 1.0,
+                        'PURA': 0.5,
+                        'QKC': 50.0,
+                        'QLC': 1.0,
+                        'QSP': 45.0,
+                        'QTUM': 0.1,
+                        'R': 2.0,
+                        'RDN': 5.0,
+                        'REQ': 40.0,
+                        'RHOC': 2.0,
+                        'RPX': 1.0,
+                        'SHL': 4.0,
+                        'SNC': 10.0,
+                        'SNM': 30.0,
+                        'SNOV': 20.0,
+                        'SNT': 20.0,
+                        'SOUL': 4.0,
+                        'SPF': 10.0,
+                        'SPHTX': 8.0,
+                        'SRN': 5.0,
+                        'STK': 20.0,
+                        'SUB': 12.0,
+                        'TEL': 500.0,
+                        'TFL': 1.0,
+                        'TIME': 0.1,
+                        'TIO': 5.0,
+                        'TKY': 10.0,
+                        'TMT': 50.0,
+                        'TNC': 1.0,
+                        'TOMO': 1.0,
+                        'TRAC': 14.0,
+                        'TRX': 1.0,
+                        'UKG': 5.0,
+                        'USDT': 3.2,
+                        'USE': 900.0,
+                        'UT': 0.1,
+                        'UTK': 10.0,
+                        'VEN': 2.0,
+                        'WAN': 0.7,
+                        'WAX': 8.0,
+                        'WPR': 80.0,
+                        'WTC': 0.5,
+                        'XAS': 0.5,
+                        'XLM': 0.01,
+                        'XLR': 0.1,
+                        'XRB': 0.05,
+                        'ZIL': 50.0,
+                        'ZINC': 30.0,
+                        'ZPT': 1.0,
+                        'ZRX': 2.0,
+                        'ePRX': 1000,
                     },
                     'deposit': {},
                 },
@@ -186,166 +322,182 @@ class kucoin (Exchange):
                 'limits': {
                     'amount': {
                         'min': {
-                            'BTC': 0.00001,
-                            'ETH': 0.00001,
-                            'BCH': 0.00001,
-                            'GAS': 0.1,
-                            'NEO': 0.01,
-                            'KCS': 1,
-                            'TMT': 1,
-                            'TFD': 1,
-                            'LALA': 1,
-                            'CS': 1,
-                            'DOCK': 1,
-                            'ETN': 1,
-                            'IHT': 1,
-                            'KICK': 1,
-                            'WAN': 1,
+                            'ABT': 1,
+                            'ACAT': 1,
                             'ACT': 1,
+                            'ADB': 1,
+                            'AGI': 10,
+                            'AION': 1,
+                            'AIX': 1,
+                            'AMB': 1,
+                            'AOA': 1,
                             'APH': 1,
+                            'ARN': 1,
+                            'ARY': 1,
+                            'AXPR': 1,
                             'BAX': 1,
-                            'DATX': 1,
-                            'DEB': 1,
-                            'ELEC': 1,
-                            'GO': 1,
-                            'HSR': 1,
-                            'IOTX': 1,
-                            'LOOM': 1,
-                            'LYM': 1,
-                            'MOBI': 1,
-                            'OMX': 1,
-                            'ONT': 1,
-                            'OPEN': 1,
-                            'QKC': 1,
-                            'SHL': 1,
-                            'SOUL': 1,
-                            'SPHTX': 1,
-                            'SRN': 1,
-                            'TKY': 1,
-                            'TOMO': 1,
-                            'TRAC': 1,
-                            'COV': 1,
-                            'DADI': 1,
-                            'ELF': 1,
-                            'LTC': 1,
-                            'MAN': 1,
-                            'PRL': 1,
-                            'STK': 1,
-                            'ZIL': 1,
-                            'ZPT': 1,
+                            'BCD': 0.001,
+                            'BCH': 0.00001,
+                            'BCPT': 1,
+                            'BNTY': 1,
+                            'BOS': 1,
                             'BPT': 1,
+                            'BRD': 1,
+                            'BTC': 0.00001,
+                            'BTG': 0.001,
+                            'BTM': 1,
+                            'CAG': 1,
+                            'CanYaCoin': 1,
                             'CAPP': 1,
-                            'POLY': 1,
-                            'TNC': 1,
-                            'XRB': 0.1,
-                            'AXP': 1,
+                            'CAT': 1,
+                            'CBC': 1,
+                            'CHP': 1,
+                            'CHSB': 1,
                             'COFI': 1,
+                            'COV': 1,
+                            'CPC': 1,
+                            'CS': 1,
+                            'CV': 10,
+                            'CVC': 0.1,
                             'CXO': 1,
+                            'DACC': 1,
+                            'DADI': 1,
+                            'DAG': 1,
+                            'DASH': 0.01,
+                            'DAT': 1,
+                            'DATX': 1,
+                            'DBC': 1,
+                            'DCC': 1,
+                            'DEB': 1,
+                            'DENT': 1,
+                            'DGB': 1,
+                            'DNA': 1,
+                            'DOCK': 1,
                             'DRGN': 1,
                             'DTA': 1,
-                            'ING': 1,
-                            'MTN': 1,
-                            'OCN': 10,
-                            'PARETO': 1,
-                            'SNC': 1,
-                            'TEL': 10,
-                            'WAX': 1,
-                            'ADB': 1,
-                            'BOS': 1,
-                            'HAT': 1,
-                            'HKN': 1,
-                            'HPB': 1,
-                            'IOST': 1,
-                            'ARY': 1,
-                            'DBC': 1,
-                            'KEY': 1,
-                            'GAT': 1,
-                            'RPX': 1,
-                            'ACAT': 1,
-                            'CV': 10,
-                            'QLC': 1,
-                            'R': 1,
-                            'TIO': 1,
-                            'ITC': 1,
-                            'AGI': 10,
-                            'EXY': 1,
-                            'MWAT': 1,
-                            'DENT': 1,
-                            'J8T': 1,
-                            'LOCI': 1,
-                            'CAT': 1,
-                            'ARN': 1,
-                            'CAN': 1,
-                            'EOS': 0.1,
-                            'ETC': 0.1,
-                            'JNT': 1,
-                            'PLAY': 1,
-                            'CHP': 1,
-                            'DASH': 0.01,
-                            'DNA': 1,
                             'EBTC': 1,
-                            'FOTA': 1,
-                            'PURA': 0.1,
-                            'UTK': 1,
-                            'CAG': 1,
-                            'GLA': 1,
-                            'HAV': 1,
-                            'SPF': 1,
-                            'TIME': 1,
-                            'ABT': 1,
-                            'BNTY': 1,
+                            'EDR': 1,
+                            'EGT': 1,
+                            'ELA': 1,
+                            'ELEC': 1,
+                            'ELF': 1,
                             'ELIX': 1,
                             'ENJ': 1,
-                            'AIX': 1,
-                            'VEN': 1,
-                            'AION': 1,
-                            'DAT': 1,
-                            'QTUM': 0.1,
-                            'WTC': 0.1,
-                            'DGB': 1,
-                            'SNOV': 1,
-                            'BRD': 1,
-                            'AMB': 1,
-                            'BTM': 1,
-                            'MANA': 1,
-                            'RHOC': 1,
-                            'XLR': 1,
-                            'XAS': 0.1,
-                            'CHSB': 1,
-                            'UKG': 1,
-                            'POLL': 1,
+                            'EOS': 0.1,
+                            'ETC': 0.1,
+                            'ETH': 0.00001,
+                            'ETN': 1,
+                            'EXY': 1,
                             'FLIXX': 0.1,
-                            'INS': 1,
-                            'OMG': 0.1,
-                            'TFL': 1,
-                            'WPR': 1,
-                            'LEND': 1,
-                            'KNC': 0.001,
-                            'BCD': 0.001,
-                            'LA': 1,
-                            'ONION': 1,
-                            'POWR': 0.1,
-                            'SNM': 1,
-                            'BTG': 0.001,
-                            'PBL': 1,
-                            'MOD': 0.1,
-                            'PPT': 0.1,
-                            'BCPT': 1,
+                            'FOTA': 1,
+                            'GAS': 0.1,
+                            'GAT': 1,
+                            'GLA': 1,
+                            'GO': 1,
                             'GVT': 0.1,
+                            'HAV': 1,
+                            'HKN': 1,
+                            'HPB': 1,
+                            'HSR': 0.0001,
                             'HST': 0.1,
-                            'SNT': 0.1,
-                            'SUB': 0.1,
-                            'NEBL': 0.1,
-                            'CVC': 0.1,
+                            'IHT': 1,
+                            'ING': 1,
+                            'INS': 1,
+                            'IOST': 1,
+                            'IOTX': 1,
+                            'ITC': 1,
+                            'J8T': 1,
+                            'JNT': 1,
+                            'KCS': 1,
+                            'KEY': 1,
+                            'KICK': 1,
+                            'KNC': 0.001,
+                            'LA': 1,
+                            'LALA': 1,
+                            'LEND': 1,
+                            'LOCI': 1,
+                            'LOOM': 1,
+                            'LTC': 1,
+                            'LYM': 1,
+                            'MAN': 1,
+                            'MANA': 1,
+                            'MOBI': 1,
+                            'MOD': 0.1,
                             'MTH': 1,
+                            'MTN': 1,
+                            'MWAT': 1,
+                            'NANO': 0.1,
+                            'NEBL': 0.1,
+                            'NEO': 0.01,
                             'NULS': 0.1,
+                            'NUSD': 1,
+                            'OCN': 10,
+                            'OLT': 1,
+                            'OMG': 0.1,
+                            'OMX': 1,
+                            'ONION': 1,
+                            'ONT': 1,
+                            'OPEN': 1,
+                            'PARETO': 1,
                             'PAY': 0.1,
+                            'PBL': 1,
+                            'PHX': 1,
+                            'PLAY': 1,
+                            'POLL': 1,
+                            'POLY': 1,
+                            'POWR': 0.1,
+                            'PPT': 0.1,
+                            'PRL': 1,
+                            'PURA': 0.1,
+                            'QKC': 1,
+                            'QLC': 1,
+                            'QSP': 0.1,
+                            'QTUM': 0.1,
+                            'R': 1,
                             'RDN': 1,
                             'REQ': 1,
-                            'QSP': 0.1,
+                            'RHOC': 1,
+                            'RPX': 1,
+                            'SHL': 1,
+                            'SNC': 1,
+                            'SNM': 1,
+                            'SNOV': 1,
+                            'SNT': 0.1,
+                            'SOUL': 1,
+                            'SPF': 1,
+                            'SPHTX': 1,
+                            'SRN': 1,
+                            'STK': 1,
+                            'SUB': 0.1,
+                            'TEL': 10,
+                            'TFD': 1,
+                            'TFL': 1,
+                            'TIME': 1,
+                            'TIO': 1,
+                            'TKY': 1,
+                            'TMT': 1,
+                            'TNC': 1,
+                            'TOMO': 1,
+                            'TRAC': 1,
+                            'UKG': 1,
+                            'UTK': 1,
+                            'WAN': 1,
+                            'WAX': 1,
+                            'WPR': 1,
+                            'WTC': 0.1,
+                            'XAS': 0.1,
+                            'XLM': 1,
+                            'XLR': 1,
+                            'ZIL': 1,
+                            'ZINC': 1,
+                            'ZPT': 1,
                         },
                     },
                 },
+            },
+            'commonCurrencies': {
+                'CAN': 'CanYaCoin',
+                'XRB': 'NANO',
             },
         })
 
@@ -358,6 +510,22 @@ class kucoin (Exchange):
         self.options['timeDifference'] = int(after - response['timestamp'])
         return self.options['timeDifference']
 
+    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+        market = self.markets[symbol]
+        key = 'quote'
+        rate = market[takerOrMaker]
+        cost = float(self.cost_to_precision(symbol, amount * rate))
+        if side == 'sell':
+            cost *= price
+        else:
+            key = 'base'
+        return {
+            'type': takerOrMaker,
+            'currency': market[key],
+            'rate': rate,
+            'cost': float(self.fee_to_precision(symbol, cost)),
+        }
+
     def fetch_markets(self):
         response = self.publicGetMarketOpenSymbols()
         if self.options['adjustForTimeDifference']:
@@ -367,10 +535,10 @@ class kucoin (Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             id = market['symbol']
-            base = market['coinType']
-            quote = market['coinTypePair']
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            baseId = market['coinType']
+            quoteId = market['coinTypePair']
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -384,11 +552,12 @@ class kucoin (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': active,
                 'taker': self.safe_float(market, 'feeRate'),
                 'maker': self.safe_float(market, 'feeRate'),
                 'info': market,
-                'lot': math.pow(10, -precision['amount']),
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -417,7 +586,6 @@ class kucoin (Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         }
 
@@ -444,7 +612,6 @@ class kucoin (Exchange):
                 'info': currency,
                 'name': currency['name'],
                 'active': active,
-                'status': 'ok',
                 'fee': currency['withdrawMinFee'],  # todo: redesign
                 'precision': precision,
                 'limits': {
@@ -541,7 +708,14 @@ class kucoin (Exchange):
             symbol = order['coinType'] + '/' + order['coinTypePair']
         timestamp = self.safe_value(order, 'createdAt')
         remaining = self.safe_float(order, 'pendingAmount')
-        status = self.safe_value(order, 'status')
+        status = None
+        if 'status' in order:
+            status = order['status']
+        else:
+            if self.safe_value(order, 'isActive', True):
+                status = 'open'
+            else:
+                status = 'closed'
         filled = self.safe_float(order, 'dealAmount')
         amount = self.safe_float(order, 'amount')
         cost = self.safe_float(order, 'dealValue')
@@ -629,7 +803,7 @@ class kucoin (Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
         orderType = self.safe_value(params, 'type')
         if orderType is None:
             raise ExchangeError(self.id + ' fetchOrder requires a type parameter("BUY" or "SELL")')
@@ -733,18 +907,26 @@ class kucoin (Exchange):
         #
         return self.parse_orders_by_status(orders, market, since, limit, 'closed')
 
+    def price_to_precision(self, symbol, price):
+        market = self.market(symbol)
+        code = market['quote']
+        return self.decimal_to_precision(price, ROUND, self.currencies[code]['precision'], self.precisionMode)
+
+    def amount_to_precision(self, symbol, amount):
+        market = self.market(symbol)
+        code = market['base']
+        return self.decimal_to_precision(amount, TRUNCATE, self.currencies[code]['precision'], self.precisionMode)
+
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':
             raise ExchangeError(self.id + ' allows limit orders only')
         self.load_markets()
         market = self.market(symbol)
-        quote = market['quote']
-        base = market['base']
         request = {
             'symbol': market['id'],
             'type': side.upper(),
-            'price': self.truncate(price, self.currencies[quote]['precision']),
-            'amount': self.truncate(amount, self.currencies[base]['precision']),
+            'price': self.price_to_precision(symbol, price),
+            'amount': self.amount_to_precision(symbol, amount),
         }
         price = float(price)
         amount = float(amount)
@@ -752,14 +934,11 @@ class kucoin (Exchange):
         response = self.privatePostOrder(self.extend(request, params))
         orderId = self.safe_string(response['data'], 'orderOid')
         timestamp = self.safe_integer(response, 'timestamp')
-        iso8601 = None
-        if timestamp is not None:
-            iso8601 = self.iso8601(timestamp)
         order = {
             'info': response,
             'id': orderId,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'symbol': market['symbol'],
             'type': type,
@@ -781,7 +960,7 @@ class kucoin (Exchange):
         # docs say symbol is required, but it seems to be optional
         # you can cancel all orders, or filter by symbol or type or both
         request = {}
-        if symbol:
+        if symbol is not None:
             self.load_markets()
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -843,10 +1022,10 @@ class kucoin (Exchange):
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['datetime']
         symbol = None
-        if market:
-            symbol = market['symbol']
-        else:
-            symbol = ticker['coinType'] + '/' + ticker['coinTypePair']
+        if market is None:
+            marketId = ticker['coinType'] + '-' + ticker['coinTypePair']
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
         # TNC coin doesn't have changerate for some reason
         change = self.safe_float(ticker, 'change')
         last = self.safe_float(ticker, 'lastDealPrice')
@@ -855,6 +1034,8 @@ class kucoin (Exchange):
             if change is not None:
                 open = last - change
         changePercentage = self.safe_float(ticker, 'changeRate')
+        if market is not None:
+            symbol = market['symbol']
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -879,6 +1060,7 @@ class kucoin (Exchange):
         }
 
     def fetch_tickers(self, symbols=None, params={}):
+        self.load_markets()
         response = self.publicGetMarketOpenSymbols(params)
         tickers = response['data']
         result = {}
@@ -917,6 +1099,7 @@ class kucoin (Exchange):
                 side = 'sell'
             price = trade[2]
             amount = trade[3]
+            id = trade[5]
         else:
             timestamp = self.safe_value(trade, 'createdAt')
             order = self.safe_string(trade, 'orderOid')
@@ -928,15 +1111,17 @@ class kucoin (Exchange):
             amount = self.safe_float(trade, 'amount')
             cost = self.safe_float(trade, 'dealValue')
             feeCurrency = None
-            if market is not None:
-                feeCurrency = market['quote'] if (side == 'sell') else market['base']
-            else:
-                feeCurrencyField = 'coinTypePair' if (side == 'sell') else 'coinType'
-                feeCurrency = self.safe_string(order, feeCurrencyField)
-                if feeCurrency is not None:
-                    if feeCurrency in self.currencies_by_id:
-                        feeCurrency = self.currencies_by_id[feeCurrency]['code']
+            if side is not None:
+                if market is not None:
+                    feeCurrency = market['quote'] if (side == 'sell') else market['base']
+                else:
+                    feeCurrencyField = 'coinTypePair' if (side == 'sell') else 'coinType'
+                    feeCurrency = self.safe_string(order, feeCurrencyField)
+                    if feeCurrency is not None:
+                        if feeCurrency in self.currencies_by_id:
+                            feeCurrency = self.currencies_by_id[feeCurrency]['code']
             fee = {
+                'rate': self.safe_float(trade, 'feeRate'),
                 'cost': self.safe_float(trade, 'fee'),
                 'currency': feeCurrency,
             }
@@ -960,6 +1145,8 @@ class kucoin (Exchange):
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
+        if limit is None:
+            limit = 100  # default to 100 even if it was explicitly set to None by the user
         market = self.market(symbol)
         response = self.publicGetOpenDealOrders(self.extend({
             'symbol': market['id'],
@@ -972,21 +1159,17 @@ class kucoin (Exchange):
         # it improperly mimics fetchMyTrades with closed orders
         # kucoin does not have any means of fetching personal trades at all
         # self will effectively simplify current convoluted implementations of parseOrder and parseTrade
-        if not symbol:
-            raise ExchangeError(self.id + ' fetchMyTrades is deprecated and requires a symbol argument')
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades is deprecated and requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = self.privateGetDealOrders(self.extend(request, params))
         return self.parse_trades(response['data']['datas'], market, since, limit)
-
-    def parse_trading_view_ohlcv(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
-        result = self.convert_trading_view_to_ohlcv(ohlcvs)
-        return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
@@ -1028,11 +1211,16 @@ class kucoin (Exchange):
         self.load_markets()
         currency = self.currency(code)
         self.check_address(address)
-        response = self.privatePostAccountCoinWithdrawApply(self.extend({
+        request = {
             'coin': currency['id'],
             'amount': amount,
             'address': address,
-        }, params))
+        }
+        # they don't have the tag properly documented for currencies that require it(XLM, XRP, ...)
+        # https://www.reddit.com/r/kucoin/comments/93o92b/withdraw_of_xlm_through_api/
+        if tag is not None:
+            request['address'] += '@' + tag
+        response = self.privatePostAccountCoinWithdrawApply(self.extend(request, params))
         return {
             'info': response,
             'id': None,

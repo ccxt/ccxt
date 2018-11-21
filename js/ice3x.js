@@ -12,8 +12,9 @@ module.exports = class ice3x extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'ice3x',
             'name': 'ICE3X',
-            'countries': 'ZA', // South Africa
+            'countries': [ 'ZA' ], // South Africa
             'rateLimit': 1000,
+            'version': 'v1',
             'has': {
                 'fetchCurrencies': true,
                 'fetchTickers': true,
@@ -24,7 +25,7 @@ module.exports = class ice3x extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38012176-11616c32-3269-11e8-9f05-e65cf885bb15.jpg',
-                'api': 'https://ice3x.com/api/v1',
+                'api': 'https://ice3x.com/api',
                 'www': [
                     'https://ice3x.com',
                     'https://ice3x.co.za',
@@ -90,14 +91,15 @@ module.exports = class ice3x extends Exchange {
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
-            let id = currency['currency_id'];
-            let code = this.commonCurrencyCode (currency['iso'].toUpperCase ());
+            let id = this.safeString (currency, 'currency_id');
+            let code = this.safeString (currency, 'iso');
+            code = code.toUpperCase ();
+            code = this.commonCurrencyCode (code);
             result[code] = {
                 'id': id,
                 'code': code,
                 'name': currency['name'],
                 'active': true,
-                'status': 'ok',
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -129,9 +131,9 @@ module.exports = class ice3x extends Exchange {
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
-            let id = market['pair_id'];
-            let baseId = market['currency_id_from'].toString ();
-            let quoteId = market['currency_id_to'].toString ();
+            let id = this.safeString (market, 'pair_id');
+            let baseId = this.safeString (market, 'currency_id_from');
+            let quoteId = this.safeString (market, 'currency_id_to');
             let baseCurrency = this.currencies_by_id[baseId];
             let quoteCurrency = this.currencies_by_id[quoteId];
             let base = this.commonCurrencyCode (baseCurrency['code']);
@@ -145,7 +147,6 @@ module.exports = class ice3x extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': true,
-                'lot': undefined,
                 'info': market,
             });
         }
@@ -196,18 +197,31 @@ module.exports = class ice3x extends Exchange {
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];
-            let market = this.marketsById[ticker['pair_id']];
-            let symbol = market['symbol'];
-            result[symbol] = this.parseTicker (ticker, market);
+            let marketId = this.safeString (ticker, 'pair_id');
+            let market = this.safeValue (this.marketsById, marketId);
+            if (market !== undefined) {
+                let symbol = market['symbol'];
+                result[symbol] = this.parseTicker (ticker, market);
+            }
         }
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetOrderbookInfo (this.extend ({
+        const request = {
             'pair_id': this.marketId (symbol),
-        }, params));
+        };
+        if (limit !== undefined) {
+            let type = this.safeString (params, 'type');
+            if ((type !== 'ask') && (type !== 'bid')) {
+                // eslint-disable-next-line quotes
+                throw new ExchangeError (this.id + " fetchOrderBook requires an exchange-specific extra 'type' param ('bid' or 'ask') when used with a limit");
+            } else {
+                request['items_per_page'] = limit;
+            }
+        }
+        let response = await this.publicGetOrderbookInfo (this.extend (request, params));
         let orderbook = response['response']['entities'];
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
     }
@@ -370,9 +384,9 @@ module.exports = class ice3x extends Exchange {
         let request = {
             'pair_id': market['id'],
         };
-        if (limit)
+        if (limit !== undefined)
             request['items_per_page'] = limit;
-        if (since)
+        if (since !== undefined)
             request['date_from'] = parseInt (since / 1000);
         let response = await this.privatePostTradeList (this.extend (request, params));
         let trades = response['response']['entities'];
@@ -398,11 +412,10 @@ module.exports = class ice3x extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + path;
+        let url = this.urls['api'] + '/' + this.version + '/' + path;
         if (api === 'public') {
-            params = this.urlencode (params);
-            if (params.length)
-                url += '?' + params;
+            if (Object.keys (params).length)
+                url += '?' + this.urlencode (params);
         } else {
             this.checkRequiredCredentials ();
             body = this.urlencode (this.extend ({

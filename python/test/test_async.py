@@ -19,7 +19,7 @@ sys.path.append(root)
 
 # ------------------------------------------------------------------------------
 
-import ccxt.async as ccxt  # noqa: E402
+import ccxt.async_support as ccxt  # noqa: E402
 
 # ------------------------------------------------------------------------------
 
@@ -386,6 +386,8 @@ with open(keys_file) as file:
 
 # instantiate all exchanges
 for id in ccxt.exchanges:
+    if id == 'theocean':
+        continue
     exchange = getattr(ccxt, id)
     exchange_config = {'verbose': argv.verbose}
     if sys.version_info[0] < 3:
@@ -401,17 +403,19 @@ async def main():
 
     if argv.exchange:
 
-        exchange = exchanges[argv.exchange]
-        symbol = argv.symbol
+        if argv.exchange != 'theocean':
 
-        if hasattr(exchange, 'skip') and exchange.skip:
-            dump(green(exchange.id), 'skipped')
-        else:
-            if symbol:
-                await load_exchange(exchange)
-                await test_symbol(exchange, symbol)
+            exchange = exchanges[argv.exchange]
+            symbol = argv.symbol
+
+            if hasattr(exchange, 'skip') and exchange.skip:
+                dump(green(exchange.id), 'skipped')
             else:
-                await try_all_proxies(exchange, proxies)
+                if symbol:
+                    await load_exchange(exchange)
+                    await test_symbol(exchange, symbol)
+                else:
+                    await try_all_proxies(exchange, proxies)
 
     else:
         for exchange in sorted(exchanges.values(), key=lambda x: x.id):

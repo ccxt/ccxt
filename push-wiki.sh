@@ -2,6 +2,7 @@
 
 cd ccxt.wiki
 cp ../wiki/FAQ.md .
+cp ../wiki/Certification.md .
 cp ../wiki/Manual.md .
 cp ../wiki/README.md ./Home.md
 cp ../wiki/Exchange-Markets.md .

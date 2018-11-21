@@ -12,7 +12,7 @@ class btcexchange (btcturk):
         return self.deep_extend(super(btcexchange, self).describe(), {
             'id': 'btcexchange',
             'name': 'BTCExchange',
-            'countries': 'PH',  # Philippines
+            'countries': ['PH'],  # Philippines
             'rateLimit': 1500,
             'has': {
                 'CORS': False,

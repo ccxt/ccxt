@@ -51,15 +51,29 @@ let printSymbols = async (id) => {
             Object.values (markets).forEach (market => log (market))
 
         log ("\nSymbols:\n")
+
         // make a table of all markets
-        let table = asTable (ccxt.sortBy (Object.values (markets), 'symbol'))
+
+        const marketsList =
+            ccxt.sortBy (Object.values (markets), 'symbol')
+                .map (market =>
+                    ccxt.omit (market, [ 'info', 'limits', 'precision', 'fees' ]))
+
+        let table = asTable (marketsList)
         log (table)
 
         log ("\n---------------------------------------------------------------")
 
         log ("\nCurrencies:\n")
+
         // make a table of all currencies
-        const currenciesTable = asTable (ccxt.sortBy (Object.values (exchange.currencies), 'code'))
+
+        const currenciesList =
+            ccxt.sortBy (Object.values (exchange.currencies), 'code')
+                .map (currency =>
+                    ccxt.omit (currency, [ 'info', 'limits' ]))
+
+        const currenciesTable = asTable (currenciesList)
         log (currenciesTable)
 
         log ("\n---------------------------------------------------------------")

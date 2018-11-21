@@ -13,12 +13,14 @@ class quadrigacx extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'quadrigacx',
             'name' => 'QuadrigaCX',
-            'countries' => 'CA',
+            'countries' => array ( 'CA' ),
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array (
                 'fetchDepositAddress' => true,
                 'fetchTickers' => true,
+                'fetchOrder' => true,
+                'fetchMyTrades' => true,
                 'CORS' => true,
                 'withdraw' => true,
             ),
@@ -27,6 +29,7 @@ class quadrigacx extends Exchange {
                 'api' => 'https://api.quadrigacx.com',
                 'www' => 'https://www.quadrigacx.com',
                 'doc' => 'https://www.quadrigacx.com/api_info',
+                'referral' => 'https://www.quadrigacx.com/?ref=laiqgbp6juewva44finhtmrk',
             ),
             'requiredCredentials' => array (
                 'apiKey' => true,
@@ -64,16 +67,20 @@ class quadrigacx extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/CAD' => array ( 'id' => 'btc_cad', 'symbol' => 'BTC/CAD', 'base' => 'BTC', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
-                'BTC/USD' => array ( 'id' => 'btc_usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'maker' => 0.005, 'taker' => 0.005 ),
-                'ETH/BTC' => array ( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'maker' => 0.002, 'taker' => 0.002 ),
-                'ETH/CAD' => array ( 'id' => 'eth_cad', 'symbol' => 'ETH/CAD', 'base' => 'ETH', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
-                'LTC/CAD' => array ( 'id' => 'ltc_cad', 'symbol' => 'LTC/CAD', 'base' => 'LTC', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
-                'LTC/BTC' => array ( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'maker' => 0.005, 'taker' => 0.005 ),
-                'BCH/CAD' => array ( 'id' => 'bch_cad', 'symbol' => 'BCH/CAD', 'base' => 'BCH', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
-                'BCH/BTC' => array ( 'id' => 'bch_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'maker' => 0.005, 'taker' => 0.005 ),
-                'BTG/CAD' => array ( 'id' => 'btg_cad', 'symbol' => 'BTG/CAD', 'base' => 'BTG', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
-                'BTG/BTC' => array ( 'id' => 'btg_btc', 'symbol' => 'BTG/BTC', 'base' => 'BTG', 'quote' => 'BTC', 'maker' => 0.005, 'taker' => 0.005 ),
+                'BTC/CAD' => array ( 'id' => 'btc_cad', 'symbol' => 'BTC/CAD', 'base' => 'BTC', 'quote' => 'CAD', 'baseId' => 'btc', 'quoteId' => 'cad', 'maker' => 0.005, 'taker' => 0.005 ),
+                'BTC/USD' => array ( 'id' => 'btc_usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'baseId' => 'btc', 'quoteId' => 'usd', 'maker' => 0.005, 'taker' => 0.005 ),
+                'ETH/BTC' => array ( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'baseId' => 'eth', 'quoteId' => 'btc', 'maker' => 0.002, 'taker' => 0.002 ),
+                'ETH/CAD' => array ( 'id' => 'eth_cad', 'symbol' => 'ETH/CAD', 'base' => 'ETH', 'quote' => 'CAD', 'baseId' => 'eth', 'quoteId' => 'cad', 'maker' => 0.005, 'taker' => 0.005 ),
+                'LTC/CAD' => array ( 'id' => 'ltc_cad', 'symbol' => 'LTC/CAD', 'base' => 'LTC', 'quote' => 'CAD', 'baseId' => 'ltc', 'quoteId' => 'cad', 'maker' => 0.005, 'taker' => 0.005 ),
+                'LTC/BTC' => array ( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'baseId' => 'ltc', 'quoteId' => 'btc', 'maker' => 0.005, 'taker' => 0.005 ),
+                'BCH/CAD' => array ( 'id' => 'bch_cad', 'symbol' => 'BCH/CAD', 'base' => 'BCH', 'quote' => 'CAD', 'baseId' => 'bch', 'quoteId' => 'cad', 'maker' => 0.005, 'taker' => 0.005 ),
+                'BCH/BTC' => array ( 'id' => 'bch_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'baseId' => 'bch', 'quoteId' => 'btc', 'maker' => 0.005, 'taker' => 0.005 ),
+                'BTG/CAD' => array ( 'id' => 'btg_cad', 'symbol' => 'BTG/CAD', 'base' => 'BTG', 'quote' => 'CAD', 'baseId' => 'btg', 'quoteId' => 'cad', 'maker' => 0.005, 'taker' => 0.005 ),
+                'BTG/BTC' => array ( 'id' => 'btg_btc', 'symbol' => 'BTG/BTC', 'base' => 'BTG', 'quote' => 'BTC', 'baseId' => 'btg', 'quoteId' => 'btc', 'maker' => 0.005, 'taker' => 0.005 ),
+            ),
+            'exceptions' => array (
+                '101' => '\\ccxt\\AuthenticationError',
+                '106' => '\\ccxt\\OrderNotFound', // array ( 'code':106, 'message' => 'Cannot perform request - not found' )
             ),
         ));
     }
@@ -81,18 +88,114 @@ class quadrigacx extends Exchange {
     public function fetch_balance ($params = array ()) {
         $balances = $this->privatePostBalance ();
         $result = array ( 'info' => $balances );
-        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
-        for ($i = 0; $i < count ($currencies); $i++) {
-            $currency = $currencies[$i];
-            $lowercase = strtolower ($currency);
-            $account = array (
-                'free' => floatval ($balances[$lowercase . '_available']),
-                'used' => floatval ($balances[$lowercase . '_reserved']),
-                'total' => floatval ($balances[$lowercase . '_balance']),
+        $currencyIds = is_array ($this->currencies_by_id) ? array_keys ($this->currencies_by_id) : array ();
+        for ($i = 0; $i < count ($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $currency = $this->currencies_by_id[$currencyId];
+            $code = $currency['code'];
+            $result[$code] = array (
+                'free' => $this->safe_float($balances, $currencyId . '_available'),
+                'used' => $this->safe_float($balances, $currencyId . '_reserved'),
+                'total' => $this->safe_float($balances, $currencyId . '_balance'),
             );
-            $result[$currency] = $account;
         }
         return $this->parse_balance($result);
+    }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $market = null;
+        $request = array ();
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['book'] = $market['id'];
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->privatePostUserTransactions (array_merge ($request, $params));
+        $trades = $this->filter_by($response, 'type', 2);
+        return $this->parse_trades($trades, $market, $since, $limit);
+    }
+
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $request = array (
+            'id' => $id,
+        );
+        $response = $this->privatePostLookupOrder (array_merge ($request, $params));
+        return $this->parse_orders($response);
+    }
+
+    public function parse_order_status ($status) {
+        $statuses = array (
+            '-1' => 'canceled',
+            '0' => 'open',
+            '1' => 'open',
+            '2' => 'closed',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_order ($order, $market = null) {
+        $id = $this->safe_string($order, 'id');
+        $price = $this->safe_float($order, 'price');
+        $amount = null;
+        $filled = null;
+        $remaining = $this->safe_float($order, 'amount');
+        $cost = null;
+        $symbol = null;
+        $marketId = $this->safe_string($order, 'book');
+        if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+        } else {
+            list ($baseId, $quoteId) = explode ('_', $marketId);
+            $base = strtoupper ($baseId);
+            $quote = strtoupper ($quoteId);
+            $base = $this->common_currency_code($base);
+            $quote = $this->common_currency_code($quote);
+            $symbol = $base . '/' . $quote;
+        }
+        $side = $this->safe_string($order, 'type');
+        if ($side === '0') {
+            $side = 'buy';
+        } else {
+            $side = 'sell';
+        }
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
+        $timestamp = $this->parse8601 ($this->safe_string($order, 'created'));
+        $lastTradeTimestamp = $this->parse8601 ($this->safe_string($order, 'updated'));
+        $type = ($price === 0.0) ? 'market' : 'limit';
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
+        if ($status === 'closed') {
+            $amount = $remaining;
+            $filled = $remaining;
+            $remaining = 0;
+        }
+        if (($type === 'limit') && ($price !== null)) {
+            if ($filled !== null) {
+                $cost = $price * $filled;
+            }
+        }
+        $result = array (
+            'info' => $order,
+            'id' => $id,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => $lastTradeTimestamp,
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'cost' => $cost,
+            'average' => null,
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'status' => $status,
+            'fee' => null,
+        );
+        return $result;
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
@@ -148,7 +251,9 @@ class quadrigacx extends Exchange {
         $timestamp = intval ($ticker['timestamp']) * 1000;
         $vwap = $this->safe_float($ticker, 'vwap');
         $baseVolume = $this->safe_float($ticker, 'volume');
-        $quoteVolume = $baseVolume * $vwap;
+        $quoteVolume = null;
+        if ($baseVolume !== null && $vwap !== null)
+            $quoteVolume = $baseVolume * $vwap;
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
@@ -174,19 +279,120 @@ class quadrigacx extends Exchange {
         );
     }
 
-    public function parse_trade ($trade, $market) {
-        $timestamp = intval ($trade['date']) * 1000;
+    public function parse_trade ($trade, $market = null) {
+        //
+        // fetchTrades (public)
+        //
+        //     array ("$amount":"2.26252009","date":"1541355778","$price":"0.03300000","tid":3701722,"$side":"sell")
+        //
+        // fetchMyTrades (private)
+        //
+        //     {
+        //         "datetime" => "2018-01-01T00:00:00", // date and time
+        //         "$id" => 123, // unique identifier (only for trades)
+        //         "type" => 2, // transaction type (0 - deposit; 1 - withdrawal; 2 - $trade)
+        //         "method" => "...", // deposit or withdrawal method
+        //         "(minor currency code)" – the minor currency $amount
+        //         "(major currency code)" – the major currency $amount
+        //         "order_id" => "...", // a 64 character long hexadecimal string representing the order that was fully or partially filled (only for trades)
+        //         "$fee" => 123.45, // transaction $fee
+        //         "$rate" => 54.321, // $rate per btc (only for trades)
+        //     }
+        //
+        $id = $this->safe_string_2($trade, 'tid', 'id');
+        $timestamp = $this->parse8601 ($this->safe_string($trade, 'datetime'));
+        if ($timestamp === null) {
+            $timestamp = $this->safe_integer($trade, 'date');
+            if ($timestamp !== null) {
+                $timestamp *= 1000;
+            }
+        }
+        $symbol = null;
+        $omitted = $this->omit ($trade, array ( 'datetime', 'id', 'type', 'method', 'order_id', 'fee', 'rate' ));
+        $keys = is_array ($omitted) ? array_keys ($omitted) : array ();
+        $rate = $this->safe_float($trade, 'rate');
+        for ($i = 0; $i < count ($keys); $i++) {
+            $marketId = $keys[$i];
+            $floatValue = $this->safe_float($trade, $marketId);
+            if ($floatValue === $rate) {
+                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                    $market = $this->markets_by_id[$marketId];
+                } else {
+                    $currencyIds = explode ('_', $marketId);
+                    $numCurrencyIds = is_array ($currencyIds) ? count ($currencyIds) : 0;
+                    if ($numCurrencyIds === 2) {
+                        $baseId = $currencyIds[0];
+                        $quoteId = $currencyIds[1];
+                        $base = strtoupper ($baseId);
+                        $quote = strtoupper ($quoteId);
+                        $base = $this->common_currency_code($base);
+                        $quote = $this->common_currency_code($base);
+                        $symbol = $base . '/' . $quote;
+                    }
+                }
+            }
+        }
+        $orderId = $this->safe_string($trade, 'order_id');
+        $side = $this->safe_string($trade, 'side');
+        $price = $this->safe_float($trade, 'price', $rate);
+        $amount = $this->safe_float($trade, 'amount');
+        $cost = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+            $baseId = $market['baseId'];
+            $quoteId = $market['quoteId'];
+            if ($amount === null) {
+                $amount = $this->safe_float($trade, $baseId);
+                if ($amount !== null) {
+                    $amount = abs ($amount);
+                }
+            }
+            $cost = $this->safe_float($trade, $quoteId);
+            if ($cost !== null) {
+                $cost = abs ($cost);
+            }
+            if ($side === null) {
+                $baseValue = $this->safe_float($trade, $market['baseId']);
+                if (($baseValue !== null) && ($baseValue > 0)) {
+                    $side = 'buy';
+                } else {
+                    $side = 'sell';
+                }
+            }
+        }
+        if ($cost === null) {
+            if ($price !== null) {
+                if ($amount !== null) {
+                    $cost = $amount * $price;
+                }
+            }
+        }
+        $fee = null;
+        $feeCost = $this->safe_float($trade, 'fee');
+        if ($feeCost !== null) {
+            $feeCurrency = null;
+            if ($market !== null) {
+                $feeCurrency = ($side === 'buy') ? $market['base'] : $market['quote'];
+            }
+            $fee = array (
+                'cost' => $feeCost,
+                'currency' => $feeCurrency,
+            );
+        }
         return array (
             'info' => $trade,
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
-            'id' => (string) $trade['tid'],
-            'order' => null,
+            'symbol' => $symbol,
+            'order' => $orderId,
             'type' => null,
-            'side' => $trade['side'],
-            'price' => $this->safe_float($trade, 'price'),
-            'amount' => $this->safe_float($trade, 'amount'),
+            'side' => $side,
+            'takerOrMaker' => null,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => $fee,
         );
     }
 
@@ -219,28 +425,23 @@ class quadrigacx extends Exchange {
         ), $params));
     }
 
-    public function fetch_deposit_address ($currency, $params = array ()) {
-        $method = 'privatePost' . $this->get_currency_name ($currency) . 'DepositAddress';
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $method = 'privatePost' . $this->get_currency_name ($code) . 'DepositAddress';
         $response = $this->$method ($params);
-        $address = null;
-        $status = null;
         // [E|e]rror
         if (mb_strpos ($response, 'rror') !== false) {
-            $status = 'error';
-        } else {
-            $address = $response;
-            $status = 'ok';
+            throw new ExchangeError ($this->id . ' ' . $response);
         }
-        $this->check_address($address);
+        $this->check_address($response);
         return array (
-            'currency' => $currency,
-            'address' => $address,
-            'status' => $status,
-            'info' => $this->last_http_response,
+            'currency' => $code,
+            'address' => $response,
+            'tag' => null,
+            'info' => $response,
         );
     }
 
-    public function get_currency_name ($currency) {
+    public function get_currency_name ($code) {
         $currencies = array (
             'ETH' => 'Ether',
             'BTC' => 'Bitcoin',
@@ -248,17 +449,17 @@ class quadrigacx extends Exchange {
             'BCH' => 'Bitcoincash',
             'BTG' => 'Bitcoingold',
         );
-        return $currencies[$currency];
+        return $currencies[$code];
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
         $request = array (
             'amount' => $amount,
             'address' => $address,
         );
-        $method = 'privatePost' . $this->get_currency_name ($currency) . 'Withdrawal';
+        $method = 'privatePost' . $this->get_currency_name ($code) . 'Withdrawal';
         $response = $this->$method (array_merge ($request, $params));
         return array (
             'info' => $response,
@@ -290,22 +491,25 @@ class quadrigacx extends Exchange {
 
     public function handle_errors ($statusCode, $statusText, $url, $method, $headers, $body) {
         if (gettype ($body) !== 'string')
-            return; // fallback to default error handler
+            return; // fallback to default $error handler
         if (strlen ($body) < 2)
             return;
-        // Here is a sample QuadrigaCX response in case of authentication failure:
-        // array ("error":{"code":101,"message":"Invalid API Code or Invalid Signature")}
-        if ($statusCode === 200 && mb_strpos ($body, 'Invalid API Code or Invalid Signature') !== false) {
-            throw new AuthenticationError ($this->id . ' ' . $body);
+        if (($body[0] === '{') || ($body[0] === '[')) {
+            $response = json_decode ($body, $as_associative_array = true);
+            $error = $this->safe_value($response, 'error');
+            if ($error !== null) {
+                //
+                // array ("$error":{"$code":101,"message":"Invalid API Code or Invalid Signature")}
+                //
+                $code = $this->safe_string($error, 'code');
+                $feedback = $this->id . ' ' . $this->json ($response);
+                $exceptions = $this->exceptions;
+                if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {
+                    throw new $exceptions[$code] ($feedback);
+                } else {
+                    throw new ExchangeError ($this->id . ' unknown "$error" value => ' . $this->json ($response));
+                }
+            }
         }
-    }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (gettype ($response) === 'string')
-            return $response;
-        if (is_array ($response) && array_key_exists ('error', $response))
-            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-        return $response;
     }
 }

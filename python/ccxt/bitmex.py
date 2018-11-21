@@ -8,8 +8,11 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import BadRequest
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class bitmex (Exchange):
@@ -18,7 +21,7 @@ class bitmex (Exchange):
         return self.deep_extend(super(bitmex, self).describe(), {
             'id': 'bitmex',
             'name': 'BitMEX',
-            'countries': 'SC',  # Seychelles
+            'countries': ['SC'],  # Seychelles
             'version': 'v1',
             'userAgent': None,
             'rateLimit': 2000,
@@ -48,6 +51,7 @@ class bitmex (Exchange):
                     'https://github.com/BitMEX/api-connectors/tree/master/official-http',
                 ],
                 'fees': 'https://www.bitmex.com/app/fees',
+                'referral': 'https://www.bitmex.com/register/rm3C16',
             },
             'api': {
                 'public': {
@@ -136,11 +140,17 @@ class bitmex (Exchange):
                 },
             },
             'exceptions': {
-                'Invalid API Key.': AuthenticationError,
-                'Access Denied': PermissionDenied,
+                'exact': {
+                    'Invalid API Key.': AuthenticationError,
+                    'Access Denied': PermissionDenied,
+                    'Duplicate clOrdID': InvalidOrder,
+                },
+                'broad': {
+                    'overloaded': ExchangeNotAvailable,
+                },
             },
             'options': {
-                'fetchTickerQuotes': True,
+                'fetchTickerQuotes': False,
             },
         })
 
@@ -151,14 +161,14 @@ class bitmex (Exchange):
             market = markets[p]
             active = (market['state'] != 'Unlisted')
             id = market['symbol']
-            base = market['underlying']
-            quote = market['quoteCurrency']
+            baseId = market['underlying']
+            quoteId = market['quoteCurrency']
             type = None
             future = False
             prediction = False
-            basequote = base + quote
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            basequote = baseId + quoteId
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             swap = (id == basequote)
             symbol = id
             if swap:
@@ -183,6 +193,8 @@ class bitmex (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': active,
                 'precision': precision,
                 'limits': {
@@ -381,7 +393,7 @@ class bitmex (Exchange):
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(trade['timestamp'])
         symbol = None
-        if not market:
+        if market is None:
             if 'symbol' in trade:
                 market = self.markets_by_id[trade['symbol']]
         if market:
@@ -401,41 +413,40 @@ class bitmex (Exchange):
 
     def parse_order_status(self, status):
         statuses = {
-            'new': 'open',
-            'partiallyfilled': 'open',
-            'filled': 'closed',
-            'canceled': 'canceled',
-            'rejected': 'rejected',
-            'expired': 'expired',
+            'New': 'open',
+            'PartiallyFilled': 'open',
+            'Filled': 'closed',
+            'DoneForDay': 'open',
+            'Canceled': 'canceled',
+            'PendingCancel': 'open',
+            'PendingNew': 'open',
+            'Rejected': 'rejected',
+            'Expired': 'expired',
+            'Stopped': 'open',
+            'Untriggered': 'open',
+            'Triggered': 'open',
         }
-        return self.safe_string(statuses, status.lower())
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
-        status = self.safe_value(order, 'ordStatus')
-        if status is not None:
-            status = self.parse_order_status(status)
+        status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         else:
             id = order['symbol']
             if id in self.markets_by_id:
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
-        datetime_value = None
-        timestamp = None
-        iso8601 = None
-        if 'timestamp' in order:
-            datetime_value = order['timestamp']
-        elif 'transactTime' in order:
-            datetime_value = order['transactTime']
-        if datetime_value is not None:
-            timestamp = self.parse8601(datetime_value)
-            iso8601 = self.iso8601(timestamp)
+        timestamp = self.parse8601(self.safe_string(order, 'timestamp'))
+        lastTradeTimestamp = self.parse8601(self.safe_string(order, 'transactTime'))
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'orderQty')
         filled = self.safe_float(order, 'cumQty', 0.0)
-        remaining = max(amount - filled, 0.0)
+        remaining = None
+        if amount is not None:
+            if filled is not None:
+                remaining = max(amount - filled, 0.0)
         cost = None
         if price is not None:
             if filled is not None:
@@ -444,8 +455,8 @@ class bitmex (Exchange):
             'info': order,
             'id': str(order['orderID']),
             'timestamp': timestamp,
-            'datetime': iso8601,
-            'lastTradeTimestamp': None,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': order['ordType'].lower(),
             'side': order['side'].lower(),
@@ -521,10 +532,11 @@ class bitmex (Exchange):
             return True
         return False
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
-        if currency != 'BTC':
+        # currency = self.currency(code)
+        if code != 'BTC':
             raise ExchangeError(self.id + ' supoprts BTC withdrawals only, other currencies coming soon...')
         request = {
             'currency': 'XBt',  # temporarily
@@ -546,15 +558,19 @@ class bitmex (Exchange):
             if body:
                 if body[0] == '{':
                     response = json.loads(body)
-                    if 'error' in response:
-                        if 'message' in response['error']:
-                            feedback = self.id + ' ' + self.json(response)
-                            message = self.safe_value(response['error'], 'message')
-                            exceptions = self.exceptions
-                            if message is not None:
-                                if message in exceptions:
-                                    raise exceptions[message](feedback)
-                            raise ExchangeError(feedback)
+                    error = self.safe_value(response, 'error', {})
+                    message = self.safe_string(error, 'message')
+                    feedback = self.id + ' ' + body
+                    exact = self.exceptions['exact']
+                    if message in exact:
+                        raise exact[message](feedback)
+                    broad = self.exceptions['broad']
+                    broadKey = self.findBroadlyMatchedKey(broad, message)
+                    if broadKey is not None:
+                        raise broad[broadKey](feedback)
+                    if code == 400:
+                        raise BadRequest(feedback)
+                    raise ExchangeError(feedback)  # unknown message
 
     def nonce(self):
         return self.milliseconds()

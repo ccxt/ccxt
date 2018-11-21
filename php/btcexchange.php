@@ -13,7 +13,7 @@ class btcexchange extends btcturk {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'btcexchange',
             'name' => 'BTCExchange',
-            'countries' => 'PH', // Philippines
+            'countries' => array ( 'PH' ), // Philippines
             'rateLimit' => 1500,
             'has' => array (
                 'CORS' => false,

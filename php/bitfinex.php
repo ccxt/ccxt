@@ -13,9 +13,10 @@ class bitfinex extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitfinex',
             'name' => 'Bitfinex',
-            'countries' => 'VG',
+            'countries' => array ( 'VG' ),
             'version' => 'v1',
             'rateLimit' => 1500,
+            'certified' => true,
             // new metainfo interface
             'has' => array (
                 'CORS' => false,
@@ -30,6 +31,9 @@ class bitfinex extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchTickers' => true,
+                'fetchTransactions' => true,
+                'fetchDeposits' => false,
+                'fetchWithdrawals' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array (
@@ -245,20 +249,36 @@ class bitfinex extends Exchange {
                 ),
             ),
             'commonCurrencies' => array (
+                'ABS' => 'ABYSS',
+                'AIO' => 'AION',
+                'ATM' => 'ATMI',
+                'BAB' => 'BCHABC',
                 'BCC' => 'CST_BCC',
                 'BCU' => 'CST_BCU',
+                'BSV' => 'BCHSV',
+                'CTX' => 'CTXC',
+                'DAD' => 'DADI',
                 'DAT' => 'DATA',
-                'DSH' => 'DASH', // Bitfinex names Dash as DSH, instead of DASH
+                'DSH' => 'DASH',
+                'EUR' => 'EURT',
+                'HOT' => 'Hydro Protocol',
                 'IOS' => 'IOST',
                 'IOT' => 'IOTA',
+                'IQX' => 'IQ',
+                'MIT' => 'MITH',
                 'MNA' => 'MANA',
+                'NCA' => 'NCASH',
+                'ORS' => 'ORS Group', // conflict with Origin Sport #3230
+                'POY' => 'POLY',
                 'QSH' => 'QASH',
                 'QTM' => 'QTUM',
+                'SEE' => 'SEER',
                 'SNG' => 'SNGLS',
                 'SPK' => 'SPANK',
                 'STJ' => 'STORJ',
                 'YYW' => 'YOYOW',
                 'USD' => 'USDT',
+                'UTN' => 'UTNP',
             ),
             'exceptions' => array (
                 'exact' => array (
@@ -267,14 +287,16 @@ class bitfinex extends Exchange {
                     'No such order found.' => '\\ccxt\\OrderNotFound', // ?
                     'Order price must be positive.' => '\\ccxt\\InvalidOrder', // on price <= 0
                     'Could not find a key matching the given X-BFX-APIKEY.' => '\\ccxt\\AuthenticationError',
-                    'This API key does not have permission for this action' => '\\ccxt\\AuthenticationError', // authenticated but not authorized
                     'Key price should be a decimal number, e.g. "123.456"' => '\\ccxt\\InvalidOrder', // on isNaN (price)
                     'Key amount should be a decimal number, e.g. "123.456"' => '\\ccxt\\InvalidOrder', // on isNaN (amount)
                     'ERR_RATE_LIMIT' => '\\ccxt\\DDoSProtection',
+                    'Ratelimit' => '\\ccxt\\DDoSProtection',
                     'Nonce is too small.' => '\\ccxt\\InvalidNonce',
                     'No summary found.' => '\\ccxt\\ExchangeError', // fetchTradingFees (summary) endpoint can give this vague error message
+                    'Cannot evaluate your available balance, please try again' => '\\ccxt\\ExchangeNotAvailable',
                 ),
                 'broad' => array (
+                    'This API key does not have permission' => '\\ccxt\\PermissionDenied', // authenticated but not authorized
                     'Invalid order => not enough exchange balance for ' => '\\ccxt\\InsufficientFunds', // when buying cost is greater than the available quote currency
                     'Invalid order => minimum size for ' => '\\ccxt\\InvalidOrder', // when amount below limits.amount.min
                     'Invalid order' => '\\ccxt\\InvalidOrder', // ?
@@ -282,6 +304,74 @@ class bitfinex extends Exchange {
                 ),
             ),
             'precisionMode' => SIGNIFICANT_DIGITS,
+            'options' => array (
+                'currencyNames' => array (
+                    'AGI' => 'agi',
+                    'AID' => 'aid',
+                    'AIO' => 'aio',
+                    'ANT' => 'ant',
+                    'AVT' => 'aventus', // #1811
+                    'BAT' => 'bat',
+                    'BCH' => 'bcash', // undocumented
+                    'BCI' => 'bci',
+                    'BFT' => 'bft',
+                    'BTC' => 'bitcoin',
+                    'BTG' => 'bgold',
+                    'CFI' => 'cfi',
+                    'DAI' => 'dai',
+                    'DADI' => 'dad',
+                    'DASH' => 'dash',
+                    'DATA' => 'datacoin',
+                    'DTH' => 'dth',
+                    'EDO' => 'eidoo', // #1811
+                    'ELF' => 'elf',
+                    'EOS' => 'eos',
+                    'ETC' => 'ethereumc',
+                    'ETH' => 'ethereum',
+                    'ETP' => 'metaverse',
+                    'FUN' => 'fun',
+                    'GNT' => 'golem',
+                    'IOST' => 'ios',
+                    'IOTA' => 'iota',
+                    'LRC' => 'lrc',
+                    'LTC' => 'litecoin',
+                    'LYM' => 'lym',
+                    'MANA' => 'mna',
+                    'MIT' => 'mit',
+                    'MKR' => 'mkr',
+                    'MTN' => 'mtn',
+                    'NEO' => 'neo',
+                    'ODE' => 'ode',
+                    'OMG' => 'omisego',
+                    'OMNI' => 'mastercoin',
+                    'QASH' => 'qash',
+                    'QTUM' => 'qtum', // #1811
+                    'RCN' => 'rcn',
+                    'RDN' => 'rdn',
+                    'REP' => 'rep',
+                    'REQ' => 'req',
+                    'RLC' => 'rlc',
+                    'SAN' => 'santiment',
+                    'SNGLS' => 'sng',
+                    'SNT' => 'status',
+                    'SPANK' => 'spk',
+                    'STORJ' => 'stj',
+                    'TNB' => 'tnb',
+                    'TRX' => 'trx',
+                    'USD' => 'wire',
+                    'UTK' => 'utk',
+                    'USDT' => 'tetheruso', // undocumented
+                    'VEE' => 'vee',
+                    'WAX' => 'wax',
+                    'XLM' => 'xlm',
+                    'XMR' => 'monero',
+                    'XRP' => 'ripple',
+                    'XVG' => 'xvg',
+                    'YOYOW' => 'yoyow',
+                    'ZEC' => 'zcash',
+                    'ZRX' => 'zrx',
+                ),
+            ),
         ));
     }
 
@@ -362,22 +452,6 @@ class bitfinex extends Exchange {
         return $result;
     }
 
-    public function cost_to_precision ($symbol, $cost) {
-        return $this->decimal_to_precision($cost, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
-    }
-
-    public function price_to_precision ($symbol, $price) {
-        return $this->decimal_to_precision($price, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
-    }
-
-    public function amount_to_precision ($symbol, $amount) {
-        return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], $this->precisionMode);
-    }
-
-    public function fee_to_precision ($currency, $fee) {
-        return $this->decimal_to_precision($fee, ROUND, $this->currencies[$currency]['precision'], $this->precisionMode);
-    }
-
     public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         $market = $this->markets[$symbol];
         $rate = $market[$takerOrMaker];
@@ -392,14 +466,15 @@ class bitfinex extends Exchange {
             'type' => $takerOrMaker,
             'currency' => $market[$key],
             'rate' => $rate,
-            'cost' => floatval ($this->fee_to_precision($market[$key], $cost)),
+            'cost' => floatval ($this->currency_to_precision($market[$key], $cost)),
         );
     }
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balanceType = $this->safe_string($params, 'type', 'exchange');
-        $balances = $this->privatePostBalances ();
+        $query = $this->omit ($params, 'type');
+        $balances = $this->privatePostBalances ($query);
         $result = array ( 'info' => $balances );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
@@ -544,6 +619,8 @@ class bitfinex extends Exchange {
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null)
+            throw new ArgumentsRequired ($this->id . ' fetchMyTrades requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array ( 'symbol' => $market['id'] );
@@ -597,13 +674,13 @@ class bitfinex extends Exchange {
             $status = 'closed';
         }
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             $exchange = strtoupper ($order['symbol']);
             if (is_array ($this->markets_by_id) && array_key_exists ($exchange, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$exchange];
             }
         }
-        if ($market)
+        if ($market !== null)
             $symbol = $market['symbol'];
         $orderType = $order['type'];
         $exchange = mb_strpos ($orderType, 'exchange ') !== false;
@@ -639,7 +716,7 @@ class bitfinex extends Exchange {
                 throw new ExchangeError ($this->id . ' has no $symbol ' . $symbol);
         $response = $this->privatePostOrders ($params);
         $orders = $this->parse_orders($response, null, $since, $limit);
-        if ($symbol)
+        if ($symbol !== null)
             $orders = $this->filter_by($orders, 'symbol', $symbol);
         return $orders;
     }
@@ -694,94 +771,28 @@ class bitfinex extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function get_currency_name ($currency) {
-        $names = array (
-            'AGI' => 'agi',
-            'AID' => 'aid',
-            'AIO' => 'aio',
-            'ANT' => 'ant',
-            'AVT' => 'aventus', // #1811
-            'BAT' => 'bat',
-            'BCH' => 'bcash', // undocumented
-            'BCI' => 'bci',
-            'BFT' => 'bft',
-            'BTC' => 'bitcoin',
-            'BTG' => 'bgold',
-            'CFI' => 'cfi',
-            'DAI' => 'dai',
-            'DADI' => 'dad',
-            'DASH' => 'dash',
-            'DATA' => 'datacoin',
-            'DTH' => 'dth',
-            'EDO' => 'eidoo', // #1811
-            'ELF' => 'elf',
-            'EOS' => 'eos',
-            'ETC' => 'ethereumc',
-            'ETH' => 'ethereum',
-            'ETP' => 'metaverse',
-            'FUN' => 'fun',
-            'GNT' => 'golem',
-            'IOST' => 'ios',
-            'IOTA' => 'iota',
-            'LRC' => 'lrc',
-            'LTC' => 'litecoin',
-            'LYM' => 'lym',
-            'MANA' => 'mna',
-            'MIT' => 'mit',
-            'MKR' => 'mkr',
-            'MTN' => 'mtn',
-            'NEO' => 'neo',
-            'ODE' => 'ode',
-            'OMG' => 'omisego',
-            'OMNI' => 'mastercoin',
-            'QASH' => 'qash',
-            'QTUM' => 'qtum', // #1811
-            'RCN' => 'rcn',
-            'RDN' => 'rdn',
-            'REP' => 'rep',
-            'REQ' => 'req',
-            'RLC' => 'rlc',
-            'SAN' => 'santiment',
-            'SNGLS' => 'sng',
-            'SNT' => 'status',
-            'SPANK' => 'spk',
-            'STJ' => 'stj',
-            'TNB' => 'tnb',
-            'TRX' => 'trx',
-            'USD' => 'wire',
-            'UTK' => 'utk',
-            'USDT' => 'tetheruso', // undocumented
-            'VEE' => 'vee',
-            'WAX' => 'wax',
-            'XLM' => 'xlm',
-            'XMR' => 'monero',
-            'XRP' => 'ripple',
-            'XVG' => 'xvg',
-            'YOYOW' => 'yoyow',
-            'ZEC' => 'zcash',
-            'ZRX' => 'zrx',
-        );
-        if (is_array ($names) && array_key_exists ($currency, $names))
-            return $names[$currency];
-        throw new NotSupported ($this->id . ' ' . $currency . ' not supported for withdrawal');
+    public function get_currency_name ($code) {
+        if (is_array ($this->options['currencyNames']) && array_key_exists ($code, $this->options['currencyNames']))
+            return $this->options['currencyNames'][$code];
+        throw new NotSupported ($this->id . ' ' . $code . ' not supported for withdrawal');
     }
 
-    public function create_deposit_address ($currency, $params = array ()) {
-        $response = $this->fetch_deposit_address ($currency, array_merge (array (
+    public function create_deposit_address ($code, $params = array ()) {
+        $response = $this->fetch_deposit_address ($code, array_merge (array (
             'renew' => 1,
         ), $params));
         $address = $this->safe_string($response, 'address');
         $this->check_address($address);
         return array (
-            'currency' => $currency,
-            'address' => $address,
-            'status' => 'ok',
             'info' => $response['info'],
+            'currency' => $code,
+            'address' => $address,
+            'tag' => null,
         );
     }
 
-    public function fetch_deposit_address ($currency, $params = array ()) {
-        $name = $this->get_currency_name ($currency);
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $name = $this->get_currency_name ($code);
         $request = array (
             'method' => $name,
             'wallet_name' => 'exchange',
@@ -796,17 +807,110 @@ class bitfinex extends Exchange {
         }
         $this->check_address($address);
         return array (
-            'currency' => $currency,
+            'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'status' => 'ok',
             'info' => $response,
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+        if ($code === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchTransactions() requires a $currency $code argument');
+        }
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $request = array (
+            'currency' => $currency['id'],
+        );
+        if ($since !== null) {
+            $request['since'] = intval ($since / 1000);
+        }
+        $response = $this->privatePostHistoryMovements (array_merge ($request, $params));
+        //
+        //     array (
+        //         {
+        //             "id":581183,
+        //             "txid" => 123456,
+        //             "$currency":"BTC",
+        //             "method":"BITCOIN",
+        //             "type":"WITHDRAWAL",
+        //             "amount":".01",
+        //             "description":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ, offchain transfer ",
+        //             "address":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ",
+        //             "status":"COMPLETED",
+        //             "timestamp":"1443833327.0",
+        //             "timestamp_created" => "1443833327.1",
+        //             "fee" => 0.1,
+        //         }
+        //     )
+        //
+        return $this->parseTransactions ($response, $currency, $since, $limit);
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        $timestamp = $this->safe_float($transaction, 'timestamp_created');
+        if ($timestamp !== null) {
+            $timestamp = intval ($timestamp * 1000);
+        }
+        $updated = $this->safe_float($transaction, 'timestamp');
+        if ($updated !== null) {
+            $updated = intval ($updated * 1000);
+        }
+        $code = null;
+        if ($currency === null) {
+            $currencyId = $this->safe_string($transaction, 'currency');
+            if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
+                $currency = $this->currencies_by_id[$currencyId];
+            } else {
+                $code = $this->common_currency_code($currencyId);
+            }
+        }
+        if ($currency !== null) {
+            $code = $currency['code'];
+        }
+        $type = $this->safe_string($transaction, 'type'); // DEPOSIT or WITHDRAWAL
+        if ($type !== null) {
+            $type = strtolower ($type);
+        }
+        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
+        $feeCost = $this->safe_float($transaction, 'fee');
+        if ($feeCost !== null) {
+            $feeCost = abs ($feeCost);
+        }
+        return array (
+            'info' => $transaction,
+            'id' => $this->safe_string($transaction, 'id'),
+            'txid' => $this->safe_string($transaction, 'txid'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'address' => $this->safe_string($transaction, 'address'),
+            'tag' => null, // refix it properly for the tag from description
+            'type' => $type,
+            'amount' => $this->safe_float($transaction, 'amount'),
+            'currency' => $code,
+            'status' => $status,
+            'updated' => $updated,
+            'fee' => array (
+                'currency' => $code,
+                'cost' => $feeCost,
+                'rate' => null,
+            ),
+        );
+    }
+
+    public function parse_transaction_status ($status) {
+        $statuses = array (
+            'CANCELED' => 'canceled',
+            'ZEROCONFIRMED' => 'failed', // ZEROCONFIRMED happens e.g. in a double spend attempt (I had one in my movements!)
+            'COMPLETED' => 'ok',
+        );
+        return (is_array ($statuses) && array_key_exists ($status, $statuses)) ? $statuses[$status] : $status;
+    }
+
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
-        $name = $this->get_currency_name ($currency);
+        $name = $this->get_currency_name ($code);
         $request = array (
             'withdraw_type' => $name,
             'walletselected' => 'exchange',
@@ -819,7 +923,7 @@ class bitfinex extends Exchange {
         $response = $responses[0];
         $id = $response['withdrawal_id'];
         $message = $response['message'];
-        $errorMessage = $this->find_broadly_matched_key ($this->exceptions['broad'], $message);
+        $errorMessage = $this->findBroadlyMatchedKey ($this->exceptions['broad'], $message);
         if ($id === 0) {
             if ($errorMessage !== null) {
                 $ExceptionClass = $this->exceptions['broad'][$errorMessage];
@@ -874,16 +978,6 @@ class bitfinex extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function find_broadly_matched_key ($map, $broadString) {
-        $partialKeys = is_array ($map) ? array_keys ($map) : array ();
-        for ($i = 0; $i < count ($partialKeys); $i++) {
-            $partialKey = $partialKeys[$i];
-            if (mb_strpos ($broadString, $partialKey) !== false)
-                return $partialKey;
-        }
-        return null;
-    }
-
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         if (strlen ($body) < 2)
             return;
@@ -892,19 +986,22 @@ class bitfinex extends Exchange {
                 $response = json_decode ($body, $as_associative_array = true);
                 $feedback = $this->id . ' ' . $this->json ($response);
                 $message = null;
-                if (is_array ($response) && array_key_exists ('message', $response))
+                if (is_array ($response) && array_key_exists ('message', $response)) {
                     $message = $response['message'];
-                else if (is_array ($response) && array_key_exists ('error', $response))
+                } else if (is_array ($response) && array_key_exists ('error', $response)) {
                     $message = $response['error'];
-                else
+                } else {
                     throw new ExchangeError ($feedback); // malformed (to our knowledge) $response
+                }
                 $exact = $this->exceptions['exact'];
-                if (is_array ($exact) && array_key_exists ($message, $exact))
+                if (is_array ($exact) && array_key_exists ($message, $exact)) {
                     throw new $exact[$message] ($feedback);
+                }
                 $broad = $this->exceptions['broad'];
-                $broadKey = $this->find_broadly_matched_key ($broad, $message);
-                if ($broadKey !== null)
+                $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
+                if ($broadKey !== null) {
                     throw new $broad[$broadKey] ($feedback);
+                }
                 throw new ExchangeError ($feedback); // unknown $message
             }
         }

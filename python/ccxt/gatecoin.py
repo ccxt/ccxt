@@ -30,7 +30,7 @@ class gatecoin (Exchange):
             'id': 'gatecoin',
             'name': 'Gatecoin',
             'rateLimit': 2000,
-            'countries': 'HK',  # Hong Kong
+            'countries': ['HK'],  # Hong Kong
             'comment': 'a regulated/licensed exchange',
             'has': {
                 'CORS': False,
@@ -311,7 +311,9 @@ class gatecoin (Exchange):
             symbol = market['symbol']
         baseVolume = self.safe_float(ticker, 'volume')
         vwap = self.safe_float(ticker, 'vwap')
-        quoteVolume = baseVolume * vwap
+        quoteVolume = None
+        if baseVolume is not None and vwap is not None:
+            quoteVolume = baseVolume * vwap
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -415,7 +417,7 @@ class gatecoin (Exchange):
             ohlcv['open'],
             ohlcv['high'],
             ohlcv['low'],
-            None,
+            ohlcv['last'],
             ohlcv['volume'],
         ]
 
@@ -616,7 +618,7 @@ class gatecoin (Exchange):
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': None,
             'info': response,
         }
 
@@ -632,7 +634,7 @@ class gatecoin (Exchange):
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': None,
             'info': response,
         }
 
@@ -645,11 +647,8 @@ class gatecoin (Exchange):
             'Address': address,
             'Password': password,
         }
-        response = self.privatePostElectronicWalletUserWalletsDigiCurrency(self.extend(request, params))
-        return {
-            'status': 'ok',
-            'info': response,
-        }
+        # not unified yet
+        return self.privatePostElectronicWalletUserWalletsDigiCurrency(self.extend(request, params))
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if not isinstance(body, basestring):

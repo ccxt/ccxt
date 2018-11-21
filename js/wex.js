@@ -12,7 +12,7 @@ module.exports = class wex extends liqui {
         return this.deepExtend (super.describe (), {
             'id': 'wex',
             'name': 'WEX',
-            'countries': 'NZ', // New Zealand
+            'countries': [ 'NZ' ], // New Zealand
             'version': '3',
             'has': {
                 'CORS': false,
@@ -127,7 +127,6 @@ module.exports = class wex extends liqui {
             'currency': code,
             'address': response['return']['address'],
             'tag': undefined,
-            'status': 'ok',
             'info': response,
         };
     }

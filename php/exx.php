@@ -13,8 +13,9 @@ class exx extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'exx',
             'name' => 'EXX',
-            'countries' => 'CN',
+            'countries' => array ( 'CN' ),
             'rateLimit' => 1000 / 10,
+            'userAgent' => $this->userAgents['chrome'],
             'has' => array (
                 'fetchOrder' => true,
                 'fetchTickers' => true,
@@ -29,6 +30,7 @@ class exx extends Exchange {
                 'www' => 'https://www.exx.com/',
                 'doc' => 'https://www.exx.com/help/restApi',
                 'fees' => 'https://www.exx.com/help/rate',
+                'referral' => 'https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f',
             ),
             'api' => array (
                 'public' => array (
@@ -82,7 +84,10 @@ class exx extends Exchange {
                 ),
             ),
             'commonCurrencies' => array (
-                'CAN' => 'Content and AD Network',
+                'TV' => 'TIV', // Ti-Value
+            ),
+            'exceptions' => array (
+                '103' => '\\ccxt\\AuthenticationError',
             ),
         ));
     }
@@ -105,7 +110,6 @@ class exx extends Exchange {
                 'amount' => intval ($market['amountScale']),
                 'price' => intval ($market['priceScale']),
             );
-            $lot = pow (10, -$precision['amount']);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -114,11 +118,10 @@ class exx extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => $active,
-                'lot' => $lot,
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $lot,
+                        'min' => pow (10, -$precision['amount']),
                         'max' => pow (10, $precision['amount']),
                     ),
                     'price' => array (
@@ -261,7 +264,7 @@ class exx extends Exchange {
         $cost = $this->safe_float($order, 'trade_money');
         $amount = $this->safe_float($order, 'total_amount');
         $filled = $this->safe_float($order, 'trade_amount', 0.0);
-        $remaining = $this->amount_to_precision($symbol, $amount - $filled);
+        $remaining = floatval ($this->amount_to_precision($symbol, $amount - $filled));
         $status = $this->safe_integer($order, 'status');
         if ($status === 1) {
             $status = 'canceled';
@@ -282,7 +285,7 @@ class exx extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
-            'status' => 'open',
+            'status' => $status,
             'symbol' => $symbol,
             'type' => 'limit',
             'side' => $order['type'],
@@ -342,9 +345,12 @@ class exx extends Exchange {
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $orders = $this->privateGetOpenOrders (array_merge (array (
+        $orders = $this->privateGetGetOpenOrders (array_merge (array (
             'currency' => $market['id'],
         ), $params));
+        if (!gettype ($orders) === 'array' && count (array_filter (array_keys ($orders), 'is_string')) == 0) {
+            return array ();
+        }
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -363,21 +369,53 @@ class exx extends Exchange {
                 'accesskey' => $this->apiKey,
                 'nonce' => $this->nonce (),
             ), $params)));
-            $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha512');
-            $url .= '?' . $query . '&$signature=' . $signature;
+            $signed = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha512');
+            $url .= '?' . $query . '&signature=' . $signed;
+            $headers = array (
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        $code = $this->safe_integer($response, 'code');
-        $message = $this->safe_string($response, 'message');
-        if ($code && $code !== 100 && $message) {
-            if ($code === 103)
-                throw new AuthenticationError ($message);
-            throw new ExchangeError ($message);
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
+        if (gettype ($body) !== 'string')
+            return; // fallback to default error handler
+        if (strlen ($body) < 2)
+            return; // fallback to default error handler
+        if (($body[0] === '{') || ($body[0] === '[')) {
+            $response = json_decode ($body, $as_associative_array = true);
+            //
+            //  array ("$result":false,"$message":"服务端忙碌")
+            //  ... and other formats
+            //
+            $code = $this->safe_string($response, 'code');
+            $message = $this->safe_string($response, 'message');
+            $feedback = $this->id . ' ' . $this->json ($response);
+            if ($code === '100')
+                return;
+            if ($code !== null) {
+                $exceptions = $this->exceptions;
+                if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {
+                    throw new $exceptions[$code] ($feedback);
+                } else if ($code === '308') {
+                    // this is returned by the exchange when there are no open orders
+                    // array ("$code":308,"$message":"Not Found Transaction Record")
+                    return;
+                } else {
+                    throw new ExchangeError ($feedback);
+                }
+            }
+            $result = $this->safe_value($response, 'result');
+            if ($result !== null) {
+                if (!$result) {
+                    if ($message === '服务端忙碌') {
+                        throw new ExchangeNotAvailable ($feedback);
+                    } else {
+                        throw new ExchangeError ($feedback);
+                    }
+                }
+            }
         }
-        return $response;
     }
 }

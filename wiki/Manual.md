@@ -28,7 +28,7 @@ The structure of the library can be outlined as follows:
     +=============================================================+
     │                              .                              |
     |                     Custom Exchange API                     |
-    |                      (Derived Classes)                      |
+    |         (Derived Classes And Their Implicit Methods)        |
     │                              .                              |
     |       publicGet...           .          privateGet...       |
     |       publicPost...          .         privatePost...       |
@@ -53,129 +53,143 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 
 # Exchanges
 
-The ccxt library currently supports the following 119 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 133 cryptocurrency exchange markets and trading APIs:
 
-|                                                                                                                           | id                 | name                                                                         | ver | doc                                                                                          | countries                               |
-|---------------------------------------------------------------------------------------------------------------------------|--------------------|------------------------------------------------------------------------------|:---:|:--------------------------------------------------------------------------------------------:|-----------------------------------------|
-|![_1broker](https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg)           | _1broker           | [1Broker](https://1broker.com)                                               | 2   | [API](https://1broker.com/?c=en/content/api-documentation)                                   | US                                      |
-|![_1btcxe](https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg)            | _1btcxe            | [1BTCXE](https://1btcxe.com)                                                 | *   | [API](https://1btcxe.com/api-docs.php)                                                       | Panama                                  |
-|![acx](https://user-images.githubusercontent.com/1294454/30247614-1fe61c74-9621-11e7-9e8c-f1a627afa279.jpg)                | acx                | [ACX](https://acx.io)                                                        | 2   | [API](https://acx.io/documents/api_v2)                                                       | Australia                               |
-|![allcoin](https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg)            | allcoin            | [Allcoin](https://www.allcoin.com)                                           | 1   | [API](https://www.allcoin.com/About/APIReference)                                            | Canada                                  |
-|![anxpro](https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg)             | anxpro             | [ANXPro](https://anxpro.com)                                                 | 2   | [API](http://docs.anxv2.apiary.io)                                                           | Japan, Singapore, Hong Kong, New Zealand|
-|![anybits](https://user-images.githubusercontent.com/1294454/41388454-ae227544-6f94-11e8-82a4-127d51d34903.jpg)            | anybits            | [Anybits](https://anybits.com)                                               | *   | [API](https://anybits.com/help/api)                                                          | Ireland                                 |
-|![bibox](https://user-images.githubusercontent.com/1294454/34902611-2be8bf1a-f830-11e7-91a2-11b2f292e750.jpg)              | bibox              | [Bibox](https://www.bibox.com)                                               | 1   | [API](https://github.com/Biboxcom/api_reference/wiki/home_en)                                | China, US, South Korea                  |
-|![binance](https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg)            | binance            | [Binance](https://www.binance.com/?ref=10205187)                             | *   | [API](https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md) | Japan                                   |
-|![bit2c](https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg)              | bit2c              | [Bit2C](https://www.bit2c.co.il)                                             | *   | [API](https://www.bit2c.co.il/home/api)                                                      | Israel                                  |
-|![bitbank](https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg)            | bitbank            | [bitbank](https://bitbank.cc/)                                               | 1   | [API](https://docs.bitbank.cc/)                                                              | Japan                                   |
-|![bitbay](https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg)             | bitbay             | [BitBay](https://bitbay.net)                                                 | *   | [API](https://bitbay.net/public-api)                                                         | Malta, EU                               |
-|![bitfinex](https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg)           | bitfinex           | [Bitfinex](https://www.bitfinex.com)                                         | 1   | [API](https://bitfinex.readme.io/v1/docs)                                                    | British Virgin Islands                  |
-|![bitfinex2](https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg)          | bitfinex2          | [Bitfinex v2](https://www.bitfinex.com)                                      | 2   | [API](https://bitfinex.readme.io/v2/docs)                                                    | British Virgin Islands                  |
-|![bitflyer](https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg)           | bitflyer           | [bitFlyer](https://bitflyer.jp)                                              | 1   | [API](https://bitflyer.jp/API)                                                               | Japan                                   |
-|![bithumb](https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg)            | bithumb            | [Bithumb](https://www.bithumb.com)                                           | *   | [API](https://www.bithumb.com/u1/US127)                                                      | South Korea                             |
-|![bitkk](https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg)              | bitkk              | [bitkk](https://www.bitkk.com)                                               | 1   | [API](https://www.bitkk.com/i/developer)                                                     | China                                   |
-|![bitlish](https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg)            | bitlish            | [Bitlish](https://bitlish.com)                                               | 1   | [API](https://bitlish.com/api)                                                               | UK, EU, Russia                          |
-|![bitmarket](https://user-images.githubusercontent.com/1294454/27767256-a8555200-5ef9-11e7-96fd-469a65e2b0bd.jpg)          | bitmarket          | [BitMarket](https://www.bitmarket.pl)                                        | *   | [API](https://www.bitmarket.net/docs.php?file=api_public.html)                               | Poland, EU                              |
-|![bitmex](https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg)             | bitmex             | [BitMEX](https://www.bitmex.com)                                             | 1   | [API](https://www.bitmex.com/app/apiOverview)                                                | Seychelles                              |
-|![bitsane](https://user-images.githubusercontent.com/1294454/41387105-d86bf4c6-6f8d-11e8-95ea-2fa943872955.jpg)            | bitsane            | [Bitsane](https://bitsane.com)                                               | *   | [API](https://bitsane.com/info-api)                                                          | Ireland                                 |
-|![bitso](https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg)              | bitso              | [Bitso](https://bitso.com)                                                   | 3   | [API](https://bitso.com/api_info)                                                            | Mexico                                  |
-|![bitstamp](https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg)           | bitstamp           | [Bitstamp](https://www.bitstamp.net)                                         | 2   | [API](https://www.bitstamp.net/api)                                                          | UK                                      |
-|![bitstamp1](https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg)          | bitstamp1          | [Bitstamp v1](https://www.bitstamp.net)                                      | 1   | [API](https://www.bitstamp.net/api)                                                          | UK                                      |
-|![bittrex](https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg)            | bittrex            | [Bittrex](https://bittrex.com)                                               | 1.1 | [API](https://bittrex.com/Home/Api)                                                          | US                                      |
-|![bitz](https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg)               | bitz               | [Bit-Z](https://www.bit-z.com)                                               | 1   | [API](https://www.bit-z.com/api.html)                                                        | Hong Kong                               |
-|![bl3p](https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg)               | bl3p               | [BL3P](https://bl3p.eu)                                                      | 1   | [API](https://github.com/BitonicNL/bl3p-api/tree/master/docs)                                | Netherlands, EU                         |
-|![bleutrade](https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg)          | bleutrade          | [Bleutrade](https://bleutrade.com)                                           | 2   | [API](https://bleutrade.com/help/API)                                                        | Brazil                                  |
-|![braziliex](https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg)          | braziliex          | [Braziliex](https://braziliex.com/)                                          | *   | [API](https://braziliex.com/exchange/api.php)                                                | Brazil                                  |
-|![btcbox](https://user-images.githubusercontent.com/1294454/31275803-4df755a8-aaa1-11e7-9abb-11ec2fad9f2d.jpg)             | btcbox             | [BtcBox](https://www.btcbox.co.jp/)                                          | 1   | [API](https://www.btcbox.co.jp/help/asm)                                                     | Japan                                   |
-|![btcchina](https://user-images.githubusercontent.com/1294454/27766368-465b3286-5ed6-11e7-9a11-0f6467e1d82b.jpg)           | btcchina           | [BTCChina](https://www.btcchina.com)                                         | 1   | [API](https://www.btcchina.com/apidocs)                                                      | China                                   |
-|![btcexchange](https://user-images.githubusercontent.com/1294454/27993052-4c92911a-64aa-11e7-96d8-ec6ac3435757.jpg)        | btcexchange        | [BTCExchange](https://www.btcexchange.ph)                                    | *   | [API](https://github.com/BTCTrader/broker-api-docs)                                          | Philippines                             |
-|![btcmarkets](https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg)         | btcmarkets         | [BTC Markets](https://btcmarkets.net/)                                       | *   | [API](https://github.com/BTCMarkets/API)                                                     | Australia                               |
-|![btctradeim](https://user-images.githubusercontent.com/1294454/36770531-c2142444-1c5b-11e8-91e2-a4d90dc85fe8.jpg)         | btctradeim         | [BtcTrade.im](https://www.btctrade.im)                                       | *   | [API](https://www.btctrade.im/help.api.html)                                                 | Hong Kong                               |
-|![btctradeua](https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg)         | btctradeua         | [BTC Trade UA](https://btc-trade.com.ua)                                     | *   | [API](https://docs.google.com/document/d/1ocYA0yMy_RXd561sfG3qEPZ80kyll36HUxvCRe5GbhE/edit)  | Ukraine                                 |
-|![btcturk](https://user-images.githubusercontent.com/1294454/27992709-18e15646-64a3-11e7-9fa2-b0950ec7712f.jpg)            | btcturk            | [BTCTurk](https://www.btcturk.com)                                           | *   | [API](https://github.com/BTCTrader/broker-api-docs)                                          | Turkey                                  |
-|![btcx](https://user-images.githubusercontent.com/1294454/27766385-9fdcc98c-5ed6-11e7-8f14-66d5e5cd47e6.jpg)               | btcx               | [BTCX](https://btc-x.is)                                                     | 1   | [API](https://btc-x.is/custom/api-document.html)                                             | Iceland, US, EU                         |
-|![bxinth](https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg)             | bxinth             | [BX.in.th](https://bx.in.th)                                                 | *   | [API](https://bx.in.th/info/api)                                                             | Thailand                                |
-|![ccex](https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg)               | ccex               | [C-CEX](https://c-cex.com)                                                   | *   | [API](https://c-cex.com/?id=api)                                                             | Germany, EU                             |
-|![cex](https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg)                | cex                | [CEX.IO](https://cex.io)                                                     | *   | [API](https://cex.io/cex-api)                                                                | UK, EU, Cyprus, Russia                  |
-|![chbtc](https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg)              | chbtc              | [CHBTC](https://trade.chbtc.com/api)                                         | 1   | [API](https://www.chbtc.com/i/developer)                                                     | China                                   |
-|![chilebit](https://user-images.githubusercontent.com/1294454/27991414-1298f0d8-647f-11e7-9c40-d56409266336.jpg)           | chilebit           | [ChileBit](https://chilebit.net)                                             | 1   | [API](https://blinktrade.com/docs)                                                           | Chile                                   |
-|![cobinhood](https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg)          | cobinhood          | [COBINHOOD](https://cobinhood.com)                                           | *   | [API](https://cobinhood.github.io/api-public)                                                | Taiwan                                  |
-|![coinbase](https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg)           | coinbase           | [coinbase](https://www.coinbase.com)                                         | 2   | [API](https://developers.coinbase.com/api/v2)                                                | US                                      |
-|![coincheck](https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg)          | coincheck          | [coincheck](https://coincheck.com)                                           | *   | [API](https://coincheck.com/documents/exchange/api)                                          | Japan, Indonesia                        |
-|![coinegg](https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg)            | coinegg            | [CoinEgg](https://www.coinegg.com)                                           | *   | [API](https://www.coinegg.com/explain.api.html)                                              | China, UK                               |
-|![coinex](https://user-images.githubusercontent.com/1294454/38046312-0b450aac-32c8-11e8-99ab-bc6b136b6cc7.jpg)             | coinex             | [CoinEx](https://www.coinex.com)                                             | 1   | [API](https://github.com/coinexcom/coinex_exchange_api/wiki)                                 | China                                   |
-|![coinexchange](https://user-images.githubusercontent.com/1294454/34842303-29c99fca-f71c-11e7-83c1-09d900cb2334.jpg)       | coinexchange       | [CoinExchange](https://www.coinexchange.io)                                  | *   | [API](https://coinexchangeio.github.io/slate/)                                               | India, Japan, South Korea, Vietnam, US  |
-|![coinfloor](https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg)          | coinfloor          | [coinfloor](https://www.coinfloor.co.uk)                                     | *   | [API](https://github.com/coinfloor/api)                                                      | UK                                      |
-|![coingi](https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg)             | coingi             | [Coingi](https://coingi.com)                                                 | *   | [API](http://docs.coingi.apiary.io/)                                                         | Panama, Bulgaria, China, US             |
-|![coinmarketcap](https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg)      | coinmarketcap      | [CoinMarketCap](https://coinmarketcap.com)                                   | 1   | [API](https://coinmarketcap.com/api)                                                         | US                                      |
-|![coinmate](https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg)           | coinmate           | [CoinMate](https://coinmate.io)                                              | *   | [API](http://docs.coinmate.apiary.io)                                                        | UK, Czech Republic, EU                  |
-|![coinnest](https://user-images.githubusercontent.com/1294454/38065728-7289ff5c-330d-11e8-9cc1-cf0cbcb606bc.jpg)           | coinnest           | [coinnest](https://www.coinnest.co.kr)                                       | *   | [API](https://www.coinnest.co.kr/doc/intro.html)                                             | South Korea                             |
-|![coinone](https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg)            | coinone            | [CoinOne](https://coinone.co.kr)                                             | 2   | [API](https://doc.coinone.co.kr)                                                             | South Korea                             |
-|![coinsecure](https://user-images.githubusercontent.com/1294454/27766472-9cbd200a-5ed9-11e7-9551-2267ad7bac08.jpg)         | coinsecure         | [Coinsecure](https://coinsecure.in)                                          | 1   | [API](https://api.coinsecure.in)                                                             | India                                   |
-|![coinspot](https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg)           | coinspot           | [CoinSpot](https://www.coinspot.com.au)                                      | *   | [API](https://www.coinspot.com.au/api)                                                       | Australia                               |
-|![cointiger](https://user-images.githubusercontent.com/1294454/39797261-d58df196-5363-11e8-9880-2ec78ec5bd25.jpg)          | cointiger          | [CoinTiger](https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt) | 1   | [API](https://github.com/cointiger/api-docs-en/wiki)                                         | China                                   |
-|![coolcoin](https://user-images.githubusercontent.com/1294454/36770529-be7b1a04-1c5b-11e8-9600-d11f1996b539.jpg)           | coolcoin           | [CoolCoin](https://www.coolcoin.com)                                         | *   | [API](https://www.coolcoin.com/help.api.html)                                                | Hong Kong                               |
-|![crypton](https://user-images.githubusercontent.com/1294454/41334251-905b5a78-6eed-11e8-91b9-f3aa435078a1.jpg)            | crypton            | [Crypton](https://cryptonbtc.com)                                            | 1   | [API](https://cryptonbtc.docs.apiary.io/)                                                    | EU                                      |
-|![cryptopia](https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg)          | cryptopia          | [Cryptopia](https://www.cryptopia.co.nz/Register?referrer=kroitor)           | *   | [API](https://www.cryptopia.co.nz/Forum/Category/45)                                         | New Zealand                             |
-|![dsx](https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg)                | dsx                | [DSX](https://dsx.uk)                                                        | 3   | [API](https://api.dsx.uk)                                                                    | UK                                      |
-|![ethfinex](https://user-images.githubusercontent.com/1294454/37555526-7018a77c-29f9-11e8-8835-8e415c038a18.jpg)           | ethfinex           | [Ethfinex](https://www.ethfinex.com)                                         | 1   | [API](https://bitfinex.readme.io/v1/docs)                                                    | British Virgin Islands                  |
-|![exmo](https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg)               | exmo               | [EXMO](https://exmo.me/?ref=131685)                                          | 1   | [API](https://exmo.me/en/api_doc?ref=131685)                                                 | Spain, Russia                           |
-|![exx](https://user-images.githubusercontent.com/1294454/37770292-fbf613d0-2de4-11e8-9f79-f2dc451b8ccb.jpg)                | exx                | [EXX](https://www.exx.com/)                                                  | *   | [API](https://www.exx.com/help/restApi)                                                      | China                                   |
-|![flowbtc](https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg)            | flowbtc            | [flowBTC](https://trader.flowbtc.com)                                        | 1   | [API](http://www.flowbtc.com.br/api/)                                                        | Brazil                                  |
-|![foxbit](https://user-images.githubusercontent.com/1294454/27991413-11b40d42-647f-11e7-91ee-78ced874dd09.jpg)             | foxbit             | [FoxBit](https://foxbit.exchange)                                            | 1   | [API](https://blinktrade.com/docs)                                                           | Brazil                                  |
-|![fybse](https://user-images.githubusercontent.com/1294454/27766512-31019772-5edb-11e7-8241-2e675e6797f1.jpg)              | fybse              | [FYB-SE](https://www.fybse.se)                                               | *   | [API](http://docs.fyb.apiary.io)                                                             | Sweden                                  |
-|![fybsg](https://user-images.githubusercontent.com/1294454/27766513-3364d56a-5edb-11e7-9e6b-d5898bb89c81.jpg)              | fybsg              | [FYB-SG](https://www.fybsg.com)                                              | *   | [API](http://docs.fyb.apiary.io)                                                             | Singapore                               |
-|![gatecoin](https://user-images.githubusercontent.com/1294454/28646817-508457f2-726c-11e7-9eeb-3528d2413a58.jpg)           | gatecoin           | [Gatecoin](https://gatecoin.com)                                             | *   | [API](https://gatecoin.com/api)                                                              | Hong Kong                               |
-|![gateio](https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg)             | gateio             | [Gate.io](https://gate.io/)                                                  | 2   | [API](https://gate.io/api2)                                                                  | China                                   |
-|![gdax](https://user-images.githubusercontent.com/1294454/27766527-b1be41c6-5edb-11e7-95f6-5b496c469e2c.jpg)               | gdax               | [GDAX](https://www.gdax.com)                                                 | *   | [API](https://docs.gdax.com)                                                                 | US                                      |
-|![gemini](https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg)             | gemini             | [Gemini](https://gemini.com)                                                 | 1   | [API](https://docs.gemini.com/rest-api)                                                      | US                                      |
-|![getbtc](https://user-images.githubusercontent.com/1294454/33801902-03c43462-dd7b-11e7-992e-077e4cd015b9.jpg)             | getbtc             | [GetBTC](https://getbtc.org)                                                 | *   | [API](https://getbtc.org/api-docs.php)                                                       | St. Vincent & Grenadines, Russia        |
-|![hadax](https://user-images.githubusercontent.com/1294454/38059952-4756c49e-32f1-11e8-90b9-45c1eccba9cd.jpg)              | hadax              | [HADAX](https://www.huobi.br.com/en-us/topic/invited/?invite_code=rwrd3)     | 1   | [API](https://github.com/huobiapi/API_Docs/wiki)                                             | China                                   |
-|![hitbtc](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)             | hitbtc             | [HitBTC](https://hitbtc.com/?ref_id=5a5d39a65d466)                           | 1   | [API](https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md)                         | Hong Kong                               |
-|![hitbtc2](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)            | hitbtc2            | [HitBTC v2](https://hitbtc.com/?ref_id=5a5d39a65d466)                        | 2   | [API](https://api.hitbtc.com)                                                                | Hong Kong                               |
-|![huobi](https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg)              | huobi              | [Huobi](https://www.huobi.com)                                               | 3   | [API](https://github.com/huobiapi/API_Docs_en/wiki)                                          | China                                   |
-|![huobicny](https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg)           | huobicny           | [Huobi CNY](https://www.huobi.br.com/en-us/topic/invited/?invite_code=rwrd3) | 1   | [API](https://github.com/huobiapi/API_Docs/wiki/REST_api_reference)                          | China                                   |
-|![huobipro](https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg)           | huobipro           | [Huobi Pro](https://www.huobi.br.com/en-us/topic/invited/?invite_code=rwrd3) | 1   | [API](https://github.com/huobiapi/API_Docs/wiki/REST_api_reference)                          | China                                   |
-|![ice3x](https://user-images.githubusercontent.com/1294454/38012176-11616c32-3269-11e8-9f05-e65cf885bb15.jpg)              | ice3x              | [ICE3X](https://ice3x.com)                                                   | *   | [API](https://ice3x.co.za/ice-cubed-bitcoin-exchange-api-documentation-1-june-2017)          | South Africa                            |
-|![independentreserve](https://user-images.githubusercontent.com/1294454/30521662-cf3f477c-9bcb-11e7-89bc-d1ac85012eda.jpg) | independentreserve | [Independent Reserve](https://www.independentreserve.com)                    | *   | [API](https://www.independentreserve.com/API)                                                | Australia, New Zealand                  |
-|![indodax](https://user-images.githubusercontent.com/1294454/37443283-2fddd0e4-281c-11e8-9741-b4f1419001b5.jpg)            | indodax            | [INDODAX](https://www.indodax.com)                                           | 1.8 | [API](https://indodax.com/downloads/BITCOINCOID-API-DOCUMENTATION.pdf)                       | Indonesia                               |
-|![itbit](https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg)              | itbit              | [itBit](https://www.itbit.com)                                               | 1   | [API](https://api.itbit.com/docs)                                                            | US                                      |
-|![jubi](https://user-images.githubusercontent.com/1294454/27766581-9d397d9a-5edd-11e7-8fb9-5d8236c0e692.jpg)               | jubi               | [jubi.com](https://www.jubi.com)                                             | 1   | [API](https://www.jubi.com/help/api.html)                                                    | China                                   |
-|![kraken](https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg)             | kraken             | [Kraken](https://www.kraken.com)                                             | 0   | [API](https://www.kraken.com/en-us/help/api)                                                 | US                                      |
-|![kucoin](https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg)             | kucoin             | [Kucoin](https://www.kucoin.com/?r=E5wkqe)                                   | 1   | [API](https://kucoinapidocs.docs.apiary.io)                                                  | Hong Kong                               |
-|![kuna](https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg)               | kuna               | [Kuna](https://kuna.io)                                                      | 2   | [API](https://kuna.io/documents/api)                                                         | Ukraine                                 |
-|![lakebtc](https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg)            | lakebtc            | [LakeBTC](https://www.lakebtc.com)                                           | 2   | [API](https://www.lakebtc.com/s/api_v2)                                                      | US                                      |
-|![lbank](https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg)              | lbank              | [LBank](https://www.lbank.info)                                              | 1   | [API](https://www.lbank.info/api/api-overview)                                               | China                                   |
-|![liqui](https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg)              | liqui              | [Liqui](https://liqui.io)                                                    | 3   | [API](https://liqui.io/api)                                                                  | Ukraine                                 |
-|![livecoin](https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg)           | livecoin           | [LiveCoin](https://www.livecoin.net)                                         | *   | [API](https://www.livecoin.net/api?lang=en)                                                  | US, UK, Russia                          |
-|![luno](https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg)               | luno               | [luno](https://www.luno.com)                                                 | 1   | [API](https://www.luno.com/en/api)                                                           | UK, Singapore, South Africa             |
-|![lykke](https://user-images.githubusercontent.com/1294454/34487620-3139a7b0-efe6-11e7-90f5-e520cef74451.jpg)              | lykke              | [Lykke](https://www.lykke.com)                                               | 1   | [API](https://hft-api.lykke.com/swagger/ui/)                                                 | Switzerland                             |
-|![mercado](https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg)            | mercado            | [Mercado Bitcoin](https://www.mercadobitcoin.com.br)                         | 3   | [API](https://www.mercadobitcoin.com.br/api-doc)                                             | Brazil                                  |
-|![mixcoins](https://user-images.githubusercontent.com/1294454/30237212-ed29303c-9535-11e7-8af8-fcd381cfa20c.jpg)           | mixcoins           | [MixCoins](https://mixcoins.com)                                             | 1   | [API](https://mixcoins.com/help/api/)                                                        | UK, Hong Kong                           |
-|![negociecoins](https://user-images.githubusercontent.com/1294454/38008571-25a6246e-3258-11e8-969b-aeb691049245.jpg)       | negociecoins       | [NegocieCoins](https://www.negociecoins.com.br)                              | 3   | [API](https://www.negociecoins.com.br/documentacao-tradeapi)                                 | Brazil                                  |
-|![nova](https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg)               | nova               | [Novaexchange](https://novaexchange.com)                                     | 2   | [API](https://novaexchange.com/remote/faq)                                                   | Tanzania                                |
-|![okcoincny](https://user-images.githubusercontent.com/1294454/27766792-8be9157a-5ee5-11e7-926c-6d69b8d3378d.jpg)          | okcoincny          | [OKCoin CNY](https://www.okcoin.cn)                                          | 1   | [API](https://www.okcoin.cn/rest_getStarted.html)                                            | China                                   |
-|![okcoinusd](https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg)          | okcoinusd          | [OKCoin USD](https://www.okcoin.com)                                         | 1   | [API](https://www.okcoin.com/rest_getStarted.html)                                           | China, US                               |
-|![okex](https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg)               | okex               | [OKEX](https://www.okex.com)                                                 | 1   | [API](https://github.com/okcoin-okex/API-docs-OKEx.com)                                      | China, US                               |
-|![paymium](https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg)            | paymium            | [Paymium](https://www.paymium.com)                                           | 1   | [API](https://github.com/Paymium/api-documentation)                                          | France, EU                              |
-|![poloniex](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)           | poloniex           | [Poloniex](https://poloniex.com)                                             | *   | [API](https://poloniex.com/support/api/)                                                     | US                                      |
-|![qryptos](https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg)            | qryptos            | [QRYPTOS](https://www.qryptos.com)                                           | 2   | [API](https://developers.quoine.com)                                                         | China, Taiwan                           |
-|![quadrigacx](https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg)         | quadrigacx         | [QuadrigaCX](https://www.quadrigacx.com)                                     | 2   | [API](https://www.quadrigacx.com/api_info)                                                   | Canada                                  |
-|![quoinex](https://user-images.githubusercontent.com/1294454/35047114-0e24ad4a-fbaa-11e7-96a9-69c1a756083b.jpg)            | quoinex            | [QUOINEX](https://quoinex.com/)                                              | 2   | [API](https://developers.quoine.com)                                                         | Japan, Singapore, Vietnam               |
-|![southxchange](https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg)       | southxchange       | [SouthXchange](https://www.southxchange.com)                                 | *   | [API](https://www.southxchange.com/Home/Api)                                                 | Argentina                               |
-|![surbitcoin](https://user-images.githubusercontent.com/1294454/27991511-f0a50194-6481-11e7-99b5-8f02932424cc.jpg)         | surbitcoin         | [SurBitcoin](https://surbitcoin.com)                                         | 1   | [API](https://blinktrade.com/docs)                                                           | Venezuela                               |
-|![therock](https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg)            | therock            | [TheRockTrading](https://therocktrading.com)                                 | 1   | [API](https://api.therocktrading.com/doc/v1/index.html)                                      | Malta                                   |
-|![tidebit](https://user-images.githubusercontent.com/1294454/39034921-e3acf016-4480-11e8-9945-a6086a1082fe.jpg)            | tidebit            | [TideBit](https://www.tidebit.com)                                           | 2   | [API](https://www.tidebit.com/documents/api_v2)                                              | Hong Kong                               |
-|![tidex](https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg)              | tidex              | [Tidex](https://tidex.com)                                                   | 3   | [API](https://tidex.com/exchange/public-api)                                                 | UK                                      |
-|![urdubit](https://user-images.githubusercontent.com/1294454/27991453-156bf3ae-6480-11e7-82eb-7295fe1b5bb4.jpg)            | urdubit            | [UrduBit](https://urdubit.com)                                               | 1   | [API](https://blinktrade.com/docs)                                                           | Pakistan                                |
-|![vaultoro](https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg)           | vaultoro           | [Vaultoro](https://www.vaultoro.com)                                         | 1   | [API](https://api.vaultoro.com)                                                              | Switzerland                             |
-|![vbtc](https://user-images.githubusercontent.com/1294454/27991481-1f53d1d8-6481-11e7-884e-21d17e7939db.jpg)               | vbtc               | [VBTC](https://vbtc.exchange)                                                | 1   | [API](https://blinktrade.com/docs)                                                           | Vietnam                                 |
-|![virwox](https://user-images.githubusercontent.com/1294454/27766894-6da9d360-5eea-11e7-90aa-41f2711b7405.jpg)             | virwox             | [VirWoX](https://www.virwox.com)                                             | *   | [API](https://www.virwox.com/developers.php)                                                 | Austria, EU                             |
-|![wex](https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg)                | wex                | [WEX](https://wex.nz)                                                        | 3   | [API](https://wex.nz/api/3/docs)                                                             | New Zealand                             |
-|![xbtce](https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg)              | xbtce              | [xBTCe](https://www.xbtce.com)                                               | 1   | [API](https://www.xbtce.com/tradeapi)                                                        | Russia                                  |
-|![yobit](https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg)              | yobit              | [YoBit](https://www.yobit.net)                                               | 3   | [API](https://www.yobit.net/en/api/)                                                         | Russia                                  |
-|![yunbi](https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg)              | yunbi              | [YUNBI](https://yunbi.com)                                                   | 2   | [API](https://yunbi.com/documents/api/guide)                                                 | China                                   |
-|![zaif](https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg)               | zaif               | [Zaif](https://zaif.jp)                                                      | 1   | [API](http://techbureau-api-document.readthedocs.io/ja/latest/index.html)                    | Japan                                   |
-|![zb](https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg)                 | zb                 | [ZB](https://www.zb.com)                                                     | 1   | [API](https://www.zb.com/i/developer)                                                        | China                                   |
+|                                                                                                                           | id                 | name                                                                                 | certified                                                                                                                   | ver   | doc                                                                                              | countries                               |
+|---------------------------------------------------------------------------------------------------------------------------|--------------------|--------------------------------------------------------------------------------------|:---------------------------------------------------------------------------------------------------------------------------:|:-----:|--------------------------------------------------------------------------------------------------|-----------------------------------------|
+|![_1btcxe](https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg)            | _1btcxe            | [1BTCXE](https://1btcxe.com)                                                         |                                                                                                                             | *     | [API](https://1btcxe.com/api-docs.php)                                                           | Panama                                  |
+|![acx](https://user-images.githubusercontent.com/1294454/30247614-1fe61c74-9621-11e7-9e8c-f1a627afa279.jpg)                | acx                | [ACX](https://acx.io)                                                                |                                                                                                                             | 2     | [API](https://acx.io/documents/api_v2)                                                           | Australia                               |
+|![allcoin](https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg)            | allcoin            | [Allcoin](https://www.allcoin.com)                                                   |                                                                                                                             | 1     | [API](https://www.allcoin.com/About/APIReference)                                                | Canada                                  |
+|![anxpro](https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg)             | anxpro             | [ANXPro](https://anxpro.com)                                                         |                                                                                                                             | 2     | [API](http://docs.anxv2.apiary.io)                                                               | Japan, Singapore, Hong Kong, New Zealand|
+|![anybits](https://user-images.githubusercontent.com/1294454/41388454-ae227544-6f94-11e8-82a4-127d51d34903.jpg)            | anybits            | [Anybits](https://anybits.com)                                                       |                                                                                                                             | *     | [API](https://anybits.com/help/api)                                                              | Ireland                                 |
+|![bcex](https://user-images.githubusercontent.com/1294454/43362240-21c26622-92ee-11e8-9464-5801ec526d77.jpg)               | bcex               | [BCEX](https://www.bcex.top/user/reg/type/2/pid/758978)                              |                                                                                                                             | 1     | [API](https://www.bcex.top/api_market/market/)                                                   | China, Canada                           |
+|![bibox](https://user-images.githubusercontent.com/1294454/34902611-2be8bf1a-f830-11e7-91a2-11b2f292e750.jpg)              | bibox              | [Bibox](https://www.bibox.com/signPage?id=11114745&lang=en)                          |                                                                                                                             | 1     | [API](https://github.com/Biboxcom/api_reference/wiki/home_en)                                    | China, US, South Korea                  |
+|![bigone](https://user-images.githubusercontent.com/1294454/42803606-27c2b5ec-89af-11e8-8d15-9c8c245e8b2c.jpg)             | bigone             | [BigONE](https://b1.run/users/new?code=D3LLBVFT)                                     |                                                                                                                             | 2     | [API](https://open.big.one/docs/api.html)                                                        | UK                                      |
+|![binance](https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg)            | binance            | [Binance](https://www.binance.com/?ref=10205187)                                     | [![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | *     | [API](https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md)     | Japan                                   |
+|![bit2c](https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg)              | bit2c              | [Bit2C](https://www.bit2c.co.il)                                                     |                                                                                                                             | *     | [API](https://www.bit2c.co.il/home/api)                                                          | Israel                                  |
+|![bitbank](https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg)            | bitbank            | [bitbank](https://bitbank.cc/)                                                       |                                                                                                                             | 1     | [API](https://docs.bitbank.cc/)                                                                  | Japan                                   |
+|![bitbay](https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg)             | bitbay             | [BitBay](https://bitbay.net)                                                         |                                                                                                                             | *     | [API](https://bitbay.net/public-api)                                                             | Malta, EU                               |
+|![bitfinex](https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg)           | bitfinex           | [Bitfinex](https://www.bitfinex.com)                                                 | [![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | 1     | [API](https://bitfinex.readme.io/v1/docs)                                                        | British Virgin Islands                  |
+|![bitfinex2](https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg)          | bitfinex2          | [Bitfinex v2](https://www.bitfinex.com)                                              |                                                                                                                             | 2     | [API](https://bitfinex.readme.io/v2/docs)                                                        | British Virgin Islands                  |
+|![bitflyer](https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg)           | bitflyer           | [bitFlyer](https://bitflyer.jp)                                                      |                                                                                                                             | 1     | [API](https://bitflyer.jp/API)                                                                   | Japan                                   |
+|![bitforex](https://user-images.githubusercontent.com/1294454/44310033-69e9e600-a3d8-11e8-873d-54d74d1bc4e4.jpg)           | bitforex           | [Bitforex](https://www.bitforex.com/registered?inviterId=1867438)                    |                                                                                                                             | 1     | [API](https://github.com/bitforexapi/API_Docs/wiki)                                              | China                                   |
+|![bithumb](https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg)            | bithumb            | [Bithumb](https://www.bithumb.com)                                                   |                                                                                                                             | *     | [API](https://www.bithumb.com/u1/US127)                                                          | South Korea                             |
+|![bitibu](https://user-images.githubusercontent.com/1294454/45444675-c9ce6680-b6d0-11e8-95ab-3e749a940de1.jpg)             | bitibu             | [Bitibu](https://bitibu.com)                                                         |                                                                                                                             | 2     | [API](https://bitibu.com/documents/api_v2)                                                       | Cyprus                                  |
+|![bitkk](https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg)              | bitkk              | [bitkk](https://vip.zb.com/user/register?recommendCode=bn070u)                       |                                                                                                                             | 1     | [API](https://www.bitkk.com/i/developer)                                                         | China                                   |
+|![bitlish](https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg)            | bitlish            | [Bitlish](https://bitlish.com)                                                       |                                                                                                                             | 1     | [API](https://bitlish.com/api)                                                                   | UK, EU, Russia                          |
+|![bitmarket](https://user-images.githubusercontent.com/1294454/27767256-a8555200-5ef9-11e7-96fd-469a65e2b0bd.jpg)          | bitmarket          | [BitMarket](https://www.bitmarket.pl)                                                |                                                                                                                             | *     | [API](https://www.bitmarket.net/docs.php?file=api_public.html)                                   | Poland, EU                              |
+|![bitmex](https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg)             | bitmex             | [BitMEX](https://www.bitmex.com/register/rm3C16)                                     |                                                                                                                             | 1     | [API](https://www.bitmex.com/app/apiOverview)                                                    | Seychelles                              |
+|![bitsane](https://user-images.githubusercontent.com/1294454/41387105-d86bf4c6-6f8d-11e8-95ea-2fa943872955.jpg)            | bitsane            | [Bitsane](https://bitsane.com)                                                       |                                                                                                                             | *     | [API](https://bitsane.com/info-api)                                                              | Ireland                                 |
+|![bitso](https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg)              | bitso              | [Bitso](https://bitso.com)                                                           |                                                                                                                             | 3     | [API](https://bitso.com/api_info)                                                                | Mexico                                  |
+|![bitstamp](https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg)           | bitstamp           | [Bitstamp](https://www.bitstamp.net)                                                 |                                                                                                                             | 2     | [API](https://www.bitstamp.net/api)                                                              | UK                                      |
+|![bitstamp1](https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg)          | bitstamp1          | [Bitstamp v1](https://www.bitstamp.net)                                              |                                                                                                                             | 1     | [API](https://www.bitstamp.net/api)                                                              | UK                                      |
+|![bittrex](https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg)            | bittrex            | [Bittrex](https://bittrex.com)                                                       | [![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | 1.1   | [API](https://bittrex.com/Home/Api)                                                              | US                                      |
+|![bitz](https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg)               | bitz               | [Bit-Z](https://u.bit-z.com/register?invite_code=1429193)                            |                                                                                                                             | 2     | [API](https://apidoc.bit-z.com/en)                                                               | Hong Kong                               |
+|![bl3p](https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg)               | bl3p               | [BL3P](https://bl3p.eu)                                                              |                                                                                                                             | 1     | [API](https://github.com/BitonicNL/bl3p-api/tree/master/docs)                                    | Netherlands, EU                         |
+|![bleutrade](https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg)          | bleutrade          | [Bleutrade](https://bleutrade.com)                                                   |                                                                                                                             | 2     | [API](https://bleutrade.com/help/API)                                                            | Brazil                                  |
+|![braziliex](https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg)          | braziliex          | [Braziliex](https://braziliex.com/)                                                  |                                                                                                                             | *     | [API](https://braziliex.com/exchange/api.php)                                                    | Brazil                                  |
+|![btcalpha](https://user-images.githubusercontent.com/1294454/42625213-dabaa5da-85cf-11e8-8f99-aa8f8f7699f0.jpg)           | btcalpha           | [BTC-Alpha](https://btc-alpha.com/?r=123788)                                         |                                                                                                                             | 1     | [API](https://btc-alpha.github.io/api-docs)                                                      | US                                      |
+|![btcbox](https://user-images.githubusercontent.com/1294454/31275803-4df755a8-aaa1-11e7-9abb-11ec2fad9f2d.jpg)             | btcbox             | [BtcBox](https://www.btcbox.co.jp/)                                                  |                                                                                                                             | 1     | [API](https://www.btcbox.co.jp/help/asm)                                                         | Japan                                   |
+|![btcchina](https://user-images.githubusercontent.com/1294454/27766368-465b3286-5ed6-11e7-9a11-0f6467e1d82b.jpg)           | btcchina           | [BTCChina](https://www.btcchina.com)                                                 |                                                                                                                             | 1     | [API](https://www.btcchina.com/apidocs)                                                          | China                                   |
+|![btcexchange](https://user-images.githubusercontent.com/1294454/27993052-4c92911a-64aa-11e7-96d8-ec6ac3435757.jpg)        | btcexchange        | [BTCExchange](https://www.btcexchange.ph)                                            |                                                                                                                             | *     | [API](https://github.com/BTCTrader/broker-api-docs)                                              | Philippines                             |
+|![btcmarkets](https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg)         | btcmarkets         | [BTC Markets](https://btcmarkets.net)                                                |                                                                                                                             | *     | [API](https://github.com/BTCMarkets/API)                                                         | Australia                               |
+|![btctradeim](https://user-images.githubusercontent.com/1294454/36770531-c2142444-1c5b-11e8-91e2-a4d90dc85fe8.jpg)         | btctradeim         | [BtcTrade.im](https://www.btctrade.im)                                               |                                                                                                                             | *     | [API](https://www.btctrade.im/help.api.html)                                                     | Hong Kong                               |
+|![btctradeua](https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg)         | btctradeua         | [BTC Trade UA](https://btc-trade.com.ua)                                             |                                                                                                                             | *     | [API](https://docs.google.com/document/d/1ocYA0yMy_RXd561sfG3qEPZ80kyll36HUxvCRe5GbhE/edit)      | Ukraine                                 |
+|![btcturk](https://user-images.githubusercontent.com/1294454/27992709-18e15646-64a3-11e7-9fa2-b0950ec7712f.jpg)            | btcturk            | [BTCTurk](https://www.btcturk.com)                                                   |                                                                                                                             | *     | [API](https://github.com/BTCTrader/broker-api-docs)                                              | Turkey                                  |
+|![buda](https://user-images.githubusercontent.com/1294454/47380619-8a029200-d706-11e8-91e0-8a391fe48de3.jpg)               | buda               | [Buda](https://www.buda.com)                                                         |                                                                                                                             | 2     | [API](https://api.buda.com)                                                                      | Argentina, Chile, Colombia, Peru        |
+|![bxinth](https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg)             | bxinth             | [BX.in.th](https://bx.in.th)                                                         |                                                                                                                             | *     | [API](https://bx.in.th/info/api)                                                                 | Thailand                                |
+|![ccex](https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg)               | ccex               | [C-CEX](https://c-cex.com)                                                           |                                                                                                                             | *     | [API](https://c-cex.com/?id=api)                                                                 | Germany, EU                             |
+|![cex](https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg)                | cex                | [CEX.IO](https://cex.io/r/0/up105393824/0/)                                          |                                                                                                                             | *     | [API](https://cex.io/cex-api)                                                                    | UK, EU, Cyprus, Russia                  |
+|![chbtc](https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg)              | chbtc              | [CHBTC](https://vip.zb.com/user/register?recommendCode=bn070u)                       |                                                                                                                             | 1     | [API](https://www.chbtc.com/i/developer)                                                         | China                                   |
+|![chilebit](https://user-images.githubusercontent.com/1294454/27991414-1298f0d8-647f-11e7-9c40-d56409266336.jpg)           | chilebit           | [ChileBit](https://chilebit.net)                                                     |                                                                                                                             | 1     | [API](https://blinktrade.com/docs)                                                               | Chile                                   |
+|![cobinhood](https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg)          | cobinhood          | [COBINHOOD](https://cobinhood.com)                                                   |                                                                                                                             | 1     | [API](https://cobinhood.github.io/api-public)                                                    | Taiwan                                  |
+|![coinbase](https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg)           | coinbase           | [Coinbase](https://www.coinbase.com/join/58cbe25a355148797479dbd2)                   |                                                                                                                             | 2     | [API](https://developers.coinbase.com/api/v2)                                                    | US                                      |
+|![coinbaseprime](https://user-images.githubusercontent.com/1294454/44539184-29f26e00-a70c-11e8-868f-e907fc236a7c.jpg)      | coinbaseprime      | [Coinbase Prime](https://prime.coinbase.com)                                         |                                                                                                                             | *     | [API](https://docs.prime.coinbase.com)                                                           | US                                      |
+|![coinbasepro](https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg)        | coinbasepro        | [Coinbase Pro](https://pro.coinbase.com/)                                            |                                                                                                                             | *     | [API](https://docs.pro.coinbase.com/)                                                            | US                                      |
+|![coincheck](https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg)          | coincheck          | [coincheck](https://coincheck.com)                                                   |                                                                                                                             | *     | [API](https://coincheck.com/documents/exchange/api)                                              | Japan, Indonesia                        |
+|![coinegg](https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg)            | coinegg            | [CoinEgg](https://www.coinegg.com)                                                   |                                                                                                                             | *     | [API](https://www.coinegg.com/explain.api.html)                                                  | China, UK                               |
+|![coinex](https://user-images.githubusercontent.com/1294454/38046312-0b450aac-32c8-11e8-99ab-bc6b136b6cc7.jpg)             | coinex             | [CoinEx](https://www.coinex.com/account/signup?refer_code=yw5fz)                     |                                                                                                                             | 1     | [API](https://github.com/coinexcom/coinex_exchange_api/wiki)                                     | China                                   |
+|![coinexchange](https://user-images.githubusercontent.com/1294454/34842303-29c99fca-f71c-11e7-83c1-09d900cb2334.jpg)       | coinexchange       | [CoinExchange](https://www.coinexchange.io)                                          |                                                                                                                             | *     | [API](https://coinexchangeio.github.io/slate/)                                                   | India, Japan, South Korea, Vietnam, US  |
+|![coinfalcon](https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg)         | coinfalcon         | [CoinFalcon](https://coinfalcon.com/?ref=CFJSVGTUPASB)                               |                                                                                                                             | 1     | [API](https://docs.coinfalcon.com)                                                               | UK                                      |
+|![coinfloor](https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg)          | coinfloor          | [coinfloor](https://www.coinfloor.co.uk)                                             |                                                                                                                             | *     | [API](https://github.com/coinfloor/api)                                                          | UK                                      |
+|![coingi](https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg)             | coingi             | [Coingi](https://coingi.com)                                                         |                                                                                                                             | *     | [API](http://docs.coingi.apiary.io/)                                                             | Panama, Bulgaria, China, US             |
+|![coinmarketcap](https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg)      | coinmarketcap      | [CoinMarketCap](https://coinmarketcap.com)                                           |                                                                                                                             | 1     | [API](https://coinmarketcap.com/api)                                                             | US                                      |
+|![coinmate](https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg)           | coinmate           | [CoinMate](https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0) |                                                                                                                             | *     | [API](http://docs.coinmate.apiary.io)                                                            | UK, Czech Republic, EU                  |
+|![coinnest](https://user-images.githubusercontent.com/1294454/38065728-7289ff5c-330d-11e8-9cc1-cf0cbcb606bc.jpg)           | coinnest           | [coinnest](https://www.coinnest.co.kr)                                               |                                                                                                                             | *     | [API](https://www.coinnest.co.kr/doc/intro.html)                                                 | South Korea                             |
+|![coinone](https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg)            | coinone            | [CoinOne](https://coinone.co.kr)                                                     |                                                                                                                             | 2     | [API](https://doc.coinone.co.kr)                                                                 | South Korea                             |
+|![coinspot](https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg)           | coinspot           | [CoinSpot](https://www.coinspot.com.au)                                              |                                                                                                                             | *     | [API](https://www.coinspot.com.au/api)                                                           | Australia                               |
+|![cointiger](https://user-images.githubusercontent.com/1294454/39797261-d58df196-5363-11e8-9880-2ec78ec5bd25.jpg)          | cointiger          | [CoinTiger](https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt)         |                                                                                                                             | 1     | [API](https://github.com/cointiger/api-docs-en/wiki)                                             | China                                   |
+|![coolcoin](https://user-images.githubusercontent.com/1294454/36770529-be7b1a04-1c5b-11e8-9600-d11f1996b539.jpg)           | coolcoin           | [CoolCoin](https://www.coolcoin.com)                                                 |                                                                                                                             | *     | [API](https://www.coolcoin.com/help.api.html)                                                    | Hong Kong                               |
+|![crex24](https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg)             | crex24             | [CREX24](https://crex24.com/?refid=slxsjsjtil8xexl9hksr)                             |                                                                                                                             | 2     | [API](https://docs.crex24.com/trade-api/v2)                                                      | Estonia                                 |
+|![crypton](https://user-images.githubusercontent.com/1294454/41334251-905b5a78-6eed-11e8-91b9-f3aa435078a1.jpg)            | crypton            | [Crypton](https://cryptonbtc.com)                                                    |                                                                                                                             | 1     | [API](https://cryptonbtc.docs.apiary.io/)                                                        | EU                                      |
+|![cryptopia](https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg)          | cryptopia          | [Cryptopia](https://www.cryptopia.co.nz/Register?referrer=kroitor)                   |                                                                                                                             | *     | [API](https://support.cryptopia.co.nz/csm?id=kb_article&sys_id=a75703dcdbb9130084ed147a3a9619bc) | New Zealand                             |
+|![deribit](https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg)            | deribit            | [Deribit](https://www.deribit.com/reg-1189.4038)                                     |                                                                                                                             | 1     | [API](https://www.deribit.com/pages/docs/api)                                                    | Netherlands                             |
+|![dsx](https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg)                | dsx                | [DSX](https://dsx.uk)                                                                |                                                                                                                             | 2     | [API](https://api.dsx.uk)                                                                        | UK                                      |
+|![ethfinex](https://user-images.githubusercontent.com/1294454/37555526-7018a77c-29f9-11e8-8835-8e415c038a18.jpg)           | ethfinex           | [Ethfinex](https://www.ethfinex.com)                                                 |                                                                                                                             | 1     | [API](https://bitfinex.readme.io/v1/docs)                                                        | British Virgin Islands                  |
+|![exmo](https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg)               | exmo               | [EXMO](https://exmo.me/?ref=131685)                                                  |                                                                                                                             | 1     | [API](https://exmo.me/en/api_doc?ref=131685)                                                     | Spain, Russia                           |
+|![exx](https://user-images.githubusercontent.com/1294454/37770292-fbf613d0-2de4-11e8-9f79-f2dc451b8ccb.jpg)                | exx                | [EXX](https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f)                        |                                                                                                                             | *     | [API](https://www.exx.com/help/restApi)                                                          | China                                   |
+|![fcoin](https://user-images.githubusercontent.com/1294454/42244210-c8c42e1e-7f1c-11e8-8710-a5fb63b165c4.jpg)              | fcoin              | [FCoin](https://www.fcoin.com/i/Z5P7V)                                               |                                                                                                                             | 2     | [API](https://developer.fcoin.com)                                                               | China                                   |
+|![flowbtc](https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg)            | flowbtc            | [flowBTC](https://trader.flowbtc.com)                                                |                                                                                                                             | 1     | [API](https://www.flowbtc.com.br/api.html)                                                       | Brazil                                  |
+|![foxbit](https://user-images.githubusercontent.com/1294454/27991413-11b40d42-647f-11e7-91ee-78ced874dd09.jpg)             | foxbit             | [FoxBit](https://foxbit.exchange)                                                    |                                                                                                                             | 1     | [API](https://blinktrade.com/docs)                                                               | Brazil                                  |
+|![fybse](https://user-images.githubusercontent.com/1294454/27766512-31019772-5edb-11e7-8241-2e675e6797f1.jpg)              | fybse              | [FYB-SE](https://www.fybse.se)                                                       |                                                                                                                             | *     | [API](http://docs.fyb.apiary.io)                                                                 | Sweden                                  |
+|![fybsg](https://user-images.githubusercontent.com/1294454/27766513-3364d56a-5edb-11e7-9e6b-d5898bb89c81.jpg)              | fybsg              | [FYB-SG](https://www.fybsg.com)                                                      |                                                                                                                             | *     | [API](http://docs.fyb.apiary.io)                                                                 | Singapore                               |
+|![gatecoin](https://user-images.githubusercontent.com/1294454/28646817-508457f2-726c-11e7-9eeb-3528d2413a58.jpg)           | gatecoin           | [Gatecoin](https://gatecoin.com)                                                     |                                                                                                                             | *     | [API](https://gatecoin.com/api)                                                                  | Hong Kong                               |
+|![gateio](https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg)             | gateio             | [Gate.io](https://gate.io/)                                                          |                                                                                                                             | 2     | [API](https://gate.io/api2)                                                                      | China                                   |
+|![gdax](https://user-images.githubusercontent.com/1294454/27766527-b1be41c6-5edb-11e7-95f6-5b496c469e2c.jpg)               | gdax               | [GDAX](https://www.gdax.com)                                                         |                                                                                                                             | *     | [API](https://docs.gdax.com)                                                                     | US                                      |
+|![gemini](https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg)             | gemini             | [Gemini](https://gemini.com)                                                         |                                                                                                                             | 1     | [API](https://docs.gemini.com/rest-api)                                                          | US                                      |
+|![getbtc](https://user-images.githubusercontent.com/1294454/33801902-03c43462-dd7b-11e7-992e-077e4cd015b9.jpg)             | getbtc             | [GetBTC](https://getbtc.org)                                                         |                                                                                                                             | *     | [API](https://getbtc.org/api-docs.php)                                                           | St. Vincent & Grenadines, Russia        |
+|![hadax](https://user-images.githubusercontent.com/1294454/38059952-4756c49e-32f1-11e8-90b9-45c1eccba9cd.jpg)              | hadax              | [HADAX](https://www.huobi.br.com/en-us/topic/invited/?invite_code=rwrd3)             |                                                                                                                             | 1     | [API](https://github.com/huobiapi/API_Docs/wiki)                                                 | China                                   |
+|![hitbtc](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)             | hitbtc             | [HitBTC](https://hitbtc.com/?ref_id=5a5d39a65d466)                                   |                                                                                                                             | 1     | [API](https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md)                             | Hong Kong                               |
+|![hitbtc2](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)            | hitbtc2            | [HitBTC v2](https://hitbtc.com/?ref_id=5a5d39a65d466)                                |                                                                                                                             | 2     | [API](https://api.hitbtc.com)                                                                    | Hong Kong                               |
+|![huobi](https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg)              | huobi              | [Huobi](https://www.huobi.com)                                                       |                                                                                                                             | 3     | [API](https://github.com/huobiapi/API_Docs_en/wiki)                                              | China                                   |
+|![huobicny](https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg)           | huobicny           | [Huobi CNY](https://www.huobi.br.com/en-us/topic/invited/?invite_code=rwrd3)         |                                                                                                                             | 1     | [API](https://github.com/huobiapi/API_Docs/wiki/REST_api_reference)                              | China                                   |
+|![huobipro](https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg)           | huobipro           | [Huobi Pro](https://www.huobi.br.com/en-us/topic/invited/?invite_code=rwrd3)         |                                                                                                                             | 1     | [API](https://github.com/huobiapi/API_Docs/wiki/REST_api_reference)                              | China                                   |
+|![ice3x](https://user-images.githubusercontent.com/1294454/38012176-11616c32-3269-11e8-9f05-e65cf885bb15.jpg)              | ice3x              | [ICE3X](https://ice3x.com)                                                           |                                                                                                                             | 1     | [API](https://ice3x.co.za/ice-cubed-bitcoin-exchange-api-documentation-1-june-2017)              | South Africa                            |
+|![independentreserve](https://user-images.githubusercontent.com/1294454/30521662-cf3f477c-9bcb-11e7-89bc-d1ac85012eda.jpg) | independentreserve | [Independent Reserve](https://www.independentreserve.com)                            |                                                                                                                             | *     | [API](https://www.independentreserve.com/API)                                                    | Australia, New Zealand                  |
+|![indodax](https://user-images.githubusercontent.com/1294454/37443283-2fddd0e4-281c-11e8-9741-b4f1419001b5.jpg)            | indodax            | [INDODAX](https://indodax.com/ref/testbitcoincoid/1)                                 |                                                                                                                             | 1.8   | [API](https://indodax.com/downloads/BITCOINCOID-API-DOCUMENTATION.pdf)                           | Indonesia                               |
+|![itbit](https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg)              | itbit              | [itBit](https://www.itbit.com)                                                       |                                                                                                                             | 1     | [API](https://api.itbit.com/docs)                                                                | US                                      |
+|![jubi](https://user-images.githubusercontent.com/1294454/27766581-9d397d9a-5edd-11e7-8fb9-5d8236c0e692.jpg)               | jubi               | [jubi.com](https://www.jubi.com)                                                     |                                                                                                                             | 1     | [API](https://www.jubi.com/help/api.html)                                                        | China                                   |
+|![kkex](https://user-images.githubusercontent.com/1294454/47401462-2e59f800-d74a-11e8-814f-e4ae17b4968a.jpg)               | kkex               | [KKEX](https://kkex.com)                                                             |                                                                                                                             | 2     | [API](https://kkex.com/api_wiki/cn/)                                                             | China, US, Japan                        |
+|![kraken](https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg)             | kraken             | [Kraken](https://www.kraken.com)                                                     | [![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | 0     | [API](https://www.kraken.com/en-us/help/api)                                                     | US                                      |
+|![kucoin](https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg)             | kucoin             | [Kucoin](https://www.kucoin.com/?r=E5wkqe)                                           |                                                                                                                             | 1     | [API](https://kucoinapidocs.docs.apiary.io)                                                      | Hong Kong                               |
+|![kuna](https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg)               | kuna               | [Kuna](https://kuna.io)                                                              |                                                                                                                             | 2     | [API](https://kuna.io/documents/api)                                                             | Ukraine                                 |
+|![lakebtc](https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg)            | lakebtc            | [LakeBTC](https://www.lakebtc.com)                                                   |                                                                                                                             | 2     | [API](https://www.lakebtc.com/s/api_v2)                                                          | US                                      |
+|![lbank](https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg)              | lbank              | [LBank](https://www.lbank.info)                                                      |                                                                                                                             | 1     | [API](https://github.com/LBank-exchange/lbank-official-api-docs)                                 | China                                   |
+|![liqui](https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg)              | liqui              | [Liqui](https://liqui.io)                                                            |                                                                                                                             | 3     | [API](https://liqui.io/api)                                                                      | Ukraine                                 |
+|![liquid](https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg)             | liquid             | [Liquid](https://www.liquid.com)                                                     |                                                                                                                             | 2     | [API](https://developers.quoine.com)                                                             | Japan, China, Taiwan                    |
+|![livecoin](https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg)           | livecoin           | [LiveCoin](https://www.livecoin.net)                                                 |                                                                                                                             | *     | [API](https://www.livecoin.net/api?lang=en)                                                      | US, UK, Russia                          |
+|![luno](https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg)               | luno               | [luno](https://www.luno.com)                                                         |                                                                                                                             | 1     | [API](https://www.luno.com/en/api)                                                               | UK, Singapore, South Africa             |
+|![lykke](https://user-images.githubusercontent.com/1294454/34487620-3139a7b0-efe6-11e7-90f5-e520cef74451.jpg)              | lykke              | [Lykke](https://www.lykke.com)                                                       |                                                                                                                             | 1     | [API](https://hft-api.lykke.com/swagger/ui/)                                                     | Switzerland                             |
+|![mercado](https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg)            | mercado            | [Mercado Bitcoin](https://www.mercadobitcoin.com.br)                                 |                                                                                                                             | 3     | [API](https://www.mercadobitcoin.com.br/api-doc)                                                 | Brazil                                  |
+|![mixcoins](https://user-images.githubusercontent.com/1294454/30237212-ed29303c-9535-11e7-8af8-fcd381cfa20c.jpg)           | mixcoins           | [MixCoins](https://mixcoins.com)                                                     |                                                                                                                             | 1     | [API](https://mixcoins.com/help/api/)                                                            | UK, Hong Kong                           |
+|![negociecoins](https://user-images.githubusercontent.com/1294454/38008571-25a6246e-3258-11e8-969b-aeb691049245.jpg)       | negociecoins       | [NegocieCoins](https://www.negociecoins.com.br)                                      |                                                                                                                             | 3     | [API](https://www.negociecoins.com.br/documentacao-tradeapi)                                     | Brazil                                  |
+|![nova](https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg)               | nova               | [Novaexchange](https://novaexchange.com)                                             |                                                                                                                             | 2     | [API](https://novaexchange.com/remote/faq)                                                       | Tanzania                                |
+|![okcoincny](https://user-images.githubusercontent.com/1294454/27766792-8be9157a-5ee5-11e7-926c-6d69b8d3378d.jpg)          | okcoincny          | [OKCoin CNY](https://www.okcoin.cn)                                                  |                                                                                                                             | 1     | [API](https://www.okcoin.cn/rest_getStarted.html)                                                | China                                   |
+|![okcoinusd](https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg)          | okcoinusd          | [OKCoin USD](https://www.okcoin.com)                                                 |                                                                                                                             | 1     | [API](https://www.okcoin.com/rest_getStarted.html)                                               | China, US                               |
+|![okex](https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg)               | okex               | [OKEX](https://www.okex.com)                                                         |                                                                                                                             | 1     | [API](https://github.com/okcoin-okex/API-docs-OKEx.com)                                          | China, US                               |
+|![paymium](https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg)            | paymium            | [Paymium](https://www.paymium.com)                                                   |                                                                                                                             | 1     | [API](https://github.com/Paymium/api-documentation)                                              | France, EU                              |
+|![poloniex](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)           | poloniex           | [Poloniex](https://poloniex.com)                                                     |                                                                                                                             | *     | [API](https://poloniex.com/support/api/)                                                         | US                                      |
+|![qryptos](https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg)            | qryptos            | [QRYPTOS](https://www.liquid.com)                                                    |                                                                                                                             | 2     | [API](https://developers.quoine.com)                                                             | Japan, China, Taiwan                    |
+|![quadrigacx](https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg)         | quadrigacx         | [QuadrigaCX](https://www.quadrigacx.com/?ref=laiqgbp6juewva44finhtmrk)               |                                                                                                                             | 2     | [API](https://www.quadrigacx.com/api_info)                                                       | Canada                                  |
+|![quoinex](https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg)            | quoinex            | [QUOINEX](https://www.liquid.com)                                                    |                                                                                                                             | 2     | [API](https://developers.quoine.com)                                                             | Japan, China, Taiwan                    |
+|![rightbtc](https://user-images.githubusercontent.com/1294454/42633917-7d20757e-85ea-11e8-9f53-fffe9fbb7695.jpg)           | rightbtc           | [RightBTC](https://www.rightbtc.com)                                                 |                                                                                                                             | *     | [API](https://52.53.159.206/api/trader/)                                                         | United Arab Emirates                    |
+|![southxchange](https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg)       | southxchange       | [SouthXchange](https://www.southxchange.com)                                         |                                                                                                                             | *     | [API](https://www.southxchange.com/Home/Api)                                                     | Argentina                               |
+|![surbitcoin](https://user-images.githubusercontent.com/1294454/27991511-f0a50194-6481-11e7-99b5-8f02932424cc.jpg)         | surbitcoin         | [SurBitcoin](https://surbitcoin.com)                                                 |                                                                                                                             | 1     | [API](https://blinktrade.com/docs)                                                               | Venezuela                               |
+|![theocean](https://user-images.githubusercontent.com/1294454/43103756-d56613ce-8ed7-11e8-924e-68f9d4bcacab.jpg)           | theocean           | [The Ocean](https://theocean.trade)                                                  | [![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | 0     | [API](https://docs.theocean.trade)                                                               | US                                      |
+|![therock](https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg)            | therock            | [TheRockTrading](https://therocktrading.com)                                         |                                                                                                                             | 1     | [API](https://api.therocktrading.com/doc/v1/index.html)                                          | Malta                                   |
+|![tidebit](https://user-images.githubusercontent.com/1294454/39034921-e3acf016-4480-11e8-9945-a6086a1082fe.jpg)            | tidebit            | [TideBit](https://www.tidebit.com)                                                   |                                                                                                                             | 2     | [API](https://www.tidebit.com/documents/api/guide)                                               | Hong Kong                               |
+|![tidex](https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg)              | tidex              | [Tidex](https://tidex.com)                                                           |                                                                                                                             | 3     | [API](https://tidex.com/exchange/public-api)                                                     | UK                                      |
+|![uex](https://user-images.githubusercontent.com/1294454/43999923-051d9884-9e1f-11e8-965a-76948cb17678.jpg)                | uex                | [UEX](https://www.uex.com/signup.html?code=VAGQLL)                                   |                                                                                                                             | 1.0.3 | [API](https://download.uex.com/doc/UEX-API-English-1.0.3.pdf)                                    | Singapore, US                           |
+|![urdubit](https://user-images.githubusercontent.com/1294454/27991453-156bf3ae-6480-11e7-82eb-7295fe1b5bb4.jpg)            | urdubit            | [UrduBit](https://urdubit.com)                                                       |                                                                                                                             | 1     | [API](https://blinktrade.com/docs)                                                               | Pakistan                                |
+|![vaultoro](https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg)           | vaultoro           | [Vaultoro](https://www.vaultoro.com)                                                 |                                                                                                                             | 1     | [API](https://api.vaultoro.com)                                                                  | Switzerland                             |
+|![vbtc](https://user-images.githubusercontent.com/1294454/27991481-1f53d1d8-6481-11e7-884e-21d17e7939db.jpg)               | vbtc               | [VBTC](https://vbtc.exchange)                                                        |                                                                                                                             | 1     | [API](https://blinktrade.com/docs)                                                               | Vietnam                                 |
+|![virwox](https://user-images.githubusercontent.com/1294454/27766894-6da9d360-5eea-11e7-90aa-41f2711b7405.jpg)             | virwox             | [VirWoX](https://www.virwox.com)                                                     |                                                                                                                             | *     | [API](https://www.virwox.com/developers.php)                                                     | Austria, EU                             |
+|![wex](https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg)                | wex                | [WEX](https://wex.nz)                                                                |                                                                                                                             | 3     | [API](https://wex.nz/api/3/docs)                                                                 | New Zealand                             |
+|![xbtce](https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg)              | xbtce              | [xBTCe](https://www.xbtce.com)                                                       |                                                                                                                             | 1     | [API](https://www.xbtce.com/tradeapi)                                                            | Russia                                  |
+|![yobit](https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg)              | yobit              | [YoBit](https://www.yobit.net)                                                       |                                                                                                                             | 3     | [API](https://www.yobit.net/en/api/)                                                             | Russia                                  |
+|![yunbi](https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg)              | yunbi              | [YUNBI](https://yunbi.com)                                                           |                                                                                                                             | 2     | [API](https://yunbi.com/documents/api/guide)                                                     | China                                   |
+|![zaif](https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg)               | zaif               | [Zaif](https://zaif.jp)                                                              |                                                                                                                             | 1     | [API](http://techbureau-api-document.readthedocs.io/ja/latest/index.html)                        | Japan                                   |
+|![zb](https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg)                 | zb                 | [ZB](https://vip.zb.com/user/register?recommendCode=bn070u)                          |                                                                                                                             | 1     | [API](https://www.zb.com/i/developer)                                                            | China                                   |
 
 Besides making basic market and limit orders, some exchanges offer margin trading (leverage), various derivatives (like futures contracts and options) and also have [dark pools](https://en.wikipedia.org/wiki/Dark_pool), [OTC](https://en.wikipedia.org/wiki/Over-the-counter_(finance)) (over-the-counter trading), merchant APIs and much more.
 
@@ -213,6 +227,16 @@ let kraken1 = new ccxt.kraken ({ id: 'kraken1' })
 let kraken2 = new ccxt.kraken ({ id: 'kraken2' })
 let id = 'gdax'
 let gdax = new ccxt[id] ();
+
+// from variable id
+const exchangeId = 'binance'
+    , exchangeClass = ccxt[exchangeId]
+    , exchange = new exchangeClass ({
+        'apiKey': 'YOUR_API_KEY',
+        'secret': 'YOUR_SECRET',
+        'timeout': 30000,
+        'enableRateLimit': true,
+    })
 ```
 
 ```Python
@@ -224,6 +248,16 @@ okcoin2 = ccxt.okcoinusd ({ 'id': 'okcoin2' })
 id = 'btcchina'
 btcchina = eval ('ccxt.%s ()' % id)
 gdax = getattr (ccxt, 'gdax') ()
+
+# from variable id
+exchange_id = 'binance'
+exchange_class = getattr(ccxt, exchange_id)
+exchange = exchange_class({
+    'apiKey': 'YOUR_API_KEY',
+    'secret': 'YOUR_SECRET',
+    'timeout': 30000,
+    'enableRateLimit': True,
+})
 ```
 
 The ccxt library in PHP uses builtin UTC/GMT time functions, therefore you are required to set date.timezone in your php.ini or call [date_default_timezone_set ()](http://php.net/manual/en/function.date-default-timezone-set.php) function before using the PHP version of the library. The recommended timezone setting is `"UTC"`.
@@ -238,6 +272,16 @@ $bitfinex2 = new \ccxt\bitfinex (array ('id' => 'bitfinex2'));
 $id = 'kraken';
 $exchange = '\\ccxt\\' . $id
 $kraken = new $exchange ();
+
+// from variable id
+$exchange_id = 'binance';
+$exchange_class = "\\ccxt\\$exchange_id";
+$exchange = new $exchange_class (array (
+    'apiKey' => 'YOUR_API_KEY',
+    'secret' => 'YOUR_SECRET',
+    'timeout' => 30000,
+    'enableRateLimit' => true,
+));
 ```
 
 ## Exchange Structure
@@ -250,7 +294,7 @@ Here's an overview of base exchange properties with values added for example:
 {
     'id':   'exchange'                  // lowercase string exchange id
     'name': 'Exchange'                  // human-readable string
-    'countries': [ 'US', 'CN', 'EU' ],  // string or array of ISO country codes
+    'countries': [ 'US', 'CN', 'EU' ],  // array of ISO country codes
     'urls': {
         'api': 'https://api.example.com/data',  // string or dictionary of base API URLs
         'www': 'https://www.example.com'        // string website URL
@@ -314,7 +358,7 @@ Below is a detailed description of each of the base exchange properties:
 
 - `name`: This is a string literal containing the human-readable exchange name.
 
-- `countries`: A string literal or an array of string literals of 2-symbol ISO country codes, where the exchange is operating from.
+- `countries`: An array of string literals of 2-symbol ISO country codes, where the exchange is operating from.
 
 - `urls['api']`: The single string literal base URL for API calls or an associative array of separate URLs for private and public APIs.
 
@@ -334,7 +378,7 @@ Below is a detailed description of each of the base exchange properties:
 
 - `rateLimit`: A request rate limit in milliseconds. Specifies the required minimal delay between two consequent HTTP requests to the same exchange. The built-in rate-limiter is disabled by default and is turned on by setting the `enableRateLimit` property to true.
 
-- `enableRateLimit`: A boolean (true/false) value that enables the built-in rate limiter and throttles consecutive requests. This settings is false (disabled) by default. **The user is required to implement own [rate limiting](https://github.com/ccxt/ccxt/wiki/Manual#rate-limit) or enable the built-in rate limiter to avoid being banned from the exchange**.
+- `enableRateLimit`: A boolean (true/false) value that enables the built-in rate limiter and throttles consecutive requests. This setting is false (disabled) by default. **The user is required to implement own [rate limiting](https://github.com/ccxt/ccxt/wiki/Manual#rate-limit) or enable the built-in rate limiter to avoid being banned from the exchange**.
 
 - `userAgent`: An object to set HTTP User-Agent header to. The ccxt library will set its User-Agent by default. Some exchanges may not like it. If you are having difficulties getting a reply from an exchange and want to turn User-Agent off or use the default one, set this value to false, undefined, or an empty string.
 
@@ -361,6 +405,8 @@ Below is a detailed description of each of the base exchange properties:
 - `password`: A string literal with your password/phrase. Some exchanges require this parameter for trading, but most of them don't.
 
 - `uid`: A unique id of your account. This can be a string literal or a number. Some exchanges also require this for trading, but most of them don't.
+
+#### Exchange Metadata
 
 - `has`: An assoc-array containing flags for exchange capabilities, including the following:
 
@@ -394,6 +440,7 @@ Below is a detailed description of each of the base exchange properties:
         'fetchBidsAsks': false,
         'fetchTrades': true,
         'withdraw': false,
+        ...
     }
     ```
 
@@ -471,6 +518,12 @@ A later retry is usually enough to handle that. More on that here:
 ### DDoS Protection By Cloudflare / Incapsula
 
 Some exchanges are [DDoS](https://en.wikipedia.org/wiki/Denial-of-service_attack)-protected by [Cloudflare](https://www.cloudflare.com) or [Incapsula](https://www.incapsula.com). Your IP can get temporarily blocked during periods of high load. Sometimes they even restrict whole countries and regions. In that case their servers usually return a page that states a HTTP 40x error or runs an AJAX test of your browser / captcha test and delays the reload of the page for several seconds. Then your browser/fingerprint is granted access temporarily and gets added to a whitelist or receives a HTTP cookie for further use.
+
+The most common symptoms for a DDoS protection problem, rate-limiting problem or for a location-based filtering issue:
+- Getting `RequestTimeout` exceptions with all types of exchange methods
+- Catching `ExchangeError` or `ExchangeNotAvailable` with HTTP error codes 400, 403, 404, 429, 500, 501, 503, etc..
+- Having DNS resolving issues, SSL certificate issues and low-level connectivity issues
+- Getting a template HTML page instead of JSON from the exchange
 
 If you encounter DDoS protection errors and cannot reach a particular exchange then:
 
@@ -723,7 +776,8 @@ Historically various symbolic names have been used to designate same trading pai
 - `BCC → BCH`: The Bitcoin Cash fork is often called with two different symbolic names: `BCC` and `BCH`. The name `BCC` is ambiguous for Bitcoin Cash, it is confused with BitConnect. The ccxt library will convert `BCC` to `BCH` where it is appropriate (some exchanges and aggregators confuse them).
 - `DRK → DASH`: `DASH` was Darkcoin then became Dash ([read more](https://minergate.com/blog/dashcoin-and-dash/)).
 - `DSH → DASH`: Try not to confuse symbols and currencies. The `DSH` (Dashcoin) is not the same as `DASH` (Dash). Some exchanges have `DASH` labelled inconsistently as `DSH`, the ccxt library does a correction for that as well (`DSH → DASH`), but only on certain exchanges that have these two currencies confused, whereas most exchanges have them both correct. Just remember that `DASH/BTC` is not the same as `DSH/BTC`.
-- `NANO` → `XRB`: `NANO` is the newer code for Raiblocks, however, CCXT unified API uses the older `XRB` for backward-compatibility with existing exchanges and data providers.
+- `XRB` → `NANO`: `NANO` is the newer code for RaiBlocks, thus, CCXT unified API uses will replace the older `XRB` with `NANO` where needed. https://hackernoon.com/nano-rebrand-announcement-9101528a7b76
+- `USD` → `USDT`: Some exchanges, like Bitfinex, HitBTC and a few other name the currency as `USD` in their listings, but those markets are actually trading `USDT`. The confusion can come from a 3-letter limitation on symbol names or may be due to other reasons. In cases where the traded currency is actually `USDT` and is not `USD` – the CCXT library will perform `USD` → `USDT` conversion. Note, however, that some exchanges  have both `USD` and `USDT` symbols, for example, Kraken has a `USDT/USD` trading pair.
 
 #### Notes On Naming Consistency
 
@@ -731,7 +785,7 @@ Each exchange has an associative array of substitutions for cryptocurrency symbo
 
 - First, we gather all info available from the exchanges themselves about the currency codes in question. They usually have a description of their coin listings somewhere in their API or their docs, knowledgebases or elsewhere on their websites.
 - When we identify each particular cryptocurrency standing behind the currency code, we look them up on [CoinMarketCap](https://coinmarketcap.com).
-- The currency that has the greatest market capitalization of all wins the currency code and keeps it. For example, HMC often stand for either `Hi Mutual Society` or `HarmonyCoin`. In this case `Hi Mutual Society` retains the code `HMC`, and `HarmonyCoin` will have its name as its code, literally, `HarmonyCoin`. So, there may be trading pairs with symbols like `HMC/USD` (for `Hi Mutual Society`) and `HarmonyCoin/USD` – those are two different markets.
+- The currency that has the greatest market capitalization of all wins the currency code and keeps it. For example, HOT often stand for either `Holo` or `Hydro Protocol`. In this case `Holo` retains the code `HOT`, and `Hydro Protocol` will have its name as its code, literally, `Hydro Protocol`. So, there may be trading pairs with symbols like `HOT/USD` (for `Holo`) and `Hydro Protocol/USD` – those are two different markets.
 - If market cap of a particular coin is unknown or is not enough to determine the winner, we also take trading volumes and other factors into consideration.
 - When the winner is determined all other competing currencies get their code names properly remapped and substituted within conflicting exchanges via `.commonCurrencies`.
 - Unfortunately this is a work in progress, because new currencies get listed daily and new exchanges are added from time to time, so, in general this is a never-ending process of self-correction in a quickly changing environment, practically, in *"live mode"*. We are thankful for all reported conflicts and mismatches you may find.
@@ -889,13 +943,13 @@ In the JavaScript version of CCXT all methods are asynchronous and return [Promi
 }) ()
 ```
 
-The ccxt library supports asynchronous concurrency mode in Python 3.5+ with async/await syntax. The asynchronous Python version uses pure [asyncio](https://docs.python.org/3/library/asyncio.html) with [aiohttp](http://aiohttp.readthedocs.io). In async mode you have all the same properties and methods, but most methods are decorated with an async keyword. If you want to use async mode, you should link against the `ccxt.async` subpackage, like in the following example:
+The ccxt library supports asynchronous concurrency mode in Python 3.5+ with async/await syntax. The asynchronous Python version uses pure [asyncio](https://docs.python.org/3/library/asyncio.html) with [aiohttp](http://aiohttp.readthedocs.io). In async mode you have all the same properties and methods, but most methods are decorated with an async keyword. If you want to use async mode, you should link against the `ccxt.async_support` subpackage, like in the following example:
 
 ```Python
 # Python
 
 import asyncio
-import ccxt.async as ccxt
+import ccxt.async_support as ccxt
 
 async def print_poloniex_ethbtc_ticker():
     poloniex = ccxt.poloniex()
@@ -1013,6 +1067,248 @@ $params = array (
 
 // overrides go into the last argument to the unified call ↓ HERE
 $result = $exchange->fetch_order_book ($symbol, $length, $params);
+```
+
+### Pagination
+
+Most of unified methods will return either a single object or a plain array (a list) of objects (trades, orders, transactions and so on). However, very few exchanges (if any at all) will return all orders, all trades, all ohlcv candles or all transactions at once. Most often their APIs `limit` output to a certain number of most recent objects. **YOU CANNOT GET ALL OBJECTS SINCE THE BEGINNING OF TIME TO THE PRESENT MOMENT IN JUST ONE CALL**. Practically, very few exchanges will tolerate or allow that.
+
+To fetch historical orders or trades, the user will need to traverse the data in portions or "pages" of objects. Pagination often implies *"fetching portions of data one by one"* in a loop.
+
+In most cases users are **required to use at least some type of pagination** in order to get the expected results consistently. If the user does not apply any pagination, most methods will return the exchanges' default, which may start from the beginning of history or may be a subset of most recent objects. The default behaviour (without pagination) is exchange-specific! The means of pagination are often used with the following methods in particular:
+
+- `fetchTrades`
+- `fetchOHLCV`
+- `fetchOrders`
+- `fetchOpenOrders`
+- `fetchClosedOrders`
+- `fetchMyTrades`
+- `fetchTransactions`
+- `fetchDeposits`
+- `fetchWithdrawals`
+
+With methods returning lists of objects, exchanges may offer one or more types of pagination. CCXT unifies **date-based pagination** by default, with timestamps **in milliseconds** throughout the entire library.
+
+#### Working With Datetimes and Timestamps
+
+The set of methods for working with UTC dates and timestamps and for converting between them:
+
+```JavaScript
+exchange.parse8601 ('2018-01-01T00:00:00Z') == 1514764800000 // integer, Z = UTC
+exchange.iso8601 (1514764800000) == '2018-01-01T00:00:00Z'   // iso8601 string
+exchange.seconds ()      // integer UTC timestamp in seconds
+exchange.milliseconds () // integer UTC timestamp in milliseconds
+```
+
+#### Date-based pagination
+
+This is the type of pagination currently used throughout the CCXT Unified API. The user supplies a `since` timestamp **in milliseconds** (!) and a number to `limit` results. To traverse the objects of interest page by page, the user runs the following (below is pseudocode, it may require overriding some exchange-specific params, depending on the exchange in question):
+
+```JavaScript
+// JavaScript
+if (exchange.has['fetchTrades']) {
+    let since = exchange.milliseconds () - 86400000 // -1 day from now
+    // alternatively, fetch from a certain starting datetime
+    // let since = exchange.parse8601 ('2018-01-01T00:00:00Z')
+    let allTrades = []
+    while (since < exchange.milliseconds ()) {
+        const symbol = undefined // change for your symbol
+        const limit = 20 // change for your limit
+        const trades = await exchange.fetchTrades (symbol, since, limit)
+        if (trades.length) {
+            since = trades[trades.length - 1]
+            allTrades.push (trades)
+        } else {
+            break
+        }
+    }
+}
+```
+
+```Python
+# Python
+if exchange.has['fetchOrders']:
+    since = exchange.milliseconds () - 86400000  # -1 day from now
+    # alternatively, fetch from a certain starting datetime
+    # since = exchange.parse8601('2018-01-01T00:00:00Z')
+    all_orders = []
+    while since < exchange.milliseconds ():
+        symbol = None  # change for your symbol
+        limit = 20  # change for your limit
+        orders = await exchange.fetch_orders(symbol, since, limit)
+        if len(orders):
+            since = orders[len(orders) - 1]
+            all_orders += orders
+        else:
+            break
+```
+
+```PHP
+// PHP
+if ($exchange->has['fetchMyTrades']) {
+    $since = exchange->milliseconds () - 86400000; // -1 day from now
+    // alternatively, fetch from a certain starting datetime
+    // $since = $exchange->parse8601 ('2018-01-01T00:00:00Z')
+    $all_trades = array ();
+    while (since < exchange->milliseconds ()) {
+        $symbol = null; // change for your symbol
+        $limit = 20; // change for your limit
+        $trades = $exchange->fetchMyTrades ($symbol, $since, $limit);
+        if (count($trades)) {
+            $since = $trades[count($trades) - 1];
+            $all_trades = array_merge ($all_trades, $trades);
+        } else {
+            break;
+        }
+    }
+}
+```
+
+#### id-based pagination
+
+The user supplies a `from_id` of the object, from where the query should continue returning results, and a number to `limit` results. This is the default with some exchanges, however, this type is not unified (yet). To paginate objects based on their ids, the user would run the following:
+
+```JavaScript
+// JavaScript
+if (exchange.has['fetchTrades']) {
+    let from_id = 'abc123' // all ids are strings
+    let allTrades = []
+    while (true) {
+        const symbol = undefined // change for your symbol
+        const since = undefined
+        const limit = 20 // change for your limit
+        const params = {
+            'from_id': from_id, // exchange-specific non-unified parameter name
+        }
+        const trades = await exchange.fetchTrades (symbol, since, limit, params)
+        if (trades.length) {
+            from_id = trades[trades.length - 1]['id']
+            allTrades.push (trades)
+        } else {
+            break
+        }
+    }
+}
+```
+
+```Python
+# Python
+if exchange.has['fetchOrders']:
+    from_id = 'abc123'  # all ids are strings
+    all_orders = []
+    while True:
+        symbol = None  # change for your symbol
+        since = None
+        limit = 20  # change for your limit
+        params = {
+            'from_id': from_id,  # exchange-specific non-unified parameter name
+        }
+        orders = await exchange.fetch_orders(symbol, since, limit, params)
+        if len(orders):
+            from_id = orders[len(orders) - 1]['id']
+            all_orders += orders
+        else:
+            break
+```
+
+```PHP
+// PHP
+if ($exchange->has['fetchMyTrades']) {
+    $from_id = 'abc123' // all ids are strings
+    $all_trades = array ();
+    while (true) {
+        $symbol = null; // change for your symbol
+        $since = null;
+        $limit = 20; // change for your limit
+        $params = array (
+            'from_id' => $from_id, // exchange-specific non-unified parameter name
+        );
+        $trades = $exchange->fetchMyTrades ($symbol, $since, $limit, $params);
+        if (count($trades)) {
+            $from_id = $trades[count($trades) - 1]['id'];
+            $all_trades = array_merge ($all_trades, $trades);
+        } else {
+            break;
+        }
+    }
+}
+```
+
+#### Pagenumber-based (cursor) pagination
+
+The user supplies a page number or an *initial "cursor"* value. The exchange returns a page of results and the *next "cursor"* value, to proceed from. Most of exchanges that implement this type of pagination will either return the next cursor within the response itself or will return the next cursor values within HTTP response headers.
+
+See an example implementation here: https://github.com/ccxt/ccxt/blob/master/examples/py/gdax-fetch-my-trades-pagination.py
+
+Upon each iteration of the loop the user has to take the next cursor and put it into the overrided params for the next query (on the following iteration):
+
+```JavaScript
+// JavaScript
+if (exchange.has['fetchTrades']) {
+    let page = 0  // exchange-specific type and value
+    let allTrades = []
+    while (true) {
+        const symbol = undefined // change for your symbol
+        const since = undefined
+        const limit = 20 // change for your limit
+        const params = {
+            'page': page, // exchange-specific non-unified parameter name
+        }
+        const trades = await exchange.fetchTrades (symbol, since, limit, params)
+        if (trades.length) {
+            // not thread-safu and exchange-specific !
+            page = exchange.last_json_response['cursor']
+            allTrades.push (trades)
+        } else {
+            break
+        }
+    }
+}
+```
+
+```Python
+# Python
+if exchange.has['fetchOrders']:
+    cursor = 0  # exchange-specific type and value
+    all_orders = []
+    while True:
+        symbol = None  # change for your symbol
+        since = None
+        limit = 20  # change for your limit
+        params = {
+            'cursor': cursor,  # exchange-specific non-unified parameter name
+        }
+        orders = await exchange.fetch_orders(symbol, since, limit, params)
+        if len(orders):
+            # not thread-safu and exchange-specific !
+            cursor = exchange.last_http_headers['CB-AFTER']
+            all_orders += orders
+        else:
+            break
+```
+
+```PHP
+// PHP
+if ($exchange->has['fetchMyTrades']) {
+    $start = '0' // exchange-specific type and value
+    $all_trades = array ();
+    while (true) {
+        $symbol = null; // change for your symbol
+        $since = null;
+        $limit = 20; // change for your limit
+        $params = array (
+            'start' => $start, // exchange-specific non-unified parameter name
+        );
+        $trades = $exchange->fetchMyTrades ($symbol, $since, $limit, $params);
+        if (count($trades)) {
+            // not thread-safu and exchange-specific !
+            $start = $exchange->last_json_response['next'];
+            $all_trades = array_merge ($all_trades, $trades);
+        } else {
+            break;
+        }
+    }
+}
 ```
 
 # Market Data
@@ -1215,11 +1511,16 @@ base currency ↓
                     ↑ quote currency
 ```
 
-Timestamp and datetime are both Universal Time Coordinated (UTC).
+Timestamp and datetime are both Universal Time Coordinated (UTC) in milliseconds.
 
 Although some exchanges do mix-in orderbook's top bid/ask prices into their tickers (and some even top bid/asks volumes) you should not treat ticker as a `fetchOrderBook` replacement. The main purpose of a ticker is to serve statistical data, as such, treat it as "live 24h OHLCV". It is known that exchanges discourage frequent `fetchTicker` requests by imposing stricter rate limits on these queries. If you need a unified way to access bid/asks you should use `fetchL[123]OrderBook` family instead.
 
 To get historical prices and volumes use the unified [`fetchOHLCV`](https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-candlestick-charts) method where available.
+
+Methods for fetching tickers:
+
+- `fetchTicker (symbol[, params = {}]) // symbol is required, params are optional`
+- `fetchTickers ([symbols = undefined[, params = {}]]) // both argument are optional (mostly)`
 
 ### Individually By Symbol
 
@@ -1227,28 +1528,31 @@ To get the individual ticker data from an exchange for each particular trading p
 
 ```JavaScript
 // JavaScript
-(async () => {
+if (exchange.has['fetchTicker']) {
     console.log (await (exchange.fetchTicker ('BTC/USD'))) // ticker for BTC/USD
     let symbols = Object.keys (exchange.markets)
-    let random = Math.floor ((Math.random () * symbols.length)) - 1
+    let random = Math.floor (Math.random () * (symbols.length - 1))
     console.log (exchange.fetchTicker (symbols[random])) // ticker for a random symbol
-}) ()
+}
 ```
 
 ```Python
 # Python
 import random
-print(exchange.fetch_ticker('LTC/ZEC')) # ticker for LTC/ZEC
-symbols = list(exchange.markets.keys())
-print(exchange.fetch_ticker(random.choice(symbols))) # ticker for a random symbol
+if (exchange.has['fetchTicker']):
+    print(exchange.fetch_ticker('LTC/ZEC')) # ticker for LTC/ZEC
+    symbols = list(exchange.markets.keys())
+    print(exchange.fetch_ticker(random.choice(symbols))) # ticker for a random symbol
 ```
 
 ```PHP
 // PHP (don't forget to set your timezone properly!)
-var_dump ($exchange->fetch_ticker ('ETH/CNY')); // ticker for ETH/CNY
-$symbols = array_keys ($exchange->markets);
-$random = rand () % count ($symbols);
-var_dump ($exchange->fetch_ticker ($symbols[$random])); // ticker for a random symbol
+if ($exchange->has['fetchTicker']) {
+    var_dump ($exchange->fetch_ticker ('ETH/CNY')); // ticker for ETH/CNY
+    $symbols = array_keys ($exchange->markets);
+    $random = rand () % count ($symbols);
+    var_dump ($exchange->fetch_ticker ($symbols[$random])); // ticker for a random symbol
+}
 ```
 
 ### All At Once
@@ -1257,24 +1561,53 @@ Some exchanges (not all of them) also support fetching all tickers at once. See 
 
 ```JavaScript
 // JavaScript
-(async () => {
+if (exchange.has['fetchTickers']) {
     console.log (await (exchange.fetchTickers ())) // all tickers indexed by their symbols
-}) ()
+}
 ```
 
 ```Python
 # Python
-print(exchange.fetch_tickers()) # all tickers indexed by their symbols
+if (exchange.has['fetchTickers']):
+    print(exchange.fetch_tickers()) # all tickers indexed by their symbols
 ```
 
 ```PHP
 // PHP
-var_dump ($exchange->fetch_tickers ()); // all tickers indexed by their symbols
+if ($exchange->has['fetchTickers']) {
+    var_dump ($exchange->fetch_tickers ()); // all tickers indexed by their symbols
+}
 ```
 
-Fetching all tickers requires more traffic than fetching a single ticker. If you only need one ticker, fetching by a particular symbol is faster in general. You probably want to fetch all tickers only if you really need all of them.
+Fetching all tickers requires more traffic than fetching a single ticker. Also, note that some exchanges impose higher rate-limits on subsequent fetches of all tickers (see their docs on corresponding endpoints for details). **The cost of fetchTickers call in terms of rate limit is often higher than average**. If you only need one ticker, fetching by a particular symbol is faster as well. You probably want to fetch all tickers only if you really need all of them and, most likely, you don't want to fetchTickers more frequently than once a minute or so.
 
-The structure of returned value is as follows:
+Also, some exchanges may impose additional requirements on fetchTickers call, sometimes you can't fetch tickers for all symbols because of API limitations of the exchange in question. Some exchanges allow specifying a list of symbols in HTTP URL query params, however, because URL length is limited, and in extreme cases exchanges can have thousands of markets – a list of all their symbols simply would not fit in the URL, so it has to be a limited subset of their symbols. Sometimes, there are other reasons for requiring a list of symbols, and there may be a limit on the number of symbols you can fetch at once, but whatever the limitation, please, blame the exchange. To pass the symbols of interest to the exchange, once can simply supply a list of strings as the first argument to fetchTickers:
+
+```JavaScript
+//JavaScript
+if (exchange.has['fetchTickers']) {
+    console.log (await (exchange.fetchTickers ([ 'ETH/BTC', 'LTC/BTC' ]))) // listed tickers indexed by their symbols
+}
+```
+
+```Python
+# Python
+if (exchange.has['fetchTickers']):
+    print(exchange.fetch_tickers(['ETH/BTC', 'LTC/BTC'])) # listed tickers indexed by their symbols
+```
+
+```PHP
+// PHP
+if ($exchange->has['fetchTickers']) {
+    var_dump ($exchange->fetch_tickers (array ('ETH/BTC', 'LTC/BTC'))); // listed tickers indexed by their symbols
+}
+```
+
+Note that the list of symbols is not required in most cases, but you must add additional logic if you want to handle all possible limitations that might be imposed on the exchanges' side.
+
+Like most methods of the Unified CCXT API, the last argument to fetchTickers is the `params` argument for overriding request parameters that are sent towards the exchange.
+
+The structure of the returned value is as follows:
 
 ```JavaScript
 {
@@ -1311,18 +1644,16 @@ The `fetchOHLCV` method is declared in the following way:
 fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {})
 ```
 
-You can call the unified `fetchOHLCV` / `fetch_ohlcv` method to get the list of most recent OHLCV candles for a particular symbol like so:
+You can call the unified `fetchOHLCV` / `fetch_ohlcv` method to get the list of OHLCV candles for a particular symbol like so:
 
 ```JavaScript
 // JavaScript
 let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
 if (exchange.has.fetchOHLCV) {
-    (async () => {
-        for (symbol in exchange.markets) {
-            await sleep (exchange.rateLimit) // milliseconds
-            console.log (await exchange.fetchOHLCV (symbol, '1m')) // one minute
-        }
-    }) ()
+    for (symbol in exchange.markets) {
+        await sleep (exchange.rateLimit) // milliseconds
+        console.log (await exchange.fetchOHLCV (symbol, '1m')) // one minute
+    }
 }
 ```
 
@@ -1337,20 +1668,25 @@ if exchange.has['fetchOHLCV']:
 
 ```PHP
 // PHP
-if ($exchange->has['fetchOHLCV'])
+if ($exchange->has['fetchOHLCV']) {
     foreach ($exchange->markets as $symbol => $market) {
         usleep ($exchange->rateLimit * 1000); // usleep wants microseconds
         var_dump ($exchange->fetch_ohlcv ($symbol, '1M')); // one month
     }
+}
 ```
 
-To get the list of available timeframes for your exchange see the `timeframes` property. Note that it is only populated when `has['fetchTickers']` is true as well.
+To get the list of available timeframes for your exchange see the `timeframes` property. Note that it is only populated when `has['fetchOHLCV']` is true as well.
 
 **There's a limit on how far back in time your requests can go.** Most of exchanges will not allow to query detailed candlestick history (like those for 1-minute and 5-minute timeframes) too far in the past. They usually keep a reasonable amount of most recent candles, like 1000 last candles for any timeframe is more than enough for most of needs. You can work around that limitation by continuously fetching (aka *REST polling*) latest OHLCVs and storing them in a CSV file or in a database.
 
 **Note that the info from the last (current) candle may be incomplete until the candle is closed (until the next candle starts).**
 
 Like with most other unified and implicit methods, the `fetchOHLCV` method accepts as its last argument an associative array (a dictionary) of extra `params`, which is used to override default values that are sent in requests to the exchanges. The contents of `params` are exchange-specific, consult the exchanges' API documentation for supported fields and values.
+
+The `since` argument is an integer UTC timestamp **in milliseconds** (everywhere throughout the library with all unified methods).
+
+If `since` is not specified the `fetchOHLCV` method will return the time range as is the default from the exchange itself.  This is not a bug. Some exchanges will return candles from the beginning of time, others will return most recent candles only, the exchanges' default behaviour is expected. Thus, without specifying `since` the range of returned candles will be exchange-specific. One should pass  the `since` argument to ensure getting precisely the history range needed.
 
 ### OHLCV Structure
 
@@ -1376,7 +1712,7 @@ The list of candles is returned sorted in ascending (historical) order, oldest c
 
 Some exchanges don't offer any OHLCV method, and for those, the ccxt library will emulate OHLCV candles from [Public Trades](https://github.com/ccxt/ccxt/wiki/Manual#trades-executions-transactions). In that case you will see `exchange.has['fetchOHLCV'] = 'emulated'`. However, because the trade history is usually very limited, the emulated fetchOHLCV methods cover most recent info only and should only be used as a fallback, when no other option is available.
 
-**WARNING: the fetchOHLCV emulations is experimental!**
+**WARNING: the fetchOHLCV emulation is experimental!**
 
 ## Trades, Executions, Transactions
 
@@ -1394,28 +1730,31 @@ For example, if you want to print recent trades for all symbols one by one seque
 
 ```JavaScript
 // JavaScript
-let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
-(async () => {
+if (exchange.has['fetchTrades']) {
+    let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
     for (symbol in exchange.markets) {
         await sleep (exchange.rateLimit) // milliseconds
         console.log (await exchange.fetchTrades (symbol))
     }
-}) ()
+}
 ```
 
 ```Python
 # Python
 import time
-for symbol in exchange.markets:                    # ensure you have called loadMarkets() or load_markets() method.
-    time.sleep (exchange.rateLimit / 1000)         # time.sleep wants seconds
-    print (symbol, exchange.fetch_trades (symbol))
+if exchange.has['fetchTrades']:
+    for symbol in exchange.markets:  # ensure you have called loadMarkets() or load_markets() method.
+        time.sleep (exchange.rateLimit / 1000)  # time.sleep wants seconds
+        print (symbol, exchange.fetch_trades (symbol))
 ```
 
 ```PHP
 // PHP
-foreach ($exchange->markets as $symbol => $market) {
-    usleep ($exchange->rateLimit * 1000); // usleep wants microseconds
-    var_dump ($exchange->fetch_trades ($symbol));
+if ($exchange->has['fetchTrades']) {
+    foreach ($exchange->markets as $symbol => $market) {
+        usleep ($exchange->rateLimit * 1000); // usleep wants microseconds
+        var_dump ($exchange->fetch_trades ($symbol));
+    }
 }
 ```
 
@@ -1501,6 +1840,16 @@ let okcoinusd = new ccxt.okcoinusd ({
     apiKey: 'YOUR_OKCOIN_API_KEY',
     secret: 'YOUR_OKCOIN_SECRET_KEY',
 })
+
+// from variable id
+const exchangeId = 'binance'
+    , exchangeClass = ccxt[exchangeId]
+    , exchange = new exchangeClass ({
+        'apiKey': 'YOUR_API_KEY',
+        'secret': 'YOUR_SECRET',
+        'timeout': 30000,
+        'enableRateLimit': true,
+    })
 ```
 
 ```Python
@@ -1517,6 +1866,16 @@ bitfinex.secret = 'YOUR_BFX_SECRET'
 hitbtc = ccxt.hitbtc ({
     'apiKey': 'YOUR_HITBTC_API_KEY',
     'secret': 'YOUR_HITBTC_SECRET_KEY',
+})
+
+# from variable id
+exchange_id = 'binance'
+exchange_class = getattr(ccxt, exchange_id)
+exchange = exchange_class({
+    'apiKey': 'YOUR_API_KEY',
+    'secret': 'YOUR_SECRET',
+    'timeout': 30000,
+    'enableRateLimit': True,
 })
 ```
 
@@ -1536,6 +1895,15 @@ $zaif = new \ccxt\zaif (array (
     'secret' => 'YOUR_ZAIF_SECRET_KEY'
 ));
 
+// from variable id
+$exchange_id = 'binance';
+$exchange_class = "\\ccxt\\$exchange_id";
+$exchange = new $exchange_class (array (
+    'apiKey' => 'YOUR_API_KEY',
+    'secret' => 'YOUR_SECRET',
+    'timeout' => 30000,
+    'enableRateLimit' => true,
+));
 ```
 
 Note that your private requests will fail with an exception or error if you don't set up your API credentials before you start trading. To avoid character escaping **always write your credentials in single quotes**, not double quotes (`'VERY_GOOD'`, `"VERY_BAD"`).
@@ -1642,7 +2010,7 @@ console.log (exchange.has)
 # Python
 import ccxt
 id = 'cryptopia'
-exchange = getattr(ccxt, 'id') ()
+exchange = getattr(ccxt, id) ()
 print(exchange.has)
 ```
 
@@ -1777,7 +2145,7 @@ if exchange.has['fetchOrder']:
 
 # Python 3.5+ asyncio (asynchronous)
 import asyncio
-import ccxt.async as ccxt
+import ccxt.async_support as ccxt
 if exchange.has['fetchOrder']:
     order = asyncio.get_event_loop().run_until_complete(exchange.fetch_order(id))
     print(order)
@@ -1836,7 +2204,7 @@ Most of methods returning orders within ccxt unified API will usually yield an o
     'amount':      1.5,           // ordered amount of base currency
     'filled':      1.1,           // filled amount of base currency
     'remaining':   0.4,           // remaining amount to fill
-    'cost':        0.076094524,   // 'filled' * 'price'
+    'cost':        0.076094524,   // 'filled' * 'price' (filling price used where available)
     'trades':    [ ... ],         // a list of order trades/executions
     'fee': {                      // fee info, if available
         'currency': 'BTC',        // which currency the fee is (usually quote)
@@ -1852,18 +2220,16 @@ Most of methods returning orders within ccxt unified API will usually yield an o
 - The `lastTradeTimestamp` timestamp may have no value and may be `undefined/None/null` where not supported by the exchange or in case of an open order (an order that has not been filled nor partially filled yet).
 - The `lastTradeTimestamp`, if any, designates the timestamp of the last trade, in case the order is filled fully or partially, otherwise `lastTradeTimestamp` is `undefined/None/null`.
 - Order `status` prevails or has precedence over the `lastTradeTimestamp`.
-- The `cost` of an order is:
-  - `if (status === 'open' and filled === 0) { amount * price }`
-  - `if (status === 'closed' || status === 'canceled') { filled * price }`
+- The `cost` of an order is: `{ filled * price }`
 - The `cost` of an order means the total *quote* volume of the order (whereas the `amount` is the *base* volume). The value of `cost` should be as close to the actual most recent known order cost as possible. The `cost` field itself is there mostly for convenience and can be deduced from other fields.
 
 ### Placing Orders
 
 To place an order you will need the following information:
 
-- `symbol`, a string literal symbol of the market you wish to trade on, like `BTC/USD`, `ZEC/ETH`, `DOGE/DASH`, etc...
+- `symbol`, a string literal symbol of the market you wish to trade on, like `BTC/USD`, `ZEC/ETH`, `DOGE/DASH`, etc... Make sure the symbol in question exists with the target exchange and is available for trading.
 - `side`, a string literal for the direction of your order, `buy` or `sell`. When you place a buy order you give quote currency and receive base currency. For example, buying `BTC/USD` means that you will receive bitcoins for your dollars. When you are selling `BTC/USD` the outcome is the opposite and you receive dollars for your bitcoins.
-- `type`, a string literal type of order, ccxt currently supports `market` and `limit` orders
+- `type`, a string literal type of order, **ccxt currently unifies `market` and `limit` orders only**, see https://github.com/ccxt/ccxt/wiki/Manual#custom-order-params and https://github.com/ccxt/ccxt/wiki/Manual#other-order-types
 - `amount`, how much of currency you want to trade. This usually refers to base currency of the trading pair symbol, though some exchanges require the amount in quote currency and a few of them require base or quote amount depending on the side of the order. See their API docs for details.
 - `price`, how much quote currency you are willing to pay for a trade lot of base currency (for limit orders only)
 
@@ -1876,7 +2242,7 @@ A successful call to a unified method for placing market or limit orders returns
 }
 ```
 
-**Some exchanges will allow to trade with limit orders only.** See [their docs](https://github.com/ccxt/ccxt/wiki/Manual#exchanges) for details.
+- **Some exchanges will allow to trade with limit orders only.** See [their docs](https://github.com/ccxt/ccxt/wiki/Manual#exchanges) for details.
 
 #### Market Orders
 
@@ -1944,7 +2310,7 @@ exchange.create_limit_sell_order (symbol, amount, price[, params])
 
 #### Custom Order Params
 
-Some exchanges allow you to specify optional parameters for your order. You can pass your optional parameters and override your query with an associative array using the `params` argument to your unified API call.
+Some exchanges allow you to specify optional parameters for your order. You can pass your optional parameters and override your query with an associative array using the `params` argument to your unified API call. All custom params are exchange-specific, of course, and aren't interchangeable, do not expect those custom params for one exchange to work with another exchange.
 
 ```JavaScript
 // JavaScript
@@ -1962,6 +2328,54 @@ kraken.create_market_buy_order('BTC/USD', 1, {'trading_agreement': 'agree'})
 // PHP
 // add custom user id to your order
 $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId' => '123'));
+```
+
+#### Other Order Types
+
+The `type` can be either `limit` or `market`, if you want a `stopLimit` type, use params overrides, as described here: https://github.com/ccxt/ccxt/wiki/Manual#overriding-unified-api-params.
+
+The following is a generic example for overriding the order type, however, you must read the docs for the exchange in question in order to specify proper arguments and values. Order types other than `limit` or `market` are currently not unified, therefore for other order types one has to override the unified params as shown below.
+
+```JavaScript
+const symbol = 'ETH/BTC'
+const type = 'limit' // or 'market', other types aren't unified yet
+const side = 'sell'
+const amount = 123.45 // your amount
+const price = 54.321 // your price
+// overrides
+const params = {
+    'stopPrice': 123.45, // your stop price
+    'type': 'stopLimit',
+}
+const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+```
+
+```Python
+symbol = 'ETH/BTC'
+type = 'limit'  # or 'market', other types aren't unified yet
+side = 'sell'
+amount = 123.45  # your amount
+price = 54.321  # your price
+# overrides
+params = {
+    'stopPrice': 123.45,  # your stop price
+    'type': 'stopLimit',
+}
+order = exchange.create_order(symbol, type, side, amount, price, params)
+```
+
+```PHP
+$symbol = 'ETH/BTC';
+$type = 'limit'; // or 'market', other types aren't unified yet
+$side = 'sell';
+$amount = 123.45; // your amount
+$price = 54.321; // your price
+// overrides
+$params = {
+    'stopPrice': 123.45, // your stop price
+    'type': 'stopLimit',
+}
+$order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
 ```
 
 ### Canceling Orders
@@ -2011,7 +2425,7 @@ To put it shortly, an order can contain *one or more* trades. Or, in other words
 For example, an orderbook can have the following orders (whatever trading symbol or pair it is):
 
 ```
-    | price | amount
+    | price  | amount
 ----|----------------
   a |  1.200 | 200
   s |  1.100 | 300
@@ -2027,7 +2441,7 @@ All specific numbers above aren't real, this is just to illustrate the way order
 A seller decides to place a sell limit order on the ask side for a price of 0.700 and an amount of 150.
 
 ```
-    | price | amount
+    | price  | amount
 ----|----------------  ↓
   a |  1.200 | 200     ↓
   s |  1.100 | 300     ↓
@@ -2040,9 +2454,9 @@ A seller decides to place a sell limit order on the ask side for a price of 0.70
 
 As the price and amount of the incoming sell (ask) order cover more than one bid order (orders `b` and `i`), the following sequence of events usually happens within an exchange engine very quickly, but not immediately:
 
-1. Order `b` is matched against the incoming sell because their prices intersect. Their volumes *"mutually annihilate"* each other, so, the bidder gets 100 for a price of 0.800. The seller (asker) will have his sell order partially filled by bid volume of 100.
+1. Order `b` is matched against the incoming sell because their prices intersect. Their volumes *"mutually annihilate"* each other, so, the bidder gets 100 for a price of 0.800. The seller (asker) will have his sell order partially filled by bid volume 100 for a price of 0.800. Note that for this filled part of the order the seller gets a better price than he asked for initially (0.8 instead of 0.7). Most conventional exchanges fill orders for the best price available.
 
-2. A trade is generated for the order `b` against the incoming sell order. That trade *"fills"* the entire order `b` and most of the sell order. One trade is generated pear each pair of matched orders, whether the amount was filled completely or partially. In this example the amount of 100 fills order `b` completely (closed the order `b`) and also fills the selling order partially (leaves it open in the orderbook).
+2. A trade is generated for the order `b` against the incoming sell order. That trade *"fills"* the entire order `b` and most of the sell order. One trade is generated per each pair of matched orders, whether the amount was filled completely or partially. In this example the amount of 100 fills order `b` completely (closed the order `b`) and also fills the selling order partially (leaves it open in the orderbook).
 
 3. Order `b` now has a status of `closed` and a filled volume of 100. It contains one trade against the selling order. The selling order has `open` status and a filled volume of 100. It contains one trade against order `b`. Thus each order has just one fill-trade so far.
 
@@ -2057,7 +2471,7 @@ As the price and amount of the incoming sell (ask) order cover more than one bid
 After the above sequence takes place, the updated orderbook will look like this.
 
 ```
-    | price | amount
+    | price  | amount
 ----|----------------
   a |  1.200 | 200
   s |  1.100 | 300
@@ -2073,7 +2487,29 @@ Notice that the order `b` has disappeared, the selling order also isn't there. A
 ### Recent Trades
 
 ```JavaScript
-exchange.fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {})
+// JavaScript
+// fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {})
+
+if (exchange.has['fetchMyTrades']) {
+    const trades = await exchange.fetchMyTrades (symbol, since, limit, params)
+}
+```
+
+```Python
+# Python
+# fetch_my_trades (symbol = None, since = None, limit = None, params = {})
+
+if exchange.has['fetchMyTrades']:
+    exchange.fetch_my_trades (symbol = None, since = None, limit = None, params = {})
+```
+
+```PHP
+// PHP
+// fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ())
+
+if ($exchange->has['fetchMyTrades']) {
+    $trades = $exchange->fetch_my_trades ($symbol, $since, $limit, $params);
+}
 ```
 
 Returns ordered array `[]` of trades (most recent trade last).
@@ -2096,7 +2532,7 @@ Returns ordered array `[]` of trades (most recent trade last).
     'cost':         0.10376526,                 // total cost (including fees), `price * amount`
     'fee':          {                           // provided by exchange or calculated by ccxt
         'cost':  0.0015,                        // float
-        'currency': "ETH",                      // usually base currency for buys, quote currency for sells
+        'currency': 'ETH',                      // usually base currency for buys, quote currency for sells
         'rate': 0.002,                          // the fee rate (if available)
     },
 }
@@ -2133,14 +2569,13 @@ createDepositAddress (code, params = {})
     'currency': currency, // currency code
     'address': address,   // address in terms of requested currency
     'tag': tag,           // tag / memo / paymentId for particular currencies (XRP, XMR, ...)
-    'status': status,     // 'ok' or other
     'info': response,     // raw unparsed data as returned from the exchange
 }
 ```
 
-With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP, an additional argument `tag` is usually required by exchanges. The tag is a memo or a message or a payment id that is attached to a withdrawal transaction. The tag is mandatory for those currencies and it identifies the recipient user account.
+With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP, an additional argument `tag` is usually required by exchanges. Other currencies will have the `tag` set to `undefined / None / null`. The tag is a memo or a message or a payment id that is attached to a withdrawal transaction. The tag is mandatory for those currencies and it identifies the recipient user account.
 
-Be careful when specifying the `tag` and the `address`. The `tag` is **NOT an arbitrary user-defined string** of your choice! You cannot send user messages and comments in the `tag`. The purpose of the `tag` field is to address your wallet properly, so it must be correct. You should only use the `tag` received from the exchange you're working with, otherwise your withdrawal transaction might not arrive to its destination ever.
+Be careful when specifying the `tag` and the `address`. The `tag` is **NOT an arbitrary user-defined string** of your choice! You cannot send user messages and comments in the `tag`. The purpose of the `tag` field is to address your wallet properly, so it must be correct. You should only use the `tag` received from the exchange you're working with, otherwise your transaction might never arrive to its destination.
 
 ### Withdraw
 
@@ -2174,6 +2609,125 @@ Some exchanges require a manual approval of each withdrawal by means of 2FA (2-f
 
 In some cases you can also use the withdrawal id to check withdrawal status later (whether it succeeded or not) and to submit 2FA confirmation codes, where this is supported by the exchange. See [their docs](https://github.com/ccxt/ccxt/wiki/Manual#exchanges) for details.
 
+### Transactions
+
+#### Transaction Structure
+
+```JavaScript
+{
+    'info':      { ... },    // the json response from the exchange, as is
+    'id':       '123456',    // exchange-specific transaction id, string
+    'txid':     '0x68bfb29821c50ca35ef3762f887fd3211e4405aba1a94e448a4f218b850358f0',
+    'timestamp': 1534081184515,             // timestamp in milliseconds
+    'datetime': '2018-08-12T13:39:44.515Z', // ISO8601 string of the timestamp
+    'address':  '0x02b0a9b7b4cDe774af0f8e47cb4f1c2ccdEa0806', // "from" or "to"
+    'tag':      '0x0123456789' // "tag" or "memo" or "payment_id" associated with the address
+    'type':     'deposit',   // or 'withdrawal', string
+    'amount':    1.2345,     // float
+    'currency': 'ETH',       // a common unified currency code, string
+    'status':   'pending',   // 'ok', 'failed', 'canceled', string
+    'updated':   undefined,  // UTC timestamp in ms of most recent status change
+    'fee': {                 // the entire fee structure may be undefined
+        'cost': 0.1234,      // float
+        'rate': undefined,   // approximately, fee['cost'] / amount, float
+    },
+}
+```
+
+##### Notes On Transaction Structure
+
+- The `updated` field is the UTC timestamp in milliseconds of the most recent change of status of that funding operation, be it `withdrawal` or `deposit`. It is necessary if you want to track your changes in time, beyond a static snapshot. For example, if the exchange in question reports `created_at` and `confirmed_at` for a transaction, then the `updated` field will take the value of `Math.max (created_at, confirmed_at)`, that is, the timestamp of the most recent change of the status.
+- The `updated` field may be undefined in certain exchange-specific cases.
+- The `fee` substructure may be missing, if not supplied within the reply coming from the exchange.
+- Be careful when handling the `tag` and the `address`. The `tag` is **NOT an arbitrary user-defined string** of your choice! You cannot send user messages and comments in the `tag`. The purpose of the `tag` field is to address your wallet properly, so it must be correct. You should only use the `tag` received from the exchange you're working with, otherwise your transaction might never arrive to its destination.
+
+
+#### Deposits
+
+```JavaScript
+// JavaScript
+// fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {})
+
+if (exchange.has['fetchDeposits']) {
+    const deposits = await exchange.fetchDeposits (code, since, limit, params)
+}
+```
+
+```Python
+# Python
+# fetch_deposits(code = None, since = None, limit = None, params = {})
+
+if (exchange.has['fetchDeposits']) {
+    deposits = exchange.fetch_deposits(code, since, limit, params)
+}
+```
+
+```PHP
+// PHP
+// fetch_deposits ($code = null, $since = null, $limit = null, $params = {})
+
+if ($exchange->has['fetchDeposits']) {
+    $deposits = $exchange->fetch_deposits ($code, $since, $limit, $params);
+}
+```
+
+#### Withdrawals
+
+```JavaScript
+// JavaScript
+// fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {})
+
+if (exchange.has['fetchWithdrawals']) {
+    const withdrawals = await exchange.fetchWithdrawals (code, since, limit, params)
+}
+```
+
+```Python
+# Python
+# fetch_withdrawals(code = None, since = None, limit = None, params = {})
+
+if (exchange.has['fetchWithdrawals']) {
+    withdrawals = exchange.fetch_withdrawals(code, since, limit, params)
+}
+```
+
+```PHP
+// PHP
+// fetch_withdrawals ($code = null, $since = null, $limit = null, $params = {})
+
+if ($exchange->has['fetchWithdrawals']) {
+    $withdrawals = $exchange->fetch_withdrawals ($code, $since, $limit, $params);
+}
+```
+
+#### All Transactions
+
+```JavaScript
+// JavaScript
+// fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {})
+
+if (exchange.has['fetchTransactions']) {
+    const transactions = await exchange.fetchTransactions (code, since, limit, params)
+}
+```
+
+```Python
+# Python
+# fetch_transactions(code = None, since = None, limit = None, params = {})
+
+if (exchange.has['fetchTransactions']) {
+    transactions = exchange.fetch_transactions(code, since, limit, params)
+}
+```
+
+```PHP
+// PHP
+// fetch_transactions ($code = null, $since = null, $limit = null, $params = {})
+
+if ($exchange->has['fetchTransactions']) {
+    $transactions = $exchange->fetch_transactions ($code, $since, $limit, $params);
+}
+```
 ## Fees
 
 **This section of the Unified CCXT API is under development.**
@@ -2366,29 +2920,49 @@ Below is an outline of exception inheritance hierarchy:
 |
 +---+ ExchangeError
 |   |
-|   +---+ NotSupported
-|   |
 |   +---+ AuthenticationError
 |   |   |
 |   |   +---+ PermissionDenied
+|   |   |
+|   |   +---+ AccountSuspended
+|   |
+|   +---+ ArgumentsRequired
+|   |
+|   +---+ BadRequest
+|   |
+|   +---+ BadResponse
+|   |   |
+|   |   +---+ NullResponse
 |   |
 |   +---+ InsufficientFunds
 |   |
 |   +---+ InvalidAddress
+|   |   |
+|   |   +---+ AddressPending
 |   |
 |   +---+ InvalidOrder
-|       |
-|       +---+ OrderNotFound
+|   |   |
+|   |   +---+ OrderNotFound
+|   |   |
+|   |   +---+ OrderNotCached
+|   |   |
+|   |   +---+ CancelPending
+|   |   |
+|   |   +---+ OrderImmediatelyFillable
+|   |   |
+|   |   +---+ OrderNotFillable
+|   |
+|   +---+ NotSupported
 |
 +---+ NetworkError (recoverable)
     |
     +---+ DDoSProtection
     |
-    +---+ RequestTimeout
-    |
     +---+ ExchangeNotAvailable
     |
     +---+ InvalidNonce
+    |
+    +---+ RequestTimeout
 ```
 
 The `BaseError` class is a generic error class for all sorts of errors, including accessibility and request/response mismatch. Users should catch this exception at the very least, if no error differentiation is required.
@@ -2463,7 +3037,7 @@ The ccxt library throws this error if it detects any of the following keywords i
 Raised when your nonce is less than the previous nonce used with your keypair, as described in the [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication) section. This type of exception is thrown in these cases (in order of precedence for checking):
 
   - You are not rate-limiting your requests or sending too many of them too often.
-  - Your API keys are not fresh and new (have been used with some different software or script already).
+  - Your API keys are not fresh and new (have been used with some different software or script already, just always create a new keypair when you add this or that exchange).
   - The same keypair is shared across multiple instances of the exchange class (for example, in a multithreaded environment or in separate processes).
   - Your system clock is out of synch. System time should be synched with UTC in a non-DST timezone at a rate of once every ten minutes or even more frequently because of the clock drifting. **Enabling time synch in Windows is usually not enough!** You have to set it up with the OS Registry (Google *"time synch frequency"* for your OS).
 

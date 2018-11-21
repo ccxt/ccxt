@@ -13,7 +13,7 @@ class surbitcoin extends foxbit {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'surbitcoin',
             'name' => 'SurBitcoin',
-            'countries' => 'VE',
+            'countries' => array ( 'VE' ),
             'has' => array (
                 'CORS' => false,
             ),

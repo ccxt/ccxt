@@ -16,7 +16,7 @@ class btcturk (Exchange):
         return self.deep_extend(super(btcturk, self).describe(), {
             'id': 'btcturk',
             'name': 'BTCTurk',
-            'countries': 'TR',  # Turkey
+            'countries': ['TR'],  # Turkey
             'rateLimit': 1000,
             'has': {
                 'CORS': True,

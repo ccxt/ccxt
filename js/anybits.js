@@ -9,7 +9,7 @@ module.exports = class anybits extends bitsane {
         return this.deepExtend (super.describe (), {
             'id': 'anybits',
             'name': 'Anybits',
-            'countries': 'IE', // Ireland
+            'countries': [ 'IE' ], // Ireland
             'has': {
                 'fetchCurrencies': true,
                 'fetchTickers': true,

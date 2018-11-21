@@ -12,7 +12,7 @@ module.exports = class fybse extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'fybse',
             'name': 'FYB-SE',
-            'countries': 'SE', // Sweden
+            'countries': [ 'SE' ], // Sweden
             'has': {
                 'CORS': false,
             },

@@ -17,8 +17,9 @@ class bitfinex2 (bitfinex):
         return self.deep_extend(super(bitfinex2, self).describe(), {
             'id': 'bitfinex2',
             'name': 'Bitfinex v2',
-            'countries': 'VG',
+            'countries': ['VG'],
             'version': 'v2',
+            'certified': False,
             # new metainfo interface
             'has': {
                 'CORS': True,
@@ -82,17 +83,19 @@ class bitfinex2 (bitfinex):
                         'book/{symbol}/P2',
                         'book/{symbol}/P3',
                         'book/{symbol}/R0',
-                        'stats1/{key}:{size}:{symbol}/{side}/{section}',
-                        'stats1/{key}:{size}:{symbol}/long/last',
-                        'stats1/{key}:{size}:{symbol}/long/hist',
-                        'stats1/{key}:{size}:{symbol}/short/last',
-                        'stats1/{key}:{size}:{symbol}/short/hist',
+                        'stats1/{key}:{size}:{symbol}:{side}/{section}',
+                        'stats1/{key}:{size}:{symbol}/{section}',
+                        'stats1/{key}:{size}:{symbol}:long/last',
+                        'stats1/{key}:{size}:{symbol}:long/hist',
+                        'stats1/{key}:{size}:{symbol}:short/last',
+                        'stats1/{key}:{size}:{symbol}:short/hist',
                         'candles/trade:{timeframe}:{symbol}/{section}',
                         'candles/trade:{timeframe}:{symbol}/last',
                         'candles/trade:{timeframe}:{symbol}/hist',
                     ],
                     'post': [
                         'calc/trade/avg',
+                        'calc/fx',
                     ],
                 },
                 'private': {
@@ -120,6 +123,10 @@ class bitfinex2 (bitfinex):
                         'auth/w/alert/{type}:{symbol}:{price}/del',
                         'auth/calc/order/avail',
                         'auth/r/ledgers/{symbol}/hist',
+                        'auth/r/settings',
+                        'auth/w/settings/set',
+                        'auth/w/settings/del',
+                        'auth/r/info/user',
                     ],
                 },
             },
@@ -214,7 +221,6 @@ class bitfinex2 (bitfinex):
                 'active': True,
                 'precision': precision,
                 'limits': limits,
-                'lot': math.pow(10, -precision['amount']),
                 'info': market,
             })
         return result
@@ -238,6 +244,8 @@ class bitfinex2 (bitfinex):
                     currency = currency[1:]
                     code = currency.upper()
                     code = self.common_currency_code(code)
+                else:
+                    code = self.common_currency_code(code)
                 account = self.account()
                 account['total'] = total
                 if not available:
@@ -245,7 +253,7 @@ class bitfinex2 (bitfinex):
                         account['free'] = 0
                         account['used'] = total
                     else:
-                        account['free'] = None
+                        account['free'] = total
                 else:
                     account['free'] = available
                     account['used'] = account['total'] - account['free']
@@ -300,7 +308,7 @@ class bitfinex2 (bitfinex):
             'last': last,
             'previousClose': None,
             'change': ticker[length - 6],
-            'percentage': ticker[length - 5],
+            'percentage': ticker[length - 5] * 100,
             'average': None,
             'baseVolume': ticker[length - 3],
             'quoteVolume': None,
@@ -309,16 +317,21 @@ class bitfinex2 (bitfinex):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.publicGetTickers(self.extend({
-            'symbols': ','.join(self.ids),
-        }, params))
+        request = {}
+        if symbols is not None:
+            ids = self.market_ids(symbols)
+            request['symbols'] = ','.join(ids)
+        else:
+            request['symbols'] = 'ALL'
+        tickers = self.publicGetTickers(self.extend(request, params))
         result = {}
         for i in range(0, len(tickers)):
             ticker = tickers[i]
             id = ticker[0]
-            market = self.markets_by_id[id]
-            symbol = market['symbol']
-            result[symbol] = self.parse_ticker(ticker, market)
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+                result[symbol] = self.parse_ticker(ticker, market)
         return result
 
     def fetch_ticker(self, symbol, params={}):
@@ -349,13 +362,15 @@ class bitfinex2 (bitfinex):
     def fetch_trades(self, symbol, since=None, limit=120, params={}):
         self.load_markets()
         market = self.market(symbol)
+        sort = '-1'
         request = {
             'symbol': market['id'],
-            'sort': '-1',
             'limit': limit,  # default = max = 120
         }
         if since is not None:
             request['start'] = since
+            sort = '1'
+        request['sort'] = sort
         response = self.publicGetTradesSymbolHist(self.extend(request, params))
         trades = self.sort_by(response, 1)
         return self.parse_trades(trades, market, None, limit)
@@ -363,6 +378,8 @@ class bitfinex2 (bitfinex):
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=100, params={}):
         self.load_markets()
         market = self.market(symbol)
+        if limit is None:
+            limit = 100
         if since is None:
             since = self.milliseconds() - self.parse_timeframe(timeframe) * limit * 1000
         request = {
@@ -387,7 +404,7 @@ class bitfinex2 (bitfinex):
     def fetch_deposit_address(self, currency, params={}):
         raise NotSupported(self.id + ' fetchDepositAddress() not implemented yet.')
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         raise NotSupported(self.id + ' withdraw not implemented yet')
 
     def fetch_my_trades(self, symbol=None, since=None, limit=25, params={}):

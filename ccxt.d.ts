@@ -139,6 +139,24 @@ declare module 'ccxt' {
         vwap?: number;
     }
 
+    export interface Transaction {
+        info: {};
+        id: string;
+        txid: string;
+        timestamp: number;
+        datetime: string;
+        address: string;
+        type: "deposit" | "withdrawal";
+        amount: number;
+        currency: string;
+        status: "pending" | "ok";
+        updated: number;
+        fee: {
+          cost: number;
+          rate: number;
+        };
+    }
+
     export interface Tickers {
         info: any;
         [symbol: string]: Ticker;
@@ -265,7 +283,7 @@ declare module 'ccxt' {
         marketIds (symbols: string[]): string[];
         symbol (symbol: string): string;
         extractParams (str: string): string[];
-        createOrder (symbol: string, type: string, side: string, amount: string, price?: string, params?: string): Promise<any>;
+        createOrder (symbol: string, type: string, side: string, amount: number, price?: number, params?: {}): Promise<any>;
         fetchBalance (params?: any): Promise<Balances>;
         fetchTotalBalance (params?: any): Promise<PartialBalances>;
         fetchUsedBalance (params?: any): Promise<PartialBalances>;
@@ -274,14 +292,17 @@ declare module 'ccxt' {
         fetchTicker (symbol: string): Promise<Ticker>;
         fetchTickers (symbols?: string[]): Promise<Tickers>;
         fetchTrades (symbol: string, since?: number, limit?: number, params?: {}): Promise<Trade[]>;
-        fetchOHLCV? (symbol: string, timeframe?: string, since?: number, limit?: number, params?: any): Promise<OHLCV[]>;
+        fetchOHLCV? (symbol: string, timeframe?: string, since?: number, limit?: number, params?: {}): Promise<OHLCV[]>;
         fetchOrders (symbol?: string, since?: number, limit?: number, params?: {}): Promise<Order[]>;
         fetchOpenOrders (symbol?: string, since?: number, limit?: number, params?: {}): Promise<Order[]>;
         fetchCurrencies (params?: any): Promise<any>;
+        fetchTransactions (currency?: string, since?: number, limit?: number, params?: {}): Promise<Transaction[]>;
+        fetchDeposits (currency?: string, since?: number, limit?: number, params?: {}): Promise<Transaction[]>;
+        fetchWithdrawals (currency?: string, since?: number, limit?: number, params?: {}): Promise<Transaction[]>;
         cancelOrder (id: string, symbol?: string, params?: {}): Promise<any>;
-        deposit (currency: string, amount: string, address: string, params?: {}): Promise<any>;
+        createDepositAddress (currency: string, params?: {}): Promise<any>;
         fetchDepositAddress (currency: string, params?: {}): Promise<any>;
-        withdraw (currency: string, amount: string, address: string, tag?: string, params?: {}): Promise<any>;
+        withdraw (currency: string, amount: number, address: string, tag?: string, params?: {}): Promise<any>;
         request (path: string, api?: string, method?: string, params?: any, headers?: any, body?: any): Promise<any>;
         YmdHMS (timestamp: string, infix: string) : string;
         iso8601 (timestamp: string): string;
@@ -291,13 +312,14 @@ declare module 'ccxt' {
 
     /* tslint:disable */
 
-    export class _1broker extends Exchange {}
     export class _1btcxe extends Exchange {}
     export class acx extends Exchange {}
     export class allcoin extends okcoinusd {}
     export class anxpro extends Exchange {}
     export class anybits extends bitsane {}
+    export class bcex extends Exchange {}
     export class bibox extends Exchange {}
+    export class bigone extends Exchange {}
     export class binance extends Exchange {}
     export class bit2c extends Exchange {}
     export class bitbank extends Exchange {}
@@ -305,7 +327,9 @@ declare module 'ccxt' {
     export class bitfinex extends Exchange {}
     export class bitfinex2 extends bitfinex {}
     export class bitflyer extends Exchange {}
+    export class bitforex extends Exchange {}
     export class bithumb extends Exchange {}
+    export class bitibu extends acx {}
     export class bitkk extends zb {}
     export class bitlish extends Exchange {}
     export class bitmarket extends Exchange {}
@@ -319,6 +343,7 @@ declare module 'ccxt' {
     export class bl3p extends Exchange {}
     export class bleutrade extends bittrex {}
     export class braziliex extends Exchange {}
+    export class btcalpha extends Exchange {}
     export class btcbox extends Exchange {}
     export class btcchina extends Exchange {}
     export class btcexchange extends btcturk {}
@@ -326,7 +351,7 @@ declare module 'ccxt' {
     export class btctradeim extends coinegg {}
     export class btctradeua extends Exchange {}
     export class btcturk extends Exchange {}
-    export class btcx extends Exchange {}
+    export class buda extends Exchange {}
     export class bxinth extends Exchange {}
     export class ccex extends Exchange {}
     export class cex extends Exchange {}
@@ -334,26 +359,31 @@ declare module 'ccxt' {
     export class chilebit extends foxbit {}
     export class cobinhood extends Exchange {}
     export class coinbase extends Exchange {}
+    export class coinbaseprime extends gdax {}
+    export class coinbasepro extends gdax {}
     export class coincheck extends Exchange {}
     export class coinegg extends Exchange {}
     export class coinex extends Exchange {}
     export class coinexchange extends Exchange {}
+    export class coinfalcon extends Exchange {}
     export class coinfloor extends Exchange {}
     export class coingi extends Exchange {}
     export class coinmarketcap extends Exchange {}
     export class coinmate extends Exchange {}
     export class coinnest extends Exchange {}
     export class coinone extends Exchange {}
-    export class coinsecure extends Exchange {}
     export class coinspot extends Exchange {}
     export class cointiger extends huobipro {}
     export class coolcoin extends coinegg {}
+    export class crex24 extends Exchange {}
     export class crypton extends Exchange {}
     export class cryptopia extends Exchange {}
+    export class deribit extends Exchange {}
     export class dsx extends liqui {}
     export class ethfinex extends bitfinex {}
     export class exmo extends Exchange {}
     export class exx extends Exchange {}
+    export class fcoin extends Exchange {}
     export class flowbtc extends Exchange {}
     export class foxbit extends Exchange {}
     export class fybse extends Exchange {}
@@ -374,12 +404,14 @@ declare module 'ccxt' {
     export class indodax extends Exchange {}
     export class itbit extends Exchange {}
     export class jubi extends btcbox {}
+    export class kkex extends Exchange {}
     export class kraken extends Exchange {}
     export class kucoin extends Exchange {}
     export class kuna extends acx {}
     export class lakebtc extends Exchange {}
     export class lbank extends Exchange {}
     export class liqui extends Exchange {}
+    export class liquid extends Exchange {}
     export class livecoin extends Exchange {}
     export class luno extends Exchange {}
     export class lykke extends Exchange {}
@@ -392,14 +424,17 @@ declare module 'ccxt' {
     export class okex extends okcoinusd {}
     export class paymium extends Exchange {}
     export class poloniex extends Exchange {}
-    export class qryptos extends Exchange {}
+    export class qryptos extends liquid {}
     export class quadrigacx extends Exchange {}
-    export class quoinex extends qryptos {}
+    export class quoinex extends liquid {}
+    export class rightbtc extends Exchange {}
     export class southxchange extends Exchange {}
     export class surbitcoin extends foxbit {}
+    export class theocean extends Exchange {}
     export class therock extends Exchange {}
     export class tidebit extends Exchange {}
     export class tidex extends liqui {}
+    export class uex extends Exchange {}
     export class urdubit extends foxbit {}
     export class vaultoro extends Exchange {}
     export class vbtc extends foxbit {}

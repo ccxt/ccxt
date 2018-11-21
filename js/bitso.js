@@ -12,7 +12,7 @@ module.exports = class bitso extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bitso',
             'name': 'Bitso',
-            'countries': 'MX', // Mexico
+            'countries': [ 'MX' ], // Mexico
             'rateLimit': 2000, // 30 requests per minute
             'version': 'v3',
             'has': {
@@ -114,14 +114,12 @@ module.exports = class bitso extends Exchange {
                 'amount': this.precisionFromString (market['minimum_amount']),
                 'price': this.precisionFromString (market['minimum_price']),
             };
-            let lot = limits['amount']['min'];
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
-                'lot': lot,
                 'limits': limits,
                 'precision': precision,
             });
@@ -166,7 +164,9 @@ module.exports = class bitso extends Exchange {
         let timestamp = this.parse8601 (ticker['created_at']);
         let vwap = this.safeFloat (ticker, 'vwap');
         let baseVolume = this.safeFloat (ticker, 'volume');
-        let quoteVolume = baseVolume * vwap;
+        let quoteVolume = undefined;
+        if (baseVolume !== undefined && vwap !== undefined)
+            quoteVolume = baseVolume * vwap;
         let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -195,26 +195,26 @@ module.exports = class bitso extends Exchange {
     parseTrade (trade, market = undefined) {
         let timestamp = this.parse8601 (trade['created_at']);
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = this.safeString (trade, 'book');
             if (marketId in this.markets_by_id)
                 market = this.markets_by_id[marketId];
         }
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         let side = this.safeString (trade, 'side');
-        if (typeof side === 'undefined')
+        if (side === undefined)
             side = this.safeString (trade, 'maker_side');
         let amount = this.safeFloat (trade, 'amount');
-        if (typeof amount === 'undefined')
+        if (amount === undefined)
             amount = this.safeFloat (trade, 'major');
-        if (typeof amount !== 'undefined')
+        if (amount !== undefined)
             amount = Math.abs (amount);
         let fee = undefined;
         let feeCost = this.safeFloat (trade, 'fees_amount');
-        if (typeof feeCost !== 'undefined') {
+        if (feeCost !== undefined) {
             let feeCurrency = this.safeString (trade, 'fees_currency');
-            if (typeof feeCurrency !== 'undefined') {
+            if (feeCurrency !== undefined) {
                 if (feeCurrency in this.currencies_by_id)
                     feeCurrency = this.currencies_by_id[feeCurrency]['code'];
             }
@@ -224,7 +224,7 @@ module.exports = class bitso extends Exchange {
             };
         }
         let cost = this.safeFloat (trade, 'minor');
-        if (typeof cost !== 'undefined')
+        if (cost !== undefined)
             cost = Math.abs (cost);
         let price = this.safeFloat (trade, 'price');
         let orderId = this.safeString (trade, 'oid');
@@ -262,7 +262,7 @@ module.exports = class bitso extends Exchange {
         let markerInParams = ('marker' in params);
         // warn the user with an exception if the user wants to filter
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
-        if ((typeof since !== 'undefined') && !markerInParams)
+        if ((since !== undefined) && !markerInParams)
             throw ExchangeError (this.id + ' fetchMyTrades does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id');
         // convert it to an integer unconditionally
         if (markerInParams)
@@ -313,9 +313,9 @@ module.exports = class bitso extends Exchange {
 
     parseOrder (order, market = undefined) {
         let side = order['side'];
-        let status = this.parseOrderStatus (order['status']);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = order['book'];
             if (marketId in this.markets_by_id)
                 market = this.markets_by_id[marketId];
@@ -356,7 +356,7 @@ module.exports = class bitso extends Exchange {
         let markerInParams = ('marker' in params);
         // warn the user with an exception if the user wants to filter
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
-        if ((typeof since !== 'undefined') && !markerInParams)
+        if ((since !== undefined) && !markerInParams)
             throw ExchangeError (this.id + ' fetchOpenOrders does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id');
         // convert it to an integer unconditionally
         if (markerInParams)
@@ -387,7 +387,7 @@ module.exports = class bitso extends Exchange {
         return this.parseOrder (response['payload'][0], market);
     }
 
-    async fetchOrderTrades (id, symbol = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privateGetOrderTradesOid ({
@@ -415,7 +415,6 @@ module.exports = class bitso extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         };
     }
@@ -431,7 +430,7 @@ module.exports = class bitso extends Exchange {
             'LTC': 'Litecoin',
         };
         let method = (code in methods) ? methods[code] : undefined;
-        if (typeof method === 'undefined') {
+        if (method === undefined) {
             throw new ExchangeError (this.id + ' not valid withdraw coin: ' + code);
         }
         let request = {
@@ -496,7 +495,7 @@ module.exports = class bitso extends Exchange {
                 if (!success) {
                     const feedback = this.id + ' ' + this.json (response);
                     const error = this.safeValue (response, 'error');
-                    if (typeof error === 'undefined')
+                    if (error === undefined)
                         throw new ExchangeError (feedback);
                     const code = this.safeString (error, 'code');
                     const exceptions = this.exceptions;

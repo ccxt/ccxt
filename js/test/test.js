@@ -44,7 +44,14 @@ let proxies = [
 
 const enableRateLimit = true
 
+const { Agent } = require ('https')
+
+const agent = new Agent ({
+    ecdhCurve: 'auto',
+})
+
 const exchange = new (ccxt)[exchangeId] ({
+    agent,
     verbose,
     enableRateLimit,
     debug,
@@ -90,7 +97,7 @@ if (settings && settings.skip) {
 //-----------------------------------------------------------------------------
 
 let countryName = function (code) {
-    return ((typeof countries[code] !== 'undefined') ? countries[code] : code)
+    return ((countries[code] !== undefined) ? countries[code] : code)
 }
 
 //-----------------------------------------------------------------------------
@@ -184,6 +191,7 @@ let testExchange = async exchange => {
         'ETH/BTC',
         'BTC/JPY',
         'LTC/BTC',
+        'ZRX/WETH',
     ]
     for (let s in symbols) {
         if (exchange.symbols.includes (symbols[s])) {
@@ -288,7 +296,6 @@ let printExchangesTable = function () {
         }
 
     })))
-
 }
 
 //-----------------------------------------------------------------------------

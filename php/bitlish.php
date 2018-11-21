@@ -312,10 +312,11 @@ class bitlish extends Exchange {
         return $this->privatePostCancelTrade (array ( 'id' => $id ));
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        if ($currency !== 'BTC') {
+        $currency = $this->currency ($code);
+        if ($code !== 'BTC') {
             // they did not document other types...
             throw new NotSupported ($this->id . ' currently supports BTC withdrawals only, until they document other currencies...');
         }

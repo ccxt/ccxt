@@ -11,7 +11,7 @@ module.exports = class fybsg extends fybse {
         return this.deepExtend (super.describe (), {
             'id': 'fybsg',
             'name': 'FYB-SG',
-            'countries': 'SG', // Singapore
+            'countries': [ 'SG' ], // Singapore
             'has': {
                 'CORS': false,
             },

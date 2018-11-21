@@ -8,7 +8,9 @@ import base64
 import hashlib
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
 
 
@@ -18,13 +20,14 @@ class coinone (Exchange):
         return self.deep_extend(super(coinone, self).describe(), {
             'id': 'coinone',
             'name': 'CoinOne',
-            'countries': 'KR',  # Korea
+            'countries': ['KR'],  # Korea
             'rateLimit': 667,
             'version': 'v2',
             'has': {
                 'CORS': False,
                 'createMarketOrder': False,
                 'fetchTickers': True,
+                'fetchOrder': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -77,6 +80,11 @@ class coinone (Exchange):
                 'OMG/KRW': {'id': 'omg', 'symbol': 'OMG/KRW', 'base': 'OMG', 'quote': 'KRW', 'baseId': 'omg', 'quoteId': 'krw'},
                 'QTUM/KRW': {'id': 'qtum', 'symbol': 'QTUM/KRW', 'base': 'QTUM', 'quote': 'KRW', 'baseId': 'qtum', 'quoteId': 'krw'},
                 'XRP/KRW': {'id': 'xrp', 'symbol': 'XRP/KRW', 'base': 'XRP', 'quote': 'KRW', 'baseId': 'xrp', 'quoteId': 'krw'},
+                'EOS/KRW': {'id': 'eos', 'symbol': 'EOS/KRW', 'base': 'EOS', 'quote': 'KRW', 'baseId': 'eos', 'quoteId': 'krw'},
+                'DATA/KRW': {'id': 'data', 'symbol': 'DATA/KRW', 'base': 'DATA', 'quote': 'KRW', 'baseId': 'data', 'quoteId': 'krw'},
+                'ZIL/KRW': {'id': 'zil', 'symbol': 'ZIL/KRW', 'base': 'ZIL', 'quote': 'KRW', 'baseId': 'zil', 'quoteId': 'krw'},
+                'KNC/KRW': {'id': 'knc', 'symbol': 'KNC/KRW', 'base': 'KNC', 'quote': 'KRW', 'baseId': 'knc', 'quoteId': 'krw'},
+                'ZRX/KRW': {'id': 'zrx', 'symbol': 'ZRX/KRW', 'base': 'ZRX', 'quote': 'KRW', 'baseId': 'zrx', 'quoteId': 'krw'},
             },
             'fees': {
                 'trading': {
@@ -112,6 +120,7 @@ class coinone (Exchange):
             },
             'exceptions': {
                 '405': ExchangeNotAvailable,
+                '104': OrderNotFound,
             },
         })
 
@@ -246,6 +255,8 @@ class coinone (Exchange):
         method = 'privatePostOrder' + self.capitalize(type) + self.capitalize(side)
         response = getattr(self, method)(self.extend(request, params))
         id = self.safe_string(response, 'orderId')
+        if id is not None:
+            id = id.upper()
         timestamp = self.milliseconds()
         cost = price * amount
         order = {
@@ -262,12 +273,105 @@ class coinone (Exchange):
             'average': None,
             'amount': amount,
             'filled': None,
-            'remaining': None,
-            'status': None,
+            'remaining': amount,
+            'status': 'open',
             'fee': None,
         }
         self.orders[id] = order
         return order
+
+    def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        result = None
+        market = None
+        if symbol is None:
+            if id in self.orders:
+                market = self.market(self.orders[id]['symbol'])
+            else:
+                raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument for order ids missing in the .orders cache(the order was created with a different instance of self class or within a different run of self code).')
+        else:
+            market = self.market(symbol)
+        try:
+            response = self.privatePostOrderOrderInfo(self.extend({
+                'order_id': id,
+                'currency': market['id'],
+            }, params))
+            result = self.parse_order(response)
+            self.orders[id] = result
+        except Exception as e:
+            if isinstance(e, OrderNotFound):
+                if id in self.orders:
+                    self.orders[id]['status'] = 'canceled'
+                    result = self.orders[id]
+                else:
+                    raise e
+            else:
+                raise e
+        return result
+
+    def parse_order_status(self, status):
+        statuses = {
+            'live': 'open',
+            'partially_filled': 'open',
+            'filled': 'closed',
+        }
+        if status in statuses:
+            return statuses[status]
+        return status
+
+    def parse_order(self, order, market=None):
+        info = self.safe_value(order, 'info')
+        id = self.safe_string(info, 'orderId')
+        if id is not None:
+            id = id.upper()
+        timestamp = int(info['timestamp']) * 1000
+        status = self.parse_order_status(self.safe_string(order, 'status'))
+        cost = None
+        side = self.safe_string(info, 'type')
+        if side.find('ask') >= 0:
+            side = 'sell'
+        else:
+            side = 'buy'
+        price = self.safe_float(info, 'price')
+        amount = self.safe_float(info, 'qty')
+        remaining = self.safe_float(info, 'remainQty')
+        filled = None
+        if amount is not None:
+            if remaining is not None:
+                filled = amount - remaining
+            if price is not None:
+                cost = price * amount
+        currency = self.safe_string(info, 'currency')
+        fee = {
+            'currency': currency,
+            'cost': self.safe_float(info, 'fee'),
+            'rate': self.safe_float(info, 'feeRate'),
+        }
+        symbol = None
+        if market is None:
+            marketId = currency.lower()
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+        if market is not None:
+            symbol = market['symbol']
+        result = {
+            'info': order,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+        }
+        return result
 
     def cancel_order(self, id, symbol=None, params={}):
         order = self.safe_value(self.orders, id)
@@ -275,28 +379,34 @@ class coinone (Exchange):
         price = None
         side = None
         if order is None:
+            if symbol is None:
+                # eslint-disable-next-line quotes
+                raise InvalidOrder(self.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of self class earlier. The `symbol` argument is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
             price = self.safe_float(params, 'price')
             if price is None:
                 # eslint-disable-next-line quotes
-                raise InvalidOrder(self.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of self class earlier. The price parameter is missing. To cancel the order, pass {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
+                raise InvalidOrder(self.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of self class earlier. The `price` parameter is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
             amount = self.safe_float(params, 'qty')
             if amount is None:
                 # eslint-disable-next-line quotes
-                raise InvalidOrder(self.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of self class earlier. The `qty`(amount) parameter is missing. To cancel the order, pass {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
+                raise InvalidOrder(self.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of self class earlier. The `qty`(amount) parameter is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
             side = self.safe_float(params, 'is_ask')
             if side is None:
                 # eslint-disable-next-line quotes
-                raise InvalidOrder(self.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of self class earlier. The `is_ask`(side) parameter is missing. To cancel the order, pass {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
+                raise InvalidOrder(self.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of self class earlier. The `is_ask`(side) parameter is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
         else:
             price = order['price']
             amount = order['amount']
             side = 0 if (order['side'] == 'buy') else 1
+            symbol = order['symbol']
         request = {
             'order_id': id,
             'price': price,
             'qty': amount,
             'is_ask': side,
+            'currency': self.market_id(symbol),
         }
+        self.orders[id]['status'] = 'canceled'
         return self.privatePostOrderCancel(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

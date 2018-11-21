@@ -11,7 +11,7 @@ module.exports = class btcchina extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'btcchina',
             'name': 'BTCChina',
-            'countries': 'CN',
+            'countries': [ 'CN' ],
             'rateLimit': 1500,
             'version': 'v1',
             'has': {

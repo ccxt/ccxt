@@ -15,10 +15,13 @@ import base64
 import math
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
 
 class hitbtc2 (hitbtc):
@@ -27,7 +30,7 @@ class hitbtc2 (hitbtc):
         return self.deep_extend(super(hitbtc2, self).describe(), {
             'id': 'hitbtc2',
             'name': 'HitBTC v2',
-            'countries': 'HK',
+            'countries': ['HK'],
             'rateLimit': 1500,
             'version': '2',
             'has': {
@@ -44,6 +47,7 @@ class hitbtc2 (hitbtc):
                 'fetchClosedOrders': True,
                 'fetchMyTrades': True,
                 'withdraw': True,
+                'fetchOrderTrades': False,  # not implemented yet
             },
             'timeframes': {
                 '1m': 'M1',
@@ -549,6 +553,7 @@ class hitbtc2 (hitbtc):
                 'defaultTimeInForce': 'FOK',
             },
             'exceptions': {
+                '1003': PermissionDenied,  # "Action is forbidden for self API key"
                 '2010': InvalidOrder,  # "Quantity not a valid number"
                 '2011': InvalidOrder,  # "Quantity too low"
                 '2020': InvalidOrder,  # "Price not a valid number"
@@ -558,7 +563,7 @@ class hitbtc2 (hitbtc):
         })
 
     def fee_to_precision(self, symbol, fee):
-        return self.truncate(fee, 8)
+        return self.decimal_to_precision(fee, TRUNCATE, 8, DECIMAL_PLACES)
 
     def fetch_markets(self):
         markets = self.publicGetSymbol()
@@ -577,7 +582,7 @@ class hitbtc2 (hitbtc):
                 'price': self.precision_from_string(market['tickSize']),
                 # FIXME: for lots > 1 the following line returns 0
                 # 'amount': self.precision_from_string(market['quantityIncrement']),
-                'amount': -1 * math.log10(lot),
+                'amount': -1 * int(math.log10(lot)),
             }
             taker = self.safe_float(market, 'takeLiquidityRate')
             maker = self.safe_float(market, 'provideLiquidityRate')
@@ -625,10 +630,9 @@ class hitbtc2 (hitbtc):
             payout = self.safe_value(currency, 'payoutEnabled')
             transfer = self.safe_value(currency, 'transferEnabled')
             active = payin and payout and transfer
-            status = 'ok'
             if 'disabled' in currency:
                 if currency['disabled']:
-                    status = 'disabled'
+                    active = False
             type = 'fiat'
             if ('crypto' in list(currency.keys())) and currency['crypto']:
                 type = 'crypto'
@@ -642,7 +646,6 @@ class hitbtc2 (hitbtc):
                 'info': currency,
                 'name': currency['fullName'],
                 'active': active,
-                'status': status,
                 'fee': self.safe_float(currency, 'payoutFee'),  # todo: redesign
                 'precision': precision,
                 'limits': {
@@ -670,7 +673,8 @@ class hitbtc2 (hitbtc):
         self.load_markets()
         type = self.safe_string(params, 'type', 'trading')
         method = 'privateGet' + self.capitalize(type) + 'Balance'
-        balances = getattr(self, method)()
+        query = self.omit(params, 'type')
+        balances = getattr(self, method)(query)
         result = {'info': balances}
         for b in range(0, len(balances)):
             balance = balances[b]
@@ -786,9 +790,22 @@ class hitbtc2 (hitbtc):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
+        #
+        # createMarketOrder
+        #
+        #  {      fee: "0.0004644",
+        #           id:  386394956,
+        #        price: "0.4644",
+        #     quantity: "1",
+        #    timestamp: "2018-10-25T16:41:44.780Z"}
+        #
+        # fetchTrades ...
+        #
+        # fetchMyTrades ...
+        #
         timestamp = self.parse8601(trade['timestamp'])
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         else:
             id = trade['symbol']
@@ -798,11 +815,12 @@ class hitbtc2 (hitbtc):
             else:
                 symbol = id
         fee = None
-        if 'fee' in trade:
-            currency = market['quote'] if market else None
+        feeCost = self.safe_float(trade, 'fee')
+        if feeCost is not None:
+            feeCurrency = market['quote'] if market else None
             fee = {
-                'cost': self.safe_float(trade, 'fee'),
-                'currency': currency,
+                'cost': feeCost,
+                'currency': feeCurrency,
             }
         orderId = None
         if 'clientOrderId' in trade:
@@ -810,6 +828,7 @@ class hitbtc2 (hitbtc):
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'quantity')
         cost = price * amount
+        side = self.safe_string(trade, 'side')
         return {
             'info': trade,
             'id': str(trade['id']),
@@ -818,7 +837,7 @@ class hitbtc2 (hitbtc):
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': None,
-            'side': trade['side'],
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -828,9 +847,15 @@ class hitbtc2 (hitbtc):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetTradesSymbol(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None:
+            request['sort'] = 'ASC'
+            request['from'] = self.iso8601(since)
+        response = self.publicGetTradesSymbol(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -855,6 +880,8 @@ class hitbtc2 (hitbtc):
             request['timeInForce'] = self.options['defaultTimeInForce']
         response = self.privatePostOrder(self.extend(request, params))
         order = self.parse_order(response)
+        if order['status'] == 'rejected':
+            raise InvalidOrder(self.id + ' order was rejected by the exchange ' + self.json(order))
         id = order['id']
         self.orders[id] = order
         return order
@@ -871,7 +898,7 @@ class hitbtc2 (hitbtc):
             'requestClientId': requestClientId,
         }
         if amount is not None:
-            request['quantity'] = self.amount_to_precision(symbol, float(amount))
+            request['quantity'] = self.amount_to_precision(symbol, amount)
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
         response = self.privatePatchOrderClientOrderId(self.extend(request, params))
@@ -886,27 +913,46 @@ class hitbtc2 (hitbtc):
         }, params))
         return self.parse_order(response)
 
+    def parse_order_status(self, status):
+        statuses = {
+            'new': 'open',
+            'suspended': 'open',
+            'partiallyFilled': 'open',
+            'filled': 'closed',
+            'canceled': 'canceled',
+            'expired': 'failed',
+        }
+        return self.safe_string(statuses, status, status)
+
     def parse_order(self, order, market=None):
-        created = None
-        if 'createdAt' in order:
-            created = self.parse8601(order['createdAt'])
-        updated = None
-        if 'updatedAt' in order:
-            updated = self.parse8601(order['updatedAt'])
+        #
+        # createMarketOrder
+        #
+        #   {clientOrderId:   "fe36aa5e190149bf9985fb673bbb2ea0",
+        #         createdAt:   "2018-10-25T16:41:44.780Z",
+        #       cumQuantity:   "1",
+        #                id:   "66799540063",
+        #          quantity:   "1",
+        #              side:   "sell",
+        #            status:   "filled",
+        #            symbol:   "XRPUSDT",
+        #       timeInForce:   "FOK",
+        #      tradesReport: [{      fee: "0.0004644",
+        #                               id:  386394956,
+        #                            price: "0.4644",
+        #                         quantity: "1",
+        #                        timestamp: "2018-10-25T16:41:44.780Z"}],
+        #              type:   "market",
+        #         updatedAt:   "2018-10-25T16:41:44.780Z"                   }
+        #
+        created = self.parse8601(self.safe_string(order, 'createdAt'))
+        updated = self.parse8601(self.safe_string(order, 'updatedAt'))
         if not market:
             market = self.markets_by_id[order['symbol']]
         symbol = market['symbol']
         amount = self.safe_float(order, 'quantity')
         filled = self.safe_float(order, 'cumQuantity')
-        status = order['status']
-        if status == 'new':
-            status = 'open'
-        elif status == 'suspended':
-            status = 'open'
-        elif status == 'partiallyFilled':
-            status = 'open'
-        elif status == 'filled':
-            status = 'closed'
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         id = str(order['clientOrderId'])
         price = self.safe_float(order, 'price')
         if price is None:
@@ -919,6 +965,36 @@ class hitbtc2 (hitbtc):
                 remaining = amount - filled
                 if price is not None:
                     cost = filled * price
+        type = self.safe_string(order, 'type')
+        side = self.safe_string(order, 'side')
+        trades = self.safe_value(order, 'tradesReport')
+        fee = None
+        average = None
+        if trades is not None:
+            trades = self.parse_trades(trades, market)
+            feeCost = None
+            sumOfPrices = None
+            numTrades = len(trades)
+            for i in range(0, numTrades):
+                if feeCost is None:
+                    feeCost = 0
+                if sumOfPrices is None:
+                    sumOfPrices = 0
+                if cost is None:
+                    cost = 0
+                cost += trades[i]['cost']
+                feeCost += trades[i]['fee']['cost']
+                sumOfPrices += trades[i]['price']
+            if (sumOfPrices is not None) and(numTrades > 0):
+                average = sumOfPrices / numTrades
+                if type == 'market':
+                    if price is None:
+                        price = average
+            if feeCost is not None:
+                fee = {
+                    'cost': feeCost,
+                    'currency': market['quote'],
+                }
         return {
             'id': id,
             'timestamp': created,
@@ -926,14 +1002,16 @@ class hitbtc2 (hitbtc):
             'lastTradeTimestamp': updated,
             'status': status,
             'symbol': symbol,
-            'type': order['type'],
-            'side': order['side'],
+            'type': type,
+            'side': side,
             'price': price,
+            'average': average,
             'amount': amount,
             'cost': cost,
             'filled': filled,
             'remaining': remaining,
-            'fee': None,
+            'fee': fee,
+            'trades': trades,
             'info': order,
         }
 
@@ -958,7 +1036,7 @@ class hitbtc2 (hitbtc):
         self.load_markets()
         market = None
         request = {}
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         response = self.privateGetOrder(self.extend(request, params))
@@ -968,7 +1046,7 @@ class hitbtc2 (hitbtc):
         self.load_markets()
         market = None
         request = {}
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         if limit is not None:
@@ -976,8 +1054,13 @@ class hitbtc2 (hitbtc):
         if since is not None:
             request['from'] = self.iso8601(since)
         response = self.privateGetHistoryOrder(self.extend(request, params))
-        orders = self.parse_orders(response, market)
-        orders = self.filter_by(orders, 'status', 'closed')
+        parsedOrders = self.parse_orders(response, market)
+        orders = []
+        for i in range(0, len(parsedOrders)):
+            order = parsedOrders[i]
+            status = order['status']
+            if (status == 'closed') or (status == 'canceled'):
+                orders.append(order)
         return self.filter_by_since_limit(orders, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -992,7 +1075,7 @@ class hitbtc2 (hitbtc):
             # 'offset': 0,
         }
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         if since is not None:
@@ -1031,7 +1114,6 @@ class hitbtc2 (hitbtc):
             'currency': currency,
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         }
 
@@ -1048,11 +1130,11 @@ class hitbtc2 (hitbtc):
             'currency': currency['code'],
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        self.load_markets()
         self.check_address(address)
         currency = self.currency(code)
         request = {

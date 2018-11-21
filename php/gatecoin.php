@@ -14,7 +14,7 @@ class gatecoin extends Exchange {
             'id' => 'gatecoin',
             'name' => 'Gatecoin',
             'rateLimit' => 2000,
-            'countries' => 'HK', // Hong Kong
+            'countries' => array ( 'HK' ), // Hong Kong
             'comment' => 'a regulated/licensed exchange',
             'has' => array (
                 'CORS' => false,
@@ -302,7 +302,9 @@ class gatecoin extends Exchange {
             $symbol = $market['symbol'];
         $baseVolume = $this->safe_float($ticker, 'volume');
         $vwap = $this->safe_float($ticker, 'vwap');
-        $quoteVolume = $baseVolume * $vwap;
+        $quoteVolume = null;
+        if ($baseVolume !== null && $vwap !== null)
+            $quoteVolume = $baseVolume * $vwap;
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
@@ -416,7 +418,7 @@ class gatecoin extends Exchange {
             $ohlcv['open'],
             $ohlcv['high'],
             $ohlcv['low'],
-            null,
+            $ohlcv['last'],
             $ohlcv['volume'],
         ];
     }
@@ -639,7 +641,7 @@ class gatecoin extends Exchange {
         return array (
             'currency' => $code,
             'address' => $address,
-            'status' => 'ok',
+            'tag' => null,
             'info' => $response,
         );
     }
@@ -656,7 +658,7 @@ class gatecoin extends Exchange {
         return array (
             'currency' => $code,
             'address' => $address,
-            'status' => 'ok',
+            'tag' => null,
             'info' => $response,
         );
     }
@@ -670,11 +672,8 @@ class gatecoin extends Exchange {
             'Address' => $address,
             'Password' => $password,
         );
-        $response = $this->privatePostElectronicWalletUserWalletsDigiCurrency (array_merge ($request, $params));
-        return array (
-            'status' => 'ok',
-            'info' => $response,
-        );
+        // not unified yet
+        return $this->privatePostElectronicWalletUserWalletsDigiCurrency (array_merge ($request, $params));
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {

@@ -13,7 +13,7 @@ class chbtc extends zb {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'chbtc',
             'name' => 'CHBTC',
-            'countries' => 'CN',
+            'countries' => array ( 'CN' ),
             'rateLimit' => 1000,
             'version' => 'v1',
             'has' => array (

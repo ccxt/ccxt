@@ -539,18 +539,27 @@ class coinexchange extends Exchange {
                 'price' => 8,
             ),
             'commonCurrencies' => array (
+                'ACC' => 'AdCoin',
+                'ANC' => 'AnyChain',
                 'BON' => 'BonPeKaO',
+                'BONPAY' => 'BON',
+                'eNAU' => 'ENAU',
                 'ETN' => 'Ethernex',
+                'FRC' => 'FireRoosterCoin',
                 'GET' => 'GreenEnergyToken',
                 'GDC' => 'GoldenCryptoCoin',
+                'GOLD' => 'GoldenCoin',
                 'GTC' => 'GlobalTourCoin',
                 'HMC' => 'HarmonyCoin',
                 'HNC' => 'Huncoin',
+                'IBC' => 'RCoin',
                 'MARS' => 'MarsBux',
                 'MER' => 'TheMermaidCoin',
+                'OC' => 'occnetwork',
                 'PUT' => 'PutinCoin',
                 'RUB' => 'RubbleCoin',
                 'UP' => 'UpscaleToken',
+                'VULCANO' => 'VULC',
             ),
         ));
     }
@@ -565,15 +574,11 @@ class coinexchange extends Exchange {
             $id = $currency['CurrencyID'];
             $code = $this->common_currency_code($currency['TickerCode']);
             $active = $currency['WalletStatus'] === 'online';
-            $status = 'ok';
-            if (!$active)
-                $status = 'disabled';
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
                 'name' => $currency['Name'],
                 'active' => $active,
-                'status' => $status,
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
@@ -606,27 +611,30 @@ class coinexchange extends Exchange {
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $market['MarketID'];
-            $base = $this->common_currency_code($market['MarketAssetCode']);
-            $quote = $this->common_currency_code($market['BaseCurrencyCode']);
-            $symbol = $base . '/' . $quote;
-            $result[] = array (
-                'id' => $id,
-                'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
-                'baseId' => $market['MarketAssetID'],
-                'quoteId' => $market['BaseCurrencyID'],
-                'active' => $market['Active'],
-                'lot' => null,
-                'info' => $market,
-            );
+            $baseId = $this->safe_string($market, 'MarketAssetCode');
+            $quoteId = $this->safe_string($market, 'BaseCurrencyCode');
+            if ($baseId !== null && $quoteId !== null) {
+                $base = $this->common_currency_code($baseId);
+                $quote = $this->common_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+                $result[] = array (
+                    'id' => $id,
+                    'symbol' => $symbol,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'active' => $market['Active'],
+                    'info' => $market,
+                );
+            }
         }
         return $result;
     }
 
     public function parse_ticker ($ticker, $market = null) {
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             $marketId = $ticker['MarketID'];
             if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
                 $market = $this->markets_by_id[$marketId];
@@ -694,9 +702,8 @@ class coinexchange extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $path;
         if ($api === 'public') {
-            $params = $this->urlencode ($params);
-            if (strlen ($params))
-                $url .= '?' . $params;
+            if ($params)
+                $url .= '?' . $this->urlencode ($params);
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

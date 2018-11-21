@@ -12,7 +12,7 @@ module.exports = class bitsane extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bitsane',
             'name': 'Bitsane',
-            'countries': 'IE', // Ireland
+            'countries': [ 'IE' ], // Ireland
             'has': {
                 'fetchCurrencies': true,
                 'fetchTickers': true,
@@ -97,7 +97,6 @@ module.exports = class bitsane extends Exchange {
                 'code': code,
                 'name': this.safeString (currency, 'full_name', code),
                 'active': active,
-                'status': 'ok',
                 'precision': precision,
                 'funding': {
                     'withdraw': {
@@ -142,7 +141,7 @@ module.exports = class bitsane extends Exchange {
             let limits = this.safeValue (market, 'limits');
             let minLimit = undefined;
             let maxLimit = undefined;
-            if (limits) {
+            if (limits !== undefined) {
                 minLimit = this.safeFloat (limits, 'minimum');
                 maxLimit = this.safeFloat (limits, 'maximum');
             }
@@ -150,7 +149,6 @@ module.exports = class bitsane extends Exchange {
                 'amount': parseInt (market['precision']),
                 'price': 8,
             };
-            let lot = Math.pow (10, -precision['amount']);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -159,7 +157,6 @@ module.exports = class bitsane extends Exchange {
                 'baseId': market['base'],
                 'quoteId': market['quote'],
                 'active': true,
-                'lot': lot,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -227,7 +224,7 @@ module.exports = class bitsane extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             let id = marketIds[i];
             let market = this.safeValue (this.marketsById, id);
-            if (!market) {
+            if (market === undefined) {
                 continue;
             }
             let symbol = market['symbol'];
@@ -237,7 +234,7 @@ module.exports = class bitsane extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetOrderbook (this.extend ({
             'pair': this.marketId (symbol),
@@ -273,9 +270,9 @@ module.exports = class bitsane extends Exchange {
         let request = {
             'pair': market['id'],
         };
-        if (since)
+        if (since !== undefined)
             request['since'] = parseInt (since / 1000);
-        if (limit)
+        if (limit !== undefined)
             request['limit'] = limit;
         let response = await this.publicGetTrades (this.extend (request, params));
         return this.parseTrades (response['result'], market, since, limit);
@@ -395,7 +392,7 @@ module.exports = class bitsane extends Exchange {
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': undefined,
             'info': response,
         };
     }
@@ -427,11 +424,13 @@ module.exports = class bitsane extends Exchange {
             body = this.extend ({
                 'nonce': this.nonce (),
             }, params);
-            body = this.stringToBase64 (this.json (body));
+            let payload = this.json (body);
+            let payload64 = this.stringToBase64 (this.encode (payload));
+            body = this.decode (payload64);
             headers = {
                 'X-BS-APIKEY': this.apiKey,
                 'X-BS-PAYLOAD': body,
-                'X-BS-SIGNATURE': this.hmac (this.encode (body), this.encode (this.secret), 'sha384'),
+                'X-BS-SIGNATURE': this.hmac (payload64, this.encode (this.secret), 'sha384'),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -445,7 +444,7 @@ module.exports = class bitsane extends Exchange {
         if ((body[0] === '{') || (body[0] === '[')) {
             let response = JSON.parse (body);
             let statusCode = this.safeString (response, 'statusCode');
-            if (typeof statusCode !== 'undefined') {
+            if (statusCode !== undefined) {
                 if (statusCode !== '0') {
                     const feedback = this.id + ' ' + this.json (response);
                     const exceptions = this.exceptions;

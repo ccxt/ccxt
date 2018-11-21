@@ -11,7 +11,7 @@ module.exports = class tidex extends liqui {
         return this.deepExtend (super.describe (), {
             'id': 'tidex',
             'name': 'Tidex',
-            'countries': 'UK',
+            'countries': [ 'UK' ],
             'rateLimit': 2000,
             'version': '3',
             'has': {
@@ -22,7 +22,7 @@ module.exports = class tidex extends liqui {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg',
                 'api': {
-                    'web': 'https://web.tidex.com/api',
+                    'web': 'https://gate.tidex.com/api',
                     'public': 'https://api.tidex.com/api/3',
                     'private': 'https://api.tidex.com/tapi',
                 },
@@ -71,10 +71,6 @@ module.exports = class tidex extends liqui {
             let code = id.toUpperCase ();
             code = this.commonCurrencyCode (code);
             let active = currency['visible'] === true;
-            let status = 'ok';
-            if (!active) {
-                status = 'disabled';
-            }
             let canWithdraw = currency['withdrawEnable'] === true;
             let canDeposit = currency['depositEnable'] === true;
             if (!canWithdraw || !canDeposit) {
@@ -85,7 +81,6 @@ module.exports = class tidex extends liqui {
                 'code': code,
                 'name': currency['name'],
                 'active': active,
-                'status': status,
                 'precision': precision,
                 'funding': {
                     'withdraw': {

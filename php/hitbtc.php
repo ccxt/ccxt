@@ -13,7 +13,7 @@ class hitbtc extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'hitbtc',
             'name' => 'HitBTC',
-            'countries' => 'HK',
+            'countries' => array ( 'HK' ),
             'rateLimit' => 1500,
             'version' => '1',
             'has' => array (
@@ -23,6 +23,7 @@ class hitbtc extends Exchange {
                 'fetchOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchOrderTrades' => true,
                 'withdraw' => true,
             ),
             'urls' => array (
@@ -490,6 +491,9 @@ class hitbtc extends Exchange {
                 'DRK' => 'DASH',
                 'EMGO' => 'MGO',
                 'GET' => 'Themis',
+                'HSR' => 'HC',
+                'LNC' => 'LinkerCoin',
+                'UNC' => 'Unigame',
                 'USD' => 'USDT',
                 'XBT' => 'BTC',
             ),
@@ -647,6 +651,11 @@ class hitbtc extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $side = null;
+        $tradeLength = is_array ($trade) ? count ($trade) : 0;
+        if ($tradeLength > 3) {
+            $side = $trade[4];
+        }
         return array (
             'info' => $trade,
             'id' => (string) $trade[0],
@@ -654,7 +663,7 @@ class hitbtc extends Exchange {
             'datetime' => $this->iso8601 ($trade[3]),
             'symbol' => $symbol,
             'type' => null,
-            'side' => $trade[4],
+            'side' => $side,
             'price' => floatval ($trade[1]),
             'amount' => floatval ($trade[2]),
         );
@@ -694,7 +703,7 @@ class hitbtc extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetSymbolTrades (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
             // 'from' => 0,
             // 'till' => 100,
@@ -708,8 +717,16 @@ class hitbtc extends Exchange {
             // 'format_tid' => 'string',
             // 'format_timestamp' => 'millisecond',
             // 'format_wrap' => false,
-            'side' => 'true',
-        ), $params));
+            // 'side' => 'true',
+        );
+        if ($since !== null) {
+            $request['by'] = 'ts';
+            $request['from'] = $since;
+        }
+        if ($limit !== null) {
+            $request['max_results'] = $limit;
+        }
+        $response = $this->publicGetSymbolTrades (array_merge ($request, $params));
         return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
@@ -724,7 +741,7 @@ class hitbtc extends Exchange {
         if (abs ($difference) > $market['step'])
             throw new ExchangeError ($this->id . ' $order $amount should be evenly divisible by lot unit size of ' . (string) $market['lot']);
         $clientOrderId = $this->milliseconds ();
-        $order = array (
+        $request = array (
             'clientOrderId' => (string) $clientOrderId,
             'symbol' => $market['id'],
             'side' => $side,
@@ -732,12 +749,15 @@ class hitbtc extends Exchange {
             'type' => $type,
         );
         if ($type === 'limit') {
-            $order['price'] = $this->price_to_precision($symbol, $price);
+            $request['price'] = $this->price_to_precision($symbol, $price);
         } else {
-            $order['timeInForce'] = $this->options['defaultTimeInForce'];
+            $request['timeInForce'] = $this->options['defaultTimeInForce'];
         }
-        $response = $this->tradingPostNewOrder (array_merge ($order, $params));
-        return $this->parse_order($response['ExecutionReport'], $market);
+        $response = $this->tradingPostNewOrder (array_merge ($request, $params));
+        $order = $this->parse_order($response['ExecutionReport'], $market);
+        if ($order['status'] === 'rejected')
+            throw new InvalidOrder ($this->id . ' $order was rejected by the exchange ' . $this->json ($order));
+        return $order;
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -766,19 +786,14 @@ class hitbtc extends Exchange {
         $symbol = null;
         if (!$market)
             $market = $this->markets_by_id[$order['symbol']];
-        $status = $this->safe_string($order, 'orderStatus');
-        if ($status)
-            $status = $this->parse_order_status($status);
-        $averagePrice = $this->safe_float($order, 'avgPrice', 0.0);
+        $status = $this->parse_order_status($this->safe_string($order, 'orderStatus'));
         $price = $this->safe_float($order, 'orderPrice');
-        if ($price === null)
-            $price = $this->safe_float($order, 'price');
+        $price = $this->safe_float($order, 'price', $price);
+        $price = $this->safe_float($order, 'avgPrice', $price);
         $amount = $this->safe_float($order, 'orderQuantity');
-        if ($amount === null)
-            $amount = $this->safe_float($order, 'quantity');
+        $amount = $this->safe_float($order, 'quantity', $amount);
         $remaining = $this->safe_float($order, 'quantityLeaves');
-        if ($remaining === null)
-            $remaining = $this->safe_float($order, 'leavesQuantity');
+        $remaining = $this->safe_float($order, 'leavesQuantity', $remaining);
         $filled = null;
         $cost = null;
         $amountDefined = ($amount !== null);
@@ -797,7 +812,9 @@ class hitbtc extends Exchange {
         if ($amountDefined) {
             if ($remainingDefined) {
                 $filled = $amount - $remaining;
-                $cost = $averagePrice * $filled;
+                if ($price !== null) {
+                    $cost = $price * $filled;
+                }
             }
         }
         $feeCost = $this->safe_float($order, 'fee');
@@ -849,7 +866,7 @@ class hitbtc extends Exchange {
             'sort' => 'desc',
             'statuses' => implode (',', $statuses),
         );
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['symbols'] = $market['id'];
         }
@@ -866,7 +883,7 @@ class hitbtc extends Exchange {
             'statuses' => implode (',', $statuses),
             'max_results' => 1000,
         );
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['symbols'] = $market['id'];
         }

@@ -14,7 +14,7 @@ class therock (Exchange):
         return self.deep_extend(super(therock, self).describe(), {
             'id': 'therock',
             'name': 'TheRockTrading',
-            'countries': 'MT',
+            'countries': ['MT'],
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
@@ -33,6 +33,7 @@ class therock (Exchange):
             'api': {
                 'public': {
                     'get': [
+                        'funds',
                         'funds/{id}/orderbook',
                         'funds/{id}/ticker',
                         'funds/{id}/trades',
@@ -99,21 +100,81 @@ class therock (Exchange):
         })
 
     def fetch_markets(self):
-        markets = self.publicGetFundsTickers()
+        response = self.publicGetFunds()
+        #
+        #     {funds: [{                     id:   "BTCEUR",
+        #                              description:   "Trade Bitcoin with Euro",
+        #                                     type:   "currency",
+        #                            base_currency:   "EUR",
+        #                           trade_currency:   "BTC",
+        #                                  buy_fee:    0.2,
+        #                                 sell_fee:    0.2,
+        #                      minimum_price_offer:    0.01,
+        #                   minimum_quantity_offer:    0.0005,
+        #                   base_currency_decimals:    2,
+        #                  trade_currency_decimals:    4,
+        #                                leverages: []                           },
+        #                {                     id:   "LTCEUR",
+        #                              description:   "Trade Litecoin with Euro",
+        #                                     type:   "currency",
+        #                            base_currency:   "EUR",
+        #                           trade_currency:   "LTC",
+        #                                  buy_fee:    0.2,
+        #                                 sell_fee:    0.2,
+        #                      minimum_price_offer:    0.01,
+        #                   minimum_quantity_offer:    0.01,
+        #                   base_currency_decimals:    2,
+        #                  trade_currency_decimals:    2,
+        #                                leverages: []                            }]}
+        #
+        markets = self.safe_value(response, 'funds')
         result = []
-        for p in range(0, len(markets['tickers'])):
-            market = markets['tickers'][p]
-            id = market['fund_id']
-            base = id[0:3]
-            quote = id[3:]
-            symbol = base + '/' + quote
-            result.append({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'info': market,
-            })
+        if markets is None:
+            raise ExchangeError(self.id + ' fetchMarkets got an unexpected response')
+        else:
+            for i in range(0, len(markets)):
+                market = markets[i]
+                id = self.safe_string(market, 'id')
+                baseId = self.safe_string(market, 'trade_currency')
+                quoteId = self.safe_string(market, 'base_currency')
+                base = self.common_currency_code(baseId)
+                quote = self.common_currency_code(quoteId)
+                symbol = base + '/' + quote
+                buy_fee = self.safe_float(market, 'buy_fee')
+                sell_fee = self.safe_float(market, 'sell_fee')
+                taker = max(buy_fee, sell_fee)
+                taker = taker / 100
+                maker = taker
+                result.append({
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'info': market,
+                    'active': True,
+                    'maker': maker,
+                    'taker': taker,
+                    'precision': {
+                        'amount': self.safe_integer(market, 'trade_currency_decimals'),
+                        'price': self.safe_integer(market, 'base_currency_decimals'),
+                    },
+                    'limits': {
+                        'amount': {
+                            'min': self.safe_float(market, 'minimum_quantity_offer'),
+                            'max': None,
+                        },
+                        'price': {
+                            'min': self.safe_float(market, 'minimum_price_offer'),
+                            'max': None,
+                        },
+                        'cost': {
+                            'min': None,
+                            'max': None,
+                        },
+                    },
+                })
         return result
 
     def fetch_balance(self, params={}):
@@ -238,7 +299,18 @@ class therock (Exchange):
         self.load_markets()
         return self.privateDeleteFundsFundIdOrdersId(self.extend({
             'id': id,
+            'fund_id': self.market_id(symbol),
         }, params))
+
+    def parse_order_status(self, status):
+        statuses = {
+            'active': 'open',
+            'executed': 'closed',
+            'deleted': 'canceled',
+            # don't know what self status means
+            # 'conditional': '?',
+        }
+        return self.safe_string(statuses, status, status)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)

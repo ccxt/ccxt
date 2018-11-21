@@ -13,7 +13,7 @@ class bitmex extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitmex',
             'name' => 'BitMEX',
-            'countries' => 'SC', // Seychelles
+            'countries' => array ( 'SC' ), // Seychelles
             'version' => 'v1',
             'userAgent' => null,
             'rateLimit' => 2000,
@@ -43,6 +43,7 @@ class bitmex extends Exchange {
                     'https://github.com/BitMEX/api-connectors/tree/master/official-http',
                 ),
                 'fees' => 'https://www.bitmex.com/app/fees',
+                'referral' => 'https://www.bitmex.com/register/rm3C16',
             ),
             'api' => array (
                 'public' => array (
@@ -131,11 +132,17 @@ class bitmex extends Exchange {
                 ),
             ),
             'exceptions' => array (
-                'Invalid API Key.' => '\\ccxt\\AuthenticationError',
-                'Access Denied' => '\\ccxt\\PermissionDenied',
+                'exact' => array (
+                    'Invalid API Key.' => '\\ccxt\\AuthenticationError',
+                    'Access Denied' => '\\ccxt\\PermissionDenied',
+                    'Duplicate clOrdID' => '\\ccxt\\InvalidOrder',
+                ),
+                'broad' => array (
+                    'overloaded' => '\\ccxt\\ExchangeNotAvailable',
+                ),
             ),
             'options' => array (
-                'fetchTickerQuotes' => true,
+                'fetchTickerQuotes' => false,
             ),
         ));
     }
@@ -147,14 +154,14 @@ class bitmex extends Exchange {
             $market = $markets[$p];
             $active = ($market['state'] !== 'Unlisted');
             $id = $market['symbol'];
-            $base = $market['underlying'];
-            $quote = $market['quoteCurrency'];
+            $baseId = $market['underlying'];
+            $quoteId = $market['quoteCurrency'];
             $type = null;
             $future = false;
             $prediction = false;
-            $basequote = $base . $quote;
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $basequote = $baseId . $quoteId;
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $swap = ($id === $basequote);
             $symbol = $id;
             if ($swap) {
@@ -180,6 +187,8 @@ class bitmex extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'active' => $active,
                 'precision' => $precision,
                 'limits' => array (
@@ -395,7 +404,7 @@ class bitmex extends Exchange {
     public function parse_trade ($trade, $market = null) {
         $timestamp = $this->parse8601 ($trade['timestamp']);
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             if (is_array ($trade) && array_key_exists ('symbol', $trade))
                 $market = $this->markets_by_id[$trade['symbol']];
         }
@@ -417,22 +426,26 @@ class bitmex extends Exchange {
 
     public function parse_order_status ($status) {
         $statuses = array (
-            'new' => 'open',
-            'partiallyfilled' => 'open',
-            'filled' => 'closed',
-            'canceled' => 'canceled',
-            'rejected' => 'rejected',
-            'expired' => 'expired',
+            'New' => 'open',
+            'PartiallyFilled' => 'open',
+            'Filled' => 'closed',
+            'DoneForDay' => 'open',
+            'Canceled' => 'canceled',
+            'PendingCancel' => 'open',
+            'PendingNew' => 'open',
+            'Rejected' => 'rejected',
+            'Expired' => 'expired',
+            'Stopped' => 'open',
+            'Untriggered' => 'open',
+            'Triggered' => 'open',
         );
-        return $this->safe_string($statuses, strtolower ($status));
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_order ($order, $market = null) {
-        $status = $this->safe_value($order, 'ordStatus');
-        if ($status !== null)
-            $status = $this->parse_order_status($status);
+        $status = $this->parse_order_status($this->safe_string($order, 'ordStatus'));
         $symbol = null;
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
         } else {
             $id = $order['symbol'];
@@ -441,21 +454,17 @@ class bitmex extends Exchange {
                 $symbol = $market['symbol'];
             }
         }
-        $datetime_value = null;
-        $timestamp = null;
-        $iso8601 = null;
-        if (is_array ($order) && array_key_exists ('timestamp', $order))
-            $datetime_value = $order['timestamp'];
-        else if (is_array ($order) && array_key_exists ('transactTime', $order))
-            $datetime_value = $order['transactTime'];
-        if ($datetime_value !== null) {
-            $timestamp = $this->parse8601 ($datetime_value);
-            $iso8601 = $this->iso8601 ($timestamp);
-        }
+        $timestamp = $this->parse8601 ($this->safe_string($order, 'timestamp'));
+        $lastTradeTimestamp = $this->parse8601 ($this->safe_string($order, 'transactTime'));
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'orderQty');
         $filled = $this->safe_float($order, 'cumQty', 0.0);
-        $remaining = max ($amount - $filled, 0.0);
+        $remaining = null;
+        if ($amount !== null) {
+            if ($filled !== null) {
+                $remaining = max ($amount - $filled, 0.0);
+            }
+        }
         $cost = null;
         if ($price !== null)
             if ($filled !== null)
@@ -464,8 +473,8 @@ class bitmex extends Exchange {
             'info' => $order,
             'id' => (string) $order['orderID'],
             'timestamp' => $timestamp,
-            'datetime' => $iso8601,
-            'lastTradeTimestamp' => null,
+            'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => strtolower ($order['ordType']),
             'side' => strtolower ($order['side']),
@@ -547,11 +556,13 @@ class bitmex extends Exchange {
         return false;
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        if ($currency !== 'BTC')
+        // $currency = $this->currency ($code);
+        if ($code !== 'BTC') {
             throw new ExchangeError ($this->id . ' supoprts BTC withdrawals only, other currencies coming soon...');
+        }
         $request = array (
             'currency' => 'XBt', // temporarily
             'amount' => $amount,
@@ -573,19 +584,22 @@ class bitmex extends Exchange {
             if ($body) {
                 if ($body[0] === '{') {
                     $response = json_decode ($body, $as_associative_array = true);
-                    if (is_array ($response) && array_key_exists ('error', $response)) {
-                        if (is_array ($response['error']) && array_key_exists ('message', $response['error'])) {
-                            $feedback = $this->id . ' ' . $this->json ($response);
-                            $message = $this->safe_value($response['error'], 'message');
-                            $exceptions = $this->exceptions;
-                            if ($message !== null) {
-                                if (is_array ($exceptions) && array_key_exists ($message, $exceptions)) {
-                                    throw new $exceptions[$message] ($feedback);
-                                }
-                            }
-                            throw new ExchangeError ($feedback);
-                        }
+                    $error = $this->safe_value($response, 'error', array ());
+                    $message = $this->safe_string($error, 'message');
+                    $feedback = $this->id . ' ' . $body;
+                    $exact = $this->exceptions['exact'];
+                    if (is_array ($exact) && array_key_exists ($message, $exact)) {
+                        throw new $exact[$message] ($feedback);
                     }
+                    $broad = $this->exceptions['broad'];
+                    $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
+                    if ($broadKey !== null) {
+                        throw new $broad[$broadKey] ($feedback);
+                    }
+                    if ($code === 400) {
+                        throw new BadRequest ($feedback);
+                    }
+                    throw new ExchangeError ($feedback); // unknown $message
                 }
             }
         }

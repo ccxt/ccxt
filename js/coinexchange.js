@@ -538,18 +538,27 @@ module.exports = class coinexchange extends Exchange {
                 'price': 8,
             },
             'commonCurrencies': {
+                'ACC': 'AdCoin',
+                'ANC': 'AnyChain',
                 'BON': 'BonPeKaO',
+                'BONPAY': 'BON',
+                'eNAU': 'ENAU',
                 'ETN': 'Ethernex',
+                'FRC': 'FireRoosterCoin',
                 'GET': 'GreenEnergyToken',
                 'GDC': 'GoldenCryptoCoin',
+                'GOLD': 'GoldenCoin',
                 'GTC': 'GlobalTourCoin',
                 'HMC': 'HarmonyCoin',
                 'HNC': 'Huncoin',
+                'IBC': 'RCoin',
                 'MARS': 'MarsBux',
                 'MER': 'TheMermaidCoin',
+                'OC': 'occnetwork',
                 'PUT': 'PutinCoin',
                 'RUB': 'RubbleCoin',
                 'UP': 'UpscaleToken',
+                'VULCANO': 'VULC',
             },
         });
     }
@@ -564,15 +573,11 @@ module.exports = class coinexchange extends Exchange {
             let id = currency['CurrencyID'];
             let code = this.commonCurrencyCode (currency['TickerCode']);
             let active = currency['WalletStatus'] === 'online';
-            let status = 'ok';
-            if (!active)
-                status = 'disabled';
             result[code] = {
                 'id': id,
                 'code': code,
                 'name': currency['Name'],
                 'active': active,
-                'status': status,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -605,27 +610,30 @@ module.exports = class coinexchange extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let id = market['MarketID'];
-            let base = this.commonCurrencyCode (market['MarketAssetCode']);
-            let quote = this.commonCurrencyCode (market['BaseCurrencyCode']);
-            let symbol = base + '/' + quote;
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': market['MarketAssetID'],
-                'quoteId': market['BaseCurrencyID'],
-                'active': market['Active'],
-                'lot': undefined,
-                'info': market,
-            });
+            let baseId = this.safeString (market, 'MarketAssetCode');
+            let quoteId = this.safeString (market, 'BaseCurrencyCode');
+            if (baseId !== undefined && quoteId !== undefined) {
+                let base = this.commonCurrencyCode (baseId);
+                let quote = this.commonCurrencyCode (quoteId);
+                let symbol = base + '/' + quote;
+                result.push ({
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'active': market['Active'],
+                    'info': market,
+                });
+            }
         }
         return result;
     }
 
     parseTicker (ticker, market = undefined) {
         let symbol = undefined;
-        if (!market) {
+        if (market === undefined) {
             let marketId = ticker['MarketID'];
             if (marketId in this.markets_by_id)
                 market = this.markets_by_id[marketId];
@@ -693,9 +701,8 @@ module.exports = class coinexchange extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
         if (api === 'public') {
-            params = this.urlencode (params);
-            if (params.length)
-                url += '?' + params;
+            if (Object.keys (params).length)
+                url += '?' + this.urlencode (params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

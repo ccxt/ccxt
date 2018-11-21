@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 
 
 class btctradeua (Exchange):
@@ -13,7 +14,7 @@ class btctradeua (Exchange):
         return self.deep_extend(super(btctradeua, self).describe(), {
             'id': 'btctradeua',
             'name': 'BTC Trade UA',
-            'countries': 'UA',  # Ukraine,
+            'countries': ['UA'],  # Ukraine,
             'rateLimit': 3000,
             'has': {
                 'CORS': True,
@@ -282,7 +283,7 @@ class btctradeua (Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
         market = self.market(symbol)
         response = self.privatePostMyOrdersSymbol(self.extend({
             'symbol': market['id'],

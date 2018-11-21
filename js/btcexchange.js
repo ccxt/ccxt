@@ -11,7 +11,7 @@ module.exports = class btcexchange extends btcturk {
         return this.deepExtend (super.describe (), {
             'id': 'btcexchange',
             'name': 'BTCExchange',
-            'countries': 'PH', // Philippines
+            'countries': [ 'PH' ], // Philippines
             'rateLimit': 1500,
             'has': {
                 'CORS': false,

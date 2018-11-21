@@ -15,7 +15,7 @@ class crypton (Exchange):
         return self.deep_extend(super(crypton, self).describe(), {
             'id': 'crypton',
             'name': 'Crypton',
-            'countries': 'EU',
+            'countries': ['EU'],
             'rateLimit': 500,
             'version': '1',
             'has': {
@@ -173,7 +173,8 @@ class crypton (Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.publicGetTickers(params)
+        response = self.publicGetTickers(params)
+        tickers = response['result']
         keys = list(tickers.keys())
         result = {}
         for i in range(0, len(keys)):
@@ -198,7 +199,7 @@ class crypton (Exchange):
                 market = self.markets_by_id[marketId]
             else:
                 symbol = self.parse_symbol(marketId)
-        if market:
+        if market is not None:
             symbol = market['symbol']
         fee = None
         if 'fee' in trade:
@@ -226,7 +227,7 @@ class crypton (Exchange):
         request = {
             'id': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = self.publicGetMarketsIdTrades(self.extend(request, params))
         return self.parse_trades(response['result'], market, since, limit)
@@ -235,7 +236,7 @@ class crypton (Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = {}
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = self.privateGetFills(self.extend(request, params))
         trades = self.parse_trades(response['result'], market, since, limit)
@@ -254,7 +255,6 @@ class crypton (Exchange):
         else:
             symbol = self.parse_symbol(marketId)
         timestamp = self.parse8601(order['createdAt'])
-        iso8601 = self.iso8601(timestamp)
         fee = None
         if 'fee' in order:
             fee = {
@@ -270,7 +270,7 @@ class crypton (Exchange):
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
@@ -298,7 +298,7 @@ class crypton (Exchange):
         self.load_markets()
         request = {}
         market = None
-        if symbol:
+        if symbol is not None:
             request['market'] = self.market_id(symbol)
         response = self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response['result'], market, since, limit)
@@ -343,7 +343,6 @@ class crypton (Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         }
 

@@ -16,11 +16,10 @@ class xbtce (Exchange):
         return self.deep_extend(super(xbtce, self).describe(), {
             'id': 'xbtce',
             'name': 'xBTCe',
-            'countries': 'RU',
+            'countries': ['RU'],
             'rateLimit': 2000,  # responses are cached every 2 seconds
             'version': 'v1',
             'has': {
-                'publicAPI': False,
                 'CORS': False,
                 'fetchTickers': True,
                 'createMarketOrder': False,
@@ -255,9 +254,9 @@ class xbtce (Exchange):
         #     periodicity = str(minutes)
         #     self.load_markets()
         #     market = self.market(symbol)
-        #     if not since:
+        #     if since is None:
         #         since = self.seconds() - 86400 * 7  # last day by defulat
-        #     if not limit:
+        #     if limit is None:
         #         limit = 1000  # default
         #     response = self.privateGetQuotehistorySymbolPeriodicityBarsBid(self.extend({
         #         'symbol': market['id'],

@@ -36,6 +36,7 @@ class cex extends Exchange {
                     'https://cex.io/fee-schedule',
                     'https://cex.io/limits-commissions',
                 ),
+                'referral' => 'https://cex.io/r/0/up105393824/0/',
             ),
             'requiredCredentials' => array (
                 'apiKey' => true,
@@ -117,6 +118,7 @@ class cex extends Exchange {
             ),
             'options' => array (
                 'fetchOHLCVWarning' => true,
+                'createMarketBuyOrderRequiresPrice' => true,
             ),
         ));
     }
@@ -135,10 +137,9 @@ class cex extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
-                'lot' => $market['minLotSize'],
                 'precision' => array (
-                    'price' => $this->precision_from_string($market['minPrice']),
-                    'amount' => -1 * log10 ($market['minLotSize']),
+                    'price' => $this->precision_from_string($this->safe_string($market, 'minPrice')),
+                    'amount' => $this->precision_from_string($this->safe_string($market, 'minLotSize')),
                 ),
                 'limits' => array (
                     'amount' => array (
@@ -208,7 +209,7 @@ class cex extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        if (!$since) {
+        if ($since === null) {
             $since = $this->milliseconds () - 86400000; // yesterday
         } else {
             if ($this->options['fetchOHLCVWarning']) {
@@ -236,10 +237,8 @@ class cex extends Exchange {
 
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = null;
-        $iso8601 = null;
         if (is_array ($ticker) && array_key_exists ('timestamp', $ticker)) {
             $timestamp = intval ($ticker['timestamp']) * 1000;
-            $iso8601 = $this->iso8601 ($timestamp);
         }
         $volume = $this->safe_float($ticker, 'volume');
         $high = $this->safe_float($ticker, 'high');
@@ -253,7 +252,7 @@ class cex extends Exchange {
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $iso8601,
+            'datetime' => $this->iso8601 ($timestamp),
             'high' => $high,
             'low' => $low,
             'bid' => $bid,
@@ -325,25 +324,30 @@ class cex extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        if ($type === 'market') {
+            // for market buy it requires the $amount of quote currency to spend
+            if ($side === 'buy') {
+                if ($this->options['createMarketBuyOrderRequiresPrice']) {
+                    if ($price === null) {
+                        throw new InvalidOrder ($this->id . " createOrder() requires the $price argument with market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
+                    } else {
+                        $amount = $amount * $price;
+                    }
+                }
+            }
+        }
         $this->load_markets();
-        $order = array (
+        $request = array (
             'pair' => $this->market_id($symbol),
             'type' => $side,
             'amount' => $amount,
         );
         if ($type === 'limit') {
-            $order['price'] = $price;
+            $request['price'] = $price;
         } else {
-            // for market buy CEX.io requires the $amount of quote currency to spend
-            if ($side === 'buy') {
-                if (!$price) {
-                    throw new InvalidOrder ('For market buy orders ' . $this->id . " requires the $amount of quote currency to spend, to calculate proper costs call createOrder ($symbol, 'market', 'buy', $amount, $price)");
-                }
-                $order['amount'] = $amount * $price;
-            }
-            $order['order_type'] = $type;
+            $request['order_type'] = $type;
         }
-        $response = $this->privatePostPlaceOrderPair (array_merge ($order, $params));
+        $response = $this->privatePostPlaceOrderPair (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => $response['id'],
@@ -367,7 +371,7 @@ class cex extends Exchange {
             $timestamp = intval ($timestamp);
         }
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             $symbol = $order['symbol1'] . '/' . $order['symbol2'];
             if (is_array ($this->markets) && array_key_exists ($symbol, $this->markets))
                 $market = $this->market ($symbol);
@@ -390,7 +394,7 @@ class cex extends Exchange {
         $filled = $amount - $remaining;
         $fee = null;
         $cost = null;
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
             $cost = $this->safe_float($order, 'ta:' . $market['quote']);
             if ($cost === null)
@@ -451,7 +455,7 @@ class cex extends Exchange {
         $request = array ();
         $method = 'privatePostOpenOrders';
         $market = null;
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['pair'] = $market['id'];
             $method .= 'Pair';
@@ -467,7 +471,7 @@ class cex extends Exchange {
         $this->load_markets();
         $method = 'privatePostArchivedOrdersPair';
         if ($symbol === null) {
-            throw new NotSupported ($this->id . ' fetchClosedOrders requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchClosedOrders requires a $symbol argument');
         }
         $market = $this->market ($symbol);
         $request = array ( 'pair' => $market['id'] );
@@ -529,9 +533,9 @@ class cex extends Exchange {
     }
 
     public function fetch_deposit_address ($code, $params = array ()) {
-        if ($code === 'XRP') {
+        if ($code === 'XRP' || $code === 'XLM') {
             // https://github.com/ccxt/ccxt/pull/2327#issuecomment-375204856
-            throw new NotSupported ($this->id . ' fetchDepositAddress does not support XRP addresses yet (awaiting docs from CEX.io)');
+            throw new NotSupported ($this->id . ' fetchDepositAddress does not support XRP and XLM addresses yet (awaiting docs from CEX.io)');
         }
         $this->load_markets();
         $currency = $this->currency ($code);
@@ -545,7 +549,6 @@ class cex extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => null,
-            'status' => 'ok',
             'info' => $response,
         );
     }

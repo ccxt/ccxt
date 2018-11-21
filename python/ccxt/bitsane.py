@@ -26,7 +26,7 @@ class bitsane (Exchange):
         return self.deep_extend(super(bitsane, self).describe(), {
             'id': 'bitsane',
             'name': 'Bitsane',
-            'countries': 'IE',  # Ireland
+            'countries': ['IE'],  # Ireland
             'has': {
                 'fetchCurrencies': True,
                 'fetchTickers': True,
@@ -110,7 +110,6 @@ class bitsane (Exchange):
                 'code': code,
                 'name': self.safe_string(currency, 'full_name', code),
                 'active': active,
-                'status': 'ok',
                 'precision': precision,
                 'funding': {
                     'withdraw': {
@@ -153,14 +152,13 @@ class bitsane (Exchange):
             limits = self.safe_value(market, 'limits')
             minLimit = None
             maxLimit = None
-            if limits:
+            if limits is not None:
                 minLimit = self.safe_float(limits, 'minimum')
                 maxLimit = self.safe_float(limits, 'maximum')
             precision = {
                 'amount': int(market['precision']),
                 'price': 8,
             }
-            lot = math.pow(10, -precision['amount'])
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -169,7 +167,6 @@ class bitsane (Exchange):
                 'baseId': market['base'],
                 'quoteId': market['quote'],
                 'active': True,
-                'lot': lot,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -232,14 +229,14 @@ class bitsane (Exchange):
         for i in range(0, len(marketIds)):
             id = marketIds[i]
             market = self.safe_value(self.marketsById, id)
-            if not market:
+            if market is None:
                 continue
             symbol = market['symbol']
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         response = self.publicGetOrderbook(self.extend({
             'pair': self.market_id(symbol),
@@ -273,9 +270,9 @@ class bitsane (Exchange):
         request = {
             'pair': market['id'],
         }
-        if since:
+        if since is not None:
             request['since'] = int(since / 1000)
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response['result'], market, since, limit)
@@ -385,7 +382,7 @@ class bitsane (Exchange):
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': None,
             'info': response,
         }
 
@@ -415,11 +412,13 @@ class bitsane (Exchange):
             body = self.extend({
                 'nonce': self.nonce(),
             }, params)
-            body = base64.b64encode(self.json(body))
+            payload = self.json(body)
+            payload64 = base64.b64encode(self.encode(payload))
+            body = self.decode(payload64)
             headers = {
                 'X-BS-APIKEY': self.apiKey,
                 'X-BS-PAYLOAD': body,
-                'X-BS-SIGNATURE': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha384),
+                'X-BS-SIGNATURE': self.hmac(payload64, self.encode(self.secret), hashlib.sha384),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

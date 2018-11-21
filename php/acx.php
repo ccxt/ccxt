@@ -13,7 +13,7 @@ class acx extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'acx',
             'name' => 'ACX',
-            'countries' => 'AU',
+            'countries' => array ( 'AU' ),
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array (
@@ -107,14 +107,30 @@ class acx extends Exchange {
             $market = $markets[$p];
             $id = $market['id'];
             $symbol = $market['name'];
-            list ($base, $quote) = explode ('/', $symbol);
+            $baseId = $this->safe_string($market, 'base_unit');
+            $quoteId = $this->safe_string($market, 'quote_unit');
+            if (($baseId === null) || ($quoteId === null)) {
+                $ids = explode ('/', $symbol);
+                $baseId = strtolower ($ids[0]);
+                $quoteId = strtolower ($ids[1]);
+            }
+            $base = strtoupper ($baseId);
+            $quote = strtoupper ($quoteId);
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
+            // todo => find out their undocumented $precision and limits
+            $precision = array (
+                'amount' => 8,
+                'price' => 8,
+            );
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'precision' => $precision,
                 'info' => $market,
             );
         }
@@ -260,7 +276,7 @@ class acx extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        if (!$limit)
+        if ($limit === null)
             $limit = 500; // default is 30
         $request = array (
             'market' => $market['id'],
@@ -275,7 +291,7 @@ class acx extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $symbol = null;
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
         } else {
             $marketId = $order['market'];
@@ -345,14 +361,18 @@ class acx extends Exchange {
         return $order;
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $result = $this->privatePostWithdraw (array_merge (array (
-            'currency' => strtolower ($currency),
+        $currency = $this->currency ($code);
+        // they have XRP but no docs on memo/$tag
+        $request = array (
+            'currency' => $currency['id'],
             'sum' => $amount,
             'address' => $address,
-        ), $params));
+        );
+        $result = $this->privatePostWithdraw (array_merge ($request, $params));
+        // withdrawal response is undocumented
         return array (
             'info' => $result,
             'id' => null,
@@ -399,8 +419,8 @@ class acx extends Exchange {
                 'tonce' => $nonce,
             ), $params));
             $auth = $method . '|' . $request . '|' . $query;
-            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
-            $suffix = $query . '&$signature=' . $signature;
+            $signed = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
+            $suffix = $query . '&signature=' . $signed;
             if ($method === 'GET') {
                 $url .= '?' . $suffix;
             } else {
