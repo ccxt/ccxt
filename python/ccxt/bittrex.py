@@ -608,7 +608,7 @@ class bittrex (Exchange):
         address = self.safe_string_2(transaction, 'CryptoAddress', 'Address')
         txid = self.safe_string(transaction, 'TxId')
         updated = self.parse8601(self.safe_value(transaction, 'LastUpdated'))
-        timestamp = self.parse8601(self.safe_string(transaction, 'Opened'), updated)
+        timestamp = self.parse8601(self.safe_string(transaction, 'Opened', updated))
         type = 'withdrawal' if (timestamp is not None) else 'deposit'
         code = None
         currencyId = self.safe_string(transaction, 'Currency')

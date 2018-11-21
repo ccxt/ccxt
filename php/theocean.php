@@ -85,6 +85,7 @@ class theocean extends Exchange {
                     'Order not found' => '\\ccxt\\OrderNotFound', // array ("message":"Order not found","errors":...)
                 ),
                 'broad' => array (
+                    'Order cannot be canceled' => '\\ccxt\\InvalidOrder', // array ("message":"Order cannot be canceled","type":"General error")
                     'Greater than available wallet balance.' => '\\ccxt\\InsufficientFunds',
                     'Orderbook exhausted for intent' => '\\ccxt\\OrderNotFillable', // array ("message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g")
                     'Fillable amount under minimum' => '\\ccxt\\InvalidOrder', // array ("message":"Fillable amount under minimum WETH trade size.","type":"paramQuoteTokenAmount")
@@ -298,7 +299,19 @@ class theocean extends Exchange {
         }
         $price = floatval ($bidask[$priceKey]);
         $amountDecimals = $this->safe_integer($this->options['decimals'], $market['base'], 18);
-        $amount = $this->fromWei ($bidask[$amountKey], 'ether', $amountDecimals);
+        //
+        // the following does not work with this $bidask => array ("orderHash":"0x8b5d8d34eded1cbf8519733401ae3ced8069089fd16d5431cb3d4b016d7788f2","$price":"133.74013659","availableAmount":"4652691526891295598045.34542621578779823835103356911924523765168638519704923461215973053000214547556058831637954647252647510035865072314678676592576536328447541178082827906517347971793654011427890554542683570544867337525450220078254745116898401756810404232673589363421879924390066378804261951784","creationTimestamp":"1542743835","expirationTimestampInSec":"1545339435")
+        // therefore we apply a dirty string-based patch
+        //
+        // $amount = $this->fromWei ($bidask[$amountKey], 'ether', $amountDecimals);
+        //
+        $amountString = $this->safe_string($bidask, $amountKey);
+        $amountParts = explode ('.', $amountString);
+        $numParts = is_array ($amountParts) ? count ($amountParts) : 0;
+        if ($numParts === 2) {
+            $amountString = $amountParts[0];
+        }
+        $amount = $this->fromWei ($amountString, 'ether', $amountDecimals);
         // return array ( $price, $amount, $bidask );
         return array ( $price, $amount );
     }

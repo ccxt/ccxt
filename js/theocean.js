@@ -80,6 +80,7 @@ module.exports = class theocean extends Exchange {
                     'Order not found': OrderNotFound, // {"message":"Order not found","errors":...}
                 },
                 'broad': {
+                    'Order cannot be canceled': InvalidOrder, // {"message":"Order cannot be canceled","type":"General error"}
                     'Greater than available wallet balance.': InsufficientFunds,
                     'Orderbook exhausted for intent': OrderNotFillable, // {"message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g"}
                     'Fillable amount under minimum': InvalidOrder, // {"message":"Fillable amount under minimum WETH trade size.","type":"paramQuoteTokenAmount"}
@@ -293,7 +294,19 @@ module.exports = class theocean extends Exchange {
         }
         let price = parseFloat (bidask[priceKey]);
         let amountDecimals = this.safeInteger (this.options['decimals'], market['base'], 18);
-        let amount = this.fromWei (bidask[amountKey], 'ether', amountDecimals);
+        //
+        // the following does not work with this bidask: {"orderHash":"0x8b5d8d34eded1cbf8519733401ae3ced8069089fd16d5431cb3d4b016d7788f2","price":"133.74013659","availableAmount":"4652691526891295598045.34542621578779823835103356911924523765168638519704923461215973053000214547556058831637954647252647510035865072314678676592576536328447541178082827906517347971793654011427890554542683570544867337525450220078254745116898401756810404232673589363421879924390066378804261951784","creationTimestamp":"1542743835","expirationTimestampInSec":"1545339435"}
+        // therefore we apply a dirty string-based patch
+        //
+        // let amount = this.fromWei (bidask[amountKey], 'ether', amountDecimals);
+        //
+        let amountString = this.safeString (bidask, amountKey);
+        let amountParts = amountString.split ('.');
+        let numParts = amountParts.length;
+        if (numParts === 2) {
+            amountString = amountParts[0];
+        }
+        let amount = this.fromWei (amountString, 'ether', amountDecimals);
         // return [ price, amount, bidask ];
         return [ price, amount ];
     }
