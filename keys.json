@@ -22,7 +22,6 @@
     "bl3p":          { "skip": true },
     "bleutrade":     { "skip": true },
     "btcchina":      { "skip": true },
-    "btce":          { "apiKey": "9CVM7IPZ-300HPKQD-ME5Y21HS-6LLQUPN5-NCX0GXHF", "secret": "77c7395cbf788ee5eafbe79133deac3da5c62b72f72b7184eba3f49c5bb1d654" },
     "btcexchange":   { "skip": true },
     "btcmarkets":    { "skip": true },
     "btctradeim":    { "skip": true },
