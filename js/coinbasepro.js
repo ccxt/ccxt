@@ -30,7 +30,6 @@ module.exports = class coinbasepro extends gdax {
                     },
                 },
                 'methodmap': {
-                    '_websocketTimeoutSendPing': '_websocketTimeoutSendPing',
                     '_websocketTimeoutRemoveNonce': '_websocketTimeoutRemoveNonce',
                 },
                 'events': {

@@ -37,6 +37,7 @@ let sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
             secret: secret,
             enableRateLimit: true,
             verbose: true,
+            timeout: 20000,
             // agent: agent
           });
           exchange.on('err', (err, conxid) => {

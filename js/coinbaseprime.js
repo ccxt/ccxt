@@ -27,7 +27,6 @@ module.exports = class coinbaseprime extends gdax {
                     },
                 },
                 'methodmap': {
-                    '_websocketTimeoutSendPing': '_websocketTimeoutSendPing',
                     '_websocketTimeoutRemoveNonce': '_websocketTimeoutRemoveNonce',
                 },
                 'events': {
