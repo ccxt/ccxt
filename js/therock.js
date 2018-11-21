@@ -18,6 +18,7 @@ module.exports = class therock extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchTickers': true,
+                'fetchMyTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
@@ -280,6 +281,15 @@ module.exports = class therock extends Exchange {
             'price': trade['price'],
             'amount': trade['amount'],
         };
+    }
+
+    async fetchMyTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.privateGetFundsIdTrades (this.extend ({
+            'id': market['id'],
+        }, params));
+        return this.parseTrades (response['trades'], market, since, limit);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
