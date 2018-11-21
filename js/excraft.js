@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { ExchangeError, ExchangeNotAvailable } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -239,7 +240,7 @@ module.exports = class excraft extends Exchange {
         }, params));
         let result = [];
         let trades = data['trades'];
-        if (trades == null) {
+        if (trades === undefined) {
             return [];
         }
         for (let i = 0; i < trades.length; i++) {
@@ -255,7 +256,7 @@ module.exports = class excraft extends Exchange {
         let response = await this.privateGetBalances ();
         let balances = response['balances'];
         let result = { 'info': balances };
-        let keys = Object.getOwnPropertyNames (balances);
+        let keys = Object.keys (balances);
         for (let i = 0; i < keys.length; i++) {
             let value = balances[keys[i]];
             let account = {
@@ -386,9 +387,9 @@ module.exports = class excraft extends Exchange {
                 params['start_time'] = 0;
             if (params['end_time'] === undefined)
                 params['end_time'] = 0;
-            if (params['side'] === undefined)
+            if (params['side'] === undefined) {
                 params['side'] = 0;
-            else {
+            } else {
                 if (params['side'] === 'buy')
                     params['side'] = 2;
                 else
@@ -430,7 +431,7 @@ module.exports = class excraft extends Exchange {
 
     getParams (params = {}) {
         let string = '';
-        let keys = Object.getOwnPropertyNames (params);
+        let keys = Object.keys (params);
         for (let i = 0; i < keys.length; i++) {
             string += keys[i] + '=' + params[keys[i]] + '&';
         }
@@ -471,5 +472,46 @@ module.exports = class excraft extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (httpCode, reason, url, method, headers, body) {
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if ((body[0] === '{') || (body[0] === '[')) {
+            let response = JSON.parse (body);
+            //
+            //  {"result":false,"message":"服务端忙碌"}
+            //  ... and other formats
+            //
+            let code = this.safeString (headers, 'grpc-status');
+            let message = this.safeString (headers, 'grpc-message');
+            const feedback = this.id + ' ' + this.json (response);
+            if (code === '100')
+                return;
+            if (code !== undefined) {
+                const exceptions = this.exceptions;
+                if (code in exceptions) {
+                    throw new exceptions[code] (feedback);
+                } else if (code === '308') {
+                    // this is returned by the exchange when there are no open orders
+                    // {"code":308,"message":"Not Found Transaction Record"}
+                    return;
+                } else {
+                    throw new ExchangeError (feedback);
+                }
+            }
+            let result = this.safeValue (response, 'result');
+            if (result !== undefined) {
+                if (!result) {
+                    if (message === '服务端忙碌') {
+                        throw new ExchangeNotAvailable (feedback);
+                    } else {
+                        throw new ExchangeError (feedback);
+                    }
+                }
+            }
+        }
     }
 };
