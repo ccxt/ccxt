@@ -91,7 +91,7 @@
     "tidex":         { "skip": true },
     "therock":       { "skip": true },
     "urdubit":       { "skip": true },
-    "vaultoro":      { "apiKey": "CEwxqNb3GzixcrhzrPkn47JkdsDpff6z", "secret": "ZXRBWURDN3NSVFNJSmFIRHlOWUVfd1d6UjZwSFdiTGI=" },
+    "vaultoro":      { "skip": true, "apiKey": "CEwxqNb3GzixcrhzrPkn47JkdsDpff6z", "secret": "ZXRBWURDN3NSVFNJSmFIRHlOWUVfd1d6UjZwSFdiTGI=" },
     "vbtc":          { "skip": true },
     "virwox":        { "apiKey": "1ea680450b32585f743c50c051bf8e4e", "login": "IgorKroitor", "password": "HfveVskfVfvf260" },
     "xbtce":         { "skip": true, "apiKey": "dK2jBXMTppAM57ZJ", "secret": "qGNTrzs3d956DZKSRnPPJ5nrQJCwetAnh7cR6Mkj5E4eRQyMKwKqH7ywsxcR78WT", "uid": "68ef0552-3c37-4896-ba56-76173d9cd573" },
