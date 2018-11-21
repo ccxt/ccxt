@@ -139,7 +139,7 @@ module.exports = class excraft extends Exchange {
     }
 
     parse_ticker (ticker, symbol, market = undefined) {
-        let timestamp = this.milliseconds () / 1000;
+        let timestamp = this.milliseconds ();
         let close = this.safeFloat (ticker, 'last');
         let open = this.safeFloat (ticker, 'open');
         let percentage = 0;
@@ -156,7 +156,7 @@ module.exports = class excraft extends Exchange {
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp * 1000),
+            'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'last'),
@@ -198,10 +198,11 @@ module.exports = class excraft extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = []) {
         symbol = symbol.replace ('/', '').toUpperCase ();
+        let timestamp = this.milliseconds ();
         let orderbook = await this.publicGetMarketsMarketDepth (this.extend ({
             'market': symbol,
         }, params));
-        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     parse_trade_type (type) {
@@ -219,7 +220,7 @@ module.exports = class excraft extends Exchange {
         let cost = amount * price;
         return {
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp * 1000),
+            'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': this.safeString (trade, 'id'),
             'order': undefined,
@@ -330,6 +331,9 @@ module.exports = class excraft extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        console.log ('order detail = ' + order);
+        if (order['id'] === undefined)
+            return {};
         let symbol = market.replace ('/', '').toUpperCase ();
         let timestamp = parseInt (order['created_at']);
         let price = this.safeFloat (order, 'price');
@@ -349,7 +353,7 @@ module.exports = class excraft extends Exchange {
         return {
             'id': this.safeString (order, 'id'),
             'datetime': this.iso8601 (timestamp * 1000),
-            'timestamp': timestamp,
+            'timestamp': timestamp * 1000,
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
@@ -372,6 +376,8 @@ module.exports = class excraft extends Exchange {
             'market': symbol,
             'order_id': id,
         }, params));
+        if (order['order'] === undefined)
+            return {};
         return this.parseOrder (order['order'], market);
     }
 
@@ -411,6 +417,8 @@ module.exports = class excraft extends Exchange {
             'side': newParams['side'],
         };
         let orders = await this.privateGetMarketsMarketFinishedOrders (finalParams);
+        if (orders['orders'] === undefined)
+            return [];
         return this.parseOrders (orders, market, since, limit);
     }
 
