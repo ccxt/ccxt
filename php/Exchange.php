@@ -2165,7 +2165,7 @@ abstract class Exchange extends CcxtEventEmitter {
         );
     }
 
-    protected function _websocket_get_action_for_event ($conxid, $event, $symbol, $subscription=true) {
+    protected function _websocket_get_action_for_event ($conxid, $event, $symbol, $subscription=true, $subscriptionParams = array()) {
         // if subscription and still subscribed no action returned
         $isSubscribed = $this->_contextIsSubscribed($conxid, $event, $symbol);
         $isSubscribing = $this->_contextIsSubscribing($conxid, $event, $symbol);
@@ -2217,7 +2217,7 @@ abstract class Exchange extends CcxtEventEmitter {
                     'event'=> $event,
                     'symbol'=> $symbol,
                 );
-                $config ['url'] = $this->_websocket_generate_url_stream ($subscribed, $config);
+                $config ['url'] = $this->_websocket_generate_url_stream ($subscribed, $config, $subscriptionParams);
                 return array (
                     'action'=> 'reconnect',
                     'conx-config'=> $config,
@@ -2240,7 +2240,7 @@ abstract class Exchange extends CcxtEventEmitter {
                     );
 
                 } else {
-                    $config ['url'] = $this->_websocket_generate_url_stream ($subscribed, $config);
+                    $config ['url'] = $this->_websocket_generate_url_stream ($subscribed, $config, $subscriptionParams);
                     return array(
                         'action'=> 'reconnect',
                         'conx-config'=> $config,
@@ -2254,7 +2254,7 @@ abstract class Exchange extends CcxtEventEmitter {
         }
     }
 
-    protected function _websocket_ensure_conx_active ($event, $symbol, $subscribe) {
+    protected function _websocket_ensure_conx_active ($event, $symbol, $subscribe, $subscriptionParams=array()) {
         $this->load_markets();
         $ret = $this->_websocketGetConxid4Event ($event, $symbol);
         $conxid = $ret['conxid'];
@@ -2262,7 +2262,7 @@ abstract class Exchange extends CcxtEventEmitter {
         if (!(array_key_exists($conxid, $this->websocketContexts))) {
             $this->_websocket_reset_context($conxid, $conxtpl);
         }
-        $action = $this->_websocket_get_action_for_event ($conxid, $event, $symbol, $subscribe);
+        $action = $this->_websocket_get_action_for_event ($conxid, $event, $symbol, $subscribe, $subscriptionParams);
         if ($action != null) {
             $conxConfig = $this->safe_value ($action, 'conx-config', array());
             if (!(array_key_exists ($event, $this->_contextGetEvents($conxid)))) {
@@ -2501,7 +2501,7 @@ abstract class Exchange extends CcxtEventEmitter {
         if (!$this->_websocketValidEvent($event)) {
             throw new ExchangeError ('Not valid event ' . $event . ' for exchange ' . $this->id);
         }
-        $conxid = $this->_websocket_ensure_conx_active ($event, $symbol, true);
+        $conxid = $this->_websocket_ensure_conx_active ($event, $symbol, true, $params);
         $oid = $this->nonce();// . '-' . $symbol . '-ob-subscribe';
         $deferred = new \React\Promise\Deferred();
         $that = $this;
@@ -2564,7 +2564,7 @@ abstract class Exchange extends CcxtEventEmitter {
         throw new NotSupported ("You must to implement _websocketMarketId method for exchange " . $this->id);
     }
 
-    public function _websocket_generate_url_stream ($events, $options) {
+    public function _websocket_generate_url_stream ($events, $options, $subscriptionParams = array()) {
         throw new NotSupported ("You must to implement _websocket_generate_url_stream method for exchange " . $this->id);
     }
 

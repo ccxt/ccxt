@@ -429,7 +429,7 @@ class Exchange(BaseExchange, EventEmitter):
             'conxtpl': eventConf['conx-tpl']
         }
 
-    def _websocket_get_action_for_event(self, conxid, event, symbol, subscription=True):
+    def _websocket_get_action_for_event(self, conxid, event, symbol, subscription=True, subscription_params={}):
         # if subscription and still subscribed no action returned
         isSubscribed = self._contextIsSubscribed(conxid, event, symbol)
         isSubscribing = self._contextIsSubscribing(conxid, event, symbol)
@@ -475,7 +475,7 @@ class Exchange(BaseExchange, EventEmitter):
                     'event': event,
                     'symbol': symbol,
                 })
-                config['url'] = self._websocket_generate_url_stream(subscribed, config)
+                config['url'] = self._websocket_generate_url_stream(subscribed, config, subscription_params)
                 return {
                     'action': 'reconnect',
                     'conx-config': config,
@@ -496,7 +496,7 @@ class Exchange(BaseExchange, EventEmitter):
                         'conx-tpl': conx_tpl_name,
                     }
                 else:
-                    config['url'] = self._websocket_generate_url_stream(subscribed, config)
+                    config['url'] = self._websocket_generate_url_stream(subscribed, config, subscription_params)
                     return {
                         'action': 'reconnect',
                         'conx-config': config,
@@ -506,7 +506,7 @@ class Exchange(BaseExchange, EventEmitter):
         else:
             raise NotSupported("invalid websocket connection: " + config['type'] + " for exchange " + self.id)
 
-    async def _websocket_ensure_conx_active(self, event, symbol, subscribe):
+    async def _websocket_ensure_conx_active(self, event, symbol, subscribe, subscription_params={}):
         await self.load_markets()
         # self.load_markets()
         ret = self._websocketGetConxid4Event(event, symbol)
@@ -514,7 +514,7 @@ class Exchange(BaseExchange, EventEmitter):
         conxtpl = ret['conxtpl']
         if (not(conxid in self.websocketContexts)):
             self._websocket_reset_context(conxid, conxtpl)
-        action = self._websocket_get_action_for_event(conxid, event, symbol, subscribe)
+        action = self._websocket_get_action_for_event(conxid, event, symbol, subscribe, subscription_params)
         if (action is not None):
             conx_config = self.safe_value(action, 'conx-config', {})
             if (not(event in self._contextGetEvents(conxid))):
@@ -713,7 +713,7 @@ class Exchange(BaseExchange, EventEmitter):
     async def websocket_subscribe(self, event, symbol, params={}):
         if not self._websocketValidEvent(event):
             raise ExchangeError('Not valid event ' + event + ' for exchange ' + self.id)
-        conxid = await self._websocket_ensure_conx_active(event, symbol, True)
+        conxid = await self._websocket_ensure_conx_active(event, symbol, True, params)
         oid = self.nonce()  # str(self.nonce()) + '-' + symbol + '-ob-subscribe'
         future = asyncio.Future()
         oidstr = str(oid)
@@ -770,7 +770,7 @@ class Exchange(BaseExchange, EventEmitter):
     def _websocketMarketId(self, symbol):
         raise NotSupported("You must to implement _asyncMarketId method for exchange " + self.id)
 
-    def _websocket_generate_url_stream(self, events, options):
+    def _websocket_generate_url_stream(self, events, options, subscription_params):
         raise NotSupported("You must to implement _asyncGenerateStream method for exchange " + self.id)
 
     def _websocket_subscribe(self, contextId, event, symbol, oid, params={}):

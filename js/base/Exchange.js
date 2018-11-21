@@ -1353,7 +1353,7 @@ module.exports = class Exchange extends EventEmitter{
         };
     }
 
-    _websocketGetActionForEvent(conxid, event, symbol, subscription=true){
+    _websocketGetActionForEvent(conxid, event, symbol, subscription=true, subscriptionParams = {}){
         // if subscription and still subscribed no action returned
         //let sym = undefined;
         //if ((event in this.websocketContext[conxid]) && (symbol in this.websocketContext[conxid][event])){
@@ -1410,7 +1410,7 @@ module.exports = class Exchange extends EventEmitter{
                         'event': event,
                         'symbol': symbol,
                     });
-                    config ['url'] = this._websocketGenerateUrlStream (subscribed, config);
+                    config ['url'] = this._websocketGenerateUrlStream (subscribed, config, subscriptionParams);
                     return {
                         'action': 'reconnect',
                         'conx-config': config,
@@ -1434,7 +1434,7 @@ module.exports = class Exchange extends EventEmitter{
                         };
 
                     } else {
-                        config ['url'] = this._websocketGenerateUrlStream (subscribed, config);
+                        config ['url'] = this._websocketGenerateUrlStream (subscribed, config, subscriptionParams);
                         return {
                             'action': 'reconnect',
                             'conx-config': config,
@@ -1449,12 +1449,12 @@ module.exports = class Exchange extends EventEmitter{
         }
     }
 
-    async _websocketEnsureConxActive (event, symbol, subscribe) {
+    async _websocketEnsureConxActive (event, symbol, subscribe, subscriptionParams = {}) {
         let { conxid, conxtpl } = this._websocketGetConxid4Event (event, symbol);
         if (!(conxid in this.websocketContexts)) {
             this._websocketResetContext(conxid, conxtpl);
         }
-        let action = this._websocketGetActionForEvent (conxid, event, symbol, subscribe);
+        let action = this._websocketGetActionForEvent (conxid, event, symbol, subscribe, subscriptionParams);
         if (action !== null) {
             let conxConfig = this.safeValue (action, 'conx-config', {});
             if (!(event in this._contextGetEvents(conxid))) {
@@ -1674,7 +1674,7 @@ module.exports = class Exchange extends EventEmitter{
                     reject(new ExchangeError ('Not valid event ' + event + ' for exchange ' + this.id));
                     return;
                 }
-                let conxid = await this._websocketEnsureConxActive (event, symbol, true);
+                let conxid = await this._websocketEnsureConxActive (event, symbol, true, params);
                 const oid = this.nonce();// + '-' + symbol + '-ob-subscribe';
                 this.once (oid.toString(), (success, ex = null) => {
                     if (success) {
@@ -1748,7 +1748,7 @@ module.exports = class Exchange extends EventEmitter{
         throw new NotSupported ('You must implement _websocketMarketId method for exchange ' + this.id);
     }
 
-    _websocketGenerateUrlStream (events, options) {
+    _websocketGenerateUrlStream (events, options, subscriptionParams) {
         throw new NotSupported ('You must implement _websocketGenerateUrlStream method for exchange ' + this.id);
     }
 

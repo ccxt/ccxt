@@ -153,6 +153,22 @@ module.exports = class binance extends Exchange {
                             'stream': '{symbol}@aggTrade'
                         },
                     },
+                    'kline': {
+                        'conx-tpl': 'default',
+                        'conx-param': {
+                            'url': '{baseurl}',
+                            'id': '{id}',
+                            'stream': '{symbol}@kline_{interval}'
+                        },
+                    },
+                    'ticker': {
+                        'conx-tpl': 'default',
+                        'conx-param': {
+                            'url': '{baseurl}',
+                            'id': '{id}',
+                            'stream': '{symbol}@ticker'
+                        },
+                    },
                 },
             },
             'fees': {
@@ -993,10 +1009,15 @@ module.exports = class binance extends Exchange {
         let parts = stream.split ('@');
         let partsLen = parts.length;
         if (partsLen === 2) {
-            if (parts[1] === 'depth') {
+            let msgType = parts[1];
+            if (msgType === 'depth') {
                 this._websocketHandleOb (contextId, resData);
-            } else if (parts[1] === 'aggTrade') {
+            } else if (msgType === 'aggTrade') {
                 this._websocketHandleTrade (contextId, resData);
+            } else if (msgType.indexOf ('kline') >= 0) {
+                this._websocketHandleKline (contextId, resData);
+            } else if (msgType === 'ticker') {
+                this._websocketHandleTicker (contextId, resData);
             }
         }
     }
@@ -1035,9 +1056,52 @@ module.exports = class binance extends Exchange {
     _websocketHandleTrade (contextId, data) {
         const symbol = this.findSymbol (this.safeString (data, 's'));
         const market = this.market (symbol);
-        const trade = this.parseTrade(data, market);
-        this.emit('trade', trade);
+        const trade = this.parseTrade (data, market);
+        this.emit ('trade', symbol, trade);
     }
+
+    _websocketHandleKline (contextId, data) {
+        const symbol = this.findSymbol (this.safeString (data, 's'));
+        const market = this.market (symbol);
+        const kline = this.parseOHLCV ([
+            this.safeFloat (data['k'], 't'),
+            this.safeFloat (data['k'], 'o'),
+            this.safeFloat (data['k'], 'c'),
+            this.safeFloat (data['k'], 'h'),
+            this.safeFloat (data['k'], 'l'),
+            this.safeFloat (data['k'], 'v'),
+        ], market, this.safeFloat (data, 'i'));
+        this.emit ('kline', symbol, kline);
+    }
+
+    _websocketHandleTicker (contextId, data) {
+        const symbol = this.findSymbol (this.safeString (data, 's'));
+        const market = this.market (symbol);
+        const ticker = this.parseTicker({
+            "symbol": this.safeString (data, 's'),
+            "priceChange": this.safeString (data, 'p'),
+            "priceChangePercent": this.safeString (data, 'P'),
+            "weightedAvgPrice": this.safeString (data, 'v'),
+            "prevClosePrice": this.safeString (data, 'x'),
+            "lastPrice": undefined,
+            "lastQty": undefined,
+            "bidPrice": this.safeString (data, 'b'),
+            "askPrice": this.safeString (data, 'a'),
+            "openPrice": this.safeString (data, 'o'),
+            "highPrice": this.safeString (data, 'h'),
+            "lowPrice": this.safeString (data, 'l'),
+            "volume": this.safeString (data, 'v'),
+            "quoteVolume": this.safeString (data, 'q'),
+            "openTime": this.safeString (data, 'O'),
+            "closeTime": this.safeString (data, 'C'),
+            "firstId": this.safeString (data, 'F'),   // First tradeId
+            "lastId": this.safeString (data, 'L'),    // Last tradeId
+            "count": this.safeString (data, 'n')         // Trade count
+        }, market);
+        ticker['info'] = data;
+        this.emit('ticker', symbol, ticker);
+    }
+
 
     _websocketHandleObRestSnapshot (context, error, response) {
         let symbol = context['symbol'];
@@ -1075,7 +1139,7 @@ module.exports = class binance extends Exchange {
     }
 
     _websocketSubscribe (contextId, event, symbol, nonce, params = {}) {
-        if (event !== 'ob' && event !== 'trade') {
+        if (event !== 'ob' && event !== 'trade' && event !== 'kline' && event !== 'ticker') {
             throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
         }
         let data = this._contextGetSymbolData (contextId, event, symbol);
@@ -1111,6 +1175,10 @@ module.exports = class binance extends Exchange {
                         event = 'ob'; 
                     else if (event == 'aggtrade')
                         event = 'trade';
+                    else if (event.indexOf ('kline') >= 0)
+                        event = 'kline';
+                    else if (event.indexOf ('24hrTicker') >= 0)
+                        event = 'ticker';
                     this._contextSetSubscribed (contextId, event, symbol, true);
                     this._contextSetSubscribing (contextId, event, symbol, false);
                 }
@@ -1118,16 +1186,17 @@ module.exports = class binance extends Exchange {
         }
     }
 
-    _websocketGenerateUrlStream (events, options) {
+    _websocketGenerateUrlStream (events, options, params = {}) {
         let streamList = [];
         for (let i = 0; i < events.length; i++) {
             let element = events[i];
-            let params = {
+            let parameters = this.extend({
                 'event': element['event'],
                 'symbol': this._websocketMarketId (element['symbol']),
-            };
+                'interval': '1m',
+            }, params);
             let streamGenerator = this.wsconf['events'][element['event']]['conx-param']['stream'];
-            streamList.push (this.implodeParams (streamGenerator, params));
+            streamList.push (this.implodeParams (streamGenerator, parameters));
         }
         let stream = streamList.join ('/');
         return options['url'] + stream;
