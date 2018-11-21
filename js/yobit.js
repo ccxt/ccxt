@@ -18,6 +18,9 @@ module.exports = class yobit extends liqui {
             'has': {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
+                'fetchDeposits': false,
+                'fetchWithdrawals': false,
+                'fetchTransactions': false,
                 'CORS': false,
                 'withdraw': true,
             },
