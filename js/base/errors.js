@@ -32,6 +32,7 @@ module.exports = subclass (
                     'CancelPending': {},
                     'OrderImmediatelyFillable': {},
                     'OrderNotFillable': {},
+                    'DuplicateOrderId': {},
                 },
                 'NotSupported': {},
             },
