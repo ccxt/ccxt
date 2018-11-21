@@ -37,7 +37,7 @@ from ccxt.base.errors import NotSupported
 
 from ccxt.base.exchange import Exchange as BaseExchange
 
-from ccxt.async.websocket.websocket_connection import WebsocketConnection
+from ccxt.async_support.websocket.websocket_connection import WebsocketConnection
 from pyee import EventEmitter
 import zlib
 import gzip
@@ -60,22 +60,12 @@ class Exchange(BaseExchange, EventEmitter):
             self.asyncio_loop = config['asyncio_loop']
         self.asyncio_loop = self.asyncio_loop or asyncio.get_event_loop()
         self.own_session = 'session' not in config
-<<<<<<< HEAD:python/ccxt/async/base/exchange.py
-        if self.own_session:
-            # Create out SSL context object with our CA cert file
-            context = ssl.create_default_context(cafile=certifi.where())
-            # Pass this SSL context to aiohttp and create a TCPConnector
-            connector = aiohttp.TCPConnector(ssl_context=context, loop=self.asyncio_loop)
-            self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector)
-
         # async connection initialization
         self.wsconf = {}
         self.websocketContexts = {}
         self.wsproxy = None
-=======
         self.cafile = config.get('cafile', certifi.where())
         self.open()
->>>>>>> master:python/ccxt/async_support/base/exchange.py
         super(Exchange, self).__init__(config)
 
         # snake renaming methods
@@ -825,10 +815,10 @@ class Exchange(BaseExchange, EventEmitter):
         pass
 
     def _websocketMarketId(self, symbol):
-        raise NotSupported("You must to implement _asyncMarketId method for exchange " + self.id)
+        raise NotSupported("You must to implement _websocketMarketId method for exchange " + self.id)
 
     def _websocket_generate_url_stream(self, events, options, subscription_params):
-        raise NotSupported("You must to implement _asyncGenerateStream method for exchange " + self.id)
+        raise NotSupported("You must to implement _websocketGenerateStream method for exchange " + self.id)
 
     def _websocket_subscribe(self, contextId, event, symbol, oid, params={}):
         raise NotSupported('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + self.id)

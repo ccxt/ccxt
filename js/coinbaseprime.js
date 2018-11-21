@@ -19,6 +19,27 @@ module.exports = class coinbaseprime extends gdax {
                 'doc': 'https://docs.prime.coinbase.com',
                 'fees': 'https://support.prime.coinbase.com/customer/en/portal/articles/2945629-fees?b_id=17475',
             },
+            'wsconf': {
+                'conx-tpls': {
+                    'default': {
+                        'type': 'ws',
+                        'baseurl': 'wss://ws-feed.prime.coinbase.com',
+                    },
+                },
+                'methodmap': {
+                    '_websocketTimeoutSendPing': '_websocketTimeoutSendPing',
+                    '_websocketTimeoutRemoveNonce': '_websocketTimeoutRemoveNonce',
+                },
+                'events': {
+                    'ob': {
+                        'conx-tpl': 'default',
+                        'conx-param': {
+                            'url': '{baseurl}',
+                            'id': '{id}',
+                        },
+                    },
+                },
+            },
         });
     }
 };

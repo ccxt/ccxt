@@ -101,23 +101,6 @@ module.exports = class gdax extends Exchange {
                     ],
                 },
             },
-            'wsconf': {
-                'conx-tpls': {
-                    'default': {
-                        'type': 'ws-s',
-                        'baseurl': 'wss://ws-feed.pro.coinbase.com',
-                    },
-                },
-                'events': {
-                    'ob': {
-                        'conx-tpl': 'default',
-                        'conx-param': {
-                            'url': '{baseurl}',
-                            'id': '{id}',
-                        },
-                    },
-                },
-            },
             'fees': {
                 'trading': {
                     'tierBased': true, // complicated tier system per coin
@@ -766,16 +749,165 @@ module.exports = class gdax extends Exchange {
         return response;
     }
 
+    _websocketOnMessage (contextId, data) {
+        let msg = JSON.parse (data);
+        let msgType = this.safeString (msg, 'type');
+        // console.log(msg);
+        if (msgType === 'subscriptions') {
+            let channels = this.safeValue (msg, 'channels');
+            let level2Found = false;
+            for (let i = 0; i < channels.length; i++) {
+                let channel = channels[i];
+                let channelName = channel['name'];
+                if (channelName === 'level2') {
+                    let productIds = channel['product_ids'];
+                    level2Found = true;
+                    for (let j = 0; j < productIds.length; j++) {
+                        let productId = productIds[j];
+                        this._websocketHandleSubscription (contextId, 'ob', productId);
+                    }
+                    this._websocketHandleUnsubscription (contextId, 'ob', productIds);
+                }
+            }
+            if (!level2Found) {
+                this._websocketHandleUnsubscription (contextId, 'ob', []);
+            }
+        } else if (msgType === 'snapshot') {
+            this._websocketHandleObSnapshot (contextId, msg);
+        } else if (msgType === 'l2update') {
+            this._websocketHandleObUpdate (contextId, msg);
+        }
+    }
+
+    _websocketHandleObSnapshot (contextId, msg) {
+        let id = this.safeString (msg, 'product_id');
+        let symbol = this.findSymbol (id);
+        let symbolData = this._contextGetSymbolData (contextId, 'ob', symbol);
+        let ob = this.parseOrderBook (msg);
+        symbolData['ob'] = ob;
+        this.emit ('ob', symbol, this._cloneOrderBook (ob, symbolData['limit']));
+        this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
+    }
+
+    _websocketHandleObUpdate (contextId, msg) {
+        let id = this.safeString (msg, 'product_id');
+        let symbol = this.findSymbol (id);
+        let symbolData = this._contextGetSymbolData (contextId, 'ob', symbol);
+        let ob = symbolData['ob'];
+        let changes = this.safeValue (msg, 'changes', []);
+        for (let i = 0; i < changes.length; i++) {
+            let change = changes[i];
+            let op = change[0];
+            let price = parseFloat (change[1]);
+            let amount = parseFloat (change[2]);
+            let side = (op === 'sell') ? 'asks' : 'bids';
+            this.updateBidAsk ([price, amount], ob[side], op === 'buy');
+        }
+        symbolData['ob'] = ob;
+        this.emit ('ob', symbol, this._cloneOrderBook (ob, symbolData['limit']));
+        this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
+    }
+
+    _websocketHandleSubscription (contextId, event, msg) {
+        let symbol = this.findSymbol (msg);
+        let symbolData = this._contextGetSymbolData (contextId, event, symbol);
+        if ('sub-nonces' in symbolData) {
+            let nonces = symbolData['sub-nonces'];
+            const keys = Object.keys (nonces);
+            for (let i = 0; i < keys.length; i++) {
+                let nonce = keys[i];
+                this._cancelTimeout (nonces[nonce]);
+                this.emit (nonce, true);
+            }
+            symbolData['sub-nonces'] = {};
+            this._contextSetSymbolData (contextId, event, symbol, symbolData);
+        }
+    }
+
+    _websocketHandleUnsubscription (contextId, event, idsSubscribed) {
+        let symbols = this._contextGetSymbols (contextId, event);
+        symbols = Object.keys (symbols);
+        for (let i = 0; i < symbols.length; i++) {
+            let symbol = symbols[i];
+            // if symbol not in subscribed symbols
+            let id = this.marketId (symbol);
+            if (!this.inArray (id, idsSubscribed)) {
+                let symbolData = this._contextGetSymbolData (contextId, event, symbol);
+                if ('unsub-nonces' in symbolData) {
+                    let nonces = symbolData['unsub-nonces'];
+                    const keys = Object.keys (nonces);
+                    for (let i = 0; i < keys.length; i++) {
+                        let nonce = keys[i];
+                        this._cancelTimeout (nonces[nonce]);
+                        this.emit (nonce, true);
+                    }
+                    symbolData['unsub-nonces'] = {};
+                    this._contextSetSymbolData (contextId, event, symbol, symbolData);
+                }
+            }
+        }
+    }
+
     _websocketSubscribe (contextId, event, symbol, nonce, params = {}) {
+        if (event !== 'ob') {
+            throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+        }
+        // save nonce for subscription response
+        let symbolData = this._contextGetSymbolData (contextId, event, symbol);
+        if (!('sub-nonces' in symbolData)) {
+            symbolData['sub-nonces'] = {};
+        }
+        symbolData['limit'] = this.safeInteger (params, 'limit', undefined);
+        let nonceStr = nonce.toString ();
+        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'sub-nonce']);
+        symbolData['sub-nonces'][nonceStr] = handle;
+        this._contextSetSymbolData (contextId, event, symbol, symbolData);
+        // send request
+        const id = this.marketId (symbol);
+        this.websocketSendJson ({
+            'type': 'subscribe',
+            'product_ids': [id],
+            'channels': ['level2'],
+        });
+    }
+
+    _websocketUnsubscribe (contextId, event, symbol, nonce, params = {}) {
+        if (event !== 'ob') {
+            throw new NotSupported ('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+        }
+        let id = this.market_id (symbol);
         let payload = {
-            'type': 'subscriptions',
-            'product_ids': ['BTC-USD'],
+            'type': 'unsubscribe',
+            'product_ids': [id],
             'channels': ['level2'],
         };
+        let symbolData = this._contextGetSymbolData (contextId, event, symbol);
+        if (!('unsub-nonces' in symbolData)) {
+            symbolData['unsub-nonces'] = {};
+        }
+        let nonceStr = nonce.toString ();
+        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'unsub-nonces']);
+        symbolData['unsub-nonces'][nonceStr] = handle;
+        this._contextSetSymbolData (contextId, event, symbol, symbolData);
         this.websocketSendJson (payload);
     }
 
-    _websocketGenerateUrlStream (events, options) {
-        return options['url'];
+    _websocketTimeoutRemoveNonce (contextId, timerNonce, event, symbol, key) {
+        let symbolData = this._contextGetSymbolData (contextId, event, symbol);
+        if (key in symbolData) {
+            let nonces = symbolData[key];
+            if (timerNonce in nonces) {
+                this.omit (symbolData[key], timerNonce);
+                this._contextSetSymbolData (contextId, event, symbol, symbolData);
+            }
+        }
+    }
+
+    _getCurrentWebsocketOrderbook (contextId, symbol, limit) {
+        let data = this._contextGetSymbolData (contextId, 'ob', symbol);
+        if (('ob' in data) && (typeof data['ob'] !== 'undefined')) {
+            return this._cloneOrderBook (data['ob'], limit);
+        }
+        return undefined;
     }
 };

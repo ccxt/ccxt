@@ -861,6 +861,7 @@ module.exports = class bitmex extends Exchange {
         let nonceStr = nonce.toString ();
         let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'sub-nonce']);
         symbolData['sub-nonces'][nonceStr] = handle;
+        this._contextSetSymbolData (contextId, event, symbol, symbolData);
         this.websocketSendJson (payload);
     }
 
