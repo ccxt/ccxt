@@ -1,6 +1,7 @@
 'use strict';
 
 //  ---------------------------------------------------------------------------
+
 const Exchange = require ('./base/Exchange');
 
 //  ---------------------------------------------------------------------------
@@ -13,8 +14,9 @@ module.exports = class excraft extends Exchange {
             'countries': ['HK', 'UK'],
             'has': {
                 'fetchOrder': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchOpenOrders': true,
             },
             'urls': {
                 'logo': 'https://www.excraft.com/static/images/excraft_2480.png',
@@ -374,12 +376,12 @@ module.exports = class excraft extends Exchange {
 
     async fetchOrders (market = undefined, since = undefined, limit = undefined, params = {}) {
         let symbol = market.replace ('/', '').toUpperCase ();
-        if (params === undefined)
+        if (params === undefined) {
             params = {
                 'start_time': 0,
                 'end_time': 0,
             };
-        else {
+        } else {
             if (params['start_time'] === undefined)
                 params['start_time'] = 0;
             if (params['end_time'] === undefined)
