@@ -570,7 +570,7 @@ class Exchange {
         $timestamp = (int) $timestamp;
         if ($timestamp < 0)
             return null;
-        $result = date ('c', (int) round ($timestamp / 1000));
+        $result = date ('c', (int) floor ($timestamp / 1000));
         $msec = (int) $timestamp % 1000;
         $result = str_replace ('+00:00', sprintf (".%03dZ", $msec), $result);
         return $result;
@@ -598,6 +598,10 @@ class Exchange {
             $time += (int) str_pad($match['milliseconds'], 3, '0', STR_PAD_RIGHT);
         }
         return $time;
+    }
+
+    public static function emailGMT ($timestamp) {
+        return gmdate("D, d M Y H:i:s -0000", $timestamp);
     }
 
     public static function dmy ($timestamp, $infix = '-') {
