@@ -49,10 +49,10 @@ Certified Cryptocurrency Exchanges
 | |theocean| | theocean | `The Ocean <https://theocean.trade>`__              | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | 0   | `API <https://docs.theocean.trade>`__                                                           | US                     |
 +------------+----------+-----------------------------------------------------+----------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+------------------------+
 
-Get listed
+Get Listed
 ----------
 
-Want to get on the list of exchanges supported by CCXT quickly? Please, contact us: info@ccxt.trade.
+Want to get on the list quickly? Contact us: info@ccxt.trade
 
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
