@@ -37,7 +37,7 @@ Want this place? Contact us: info@ccxt.trade
 |![kraken](https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg)             | kraken             | [Kraken](https://www.kraken.com)                                             | [![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | 0   | [API](https://www.kraken.com/en-us/help/api)                                                     | US                                      |
 |![theocean](https://user-images.githubusercontent.com/1294454/43103756-d56613ce-8ed7-11e8-924e-68f9d4bcacab.jpg)           | theocean           | [The Ocean](https://theocean.trade)                                           | [![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | 0   | [API](https://docs.theocean.trade)                                                               | US                                      |
 
-## Get listed
+## Get Listed
 
 Want to get on the list quickly? Contact us: info@ccxt.trade
 
