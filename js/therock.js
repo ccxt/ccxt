@@ -283,7 +283,7 @@ module.exports = class therock extends Exchange {
         };
     }
 
-    async fetchMyTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privateGetFundsIdTrades (this.extend ({
