@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, PermissionDenied, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, PermissionDenied, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -114,7 +114,7 @@ module.exports = class poloniex extends Exchange {
                         'conx-tpl': 'default',
                         'conx-param': {
                             'url': '{baseurl}',
-                            'id': '{id}'
+                            'id': '{id}',
                         },
                     },
                 },
@@ -292,7 +292,7 @@ module.exports = class poloniex extends Exchange {
             isNumeric = false;
             break;
         }
-        if ( isNumeric === true ) {
+        if (isNumeric === true) {
             if (string in this.markets_by_id2) {
                 return this.markets_by_id2[string];
             }
@@ -314,7 +314,6 @@ module.exports = class poloniex extends Exchange {
         this.marketsById2 = this.indexBy (markets, 'id2');
         this.markets_by_id2 = this.marketsById2;
         return super.setMarkets (markets, currencies);
-        // 
         // Cannot use map
         // let values = Object.values (markets).map (market => this.deepExtend ({
         //     'limits': this.limits,
@@ -365,7 +364,7 @@ module.exports = class poloniex extends Exchange {
         for (let p = 0; p < keys.length; p++) {
             let id = keys[p];
             let market = markets[id];
-            let id2 = market['id'].toString ();
+            // let id2 = market['id'].toString ();
             let [ quote, base ] = id.split ('_');
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
@@ -1289,16 +1288,12 @@ module.exports = class poloniex extends Exchange {
         let channelId = msg[0];
         if (channelId === 1000) {
             // account notification (beta)
-            return;
         } else if (channelId === 1002) {
             // ticker data
-            return;
         } else if (channelId === 1003) {
             // 24 hour exchange volume
-            return;
         } else if (channelId === 1010) {
             console.log (this.id + '._websocketOnMessage() heartbeat ' + data);
-            return;
         } else {
             // if channelId is not one of the above, check if it is a marketId
             let symbol = this.findSymbol (channelId.toString ());
@@ -1306,10 +1301,8 @@ module.exports = class poloniex extends Exchange {
                 // Some error occured
                 this.emit ('err', new ExchangeError (this.id + '._websocketOnMessage() failed to get symbol for channelId: ' + channelId));
                 this.websocketClose (contextId);
-                return;
             } else {
                 this._websocketHandleOb (contextId, msg);
-                return;
             }
         }
     }
@@ -1323,8 +1316,8 @@ module.exports = class poloniex extends Exchange {
             let symbol = this.findSymbol (channelId.toString ());
             let symbolData = this._contextGetSymbolData (contextId, 'ob', symbol);
             // Check if this is the first response which contains full current orderbook
-            if (orderbook[0][0] == 'i') {
-                let currencyPair = orderbook[0][1]['currencyPair'];
+            if (orderbook[0][0] === 'i') {
+                // let currencyPair = orderbook[0][1]['currencyPair'];
                 let fullOrderbook = orderbook[0][1]['orderBook'];
                 let asks = [];
                 let bids = [];
@@ -1332,19 +1325,19 @@ module.exports = class poloniex extends Exchange {
                 let i = 0;
                 keys = Object.keys (fullOrderbook[0]);
                 for (i = 0; i < keys.length; i++) {
-                    asks.push ([parseFloat (keys[i]),parseFloat (fullOrderbook[0][keys[i]])]);
+                    asks.push ([parseFloat (keys[i]), parseFloat (fullOrderbook[0][keys[i]])]);
                 }
                 keys = Object.keys (fullOrderbook[1]);
                 for (i = 0; i < keys.length; i++) {
-                    bids.push ([parseFloat (keys[i]),parseFloat (fullOrderbook[1][keys[i]])]);
+                    bids.push ([parseFloat (keys[i]), parseFloat (fullOrderbook[1][keys[i]])]);
                 }
                 fullOrderbook = {
                     'asks': asks,
                     'bids': bids,
                     'isFrozen': 0,
-                    'seq': sequenceNumber
+                    'seq': sequenceNumber,
                 };
-                // I decided not to push the initial orderbook to cache. 
+                // I decided not to push the initial orderbook to cache.
                 // This way is less consistent but I think it's easier.
                 fullOrderbook = this.parseOrderBook (fullOrderbook);
                 fullOrderbook = this._cloneOrderBook (fullOrderbook, symbolData['limit']);
@@ -1356,8 +1349,8 @@ module.exports = class poloniex extends Exchange {
                 let order = undefined;
                 let orderbookDelta = {
                     'asks': [],
-                    'bids': [], 
-                    'seq': sequenceNumber
+                    'bids': [],
+                    'seq': sequenceNumber,
                 };
                 let price = 0.0;
                 let amount = 0.0;
@@ -1410,7 +1403,6 @@ module.exports = class poloniex extends Exchange {
     _websocketHandleObDeltaCache (contextId, symbol) {
         let symbolData = this._contextGetSymbolData (contextId, 'ob', symbol);
         // Handle out-of-order sequenceNumber
-        // 
         // To avoid a memory leak, we must put a maximum on the size of obDeltaCache.
         // When this maximum is reached, we accept that we have lost some orderbook updates.
         // In this case we must fetch a new orderbook.
@@ -1422,7 +1414,7 @@ module.exports = class poloniex extends Exchange {
             symbolData['obDeltaCacheSize'] = 0;
             this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
             return;
-        } 
+        }
         if (symbolData['obDeltaCacheSize'] === 0) {
             this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
             return;
@@ -1436,14 +1428,14 @@ module.exports = class poloniex extends Exchange {
         let orderbookDelta = symbolData['obDeltaCache'][cachedSequenceNumberStr];
         let continueBool = typeof orderbookDelta !== 'undefined';
         // While loop is not transpiled properly
-        //while (continueBool) {
+        // while (continueBool) {
         let nkeys = symbolData['obDeltaCacheSize'];
         let i = 0;
         for (i = 0; i < nkeys; i++) {
             if (!continueBool) {
                 break;
             }
-            symbolData['obDeltaCache'][cachedSequenceNumberStr] = undefined; 
+            symbolData['obDeltaCache'][cachedSequenceNumberStr] = undefined;
             fullOrderbook = this.mergeOrderBookDelta (symbolData['ob'], orderbookDelta);
             fullOrderbook = this._cloneOrderBook (fullOrderbook, symbolData['limit']);
             fullOrderbook['obLastSequenceNumber'] = cachedSequenceNumber;
@@ -1468,7 +1460,7 @@ module.exports = class poloniex extends Exchange {
         //
         let payload = {
             'command': 'subscribe',
-            'channel': market
+            'channel': market,
         };
         let nonceStr = nonce.toString ();
         this.emit (nonceStr, true);
@@ -1487,7 +1479,7 @@ module.exports = class poloniex extends Exchange {
         let market = this.marketId (symbol);
         let payload = {
             'command': 'unsubscribe',
-            'channel': market
+            'channel': market,
         };
         let nonceStr = nonce.toString ();
         this.emit (nonceStr, true);
@@ -1495,7 +1487,7 @@ module.exports = class poloniex extends Exchange {
     }
 
     _websocketUnsubscribe (conxid, event, symbol, nonce, params) {
-        if (event == 'ob') {
+        if (event === 'ob') {
             this._websocketUnsubscribeOb (conxid, event, symbol, nonce, params);
         } else {
             throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);

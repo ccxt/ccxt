@@ -352,7 +352,7 @@ module.exports = class okex extends okcoinusd {
         }
         return undefined;
     }
-    
+
     async fetchTickers (symbols = undefined, params = {}) {
         let method = this.options['fetchTickersMethod'];
         let response = await this[method] (symbols, params);

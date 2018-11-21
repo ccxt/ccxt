@@ -939,9 +939,9 @@ module.exports = class huobipro extends Exchange {
     _websocketOnMessage (contextId, data) {
         // TODO: pako function in Exchange.js/.py/.php
         // console.log(data);
-        let text = this.gunzip(data);
+        let text = this.gunzip (data);
         // text = pako.inflate (data, { 'to': 'string', });
-        console.log(text);
+        // console.log (text);
         let msg = JSON.parse (text);
         let ping = this.safeValue (msg, 'ping');
         let tick = this.safeValue (msg, 'tick');

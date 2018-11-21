@@ -154,7 +154,7 @@ module.exports = class binance extends Exchange {
                         'conx-param': {
                             'url': '{baseurl}',
                             'id': '{id}',
-                            'stream': '{symbol}@aggTrade'
+                            'stream': '{symbol}@aggTrade',
                         },
                     },
                     'kline': {
@@ -162,7 +162,7 @@ module.exports = class binance extends Exchange {
                         'conx-param': {
                             'url': '{baseurl}',
                             'id': '{id}',
-                            'stream': '{symbol}@kline_{interval}'
+                            'stream': '{symbol}@kline_{interval}',
                         },
                     },
                     'ticker': {
@@ -170,7 +170,7 @@ module.exports = class binance extends Exchange {
                         'conx-param': {
                             'url': '{baseurl}',
                             'id': '{id}',
-                            'stream': '{symbol}@ticker'
+                            'stream': '{symbol}@ticker',
                         },
                     },
                 },
@@ -1327,31 +1327,30 @@ module.exports = class binance extends Exchange {
     _websocketHandleTicker (contextId, data) {
         const symbol = this.findSymbol (this.safeString (data, 's'));
         const market = this.market (symbol);
-        const ticker = this.parseTicker({
-            "symbol": this.safeString (data, 's'),
-            "priceChange": this.safeString (data, 'p'),
-            "priceChangePercent": this.safeString (data, 'P'),
-            "weightedAvgPrice": this.safeString (data, 'v'),
-            "prevClosePrice": this.safeString (data, 'x'),
-            "lastPrice": undefined,
-            "lastQty": undefined,
-            "bidPrice": this.safeString (data, 'b'),
-            "askPrice": this.safeString (data, 'a'),
-            "openPrice": this.safeString (data, 'o'),
-            "highPrice": this.safeString (data, 'h'),
-            "lowPrice": this.safeString (data, 'l'),
-            "volume": this.safeString (data, 'v'),
-            "quoteVolume": this.safeString (data, 'q'),
-            "openTime": this.safeString (data, 'O'),
-            "closeTime": this.safeString (data, 'C'),
-            "firstId": this.safeString (data, 'F'),   // First tradeId
-            "lastId": this.safeString (data, 'L'),    // Last tradeId
-            "count": this.safeString (data, 'n')         // Trade count
+        const ticker = this.parseTicker ({
+            'symbol': this.safeString (data, 's'),
+            'priceChange': this.safeString (data, 'p'),
+            'priceChangePercent': this.safeString (data, 'P'),
+            'weightedAvgPrice': this.safeString (data, 'v'),
+            'prevClosePrice': this.safeString (data, 'x'),
+            'lastPrice': undefined,
+            'lastQty': undefined,
+            'bidPrice': this.safeString (data, 'b'),
+            'askPrice': this.safeString (data, 'a'),
+            'openPrice': this.safeString (data, 'o'),
+            'highPrice': this.safeString (data, 'h'),
+            'lowPrice': this.safeString (data, 'l'),
+            'volume': this.safeString (data, 'v'),
+            'quoteVolume': this.safeString (data, 'q'),
+            'openTime': this.safeString (data, 'O'),
+            'closeTime': this.safeString (data, 'C'),
+            'firstId': this.safeString (data, 'F'),   // First tradeId
+            'lastId': this.safeString (data, 'L'),    // Last tradeId
+            'count': this.safeString (data, 'n'),         // Trade count
         }, market);
         ticker['info'] = data;
-        this.emit('ticker', symbol, ticker);
+        this.emit ('ticker', symbol, ticker);
     }
-
 
     _websocketHandleObRestSnapshot (context, error, response) {
         let symbol = context['symbol'];
@@ -1420,10 +1419,10 @@ module.exports = class binance extends Exchange {
                 partsLen = pair.length;
                 if (partsLen === 2) {
                     let symbol = this.findSymbol (pair[0].toUpperCase ());
-                    let event = pair[1].toLowerCase();
-                    if (event == 'depth') 
-                        event = 'ob'; 
-                    else if (event == 'aggtrade')
+                    let event = pair[1].toLowerCase ();
+                    if (event === 'depth')
+                        event = 'ob';
+                    else if (event === 'aggtrade')
                         event = 'trade';
                     else if (event.indexOf ('kline') >= 0)
                         event = 'kline';
@@ -1440,7 +1439,7 @@ module.exports = class binance extends Exchange {
         let streamList = [];
         for (let i = 0; i < events.length; i++) {
             let element = events[i];
-            let parameters = this.extend({
+            let parameters = this.extend ({
                 'event': element['event'],
                 'symbol': this._websocketMarketId (element['symbol']),
                 'interval': '1m',
