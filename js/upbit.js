@@ -115,20 +115,9 @@ module.exports = class upbit extends Exchange {
             },
             'exceptions': {
                 'Missing request parameter error. Check the required parameters!': BadRequest, // 400 Bad Request {"error":{"name":400,"message":"Missing request parameter error. Check the required parameters!"}}
-                // 'Call to Cancel was throttled. Try again in 60 seconds.': DDoSProtection,
-                // 'Call to GetBalances was throttled. Try again in 60 seconds.': DDoSProtection,
-                'APISIGN_NOT_PROVIDED': AuthenticationError,
-                'INVALID_SIGNATURE': AuthenticationError,
-                'INVALID_CURRENCY': ExchangeError,
-                'INVALID_PERMISSION': AuthenticationError,
-                'INSUFFICIENT_FUNDS': InsufficientFunds,
-                'QUANTITY_NOT_PROVIDED': InvalidOrder,
-                'MIN_TRADE_REQUIREMENT_NOT_MET': InvalidOrder,
-                'ORDER_NOT_OPEN': OrderNotFound,
-                'INVALID_ORDER': InvalidOrder,
-                'UUID_INVALID': OrderNotFound,
-                'RATE_NOT_PROVIDED': InvalidOrder, // createLimitBuyOrder ('ETH/BTC', 1, 0)
-                'WHITELIST_VIOLATION_IP': PermissionDenied,
+                // {"error":{"message":"side is missing, side does not have a valid value","name":"validation_error"}}
+                // {"error":{"message":"개인정보 제 3자 제공 동의가 필요합니다.","name":"thirdparty_agreement_required"}}
+                // {"error":{"message":"권한이 부족합니다.","name":"out_of_scope"}}
             },
             'options': {
                 'fetchTickersMaxLength': 2048,
@@ -688,7 +677,7 @@ module.exports = class upbit extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
-            // 'side': orderSide,
+            'side': orderSide,
             'volume': this.amountToPrecision (symbol, amount),
             'price': this.priceToPrecision (symbol, price),
             'ord_type': type,
@@ -1024,7 +1013,17 @@ module.exports = class upbit extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-
+        await this.loadMarkets ();
+        let request = {
+            'market': this.marketId (symbol),
+            'state': 'wait',
+            'page': 1,
+            'order_by': 'asc',
+        };
+        const response = await this.privateGetOrders (this.extend (request, params));
+        const log = require ('ololog').unlimited;
+        log.green (response);
+        process.exit ();
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
