@@ -415,43 +415,88 @@ module.exports = class upbit extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetMarkethistory (this.extend ({
-            'market': market['id'],
-        }, params));
-        if ('result' in response) {
-            if (response['result'] !== undefined)
-                return this.parseTrades (response['result'], market, since, limit);
+        const market = this.market (symbol);
+        if (limit === undefined) {
+            limit = 200;
         }
-        throw new ExchangeError (this.id + ' fetchTrades() returned undefined response');
+        const request = {
+            'market': market['id'],
+            'count': limit,
+        };
+        let response = await this.publicGetTradesTicks (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
-        let timestamp = this.parse8601 (ohlcv['T'] + '+00:00');
+        //
+        //       {                  market: "BTC-ETH",
+        //            candle_date_time_utc: "2018-11-22T13:47:00",
+        //            candle_date_time_kst: "2018-11-22T22:47:00",
+        //                   opening_price:  0.02915963,
+        //                      high_price:  0.02915963,
+        //                       low_price:  0.02915448,
+        //                     trade_price:  0.02915448,
+        //                       timestamp:  1542894473674,
+        //          candle_acc_trade_price:  0.0981629437535248,
+        //         candle_acc_trade_volume:  3.36693173,
+        //                            unit:  1                     },
+        //
+        let timestamp = this.parse8601 (ohlcv['candle_date_time_utc'] + '+00:00');
         return [
             timestamp,
-            ohlcv['O'],
-            ohlcv['H'],
-            ohlcv['L'],
-            ohlcv['C'],
-            ohlcv['V'],
+            this.safeFloat (ohlcv, 'opening_price'),
+            this.safeFloat (ohlcv, 'high_price'),
+            this.safeFloat (ohlcv, 'low_price'),
+            this.safeFloat (ohlcv, 'trade_price'),
+            this.safeFloat (ohlcv, 'candle_acc_trade_price'), // base volume
         ];
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let request = {
-            'tickInterval': this.timeframes[timeframe],
-            'marketName': market['id'],
-        };
-        let response = await this.publicGetCandlesTimeframe (this.extend (request, params));
-
-
-        if ('result' in response) {
-            if (response['result'])
-                return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
+        let timeframePeriod = this.parseTimeframe (timeframe);
+        let timeframeValue = this.timeframes[timeframe];
+        if (limit === undefined) {
+            limit = 200;
         }
+        let request = {
+            'market': market['id'],
+            'timeframe': timeframeValue,
+            'count': limit,
+        };
+        let method = 'publicGetCandlesTimeframe';
+        if (timeframeValue === 'minutes') {
+            let numMinutes = Math.round (timeframePeriod / 60);
+            request['unit'] = numMinutes;
+            method += 'Unit';
+        }
+        let response = await this[method] (this.extend (request, params));
+        //
+        //     [ {                  market: "BTC-ETH",
+        //            candle_date_time_utc: "2018-11-22T13:47:00",
+        //            candle_date_time_kst: "2018-11-22T22:47:00",
+        //                   opening_price:  0.02915963,
+        //                      high_price:  0.02915963,
+        //                       low_price:  0.02915448,
+        //                     trade_price:  0.02915448,
+        //                       timestamp:  1542894473674,
+        //          candle_acc_trade_price:  0.0981629437535248,
+        //         candle_acc_trade_volume:  3.36693173,
+        //                            unit:  1                     },
+        //       {                  market: "BTC-ETH",
+        //            candle_date_time_utc: "2018-11-22T10:06:00",
+        //            candle_date_time_kst: "2018-11-22T19:06:00",
+        //                   opening_price:  0.0294,
+        //                      high_price:  0.02940882,
+        //                       low_price:  0.02934283,
+        //                     trade_price:  0.02937354,
+        //                       timestamp:  1542881219276,
+        //          candle_acc_trade_price:  0.0762597110943884,
+        //         candle_acc_trade_volume:  2.5949617,
+        //                            unit:  1                     }  ]
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
