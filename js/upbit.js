@@ -391,20 +391,29 @@ module.exports = class upbit extends Exchange {
         //                    ask_bid: "ASK",
         //              sequential_id:  15428949259430000 },
         //
-        let timestamp = this.parse8601 (trade['TimeStamp'] + '+00:00');
+        let timestamp = this.safeInteger (trade, 'timestamp');
         let side = undefined;
-        if (trade['OrderType'] === 'BUY') {
-            side = 'buy';
-        } else if (trade['OrderType'] === 'SELL') {
+        let askOrBid = this.safeString (trade, 'ask_bid');
+        if (askOrBid === 'ASK') {
             side = 'sell';
+        } else if (askOrBid === 'BID') {
+            side = 'buy';
         }
-        let id = this.safeString2 (trade, 'Id', 'ID');
+        let id = this.safeString (trade, 'sequential_id');
         let symbol = undefined;
-        if (market !== undefined)
+        let marketId = this.safeString (trade, 'market');
+        market = this.safeValue (this.markets_by_id, marketId, market);
+        if (market !== undefined) {
             symbol = market['symbol'];
+        } else {
+            let [ baseId, quoteId ] = marketId.split ('-');
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
+            symbol = base + '/' + quote;
+        }
         let cost = undefined;
-        let price = this.safeFloat (trade, 'Price');
-        let amount = this.safeFloat (trade, 'Quantity');
+        let price = this.safeFloat (trade, 'trade_price');
+        let amount = this.safeFloat (trade, 'trade_volume');
         if (amount !== undefined) {
             if (price !== undefined) {
                 cost = price * amount;
