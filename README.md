@@ -517,4 +517,4 @@ Thank you!
 
 ## Contact Us
 
-For business questions & inquiries: info@ccxt.trade
+For business inquiries: info@ccxt.trade
