@@ -1027,46 +1027,51 @@ module.exports = class upbit extends Exchange {
         let request = {
             'uuid': id,
         };
-        let response = await this.marketGetCancel (this.extend (request, params));
+        let response = await this.publicGetmarketGetCancel (this.extend (request, params));
         //
         //     {
-        //         "uuid": "cdd92199-2897-4e14-9448-f923320408ad",
+        //         "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
         //         "side": "bid",
         //         "ord_type": "limit",
-        //         "price": "100.0",
-        //         "state": "wait",
+        //         "price": "17417000.0",
+        //         "state": "done",
         //         "market": "KRW-BTC",
-        //         "created_at": "2018-04-10T15:42:23+09:00",
-        //         "volume": "0.01",
-        //         "remaining_volume": "0.01",
-        //         "reserved_fee": "0.0015",
-        //         "remaining_fee": "0.0015",
-        //         "paid_fee": "0.0",
-        //         "locked": "1.0015",
-        //         "executed_volume": "0.0",
-        //         "trades_count": 0
+        //         "created_at": "2018-04-05T14:09:14+09:00",
+        //         "volume": "1.0",
+        //         "remaining_volume": "0.0",
+        //         "reserved_fee": "26125.5",
+        //         "remaining_fee": "25974.0",
+        //         "paid_fee": "151.5",
+        //         "locked": "17341974.0",
+        //         "executed_volume": "1.0",
+        //         "trades_count": 2,
+        //         "trades": [
+        //             {
+        //                 "market": "KRW-BTC",
+        //                 "uuid": "78162304-1a4d-4524-b9e6-c9a9e14d76c3",
+        //                 "price": "101000.0",
+        //                 "volume": "0.77368323",
+        //                 "funds": "78142.00623",
+        //                 "ask_fee": "117.213009345",
+        //                 "bid_fee": "117.213009345",
+        //                 "created_at": "2018-04-05T14:09:15+09:00",
+        //                 "side": "bid"
+        //             },
+        //             {
+        //                 "market": "KRW-BTC",
+        //                 "uuid": "f73da467-c42f-407d-92fa-e10d86450a20",
+        //                 "price": "101000.0",
+        //                 "volume": "0.22631677",
+        //                 "funds": "22857.99377",
+        //                 "ask_fee": "34.286990655",
+        //                 "bid_fee": "34.286990655",
+        //                 "created_at": "2018-04-05T14:09:15+09:00",
+        //                 "side": "bid"
+        //             }
+        //         ]
         //     }
         //
         return this.parseOrder (response);
-        let response = undefined;
-
-        try {
-            let orderIdField = this.getOrderIdField ();
-
-            request[orderIdField] = id;
-            response = await this.accountGetOrder (this.extend (request, params));
-        } catch (e) {
-            if (this.last_json_response) {
-                let message = this.safeString (this.last_json_response, 'message');
-                if (message === 'UUID_INVALID')
-                    throw new OrderNotFound (this.id + ' fetchOrder() error: ' + this.last_http_response);
-            }
-            throw e;
-        }
-        if (!response['result']) {
-            throw new OrderNotFound (this.id + ' order ' + id + ' not found');
-        }
-        return this.parseOrder (response['result']);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
