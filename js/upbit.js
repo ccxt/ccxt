@@ -901,61 +901,62 @@ module.exports = class upbit extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let side = this.safeString (order, 'OrderType');
-        if (side === undefined)
-            side = this.safeString (order, 'Type');
-        let isBuyOrder = (side === 'LIMIT_BUY') || (side === 'BUY');
-        let isSellOrder = (side === 'LIMIT_SELL') || (side === 'SELL');
-        if (isBuyOrder) {
+        //
+        //     {
+        //         "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
+        //         "side": "bid",
+        //         "ord_type": "limit",
+        //         "price": "17417000.0",
+        //         "state": "done",
+        //         "market": "KRW-BTC",
+        //         "created_at": "2018-04-05T14:09:14+09:00",
+        //         "volume": "1.0",
+        //         "remaining_volume": "0.0",
+        //         "reserved_fee": "26125.5",
+        //         "remaining_fee": "25974.0",
+        //         "paid_fee": "151.5",
+        //         "locked": "17341974.0",
+        //         "executed_volume": "1.0",
+        //         "trades_count": 2,
+        //         "trades": [
+        //             {
+        //                 "market": "KRW-BTC",
+        //                 "uuid": "78162304-1a4d-4524-b9e6-c9a9e14d76c3",
+        //                 "price": "101000.0",
+        //                 "volume": "0.77368323",
+        //                 "funds": "78142.00623",
+        //                 "ask_fee": "117.213009345",
+        //                 "bid_fee": "117.213009345",
+        //                 "created_at": "2018-04-05T14:09:15+09:00",
+        //                 "side": "bid",
+        //             },
+        //             {
+        //                 "market": "KRW-BTC",
+        //                 "uuid": "f73da467-c42f-407d-92fa-e10d86450a20",
+        //                 "price": "101000.0",
+        //                 "volume": "0.22631677",
+        //                 "funds": "22857.99377",
+        //                 "ask_fee": "34.286990655",
+        //                 "bid_fee": "34.286990655",
+        //                 "created_at": "2018-04-05T14:09:15+09:00",
+        //                 "side": "bid",
+        //             },
+        //         ],
+        //     }
+        //
+        let id = this.safeString (order, 'uuid');
+        let side = this.safeString (order, 'side');
+        if (side === 'bid') {
             side = 'buy';
-        }
-        if (isSellOrder) {
+        } else {
             side = 'sell';
         }
-        // We parse different fields in a very specific order.
-        // Order might well be closed and then canceled.
-        let status = undefined;
-        if (('Opened' in order) && order['Opened'])
-            status = 'open';
-        if (('Closed' in order) && order['Closed'])
-            status = 'closed';
-        if (('CancelInitiated' in order) && order['CancelInitiated'])
-            status = 'canceled';
-        if (('Status' in order) && this.options['parseOrderStatus'])
-            status = this.parseOrderStatus (this.safeString (order, 'Status'));
-        let symbol = undefined;
-        if ('Exchange' in order) {
-            let marketId = order['Exchange'];
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                symbol = this.parseSymbol (marketId);
-            }
-        } else {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
-        }
-        let timestamp = undefined;
-        if ('Opened' in order)
-            timestamp = this.parse8601 (order['Opened'] + '+00:00');
-        if ('Created' in order)
-            timestamp = this.parse8601 (order['Created'] + '+00:00');
+        let type = this.safeString (order, 'ord_type');
+        let timestamp = this.parse8601 (this.safeString (order, 'created_at'));
+        let status = this.parseOrderStatus (this.safeString (order, 'state'));
+        let symbol = this.getSymbolFromMarketId (this.safeString (order, 'market'), market);
         let lastTradeTimestamp = undefined;
-        if (('TimeStamp' in order) && (order['TimeStamp'] !== undefined))
-            lastTradeTimestamp = this.parse8601 (order['TimeStamp'] + '+00:00');
-        if (('Closed' in order) && (order['Closed'] !== undefined))
-            lastTradeTimestamp = this.parse8601 (order['Closed'] + '+00:00');
-        if (timestamp === undefined)
-            timestamp = lastTradeTimestamp;
         let fee = undefined;
-        let commission = undefined;
-        if ('Commission' in order) {
-            commission = 'Commission';
-        } else if ('CommissionPaid' in order) {
-            commission = 'CommissionPaid';
-        }
         if (commission) {
             fee = {
                 'cost': parseFloat (order[commission]),
@@ -971,26 +972,17 @@ module.exports = class upbit extends Exchange {
                     fee['currency'] = this.commonCurrencyCode (quoteCurrencyId);
             }
         }
-        let price = this.safeFloat (order, 'Limit');
-        let cost = this.safeFloat (order, 'Price');
-        let amount = this.safeFloat (order, 'Quantity');
-        let remaining = this.safeFloat (order, 'QuantityRemaining');
-        let filled = undefined;
-        if (amount !== undefined && remaining !== undefined) {
-            filled = amount - remaining;
-        }
-        if (!cost) {
-            if (price && filled)
+        let price = this.safeFloat (order, 'price');
+        let amount = this.safeFloat (order, 'volume');
+        let remaining = this.safeFloat (order, 'remaining_volume');
+        let filled = this.safeFloat (order, 'executed_volume');
+        let cost = undefined;
+        let average = undefined;
+        if (cost === undefined) {
+            if ((price !== undefined) && (filled !== undefined)) {
                 cost = price * filled;
+            }
         }
-        if (!price) {
-            if (cost && filled)
-                price = cost / filled;
-        }
-        let average = this.safeFloat (order, 'PricePerUnit');
-        let id = this.safeString (order, 'OrderUuid');
-        if (id === undefined)
-            id = this.safeString (order, 'OrderId');
         let result = {
             'info': order,
             'id': id,
@@ -998,7 +990,7 @@ module.exports = class upbit extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
-            'type': 'limit',
+            'type': type,
             'side': side,
             'price': price,
             'cost': cost,
