@@ -147,6 +147,7 @@ class Exchange {
         'crypton',
         'cryptopia',
         'deribit',
+        'dragonex',
         'dsx',
         'ethfinex',
         'exmo',
@@ -601,7 +602,7 @@ class Exchange {
     }
 
     public static function emailGMT ($timestamp) {
-        return gmdate("D, d M Y H:i:s -0000", $timestamp);
+        return gmdate("D, d M Y H:i:s -0000 GMT", $timestamp);
     }
 
     public static function dmy ($timestamp, $infix = '-') {
