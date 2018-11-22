@@ -379,6 +379,18 @@ module.exports = class upbit extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        //       {             market: "BTC-ETH",
+        //             trade_date_utc: "2018-11-22",
+        //             trade_time_utc: "13:55:24",
+        //                  timestamp:  1542894924397,
+        //                trade_price:  0.02914289,
+        //               trade_volume:  0.20074397,
+        //         prev_closing_price:  0.02966,
+        //               change_price:  -0.00051711,
+        //                    ask_bid: "ASK",
+        //              sequential_id:  15428949259430000 },
+        //
         let timestamp = this.parse8601 (trade['TimeStamp'] + '+00:00');
         let side = undefined;
         if (trade['OrderType'] === 'BUY') {
@@ -463,9 +475,8 @@ module.exports = class upbit extends Exchange {
         //         candle_acc_trade_volume:  3.36693173,
         //                            unit:  1                     },
         //
-        let timestamp = this.parse8601 (ohlcv['candle_date_time_utc'] + '+00:00');
         return [
-            timestamp,
+            this.safeInteger (ohlcv, 'timestamp'),
             this.safeFloat (ohlcv, 'opening_price'),
             this.safeFloat (ohlcv, 'high_price'),
             this.safeFloat (ohlcv, 'low_price'),
