@@ -424,6 +424,28 @@ module.exports = class upbit extends Exchange {
             'count': limit,
         };
         let response = await this.publicGetTradesTicks (this.extend (request, params));
+        //
+        //     [ {             market: "BTC-ETH",
+        //             trade_date_utc: "2018-11-22",
+        //             trade_time_utc: "13:55:24",
+        //                  timestamp:  1542894924397,
+        //                trade_price:  0.02914289,
+        //               trade_volume:  0.20074397,
+        //         prev_closing_price:  0.02966,
+        //               change_price:  -0.00051711,
+        //                    ask_bid: "ASK",
+        //              sequential_id:  15428949259430000 },
+        //       {             market: "BTC-ETH",
+        //             trade_date_utc: "2018-11-22",
+        //             trade_time_utc: "13:03:10",
+        //                  timestamp:  1542891790123,
+        //                trade_price:  0.02917,
+        //               trade_volume:  7.392,
+        //         prev_closing_price:  0.02966,
+        //               change_price:  -0.00049,
+        //                    ask_bid: "ASK",
+        //              sequential_id:  15428917910540000 }  ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
