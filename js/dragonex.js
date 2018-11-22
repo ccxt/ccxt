@@ -265,25 +265,31 @@ module.exports = class dragonex extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async cancelOrder (symbol, order_id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (typeof symbol === 'undefined') {
+            throw new ExchangeError (this.id + ' symbol is required for cancelOrder');
+        }
         await this.loadMarkets ();
         let symbol_id = this.market (symbol)['id'];
-        let request = this.extend ({ 'symbol_id': symbol_id, 'order_id': order_id }, params);
+        let request = this.extend ({ 'symbol_id': symbol_id, 'order_id': id }, params);
         return this.privatePostOrderCancel (request);
     }
 
-    async fetchOrder (symbol, order_id, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (typeof symbol === 'undefined') {
+            throw new ExchangeError (this.id + ' symbol is required for fetchOrder');
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let symbol_id = market['id'];
-        let request = this.extend ({ 'symbol_id': symbol_id, 'order_id': order_id }, params);
+        let request = this.extend ({ 'symbol_id': symbol_id, 'order_id': id }, params);
         let response = await this.privatePostOrderDetail (request);
         return this.parseOrder (response['data'], market);
     }
 
-    async fetchOrders (symbol, since = undefined, limit = 100, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (typeof symbol === 'undefined') {
-            throw new ExchangeError ('symbol is required for fetchOrders');
+            throw new ExchangeError (this.id + ' symbol is required for fetchOrders');
         }
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -296,12 +302,24 @@ module.exports = class dragonex extends Exchange {
         return this.parseOrders (response['data']['list'], market, since, limit);
     }
 
-    async fetchOpenOrders (symbol, since = undefined, limit = 100, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (typeof limit === 'undefined') {
+            limit = 100;
+        }
+        if (typeof symbol === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
+        }
         let response = this.fetchOrders (symbol, since, limit, params);
         return this.filterByValueSinceLimit (response, 'status', 'open', since, limit);
     }
 
-    async fetchClosedOrders (symbol, since = undefined, limit = 100, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (typeof limit === 'undefined') {
+            limit = 100;
+        }
+        if (typeof symbol === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchClosedOrders requires a symbol param');
+        }
         let response = this.fetchOrders (symbol, since, limit, params);
         return this.filterByValueSinceLimit (response, 'status', 'closed', since, limit);
     }
