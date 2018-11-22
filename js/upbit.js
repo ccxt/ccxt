@@ -701,7 +701,7 @@ module.exports = class upbit extends Exchange {
         let request = {
             'uuid': id,
         };
-        let response = await this.marketGetCancel (this.extend (request, params));
+        let response = await this.privateDeleteOrder (this.extend (request, params));
         //
         //     {
         //         "uuid": "cdd92199-2897-4e14-9448-f923320408ad",
@@ -1024,10 +1024,35 @@ module.exports = class upbit extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        let request = {
+            'uuid': id,
+        };
+        let response = await this.marketGetCancel (this.extend (request, params));
+        //
+        //     {
+        //         "uuid": "cdd92199-2897-4e14-9448-f923320408ad",
+        //         "side": "bid",
+        //         "ord_type": "limit",
+        //         "price": "100.0",
+        //         "state": "wait",
+        //         "market": "KRW-BTC",
+        //         "created_at": "2018-04-10T15:42:23+09:00",
+        //         "volume": "0.01",
+        //         "remaining_volume": "0.01",
+        //         "reserved_fee": "0.0015",
+        //         "remaining_fee": "0.0015",
+        //         "paid_fee": "0.0",
+        //         "locked": "1.0015",
+        //         "executed_volume": "0.0",
+        //         "trades_count": 0
+        //     }
+        //
+        return this.parseOrder (response);
         let response = undefined;
+
         try {
             let orderIdField = this.getOrderIdField ();
-            let request = {};
+
             request[orderIdField] = id;
             response = await this.accountGetOrder (this.extend (request, params));
         } catch (e) {
