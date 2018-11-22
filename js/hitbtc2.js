@@ -1263,13 +1263,14 @@ module.exports = class hitbtc2 extends hitbtc {
     _websocketOnMessage (contextId, data) {
         let msg = JSON.parse (data);
         // TODO: if (msg.error) error handle
-        if (msg.method) {
-            if (msg.method === 'snapshotOrderbook') {
+        let method = this.safeString (msg, 'method');
+        if (typeof method !== 'undefined') {
+            if (method === 'snapshotOrderbook') {
                 // const orderbook = msg.params;
                 // :parse orderbook
                 // console.log('orderbook>>>', orderbook);
                 this._websocketHandleSnapshotOrderbook (contextId, msg);
-            } else if (msg.method === 'updateOrderbook') {
+            } else if (method === 'updateOrderbook') {
                 // const orderbook = msg.params;
                 // TODO:update orderbook
                 // console.log('update orderbook>>>', orderbook);
@@ -1282,7 +1283,8 @@ module.exports = class hitbtc2 extends hitbtc {
         const timestamp = undefined;
         const obdata = this.safeValue (data, 'params');
         const rawsymbol = this.safeValue (obdata, 'symbol');
-        const symbol = this.marketsById[rawsymbol].symbol;
+        let market = this.markets_by_id[rawsymbol];
+        const symbol = market['symbol'];
         // :parse orderbook
         let ob = this.parseOrderBook (obdata, timestamp, 'bid', 'ask', 'price', 'size');
         // console.log('parsed',ob);
@@ -1305,20 +1307,20 @@ module.exports = class hitbtc2 extends hitbtc {
             let removeItem = false;
             for (let j = 0; j < updates.length; j++) {
                 const o = updates[j];
-                if (o.price === item.price) {
-                    if (this._websocketIsZeroSize (o.size)) {
+                if (o['price'] === item['price']) {
+                    if (this._websocketIsZeroSize (o['size'])) {
                         // remove size === 0
                         removeItem = true;
                         // console.log ('htbtc2 remove order',item,o);
                     } else {
                         // update price
                         // console.log ('htbtc2 update order',item,o);
-                        item.size = o.size;
+                        item['size'] = o['size'];
                     }
                 }
             }
             if (!removeItem) {
-                newitems.append (item);
+                newitems.push (item);
             }
         }
         return newitems;
@@ -1328,7 +1330,8 @@ module.exports = class hitbtc2 extends hitbtc {
         const timestamp = undefined;
         const obdata = this.safeValue (data, 'params');
         const rawsymbol = this.safeValue (obdata, 'symbol');
-        const symbol = this.marketsById[rawsymbol].symbol;
+        let market = this.markets_by_id[rawsymbol];
+        const symbol = market['symbol'];
         let symbolData = this._contextGetSymbolData (
             contextId,
             'ob',
@@ -1338,8 +1341,8 @@ module.exports = class hitbtc2 extends hitbtc {
         const rawData = symbolData['rawData'];
         // console.log('>>>>>>get last raw',rawData);
         // :update,remove size = 0,check sequence
-        rawData.ask = this._websocketUpdateOrder (rawData.ask, obdata.ask);
-        rawData.bid = this._websocketUpdateOrder (rawData.bid, obdata.bid);
+        rawData['ask'] = this._websocketUpdateOrder (rawData['ask'], obdata['ask']);
+        rawData['bid'] = this._websocketUpdateOrder (rawData['bid'], obdata['bid']);
         // console.log('updated raw',rawData,obdata);
         // :parse orderbook
         let ob = this.parseOrderBook (rawData, timestamp, 'bid', 'ask', 'price', 'size');
@@ -1355,12 +1358,11 @@ module.exports = class hitbtc2 extends hitbtc {
         if (event !== 'ob') {
             throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
         }
-        params['depth'] = params['depth'] || '50';
         let data = this._contextGetSymbolData (contextId, event, symbol);
         // depth from 0 to 5
         // see https://github.com/huobiapi/API_Docs/wiki/WS_api_reference#%E8%AE%A2%E9%98%85-market-depth-%E6%95%B0%E6%8D%AE-marketsymboldepthtype
-        data['depth'] = params['depth'];
-        data['limit'] = params['limit'] || 200;
+        data['depth'] = this.safeInteger (params, 'depth', '50');
+        data['limit'] = this.safeInteger (params, 'limit', 200);
         // it is not limit
         // data['limit'] = params['depth'];
         this._contextSetSymbolData (contextId, event, symbol, data);
