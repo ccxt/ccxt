@@ -1216,7 +1216,7 @@ module.exports = class hitbtc2 extends hitbtc {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
         if (typeof body !== 'string')
             return;
         if (code >= 400) {

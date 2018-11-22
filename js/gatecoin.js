@@ -675,7 +675,7 @@ module.exports = class gatecoin extends Exchange {
         return await this.privatePostElectronicWalletUserWalletsDigiCurrency (this.extend (request, params));
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
         if (typeof body !== 'string')
             return; // fallback to default error handler
         if (body.length < 2)

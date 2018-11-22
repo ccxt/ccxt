@@ -1021,7 +1021,7 @@ class Exchange {
         return null;
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
         // it's a stub function, does nothing in base code
     }
 

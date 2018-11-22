@@ -751,7 +751,7 @@ module.exports = class buda extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
         if (!this.isJsonEncodedObject (body)) {
             return; // fallback to default error handler
         }

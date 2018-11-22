@@ -304,7 +304,7 @@ module.exports = class bitbay extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body) {
+    handleErrors (httpCode, reason, url, method, headers, body, response = undefined) {
         if (typeof body !== 'string')
             return; // fallback to default error handler
         if (body.length < 2)

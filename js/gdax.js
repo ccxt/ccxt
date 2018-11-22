@@ -720,7 +720,7 @@ module.exports = class gdax extends Exchange {
         };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
         if ((code === 400) || (code === 404)) {
             if (body[0] === '{') {
                 let response = JSON.parse (body);

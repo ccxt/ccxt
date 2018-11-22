@@ -756,7 +756,7 @@ module.exports = class liqui extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body) {
+    handleErrors (httpCode, reason, url, method, headers, body, response = undefined) {
         if (!this.isJsonEncodedObject (body))
             return; // fallback to default error handler
         let response = JSON.parse (body);
