@@ -648,19 +648,6 @@ module.exports = class upbit extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let request = {};
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['market'] = market['id'];
-        }
-        let response = await this.marketGetOpenorders (this.extend (request, params));
-        let orders = this.parseOrders (response['result'], market, since, limit);
-        return this.filterBySymbol (orders, symbol);
-    }
-
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type !== 'limit') {
             throw new InvalidOrder (this.id + ' createOrder allows limit orders only!');
@@ -711,13 +698,30 @@ module.exports = class upbit extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderIdField = this.getOrderIdField ();
-        let request = {};
-        request[orderIdField] = id;
+        let request = {
+            'uuid': id,
+        };
         let response = await this.marketGetCancel (this.extend (request, params));
-        return this.extend (this.parseOrder (response), {
-            'status': 'canceled',
-        });
+        //
+        //     {
+        //         "uuid": "cdd92199-2897-4e14-9448-f923320408ad",
+        //         "side": "bid",
+        //         "ord_type": "limit",
+        //         "price": "100.0",
+        //         "state": "wait",
+        //         "market": "KRW-BTC",
+        //         "created_at": "2018-04-10T15:42:23+09:00",
+        //         "volume": "0.01",
+        //         "remaining_volume": "0.01",
+        //         "reserved_fee": "0.0015",
+        //         "remaining_fee": "0.0015",
+        //         "paid_fee": "0.0",
+        //         "locked": "1.0015",
+        //         "executed_volume": "0.0",
+        //         "trades_count": 0
+        //     }
+        //
+        return this.parseOrder (response);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1119,22 +1123,9 @@ module.exports = class upbit extends Exchange {
                 'access_key': this.apiKey,
                 'nonce': nonce,
             };
-            if (method === 'POST') {
+            if ((method === 'POST') || (method === 'DELETE')) {
                 request['query'] = this.urlencode (params);
             }
-            // const body = {market: market, side: side, volume: volume, price: price, ord_type: ord_type};
-            // const payload = {
-            //   access_key: accessKey,
-            //   nonce: (new Date).getTime(),
-            //   query: queryEncode(body)
-            // };
-            // const token = sign(payload, secretKey);
-            // var options = {
-            //   method: "POST",
-            //   url: "https://api.upbit.com/v1/orders",
-            //   headers: {Authorization: `Bearer ${token}`},
-            //   json: body
-            // };
             let jwt = this.jwt (request, this.secret);
             headers = {
                 'Authorization': 'Bearer ' + jwt,
