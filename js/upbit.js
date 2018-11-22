@@ -131,6 +131,8 @@ module.exports = class upbit extends Exchange {
                 'WHITELIST_VIOLATION_IP': PermissionDenied,
             },
             'options': {
+                'fetchTickersMaxLength': 2048,
+                'fetchOrderBooksMaxLength': 2048,
                 // price precision by quote currency code
                 'pricePrecisionByCode': {
                     'USD': 3,
@@ -165,7 +167,7 @@ module.exports = class upbit extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString (market, 'market');
-            const [ baseId, quoteId ] = id.split ('-');
+            const [ quoteId, baseId ] = id.split ('-');
             const base = this.commonCurrencyCode (baseId);
             const quote = this.commonCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
@@ -226,12 +228,87 @@ module.exports = class upbit extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    getSymbolFromMarketId (marketId, market = undefined) {
+        if (marketId === undefined) {
+            return undefined;
+        }
+        market = this.safeValue (this.markets_by_id, marketId, market);
+        if (market !== undefined) {
+            return market['symbol'];
+        }
+        const [ baseId, quoteId ] = marketId.split ('-');
+        const base = this.commonCurrencyCode (baseId);
+        const quote = this.commonCurrencyCode (quoteId);
+        return base + '/' + quote;
+    }
+
+    async fetchOrderBooks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetOrderbook (this.extend ({
+        let ids = undefined;
+        if (symbols === undefined) {
+            ids = this.ids.join (',');
+            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            if (ids.length > this.options['fetchOrderBooksMaxLength']) {
+                let numIds = this.ids.length;
+                throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols (' + ids.length.toString () + ' characters) exceeding max URL length (' + this.options['fetchOrderBooksMaxLength'].toString () + ' characters), you are required to specify a list of symbols in the first argument to fetchOrderBooks');
+            }
+        } else {
+            ids = this.marketIds (symbols);
+            ids = ids.join (',');
+        }
+        const request = {
+            'markets': ids,
+        };
+        const response = await this.publicGetOrderbook (this.extend (request, params));
+        //
+        //     [ {          market:   "BTC-ETH",
+        //               timestamp:    1542899030043,
+        //          total_ask_size:    109.57065201,
+        //          total_bid_size:    125.74430631,
+        //         orderbook_units: [ { ask_price: 0.02926679,
+        //                              bid_price: 0.02919904,
+        //                               ask_size: 4.20293961,
+        //                               bid_size: 11.65043576 },
+        //                            ...,
+        //                            { ask_price: 0.02938209,
+        //                              bid_price: 0.0291231,
+        //                               ask_size: 0.05135782,
+        //                               bid_size: 13.5595     }   ] },
+        //       {          market:   "KRW-BTC",
+        //               timestamp:    1542899034662,
+        //          total_ask_size:    12.89790974,
+        //          total_bid_size:    4.88395783,
+        //         orderbook_units: [ { ask_price: 5164000,
+        //                              bid_price: 5162000,
+        //                               ask_size: 2.57606495,
+        //                               bid_size: 0.214       },
+        //                            ...,
+        //                            { ask_price: 5176000,
+        //                              bid_price: 5152000,
+        //                               ask_size: 2.752,
+        //                               bid_size: 0.4650305 }    ] }   ]
+        //
+        let result = {};
+        for (let i = 0; i < response.length; i++) {
+            const orderbook = response[i];
+            const symbol = this.getSymbolFromMarketId (this.safeString (orderbook, 'market'));
+            const timestamp = this.safeInteger (orderbook, 'timestamp');
+            result[symbol] = {
+                'bids': this.parseBidsAsks (orderbook['orderbook_units'], 'bid_price', 'bid_size'),
+                'asks': this.parseBidsAsks (orderbook['orderbook_units'], 'ask_price', 'bid_size'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'nonce': undefined,
+            };
+        }
+        return result;
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+
+        const request = {
             'market': this.marketId (symbol),
-            'type': 'both',
-        }, params));
+        };
         let orderbook = response['result'];
         if ('type' in params) {
             if (params['type'] === 'buy') {
@@ -326,7 +403,7 @@ module.exports = class upbit extends Exchange {
             // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if (ids.length > this.options['fetchTickersMaxLength']) {
                 let numIds = this.ids.length;
-                throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
+                throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers');
             }
         } else {
             ids = this.marketIds (symbols);
