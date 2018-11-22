@@ -1238,9 +1238,7 @@ module.exports = class Exchange {
     }
 
     emailGMT (timestamp) {
-        let dateArr = new Date (timestamp).toUTCString ().split (' ')
-        dateArr.splice (-1, 0, '-0000')
-        return dateArr.join(' ')
+        let dateArr = new Date (timestamp).toUTCString ()
     }
 
     mdy (timestamp, infix = '-') {

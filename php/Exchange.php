@@ -602,7 +602,7 @@ class Exchange {
     }
 
     public static function emailGMT ($timestamp) {
-        return gmdate("D, d M Y H:i:s -0000 GMT", $timestamp);
+        return gmdate("D, d M Y H:i:s", $timestamp) . ' GMT';
     }
 
     public static function dmy ($timestamp, $infix = '-') {

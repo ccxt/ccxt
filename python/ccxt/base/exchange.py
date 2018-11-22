@@ -778,7 +778,7 @@ class Exchange(object):
     @staticmethod
     def emailGMT(timestamp):
         utc_time = datetime.datetime.utcfromtimestamp(timestamp // 1000)
-        return email.utils.format_datetime(utc_time) + ' GMT'
+        return email.utils.format_datetime(utc_time).rstrip('-0000') + 'GMT'
 
     @staticmethod
     def dmy(timestamp, infix='-'):
