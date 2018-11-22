@@ -141,7 +141,7 @@ module.exports = class upbit extends Exchange {
     }
 
     async fetchMarkets () {
-        let response = await this.publicGetMarketAll ();
+        const response = await this.publicGetMarketAll ();
         //
         //     [ {       market: "KRW-BTC",
         //          korean_name: "비트코인",
@@ -160,19 +160,19 @@ module.exports = class upbit extends Exchange {
         //          korean_name: "비트코인에스브이",
         //         english_name: "Bitcoin SV" } ]
         //
-        let result = [];
+        const result = [];
         for (let i = 0; i < response.length; i++) {
-            let market = response[i];
-            let id = this.safeString (market, 'market');
-            let [ baseId, quoteId ] = id.split ('-');
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
-            let precision = {
+            const market = response[i];
+            const id = this.safeString (market, 'market');
+            const [ baseId, quoteId ] = id.split ('-');
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const precision = {
                 'amount': 8,
                 'price': 8,
             };
-            let active = true;
+            const active = true;
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -294,7 +294,25 @@ module.exports = class upbit extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetMarketsummaries (params);
+        let ids = undefined;
+        if (symbols === undefined) {
+            ids = this.ids.join (',');
+            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            if (ids.length > this.options['fetchTickersMaxLength']) {
+                let numIds = this.ids.length;
+                throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
+            }
+        } else {
+            ids = this.marketIds (symbols);
+            ids = ids.join (',');
+        }
+        const request = {
+            'market': ids,
+        };
+        let response = await this.publicGetTicker (this.extend (request, params));
+        const log = require ('ololog').unlimited;
+        log (response);
+        process.exit ();
         let tickers = response['result'];
         let result = {};
         for (let t = 0; t < tickers.length; t++) {
@@ -314,13 +332,8 @@ module.exports = class upbit extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetMarketsummary (this.extend ({
-            'market': market['id'],
-        }, params));
-        let ticker = response['result'][0];
-        return this.parseTicker (ticker, market);
+        const tickers = await this.fetchTickers ([ symbol ], params);
+        return this.safeValue (tickers, symbol);
     }
 
     parseTrade (trade, market = undefined) {
