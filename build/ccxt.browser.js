@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.528'
+const version = '1.17.529'
 
 Exchange.ccxtVersion = version
 
@@ -60385,15 +60385,15 @@ module.exports = class wex extends liqui {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg',
                 'api': {
-                    'public': 'https://wex.nz/api',
-                    'private': 'https://wex.nz/tapi',
+                    'public': 'https://wex.link/api',
+                    'private': 'https://wex.link/tapi',
                 },
-                'www': 'https://wex.nz',
+                'www': 'https://wex.link',
                 'doc': [
-                    'https://wex.nz/api/3/docs',
-                    'https://wex.nz/tapi/docs',
+                    'https://wex.link/api/3/docs',
+                    'https://wex.link/tapi/docs',
                 ],
-                'fees': 'https://wex.nz/fees',
+                'fees': 'https://wex.link/fees',
             },
             'api': {
                 'public': {
