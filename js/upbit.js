@@ -207,7 +207,8 @@ module.exports = class upbit extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.accountGetBalances (params);
+        let response = await this.privateGetAccounts (params);
+        const log = require ('')
         let balances = response['result'];
         let result = { 'info': balances };
         let indexed = this.indexBy (balances, 'Currency');
@@ -305,25 +306,8 @@ module.exports = class upbit extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-
-        const request = {
-            'market': this.marketId (symbol),
-        };
-        let orderbook = response['result'];
-        if ('type' in params) {
-            if (params['type'] === 'buy') {
-                orderbook = {
-                    'buy': response['result'],
-                    'sell': [],
-                };
-            } else if (params['type'] === 'sell') {
-                orderbook = {
-                    'buy': [],
-                    'sell': response['result'],
-                };
-            }
-        }
-        return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
+        let orderbooks = await this.fetchOrderBooks ([ symbol ], params);
+        return this.safeValue (orderbooks, symbol);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -356,17 +340,7 @@ module.exports = class upbit extends Exchange {
         //                     timestamp:  1542883543813  }
         //
         let timestamp = this.safeInteger (ticker, 'trade_timestamp');
-        let symbol = undefined;
-        let marketId = this.safeString (ticker, 'market');
-        market = this.safeValue (this.markets_by_id, marketId, market);
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        } else {
-            let [ baseId, quoteId ] = marketId.split ('-');
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            symbol = base + '/' + quote;
-        }
+        let symbol = this.getSymbolFromMarketId (this.safeString (ticker, 'market'), market);
         let previous = this.safeFloat (ticker, 'prev_closing_price');
         let last = this.safeFloat (ticker, 'trade_price');
         let change = this.safeFloat (ticker, 'signed_change_price');
@@ -477,17 +451,7 @@ module.exports = class upbit extends Exchange {
             side = 'buy';
         }
         let id = this.safeString (trade, 'sequential_id');
-        let symbol = undefined;
-        let marketId = this.safeString (trade, 'market');
-        market = this.safeValue (this.markets_by_id, marketId, market);
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        } else {
-            let [ baseId, quoteId ] = marketId.split ('-');
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            symbol = base + '/' + quote;
-        }
+        let symbol = this.getSymbolFromMarketId (this.safeString (trade, 'market'), market);
         let cost = undefined;
         let price = this.safeFloat (trade, 'trade_price');
         let amount = this.safeFloat (trade, 'trade_volume');
