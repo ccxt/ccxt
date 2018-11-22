@@ -1244,7 +1244,7 @@ module.exports = class theocean extends Exchange {
             throw new AuthenticationError (this.id + ' ' + body);
         }
         if ((body[0] === '{') || (body[0] === '[')) {
-            let response = JSON.parse (body);
+            response = JSON.parse (body);
             const message = this.safeString (response, 'message');
             if (message !== undefined) {
                 //

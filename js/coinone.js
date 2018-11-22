@@ -466,7 +466,7 @@ module.exports = class coinone extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response = undefined) {
         if ((body[0] === '{') || (body[0] === '[')) {
-            let response = JSON.parse (body);
+            response = JSON.parse (body);
             if ('result' in response) {
                 let result = response['result'];
                 if (result !== 'success') {

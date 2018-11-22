@@ -310,7 +310,7 @@ module.exports = class bitbay extends Exchange {
         if (body.length < 2)
             return;
         if ((body[0] === '{') || (body[0] === '[')) {
-            let response = JSON.parse (body);
+            response = JSON.parse (body);
             if ('code' in response) {
                 //
                 // bitbay returns the integer 'success': 1 key from their private API

@@ -409,7 +409,7 @@ module.exports = class btcalpha extends Exchange {
         if (body.length < 2)
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
-            let response = JSON.parse (body);
+            response = JSON.parse (body);
             let message = this.id + ' ' + this.safeValue (response, 'detail', body);
             if (code === 401 || code === 403) {
                 throw new AuthenticationError (message);

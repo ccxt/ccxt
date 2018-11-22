@@ -442,7 +442,7 @@ module.exports = class bitsane extends Exchange {
         if (body.length < 2)
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
-            let response = JSON.parse (body);
+            response = JSON.parse (body);
             let statusCode = this.safeString (response, 'statusCode');
             if (statusCode !== undefined) {
                 if (statusCode !== '0') {

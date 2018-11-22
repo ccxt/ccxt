@@ -310,7 +310,7 @@ module.exports = class btcbox extends Exchange {
             return; // resort to defaultErrorHandler
         if (body[0] !== '{')
             return; // not json, resort to defaultErrorHandler
-        const response = JSON.parse (body);
+        response = JSON.parse (body);
         const result = this.safeValue (response, 'result');
         if (result === undefined || result === true)
             return; // either public API (no error codes expected) or success

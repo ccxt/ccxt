@@ -1189,7 +1189,7 @@ module.exports = class crex24 extends Exchange {
         if ((code >= 200) && (code < 300)) {
             return; // no error
         }
-        let response = JSON.parse (body);
+        response = JSON.parse (body);
         const message = this.safeString (response, 'errorDescription');
         const feedback = this.id + ' ' + this.json (response);
         const exact = this.exceptions['exact'];

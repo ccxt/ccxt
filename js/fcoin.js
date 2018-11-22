@@ -551,7 +551,7 @@ module.exports = class fcoin extends Exchange {
         if (body.length < 2)
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
-            const response = JSON.parse (body);
+            response = JSON.parse (body);
             let status = this.safeString (response, 'status');
             if (status !== '0') {
                 const feedback = this.id + ' ' + body;

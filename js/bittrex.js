@@ -930,7 +930,7 @@ module.exports = class bittrex extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response = undefined) {
         if (body[0] === '{') {
-            let response = JSON.parse (body);
+            response = JSON.parse (body);
             // { success: false, message: "message" }
             let success = this.safeValue (response, 'success');
             if (success === undefined)

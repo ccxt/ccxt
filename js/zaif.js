@@ -411,7 +411,7 @@ module.exports = class zaif extends Exchange {
     handleErrors (httpCode, reason, url, method, headers, body, response = undefined) {
         if (!this.isJsonEncodedObject (body))
             return; // fallback to default error handler
-        const response = JSON.parse (body);
+        response = JSON.parse (body);
         //
         //     {"error": "unsupported currency_pair"}
         //

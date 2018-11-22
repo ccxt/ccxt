@@ -646,7 +646,7 @@ module.exports = class livecoin extends Exchange {
         if (typeof body !== 'string')
             return;
         if (body[0] === '{') {
-            let response = JSON.parse (body);
+            response = JSON.parse (body);
             if (code >= 300) {
                 let errorCode = this.safeString (response, 'errorCode');
                 if (errorCode in this.exceptions) {

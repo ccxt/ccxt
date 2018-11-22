@@ -662,7 +662,7 @@ module.exports = class bigone extends Exchange {
         if (body.length < 2)
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
-            let response = JSON.parse (body);
+            response = JSON.parse (body);
             //
             //      {"errors":{"detail":"Internal server error"}}
             //      {"errors":[{"message":"invalid nonce, nonce should be a 19bits number","code":10030}],"data":null}
