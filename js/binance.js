@@ -1288,6 +1288,7 @@ module.exports = class binance extends Exchange {
                 this.websocketClose (contextId);
             } else {
                 symbolData['deltas'].push (data);
+                this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
                 if (!('snaplaunched' in data)) {
                     data['snaplaunched'] = true;
                     this._executeAndCallback (this._websocketMethodMap ('fetchOrderBook'), [symbol], this._websocketMethodMap ('_websocketHandleObRestSnapshot'), {
@@ -1299,8 +1300,8 @@ module.exports = class binance extends Exchange {
         } else {
             symbolData['ob'] = this.mergeOrderBookDelta (symbolData['ob'], data, undefined, 'b', 'a');
             this.emit ('ob', symbol, this._cloneOrderBook (symbolData['ob'], symbolData['limit']));
+            this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
         }
-        this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
     }
 
     _websocketHandleTrade (contextId, data) {
@@ -1391,9 +1392,11 @@ module.exports = class binance extends Exchange {
         if (event !== 'ob' && event !== 'trade' && event !== 'kline' && event !== 'ticker') {
             throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
         }
-        let data = this._contextGetSymbolData (contextId, event, symbol);
-        data['limit'] = this.safeInteger (params, 'limit', undefined);
-        this._contextSetSymbolData (contextId, event, symbol, data);
+        if (event === 'ob') {
+            let data = this._contextGetSymbolData (contextId, event, symbol);
+            data['limit'] = this.safeInteger (params, 'limit', undefined);
+            this._contextSetSymbolData (contextId, event, symbol, data);
+        }
         let nonceStr = nonce.toString ();
         this.emit (nonceStr, true);
     }

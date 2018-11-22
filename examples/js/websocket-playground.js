@@ -57,6 +57,8 @@ let sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
         await exchange.websocketSubscribe(event, symbol, params);
         console.log('subscribed: ' + symbol);
         //await sleep(3000);
+        //await exchange.websocketSubscribe('trade', symbol, params);
+        //console.log('subscribed: ' + symbol);
         //await exchange.websocketUnsubscribe(event, symbol);
         //console.log('unsubscribed: ' + symbol);
 

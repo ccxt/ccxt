@@ -82,6 +82,27 @@ module.exports = class gemini extends Exchange {
                     'maker': 0.0025,
                 },
             },
+            'wsconf': {
+                'conx-tpls': {
+                    'default': {
+                        'type': 'ws-s',
+                        'baseurl': 'wss://api.gemini.com/v1/marketdata/',
+                    },
+                },
+                'methodmap': {
+                    'fetchOrderBook': 'fetchOrderBook',
+                    '_websocketHandleObRestSnapshot': '_websocketHandleObRestSnapshot',
+                },
+                'events': {
+                    'ob': {
+                        'conx-tpl': 'default',
+                        'conx-param': {
+                            'url': '{baseurl}',
+                            'id': '{id}-{symbol}',
+                        },
+                    },
+                },
+            },
         });
     }
 
@@ -448,5 +469,156 @@ module.exports = class gemini extends Exchange {
             'tag': undefined,
             'info': response,
         };
+    }
+
+    _websocketOnMessage (contextId, data) {
+        let msg = JSON.parse (data);
+        // console.log(msg);
+        let lastSeqId = this._contextGet (contextId, 'sequence_id');
+        let seqId = this.safeInteger (msg, 'socket_sequence');
+        if (typeof lastSeqId !== 'undefined') {
+            lastSeqId = lastSeqId + 1;
+            if (lastSeqId !== seqId) {
+                this.emit ('err', new ExchangeError ('sequence id error in exchange: ' + this.id + ' (' + lastSeqId + '+1 !=' + seqId + ')'), contextId);
+                return;
+            }
+        }
+        this._contextSet (contextId, 'sequence_id', seqId);
+        let symbol = this._contextGet (contextId, 'symbol');
+        let msgType = msg['type'];
+        if (msgType === 'heartbeat') {
+            return;
+        }
+        if (msgType === 'update') {
+            let events = this.safeValue (msg, 'events', []);
+            let symbolData = undefined;
+            let obEventActive = false;
+            let subscribedEvents = this._contextGetEvents (contextId);
+            if ('ob' in subscribedEvents) {
+                symbolData = this._contextGetSymbolData (contextId, 'ob', symbol);
+                obEventActive = true;
+                let eventsLength = events.length;
+                if (eventsLength > 0) {
+                    let event = events[0];
+                    if ((event['type'] === 'change') && (this.safeString (event, 'reason') === 'initial')) {
+                        symbolData['ob'] = {
+                            'bids': [],
+                            'asks': [],
+                            'timestamp': undefined,
+                            'datetime': undefined,
+                        };
+                    } else {
+                        let timestamp = this.safeFloat (msg, 'timestamp');
+                        symbolData['ob'];
+                        symbolData['ob']['timestamp'] = timestamp;
+                        symbolData['ob']['datetime'] = this.iso8601 (timestamp);
+                    }
+                    symbolData['ob']['nonce'] = this.safeInteger (msg, 'eventId');
+                }
+            }            
+            for (let i = 0; i < events.length; i++) {
+                let event = events[i];
+                let eventType = event['type'];
+                if ((eventType === 'change') && obEventActive) {
+                    let side = this.safeString (event, 'side');
+                    let price = this.safeFloat (event, 'price');
+                    let size = this.safeFloat (event, 'remaining');
+                    let keySide = (side === 'bid') ? 'bids' : 'asks';
+                    this.updateBidAsk ([price, size], symbolData['ob'][keySide], side === 'bid');
+                }
+            }
+            if (obEventActive) {
+                this.emit ('ob', symbol, this._cloneOrderBook (symbolData['ob'], symbolData['limit']));
+                this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
+            }
+        }
+    }
+
+    _websocketSubscribe (contextId, event, symbol, nonce, params = {}) {
+        if (event !== 'ob') {
+            throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+        }
+        if (event === 'ob') {
+            let data = this._contextGetSymbolData (contextId, event, symbol);
+            data['limit'] = this.safeInteger (params, 'limit', undefined);
+            this._contextSetSymbolData (contextId, event, symbol, data);
+        }
+        let nonceStr = nonce.toString ();
+        this.emit (nonceStr, true);
+    }
+
+    _websocketUnsubscribe (contextId, event, symbol, nonce, params = {}) {
+        if (event !== 'ob') {
+            throw new NotSupported ('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+        }
+        let nonceStr = nonce.toString ();
+        this.emit (nonceStr, true);
+    }
+
+    _websocketOnOpen (contextId, websocketConexConfig) {
+        let url = websocketConexConfig['url'];
+        let parts = url.split ('?');
+        let partsLen = parts.length;
+        if (partsLen > 1) {
+            let params = parts[1];
+            parts = parts[0].split ('/');
+            partsLen = parts.length;
+            let symbol = parts[partsLen-1];
+            symbol = this.findSymbol (symbol);
+            this._contextSet (contextId, 'symbol', symbol);
+            params = params.split ('&');
+            for (let i = 0; i < params.length; i++) {
+                let param = params[i];
+                parts = param.split ('=');
+                partsLen = parts.length;
+                if (partsLen > 1) {
+                    let event = undefined;
+                    if (parts[0] === 'bids') {
+                        event = 'ob';
+                    }
+                    if ((event !== undefined) && (parts[1] === 'true')) {
+                        this._contextSetSubscribed (contextId, event, symbol, true);
+                        this._contextSetSubscribing (contextId, event, symbol, false);
+                    }
+                }
+            }
+        }
+    }
+
+    _websocketGenerateUrlStream (events, options, params = {}) {
+        // check all events has the same symbol and build parameter list
+        let symbol = undefined;
+        let urlParams = {
+            'heartbeat': "true",
+            'bids': "false",
+            'offers': "false",
+            'trades': "false",
+        };
+        for (let i = 0; i < events.length; i++) {
+            let event = events[i];
+            if (!symbol) {
+                symbol = event['symbol'];
+            } else if (symbol !== event['symbol']) {
+                throw new ExchangeError ('invalid configuration: not same symbol in event list: ' + symbol + ' ' + event['symbol']);
+            }
+            if (event['event'] === 'ob') {
+                urlParams['bids'] = "true";
+                urlParams['offers'] = "true";
+            } else if (event['event'] === 'trade') {
+                urlParams['trades'] = "true";
+            } else {
+                throw new ExchangeError ('invalid configuration: event not reconigzed ' + event['event']);
+            }
+        }
+        return options['url'] + this._websocketMarketId (symbol) + '?' + this.urlencode (urlParams);
+    }
+
+    
+    _getCurrentWebsocketOrderbook (contextId, symbol, limit) {
+        let data = this._contextGetSymbolData (contextId, 'ob', symbol);
+        if (('ob' in data) && (typeof data['ob'] !== 'undefined')) {
+            return this._cloneOrderBook (data['ob'], limit);
+        }
+        return undefined;
     }
 };

@@ -322,6 +322,7 @@ class Exchange(BaseExchange, EventEmitter):
         def compare(a, b):
             return -direction if (a < b) else direction if (a > b) else 0
 
+        i = 0
         for i in range(len(orderedArray)):
             if compare(orderedArray[i][key], value) >= 0:
                 return i
@@ -599,7 +600,7 @@ class Exchange(BaseExchange, EventEmitter):
             #         'data': {},
             #         'conxid': conx_config['id'],
             #     }
-            await self.websocket_connect()
+            await self.websocket_connect(conxid)
         return conxid
 
     async def websocket_connect(self, conxid='default'):
@@ -815,7 +816,7 @@ class Exchange(BaseExchange, EventEmitter):
         pass
 
     def _websocketMarketId(self, symbol):
-        raise NotSupported("You must to implement _websocketMarketId method for exchange " + self.id)
+        return self.market_id(symbol)
 
     def _websocket_generate_url_stream(self, events, options, subscription_params):
         raise NotSupported("You must to implement _websocketGenerateStream method for exchange " + self.id)

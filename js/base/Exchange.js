@@ -934,7 +934,7 @@ module.exports = class Exchange extends EventEmitter{
     }
 
     marketId (symbol) {
-        let market = this.market (symbol)
+        let market = this.market (symbol);
         return (market !== undefined ? market['id'] : symbol)
     }
 
@@ -2066,7 +2066,7 @@ module.exports = class Exchange extends EventEmitter{
     }
 
     _websocketMarketId (symbol) {
-        throw new NotSupported ('You must implement _websocketMarketId method for exchange ' + this.id);
+        return this.marketId (symbol)
     }
 
     _websocketGenerateUrlStream (events, options, subscriptionParams) {

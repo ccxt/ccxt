@@ -2979,7 +2979,7 @@ abstract class Exchange extends CcxtEventEmitter {
     }
 
     public function _websocketMarketId ($symbol) {
-        throw new NotSupported ("You must to implement _websocketMarketId method for exchange " . $this->id);
+        return $this->marketId($symbol);
     }
 
     public function _websocket_generate_url_stream ($events, $options, $subscriptionParams = array()) {

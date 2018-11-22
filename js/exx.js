@@ -458,7 +458,7 @@ module.exports = class exx extends Exchange {
         symbolData['sub-nonces'][nonceStr] = handle;
         this._contextSetSymbolData (contextId, event, symbol, symbolData);
         // send request
-        const id = this.marketId (symbol);console.log('sending');
+        const id = this.marketId (symbol);
         this.websocketSendJson ({
             'dataType': "1_ENTRUST_ADD_" + id,
             'dataSize': 1,
