@@ -673,29 +673,51 @@ module.exports = class upbit extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type !== 'limit')
-            throw new ExchangeError (this.id + ' allows limit orders only');
+        if (type !== 'limit') {
+            throw new InvalidOrder (this.id + ' createOrder allows limit orders only!');
+        }
+        let orderSide = undefined;
+        if (side === 'buy') {
+            orderSide = 'bid';
+        } else if (side === 'sell') {
+            orderSide = 'ask';
+        } else {
+            throw new InvalidOrder (this.id + ' createOrder allows buy or sell side only!');
+        }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let method = 'marketGet' + this.capitalize (side) + type;
-        let order = {
+        const market = this.market (symbol);
+        const request = {
             'market': market['id'],
-            'quantity': this.amountToPrecision (symbol, amount),
-            'rate': this.priceToPrecision (symbol, price),
+            // 'side': orderSide,
+            'volume': this.amountToPrecision (symbol, amount),
+            'price': this.priceToPrecision (symbol, price),
+            'ord_type': type,
         };
-        // if (type == 'limit')
-        //     order['rate'] = this.priceToPrecision (symbol, price);
-        let response = await this[method] (this.extend (order, params));
-        let orderIdField = this.getOrderIdField ();
-        let result = {
-            'info': response,
-            'id': response['result'][orderIdField],
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'status': 'open',
-        };
-        return result;
+        const response = await this.privatePostOrders (this.extend (request, params));
+        const log = require ('ololog').unlimited;
+        log.green (response);
+        process.exit ();
+        //
+        //     {
+        //         'uuid': 'cdd92199-2897-4e14-9448-f923320408ad',
+        //         'side': 'bid',
+        //         'ord_type': 'limit',
+        //         'price': '100.0',
+        //         'avg_price': '0.0',
+        //         'state': 'wait',
+        //         'market': 'KRW-BTC',
+        //         'created_at': '2018-04-10T15:42:23+09:00',
+        //         'volume': '0.01',
+        //         'remaining_volume': '0.01',
+        //         'reserved_fee': '0.0015',
+        //         'remaining_fee': '0.0015',
+        //         'paid_fee': '0.0',
+        //         'locked': '1.0015',
+        //         'executed_volume': '0.0',
+        //         'trades_count': 0
+        //     }
+        //
+        return this.parseOrder (response);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -1001,6 +1023,10 @@ module.exports = class upbit extends Exchange {
         return result;
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+
+    }
+
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = undefined;
@@ -1102,8 +1128,30 @@ module.exports = class upbit extends Exchange {
                 'access_key': this.apiKey,
                 'nonce': nonce,
             };
+            if (method === 'POST') {
+                request['query'] = this.urlencode (params);
+            }
+            // const body = {market: market, side: side, volume: volume, price: price, ord_type: ord_type};
+            // const payload = {
+            //   access_key: accessKey,
+            //   nonce: (new Date).getTime(),
+            //   query: queryEncode(body)
+            // };
+            // const token = sign(payload, secretKey);
+            // var options = {
+            //   method: "POST",
+            //   url: "https://api.upbit.com/v1/orders",
+            //   headers: {Authorization: `Bearer ${token}`},
+            //   json: body
+            // };
             let jwt = this.jwt (request, this.secret);
-            headers = { 'Authorization': 'Bearer ' + jwt };
+            headers = {
+                'Authorization': 'Bearer ' + jwt,
+            };
+            if (method === 'POST') {
+                body = this.json (params);
+                headers['Content-Type'] = 'application/json';
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
