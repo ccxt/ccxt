@@ -153,27 +153,30 @@ module.exports = class dragonex extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         // makes two requests because that is how they implemented it
         await this.loadMarkets ();
-        let symbol_id = this.market (symbol)['id'];
+        let market = this.market (symbol);
+        let symbol_id = market['id'];
         let buy_side = await this.privateGetMarketBuy ({ 'symbol_id': symbol_id });
         let sell_side = await this.privateGetMarketSell ({ 'symbol_id': symbol_id });
-        let buy_book = this.parseOrderBook (buy_side['data']);
-        let sell_book = this.parseOrderBook (sell_side['data']);
-        return {
-            'bids': buy_book,
-            'asks': sell_book,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
+        let nonunified = { 'bids': buy_side['data'], 'asks': sell_side['data'] };
+        return this.parseOrderBook (nonunified, undefined, 'bids', 'asks', 'price', 'volume', market);
     }
 
-    parseOrderBook (book) {
-        let new_book = [];
-        for (let i = 0; i < book.length; i++) {
-            let price = this.safeFloat (book[i], 'price');
-            let volume = this.safeFloat (book[i], 'volume');
-            new_book.push ([ price, volume ]);
+    parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market = undefined) {
+        let result = {};
+        let sides = [ bidsKey, asksKey ];
+        for (let i = 0; i < sides.length; i++) {
+            let side = sides[i];
+            let new_book = [];
+            let book = orderbook[side];
+            for (let i = 0; i < book.length; i++) {
+                let price = this.safeFloat (book[i], priceKey);
+                let volume = this.safeFloat (book[i], amountKey);
+                new_book.push ([ price, volume ]);
+            }
+            result[side] = new_book;
         }
-        return new_book;
+        result['timestamp'] = timestamp;
+        return result;
     }
 
     async fetchTicker (symbol, params = {}) {
