@@ -445,7 +445,9 @@ module.exports = class upbit extends Exchange {
             'tickInterval': this.timeframes[timeframe],
             'marketName': market['id'],
         };
-        let response = await this.v2GetMarketGetTicks (this.extend (request, params));
+        let response = await this.publicGetCandlesTimeframe (this.extend (request, params));
+
+
         if ('result' in response) {
             if (response['result'])
                 return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
