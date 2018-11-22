@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending } = require ('./base/errors');
+const { ExchangeError, BadRequest, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -114,6 +114,7 @@ module.exports = class upbit extends Exchange {
                 },
             },
             'exceptions': {
+                'Missing request parameter error. Check the required parameters!': BadRequest, // 400 Bad Request {"error":{"name":400,"message":"Missing request parameter error. Check the required parameters!"}}
                 // 'Call to Cancel was throttled. Try again in 60 seconds.': DDoSProtection,
                 // 'Call to GetBalances was throttled. Try again in 60 seconds.': DDoSProtection,
                 'APISIGN_NOT_PROVIDED': AuthenticationError,
@@ -249,45 +250,70 @@ module.exports = class upbit extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.safeString (ticker, 'TimeStamp');
-        if (typeof timestamp === 'string') {
-            if (timestamp.length > 0) {
-                timestamp = this.parse8601 (timestamp);
-            }
-        }
+        //
+        //       {                market: "BTC-ETH",
+        //                    trade_date: "20181122",
+        //                    trade_time: "104543",
+        //                trade_date_kst: "20181122",
+        //                trade_time_kst: "194543",
+        //               trade_timestamp:  1542883543097,
+        //                 opening_price:  0.02976455,
+        //                    high_price:  0.02992577,
+        //                     low_price:  0.02934283,
+        //                   trade_price:  0.02947773,
+        //            prev_closing_price:  0.02966,
+        //                        change: "FALL",
+        //                  change_price:  0.00018227,
+        //                   change_rate:  0.0061453136,
+        //           signed_change_price:  -0.00018227,
+        //            signed_change_rate:  -0.0061453136,
+        //                  trade_volume:  1.00000005,
+        //               acc_trade_price:  100.95825586,
+        //           acc_trade_price_24h:  289.58650166,
+        //              acc_trade_volume:  3409.85311036,
+        //          acc_trade_volume_24h:  9754.40510513,
+        //         highest_52_week_price:  0.12345678,
+        //          highest_52_week_date: "2018-02-01",
+        //          lowest_52_week_price:  0.023936,
+        //           lowest_52_week_date: "2017-12-08",
+        //                     timestamp:  1542883543813  }
+        //
+        let timestamp = this.safeInteger (ticker, 'trade_timestamp');
         let symbol = undefined;
-        if (market)
+        let marketId = this.safeString (ticker, 'market');
+        market = this.safeValue (this.markets_by_id, marketId, market);
+        if (market !== undefined) {
             symbol = market['symbol'];
-        let previous = this.safeFloat (ticker, 'PrevDay');
-        let last = this.safeFloat (ticker, 'Last');
-        let change = undefined;
-        let percentage = undefined;
-        if (last !== undefined)
-            if (previous !== undefined) {
-                change = last - previous;
-                if (previous > 0)
-                    percentage = (change / previous) * 100;
-            }
+        } else {
+            let [ baseId, quoteId ] = marketId.split ('-');
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
+            symbol = base + '/' + quote;
+        }
+        let previous = this.safeFloat (ticker, 'prev_closing_price');
+        let last = this.safeFloat (ticker, 'trade_price');
+        let change = this.safeFloat (ticker, 'signed_change_price');
+        let percentage = this.safeFloat (ticker, 'signed_change_rate');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'High'),
-            'low': this.safeFloat (ticker, 'Low'),
-            'bid': this.safeFloat (ticker, 'Bid'),
+            'high': this.safeFloat (ticker, 'high_price'),
+            'low': this.safeFloat (ticker, 'low_price'),
+            'bid': undefined,
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'Ask'),
+            'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': previous,
+            'open': this.safeFloat (ticker, 'opening_price'),
             'close': last,
             'last': last,
-            'previousClose': undefined,
+            'previousClose': previous,
             'change': change,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'Volume'),
-            'quoteVolume': this.safeFloat (ticker, 'BaseVolume'),
+            'baseVolume': this.safeFloat (ticker, 'acc_trade_price_24h'),
+            'quoteVolume': this.safeFloat (ticker, 'acc_trade_volume_24h'),
             'info': ticker,
         };
     }
@@ -307,26 +333,42 @@ module.exports = class upbit extends Exchange {
             ids = ids.join (',');
         }
         const request = {
-            'market': ids,
+            'markets': ids,
         };
         let response = await this.publicGetTicker (this.extend (request, params));
-        const log = require ('ololog').unlimited;
-        log (response);
-        process.exit ();
-        let tickers = response['result'];
+        //
+        //     [ {                market: "BTC-ETH",
+        //                    trade_date: "20181122",
+        //                    trade_time: "104543",
+        //                trade_date_kst: "20181122",
+        //                trade_time_kst: "194543",
+        //               trade_timestamp:  1542883543097,
+        //                 opening_price:  0.02976455,
+        //                    high_price:  0.02992577,
+        //                     low_price:  0.02934283,
+        //                   trade_price:  0.02947773,
+        //            prev_closing_price:  0.02966,
+        //                        change: "FALL",
+        //                  change_price:  0.00018227,
+        //                   change_rate:  0.0061453136,
+        //           signed_change_price:  -0.00018227,
+        //            signed_change_rate:  -0.0061453136,
+        //                  trade_volume:  1.00000005,
+        //               acc_trade_price:  100.95825586,
+        //           acc_trade_price_24h:  289.58650166,
+        //              acc_trade_volume:  3409.85311036,
+        //          acc_trade_volume_24h:  9754.40510513,
+        //         highest_52_week_price:  0.12345678,
+        //          highest_52_week_date: "2018-02-01",
+        //          lowest_52_week_price:  0.023936,
+        //           lowest_52_week_date: "2017-12-08",
+        //                     timestamp:  1542883543813  } ]
+        //
         let result = {};
-        for (let t = 0; t < tickers.length; t++) {
-            let ticker = tickers[t];
-            let id = ticker['MarketName'];
-            let market = undefined;
-            let symbol = id;
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
-                symbol = market['symbol'];
-            } else {
-                symbol = this.parseSymbol (id);
-            }
-            result[symbol] = this.parseTicker (ticker, market);
+        for (let t = 0; t < response.length; t++) {
+            let ticker = this.parseTicker (response[t]);
+            let symbol = ticker['symbol'];
+            result[symbol] = ticker;
         }
         return result;
     }
