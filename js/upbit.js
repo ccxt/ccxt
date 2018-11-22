@@ -208,19 +208,29 @@ module.exports = class upbit extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetAccounts (params);
-        const log = require ('')
-        let balances = response['result'];
-        let result = { 'info': balances };
-        let indexed = this.indexBy (balances, 'Currency');
-        let keys = Object.keys (indexed);
-        for (let i = 0; i < keys.length; i++) {
-            let id = keys[i];
+        //
+        //     [ {          currency: "BTC",
+        //                   balance: "0.005",
+        //                    locked: "0.0",
+        //         avg_krw_buy_price: "7446000",
+        //                  modified:  false     },
+        //       {          currency: "ETH",
+        //                   balance: "0.1",
+        //                    locked: "0.0",
+        //         avg_krw_buy_price: "250000",
+        //                  modified:  false    }   ]
+        //
+        let result = { 'info': response };
+        let indexed = this.indexBy (response, 'currency');
+        let ids = Object.keys (indexed);
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
             let currency = this.commonCurrencyCode (id);
             let account = this.account ();
             let balance = indexed[id];
-            let free = parseFloat (balance['Available']);
-            let total = parseFloat (balance['Balance']);
-            let used = total - free;
+            let total = this.safeFloat (balance, 'balance');
+            let used = this.safeFloat (balance, 'locked');
+            let free = total - used;
             account['free'] = free;
             account['used'] = used;
             account['total'] = total;
@@ -1008,6 +1018,10 @@ module.exports = class upbit extends Exchange {
         };
     }
 
+    nonce () {
+        return this.milliseconds ();
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
@@ -1015,26 +1029,14 @@ module.exports = class upbit extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
-            // const request = require("request")
-            // const sign = require("jsonwebtoken").sign
-            // const payload = {access_key: accessKey, nonce: (new Date).getTime()};
-            // const token = sign(payload, secretKey);
-            // var options = {
-            //   method: "GET",
-            //   url: "https://api.upbit.com/v1/accounts",
-            //   headers: {Authorization: `Bearer ${token}`}
-            // };
-            // request(options, function (error, response, body) {
-            //   if (error) throw new Error(error);
-            //   console.log(body);
-            // });
             this.checkRequiredCredentials ();
+            const nonce = this.nonce ();
             const request = {
-                'apikey': this.apiKey,
+                'access_key': this.apiKey,
+                'nonce': nonce,
             };
-            url += path + '?' + this.urlencode (this.extend (request, params));
-            let signature = this.hmac (this.encode (url), this.encode (this.secret), 'sha512');
-            headers = { 'apisign': signature };
+            let jwt = this.jwt (request, this.secret);
+            headers = { 'Authorization': 'Bearer ' + jwt };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
