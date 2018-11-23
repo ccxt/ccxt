@@ -130,7 +130,7 @@ module.exports = class cryptopia extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetGetTradePairs ();
         let result = [];
         let markets = response['Data'];

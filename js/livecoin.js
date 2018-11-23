@@ -121,7 +121,7 @@ module.exports = class livecoin extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetExchangeTicker ();
         let restrictions = await this.publicGetExchangeRestrictions ();
         let restrictionsById = this.indexBy (restrictions['restrictions'], 'currencyPair');

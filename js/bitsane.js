@@ -128,7 +128,7 @@ module.exports = class bitsane extends Exchange {
         return result;
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetAssetsPairs ();
         let result = [];
         let marketIds = Object.keys (markets);

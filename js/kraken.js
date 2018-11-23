@@ -246,7 +246,7 @@ module.exports = class kraken extends Exchange {
         return result;
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetAssetPairs ();
         let limits = await this.fetchMinOrderAmounts ();
         let keys = Object.keys (markets['result']);

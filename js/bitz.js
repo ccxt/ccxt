@@ -201,7 +201,7 @@ module.exports = class bitz extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.marketGetSymbolList ();
         //
         //     {    status:    200,

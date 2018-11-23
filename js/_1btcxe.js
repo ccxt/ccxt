@@ -56,7 +56,7 @@ module.exports = class _1btcxe extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         return [
             { 'id': 'USD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
             { 'id': 'EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },

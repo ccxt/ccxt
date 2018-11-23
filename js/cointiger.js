@@ -120,7 +120,7 @@ module.exports = class cointiger extends huobipro {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         const response = await this.v2publicGetCurrencys ();
         //
         //     {

@@ -1295,18 +1295,18 @@ class Exchange {
         return $this->set_markets ($markets);
     }
 
-    public function loadMarkets ($reload = false) {
-        return $this->load_markets ($reload);
+    public function loadMarkets ($reload = false, $params = array()) {
+        return $this->load_markets ($reload, $params);
     }
 
-    public function load_markets ($reload = false) {
+    public function load_markets ($reload = false, $params = array()) {
         if (!$reload && $this->markets) {
             if (!$this->markets_by_id) {
                 return $this->set_markets ($this->markets);
             }
             return $this->markets;
         }
-        $markets = $this->fetch_markets ();
+        $markets = $this->fetch_markets ($params);
         $currencies = null;
         if (array_key_exists ('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'])
             $currencies = $this->fetch_currencies ();
@@ -1682,7 +1682,7 @@ class Exchange {
         throw new NotSupported ($this->id . ' fetch_withdrawals() not implemented yet');
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array()) {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
@@ -1690,8 +1690,8 @@ class Exchange {
         return $this->markets ? array_values ($this->markets) : array ();
     }
 
-    public function fetchMarkets  () {
-        return $this->fetch_markets ();
+    public function fetchMarkets  ($params = array()) {
+        return $this->fetch_markets ($params);
     }
 
     public function fetch_currencies ($params = array ()) {

@@ -69,7 +69,7 @@ module.exports = class crypton extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetMarkets ();
         let markets = response['result'];
         let result = [];

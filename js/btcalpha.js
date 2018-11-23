@@ -105,7 +105,7 @@ module.exports = class btcalpha extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetPairs ();
         let result = [];
         for (let i = 0; i < markets.length; i++) {

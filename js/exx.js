@@ -91,7 +91,7 @@ module.exports = class exx extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetMarkets ();
         let ids = Object.keys (markets);
         let result = [];

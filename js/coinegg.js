@@ -150,7 +150,7 @@ module.exports = class coinegg extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let quoteIds = this.options['quoteIds'];
         let result = [];
         for (let b = 0; b < quoteIds.length; b++) {

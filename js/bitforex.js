@@ -215,7 +215,7 @@ module.exports = class bitforex extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetApiV1MarketSymbols ();
         let data = response['data'];
         let result = [];

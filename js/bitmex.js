@@ -146,7 +146,7 @@ module.exports = class bitmex extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetInstrumentActiveAndIndices ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {

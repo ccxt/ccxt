@@ -177,7 +177,7 @@ module.exports = class bitfinex2 extends bitfinex {
         return 'f' + code;
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.v1GetSymbolsDetails ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {

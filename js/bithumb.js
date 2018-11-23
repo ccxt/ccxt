@@ -70,7 +70,7 @@ module.exports = class bithumb extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetTickerAll ();
         let currencies = Object.keys (markets['data']);
         let result = [];

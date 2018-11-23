@@ -227,7 +227,7 @@ module.exports = class poloniex extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetReturnTicker ();
         let keys = Object.keys (markets);
         let result = [];
