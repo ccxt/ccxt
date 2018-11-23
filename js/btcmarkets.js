@@ -85,7 +85,7 @@ module.exports = class btcmarkets extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetV2MarketActive ();
         let result = [];
         let markets = response['markets'];

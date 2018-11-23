@@ -59,7 +59,7 @@ class allcoin extends okcoinusd {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $result = array ();
         $response = $this->webGetHomeMarketOverViewDetail ();
         $coins = $response['marketCoins'];

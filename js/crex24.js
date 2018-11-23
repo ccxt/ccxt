@@ -137,7 +137,7 @@ module.exports = class crex24 extends Exchange {
         return this.milliseconds ();
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetInstruments ();
         //
         //     [ {              symbol:   "$PAC-BTC",

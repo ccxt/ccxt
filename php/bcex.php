@@ -286,7 +286,7 @@ class bcex extends Exchange {
         );
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetApiMarketGetPriceList ();
         $result = array ();
         $keys = is_array ($response) ? array_keys ($response) : array ();

@@ -74,7 +74,7 @@ class coinnest (Exchange):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         quote = 'KRW'
         quoteId = quote.lower()
         # todo: rewrite self for web endpoint

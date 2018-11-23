@@ -173,7 +173,7 @@ class bitstamp (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetTradingPairsInfo()
         result = []
         for i in range(0, len(markets)):

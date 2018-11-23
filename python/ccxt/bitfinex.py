@@ -417,7 +417,7 @@ class bitfinex (Exchange):
             'taker': self.safe_float(response, 'taker_fee'),
         }
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetSymbolsDetails()
         result = []
         for p in range(0, len(markets)):

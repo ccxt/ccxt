@@ -61,7 +61,7 @@ class btcturk (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetTicker()
         result = []
         for i in range(0, len(response)):

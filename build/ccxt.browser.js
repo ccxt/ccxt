@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.527'
+const version = '1.17.533'
 
 Exchange.ccxtVersion = version
 
@@ -252,7 +252,7 @@ module.exports = class _1btcxe extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         return [
             { 'id': 'USD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
             { 'id': 'EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
@@ -559,7 +559,7 @@ module.exports = class acx extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetMarkets ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
@@ -965,7 +965,7 @@ module.exports = class allcoin extends okcoinusd {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let result = [];
         let response = await this.webGetHomeMarketOverViewDetail ();
         let coins = response['marketCoins'];
@@ -2047,14 +2047,14 @@ module.exports = class Exchange {
         return this.markets
     }
 
-    async loadMarkets (reload = false) {
+    async loadMarkets (reload = false, params = {}) {
         if (!reload && this.markets) {
             if (!this.markets_by_id) {
                 return this.setMarkets (this.markets)
             }
             return this.markets
         }
-        const markets = await this.fetchMarkets ()
+        const markets = await this.fetchMarkets (params)
         let currencies = undefined
         if (this.has.fetchCurrencies) {
             currencies = await this.fetchCurrencies ()
@@ -2178,7 +2178,7 @@ module.exports = class Exchange {
         return new Promise ((resolve, reject) => resolve (this.currencies));
     }
 
-    fetchMarkets () {
+    fetchMarkets (params = {}) {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
@@ -4177,7 +4177,7 @@ module.exports = class bcex extends Exchange {
         };
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetApiMarketGetPriceList ();
         let result = [];
         let keys = Object.keys (response);
@@ -5418,7 +5418,7 @@ module.exports = class bigone extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetMarkets ();
         let markets = response['data'];
         let result = [];
@@ -6315,7 +6315,7 @@ module.exports = class binance extends Exchange {
         return this.options['timeDifference'];
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetExchangeInfo ();
         if (this.options['adjustForTimeDifference'])
             await this.loadTimeDifference ();
@@ -8850,7 +8850,7 @@ module.exports = class bitfinex extends Exchange {
         };
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetSymbolsDetails ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
@@ -9631,7 +9631,7 @@ module.exports = class bitfinex2 extends bitfinex {
         return 'f' + code;
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.v1GetSymbolsDetails ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
@@ -10037,7 +10037,7 @@ module.exports = class bitflyer extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let jp_markets = await this.publicGetGetmarkets ();
         let us_markets = await this.publicGetGetmarketsUsa ();
         let eu_markets = await this.publicGetGetmarketsEu ();
@@ -10597,7 +10597,7 @@ module.exports = class bitforex extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetApiV1MarketSymbols ();
         let data = response['data'];
         let result = [];
@@ -11018,7 +11018,7 @@ module.exports = class bithumb extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetTickerAll ();
         let currencies = Object.keys (markets['data']);
         let result = [];
@@ -11523,7 +11523,7 @@ module.exports = class bitlish extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetPairs ();
         let result = [];
         let keys = Object.keys (markets);
@@ -12275,7 +12275,7 @@ module.exports = class bitmex extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetInstrumentActiveAndIndices ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
@@ -12895,7 +12895,7 @@ module.exports = class bitsane extends Exchange {
         return result;
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetAssetsPairs ();
         let result = [];
         let marketIds = Object.keys (markets);
@@ -13318,7 +13318,7 @@ module.exports = class bitso extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetAvailableBooks ();
         let result = [];
         for (let i = 0; i < markets['payload'].length; i++) {
@@ -13911,7 +13911,7 @@ module.exports = class bitstamp extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetTradingPairsInfo ();
         let result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -15098,7 +15098,7 @@ module.exports = class bittrex extends Exchange {
         return this.decimalToPrecision (fee, TRUNCATE, this.markets[symbol]['precision']['price'], DECIMAL_PLACES);
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.v2GetMarketsGetMarketSummaries ();
         let result = [];
         for (let i = 0; i < response['result'].length; i++) {
@@ -16127,7 +16127,7 @@ module.exports = class bitz extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.marketGetSymbolList ();
         //
         //     {    status:    200,
@@ -17331,7 +17331,7 @@ module.exports = class bleutrade extends bittrex {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetMarkets ();
         let result = [];
         for (let p = 0; p < markets['result'].length; p++) {
@@ -17699,7 +17699,7 @@ module.exports = class braziliex extends Exchange {
         return result;
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetTicker ();
         let ids = Object.keys (markets);
         let result = [];
@@ -18143,7 +18143,7 @@ module.exports = class btcalpha extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetPairs ();
         let result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -18873,7 +18873,7 @@ module.exports = class btcchina extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetTicker ({
             'market': 'all',
         });
@@ -19242,7 +19242,7 @@ module.exports = class btcmarkets extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetV2MarketActive ();
         let result = [];
         let markets = response['markets'];
@@ -20137,7 +20137,7 @@ module.exports = class btcturk extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetTicker ();
         let result = [];
         for (let i = 0; i < response.length; i++) {
@@ -20519,7 +20519,7 @@ module.exports = class buda extends Exchange {
         return undefined;
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let marketsResponse = await this.publicGetMarkets ();
         let markets = marketsResponse['markets'];
         let currenciesResponse = await this.publicGetCurrencies ();
@@ -21222,7 +21222,7 @@ module.exports = class bxinth extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetPairing ();
         let keys = Object.keys (markets);
         let result = [];
@@ -21539,7 +21539,7 @@ module.exports = class ccex extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let result = {};
         let response = await this.webGetPairs ();
         let markets = response['pairs'];
@@ -21921,7 +21921,7 @@ module.exports = class cex extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetCurrencyLimits ();
         let result = [];
         for (let p = 0; p < markets['data']['pairs'].length; p++) {
@@ -22689,7 +22689,7 @@ module.exports = class cobinhood extends Exchange {
         return result;
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetMarketTradingPairs ();
         let markets = response['result']['trading_pairs'];
         let result = [];
@@ -24360,7 +24360,7 @@ module.exports = class coinegg extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let quoteIds = this.options['quoteIds'];
         let result = [];
         for (let b = 0; b < quoteIds.length; b++) {
@@ -24866,7 +24866,7 @@ module.exports = class coinex extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.webGetResMarket ();
         let markets = response['data']['market_info'];
         let result = [];
@@ -26008,7 +26008,7 @@ module.exports = class coinexchange extends Exchange {
         return result;
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetGetmarkets ();
         let markets = response['result'];
         let result = [];
@@ -26190,7 +26190,7 @@ module.exports = class coinfalcon extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetMarkets ();
         let markets = response['data'];
         let result = [];
@@ -26852,7 +26852,7 @@ module.exports = class coingi extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = undefined;
         try {
             this.parseJsonResponse = false;
@@ -27218,7 +27218,7 @@ module.exports = class coinmarketcap extends Exchange {
         return base;
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetTicker ({
             'limit': 0,
         });
@@ -27696,7 +27696,7 @@ module.exports = class coinnest extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let quote = 'KRW';
         let quoteId = quote.toLowerCase ();
         // todo: rewrite this for web endpoint
@@ -28785,7 +28785,7 @@ module.exports = class cointiger extends huobipro {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         const response = await this.v2publicGetCurrencys ();
         //
         //     {
@@ -29809,7 +29809,7 @@ module.exports = class crex24 extends Exchange {
         return this.milliseconds ();
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetInstruments ();
         //
         //     [ {              symbol:   "$PAC-BTC",
@@ -30964,7 +30964,7 @@ module.exports = class crypton extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetMarkets ();
         let markets = response['result'];
         let result = [];
@@ -31439,7 +31439,7 @@ module.exports = class cryptopia extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetGetTradePairs ();
         let result = [];
         let markets = response['Data'];
@@ -31743,7 +31743,7 @@ module.exports = class cryptopia extends Exchange {
         //         Address: null
         //     }
         //
-        let timestamp = this.safeInteger (transaction, 'Timestamp');
+        let timestamp = this.parse8601 (this.safeString (transaction, 'Timestamp'));
         let code = undefined;
         let currencyId = this.safeString (transaction, 'Currency');
         let currency = this.safeValue (this.currencies_by_id, currencyId);
@@ -31809,11 +31809,11 @@ module.exports = class cryptopia extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsByType ('deposit', code, since, limit, params);
+        return await this.fetchTransactionsByType ('withdrawal', code, since, limit, params);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsByType ('withdraw', code, since, limit, params);
+        return await this.fetchTransactionsByType ('deposit', code, since, limit, params);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -32314,7 +32314,7 @@ module.exports = class deribit extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let marketsResponse = await this.publicGetGetinstruments ();
         let markets = marketsResponse['result'];
         let result = [];
@@ -32754,7 +32754,7 @@ module.exports = class dsx extends liqui {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetInfo ();
         let markets = response['pairs'];
         let keys = Object.keys (markets);
@@ -33613,7 +33613,7 @@ module.exports = class exmo extends Exchange {
         return result;
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let fees = await this.fetchTradingFees ();
         let markets = await this.publicGetPairSettings ();
         let keys = Object.keys (markets);
@@ -34439,7 +34439,7 @@ module.exports = class exx extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetMarkets ();
         let ids = Object.keys (markets);
         let result = [];
@@ -34898,7 +34898,7 @@ module.exports = class fcoin extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetSymbols ();
         let result = [];
         let markets = response['data'];
@@ -35407,7 +35407,7 @@ module.exports = class flowbtc extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicPostGetProductPairs ();
         let markets = response['productPairs'];
         let result = {};
@@ -36232,7 +36232,7 @@ module.exports = class gatecoin extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetReferenceCurrencyPairs ();
         let markets = response['currencyPairs'];
         let result = [];
@@ -36862,7 +36862,7 @@ module.exports = class gateio extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetMarketinfo ();
         let markets = this.safeValue (response, 'pairs');
         if (!markets)
@@ -37500,7 +37500,7 @@ module.exports = class gdax extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetProducts ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
@@ -38191,7 +38191,7 @@ module.exports = class gemini extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetSymbols ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
@@ -39191,7 +39191,7 @@ module.exports = class hitbtc extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetSymbols ();
         let result = [];
         for (let p = 0; p < markets['symbols'].length; p++) {
@@ -40209,7 +40209,7 @@ module.exports = class hitbtc2 extends hitbtc {
         return this.decimalToPrecision (fee, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetSymbol ();
         let result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -41413,7 +41413,7 @@ module.exports = class huobipro extends Exchange {
         };
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let method = this.options['fetchMarketsMethod'];
         let response = await this[method] ();
         let markets = response['data'];
@@ -42240,7 +42240,7 @@ module.exports = class ice3x extends Exchange {
         return result;
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         if (!Object.keys (this.currencies).length) {
             this.currencies = await this.fetchCurrencies ();
         }
@@ -42645,7 +42645,7 @@ module.exports = class independentreserve extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let baseCurrencies = await this.publicGetGetValidPrimaryCurrencyCodes ();
         let quoteCurrencies = await this.publicGetGetValidSecondaryCurrencyCodes ();
         let result = [];
@@ -43776,7 +43776,7 @@ module.exports = class jubi extends btcbox {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetAllticker ();
         let keys = Object.keys (markets);
         let result = [];
@@ -44611,7 +44611,7 @@ module.exports = class kraken extends Exchange {
         return result;
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetAssetPairs ();
         let limits = await this.fetchMinOrderAmounts ();
         let keys = Object.keys (markets['result']);
@@ -46080,7 +46080,7 @@ module.exports = class kucoin extends Exchange {
         };
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetMarketOpenSymbols ();
         if (this.options['adjustForTimeDifference'])
             await this.loadTimeDifference ();
@@ -46988,7 +46988,7 @@ module.exports = class kuna extends acx {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         const quotes = [ 'btc', 'eth', 'eurs', 'gbg', 'uah' ];
         const pricePrecisions = {
             'UAH': 0,
@@ -47169,7 +47169,7 @@ module.exports = class lakebtc extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetTicker ();
         let result = [];
         let keys = Object.keys (markets);
@@ -47488,7 +47488,7 @@ module.exports = class lbank extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetAccuracy ();
         let result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -48065,7 +48065,7 @@ module.exports = class liqui extends Exchange {
         };
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetInfo ();
         let markets = response['pairs'];
         let keys = Object.keys (markets);
@@ -48920,7 +48920,7 @@ module.exports = class liquid extends Exchange {
         return result;
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetProducts ();
         //
         //     [
@@ -49578,7 +49578,7 @@ module.exports = class livecoin extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetExchangeTicker ();
         let restrictions = await this.publicGetExchangeRestrictions ();
         let restrictionsById = this.indexBy (restrictions['restrictions'], 'currencyPair');
@@ -50219,7 +50219,7 @@ module.exports = class luno extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetTickers ();
         let result = [];
         for (let p = 0; p < markets['tickers'].length; p++) {
@@ -50707,7 +50707,7 @@ module.exports = class lykke extends Exchange {
         };
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetAssetPairs ();
         //
         //     [ {                Id: "AEBTC",
@@ -51934,7 +51934,7 @@ module.exports = class nova extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetMarkets ();
         let markets = response['markets'];
         let result = [];
@@ -52472,7 +52472,7 @@ module.exports = class okcoinusd extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.webGetSpotMarketsProducts ();
         let markets = response['data'];
         let result = [];
@@ -53188,8 +53188,8 @@ module.exports = class okex extends okcoinusd {
         };
     }
 
-    async fetchMarkets () {
-        let markets = await super.fetchMarkets ();
+    async fetchMarkets (params = {}) {
+        let markets = await super.fetchMarkets (params);
         // TODO: they have a new fee schedule as of Feb 7
         // the new fees are progressive and depend on 30-day traded volume
         // the following is the worst case
@@ -53691,7 +53691,7 @@ module.exports = class poloniex extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetReturnTicker ();
         let keys = Object.keys (markets);
         let result = [];
@@ -55284,7 +55284,7 @@ module.exports = class rightbtc extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetTradingPairs ();
         // let zh = await this.publicGetGetAssetsTradingPairsZh ();
         let markets = this.extend (response['status']['message']);
@@ -55988,7 +55988,7 @@ module.exports = class southxchange extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetMarkets ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
@@ -56412,7 +56412,7 @@ module.exports = class theocean extends Exchange {
         };
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetTokenPairs ();
         //
         //     [
@@ -57679,7 +57679,7 @@ module.exports = class therock extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetFunds ();
         //
         //     { funds: [ {                      id:   "BTCEUR",
@@ -58075,7 +58075,7 @@ module.exports = class tidebit extends Exchange {
         }
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetMarkets ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
@@ -58739,7 +58739,7 @@ module.exports = class uex extends Exchange {
         };
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetCommonSymbols ();
         //
         //     { code:   "0",
@@ -59875,7 +59875,7 @@ module.exports = class vaultoro extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let result = [];
         let markets = await this.publicGetMarkets ();
         let market = markets['data'];
@@ -60151,7 +60151,7 @@ module.exports = class virwox extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetGetInstruments ();
         let keys = Object.keys (markets['result']);
         let result = [];
@@ -60385,15 +60385,15 @@ module.exports = class wex extends liqui {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg',
                 'api': {
-                    'public': 'https://wex.nz/api',
-                    'private': 'https://wex.nz/tapi',
+                    'public': 'https://wex.link/api',
+                    'private': 'https://wex.link/tapi',
                 },
-                'www': 'https://wex.nz',
+                'www': 'https://wex.link',
                 'doc': [
-                    'https://wex.nz/api/3/docs',
-                    'https://wex.nz/tapi/docs',
+                    'https://wex.link/api/3/docs',
+                    'https://wex.link/tapi/docs',
                 ],
-                'fees': 'https://wex.nz/fees',
+                'fees': 'https://wex.link/fees',
             },
             'api': {
                 'public': {
@@ -60634,7 +60634,7 @@ module.exports = class xbtce extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.privateGetSymbol ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
@@ -61324,7 +61324,7 @@ module.exports = class zaif extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetCurrencyPairsAll ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
@@ -61819,7 +61819,7 @@ module.exports = class zb extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetMarkets ();
         let keys = Object.keys (markets);
         let result = [];

@@ -217,7 +217,7 @@ module.exports = class huobipro extends Exchange {
         };
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let method = this.options['fetchMarketsMethod'];
         let response = await this[method] ();
         let markets = response['data'];

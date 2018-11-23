@@ -227,7 +227,7 @@ class bitforex (Exchange):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         response = await self.publicGetApiV1MarketSymbols()
         data = response['data']
         result = []

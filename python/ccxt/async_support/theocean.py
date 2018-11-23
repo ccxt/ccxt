@@ -138,7 +138,7 @@ class theocean (Exchange):
             'cost': cost,
         }
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         markets = await self.publicGetTokenPairs()
         #
         #     [

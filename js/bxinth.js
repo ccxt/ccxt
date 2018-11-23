@@ -75,7 +75,7 @@ module.exports = class bxinth extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetPairing ();
         let keys = Object.keys (markets);
         let result = [];

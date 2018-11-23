@@ -503,7 +503,7 @@ class hitbtc extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetSymbols ();
         $result = array ();
         for ($p = 0; $p < count ($markets['symbols']); $p++) {

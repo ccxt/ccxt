@@ -147,7 +147,7 @@ module.exports = class buda extends Exchange {
         return undefined;
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let marketsResponse = await this.publicGetMarkets ();
         let markets = marketsResponse['markets'];
         let currenciesResponse = await this.publicGetCurrencies ();

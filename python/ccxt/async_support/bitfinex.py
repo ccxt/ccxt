@@ -417,7 +417,7 @@ class bitfinex (Exchange):
             'taker': self.safe_float(response, 'taker_fee'),
         }
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         markets = await self.publicGetSymbolsDetails()
         result = []
         for p in range(0, len(markets)):

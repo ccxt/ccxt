@@ -132,7 +132,7 @@ class braziliex (Exchange):
             }
         return result
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetTicker()
         ids = list(markets.keys())
         result = []

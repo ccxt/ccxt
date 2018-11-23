@@ -150,7 +150,7 @@ class rightbtc (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetTradingPairs()
         # zh = self.publicGetGetAssetsTradingPairsZh()
         markets = self.extend(response['status']['message'])

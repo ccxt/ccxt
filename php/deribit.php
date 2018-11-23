@@ -83,7 +83,7 @@ class deribit extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $marketsResponse = $this->publicGetGetinstruments ();
         $markets = $marketsResponse['result'];
         $result = array ();

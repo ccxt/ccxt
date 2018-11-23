@@ -131,7 +131,7 @@ class cryptopia extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetGetTradePairs ();
         $result = array ();
         $markets = $response['Data'];
@@ -435,7 +435,7 @@ class cryptopia extends Exchange {
         //         Address => null
         //     }
         //
-        $timestamp = $this->safe_integer($transaction, 'Timestamp');
+        $timestamp = $this->parse8601 ($this->safe_string($transaction, 'Timestamp'));
         $code = null;
         $currencyId = $this->safe_string($transaction, 'Currency');
         $currency = $this->safe_value($this->currencies_by_id, $currencyId);
@@ -501,11 +501,11 @@ class cryptopia extends Exchange {
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_transactions_by_type ('deposit', $code, $since, $limit, $params);
+        return $this->fetch_transactions_by_type ('withdrawal', $code, $since, $limit, $params);
     }
 
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_transactions_by_type ('withdraw', $code, $since, $limit, $params);
+        return $this->fetch_transactions_by_type ('deposit', $code, $since, $limit, $params);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {

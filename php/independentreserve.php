@@ -74,7 +74,7 @@ class independentreserve extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $baseCurrencies = $this->publicGetGetValidPrimaryCurrencyCodes ();
         $quoteCurrencies = $this->publicGetGetValidSecondaryCurrencyCodes ();
         $result = array ();

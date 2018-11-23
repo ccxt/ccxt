@@ -120,7 +120,7 @@ module.exports = class coinex extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.webGetResMarket ();
         let markets = response['data']['market_info'];
         let result = [];

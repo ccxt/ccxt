@@ -85,7 +85,7 @@ class bitflyer (Exchange):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         jp_markets = await self.publicGetGetmarkets()
         us_markets = await self.publicGetGetmarketsUsa()
         eu_markets = await self.publicGetGetmarketsEu()

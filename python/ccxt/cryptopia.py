@@ -146,7 +146,7 @@ class cryptopia (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetGetTradePairs()
         result = []
         markets = response['Data']
@@ -422,7 +422,7 @@ class cryptopia (Exchange):
         #         Address: null
         #     }
         #
-        timestamp = self.safe_integer(transaction, 'Timestamp')
+        timestamp = self.parse8601(self.safe_string(transaction, 'Timestamp'))
         code = None
         currencyId = self.safe_string(transaction, 'Currency')
         currency = self.safe_value(self.currencies_by_id, currencyId)
@@ -481,10 +481,10 @@ class cryptopia (Exchange):
         return self.parseTransactions(response['Data'], code, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
-        return self.fetch_transactions_by_type('deposit', code, since, limit, params)
+        return self.fetch_transactions_by_type('withdrawal', code, since, limit, params)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
-        return self.fetch_transactions_by_type('withdraw', code, since, limit, params)
+        return self.fetch_transactions_by_type('deposit', code, since, limit, params)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

@@ -107,7 +107,7 @@ class xbtce (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.privateGetSymbol()
         result = []
         for p in range(0, len(markets)):

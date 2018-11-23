@@ -142,7 +142,7 @@ class liqui (Exchange):
             'cost': cost,
         }
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetInfo()
         markets = response['pairs']
         keys = list(markets.keys())

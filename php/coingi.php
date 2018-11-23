@@ -90,7 +90,7 @@ class coingi extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = null;
         try {
             $this->parseJsonResponse = false;

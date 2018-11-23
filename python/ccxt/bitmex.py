@@ -154,7 +154,7 @@ class bitmex (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetInstrumentActiveAndIndices()
         result = []
         for p in range(0, len(markets)):

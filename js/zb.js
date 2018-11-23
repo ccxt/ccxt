@@ -164,7 +164,7 @@ module.exports = class zb extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetMarkets ();
         let keys = Object.keys (markets);
         let result = [];

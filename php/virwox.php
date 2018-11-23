@@ -82,7 +82,7 @@ class virwox extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetGetInstruments ();
         $keys = is_array ($markets['result']) ? array_keys ($markets['result']) : array ();
         $result = array ();

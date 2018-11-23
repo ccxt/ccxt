@@ -57,7 +57,7 @@ module.exports = class allcoin extends okcoinusd {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let result = [];
         let response = await this.webGetHomeMarketOverViewDetail ();
         let coins = response['marketCoins'];

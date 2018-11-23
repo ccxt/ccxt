@@ -138,7 +138,7 @@ class theocean (Exchange):
             'cost': cost,
         }
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetTokenPairs()
         #
         #     [

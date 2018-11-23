@@ -222,7 +222,7 @@ class gatecoin (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetReferenceCurrencyPairs()
         markets = response['currencyPairs']
         result = []

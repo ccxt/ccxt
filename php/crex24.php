@@ -138,7 +138,7 @@ class crex24 extends Exchange {
         return $this->milliseconds ();
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetInstruments ();
         //
         //     [ array (              $symbol =>   "$PAC-BTC",

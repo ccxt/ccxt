@@ -130,7 +130,7 @@ module.exports = class cryptopia extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetGetTradePairs ();
         let result = [];
         let markets = response['Data'];
@@ -434,7 +434,7 @@ module.exports = class cryptopia extends Exchange {
         //         Address: null
         //     }
         //
-        let timestamp = this.safeInteger (transaction, 'Timestamp');
+        let timestamp = this.parse8601 (this.safeString (transaction, 'Timestamp'));
         let code = undefined;
         let currencyId = this.safeString (transaction, 'Currency');
         let currency = this.safeValue (this.currencies_by_id, currencyId);
@@ -500,11 +500,11 @@ module.exports = class cryptopia extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsByType ('deposit', code, since, limit, params);
+        return await this.fetchTransactionsByType ('withdrawal', code, since, limit, params);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsByType ('withdraw', code, since, limit, params);
+        return await this.fetchTransactionsByType ('deposit', code, since, limit, params);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

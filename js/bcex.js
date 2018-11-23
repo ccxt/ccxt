@@ -285,7 +285,7 @@ module.exports = class bcex extends Exchange {
         };
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetApiMarketGetPriceList ();
         let result = [];
         let keys = Object.keys (response);

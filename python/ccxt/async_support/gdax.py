@@ -157,7 +157,7 @@ class gdax (Exchange):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         markets = await self.publicGetProducts()
         result = []
         for p in range(0, len(markets)):

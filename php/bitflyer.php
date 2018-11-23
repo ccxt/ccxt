@@ -84,7 +84,7 @@ class bitflyer extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $jp_markets = $this->publicGetGetmarkets ();
         $us_markets = $this->publicGetGetmarketsUsa ();
         $eu_markets = $this->publicGetGetmarketsEu ();

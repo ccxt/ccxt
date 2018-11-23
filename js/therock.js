@@ -98,7 +98,7 @@ module.exports = class therock extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetFunds ();
         //
         //     { funds: [ {                      id:   "BTCEUR",

@@ -293,7 +293,7 @@ class bcex (Exchange):
             },
         }
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         response = await self.publicGetApiMarketGetPriceList()
         result = []
         keys = list(response.keys())

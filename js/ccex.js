@@ -80,7 +80,7 @@ module.exports = class ccex extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let result = {};
         let response = await this.webGetPairs ();
         let markets = response['pairs'];

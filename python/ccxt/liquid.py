@@ -170,7 +170,7 @@ class liquid (Exchange):
             }
         return result
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetProducts()
         #
         #     [

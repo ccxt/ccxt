@@ -49,11 +49,6 @@ Certified Cryptocurrency Exchanges
 | |theocean| | theocean | `The Ocean <https://theocean.trade>`__              | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | 0   | `API <https://docs.theocean.trade>`__                                                           | US                     |
 +------------+----------+-----------------------------------------------------+----------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+------------------------+
 
-Get Listed
-----------
-
-Want to get on the list quickly? Contact us: info@ccxt.trade
-
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
@@ -316,7 +311,7 @@ The ccxt library currently supports the following 133 cryptocurrency exchange ma
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | virwox             | `VirWoX <https://www.virwox.com>`__                                                     |                                                                      | \*    | `API <https://www.virwox.com/developers.php>`__                                                     | Austria, EU                              |
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
-| wex                | `WEX <https://wex.nz>`__                                                                |                                                                      | 3     | `API <https://wex.nz/api/3/docs>`__                                                                 | New Zealand                              |
+| wex                | `WEX <https://wex.link>`__                                                              |                                                                      | 3     | `API <https://wex.link/api/3/docs>`__                                                               | New Zealand                              |
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | xbtce              | `xBTCe <https://www.xbtce.com>`__                                                       |                                                                      | 1     | `API <https://www.xbtce.com/tradeapi>`__                                                            | Russia                                   |
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -667,6 +662,19 @@ Social
 
 -  `Follow us on Twitter <https://twitter.com/ccxt_official>`__
 -  `Read our blog on Medium <https://medium.com/@ccxt>`__
+
+Team
+----
+
+-  `Igor Kroitor <https://github.com/kroitor>`__
+-  `Vitaly Gordon <https://github.com/xpl>`__
+-  `Denis Voropaev <https://github.com/tankakatan>`__
+-  `Carlo Revelli <https://github.com/frosty00>`__
+
+Contact Us
+----------
+
+For business inquiries: info@ccxt.trade
 
 .. |binance| image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
 .. |bitfinex| image:: https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg

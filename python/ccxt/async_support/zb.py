@@ -181,7 +181,7 @@ class zb (Exchange):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         markets = await self.publicGetMarkets()
         keys = list(markets.keys())
         result = []

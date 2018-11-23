@@ -56,7 +56,7 @@ module.exports = class kuna extends acx {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         const quotes = [ 'btc', 'eth', 'eurs', 'gbg', 'uah' ];
         const pricePrecisions = {
             'UAH': 0,

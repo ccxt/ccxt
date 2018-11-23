@@ -120,7 +120,7 @@ class theocean extends Exchange {
         );
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetTokenPairs ();
         //
         //     array (

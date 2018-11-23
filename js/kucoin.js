@@ -519,7 +519,7 @@ module.exports = class kucoin extends Exchange {
         };
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetMarketOpenSymbols ();
         if (this.options['adjustForTimeDifference'])
             await this.loadTimeDifference ();

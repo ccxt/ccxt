@@ -137,7 +137,7 @@ class tidebit (Exchange):
                     'info': response,
                 }
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         markets = await self.publicGetMarkets()
         result = []
         for p in range(0, len(markets)):

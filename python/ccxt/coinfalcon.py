@@ -67,7 +67,7 @@ class coinfalcon (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetMarkets()
         markets = response['data']
         result = []

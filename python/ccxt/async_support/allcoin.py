@@ -57,7 +57,7 @@ class allcoin (okcoinusd):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         result = []
         response = await self.webGetHomeMarketOverViewDetail()
         coins = response['marketCoins']

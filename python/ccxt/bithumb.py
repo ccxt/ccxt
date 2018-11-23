@@ -80,7 +80,7 @@ class bithumb (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetTickerAll()
         currencies = list(markets['data'].keys())
         result = []

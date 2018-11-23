@@ -60,7 +60,7 @@ class vaultoro extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $result = array ();
         $markets = $this->publicGetMarkets ();
         $market = $markets['data'];

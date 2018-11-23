@@ -72,7 +72,7 @@ module.exports = class coinnest extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let quote = 'KRW';
         let quoteId = quote.toLowerCase ();
         // todo: rewrite this for web endpoint
