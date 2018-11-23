@@ -925,12 +925,13 @@ module.exports = class hitbtc2 extends hitbtc {
         }
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const amount = this.safeFloat (transaction, 'amount');
-        let type = this.safeString (transaction, 'type');
-        let address = this.safeString (transaction, 'address');
+        const type = this.safeString (transaction, 'type');
+        const address = this.safeString (transaction, 'address');
+        const txid = this.safeString (transaction, 'hash');
         return {
             'info': transaction,
             'id': id,
-            'txid': undefined,
+            'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': address,
