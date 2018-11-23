@@ -164,13 +164,13 @@ class Exchange(BaseExchange):
         self.handle_errors(http_status_code, text, url, method, headers, text)
         return self.handle_rest_response(text, url, method, headers, body)
 
-    async def load_markets(self, reload=False):
+    async def load_markets(self, reload=False, params={}):
         if not reload:
             if self.markets:
                 if not self.markets_by_id:
                     return self.set_markets(self.markets)
                 return self.markets
-        markets = await self.fetch_markets()
+        markets = await self.fetch_markets(params)
         currencies = None
         if self.has['fetchCurrencies']:
             currencies = await self.fetch_currencies()
@@ -213,7 +213,7 @@ class Exchange(BaseExchange):
         self.fees = self.deep_extend(self.fees, fetched_fees)
         return self.fees
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         # markets are returned as a list
         # currencies are returned as a dict
         # this is for historical reasons
