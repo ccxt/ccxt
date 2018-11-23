@@ -182,7 +182,7 @@ module.exports = class bittrex extends Exchange {
         return this.decimalToPrecision (fee, TRUNCATE, this.markets[symbol]['precision']['price'], DECIMAL_PLACES);
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.v2GetMarketsGetMarketSummaries ();
         let result = [];
         for (let i = 0; i < response['result'].length; i++) {

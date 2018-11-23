@@ -117,7 +117,7 @@ module.exports = class bleutrade extends bittrex {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetMarkets ();
         let result = [];
         for (let p = 0; p < markets['result'].length; p++) {

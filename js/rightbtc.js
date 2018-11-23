@@ -132,7 +132,7 @@ module.exports = class rightbtc extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetTradingPairs ();
         // let zh = await this.publicGetGetAssetsTradingPairsZh ();
         let markets = this.extend (response['status']['message']);

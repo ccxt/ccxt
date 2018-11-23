@@ -128,7 +128,7 @@ module.exports = class fcoin extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetSymbols ();
         let result = [];
         let markets = response['data'];

@@ -326,7 +326,7 @@ module.exports = class okcoinusd extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.webGetSpotMarketsProducts ();
         let markets = response['data'];
         let result = [];

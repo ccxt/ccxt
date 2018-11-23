@@ -163,7 +163,7 @@ module.exports = class liquid extends Exchange {
         return result;
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetProducts ();
         //
         //     [

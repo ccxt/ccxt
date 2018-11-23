@@ -58,7 +58,7 @@ module.exports = class vaultoro extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let result = [];
         let markets = await this.publicGetMarkets ();
         let market = markets['data'];

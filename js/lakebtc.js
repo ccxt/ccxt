@@ -58,7 +58,7 @@ module.exports = class lakebtc extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetTicker ();
         let result = [];
         let keys = Object.keys (markets);
