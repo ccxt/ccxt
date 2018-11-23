@@ -917,6 +917,15 @@ module.exports = class upbit extends Exchange {
         return base + '/' + quote;
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'wait': 'open',
+            'done': 'closed',
+            'cancel': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrder (order, market = undefined) {
         //
         //     {
@@ -971,24 +980,10 @@ module.exports = class upbit extends Exchange {
         let type = this.safeString (order, 'ord_type');
         let timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         let status = this.parseOrderStatus (this.safeString (order, 'state'));
-        let symbol = this.getSymbolFromMarketId (this.safeString (order, 'market'), market);
+        let marketId = this.safeString (order, 'market');
+        market = this.safeValue (this.markets_by_id, marketId, market);
+        let symbol = undefined;
         let lastTradeTimestamp = undefined;
-        let fee = undefined;
-        if (commission) {
-            fee = {
-                'cost': parseFloat (order[commission]),
-            };
-            if (market !== undefined) {
-                fee['currency'] = market['quote'];
-            } else if (symbol !== undefined) {
-                let currencyIds = symbol.split ('/');
-                let quoteCurrencyId = currencyIds[1];
-                if (quoteCurrencyId in this.currencies_by_id)
-                    fee['currency'] = this.currencies_by_id[quoteCurrencyId]['code'];
-                else
-                    fee['currency'] = this.commonCurrencyCode (quoteCurrencyId);
-            }
-        }
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'volume');
         let remaining = this.safeFloat (order, 'remaining_volume');
@@ -999,6 +994,44 @@ module.exports = class upbit extends Exchange {
             if ((price !== undefined) && (filled !== undefined)) {
                 cost = price * filled;
             }
+        }
+        let orderTrades = this.safeValue (order, 'trades');
+        let trades = undefined;
+        if (orderTrades !== undefined) {
+            trades = this.parseTrades (orderTrades);
+        }
+        let fee = undefined;
+        let feeCost = this.safeFloat (order, 'paid_fee');
+        let feeCurrency = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+            feeCurrency = market['quote'];
+        } else {
+            const [ baseId, quoteId ] = marketId.split ('-');
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            symbol = base + '/' + quote;
+            feeCurrency = quote;
+        }
+        if (trades !== undefined) {
+            let numTrades = trades.length;
+            if (lastTradeTimestamp === undefined) {
+                lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
+            }
+            if (feeCost === undefined) {
+                for (let i = 0; i < numTrades; i++) {
+                    if (feeCost === undefined) {
+                        feeCost = 0;
+                    }
+                    feeCost = trades[i]['fee']['cost'];
+                }
+            }
+        }
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': feeCurrency,
+                'cost': feeCost,
+            };
         }
         let result = {
             'info': order,
@@ -1017,6 +1050,7 @@ module.exports = class upbit extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': trades,
         };
         return result;
     }
@@ -1064,49 +1098,50 @@ module.exports = class upbit extends Exchange {
         let request = {
             'uuid': id,
         };
-        let response = await this.publicGetOrder (this.extend (request, params));
+        // let response = await this.publicGetOrder (this.extend (request, params));
+        let response =
         //
-        //     {
-        //         "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
-        //         "side": "bid",
-        //         "ord_type": "limit",
-        //         "price": "17417000.0",
-        //         "state": "done",
-        //         "market": "KRW-BTC",
-        //         "created_at": "2018-04-05T14:09:14+09:00",
-        //         "volume": "1.0",
-        //         "remaining_volume": "0.0",
-        //         "reserved_fee": "26125.5",
-        //         "remaining_fee": "25974.0",
-        //         "paid_fee": "151.5",
-        //         "locked": "17341974.0",
-        //         "executed_volume": "1.0",
-        //         "trades_count": 2,
-        //         "trades": [
-        //             {
-        //                 "market": "KRW-BTC",
-        //                 "uuid": "78162304-1a4d-4524-b9e6-c9a9e14d76c3",
-        //                 "price": "101000.0",
-        //                 "volume": "0.77368323",
-        //                 "funds": "78142.00623",
-        //                 "ask_fee": "117.213009345",
-        //                 "bid_fee": "117.213009345",
-        //                 "created_at": "2018-04-05T14:09:15+09:00",
-        //                 "side": "bid"
-        //             },
-        //             {
-        //                 "market": "KRW-BTC",
-        //                 "uuid": "f73da467-c42f-407d-92fa-e10d86450a20",
-        //                 "price": "101000.0",
-        //                 "volume": "0.22631677",
-        //                 "funds": "22857.99377",
-        //                 "ask_fee": "34.286990655",
-        //                 "bid_fee": "34.286990655",
-        //                 "created_at": "2018-04-05T14:09:15+09:00",
-        //                 "side": "bid"
-        //             }
-        //         ]
-        //     }
+            {
+                "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
+                "side": "bid",
+                "ord_type": "limit",
+                "price": "17417000.0",
+                "state": "done",
+                "market": "KRW-BTC",
+                "created_at": "2018-04-05T14:09:14+09:00",
+                "volume": "1.0",
+                "remaining_volume": "0.0",
+                "reserved_fee": "26125.5",
+                "remaining_fee": "25974.0",
+                "paid_fee": "151.5",
+                "locked": "17341974.0",
+                "executed_volume": "1.0",
+                "trades_count": 2,
+                "trades": [
+                    {
+                        "market": "KRW-BTC",
+                        "uuid": "78162304-1a4d-4524-b9e6-c9a9e14d76c3",
+                        "price": "101000.0",
+                        "volume": "0.77368323",
+                        "funds": "78142.00623",
+                        "ask_fee": "117.213009345",
+                        "bid_fee": "117.213009345",
+                        "created_at": "2018-04-05T14:09:15+09:00",
+                        "side": "bid"
+                    },
+                    {
+                        "market": "KRW-BTC",
+                        "uuid": "f73da467-c42f-407d-92fa-e10d86450a20",
+                        "price": "101000.0",
+                        "volume": "0.22631677",
+                        "funds": "22857.99377",
+                        "ask_fee": "34.286990655",
+                        "bid_fee": "34.286990655",
+                        "created_at": "2018-04-05T14:09:15+09:00",
+                        "side": "bid"
+                    }
+                ]
+            }
         //
         return this.parseOrder (response);
     }
