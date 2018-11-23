@@ -301,7 +301,7 @@ module.exports = class Exchange {
         this.debug         = false
         this.journal       = 'debug.json'
         this.userAgent     = undefined
-        this.twofa         = undefined // two-factor authentication (2FA)
+        this.twofa         = false // two-factor authentication (2FA)
 
         this.apiKey        = undefined
         this.secret        = undefined
@@ -1469,8 +1469,11 @@ module.exports = class Exchange {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64))
     }
 
-    oath () {
-        this.checkRequiredCredentials ()
-        return this.totp (this.twofa)
+    oath (key) {
+        if (this.twofa === true) {
+            return this.totp (key)
+        } else {
+            throw new ExchangeError (this.id + ' this.twofa is not set to true')
+        }
     }
 }

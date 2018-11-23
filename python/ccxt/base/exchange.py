@@ -132,7 +132,7 @@ class Exchange(object):
     uid = ''
     privateKey = ''  # a "0x"-prefixed hexstring private key for a wallet
     walletAddress = ''  # the wallet address "0x"-prefixed hexstring
-    twofa = None
+    twofa = False
     marketsById = None
     markets_by_id = None
     currencies_by_id = None
@@ -1669,10 +1669,12 @@ class Exchange(object):
         signature = self.signHash(message_hash[-64:], privateKey[-64:])
         return signature
 
-    def oath(self):
-        self.checkRequiredCredentials()
-        try:
-            import pyotp
-            return pyotp.TOTP(self.twofa)
-        except ImportError:
-            raise ExchangeError (self.id + ' pyotp is not installed. Do `pip install pyotp` to fix')
+    def oath(self, key):
+        if self.twofa:
+            try:
+                import pyotp
+                return pyotp.TOTP(key)
+            except ImportError:
+                raise ExchangeError (self.id + ' pyotp is not installed. Do `pip install pyotp` to fix')
+        else:
+            raise ExchangeError (self.id + ' set .twofa to True to use this feature')
