@@ -1126,28 +1126,71 @@ module.exports = class upbit extends Exchange {
         return orders;
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddresses (codes = undefined, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let response = await this.accountGetDepositaddress (this.extend ({
-            'currency': currency['id'],
-        }, params));
-        let address = this.safeString (response['result'], 'Address');
-        let message = this.safeString (response, 'message');
-        if (!address || message === 'ADDRESS_GENERATING')
-            throw new AddressPending (this.id + ' the address for ' + code + ' is being generated (pending, not ready yet, retry again later)');
-        let tag = undefined;
-        if ((code === 'XRP') || (code === 'XLM') || (code === 'LSK')) {
-            tag = address;
-            address = currency['address'];
+        let response = await this.privateGetDepositsCoinAddresses (params);
+        //
+        //     [
+        //         {
+        //             "currency": "BTC",
+        //             "deposit_address": "3EusRwybuZUhVDeHL7gh3HSLmbhLcy7NqD",
+        //             "secondary_address": null
+        //         },
+        //         {
+        //             "currency": "ETH",
+        //             "deposit_address": "0x0d73e0a482b8cf568976d2e8688f4a899d29301c",
+        //             "secondary_address": null
+        //         },
+        //         {
+        //             "currency": "XRP",
+        //             "deposit_address": "rN9qNpgnBaZwqCg8CvUZRPqCcPPY7wfWep",
+        //             "secondary_address": "3057887915"
+        //         }
+        //     ]
+        //
+        let result = {};
+        for (let i = 0; i < response.length; i++) {
+            let depositAddress = this.parseDepositAddress (response[i]);
+            let code = depositAddress['code'];
+            result[code] = depositAddress;
         }
+        return result;
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {
+        //         "currency": "BTC",
+        //         "deposit_address": "3EusRwybuZUhVDeHL7gh3HSLmbhLcy7NqD",
+        //         "secondary_address": null
+        //     }
+        //
+        let address = this.safeString (depositAddress, 'deposit_ddress');
+        let tag = this.safeString (depositAddress, 'secondary_address');
+        let code = this.commonCurrencyCode (this.safeString (depositAddress, 'currency'));
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'info': response,
+            'info': depositAddress,
         };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privateGetDepositsCoinAddress (this.extend ({
+            'currency': currency['id'],
+        }, params));
+        //
+        //     {
+        //         "currency": "BTC",
+        //         "deposit_address": "3EusRwybuZUhVDeHL7gh3HSLmbhLcy7NqD",
+        //         "secondary_address": null
+        //     }
+        //
+        return this.parseDepositAddress (response);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
