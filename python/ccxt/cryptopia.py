@@ -422,7 +422,7 @@ class cryptopia (Exchange):
         #         Address: null
         #     }
         #
-        timestamp = self.safe_integer(transaction, 'Timestamp')
+        timestamp = self.parse8601(self.safe_string(transaction, 'Timestamp'))
         code = None
         currencyId = self.safe_string(transaction, 'Currency')
         currency = self.safe_value(self.currencies_by_id, currencyId)

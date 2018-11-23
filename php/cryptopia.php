@@ -435,7 +435,7 @@ class cryptopia extends Exchange {
         //         Address => null
         //     }
         //
-        $timestamp = $this->safe_integer($transaction, 'Timestamp');
+        $timestamp = $this->parse8601 ($this->safe_string($transaction, 'Timestamp'));
         $code = null;
         $currencyId = $this->safe_string($transaction, 'Currency');
         $currency = $this->safe_value($this->currencies_by_id, $currencyId);
