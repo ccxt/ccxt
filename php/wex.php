@@ -132,7 +132,7 @@ class wex extends liqui {
         );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
         if ($code === 200) {
             if ($body[0] !== '{') {
                 // $response is not JSON -> resort to default $error handler

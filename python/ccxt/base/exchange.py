@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.17.533'
+__version__ = '1.17.534'
 
 # -----------------------------------------------------------------------------
 
@@ -382,7 +382,7 @@ class Exchange(object):
                 return key
         return None
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
         pass
 
     def prepare_request_headers(self, headers=None):

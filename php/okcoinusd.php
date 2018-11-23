@@ -959,7 +959,7 @@ class okcoinusd extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
         if (strlen ($body) < 2)
             return; // fallback to default $error handler
         if ($body[0] === '{') {

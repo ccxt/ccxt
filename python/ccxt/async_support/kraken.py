@@ -1092,7 +1092,7 @@ class kraken (Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
         if body.find('Invalid order') >= 0:
             raise InvalidOrder(self.id + ' ' + body)
         if body.find('Invalid nonce') >= 0:

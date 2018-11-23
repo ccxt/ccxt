@@ -721,7 +721,7 @@ class gdax extends Exchange {
         );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
         if (($code === 400) || ($code === 404)) {
             if ($body[0] === '{') {
                 $response = json_decode ($body, $as_associative_array = true);

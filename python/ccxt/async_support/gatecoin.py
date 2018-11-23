@@ -650,7 +650,7 @@ class gatecoin (Exchange):
         # not unified yet
         return await self.privatePostElectronicWalletUserWalletsDigiCurrency(self.extend(request, params))
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if len(body) < 2:

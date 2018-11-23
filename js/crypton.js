@@ -400,9 +400,9 @@ module.exports = class crypton extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
         if (body[0] === '{') {
-            let response = JSON.parse (body);
+            response = JSON.parse (body);
             let success = this.safeValue (response, 'success');
             if (!success) {
                 throw new ExchangeError (this.id + ' ' + body);

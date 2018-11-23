@@ -1107,8 +1107,7 @@ module.exports = class poloniex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
-        let response = undefined;
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
         try {
             response = JSON.parse (body);
         } catch (e) {
