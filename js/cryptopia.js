@@ -434,7 +434,7 @@ module.exports = class cryptopia extends Exchange {
         //         Address: null
         //     }
         //
-        let timestamp = this.safeInteger (transaction, 'Timestamp');
+        let timestamp = this.parse8601 (this.safeString (transaction, 'Timestamp'));
         let code = undefined;
         let currencyId = this.safeString (transaction, 'Currency');
         let currency = this.safeValue (this.currencies_by_id, currencyId);
