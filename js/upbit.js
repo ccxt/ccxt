@@ -501,6 +501,8 @@ module.exports = class upbit extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
+        // fetchTrades
+        //
         //       {             market: "BTC-ETH",
         //             trade_date_utc: "2018-11-22",
         //             trade_time_utc: "13:55:24",
@@ -510,21 +512,42 @@ module.exports = class upbit extends Exchange {
         //         prev_closing_price:  0.02966,
         //               change_price:  -0.00051711,
         //                    ask_bid: "ASK",
-        //              sequential_id:  15428949259430000 },
+        //              sequential_id:  15428949259430000 }
         //
+        // fetchOrder
+        //
+        //         {
+        //             "market": "KRW-BTC",
+        //             "uuid": "78162304-1a4d-4524-b9e6-c9a9e14d76c3",
+        //             "price": "101000.0",
+        //             "volume": "0.77368323",
+        //             "funds": "78142.00623",
+        //             "ask_fee": "117.213009345",
+        //             "bid_fee": "117.213009345",
+        //             "created_at": "2018-04-05T14:09:15+09:00",
+        //             "side": "bid",
+        //         }
+        //
+        let id = this.safeString (trade, 'sequential_id');
+        let orderId = this.safeString (trade, 'uuid');
         let timestamp = this.safeInteger (trade, 'timestamp');
+        if (timestamp === undefined) {
+            timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
+        }
         let side = undefined;
-        let askOrBid = this.safeString (trade, 'ask_bid');
-        if (askOrBid === 'ASK') {
+        let askOrBid = this.safeString2 (trade, 'ask_bid', 'side');
+        if (askOrBid !== undefined) {
+            askOrBid = askOrBid.toLowerCase ();
+        }
+        if (askOrBid === 'ask') {
             side = 'sell';
-        } else if (askOrBid === 'BID') {
+        } else if (askOrBid === 'bid') {
             side = 'buy';
         }
-        let id = this.safeString (trade, 'sequential_id');
         let symbol = this.getSymbolFromMarketId (this.safeString (trade, 'market'), market);
         let cost = undefined;
-        let price = this.safeFloat (trade, 'trade_price');
-        let amount = this.safeFloat (trade, 'trade_volume');
+        let price = this.safeFloat2 (trade, 'trade_price', 'price');
+        let amount = this.safeFloat2 (trade, 'trade_volume', 'volume');
         if (amount !== undefined) {
             if (price !== undefined) {
                 cost = price * amount;
@@ -533,6 +556,7 @@ module.exports = class upbit extends Exchange {
         return {
             'id': id,
             'info': trade,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -730,7 +754,6 @@ module.exports = class upbit extends Exchange {
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        // https://support.bittrex.com/hc/en-us/articles/115003723911
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
@@ -739,25 +762,26 @@ module.exports = class upbit extends Exchange {
         }
         const response = await this.accountGetDeposithistory (this.extend (request, params));
         //
-        //     { success:    true,
-        //       message:   "",
-        //        result: [ {            Id:  22578097,
-        //                           Amount:  0.3,
-        //                         Currency: "ETH",
-        //                    Confirmations:  15,
-        //                      LastUpdated: "2018-06-10T07:12:10.57",
-        //                             TxId: "0xf50b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
-        //                    CryptoAddress: "0xb25f281fa51f1635abd4a60b0870a62d2a7fa404"                    } ] }
+        //     [
+        //         {
+        //             "type": "deposit",
+        //             "uuid": "94332e99-3a87-4a35-ad98-28b0c969f830",
+        //             "currency": "KRW",
+        //             "txid": "9e37c537-6849-4c8b-a134-57313f5dfc5a",
+        //             "state": "ACCEPTED",
+        //             "created_at": "2017-12-08T15:38:02+09:00",
+        //             "done_at": "2017-12-08T15:38:02+09:00",
+        //             "amount": "100000.0",
+        //             "fee": "0.0"
+        //         },
+        //         ...,
+        //     ]
         //
-        // we cannot filter by `since` timestamp, as it isn't set by Bittrex
-        // see https://github.com/ccxt/ccxt/issues/4067
-        // return this.parseTransactions (response['result'], currency, since, limit);
-        return this.parseTransactions (response['result'], currency, undefined, limit);
+        return this.parseTransactions (response['result'], currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        // https://support.bittrex.com/hc/en-us/articles/115003723911
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
@@ -766,36 +790,21 @@ module.exports = class upbit extends Exchange {
         }
         const response = await this.accountGetWithdrawalhistory (this.extend (request, params));
         //
-        //     {
-        //         "success" : true,
-        //         "message" : "",
-        //         "result" : [{
-        //                 "PaymentUuid" : "b32c7a5c-90c6-4c6e-835c-e16df12708b1",
-        //                 "Currency" : "BTC",
-        //                 "Amount" : 17.00000000,
-        //                 "Address" : "1DfaaFBdbB5nrHj87x3NHS4onvw1GPNyAu",
-        //                 "Opened" : "2014-07-09T04:24:47.217",
-        //                 "Authorized" : true,
-        //                 "PendingPayment" : false,
-        //                 "TxCost" : 0.00020000,
-        //                 "TxId" : null,
-        //                 "Canceled" : true,
-        //                 "InvalidAddress" : false
-        //             }, {
-        //                 "PaymentUuid" : "d193da98-788c-4188-a8f9-8ec2c33fdfcf",
-        //                 "Currency" : "XC",
-        //                 "Amount" : 7513.75121715,
-        //                 "Address" : "TcnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
-        //                 "Opened" : "2014-07-08T23:13:31.83",
-        //                 "Authorized" : true,
-        //                 "PendingPayment" : false,
-        //                 "TxCost" : 0.00002000,
-        //                 "TxId" : "d8a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
-        //                 "Canceled" : false,
-        //                 "InvalidAddress" : false
-        //             }
-        //         ]
-        //     }
+        //     [
+        //         {
+        //             "type": "withdraw",
+        //             "uuid": "9f432943-54e0-40b7-825f-b6fec8b42b79",
+        //             "currency": "BTC",
+        //             "txid": null,
+        //             "state": "processing",
+        //             "created_at": "2018-04-13T11:24:01+09:00",
+        //             "done_at": null,
+        //             "amount": "0.01",
+        //             "fee": "0.0",
+        //             "krw_amount": "80420.0"
+        //         },
+        //         ...,
+        //     ]
         //
         return this.parseTransactions (response['result'], currency, since, limit);
     }
