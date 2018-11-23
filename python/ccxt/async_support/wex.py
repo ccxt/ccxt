@@ -133,7 +133,7 @@ class wex (liqui):
             'info': response,
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
         if code == 200:
             if body[0] != '{':
                 # response is not JSON -> resort to default error handler

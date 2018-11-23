@@ -253,7 +253,7 @@ class virwox (Exchange):
             })
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
         if code == 200:
             if (body[0] == '{') or (body[0] == '['):
                 response = json.loads(body)

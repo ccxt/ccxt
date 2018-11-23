@@ -551,7 +551,7 @@ class bitmex (Exchange):
             'id': response['transactID'],
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
         if code == 429:
             raise DDoSProtection(self.id + ' ' + body)
         if code >= 400:

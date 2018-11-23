@@ -445,7 +445,7 @@ class tidebit extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
         if ($code === 400) {
             $response = json_decode ($body, $as_associative_array = true);
             $error = $this->safe_value($response, 'error');
