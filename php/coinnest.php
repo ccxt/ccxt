@@ -73,7 +73,7 @@ class coinnest extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $quote = 'KRW';
         $quoteId = strtolower ($quote);
         // todo => rewrite this for web endpoint

@@ -550,7 +550,7 @@ class hitbtc2 extends hitbtc {
         return $this->decimal_to_precision($fee, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetSymbol ();
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {

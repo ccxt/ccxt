@@ -82,7 +82,7 @@ class virwox (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetGetInstruments()
         keys = list(markets['result'].keys())
         result = []

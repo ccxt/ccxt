@@ -146,7 +146,7 @@ class cryptopia (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetGetTradePairs()
         result = []
         markets = response['Data']

@@ -58,7 +58,7 @@ class vaultoro (Exchange):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         result = []
         markets = await self.publicGetMarkets()
         market = markets['data']

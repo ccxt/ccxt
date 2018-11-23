@@ -565,7 +565,7 @@ class hitbtc2 (hitbtc):
     def fee_to_precision(self, symbol, fee):
         return self.decimal_to_precision(fee, TRUNCATE, 8, DECIMAL_PLACES)
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         markets = await self.publicGetSymbol()
         result = []
         for i in range(0, len(markets)):

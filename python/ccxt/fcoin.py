@@ -146,7 +146,7 @@ class fcoin (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetSymbols()
         result = []
         markets = response['data']

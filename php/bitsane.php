@@ -129,7 +129,7 @@ class bitsane extends Exchange {
         return $result;
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetAssetsPairs ();
         $result = array ();
         $marketIds = is_array ($markets) ? array_keys ($markets) : array ();

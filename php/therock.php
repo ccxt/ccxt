@@ -99,7 +99,7 @@ class therock extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetFunds ();
         //
         //     { funds => array ( array (                      $id =>   "BTCEUR",

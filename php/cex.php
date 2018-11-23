@@ -123,7 +123,7 @@ class cex extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetCurrencyLimits ();
         $result = array ();
         for ($p = 0; $p < count ($markets['data']['pairs']); $p++) {

@@ -92,7 +92,7 @@ class exx extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetMarkets ();
         $ids = is_array ($markets) ? array_keys ($markets) : array ();
         $result = array ();

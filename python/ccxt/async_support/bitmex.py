@@ -154,7 +154,7 @@ class bitmex (Exchange):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         markets = await self.publicGetInstrumentActiveAndIndices()
         result = []
         for p in range(0, len(markets)):

@@ -101,7 +101,7 @@ class bigone extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetMarkets ();
         $markets = $response['data'];
         $result = array ();

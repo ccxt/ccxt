@@ -149,7 +149,7 @@ class crex24 (Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         response = await self.publicGetInstruments()
         #
         #     [{             symbol:   "$PAC-BTC",

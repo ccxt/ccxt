@@ -199,7 +199,7 @@ class bittrex (Exchange):
     def fee_to_precision(self, symbol, fee):
         return self.decimal_to_precision(fee, TRUNCATE, self.markets[symbol]['precision']['price'], DECIMAL_PLACES)
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         response = await self.v2GetMarketsGetMarketSummaries()
         result = []
         for i in range(0, len(response['result'])):

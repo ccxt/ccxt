@@ -241,7 +241,7 @@ class cobinhood (Exchange):
             }
         return result
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetMarketTradingPairs()
         markets = response['result']['trading_pairs']
         result = []

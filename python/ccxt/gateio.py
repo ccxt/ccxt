@@ -145,7 +145,7 @@ class gateio (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetMarketinfo()
         markets = self.safe_value(response, 'pairs')
         if not markets:

@@ -72,7 +72,7 @@ class independentreserve (Exchange):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         baseCurrencies = await self.publicGetGetValidPrimaryCurrencyCodes()
         quoteCurrencies = await self.publicGetGetValidSecondaryCurrencyCodes()
         result = []

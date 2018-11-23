@@ -69,7 +69,7 @@ class flowbtc (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicPostGetProductPairs()
         markets = response['productPairs']
         result = {}

@@ -227,7 +227,7 @@ class huobipro (Exchange):
             },
         }
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         method = self.options['fetchMarketsMethod']
         response = getattr(self, method)()
         markets = response['data']

@@ -246,7 +246,7 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetAssetPairs ();
         $limits = $this->fetch_min_order_amounts ();
         $keys = is_array ($markets['result']) ? array_keys ($markets['result']) : array ();

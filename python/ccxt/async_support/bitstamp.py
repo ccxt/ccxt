@@ -173,7 +173,7 @@ class bitstamp (Exchange):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         markets = await self.publicGetTradingPairsInfo()
         result = []
         for i in range(0, len(markets)):

@@ -222,7 +222,7 @@ class gatecoin (Exchange):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         response = await self.publicGetReferenceCurrencyPairs()
         markets = response['currencyPairs']
         result = []

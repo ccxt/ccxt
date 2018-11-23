@@ -299,7 +299,7 @@ class binance extends Exchange {
         return $this->options['timeDifference'];
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetExchangeInfo ();
         if ($this->options['adjustForTimeDifference'])
             $this->load_time_difference ();

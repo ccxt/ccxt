@@ -121,7 +121,7 @@ class cointiger extends huobipro {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->v2publicGetCurrencys ();
         //
         //     {

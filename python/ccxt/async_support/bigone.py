@@ -113,7 +113,7 @@ class bigone (Exchange):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         response = await self.publicGetMarkets()
         markets = response['data']
         result = []

@@ -103,7 +103,7 @@ class exx (Exchange):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         markets = await self.publicGetMarkets()
         ids = list(markets.keys())
         result = []

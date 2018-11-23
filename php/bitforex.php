@@ -216,7 +216,7 @@ class bitforex extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetApiV1MarketSymbols ();
         $data = $response['data'];
         $result = array ();

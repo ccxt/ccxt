@@ -122,7 +122,7 @@ class bitlish (Exchange):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         markets = await self.publicGetPairs()
         result = []
         keys = list(markets.keys())

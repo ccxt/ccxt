@@ -186,7 +186,7 @@ class uex (Exchange):
             'cost': float(self.currency_to_precision(market[key], cost)),
         }
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetCommonSymbols()
         #
         #     {code:   "0",
