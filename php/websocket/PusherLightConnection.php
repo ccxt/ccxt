@@ -54,11 +54,27 @@ class PusherLightConnection extends WebsocketBaseConnection {
 
     public function resetActivityCheck() {
         if ($this->activityTimer != null) {
-            $this->activityTimer->cancel();
+            // $this->activityTimer->cancel();
+            $this->loop->cancelTimer($this->activityTimer);
         }
         if ($this->client->is_closing) {
             return;
         }
+        $this->activityTimer = $this->loop->addTimer($this->client->activityTimeout / 1000, function() {
+            if (!$that->client->is_closing) {
+                echo "pusher->send ping";
+                $that->client->ws.send(json_encode(array(
+                    "event"=> 'pusher:ping',
+                    "data" => array()
+                )));
+                $this->activityTimer = $this->loop->addTimer($this->client->pongTimeout / 1000, function() {
+                    if (!$that->client->is_closing){
+                        $that->client->ws->close();
+                    }
+                });
+            }
+        });
+        /*
         $that = $this;
         $promise = new \React\Promise\Promise(function () { });
         $this->activityTimer = React\Promise\Timer\timeout($promise, $this->client->activityTimeout / 1000, $this->loop)
@@ -77,6 +93,7 @@ class PusherLightConnection extends WebsocketBaseConnection {
                     });
                 }
         });
+        */
     }
  
     public function connect () {
