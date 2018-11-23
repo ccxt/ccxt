@@ -528,8 +528,8 @@ module.exports = class upbit extends Exchange {
         //             "side": "bid",
         //         }
         //
-        let id = this.safeString (trade, 'sequential_id');
-        let orderId = this.safeString (trade, 'uuid');
+        let id = this.safeString2 (trade, 'sequential_id', 'uuid');
+        let orderId = undefined;
         let timestamp = this.safeInteger (trade, 'timestamp');
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
@@ -544,14 +544,37 @@ module.exports = class upbit extends Exchange {
         } else if (askOrBid === 'bid') {
             side = 'buy';
         }
-        let symbol = this.getSymbolFromMarketId (this.safeString (trade, 'market'), market);
-        let cost = undefined;
+        let cost = this.safeFloat (trade, 'funds');
         let price = this.safeFloat2 (trade, 'trade_price', 'price');
         let amount = this.safeFloat2 (trade, 'trade_volume', 'volume');
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = price * amount;
+        if (cost === undefined) {
+            if (amount !== undefined) {
+                if (price !== undefined) {
+                    cost = price * amount;
+                }
             }
+        }
+        let marketId = this.safeString (order, 'market');
+        market = this.safeValue (this.markets_by_id, marketId, market);
+        let fee = undefined;
+        let feeCurrency = undefined;
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+            feeCurrency = market['quote'];
+        } else {
+            const [ baseId, quoteId ] = marketId.split ('-');
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            symbol = base + '/' + quote;
+            feeCurrency = quote;
+        }
+        let feeCost = this.safeString (trade, askOrBid + '_fee');
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': feeCurrency,
+                'cost': feeCost,
+            };
         }
         return {
             'id': id,
@@ -565,7 +588,7 @@ module.exports = class upbit extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
@@ -980,9 +1003,6 @@ module.exports = class upbit extends Exchange {
         let type = this.safeString (order, 'ord_type');
         let timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         let status = this.parseOrderStatus (this.safeString (order, 'state'));
-        let marketId = this.safeString (order, 'market');
-        market = this.safeValue (this.markets_by_id, marketId, market);
-        let symbol = undefined;
         let lastTradeTimestamp = undefined;
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'volume');
@@ -1003,6 +1023,9 @@ module.exports = class upbit extends Exchange {
         let fee = undefined;
         let feeCost = this.safeFloat (order, 'paid_fee');
         let feeCurrency = undefined;
+        let marketId = this.safeString (order, 'market');
+        market = this.safeValue (this.markets_by_id, marketId, market);
+        let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
             feeCurrency = market['quote'];
@@ -1020,10 +1043,14 @@ module.exports = class upbit extends Exchange {
             }
             if (feeCost === undefined) {
                 for (let i = 0; i < numTrades; i++) {
-                    if (feeCost === undefined) {
-                        feeCost = 0;
+                    let tradeFee = this.safeValue (trades[i], 'fee', {});
+                    let tradeFeeCost = this.safeFloat (tradeFee, 'cost');
+                    if (tradeFeeCost !== undefined) {
+                        if (feeCost === undefined) {
+                            feeCost = 0;
+                        }
+                        feeCost = this.sum (feeCost, tradeFeeCost);
                     }
-                    feeCost = trades[i]['fee']['cost'];
                 }
             }
         }
