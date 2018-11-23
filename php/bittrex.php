@@ -182,7 +182,7 @@ class bittrex extends Exchange {
         return $this->decimal_to_precision($fee, TRUNCATE, $this->markets[$symbol]['precision']['price'], DECIMAL_PLACES);
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->v2GetMarketsGetMarketSummaries ();
         $result = array ();
         for ($i = 0; $i < count ($response['result']); $i++) {

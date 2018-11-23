@@ -138,7 +138,7 @@ class tidebit extends Exchange {
         }
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetMarkets ();
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {

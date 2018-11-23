@@ -327,7 +327,7 @@ class okcoinusd extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->webGetSpotMarketsProducts ();
         $markets = $response['data'];
         $result = array ();

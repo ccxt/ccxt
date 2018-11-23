@@ -330,7 +330,7 @@ class exmo extends Exchange {
         return $result;
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $fees = $this->fetch_trading_fees();
         $markets = $this->publicGetPairSettings ();
         $keys = is_array ($markets) ? array_keys ($markets) : array ();

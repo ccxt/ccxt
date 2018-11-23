@@ -238,7 +238,7 @@ class poloniex (Exchange):
         response = await self.publicGetReturnChartData(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         markets = await self.publicGetReturnTicker()
         keys = list(markets.keys())
         result = []

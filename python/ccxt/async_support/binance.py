@@ -307,7 +307,7 @@ class binance (Exchange):
         self.options['timeDifference'] = int(after - response['serverTime'])
         return self.options['timeDifference']
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         response = await self.publicGetExchangeInfo()
         if self.options['adjustForTimeDifference']:
             await self.load_time_difference()

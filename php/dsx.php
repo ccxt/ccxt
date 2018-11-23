@@ -89,7 +89,7 @@ class dsx extends liqui {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetInfo ();
         $markets = $response['pairs'];
         $keys = is_array ($markets) ? array_keys ($markets) : array ();

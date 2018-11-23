@@ -218,7 +218,7 @@ class huobipro extends Exchange {
         );
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $method = $this->options['fetchMarketsMethod'];
         $response = $this->$method ();
         $markets = $response['data'];

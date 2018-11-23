@@ -166,7 +166,7 @@ class coinegg (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         quoteIds = self.options['quoteIds']
         result = []
         for b in range(0, len(quoteIds)):

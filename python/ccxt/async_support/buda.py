@@ -151,7 +151,7 @@ class buda (Exchange):
                 return currencyInfo
         return None
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         marketsResponse = await self.publicGetMarkets()
         markets = marketsResponse['markets']
         currenciesResponse = await self.publicGetCurrencies()

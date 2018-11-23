@@ -122,7 +122,7 @@ class ice3x (Exchange):
             }
         return result
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         if not self.currencies:
             self.currencies = self.fetch_currencies()
         self.currencies_by_id = self.index_by(self.currencies, 'id')

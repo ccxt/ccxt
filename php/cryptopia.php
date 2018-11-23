@@ -131,7 +131,7 @@ class cryptopia extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetGetTradePairs ();
         $result = array ();
         $markets = $response['Data'];

@@ -89,7 +89,7 @@ class bitso extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetAvailableBooks ();
         $result = array ();
         for ($i = 0; $i < count ($markets['payload']); $i++) {

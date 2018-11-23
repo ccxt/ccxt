@@ -148,7 +148,7 @@ class buda extends Exchange {
         return null;
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $marketsResponse = $this->publicGetMarkets ();
         $markets = $marketsResponse['markets'];
         $currenciesResponse = $this->publicGetCurrencies ();

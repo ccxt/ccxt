@@ -93,7 +93,7 @@ class btcmarkets (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetV2MarketActive()
         result = []
         markets = response['markets']

@@ -334,7 +334,7 @@ class okcoinusd (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.webGetSpotMarketsProducts()
         markets = response['data']
         result = []

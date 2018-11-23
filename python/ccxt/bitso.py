@@ -99,7 +99,7 @@ class bitso (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetAvailableBooks()
         result = []
         for i in range(0, len(markets['payload'])):

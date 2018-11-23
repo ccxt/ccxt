@@ -122,7 +122,7 @@ class ice3x extends Exchange {
         return $result;
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         if (!$this->currencies) {
             $this->currencies = $this->fetch_currencies();
         }

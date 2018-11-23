@@ -137,7 +137,7 @@ class cointiger (huobipro):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.v2publicGetCurrencys()
         #
         #     {

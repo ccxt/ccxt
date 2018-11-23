@@ -328,7 +328,7 @@ class exmo (Exchange):
             }
         return result
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         fees = self.fetch_trading_fees()
         markets = self.publicGetPairSettings()
         keys = list(markets.keys())

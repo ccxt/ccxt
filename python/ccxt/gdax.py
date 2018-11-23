@@ -157,7 +157,7 @@ class gdax (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetProducts()
         result = []
         for p in range(0, len(markets)):

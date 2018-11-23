@@ -164,7 +164,7 @@ class liquid extends Exchange {
         return $result;
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetProducts ();
         //
         //     array (

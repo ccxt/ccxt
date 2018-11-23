@@ -218,7 +218,7 @@ class bitz (Exchange):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         response = await self.marketGetSymbolList()
         #
         #     {   status:    200,

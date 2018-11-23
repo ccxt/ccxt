@@ -293,7 +293,7 @@ class bcex (Exchange):
             },
         }
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetApiMarketGetPriceList()
         result = []
         keys = list(response.keys())

@@ -86,7 +86,7 @@ class btcmarkets extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetV2MarketActive ();
         $result = array ();
         $markets = $response['markets'];

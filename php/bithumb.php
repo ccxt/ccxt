@@ -71,7 +71,7 @@ class bithumb extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetTickerAll ();
         $currencies = is_array ($markets['data']) ? array_keys ($markets['data']) : array ();
         $result = array ();

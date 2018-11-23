@@ -261,7 +261,7 @@ class kraken (Exchange):
                     result[code] = amount
         return result
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         markets = await self.publicGetAssetPairs()
         limits = await self.fetch_min_order_amounts()
         keys = list(markets['result'].keys())
