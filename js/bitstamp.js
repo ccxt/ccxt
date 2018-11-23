@@ -917,7 +917,7 @@ module.exports = class bitstamp extends Exchange {
 
     _websocketOnMessage (contextId, data) {
         let msg = JSON.parse (data);
-        //console.log(data);
+        // console.log(data);
         let evt = this.safeString (msg, 'event');
         if (evt === 'subscription_succeeded') {
             this._websocketHandleSubscription (contextId, msg);
@@ -983,7 +983,6 @@ module.exports = class bitstamp extends Exchange {
             }
         }
     }
-
 
     _websocketSubscribe (contextId, event, symbol, nonce, params = {}) {
         if (event !== 'ob') {

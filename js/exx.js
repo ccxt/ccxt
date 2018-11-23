@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, ExchangeNotAvailable } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, ExchangeNotAvailable, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -440,7 +440,7 @@ module.exports = class exx extends Exchange {
 
     _websocketOnMessage (contextId, data) {
         let msg = JSON.parse (data);
-        console.log(msg);
+        console.log (msg);
     }
 
     _websocketSubscribe (contextId, event, symbol, nonce, params = {}) {
@@ -460,9 +460,9 @@ module.exports = class exx extends Exchange {
         // send request
         const id = this.marketId (symbol);
         this.websocketSendJson ({
-            'dataType': "1_ENTRUST_ADD_" + id,
+            'dataType': '1_ENTRUST_ADD_' + id,
             'dataSize': 1,
-            'action': 'ADD'
+            'action': 'ADD',
         });
     }
 
@@ -472,9 +472,9 @@ module.exports = class exx extends Exchange {
         }
         let id = this.market_id (symbol);
         let payload = {
-            'dataType': "1_ENTRUST_ADD_" + id,
+            'dataType': '1_ENTRUST_ADD_' + id,
             'dataSize': 1,
-            'action': 'REMOVE'
+            'action': 'REMOVE',
         };
         let symbolData = this._contextGetSymbolData (contextId, event, symbol);
         if (!('unsub-nonces' in symbolData)) {

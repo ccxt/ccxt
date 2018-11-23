@@ -1288,13 +1288,13 @@ module.exports = class poloniex extends Exchange {
         let channelId = msg[0];
         if (channelId === 1000) {
             // account notification (beta)
-            console.log('notification');
+            console.log ('notification');
         } else if (channelId === 1002) {
             // ticker data
-            console.log('ticker');
+            console.log ('ticker');
         } else if (channelId === 1003) {
             // 24 hour exchange volume
-            console.log('24 hour exchange volume');
+            console.log ('24 hour exchange volume');
         } else if (channelId === 1010) {
             console.log (this.id + '._websocketOnMessage() heartbeat ' + data);
         } else {

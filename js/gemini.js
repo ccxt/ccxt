@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -509,13 +509,12 @@ module.exports = class gemini extends Exchange {
                         };
                     } else {
                         let timestamp = this.safeFloat (msg, 'timestamp');
-                        symbolData['ob'];
                         symbolData['ob']['timestamp'] = timestamp;
                         symbolData['ob']['datetime'] = this.iso8601 (timestamp);
                     }
                     symbolData['ob']['nonce'] = this.safeInteger (msg, 'eventId');
                 }
-            }            
+            }
             for (let i = 0; i < events.length; i++) {
                 let event = events[i];
                 let eventType = event['type'];
@@ -563,7 +562,7 @@ module.exports = class gemini extends Exchange {
             let params = parts[1];
             parts = parts[0].split ('/');
             partsLen = parts.length;
-            let symbol = parts[partsLen-1];
+            let symbol = parts[partsLen - 1];
             symbol = this.findSymbol (symbol);
             this._contextSet (contextId, 'symbol', symbol);
             params = params.split ('&');
@@ -589,10 +588,10 @@ module.exports = class gemini extends Exchange {
         // check all events has the same symbol and build parameter list
         let symbol = undefined;
         let urlParams = {
-            'heartbeat': "true",
-            'bids': "false",
-            'offers': "false",
-            'trades': "false",
+            'heartbeat': 'true',
+            'bids': 'false',
+            'offers': 'false',
+            'trades': 'false',
         };
         for (let i = 0; i < events.length; i++) {
             let event = events[i];
@@ -602,10 +601,10 @@ module.exports = class gemini extends Exchange {
                 throw new ExchangeError ('invalid configuration: not same symbol in event list: ' + symbol + ' ' + event['symbol']);
             }
             if (event['event'] === 'ob') {
-                urlParams['bids'] = "true";
-                urlParams['offers'] = "true";
+                urlParams['bids'] = 'true';
+                urlParams['offers'] = 'true';
             } else if (event['event'] === 'trade') {
-                urlParams['trades'] = "true";
+                urlParams['trades'] = true;
             } else {
                 throw new ExchangeError ('invalid configuration: event not reconigzed ' + event['event']);
             }
@@ -613,7 +612,6 @@ module.exports = class gemini extends Exchange {
         return options['url'] + this._websocketMarketId (symbol) + '?' + this.urlencode (urlParams);
     }
 
-    
     _getCurrentWebsocketOrderbook (contextId, symbol, limit) {
         let data = this._contextGetSymbolData (contextId, 'ob', symbol);
         if (('ob' in data) && (typeof data['ob'] !== 'undefined')) {
