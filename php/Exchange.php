@@ -33,6 +33,8 @@ namespace ccxt;
 use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
+use OTPHP\TOTP;
+use ParagonIE\ConstantTime\Base32;
 
 $version = '1.17.533';
 
@@ -791,7 +793,7 @@ class Exchange {
         $this->privateKey    = '';
         $this->walletAddress = '';
 
-        $this->twofa         = false;
+        $this->twofa         = null;
         $this->marketsById   = null;
         $this->markets_by_id = null;
         $this->currencies_by_id = null;
@@ -2347,4 +2349,13 @@ class Exchange {
         return $this->signHash ($this->hashMessage ($message), $privateKey);
     }
 
+    public function oath () {
+        try {
+            $this->check_required_credentials ();
+            $otp = TOTP::create(Base32::encode($this->twofa));
+            return $otp->now();
+        } catch (\Exception $e) {
+            echo $e;
+        }
+    }
 }

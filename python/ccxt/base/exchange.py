@@ -56,7 +56,6 @@ import time
 import uuid
 import zlib
 from decimal import Decimal
-import pyotp
 
 # -----------------------------------------------------------------------------
 
@@ -1672,4 +1671,8 @@ class Exchange(object):
 
     def oath(self):
         self.checkRequiredCredentials()
-        return pyotp.TOTP(self.twofa)
+        try:
+            import pyotp
+            return pyotp.TOTP(self.twofa)
+        except ImportError:
+            raise ExchangeError (self.id + ' pyotp is not installed. Do `pip install pyotp` to fix')
