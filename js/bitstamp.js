@@ -90,24 +90,6 @@ module.exports = class bitstamp extends Exchange {
                     ],
                 },
             },
-            'asyncconf': {
-                'conx-tpls': {
-                    'ob': {
-                        'type': 'pusher',
-                        'key': 'de504dc5763aeef9ff52',
-                        'event': 'data',
-                    },
-                },
-                'methodmap': {
-                    'connected': '_asyncHandleConnected',
-                    'ob-delta': '_asyncHandleObUpdate',
-                },
-                'events': {
-                    'ob': {
-                        'conx-tpl': 'ob',
-                    },
-                },
-            },
             'fees': {
                 'trading': {
                     'tierBased': true,
@@ -174,6 +156,26 @@ module.exports = class bitstamp extends Exchange {
                 'Missing key, signature and nonce parameters': AuthenticationError,
                 'Your account is frozen': PermissionDenied,
                 'Please update your profile with your FATCA information, before using API.': PermissionDenied,
+            },
+            'wsconf': {
+                'conx-tpls': {
+                    'default': {
+                        'type': 'pusher',
+                        'baseurl': 'wss://ws-mt1.pusher.com:443/app/de504dc5763aeef9ff52',
+                    },
+                },
+                'methodmap': {
+                    '_websocketTimeoutRemoveNonce': '_websocketTimeoutRemoveNonce',
+                },
+                'events': {
+                    'ob': {
+                        'conx-tpl': 'default',
+                        'conx-param': {
+                            'url': '{baseurl}',
+                            'id': '{id}',
+                        },
+                    },
+                },
             },
         });
     }
@@ -911,5 +913,136 @@ module.exports = class bitstamp extends Exchange {
                 throw new ExchangeError (this.id + ' ' + body);
             }
         }
+    }
+
+    _websocketOnMessage (contextId, data) {
+        let msg = JSON.parse (data);
+        //console.log(data);
+        let evt = this.safeString (msg, 'event');
+        if (evt === 'subscription_succeeded') {
+            this._websocketHandleSubscription (contextId, msg);
+        } else if (evt === 'unsubscription_succeed') {
+            this._websocketHandleUnsubscription (contextId, msg);
+        } else if (evt === 'data') {
+            let chan = this.safeString (msg, 'channel');
+            if (chan.indexOf ('order_book_') >= 0) {
+                this._websocketHandleOrderbook (contextId, msg);
+            }
+        }
+    }
+
+    _websocketHandleOrderbook (contextId, msg) {
+        let chan = this.safeString (msg, 'channel');
+        let parts = chan.split ('_');
+        let symbol = this.findSymbol (parts[2]);
+        let data = this.safeValue (msg, 'data');
+        let timestamp = this.safeInteger (data, 'timestamp');
+        let ob = this.parseOrderBook (data, timestamp);
+        let symbolData = this._contextGetSymbolData (contextId, 'ob', symbol);
+        symbolData['ob'] = ob;
+        this.emit ('ob', symbol, this._cloneOrderBook (ob, symbolData['limit']));
+        this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
+    }
+
+    _websocketHandleSubscription (contextId, msg) {
+        let chan = this.safeString (msg, 'channel');
+        if (chan.indexOf ('order_book_') >= 0) {
+            let parts = chan.split ('_');
+            let symbol = this.findSymbol (parts[2]);
+            let symbolData = this._contextGetSymbolData (contextId, 'ob', symbol);
+            if ('sub-nonces' in symbolData) {
+                let nonces = symbolData['sub-nonces'];
+                const keys = Object.keys (nonces);
+                for (let i = 0; i < keys.length; i++) {
+                    let nonce = keys[i];
+                    this._cancelTimeout (nonces[nonce]);
+                    this.emit (nonce, true);
+                }
+                symbolData['sub-nonces'] = {};
+                this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
+            }
+        }
+    }
+
+    _websocketHandleUnsubscription (contextId, msg) {
+        let chan = this.safeString (msg, 'channel');
+        if (chan.indexOf ('order_book_') >= 0) {
+            let parts = chan.split ('_');
+            let symbol = this.findSymbol (parts[2]);
+            let symbolData = this._contextGetSymbolData (contextId, 'ob', symbol);
+            if ('unsub-nonces' in symbolData) {
+                let nonces = symbolData['unsub-nonces'];
+                const keys = Object.keys (nonces);
+                for (let i = 0; i < keys.length; i++) {
+                    let nonce = keys[i];
+                    this._cancelTimeout (nonces[nonce]);
+                    this.emit (nonce, true);
+                }
+                symbolData['unsub-nonces'] = {};
+                this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
+            }
+        }
+    }
+
+
+    _websocketSubscribe (contextId, event, symbol, nonce, params = {}) {
+        if (event !== 'ob') {
+            throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+        }
+        // save nonce for subscription response
+        let symbolData = this._contextGetSymbolData (contextId, event, symbol);
+        if (!('sub-nonces' in symbolData)) {
+            symbolData['sub-nonces'] = {};
+        }
+        symbolData['limit'] = this.safeInteger (params, 'limit', undefined);
+        let nonceStr = nonce.toString ();
+        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'sub-nonce']);
+        symbolData['sub-nonces'][nonceStr] = handle;
+        this._contextSetSymbolData (contextId, event, symbol, symbolData);
+        // send request
+        const id = this.marketId (symbol);
+        this.websocketSendJson ({
+            'event': 'subscribe',
+            'channel': 'order_book_' + id,
+        }, contextId);
+    }
+
+    _websocketUnsubscribe (contextId, event, symbol, nonce, params = {}) {
+        if (event !== 'ob') {
+            throw new NotSupported ('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+        }
+        let id = this.market_id (symbol);
+        let payload = {
+            'type': 'unsubscribe',
+            'channel': 'order_book_' + id,
+        };
+        let symbolData = this._contextGetSymbolData (contextId, event, symbol);
+        if (!('unsub-nonces' in symbolData)) {
+            symbolData['unsub-nonces'] = {};
+        }
+        let nonceStr = nonce.toString ();
+        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'unsub-nonces']);
+        symbolData['unsub-nonces'][nonceStr] = handle;
+        this._contextSetSymbolData (contextId, event, symbol, symbolData);
+        this.websocketSendJson (payload);
+    }
+
+    _websocketTimeoutRemoveNonce (contextId, timerNonce, event, symbol, key) {
+        let symbolData = this._contextGetSymbolData (contextId, event, symbol);
+        if (key in symbolData) {
+            let nonces = symbolData[key];
+            if (timerNonce in nonces) {
+                this.omit (symbolData[key], timerNonce);
+                this._contextSetSymbolData (contextId, event, symbol, symbolData);
+            }
+        }
+    }
+
+    _getCurrentWebsocketOrderbook (contextId, symbol, limit) {
+        let data = this._contextGetSymbolData (contextId, 'ob', symbol);
+        if (('ob' in data) && (typeof data['ob'] !== 'undefined')) {
+            return this._cloneOrderBook (data['ob'], limit);
+        }
+        return undefined;
     }
 };

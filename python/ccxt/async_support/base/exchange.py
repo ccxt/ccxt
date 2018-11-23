@@ -38,6 +38,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.exchange import Exchange as BaseExchange
 
 from ccxt.async_support.websocket.websocket_connection import WebsocketConnection
+from ccxt.async_support.websocket.pusher_light_connection import PusherLightConnection
 from pyee import EventEmitter
 import zlib
 import gzip
@@ -509,7 +510,14 @@ class Exchange(BaseExchange, EventEmitter):
             config[key] = self.implode_params(conxParam[key], params)
         if (not (('id' in config) and ('url' in config) and ('type' in config))):
             raise ExchangeError("invalid websocket configuration in exchange: " + self.id)
-        if (config['type'] == 'ws'):
+        if (config['type'] == 'pusher'):
+            return {
+                'action': 'connect',
+                'conx-config': config,
+                'reset-context': 'onconnect',
+                'conx-tpl': conx_tpl_name,
+            }
+        elif (config['type'] == 'ws'):
             return {
                 'action': 'connect',
                 'conx-config': config,
@@ -658,7 +666,9 @@ class Exchange(BaseExchange, EventEmitter):
         }
         if self.proxies is not None:
             websocket_config['proxies'] = self.proxies
-        if (websocket_config['type'] == 'ws'):
+        if (websocket_config['type'] == 'pusher'):
+            websocket_connection_info['conx'] = PusherLightConnection(websocket_config, self.timeout, self.asyncio_loop)
+        elif (websocket_config['type'] == 'ws'):
             websocket_connection_info['conx'] = WebsocketConnection(websocket_config, self.timeout, self.asyncio_loop)
         elif (websocket_config['type'] == 'ws-s'):
             websocket_connection_info['conx'] = WebsocketConnection(websocket_config, self.timeout, self.asyncio_loop)

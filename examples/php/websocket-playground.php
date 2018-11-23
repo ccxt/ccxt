@@ -45,7 +45,7 @@ $exchange = new  $cl (array(
 
 $exchange->on ('err', function ($err, $conxid) use ($exchange){
     echo ($err);
-    $exchange->asyncClose();
+    $exchange->websocketClose();
 });
 
 $exchange->on ($event, function ($symbol, $data) use($event) {

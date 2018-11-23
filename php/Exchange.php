@@ -34,7 +34,8 @@ use React;
 use Clue;
 
 require __DIR__.'/../vendor/autoload.php';
-include 'php/websocket/WebsocketConnection.php';
+require_once 'php/websocket/WebsocketConnection.php';
+require_once 'php/websocket/PusherLightConnection.php';
 
 use kornrunner\Eth;
 use kornrunner\Secp256k1;
@@ -2621,7 +2622,14 @@ abstract class Exchange extends CcxtEventEmitter {
         if (! (array_key_exists ('id', $config) && array_key_exists ('url', $config) && array_key_exists('type', $config))) {
             throw new ExchangeError ("invalid websocket configuration in exchange: " . $this->id);
         }
-        if ($config['type'] === 'ws') {
+        if ($config['type'] === 'pusher') {
+            return array (
+                'action'=> 'connect',
+                'conx-config'=> $config,
+                'reset-context'=> 'onconnect',
+                'conx-tpl'=> $conxTplName,
+            );
+        } else if ($config['type'] === 'ws') {
             return array (
                 'action'=> 'connect',
                 'conx-config'=> $config,
@@ -2794,7 +2802,9 @@ abstract class Exchange extends CcxtEventEmitter {
             'ready'=> false,
             'conx'=> null
         );
-        if ($websocketConfig['type'] === 'ws') {
+        if ($websocketConfig['type'] === 'pusher') {
+            $websocketConnectionInfo['conx'] = new PusherLightConnection ($websocketConfig, $this->timeout, $this->react_loop);
+        } else if ($websocketConfig['type'] === 'ws') {
             $websocketConnectionInfo['conx'] = new WebsocketConnection ($websocketConfig, $this->timeout, $this->react_loop);
         } else if ($websocketConfig['type'] === 'ws-s') {
             $websocketConnectionInfo['conx'] = new WebsocketConnection ($websocketConfig, $this->timeout, $this->react_loop);

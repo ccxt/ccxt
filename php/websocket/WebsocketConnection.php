@@ -7,7 +7,7 @@ use Clue;
 
 require __DIR__ . '/../../vendor/autoload.php';
 
-include 'WebsocketBaseConnection.php';
+require_once 'WebsocketBaseConnection.php';
 
 class WsEnvelop {
     public $ws;
