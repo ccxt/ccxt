@@ -1675,6 +1675,6 @@ class Exchange(object):
                 import pyotp
                 return pyotp.TOTP(key)
             except ImportError:
-                raise ExchangeError (self.id + ' pyotp is not installed. Do `pip install pyotp` to fix')
+                raise ExchangeError(self.id + ' pyotp is not installed. Do `pip install pyotp` to fix')
         else:
-            raise ExchangeError (self.id + ' set .twofa to True to use this feature')
+            raise ExchangeError(self.id + ' set .twofa to True to use this feature')
