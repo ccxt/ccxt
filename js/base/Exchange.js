@@ -301,7 +301,7 @@ module.exports = class Exchange {
         this.debug         = false
         this.journal       = 'debug.json'
         this.userAgent     = undefined
-        this.twofa         = false // two-factor authentication (2FA)
+        this.twofa         = undefined // two-factor authentication (2FA)
 
         this.apiKey        = undefined
         this.secret        = undefined
@@ -1467,5 +1467,10 @@ module.exports = class Exchange {
     signMessage2 (message, privateKey) {
         // an alternative to signMessage using ethUtil (ethereumjs-util) instead of web3
         return this.signHash (this.hashMessage (message), privateKey.slice (-64))
+    }
+
+    oath () {
+        this.checkRequiredCredentials ()
+        return this.totp (this.twofa)
     }
 }

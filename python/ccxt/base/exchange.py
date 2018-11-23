@@ -56,6 +56,7 @@ import time
 import uuid
 import zlib
 from decimal import Decimal
+import pyotp
 
 # -----------------------------------------------------------------------------
 
@@ -132,7 +133,7 @@ class Exchange(object):
     uid = ''
     privateKey = ''  # a "0x"-prefixed hexstring private key for a wallet
     walletAddress = ''  # the wallet address "0x"-prefixed hexstring
-    twofa = False
+    twofa = None
     marketsById = None
     markets_by_id = None
     currencies_by_id = None
@@ -1668,3 +1669,7 @@ class Exchange(object):
         message_hash = self.hashMessage(message)
         signature = self.signHash(message_hash[-64:], privateKey[-64:])
         return signature
+
+    def oath(self):
+        self.checkRequiredCredentials()
+        return pyotp.TOTP(self.twofa)
