@@ -1154,15 +1154,21 @@ module.exports = class upbit extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         let currency = this.currency (code);
-        let request = {
-            'currency': currency['id'],
+        const request = {
             'amount': amount,
-            'address': address,
-        };
-        if (tag !== undefined) {
-            request['secondary_address'] = tag;
         }
-        let response = await this.accountGetWithdraw (this.extend (request, params));
+        let method = 'privatePostWithdraws';
+        if (code !== 'KRW') {
+            method += 'Coin';
+            request['currency'] = currency['id'];
+            request['address'] = address;
+            if (tag !== undefined) {
+                request['secondary_address'] = tag;
+            }
+        } else {
+            method += 'Krw';
+        }
+        let response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "type": "withdraw",
