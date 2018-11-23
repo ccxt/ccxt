@@ -1261,10 +1261,10 @@ module.exports = class upbit extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body) {
+    handleErrors (httpCode, reason, url, method, headers, body, response = undefined) {
         if (!this.isJsonEncodedObject (body))
             return; // fallback to default error handler
-        let response = JSON.parse (body);
+        response = JSON.parse (body);
         //
         //     {"error":{"name":400,"message":"Missing request parameter error. Check the required parameters!"}}
         //     {"error":{"message":"side is missing, side does not have a valid value","name":"validation_error"}}
