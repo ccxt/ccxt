@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending } = require ('./base/errors');
+const { ExchangeError, BadRequest, ArgumentsRequired, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -114,10 +114,14 @@ module.exports = class upbit extends Exchange {
                 },
             },
             'exceptions': {
-                'Missing request parameter error. Check the required parameters!': BadRequest, // 400 Bad Request {"error":{"name":400,"message":"Missing request parameter error. Check the required parameters!"}}
-                // {"error":{"message":"side is missing, side does not have a valid value","name":"validation_error"}}
-                // {"error":{"message":"개인정보 제 3자 제공 동의가 필요합니다.","name":"thirdparty_agreement_required"}}
-                // {"error":{"message":"권한이 부족합니다.","name":"out_of_scope"}}
+                'exact': {
+                    'Missing request parameter error. Check the required parameters!': BadRequest, // 400 Bad Request {"error":{"name":400,"message":"Missing request parameter error. Check the required parameters!"}}
+                    'side is missing, side does not have a valid value': InvalidOrder, // {"error":{"message":"side is missing, side does not have a valid value","name":"validation_error"}}
+                },
+                'broad': {
+                    'thirdparty_agreement_required': PermissionDenied, // {"error":{"message":"개인정보 제 3자 제공 동의가 필요합니다.","name":"thirdparty_agreement_required"}}
+                    'out_of_scope': PermissionDenied, // {"error":{"message":"권한이 부족합니다.","name":"out_of_scope"}}
+                },
             },
             'options': {
                 'fetchTickersMaxLength': 2048,
@@ -1009,7 +1013,11 @@ module.exports = class upbit extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
+        }
         await this.loadMarkets ();
+        let market = this.marketId (symbol);
         let request = {
             'market': this.marketId (symbol),
             'state': 'wait',
@@ -1017,9 +1025,29 @@ module.exports = class upbit extends Exchange {
             'order_by': 'asc',
         };
         const response = await this.privateGetOrders (this.extend (request, params));
-        const log = require ('ololog').unlimited;
-        log.green (response);
-        process.exit ();
+        //
+        //     [
+        //         {
+        //             "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
+        //             "side": "bid",
+        //             "ord_type": "limit",
+        //             "price": "17417000.0",
+        //             "state": "done",
+        //             "market": "KRW-BTC",
+        //             "created_at": "2018-04-05T14:09:14+09:00",
+        //             "volume": "1.0",
+        //             "remaining_volume": "0.0",
+        //             "reserved_fee": "26125.5",
+        //             "remaining_fee": "25974.0",
+        //             "paid_fee": "151.5",
+        //             "locked": "17341974.0",
+        //             "executed_volume": "1.0",
+        //             "trades_count":2
+        //         },
+        //         ...,
+        //     ]
+        //
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -1027,7 +1055,7 @@ module.exports = class upbit extends Exchange {
         let request = {
             'uuid': id,
         };
-        let response = await this.publicGetmarketGetCancel (this.extend (request, params));
+        let response = await this.publicGetOrder (this.extend (request, params));
         //
         //     {
         //         "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
@@ -1172,55 +1200,34 @@ module.exports = class upbit extends Exchange {
         if (!this.isJsonEncodedObject (body))
             return; // fallback to default error handler
         let response = JSON.parse (body);
-        if ('success' in response) {
-            //
-            // 1 - Liqui only returns the integer 'success' key from their private API
-            //
-            //     { "success": 1, ... } httpCode === 200
-            //     { "success": 0, ... } httpCode === 200
-            //
-            // 2 - However, exchanges derived from Liqui, can return non-integers
-            //
-            //     It can be a numeric string
-            //     { "sucesss": "1", ... }
-            //     { "sucesss": "0", ... }, httpCode >= 200 (can be 403, 502, etc)
-            //
-            //     Or just a string
-            //     { "success": "true", ... }
-            //     { "success": "false", ... }, httpCode >= 200
-            //
-            //     Or a boolean
-            //     { "success": true, ... }
-            //     { "success": false, ... }, httpCode >= 200
-            //
-            // 3 - Oversimplified, Python PEP8 forbids comparison operator (===) of different types
-            //
-            // 4 - We do not want to copy-paste and duplicate the code of this handler to other exchanges derived from Liqui
-            //
-            // To cover points 1, 2, 3 and 4 combined this handler should work like this:
-            //
-            let success = this.safeValue (response, 'success', false);
-            if (typeof success === 'string') {
-                if ((success === 'true') || (success === '1'))
-                    success = true;
-                else
-                    success = false;
+        //
+        //     {"error":{"name":400,"message":"Missing request parameter error. Check the required parameters!"}}
+        //     {"error":{"message":"side is missing, side does not have a valid value","name":"validation_error"}}
+        //     {"error":{"message":"개인정보 제 3자 제공 동의가 필요합니다.","name":"thirdparty_agreement_required"}}
+        //     {"error":{"message":"권한이 부족합니다.","name":"out_of_scope"}}
+        //
+        let error = this.safeValue (response, 'error');
+        if (error !== undefined) {
+            const message = this.safeString (error, 'message');
+            const name = this.safeString (error, 'name');
+            const feedback = this.id + ' ' + this.json (response);
+            const exact = this.exceptions['exact'];
+            if (message in exact) {
+                throw new exact[message] (feedback);
             }
-            if (!success) {
-                const code = this.safeString (response, 'code');
-                const message = this.safeString (response, 'error');
-                const feedback = this.id + ' ' + this.json (response);
-                const exact = this.exceptions['exact'];
-                if (code in exact) {
-                    throw new exact[code] (feedback);
-                }
-                const broad = this.exceptions['broad'];
-                const broadKey = this.findBroadlyMatchedKey (broad, message);
-                if (broadKey !== undefined) {
-                    throw new broad[broadKey] (feedback);
-                }
-                throw new ExchangeError (feedback); // unknown message
+            if (name in exact) {
+                throw new exact[name] (feedback);
             }
+            const broad = this.exceptions['broad'];
+            let broadKey = this.findBroadlyMatchedKey (broad, message);
+            if (broadKey !== undefined) {
+                throw new broad[broadKey] (feedback);
+            }
+            broadKey = this.findBroadlyMatchedKey (broad, name);
+            if (broadKey !== undefined) {
+                throw new broad[broadKey] (feedback);
+            }
+            throw new ExchangeError (feedback); // unknown message
         }
     }
 };
