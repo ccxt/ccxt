@@ -61,7 +61,7 @@ class PusherLightConnection extends WebsocketBaseConnection {
         }
         $that = $this;
         $promise = new \React\Promise\Promise(function () { });
-        $this->activityTimer = React\Promise\Timer\timeout($promise, $this->client->activityTimeout, $this->loop)
+        $this->activityTimer = React\Promise\Timer\timeout($promise, $this->client->activityTimeout / 1000, $this->loop)
             ->otherwise(function($exception) use(&$that) {
                 if (!$that->client->is_closing) {
                     echo "pusher->send ping";
@@ -69,7 +69,7 @@ class PusherLightConnection extends WebsocketBaseConnection {
                         "event"=> 'pusher:ping',
                         "data" => array()
                     )));
-                    $this->activityTimer = React\Promise\Timer\timeout($promise, $this->client->activityTimeout, $this->loop)
+                    $that->activityTimer = React\Promise\Timer\timeout($promise, $this->client->pongTimeout / 1000, $this->loop)
                         ->otherwise(function($exception) use(&$that) {
                             if (!$that->client->is_closing){
                                 $that->client->ws->close();
@@ -101,7 +101,7 @@ class PusherLightConnection extends WebsocketBaseConnection {
                             if ($that->client->is_closing) {
                                 return;
                             }
-                            echo ($msg);
+                            // echo ($msg);
                             $that->resetActivityCheck ();
                             $msgDecoded = json_decode($msg, true);
                             if ($msgDecoded['event'] === 'pusher:connection_established'){
@@ -113,23 +113,12 @@ class PusherLightConnection extends WebsocketBaseConnection {
                                 if (isset($that->config['wait-after-connect'])) {
                                     Clue\React\Block\sleep($that->options['wait-after-connect'] / 1000, $loop);
                                 }
-                                if (isset($that->config['wait-after-connect'])) {
-                                    Clue\React\Block\sleep($this->options['wait-after-connect'] / 1000, $loop);
-                                }
                                 $that->emit ('open');
                                 $resolve();
                             } else if ($msgDecoded['event'] === 'pusher:ping'){
                                 $that->client->ws->send(json_encode(array(
                                     "event"=> 'pusher:pong',
                                     "data"=> array()
-                                )));
-                            } else if ($msgDecoded['event'] === 'data'){
-                                $eventData = json_decode($msgDecoded['data'], true);
-                                $channel = $msgDecoded['channel'];
-                                $that->emit('message', json_encode(array(
-                                    "event"=> 'data',
-                                    "channel"=>  $channel,
-                                    "data"=> $eventData
                                 )));
                             } else if ($msgDecoded['event'] === 'pusher_internal:subscription_succeeded'){
                                 $channel = $msgDecoded['channel'];
@@ -141,7 +130,13 @@ class PusherLightConnection extends WebsocketBaseConnection {
                                 // {"event":"pusher:error","data":{"code":null,"message":"Unsupported event received on socket: subscribe"}
                                 $that->emit ('err', $msgDecoded['data']['message']);
                             } else {
-                                echo($msg);
+                                $eventData = json_decode($msgDecoded['data'], true);
+                                $channel = $msgDecoded['channel'];
+                                $that->emit('message', json_encode(array(
+                                    "event"=> $msgDecoded['event'],
+                                    "channel"=>  $channel,
+                                    "data"=> $eventData
+                                )));
                             }
                             // conn->close();
                         });

@@ -40,7 +40,7 @@ module.exports = class PusherLightConnection extends WebsocketBaseConnection {
                     data : {}
                 }));
                 // Wait for pong response
-                _activityTimer = setTimeout(function() {
+                that._activityTimer = setTimeout(function() {
                     if (!that.client.isClosing){
                         that.client.ws.close();
                     }
@@ -104,17 +104,9 @@ module.exports = class PusherLightConnection extends WebsocketBaseConnection {
                     this.emit ('open');
                     resolve();
                 } else if (msg.event === 'pusher:ping'){
-                    ws.send(JSON.stringify({
+                    client.ws.send(JSON.stringify({
                         event: 'pusher:pong',
                         data: {}
-                    }));
-                } else if (msg.event === 'data'){
-                    const eventData = JSON.parse(msg.data);
-                    const channel = msg.channel;
-                    this.emit('message', JSON.stringify({
-                        event: 'data',
-                        channel,
-                        data: eventData
                     }));
                 } else if (msg.event === 'pusher_internal:subscription_succeeded'){
                     const channel = msg.channel;
@@ -126,7 +118,13 @@ module.exports = class PusherLightConnection extends WebsocketBaseConnection {
                     // {"event":"pusher:error","data":{"code":null,"message":"Unsupported event received on socket: subscribe"}
                     this.emit ('err', msg.data.message);
                 } else {
-                    console.log(msg);
+                    const eventData = JSON.parse(msg.data);
+                    const channel = msg.channel;
+                    this.emit('message', JSON.stringify({
+                        event: msg.event,
+                        channel,
+                        data: eventData
+                    }));
                 }
             });
             this.client = client;

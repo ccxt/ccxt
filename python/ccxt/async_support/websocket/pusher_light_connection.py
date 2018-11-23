@@ -72,14 +72,6 @@ class MyClientProtocol(WebSocketClientProtocol):
                 'event': 'pusher:pong',
                 'data' : {}
             }).encode('utf8'))
-        elif msg['event'] == 'data':
-            event_data = json.loads(msg['data'])
-            channel = msg['channel']
-            self.event_emitter.emit('message', json.dumps({
-                'event': 'data',
-                'channel': channel,
-                'data': event_data
-            }))
         elif msg['event'] == 'pusher_internal:subscription_succeeded':
             channel = msg['channel']
             self.event_emitter.emit('message', json.dumps({
@@ -90,7 +82,13 @@ class MyClientProtocol(WebSocketClientProtocol):
             # {"event":"pusher:error","data":{"code":null,"message":"Unsupported event received on socket: subscribe"}
             self.event_emitter.emit ('err', msg['data']['message'])
         else:
-            print(msg)
+            event_data = json.loads(msg['data'])
+            channel = msg['channel']
+            self.event_emitter.emit('message', json.dumps({
+                'event': msg['event'],
+                'channel': channel,
+                'data': event_data
+            }))
 
     def onClose(self, wasClean, code, reason):
         self.future.done() or self.future.set_exception(Exception(reason))

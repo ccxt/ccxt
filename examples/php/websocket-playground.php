@@ -56,5 +56,5 @@ $exchange->on ($event, function ($symbol, $data) use($event) {
 
 
 $exchange->websocket_subscribe ($event, $symbol, $params);
-
+echo('subscribed ' . $symbol);
 $loop->run();
