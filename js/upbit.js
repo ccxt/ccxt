@@ -1156,21 +1156,28 @@ module.exports = class upbit extends Exchange {
         let currency = this.currency (code);
         let request = {
             'currency': currency['id'],
-            'quantity': amount,
+            'amount': amount,
             'address': address,
         };
-        if (tag)
-            request['paymentid'] = tag;
-        let response = await this.accountGetWithdraw (this.extend (request, params));
-        let id = undefined;
-        if ('result' in response) {
-            if ('uuid' in response['result'])
-                id = response['result']['uuid'];
+        if (tag !== undefined) {
+            request['secondary_address'] = tag;
         }
-        return {
-            'info': response,
-            'id': id,
-        };
+        let response = await this.accountGetWithdraw (this.extend (request, params));
+        //
+        //     {
+        //         "type": "withdraw",
+        //         "uuid": "9f432943-54e0-40b7-825f-b6fec8b42b79",
+        //         "currency": "BTC",
+        //         "txid": "ebe6937b-130e-4066-8ac6-4b0e67f28adc",
+        //         "state": "processing",
+        //         "created_at": "2018-04-13T11:24:01+09:00",
+        //         "done_at": null,
+        //         "amount": "0.01",
+        //         "fee": "0.0",
+        //         "krw_amount": "80420.0"
+        //     }
+        //
+        return this.parseTransaction (response);
     }
 
     nonce () {
