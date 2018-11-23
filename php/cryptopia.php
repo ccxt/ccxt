@@ -501,11 +501,11 @@ class cryptopia extends Exchange {
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_transactions_by_type ('deposit', $code, $since, $limit, $params);
+        return $this->fetch_transactions_by_type ('withdrawal', $code, $since, $limit, $params);
     }
 
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_transactions_by_type ('withdraw', $code, $since, $limit, $params);
+        return $this->fetch_transactions_by_type ('deposit', $code, $since, $limit, $params);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {

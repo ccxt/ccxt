@@ -481,10 +481,10 @@ class cryptopia (Exchange):
         return self.parseTransactions(response['Data'], code, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
-        return await self.fetch_transactions_by_type('deposit', code, since, limit, params)
+        return await self.fetch_transactions_by_type('withdrawal', code, since, limit, params)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
-        return await self.fetch_transactions_by_type('withdraw', code, since, limit, params)
+        return await self.fetch_transactions_by_type('deposit', code, since, limit, params)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
