@@ -556,7 +556,7 @@ module.exports = class upbit extends Exchange {
             }
         }
         let marketId = this.safeString (trade, 'market');
-        market = this.safeValue (this.markets_by_id, marketId, market);
+        market = this.safeValue (this.markets_by_id, marketId);
         let fee = undefined;
         let feeCurrency = undefined;
         let symbol = undefined;
@@ -1025,7 +1025,7 @@ module.exports = class upbit extends Exchange {
         let feeCost = this.safeFloat (order, 'paid_fee');
         let feeCurrency = undefined;
         let marketId = this.safeString (order, 'market');
-        market = this.safeValue (this.markets_by_id, marketId, market);
+        market = this.safeValue (this.markets_by_id, marketId);
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -1085,42 +1085,50 @@ module.exports = class upbit extends Exchange {
         return result;
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
-        }
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.marketId (symbol);
         let request = {
-            'market': this.marketId (symbol),
-            'state': 'wait',
-            'page': 1,
-            'order_by': 'asc',
+            // 'market': this.marketId (symbol),
+            // 'state': 'wait', 'done', 'cancel',
+            // 'page': 1,
+            // 'order_by': 'asc',
         };
-        const response = await this.privateGetOrders (this.extend (request, params));
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.marketId (symbol);
+            request['market'] = market['id'];
+        }
+        // const response = await this.privateGetOrders (this.extend (request, params));
+        const response =
         //
-        //     [
-        //         {
-        //             "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
-        //             "side": "bid",
-        //             "ord_type": "limit",
-        //             "price": "17417000.0",
-        //             "state": "done",
-        //             "market": "KRW-BTC",
-        //             "created_at": "2018-04-05T14:09:14+09:00",
-        //             "volume": "1.0",
-        //             "remaining_volume": "0.0",
-        //             "reserved_fee": "26125.5",
-        //             "remaining_fee": "25974.0",
-        //             "paid_fee": "151.5",
-        //             "locked": "17341974.0",
-        //             "executed_volume": "1.0",
-        //             "trades_count":2
-        //         },
-        //         ...,
-        //     ]
+            [
+                {
+                    "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
+                    "side": "bid",
+                    "ord_type": "limit",
+                    "price": "17417000.0",
+                    "state": "done",
+                    "market": "KRW-BTC",
+                    "created_at": "2018-04-05T14:09:14+09:00",
+                    "volume": "1.0",
+                    "remaining_volume": "0.0",
+                    "reserved_fee": "26125.5",
+                    "remaining_fee": "25974.0",
+                    "paid_fee": "151.5",
+                    "locked": "17341974.0",
+                    "executed_volume": "1.0",
+                    "trades_count":2
+                },
+            ]
         //
         return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let request = {
+            'state': 'wait',
+        };
+        return this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
