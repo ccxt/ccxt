@@ -793,7 +793,7 @@ class Exchange {
         $this->privateKey    = '';
         $this->walletAddress = '';
 
-        $this->twofa         = false;
+        $this->twofa         = null;
         $this->marketsById   = null;
         $this->markets_by_id = null;
         $this->currencies_by_id = null;
@@ -2349,16 +2349,20 @@ class Exchange {
         return $this->signHash ($this->hashMessage ($message), $privateKey);
     }
 
-    public function oath ($key) {
+    public function oath () {
         if ($this->twofa) {
             try {
-                $otp = TOTP::create(Base32::encode($key));
-                return $otp->now();
+                return $this->totp ($this->twofa);
             } catch (\Exception $e) {
                 echo $e;
             }
         } else {
-            echo 'you must set $this->twofa to true in order for oath to work';
+            echo 'you must set $this->twofa in order for oath to work';
         }
+    }
+
+    public static function totp ($key) {
+        $otp = TOTP::create(Base32::encode($key));
+        return $otp->now();
     }
 }
