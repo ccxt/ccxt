@@ -20,6 +20,7 @@ module.exports = class upbit extends Exchange {
             // new metainfo interface
             'has': {
                 'CORS': true,
+                'fetchOrderBooks': true,
                 'createMarketOrder': false,
                 'fetchDepositAddress': true,
                 'fetchClosedOrders': true,
@@ -124,8 +125,8 @@ module.exports = class upbit extends Exchange {
                 },
             },
             'options': {
-                'fetchTickersMaxLength': 2048,
-                'fetchOrderBooksMaxLength': 2048,
+                'fetchTickersMaxLength': 4096, // 2048,
+                'fetchOrderBooksMaxLength': 4096, // 2048,
                 // price precision by quote currency code
                 'pricePrecisionByCode': {
                     'USD': 3,
