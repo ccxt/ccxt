@@ -1098,9 +1098,9 @@ module.exports = class upbit extends Exchange {
             market = this.marketId (symbol);
             request['market'] = market['id'];
         }
-        // const response = await this.privateGetOrders (this.extend (request, params));
-        const response =
-        //
+        const response = await this.privateGetOrders (this.extend (request, params));
+        // const response =
+        /*
             [
                 {
                     "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
@@ -1120,7 +1120,7 @@ module.exports = class upbit extends Exchange {
                     "trades_count":2
                 },
             ]
-        //
+        */
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -1301,18 +1301,19 @@ module.exports = class upbit extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
+        if (method === 'GET') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
-        } else {
+        }
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ();
             const request = {
                 'access_key': this.apiKey,
                 'nonce': nonce,
             };
-            if ((method === 'POST') || (method === 'DELETE')) {
-                request['query'] = this.urlencode (params);
+            if (Object.keys (query).length) {
+                request['query'] = this.urlencode (query);
             }
             let jwt = this.jwt (request, this.secret);
             headers = {
