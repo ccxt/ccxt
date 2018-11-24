@@ -554,7 +554,7 @@ module.exports = class upbit extends Exchange {
                 }
             }
         }
-        let marketId = this.safeString (order, 'market');
+        let marketId = this.safeString (trade, 'market');
         market = this.safeValue (this.markets_by_id, marketId, market);
         let fee = undefined;
         let feeCurrency = undefined;
