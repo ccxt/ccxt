@@ -1038,18 +1038,20 @@ module.exports = class upbit extends Exchange {
         }
         if (trades !== undefined) {
             let numTrades = trades.length;
-            if (lastTradeTimestamp === undefined) {
-                lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
-            }
-            if (feeCost === undefined) {
-                for (let i = 0; i < numTrades; i++) {
-                    let tradeFee = this.safeValue (trades[i], 'fee', {});
-                    let tradeFeeCost = this.safeFloat (tradeFee, 'cost');
-                    if (tradeFeeCost !== undefined) {
-                        if (feeCost === undefined) {
-                            feeCost = 0;
+            if (numTrades > 0) {
+                if (lastTradeTimestamp === undefined) {
+                    lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
+                }
+                if (feeCost === undefined) {
+                    for (let i = 0; i < numTrades; i++) {
+                        let tradeFee = this.safeValue (trades[i], 'fee', {});
+                        let tradeFeeCost = this.safeFloat (tradeFee, 'cost');
+                        if (tradeFeeCost !== undefined) {
+                            if (feeCost === undefined) {
+                                feeCost = 0;
+                            }
+                            feeCost = this.sum (feeCost, tradeFeeCost);
                         }
-                        feeCost = this.sum (feeCost, tradeFeeCost);
                     }
                 }
             }
