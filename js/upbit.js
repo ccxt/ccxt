@@ -1125,14 +1125,14 @@ module.exports = class upbit extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let request = {
+        const request = {
             'state': 'wait',
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let request = {
+        const request = {
             'state': 'done',
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -1140,7 +1140,7 @@ module.exports = class upbit extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'uuid': id,
         };
         // let response = await this.publicGetOrder (this.extend (request, params));
@@ -1193,7 +1193,7 @@ module.exports = class upbit extends Exchange {
 
     async fetchDepositAddresses (codes = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetDepositsCoinAddresses (params);
+        const response = await this.privateGetDepositsCoinAddresses (params);
         //
         //     [
         //         {
@@ -1213,7 +1213,7 @@ module.exports = class upbit extends Exchange {
         //         }
         //     ]
         //
-        let result = {};
+        const result = {};
         for (let i = 0; i < response.length; i++) {
             let depositAddress = this.parseDepositAddress (response[i]);
             let code = depositAddress['code'];
@@ -1230,9 +1230,9 @@ module.exports = class upbit extends Exchange {
         //         "secondary_address": null
         //     }
         //
-        let address = this.safeString (depositAddress, 'deposit_address');
-        let tag = this.safeString (depositAddress, 'secondary_address');
-        let code = this.commonCurrencyCode (this.safeString (depositAddress, 'currency'));
+        const address = this.safeString (depositAddress, 'deposit_address');
+        const tag = this.safeString (depositAddress, 'secondary_address');
+        const code = this.commonCurrencyCode (this.safeString (depositAddress, 'currency'));
         this.checkAddress (address);
         return {
             'currency': code,
@@ -1244,8 +1244,8 @@ module.exports = class upbit extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let response = await this.privateGetDepositsCoinAddress (this.extend ({
+        const currency = this.currency (code);
+        const response = await this.privateGetDepositsCoinAddress (this.extend ({
             'currency': currency['id'],
         }, params));
         //
@@ -1261,7 +1261,7 @@ module.exports = class upbit extends Exchange {
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let currency = this.currency (code);
+        const currency = this.currency (code);
         const request = {
             'amount': amount,
         }
@@ -1300,7 +1300,7 @@ module.exports = class upbit extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
+        const query = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
@@ -1315,7 +1315,7 @@ module.exports = class upbit extends Exchange {
             if (Object.keys (query).length) {
                 request['query'] = this.urlencode (query);
             }
-            let jwt = this.jwt (request, this.secret);
+            const jwt = this.jwt (request, this.secret);
             headers = {
                 'Authorization': 'Bearer ' + jwt,
             };
@@ -1337,7 +1337,7 @@ module.exports = class upbit extends Exchange {
         //     {"error":{"message":"개인정보 제 3자 제공 동의가 필요합니다.","name":"thirdparty_agreement_required"}}
         //     {"error":{"message":"권한이 부족합니다.","name":"out_of_scope"}}
         //
-        let error = this.safeValue (response, 'error');
+        const error = this.safeValue (response, 'error');
         if (error !== undefined) {
             const message = this.safeString (error, 'message');
             const name = this.safeString (error, 'name');
