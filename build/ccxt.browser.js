@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.535'
+const version = '1.17.536'
 
 Exchange.ccxtVersion = version
 
@@ -13754,7 +13754,7 @@ module.exports = class bitso extends Exchange {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, NotSupported, PermissionDenied, InvalidNonce } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -13907,6 +13907,7 @@ module.exports = class bitstamp extends Exchange {
                 'Missing key, signature and nonce parameters': AuthenticationError,
                 'Your account is frozen': PermissionDenied,
                 'Please update your profile with your FATCA information, before using API.': PermissionDenied,
+                'Order not found': OrderNotFound,
             },
         });
     }
