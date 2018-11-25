@@ -592,78 +592,47 @@ module.exports = class adara extends Exchange {
         //
         // fetchTrades
         //
-        //       {             market: "BTC-ETH",
-        //             trade_date_utc: "2018-11-22",
-        //             trade_time_utc: "13:55:24",
-        //                  timestamp:  1542894924397,
-        //                trade_price:  0.02914289,
-        //               trade_volume:  0.20074397,
-        //         prev_closing_price:  0.02966,
-        //               change_price:  -0.00051711,
-        //                    ask_bid: "ASK",
-        //              sequential_id:  15428949259430000 }
         //
-        // fetchOrder
+        //       {          type:   "trade",
+        //                    id:   "1542988964359136846136847",
+        //            attributes: {        price:  34,
+        //                                amount:  4,
+        //                                 total:  136,
+        //                             operation: "buy",
+        //                             createdAt: "2018-11-23T16:02:44.359Z",
+        //                          serializedAt:  1543112364995              },
+        //         relationships: { symbol: { data: { type: "symbol", id: "ETHBTC" } } } } ],
         //
-        //         {
-        //             "market": "KRW-BTC",
-        //             "uuid": "78162304-1a4d-4524-b9e6-c9a9e14d76c3",
-        //             "price": "101000.0",
-        //             "volume": "0.77368323",
-        //             "funds": "78142.00623",
-        //             "ask_fee": "117.213009345",
-        //             "bid_fee": "117.213009345",
-        //             "created_at": "2018-04-05T14:09:15+09:00",
-        //             "side": "bid",
-        //         }
-        //
-        let id = this.safeString2 (trade, 'sequential_id', 'uuid');
-        let orderId = undefined;
-        let timestamp = this.safeInteger (trade, 'timestamp');
-        if (timestamp === undefined) {
-            timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
+        const id = this.safeString (trade, 'id', 'uuid');
+        const attributes = this.safeValue (trade, 'attributes', {});
+        const relationships = this.safeValue (trade, 'relationships', {});
+        const symbolRelationship = this.safeValue (relationships, 'symbol', {});
+        const symbolRelationshipData = this.safeValue (symbolRelationship, 'data', {});
+        const marketId = this.safeString (symbolRelationshipData, 'id');
+        market = this.safeValue (this.markets_by_id, marketId);
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        } else {
+            const baseIdLength = marketId.length - 3;
+            const baseId = marketId.slice (0, baseIdLength);
+            const quoteId = marketId.slice (baseIdLength);
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            symbol = base + '/' + quote;
         }
-        let side = undefined;
-        let askOrBid = this.safeString2 (trade, 'ask_bid', 'side');
-        if (askOrBid !== undefined) {
-            askOrBid = askOrBid.toLowerCase ();
-        }
-        if (askOrBid === 'ask') {
-            side = 'sell';
-        } else if (askOrBid === 'bid') {
-            side = 'buy';
-        }
-        let cost = this.safeFloat (trade, 'funds');
-        let price = this.safeFloat2 (trade, 'trade_price', 'price');
-        let amount = this.safeFloat2 (trade, 'trade_volume', 'volume');
+        const orderId = undefined;
+        const timestamp = this.parse8601 (this.safeString (attributes, 'createdAt'));
+        const side = this.safeString (attributes, 'operation');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        let cost = this.safeFloat (trade, 'total');
         if (cost === undefined) {
             if (amount !== undefined) {
                 if (price !== undefined) {
                     cost = price * amount;
                 }
             }
-        }
-        let marketId = this.safeString (trade, 'market');
-        market = this.safeValue (this.markets_by_id, marketId);
-        let fee = undefined;
-        let feeCurrency = undefined;
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-            feeCurrency = market['quote'];
-        } else {
-            const [ baseId, quoteId ] = marketId.split ('-');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
-            symbol = base + '/' + quote;
-            feeCurrency = quote;
-        }
-        let feeCost = this.safeString (trade, askOrBid + '_fee');
-        if (feeCost !== undefined) {
-            fee = {
-                'currency': feeCurrency,
-                'cost': feeCost,
-            };
         }
         return {
             'id': id,
@@ -677,44 +646,55 @@ module.exports = class adara extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': fee,
+            'fee': undefined,
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (limit === undefined) {
-            limit = 200;
-        }
         const request = {
-            'market': market['id'],
-            'count': limit,
+            // 'id': market['id'],
         };
-        let response = await this.publicGetTradesTicks (this.extend (request, params));
+        let response = await this.publicGetTrade (this.extend (request, params));
         //
-        //     [ {             market: "BTC-ETH",
-        //             trade_date_utc: "2018-11-22",
-        //             trade_time_utc: "13:55:24",
-        //                  timestamp:  1542894924397,
-        //                trade_price:  0.02914289,
-        //               trade_volume:  0.20074397,
-        //         prev_closing_price:  0.02966,
-        //               change_price:  -0.00051711,
-        //                    ask_bid: "ASK",
-        //              sequential_id:  15428949259430000 },
-        //       {             market: "BTC-ETH",
-        //             trade_date_utc: "2018-11-22",
-        //             trade_time_utc: "13:03:10",
-        //                  timestamp:  1542891790123,
-        //                trade_price:  0.02917,
-        //               trade_volume:  7.392,
-        //         prev_closing_price:  0.02966,
-        //               change_price:  -0.00049,
-        //                    ask_bid: "ASK",
-        //              sequential_id:  15428917910540000 }  ]
+        //     {     data: [ {          type:   "trade",
+        //                                id:   "1542988964359136846136847",
+        //                        attributes: {        price:  34,
+        //                                            amount:  4,
+        //                                             total:  136,
+        //                                         operation: "buy",
+        //                                         createdAt: "2018-11-23T16:02:44.359Z",
+        //                                      serializedAt:  1543112364995              },
+        //                     relationships: { symbol: { data: { type: "symbol", id: "ETHBTC" } } } } ],
+        //       included: [ {          type:   "currency",
+        //                                id:   "ETH",
+        //                        attributes: {          name: "Ethereum",
+        //                                          shortName: "ETH",
+        //                                             active:  true,
+        //                                           accuracy:  8,
+        //                                       allowDeposit:  true,
+        //                                      allowWithdraw:  true,
+        //                                        allowWallet:  true,
+        //                                         allowTrade:  true,
+        //                                       serializedAt:  1543112364995 },
+        //                     relationships: {  }                               },
+        //                   {          type:   "currency",
+        //                                id:   "BTC",
+        //                        attributes: {          name: "Bitcoin",
+        //                                                   ...
+        //                                       serializedAt:  1543112364995 },
+        //                     relationships: {  }                               },
+        //                   {          type:   "symbol",
+        //                                id:   "ETHBTC",
+        //                        attributes: {     fullName: "ETHBTC",
+        //                                            digits:  6,
+        //                                        allowTrade:  true,
+        //                                      serializedAt:  1543112364995 },
+        //                     relationships: { from: { data: { type: "currency", id: "ETH" } },
+        //                                        to: { data: { type: "currency", id: "BTC" } }  } } }
         //
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response['data'], market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
