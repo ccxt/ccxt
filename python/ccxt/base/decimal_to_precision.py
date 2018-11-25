@@ -54,7 +54,7 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
     if precision < 0:
         to_nearest = power_of_10(precision)
         if rounding_mode == ROUND:
-            return to_nearest * decimal_to_precision(n/to_nearest, rounding_mode, 0, counting_mode, padding_mode)
+            return to_nearest * decimal_to_precision(n / to_nearest, rounding_mode, 0, counting_mode, padding_mode)
         elif rounding_mode == TRUNCATE:
             return (n - n % to_nearest)
 
