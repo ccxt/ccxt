@@ -150,6 +150,24 @@ assert (decimalToPrecision ('1.45', ROUND, 1, DECIMAL_PLACES) === '1.5');
 assert (decimalToPrecision ('1.45', ROUND, 0, DECIMAL_PLACES) === '1'); // not 2
 
 // ----------------------------------------------------------------------------
+// negative precision only implemented so far in python
+// pretty useless for decimal applications as anything |x| < 5 === 0
+// NO_PADDING and PAD_WITH_ZERO are ignored
+
+assert (decimalToPrecision ('5', ROUND, -1, DECIMAL_PLACES) === '10');
+assert (decimalToPrecision ('4.999', ROUND, -1, DECIMAL_PLACES) === '0');
+assert (decimalToPrecision ('0.0431531423', ROUND, -1, DECIMAL_PLACES) === '0');
+assert (decimalToPrecision ('-69.3', ROUND, -1, DECIMAL_PLACES) === '-70');
+assert (decimalToPrecision ('5001', ROUND, -4, DECIMAL_PLACES) === '10000');
+assert (decimalToPrecision ('4999.999', ROUND, -4, DECIMAL_PLACES) === '0');
+
+assert (decimalToPrecision ('69.3', TRUNCATE, -2, DECIMAL_PLACES) === '100');
+assert (decimalToPrecision ('-69.3', TRUNCATE, -2, DECIMAL_PLACES) === '-100');
+assert (decimalToPrecision ('69.3', TRUNCATE, -1, SIGNIFICANT_DIGITS) === '60');
+assert (decimalToPrecision ('-69.3', TRUNCATE, -1, SIGNIFICANT_DIGITS) === '-60');
+assert (decimalToPrecision ('69.3', TRUNCATE, -2, SIGNIFICANT_DIGITS) === '100');
+
+// ----------------------------------------------------------------------------
 // testDecimalToPrecisionErrorHandling (todo)
 //
 // throws (() =>

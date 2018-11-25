@@ -1,3 +1,4 @@
+import re
 import decimal
 import numbers
 import itertools
@@ -41,11 +42,26 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
     context.rounding = decimal.ROUND_HALF_UP  # rounds 0.5 away from zero
 
     dec = decimal.Decimal(str(n))
-    string = '{:f}'.format(dec)  # convert to string using .format to avoid engineering notation
+
     precise = None
+    string = '{:f}'.format(dec)  # convert to string using .format to avoid engineering notation
+    if not re.match(r'[\d.-]+', string):
+        raise ValueError('{} is an invalid decimal number.'.format(string))
 
     def power_of_10(x):
         return decimal.Decimal('10') ** (-x)
+
+    if precision < 0:
+        to_nearest = power_of_10(precision)
+        if rounding_mode == ROUND or to_nearest > abs(dec):
+            signed = to_nearest if dec > 0 else -to_nearest
+            rounded = signed if abs(signed - dec) <= abs(dec) else 0
+            return str(rounded * (dec // signed + 1))
+        elif rounding_mode == TRUNCATE:
+            unsigned = string.lstrip('-')
+            drop_decimals = unsigned[:unsigned.index('.')] if '.' in unsigned else unsigned
+            truncated = drop_decimals[:-precision].ljust(-precision + 1, '0')
+            return '-' + truncated if dec < 0 else truncated
 
     if rounding_mode == ROUND:
         if counting_mode == DECIMAL_PLACES:

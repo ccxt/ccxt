@@ -2086,10 +2086,6 @@ class Exchange {
 
     public static function decimal_to_precision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {
 
-        if ($numPrecisionDigits < 0) {
-            throw new BaseError ('Negative precision is not yet supported');
-        }
-
         if (!is_int ($numPrecisionDigits)) {
             throw new BaseError ('Precision must be an integer');
         }
@@ -2101,6 +2097,25 @@ class Exchange {
         assert ($roundingMode === ROUND || $roundingMode === TRUNCATE);
 
         $result = '';
+
+        // Special handling for negative precision
+        if ($numPrecisionDigits < 0) {
+            $toNearest = 10 ** abs ($numPrecisionDigits);
+            if ($roundingMode === ROUND || $toNearest > abs ($x)) {
+                $signed = $x > 0 ? $toNearest : $toNearest * (-1);
+                $rounded = abs ($signed - $x) <= abs ($x) ? $signed : 0;
+                $result = (string) ($rounded * (intdiv ($x, $signed) + 1));
+            } else {
+                $unsigned = trim ((string) $x, '-');
+                $drop_decimals = substr($unsigned, 0, strpos($unsigned, '.'));
+                $truncated = substr ($drop_decimals, 0, strlen ($drop_decimals) + $numPrecisionDigits);
+                $formatStr = '%0-' . (string) (1 - $numPrecisionDigits) . 'd';
+                $adjusted = sprintf ($formatStr, $truncated);
+                $result = $x < 0  ? '-' . $adjusted : $adjusted;
+            }
+            return $result;
+        }
+
         if ($roundingMode === ROUND) {
             if ($countingMode === DECIMAL_PLACES) {
                 // Requested precision of 100 digits was truncated to PHP maximum of 53 digits
