@@ -29,10 +29,12 @@ assert (decimalToPrecision ('0.00000001', TRUNCATE, 8, DECIMAL_PLACES) === '0.00
 assert (decimalToPrecision ('0.000000000', TRUNCATE, 9, DECIMAL_PLACES, PAD_WITH_ZERO) === '0.000000000');
 assert (decimalToPrecision ('0.000000001', TRUNCATE, 9, DECIMAL_PLACES, PAD_WITH_ZERO) === '0.000000001');
 
-// assert (decimalToPrecision ('12.3456', TRUNCATE, -1, DECIMAL_PLACES) === '10');  // not yet supported
-// assert (decimalToPrecision ('123.456', TRUNCATE, -2, DECIMAL_PLACES) === '120'); // not yet supported
-// assert (decimalToPrecision ('123.456', TRUNCATE, -3, DECIMAL_PLACES) === '100'); // not yet supported
-
+assert (decimalToPrecision ('12.3456', TRUNCATE, -1, DECIMAL_PLACES) === '10');
+assert (decimalToPrecision ('123.456', TRUNCATE, -1, DECIMAL_PLACES) === '120');
+assert (decimalToPrecision ('123.456', TRUNCATE, -2, DECIMAL_PLACES) === '100');
+assert (decimalToPrecision ('9.99999', TRUNCATE, -1, DECIMAL_PLACES) === '0');
+assert (decimalToPrecision ('99.9999', TRUNCATE, -1, DECIMAL_PLACES) === '90');
+assert (decimalToPrecision ('99.9999', TRUNCATE, -2, DECIMAL_PLACES) === '0');
 assert (decimalToPrecision ('0', TRUNCATE, 0, DECIMAL_PLACES) === '0');
 
 // ----------------------------------------------------------------------------
@@ -81,9 +83,12 @@ assert (decimalToPrecision ('12.3456', ROUND, 0, DECIMAL_PLACES) === '12');
 assert (decimalToPrecision ('10000', ROUND, 6, DECIMAL_PLACES) === '10000');
 assert (decimalToPrecision ('0.00003186', ROUND, 8, DECIMAL_PLACES) === '0.00003186');
 
-// assert (decimalToPrecision ('12.3456', ROUND, -1, DECIMAL_PLACES) === '10');   // not yet supported
-// assert (decimalToPrecision ('123.456', ROUND, -1, DECIMAL_PLACES) === '120');  // not yet supported
-// assert (decimalToPrecision ('123.456', ROUND, -2, DECIMAL_PLACES) === '100');  // not yet supported
+assert (decimalToPrecision ('12.3456', ROUND, -1, DECIMAL_PLACES) === '10');
+assert (decimalToPrecision ('123.456', ROUND, -1, DECIMAL_PLACES) === '120');
+assert (decimalToPrecision ('123.456', ROUND, -2, DECIMAL_PLACES) === '100');
+assert (decimalToPrecision ('9.99999', ROUND, -1, DECIMAL_PLACES) === '10');
+assert (decimalToPrecision ('99.9999', ROUND, -1, DECIMAL_PLACES) === '100');
+assert (decimalToPrecision ('99.9999', ROUND, -2, DECIMAL_PLACES) === '100');
 
 assert (decimalToPrecision ('9.999', ROUND, 3, DECIMAL_PLACES) === '9.999');
 assert (decimalToPrecision ('9.999', ROUND, 2, DECIMAL_PLACES) === '10');
