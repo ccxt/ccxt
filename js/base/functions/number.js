@@ -88,7 +88,15 @@ const decimalToPrecision = (x, roundingMode
                              , countingMode       = DECIMAL_PLACES
                              , paddingMode        = NO_PADDING) => {
 
-    if (numPrecisionDigits < 0) throw new Error ('negative precision is not yet supported')
+    if (numPrecisionDigits < 0) {
+        let toNearest = Math.pow(10,(-numPrecisionDigits)) 
+        if (roundingMode === ROUND) {
+            return (toNearest*decimalToPrecision(x/toNearest,roundingMode,0,countingMode,paddingMode)).toString()
+        }
+        if (roundingMode === TRUNCATE) {
+            return (x-(x%toNearest)).toString()
+        }
+    }
 
 /*  Convert to a string (if needed), skip leading minus sign (if any)   */
 
