@@ -22,16 +22,16 @@ module.exports = class adara extends Exchange {
                 'CORS': true,
                 'fetchOrderBooks': true,
                 'createMarketOrder': false,
-                'fetchDepositAddress': true,
+                'fetchDepositAddress': false,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchTickers': true,
-                'withdraw': true,
-                'fetchDeposits': true,
-                'fetchWithdrawals': true,
+                'withdraw': false,
+                'fetchDeposits': false,
+                'fetchWithdrawals': false,
                 'fetchTransactions': false,
             },
             'urls': {
@@ -142,6 +142,7 @@ module.exports = class adara extends Exchange {
                 'exact': {
                     'AUTH': AuthenticationError, // {"errors":[{"code":"AUTH","title":"Not authorized","detail":"User is not authorized"}]}
                     'Bad Request': BadRequest, // {"errors":[{"status":"400","title":"Bad Request","detail":"symbol filter is not filled"}]}
+                    '500': ExchangeError, // {"errors":[{"status":"500","title":"TypeError","detail":"TypeError: Cannot read property 'buy' of undefined"}]}
                 },
                 'broad': {
                 },
@@ -275,7 +276,7 @@ module.exports = class adara extends Exchange {
                 'amount': amountPrecision,
                 'price': 8,
             };
-            const active = true;
+            const active = this.safeValue (attributes, 'allowTrade');
             const maker = this.safeFloat (attributes, 'makerFee');
             const taker = this.safeFloat (attributes, 'takerFee');
             result.push ({
@@ -357,61 +358,34 @@ module.exports = class adara extends Exchange {
         return base + '/' + quote;
     }
 
-    async fetchOrderBooks (symbols = undefined, params = {}) {
-        let ids = undefined;
-        if (symbols === undefined) {
-            ids = this.ids.join (',');
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if (ids.length > this.options['fetchOrderBooksMaxLength']) {
-                let numIds = this.ids.length;
-                throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols (' + ids.length.toString () + ' characters) exceeding max URL length (' + this.options['fetchOrderBooksMaxLength'].toString () + ' characters), you are required to specify a list of symbols in the first argument to fetchOrderBooks');
+    parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 'price', amountKey = 'amount') {
+        const bids = [];
+        const asks = [];
+        let numBidAsks = orderbook.length;
+        if (numBidAsks > 0) {
+            timestamp = this.safeInteger (orderbook[0]['attributes'], 'serializedAt');
+        }
+        for (let i = 0; i < orderbook.length; i++) {
+            const bidask = orderbook[i];
+            const attributes = this.safeValue (bidask, 'attributes', {});
+            let currenTimestamp = this.safeInteger (attributes, 'serializedAt');
+            timestamp = Math.max (timestamp, currenTimestamp);
+            const id = this.safeString (bidask, 'id');
+            if (id.indexOf ('OBID') >= 0) {
+                bids.push (this.parseBidAsk (bidask['attributes'], priceKey, amountKey));
+            } else if (id.indexOf ('OSID') >= 0) {
+                asks.push (this.parseBidAsk (bidask['attributes'], priceKey, amountKey));
+            } else {
+                throw ExchangeError (this.id + ' parseOrderBook encountered an unrecognized bidask format: ' + this.json (bidask));
             }
-        } else {
-            ids = this.marketIds (symbols);
-            ids = ids.join (',');
         }
-        //
-        //     [ {          market:   "BTC-ETH",
-        //               timestamp:    1542899030043,
-        //          total_ask_size:    109.57065201,
-        //          total_bid_size:    125.74430631,
-        //         orderbook_units: [ { ask_price: 0.02926679,
-        //                              bid_price: 0.02919904,
-        //                               ask_size: 4.20293961,
-        //                               bid_size: 11.65043576 },
-        //                            ...,
-        //                            { ask_price: 0.02938209,
-        //                              bid_price: 0.0291231,
-        //                               ask_size: 0.05135782,
-        //                               bid_size: 13.5595     }   ] },
-        //       {          market:   "KRW-BTC",
-        //               timestamp:    1542899034662,
-        //          total_ask_size:    12.89790974,
-        //          total_bid_size:    4.88395783,
-        //         orderbook_units: [ { ask_price: 5164000,
-        //                              bid_price: 5162000,
-        //                               ask_size: 2.57606495,
-        //                               bid_size: 0.214       },
-        //                            ...,
-        //                            { ask_price: 5176000,
-        //                              bid_price: 5152000,
-        //                               ask_size: 2.752,
-        //                               bid_size: 0.4650305 }    ] }   ]
-        //
-        let result = {};
-        for (let i = 0; i < response.length; i++) {
-            const orderbook = response[i];
-            const symbol = this.getSymbolFromMarketId (this.safeString (orderbook, 'market'));
-            const timestamp = this.safeInteger (orderbook, 'timestamp');
-            result[symbol] = {
-                'bids': this.parseBidsAsks (orderbook['orderbook_units'], 'bid_price', 'bid_size'),
-                'asks': this.parseBidsAsks (orderbook['orderbook_units'], 'ask_price', 'bid_size'),
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'nonce': undefined,
-            };
-        }
-        return result;
+        return {
+            'bids': this.sortBy (bids, 0, true),
+            'asks': this.sortBy (asks, 0),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': undefined,
+        };
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -433,11 +407,7 @@ module.exports = class adara extends Exchange {
         //                                     amount: 12,
         //                               serializedAt: 1543116143474 } }  ] }
         //
-        const log = require ('ololog').unlimited;
-        log.green (response);
-        process.exit ();
-        let orderbooks = await this.fetchOrderBooks ([ symbol ], params);
-        return this.safeValue (orderbooks, symbol);
+        return this.parseOrderBook (response['data'], undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -1335,18 +1305,23 @@ module.exports = class adara extends Exchange {
         //
         //     {"errors":[{"code":"AUTH","title":"Not authorized","detail":"User is not authorized"}]}
         //     {"errors":[{"status":"400","title":"Bad Request","detail":"symbol filter is not filled"}]}
+        //     {"errors":[{"status":"500","title":"TypeError","detail":"TypeError: Cannot read property 'buy' of undefined"}]}
         //
         const errors = this.safeValue (response, 'errors', []);
         const numErrors = errors.length;
         if (numErrors > 0) {
             const error = errors[0];
             const code = this.safeString (error, 'code');
+            const status = this.safeString (error, 'status');
             const title = this.safeString (error, 'title');
             const detail = this.safeString (error, 'detail');
             const feedback = this.id + ' ' + this.json (response);
             const exact = this.exceptions['exact'];
             if (code in exact) {
                 throw new exact[code] (feedback);
+            }
+            if (status in exact) {
+                throw new exact[status] (feedback);
             }
             if (title in exact) {
                 throw new exact[title] (feedback);
