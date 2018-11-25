@@ -624,9 +624,9 @@ module.exports = class adara extends Exchange {
         const orderId = undefined;
         const timestamp = this.parse8601 (this.safeString (attributes, 'createdAt'));
         const side = this.safeString (attributes, 'operation');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
-        let cost = this.safeFloat (trade, 'total');
+        const price = this.safeFloat (attributes, 'price');
+        const amount = this.safeFloat (attributes, 'amount');
+        let cost = this.safeFloat (attributes, 'total');
         if (cost === undefined) {
             if (amount !== undefined) {
                 if (price !== undefined) {
@@ -652,7 +652,10 @@ module.exports = class adara extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const request = {
             // 'id': market['id'],
         };
