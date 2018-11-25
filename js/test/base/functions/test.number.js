@@ -162,11 +162,11 @@ assert (decimalToPrecision ('-69.3', ROUND, -1, DECIMAL_PLACES) === '-70');
 assert (decimalToPrecision ('5001', ROUND, -4, DECIMAL_PLACES) === '10000');
 assert (decimalToPrecision ('4999.999', ROUND, -4, DECIMAL_PLACES) === '0');
 
-assert (decimalToPrecision ('69.3', TRUNCATE, -2, DECIMAL_PLACES) === '100');
-assert (decimalToPrecision ('-69.3', TRUNCATE, -2, DECIMAL_PLACES) === '-100');
+assert (decimalToPrecision ('69.3', TRUNCATE, -2, DECIMAL_PLACES) === '0');
+assert (decimalToPrecision ('-69.3', TRUNCATE, -2, DECIMAL_PLACES) === '0');
 assert (decimalToPrecision ('69.3', TRUNCATE, -1, SIGNIFICANT_DIGITS) === '60');
 assert (decimalToPrecision ('-69.3', TRUNCATE, -1, SIGNIFICANT_DIGITS) === '-60');
-assert (decimalToPrecision ('69.3', TRUNCATE, -2, SIGNIFICANT_DIGITS) === '100');
+assert (decimalToPrecision ('69.3', TRUNCATE, -2, SIGNIFICANT_DIGITS) === '0');
 
 // ----------------------------------------------------------------------------
 // testDecimalToPrecisionErrorHandling (todo)

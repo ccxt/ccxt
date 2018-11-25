@@ -90,10 +90,10 @@ const decimalToPrecision = (x, roundingMode
 
     if (numPrecisionDigits < 0) {
         let toNearest = Math.pow(10,(-numPrecisionDigits)) 
-        if (roundingMode === 'ROUND') {
+        if (roundingMode === ROUND) {
             return (toNearest*decimalToPrecision(x/toNearest,roundingMode,0,countingMode,paddingMode)).toString()
         }
-        if (roundingMode === 'TRUNCATE') {
+        if (roundingMode === TRUNCATE) {
             return (x-(x%toNearest)).toString()
         }
     }
