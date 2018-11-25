@@ -58,7 +58,6 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
         elif rounding_mode == TRUNCATE:
             return str(decimal_to_precision(dec - dec % to_nearest, rounding_mode, 0, DECIMAL_PLACES, padding_mode))
 
-
     if rounding_mode == ROUND:
         if counting_mode == DECIMAL_PLACES:
             precise = '{:f}'.format(dec.quantize(power_of_10(precision)))  # ROUND_HALF_EVEN is default context
