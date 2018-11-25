@@ -34,18 +34,6 @@ module.exports = class adara extends Exchange {
                 'fetchWithdrawals': true,
                 'fetchTransactions': false,
             },
-            'timeframes': {
-                '1m': 'minutes',
-                '3m': 'minutes',
-                '5m': 'minutes',
-                '15m': 'minutes',
-                '30m': 'minutes',
-                '1h': 'minutes',
-                '4h': 'minutes',
-                '1d': 'days',
-                '1w': 'weeks',
-                '1M': 'months',
-            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
                 'api': {
