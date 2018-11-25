@@ -141,12 +141,9 @@ module.exports = class adara extends Exchange {
             'exceptions': {
                 'exact': {
                     'AUTH': AuthenticationError, // {"errors":[{"code":"AUTH","title":"Not authorized","detail":"User is not authorized"}]}
-                    // 'Missing request parameter error. Check the required parameters!': BadRequest, // 400 Bad Request {"error":{"name":400,"message":"Missing request parameter error. Check the required parameters!"}}
-                    // 'side is missing, side does not have a valid value': InvalidOrder, // {"error":{"message":"side is missing, side does not have a valid value","name":"validation_error"}}
+                    'Bad Request': BadRequest, // {"errors":[{"status":"400","title":"Bad Request","detail":"symbol filter is not filled"}]}
                 },
                 'broad': {
-                    // 'thirdparty_agreement_required': PermissionDenied, // {"error":{"message":"개인정보 제 3자 제공 동의가 필요합니다.","name":"thirdparty_agreement_required"}}
-                    // 'out_of_scope': PermissionDenied, // {"error":{"message":"권한이 부족합니다.","name":"out_of_scope"}}
                 },
             },
             'options': {
@@ -361,7 +358,6 @@ module.exports = class adara extends Exchange {
     }
 
     async fetchOrderBooks (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
         let ids = undefined;
         if (symbols === undefined) {
             ids = this.ids.join (',');
@@ -374,10 +370,6 @@ module.exports = class adara extends Exchange {
             ids = this.marketIds (symbols);
             ids = ids.join (',');
         }
-        const request = {
-            'markets': ids,
-        };
-        const response = await this.publicGetOrderbook (this.extend (request, params));
         //
         //     [ {          market:   "BTC-ETH",
         //               timestamp:    1542899030043,
@@ -423,6 +415,27 @@ module.exports = class adara extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'filters[symbol]': market['id'],
+        };
+        const response = await this.publicGetOrderBook (this.extend (request, params));
+        //
+        //     { data: [ {       type:   "orderBook",
+        //                         id:   "OBID0SLTCETHS0",
+        //                 attributes: {        price: 1,
+        //                                     amount: 4,
+        //                               serializedAt: 1543116143473 } },
+        //               {       type:   "orderBook",
+        //                         id:   "OSID3SLTCETHS0",
+        //                 attributes: {        price: 12,
+        //                                     amount: 12,
+        //                               serializedAt: 1543116143474 } }  ] }
+        //
+        const log = require ('ololog').unlimited;
+        log.green (response);
+        process.exit ();
         let orderbooks = await this.fetchOrderBooks ([ symbol ], params);
         return this.safeValue (orderbooks, symbol);
     }
@@ -1320,29 +1333,29 @@ module.exports = class adara extends Exchange {
             return; // fallback to default error handler
         response = JSON.parse (body);
         //
-        //     {"error":{"name":400,"message":"Missing request parameter error. Check the required parameters!"}}
-        //     {"error":{"message":"side is missing, side does not have a valid value","name":"validation_error"}}
-        //     {"error":{"message":"개인정보 제 3자 제공 동의가 필요합니다.","name":"thirdparty_agreement_required"}}
-        //     {"error":{"message":"권한이 부족합니다.","name":"out_of_scope"}}
+        //     {"errors":[{"code":"AUTH","title":"Not authorized","detail":"User is not authorized"}]}
+        //     {"errors":[{"status":"400","title":"Bad Request","detail":"symbol filter is not filled"}]}
         //
-        const error = this.safeValue (response, 'error');
-        if (error !== undefined) {
-            const message = this.safeString (error, 'message');
-            const name = this.safeString (error, 'name');
+        const errors = this.safeValue (response, 'errors', []);
+        const numErrors = errors.length;
+        if (numErrors > 0) {
+            const error = errors[0];
+            const code = this.safeString (error, 'code');
+            const title = this.safeString (error, 'title');
+            const detail = this.safeString (error, 'detail');
             const feedback = this.id + ' ' + this.json (response);
             const exact = this.exceptions['exact'];
-            if (message in exact) {
-                throw new exact[message] (feedback);
+            if (code in exact) {
+                throw new exact[code] (feedback);
             }
-            if (name in exact) {
-                throw new exact[name] (feedback);
+            if (title in exact) {
+                throw new exact[title] (feedback);
+            }
+            if (detail in exact) {
+                throw new exact[detail] (feedback);
             }
             const broad = this.exceptions['broad'];
-            let broadKey = this.findBroadlyMatchedKey (broad, message);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
-            broadKey = this.findBroadlyMatchedKey (broad, name);
+            const broadKey = this.findBroadlyMatchedKey (broad, body);
             if (broadKey !== undefined) {
                 throw new broad[broadKey] (feedback);
             }
