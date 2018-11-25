@@ -2101,17 +2101,11 @@ class Exchange {
         // Special handling for negative precision
         if ($numPrecisionDigits < 0) {
             $toNearest = 10 ** abs ($numPrecisionDigits);
-            if ($roundingMode === ROUND || $toNearest > abs ($x)) {
-                $signed = $x > 0 ? $toNearest : $toNearest * (-1);
-                $rounded = abs ($signed - $x) <= abs ($x) ? $signed : 0;
-                $result = (string) ($rounded * (intdiv ($x, $signed) + 1));
-            } else {
-                $unsigned = trim ((string) $x, '-');
-                $drop_decimals = substr($unsigned, 0, strpos($unsigned, '.'));
-                $truncated = substr ($drop_decimals, 0, strlen ($drop_decimals) + $numPrecisionDigits);
-                $formatStr = '%0-' . (string) (1 - $numPrecisionDigits) . 'd';
-                $adjusted = sprintf ($formatStr, $truncated);
-                $result = $x < 0  ? '-' . $adjusted : $adjusted;
+            if ($roundingMode === ROUND) {
+                $result = (string) ($toNearest * decimal_to_precision ($x/$toNearest, $roundingMode, 0, $countingMode, $paddingMode));
+            } 
+            if ($roundingMode === TRUNCATE) {
+                $result = (string) ($x-$x%$toNearest);
             }
             return $result;
         }

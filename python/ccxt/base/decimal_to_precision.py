@@ -53,15 +53,10 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
 
     if precision < 0:
         to_nearest = power_of_10(precision)
-        if rounding_mode == ROUND or to_nearest > abs(dec):
-            signed = to_nearest if dec > 0 else -to_nearest
-            rounded = signed if abs(signed - dec) <= abs(dec) else 0
-            return str(rounded * (dec // signed + 1))
+        if rounding_mode == ROUND:
+            return to_nearest*decimal_to_precision(n/to_nearest, rounding_mode, 0, counting_mode, padding_mode)
         elif rounding_mode == TRUNCATE:
-            unsigned = string.lstrip('-')
-            drop_decimals = unsigned[:unsigned.index('.')] if '.' in unsigned else unsigned
-            truncated = drop_decimals[:-precision].ljust(-precision + 1, '0')
-            return '-' + truncated if dec < 0 else truncated
+            return (n-n%to_nearest)
 
     if rounding_mode == ROUND:
         if counting_mode == DECIMAL_PLACES:
