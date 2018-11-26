@@ -959,49 +959,42 @@ module.exports = class adara extends Exchange {
         // let response = await this.publicGetOrder (this.extend (request, params));
         let response =
         //
-            {
-                "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
-                "side": "bid",
-                "ord_type": "limit",
-                "price": "17417000.0",
-                "state": "done",
-                "market": "KRW-BTC",
-                "created_at": "2018-04-05T14:09:14+09:00",
-                "volume": "1.0",
-                "remaining_volume": "0.0",
-                "reserved_fee": "26125.5",
-                "remaining_fee": "25974.0",
-                "paid_fee": "151.5",
-                "locked": "17341974.0",
-                "executed_volume": "1.0",
-                "trades_count": 2,
-                "trades": [
-                    {
-                        "market": "KRW-BTC",
-                        "uuid": "78162304-1a4d-4524-b9e6-c9a9e14d76c3",
-                        "price": "101000.0",
-                        "volume": "0.77368323",
-                        "funds": "78142.00623",
-                        "ask_fee": "117.213009345",
-                        "bid_fee": "117.213009345",
-                        "created_at": "2018-04-05T14:09:15+09:00",
-                        "side": "bid"
+        {
+            data: {
+                id: "...",
+                type: "order",
+                attributes: {
+                    operation: "buy", // or "sell"
+                    orderType: "market", // "stop", "limit", "stopLimit"
+                    amount: 0.12345678,
+                    price: 0.12345678,
+                    averagePrice: 0.12345678,
+                    fee: 0.12345678,
+                    filled: 0.12345678,
+                    stop: 0.12345678,
+                    timeOpen: "2018-01-01T00:00:00Z",
+                    timeClose: "2018-01-01T00:00:00Z",
+                    comment: "...",
+                    status: "open", // "closed", "canceled"
+                    flag: "stop",
+                },
+                relationships: {
+                    symbol: {
+                        ...
                     },
-                    {
-                        "market": "KRW-BTC",
-                        "uuid": "f73da467-c42f-407d-92fa-e10d86450a20",
-                        "price": "101000.0",
-                        "volume": "0.22631677",
-                        "funds": "22857.99377",
-                        "ask_fee": "34.286990655",
-                        "bid_fee": "34.286990655",
-                        "created_at": "2018-04-05T14:09:15+09:00",
-                        "side": "bid"
-                    }
-                ]
+                    'trades': {
+                        'data': [
+                            {
+                                id: "...",
+                                type: "trade",
+                            },
+                        ],
+                    },
+                },
             }
+        }
         //
-        return this.parseOrder (response);
+        return this.parseOrder (response['data']);
     }
 
     nonce () {
