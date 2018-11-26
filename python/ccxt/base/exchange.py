@@ -415,7 +415,6 @@ class Exchange(object):
         response = None
         http_response = None
         json_response = None
-        headers = None
         try:
             response = self.session.request(
                 method,
@@ -426,7 +425,7 @@ class Exchange(object):
                 proxies=self.proxies
             )
             http_response = response.text
-            json_response = self.parseJSON(http_response)
+            json_response = self.parse_json(http_response)
             headers = response.headers
             # FIXME remove lastXResponses from subclasses
             if self.enableLastHttpResponse:
@@ -487,7 +486,7 @@ class Exchange(object):
                 self.raise_error(ExchangeNotAvailable, method, url, None, message)
             self.raise_error(ExchangeError, method, url, ValueError('failed to decode json'), response)
 
-    def parseJSON(self, http_response):
+    def parse_json(self, http_response):
         try:
             if self.parseJsonResponse:
                 return json.loads(http_response)
