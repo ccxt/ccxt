@@ -44,7 +44,7 @@ def get_all_closed_orders_since_to(exchange, symbol, since, to):
             else:
                 min_timestamp = since
         except ccxt.ExchangeNotAvailable as e:
-            pass # retry
+            pass  # retry
     return result
 
 
