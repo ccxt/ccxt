@@ -490,6 +490,8 @@ class Exchange(object):
         try:
             if self.parseJsonResponse:
                 return json.loads(http_response)
+            else:
+                return http_response
         except ValueError:  # superclass of JsonDecodeError (python2)
             pass
 
