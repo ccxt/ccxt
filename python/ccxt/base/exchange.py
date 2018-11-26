@@ -476,7 +476,7 @@ class Exchange(object):
             self.raise_error(error, url, method, exception if exception else http_status_code, response)
 
     def handle_rest_response(self, response, json_response, url, method='GET', headers=None, body=None):
-        if json_response is None and self.parseJsonResponse:
+        if json_response is None:
             ddos_protection = re.search('(cloudflare|incapsula|overload|ddos)', response, flags=re.IGNORECASE)
             exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', response, flags=re.IGNORECASE)
             if ddos_protection:
