@@ -48,7 +48,7 @@ def get_all_closed_orders_since_to (exchange, symbol, since, to):
     return result
 
 one_day = 24 * 60 * 60 * 1000  # in milliseconds
-since = exchange.parse8601 ('2018-11-26T00:00:00')  # 0:00 AM UTC in milliseconds
+since = exchange.parse8601 ('2018-11-25T00:00:00')  # 0:00 AM UTC in milliseconds
 # or
 since = exchange.milliseconds () - one_day # last 24 hours in milliseconds
 
