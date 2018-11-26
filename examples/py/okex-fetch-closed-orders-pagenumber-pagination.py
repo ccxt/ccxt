@@ -2,7 +2,6 @@
 
 import os
 import sys
-from pprint import pprint
 
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root + '/python')
@@ -24,7 +23,8 @@ exchange = ccxt.okex({
     'enableRateLimit': True,  # or add .enableRateLimit = True later
 })
 
-def get_all_closed_orders_since_to (exchange, symbol, since, to):
+
+def get_all_closed_orders_since_to(exchange, symbol, since, to):
     result = []
     page = 1
     min_timestamp = to
@@ -32,7 +32,7 @@ def get_all_closed_orders_since_to (exchange, symbol, since, to):
     while min_timestamp > since:
         try:
             print('Fetching page', page)
-            params = { 'current_page': page }
+            params = {'current_page': page}
 #            if page == 6:
 #                exchange.verbose = True
             orders = exchange.fetch_closed_orders(symbol, since, None, params)
@@ -47,10 +47,11 @@ def get_all_closed_orders_since_to (exchange, symbol, since, to):
             pass # retry
     return result
 
+
 one_day = 24 * 60 * 60 * 1000  # in milliseconds
-since = exchange.parse8601 ('2018-11-25T00:00:00')  # 0:00 AM UTC in milliseconds
+since = exchange.parse8601('2018-11-25T00:00:00')  # 0:00 AM UTC in milliseconds
 # or
-since = exchange.milliseconds () - one_day # last 24 hours in milliseconds
+since = exchange.milliseconds() - one_day  # last 24 hours in milliseconds
 
 to = since + one_day
 
