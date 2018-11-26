@@ -60,14 +60,15 @@ class PusherLightConnection extends WebsocketBaseConnection {
         if ($this->client->is_closing) {
             return;
         }
-        $this->activityTimer = $this->loop->addTimer($this->client->activityTimeout / 1000, function() {
+        $that = $this;
+        $this->activityTimer = $this->loop->addTimer($this->client->activityTimeout / 1000, function() use(&$that){
             if (!$that->client->is_closing) {
                 echo "pusher->send ping";
                 $that->client->ws.send(json_encode(array(
                     "event"=> 'pusher:ping',
                     "data" => array()
                 )));
-                $this->activityTimer = $this->loop->addTimer($this->client->pongTimeout / 1000, function() {
+                $this->activityTimer = $this->loop->addTimer($this->client->pongTimeout / 1000, function() use(&$that){
                     if (!$that->client->is_closing){
                         $that->client->ws->close();
                     }
