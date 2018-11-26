@@ -33,8 +33,6 @@ def get_all_closed_orders_since_to(exchange, symbol, since, to):
         try:
             print('Fetching page', page)
             params = {'current_page': page}
-#            if page == 6:
-#                exchange.verbose = True
             orders = exchange.fetch_closed_orders(symbol, since, None, params)
             if len(orders):
                 min_timestamp = orders[0]['timestamp']
