@@ -34,11 +34,14 @@ module.exports = class adara extends Exchange {
                 'fetchWithdrawals': false,
                 'fetchTransactions': false,
             },
+            'requiredCredentials': {
+                'secret': false,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
                 'api': {
-                    'public': 'https://platform.adara-test.io/v2.0',
-                    'private': 'https://platform.adara-test.io/v2.0',
+                    'public': 'https://api.adara-master.io/v2.0',
+                    'private': 'https://api.adara-master.io/v2.0',
                     'v1public': 'https://crm.adara-test.io/v1.0',
                     'v1private': 'https://crm.adara-test.io/v1.0',
                 },
@@ -141,6 +144,7 @@ module.exports = class adara extends Exchange {
             'exceptions': {
                 'exact': {
                     'AUTH': AuthenticationError, // {"errors":[{"code":"AUTH","title":"Not authorized","detail":"User is not authorized"}]}
+                    'You are not authorized': AuthenticationError, // {"errors":[{"status":"401","title":"Unauthorized","detail":"You are not authorized"}]}
                     'Bad Request': BadRequest, // {"errors":[{"status":"400","title":"Bad Request","detail":"symbol filter is not filled"}]}
                     '500': ExchangeError, // {"errors":[{"status":"500","title":"TypeError","detail":"TypeError: Cannot read property 'buy' of undefined"}]}
                 },
@@ -312,34 +316,62 @@ module.exports = class adara extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetAccounts (params);
+        let response = await this.privateGetBalance (params);
         //
-        //     [ {          currency: "BTC",
-        //                   balance: "0.005",
-        //                    locked: "0.0",
-        //         avg_krw_buy_price: "7446000",
-        //                  modified:  false     },
-        //       {          currency: "ETH",
-        //                   balance: "0.1",
-        //                    locked: "0.0",
-        //         avg_krw_buy_price: "250000",
-        //                  modified:  false    }   ]
+        //     {     data: [ {          type:   "balance",
+        //                                id:   "U4f0f0940-39bf-45a8-90bc-12d2899db4f1_BALANCE_FOR_ETH",
+        //                        attributes: {           totalBalance: 10000,
+        //                                                    onOrders: 0,
+        //                                      normalizedTotalBalance: 310,
+        //                                          normalizedOnOrders: 0,
+        //                                                  percentage: 3.004116443856034,
+        //                                                serializedAt: 1543324487949      },
+        //                     relationships: {           currency: { data: { type: "currency", id: "ETH" } },
+        //                                      normalizedCurrency: { data: { type: "currency", id: "BTC" } }  } }  ],
+        //       included: [ {          type:   "currency",
+        //                                id:   "BTC",
+        //                        attributes: {          name: "Bitcoin",
+        //                                          shortName: "BTC",
+        //                                             active:  true,
+        //                                           accuracy:  8,
+        //                                       allowDeposit:  true,
+        //                                      allowWithdraw:  true,
+        //                                        allowWallet:  true,
+        //                                         allowTrade:  true,
+        //                                       serializedAt:  1543324487948 },
+        //                     relationships: {  }                               },
+        //                   {       type:   "currency",
+        //                             id:   "ETH",
+        //                     attributes: {          name: "Ethereum",
+        //                                       shortName: "ETH",
+        //                                          active:  true,
+        //                                        accuracy:  8,
+        //                                    allowDeposit:  true,
+        //                                   allowWithdraw:  true,
+        //                                     allowWallet:  true,
+        //                                      allowTrade:  true,
+        //                                    serializedAt:  1543324487948 } }      ]                                  }
         //
-        let result = { 'info': response };
-        let indexed = this.indexBy (response, 'currency');
-        let ids = Object.keys (indexed);
-        for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let currency = this.commonCurrencyCode (id);
-            let account = this.account ();
-            let balance = indexed[id];
-            let total = this.safeFloat (balance, 'balance');
-            let used = this.safeFloat (balance, 'locked');
-            let free = total - used;
-            account['free'] = free;
-            account['used'] = used;
-            account['total'] = total;
-            result[currency] = account;
+        const result = { 'info': response };
+        const data = this.safeValue (response, 'data');
+        if (data !== undefined) {
+            for (let i = 0; i < data.length; i++) {
+                const balance = data[i];
+                const attributes = this.safeValue (balance, 'attributes', {});
+                const relationships = this.safeValue (balance, 'relationships', {});
+                const currencyRelationship = this.safeValue (relationships, 'currency', {});
+                const currencyRelationshipData = this.safeValue (currencyRelationship, 'data');
+                const currencyId = this.safeString (currencyRelationshipData, 'id');
+                const code = this.commonCurrencyCode (currencyId);
+                let account = this.account ();
+                let total = this.safeFloat (attributes, 'totalBalance');
+                let used = this.safeFloat (attributes, 'onOrders');
+                let free = total - used;
+                account['free'] = free;
+                account['used'] = used;
+                account['total'] = total;
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }
@@ -956,43 +988,43 @@ module.exports = class adara extends Exchange {
         const request = {
             'uuid': id,
         };
-        // let response = await this.publicGetOrder (this.extend (request, params));
-        let response =
+        let response = await this.publicGetOrder (this.extend (request, params));
+        // let response =
         //
-        {
-            data: {
-                id: "...",
-                type: "order",
-                attributes: {
-                    operation: "buy", // or "sell"
-                    orderType: "market", // "stop", "limit", "stopLimit"
-                    amount: 0.12345678,
-                    price: 0.12345678,
-                    averagePrice: 0.12345678,
-                    fee: 0.12345678,
-                    filled: 0.12345678,
-                    stop: 0.12345678,
-                    timeOpen: "2018-01-01T00:00:00Z",
-                    timeClose: "2018-01-01T00:00:00Z",
-                    comment: "...",
-                    status: "open", // "closed", "canceled"
-                    flag: "stop",
-                },
-                relationships: {
-                    symbol: {
-                        ...
-                    },
-                    'trades': {
-                        'data': [
-                            {
-                                id: "...",
-                                type: "trade",
-                            },
-                        ],
-                    },
-                },
-            }
-        }
+        // {
+        //     data: {
+        //         id: "...",
+        //         type: "order",
+        //         attributes: {
+        //             operation: "buy", // or "sell"
+        //             orderType: "market", // "stop", "limit", "stopLimit"
+        //             amount: 0.12345678,
+        //             price: 0.12345678,
+        //             averagePrice: 0.12345678,
+        //             fee: 0.12345678,
+        //             filled: 0.12345678,
+        //             stop: 0.12345678,
+        //             timeOpen: "2018-01-01T00:00:00Z",
+        //             timeClose: "2018-01-01T00:00:00Z",
+        //             comment: "...",
+        //             status: "open", // "closed", "canceled"
+        //             flag: "stop",
+        //         },
+        //         relationships: {
+        //             symbol: {
+        //                 ...
+        //             },
+        //             'trades': {
+        //                 'data': [
+        //                     {
+        //                         id: "...",
+        //                         type: "trade",
+        //                     },
+        //                 ],
+        //             },
+        //         },
+        //     }
+        // }
         //
         return this.parseOrder (response['data']);
     }
@@ -1018,9 +1050,10 @@ module.exports = class adara extends Exchange {
             if (Object.keys (query).length) {
                 request['query'] = this.urlencode (query);
             }
-            const jwt = this.jwt (request, this.secret);
+            // const jwt = this.jwt (request, this.secret);
             headers = {
-                'Authorization': 'Bearer ' + jwt,
+                // 'Authorization': 'Bearer ' + jwt,
+                'Cookie': 'token=' + this.apiKey,
             };
             if (method === 'POST') {
                 body = this.json (params);
