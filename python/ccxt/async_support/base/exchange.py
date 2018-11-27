@@ -39,6 +39,7 @@ from ccxt.base.exchange import Exchange as BaseExchange
 
 from ccxt.async_support.websocket.websocket_connection import WebsocketConnection
 from ccxt.async_support.websocket.pusher_light_connection import PusherLightConnection
+from ccxt.async_support.websocket.socketio_light_connection import SocketIoLightConnection
 from pyee import EventEmitter
 import zlib
 import gzip
@@ -327,11 +328,17 @@ class Exchange(BaseExchange, EventEmitter):
         for i in range(len(orderedArray)):
             if compare(orderedArray[i][key], value) >= 0:
                 return i
-        return i
+        # return i
+        return len(orderedArray)
 
     def updateBidAsk(self, bidAsk, currentBidsAsks, bids=False):
         # insert or replace ordered
         index = self.searchIndexToInsertOrUpdate(bidAsk[0], currentBidsAsks, 0, bids)
+        print("index:")
+        print(index)
+        print(bidAsk[1])
+        print(bidAsk[1] == 0)
+        sys.stdout.flush()
         if ((index < len(currentBidsAsks)) and (currentBidsAsks[index][0] == bidAsk[0])):
             # found
             if (bidAsk[1] == 0):
@@ -510,7 +517,14 @@ class Exchange(BaseExchange, EventEmitter):
             config[key] = self.implode_params(conxParam[key], params)
         if (not (('id' in config) and ('url' in config) and ('type' in config))):
             raise ExchangeError("invalid websocket configuration in exchange: " + self.id)
-        if (config['type'] == 'pusher'):
+        if (config['type'] == 'ws-io'):
+            return {
+                'action': 'connect',
+                'conx-config': config,
+                'reset-context': 'onconnect',
+                'conx-tpl': conx_tpl_name,
+            }
+        elif (config['type'] == 'pusher'):
             return {
                 'action': 'connect',
                 'conx-config': config,
@@ -666,7 +680,9 @@ class Exchange(BaseExchange, EventEmitter):
         }
         if self.proxies is not None:
             websocket_config['proxies'] = self.proxies
-        if (websocket_config['type'] == 'pusher'):
+        if (websocket_config['type'] == 'ws-io'):
+            websocket_connection_info['conx'] = SocketIoLightConnection(websocket_config, self.timeout, self.asyncio_loop)
+        elif (websocket_config['type'] == 'pusher'):
             websocket_connection_info['conx'] = PusherLightConnection(websocket_config, self.timeout, self.asyncio_loop)
         elif (websocket_config['type'] == 'ws'):
             websocket_connection_info['conx'] = WebsocketConnection(websocket_config, self.timeout, self.asyncio_loop)

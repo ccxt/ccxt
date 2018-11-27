@@ -67,6 +67,7 @@ const journal = undefined // isNode && require ('./journal') // stub until we ge
 const EventEmitter = require('events')
 const WebsocketConnection = require ('./websocket/websocket_connection')
 const PusherLightConnection = require ('./websocket/pusherlight_connection')
+const SocketIoLightConnection = require ('./websocket/socketiolight_connection')
 var zlib = require('zlib');
 
 /*  ------------------------------------------------------------------------ */
@@ -1718,6 +1719,13 @@ module.exports = class Exchange extends EventEmitter{
             throw new ExchangeError ("invalid websocket configuration in exchange: " + this.id);
         }
         switch (config['type']){
+            case 'ws-io':
+                return {
+                    'action': 'connect',
+                    'conx-config': config,
+                    'reset-context': 'onconnect',
+                    'conx-tpl': conxTplName,
+                };
             case 'pusher':
                 return {
                     'action': 'connect',
@@ -1879,7 +1887,9 @@ module.exports = class Exchange extends EventEmitter{
         };
         websocketConfig['agent'] = this.agent;
         switch (websocketConfig['type']){
-            case 'pusher':
+            case 'ws-io':
+                websocketConnectionInfo['conx'] = new SocketIoLightConnection (websocketConfig, this.timeout);
+                break;case 'pusher':
                 websocketConnectionInfo['conx'] = new PusherLightConnection (websocketConfig, this.timeout);
                 break;
             case 'ws':

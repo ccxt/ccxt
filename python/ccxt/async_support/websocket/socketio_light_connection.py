@@ -5,28 +5,91 @@ from autobahn.asyncio.websocket import WebSocketClientProtocol, \
     WebSocketClientFactory
 import asyncio
 from urllib.parse import urlparse
+import json, sys
 
 
 class MyClientProtocol(WebSocketClientProtocol):
-    def __init__(self, event_emitter, future):
+    def __init__(self, event_emitter, future, loop):
         super(MyClientProtocol, self).__init__()
         self.event_emitter = event_emitter  # type: pyee.EventEmitter
         self.future = future  # type: asyncio.Future
         self.is_closing = False
+        self.ping_interval_ms: 25000
+        self.ping_timeout_ms: 5000
+        self.ping_interval = None
+        self.ping_timeout = None
+        self.loop = loop
+    
+    def createPingProcess(self):
+        self.destroyPingProcess()
+        def wait4pong():
+            if not self.is_closing:
+                self.event_emitter.emit('err', 'pong not received from server')
+                self._closeConnection(True)
+        def do_ping():
+            self.ping_interval = self.loop.call_later(self.ping_interval_ms / 1000, do_ping)
+            try:
+                if not self.is_closing:
+                    self.cancelPingTimeout()
+                    self.sendMessage('2'.encode('utf8'))
+                    #print("ping sent")
+                    #sys.stdout.flush()
+                    self.ping_timeout = self.loop.call_later(self.ping_timeout_ms / 1000, wait4pong)
+                else:
+                    self.destroyPingProcess()
+            except Exception as ex:
+                pass
+
+        self.ping_interval = self.loop.call_later(self.ping_interval_ms / 1000, do_ping)
+
+    def destroyPingProcess(self):
+        if self.ping_interval is not None:
+            self.ping_interval.cancel()
+            self.ping_interval = None
+        
+        self.cancelPingTimeout()
+
+    def cancelPingTimeout(self):
+        if self.ping_timeout is not None:
+            self.ping_timeout.cancel()
+            self.ping_timeout = None
 
     def onConnect(self, response):
         pass
 
     def onOpen(self):
-        self.future.done() or self.future.set_result(None)
+        # self.future.done() or self.future.set_result(None)
+        pass
 
     def onMessage(self, payload, isBinary):
         if self.is_closing:
             return
-        if isBinary:
-            self.event_emitter.emit('message', payload)
+        data = payload
+        if not isBinary:
+            data = payload.decode('utf8')
+        #print(payload)
+        #sys.stdout.flush()
+        if data[0] == '0':
+            msg = json.loads(data[1:])
+            if 'pingInterval' in msg:
+                self.ping_interval_ms = msg['pingInterval']
+            if 'pingTimeout' in msg:
+                self.ping_timeout_ms = msg['pingTimeout']
+        elif data[0] == '3':
+            self.cancelPingTimeout()
+            #print('pong received')
+            #sys.stdout.flush()
+        elif data[0] == '4':
+            if data[1] == '2':
+                self.event_emitter.emit('message', data[2:])
+            elif data[1] == '0':
+                self.createPingProcess()
+                self.future.done() or self.future.set_result(None)
+        elif data[0] == '1':
+            self.event_emitter.emit ('err', 'server sent disconnect message')
+            self._closeConnection(True)
         else:
-            self.event_emitter.emit('message', payload.decode('utf8'))
+            print("unknown msg received from iosocket: "+ data)
 
     def onClose(self, wasClean, code, reason):
         self.future.done() or self.future.set_exception(Exception(reason))
@@ -38,9 +101,9 @@ class MyClientProtocol(WebSocketClientProtocol):
             self.event_emitter.emit('close')
 
 
-class WebsocketConnection(WebsocketBaseConnection):
+class SocketIoLightConnection(WebsocketBaseConnection):
     def __init__(self, options, timeout, loop):
-        super(WebsocketConnection, self).__init__()
+        super(SocketIoLightConnection, self).__init__()
         self.options = options
         self.timeout = timeout
         self.loop = loop  # type: asyncio.BaseEventLoop
@@ -61,7 +124,7 @@ class WebsocketConnection(WebsocketBaseConnection):
                 ssl = True if url_parsed.scheme == 'wss' else False
                 port = url_parsed.port if url_parsed.port is not None else 443 if ssl else 80
 
-                client = MyClientProtocol(self, future)
+                client = MyClientProtocol(self, future, self.loop)
                 if 'proxies' in list(self.options.keys()):
                     if url_parsed.scheme == 'wss':
                         proxy_url_parsed = urlparse(self.options['proxies']['https'])
@@ -95,7 +158,8 @@ class WebsocketConnection(WebsocketBaseConnection):
 
     def send(self, data):
         if self.client is not None:
-            self.client.sendMessage(data.encode('utf8'))
+            self.client.sendMessage(('42'+data).encode('utf8'))
+            pass
 
     def isActive(self):
         return (self.client is not None) and ((self.client.state == WebSocketClientProtocol.STATE_OPEN) or (self.client.state == WebSocketClientProtocol.STATE_CONNECTING))
