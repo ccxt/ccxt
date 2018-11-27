@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.540'
+const version = '1.17.543'
 
 Exchange.ccxtVersion = version
 
@@ -57439,8 +57439,8 @@ module.exports = class theocean extends Exchange {
             }
             let feeDecimals = this.safeInteger (this.options['decimals'], feeCurrency, 18);
             fee = {
-                'сost': this.fromWei (feeCost, 'ether', feeDecimals),
-                'сurrency': feeCurrency,
+                'cost': this.fromWei (feeCost, 'ether', feeDecimals),
+                'currency': feeCurrency,
             };
         }
         let amountPrecision = market ? market['precision']['amount'] : 8;
