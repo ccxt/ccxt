@@ -992,42 +992,45 @@ module.exports = class adara extends Exchange {
             'uuid': id,
         };
         let response = await this.publicGetOrder (this.extend (request, params));
-        // let response =
         //
-        // {
-        //     data: {
-        //         id: "...",
-        //         type: "order",
-        //         attributes: {
-        //             operation: "buy", // or "sell"
-        //             orderType: "market", // "stop", "limit", "stopLimit"
-        //             amount: 0.12345678,
-        //             price: 0.12345678,
-        //             averagePrice: 0.12345678,
-        //             fee: 0.12345678,
-        //             filled: 0.12345678,
-        //             stop: 0.12345678,
-        //             timeOpen: "2018-01-01T00:00:00Z",
-        //             timeClose: "2018-01-01T00:00:00Z",
-        //             comment: "...",
-        //             status: "open", // "closed", "canceled"
-        //             flag: "stop",
-        //         },
-        //         relationships: {
-        //             symbol: {
-        //                 ...
+        //     {
+        //         "data": [{
+        //             "id": "string",
+        //             "type": "order",
+        //             "attributes": {
+        //                 "operation": "buy",
+        //                 "orderType": "market",
+        //                 "amount": 0,
+        //                 "price": 0,
+        //                 "averagePrice": 0,
+        //                 "fee": 0,
+        //                 "filled": 0,
+        //                 "stop": 0,
+        //                 "timeOpen": "2018-11-27T13:30:21Z",
+        //                 "timeClose": "2018-11-27T13:30:21Z",
+        //                 "comment": "string",
+        //                 "status": "open",
+        //                 "flag": "stop"
         //             },
-        //             'trades': {
-        //                 'data': [
-        //                     {
-        //                         id: "...",
-        //                         type: "trade",
-        //                     },
-        //                 ],
+        //             "relationships": {
+        //                 "symbol": { "data": { "id": "string", "type": "symbol" } },
+        //                 "trades": { "data": [ { "id": "string", "type": "trade" } ] }
+        //             }
+        //         }],
+        //         "included": [{
+        //             "id": "string",
+        //             "type": "trade",
+        //             "attributes": {
+        //                 "fee": 0,
+        //                 "price": 0,
+        //                 "amount": 0,
+        //                 "total": 0,
+        //                 "operation": "buy",
+        //                 "createdAt": "2018-11-27T13:30:21Z"
         //             },
-        //         },
+        //             "relationships": { "symbol": { "data": { "id": "string", "type": "symbol" } } }
+        //         }]
         //     }
-        // }
         //
         return this.parseOrder (response['data']);
     }
@@ -1073,6 +1076,7 @@ module.exports = class adara extends Exchange {
         //
         //     {"errors":[{"code":"AUTH","title":"Not authorized","detail":"User is not authorized"}]}
         //     {"errors":[{"status":"400","title":"Bad Request","detail":"symbol filter is not filled"}]}
+        //     {"errors":[{"status":"401","title":"Unauthorized","detail":"You are not authorized"}]}
         //     {"errors":[{"status":"500","title":"TypeError","detail":"TypeError: Cannot read property 'buy' of undefined"}]}
         //
         const errors = this.safeValue (response, 'errors', []);
