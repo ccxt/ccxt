@@ -404,7 +404,7 @@ class cryptopia extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_transaction ($transaction) {
+    public function parse_transaction ($transaction, $currency = null) {
         //
         // fetchWithdrawals
         //

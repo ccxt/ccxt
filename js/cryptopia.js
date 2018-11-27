@@ -403,7 +403,7 @@ module.exports = class cryptopia extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTransaction (transaction) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // fetchWithdrawals
         //
@@ -437,7 +437,7 @@ module.exports = class cryptopia extends Exchange {
         let timestamp = this.parse8601 (this.safeString (transaction, 'Timestamp'));
         let code = undefined;
         let currencyId = this.safeString (transaction, 'Currency');
-        let currency = this.safeValue (this.currencies_by_id, currencyId);
+        currency = this.safeValue (this.currencies_by_id, currencyId);
         if (currency === undefined) {
             code = this.commonCurrencyCode (currencyId);
         }
