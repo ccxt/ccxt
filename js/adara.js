@@ -943,7 +943,10 @@ module.exports = class adara extends Exchange {
             market = this.marketId (symbol);
             request['market'] = market['id'];
         }
-        const response = await this.privateGetOrders (this.extend (request, params));
+        const response = await this.privateGetOrder (this.extend (request, params));
+        const log = require ('ololog').unlimited;
+        log.green (response);
+        process.exit ();
         // const response =
         /*
             [
