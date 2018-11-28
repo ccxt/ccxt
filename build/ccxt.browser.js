@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.551'
+const version = '1.17.552'
 
 Exchange.ccxtVersion = version
 
@@ -18210,6 +18210,12 @@ module.exports = class btcalpha extends Exchange {
         let amount = parseFloat (trade['amount']);
         let cost = this.costToPrecision (symbol, price * amount);
         let id = this.safeString (trade, 'id');
+        let side = undefined;
+        if ('my_side' in trade) {
+            side = this.safeString (trade, 'my_side');
+        } else {
+            side = this.safeString (trade, 'side');
+        }
         if (!id)
             id = this.safeString (trade, 'tid');
         return {
@@ -18219,7 +18225,7 @@ module.exports = class btcalpha extends Exchange {
             'id': id,
             'order': this.safeString (trade, 'o_id'),
             'type': 'limit',
-            'side': trade['type'],
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': parseFloat (cost),
