@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, ArgumentsRequired, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending } = require ('./base/errors');
-const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -87,6 +86,9 @@ module.exports = class adara extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    'Insufficient funds': InsufficientFunds, // {"errors":[{"status":"422","title":"Unprocessable Entity","detail":"Insufficient funds"}]}
+                    'Amount is too small': InvalidOrder, // {"errors":[{"status":"400","title":"Bad Request","detail":"Amount is too small","source":{"pointer":"/data/attributes/amount"}}]}
+                    'operation has invalid value': InvalidOrder, // {"errors":[{"status":"400","title":"Bad Request","detail":"operation has invalid value"}]}
                     "closed order can't be changed": InvalidOrder, // {"errors":[{"status":"423","title":"Locked","detail":"closed order can't be changed"}]}
                     'Order is not found': OrderNotFound, // {"errors":[{"status":"404","title":"Not Found","detail":"Order is not found"}]}
                     'AUTH': AuthenticationError, // {"errors":[{"code":"AUTH","title":"Not authorized","detail":"User is not authorized"}]}
@@ -151,10 +153,10 @@ module.exports = class adara extends Exchange {
             const base = this.commonCurrencyCode (baseId);
             const quote = this.commonCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const amountPrecision = this.safeInteger (attributes, 'digits');
+            const pricePrecision = this.safeInteger (attributes, 'digits');
             const precision = {
-                'amount': amountPrecision,
-                'price': 8,
+                'amount': 8,
+                'price': pricePrecision,
             };
             const active = this.safeValue (attributes, 'allowTrade');
             const maker = this.safeFloat (attributes, 'makerFee');
@@ -567,17 +569,20 @@ module.exports = class adara extends Exchange {
         const symbolRelationship = this.safeValue (relationships, 'symbol', {});
         const symbolRelationshipData = this.safeValue (symbolRelationship, 'data', {});
         const marketId = this.safeString (symbolRelationshipData, 'id');
-        market = this.safeValue (this.markets_by_id, marketId);
+        market = this.safeValue (this.markets_by_id, marketId, market);
         let symbol = undefined;
+        let feeCurrency = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
-        } else {
+            feeCurrency = market['quote'];
+        } else if (marketId !== undefined) {
             const baseIdLength = marketId.length - 3;
             const baseId = marketId.slice (0, baseIdLength);
             const quoteId = marketId.slice (baseIdLength);
             const base = this.commonCurrencyCode (baseId);
             const quote = this.commonCurrencyCode (quoteId);
             symbol = base + '/' + quote;
+            feeCurrency = quote;
         }
         const orderId = undefined;
         const timestamp = this.parse8601 (this.safeString (attributes, 'createdAt'));
@@ -588,9 +593,17 @@ module.exports = class adara extends Exchange {
         if (cost === undefined) {
             if (amount !== undefined) {
                 if (price !== undefined) {
-                    cost = price * amount;
+                    cost = parseFloat (this.costToPrecision (symbol, price * amount));
                 }
             }
+        }
+        const feeCost = this.safeFloat (attributes, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
         }
         return {
             'id': id,
@@ -599,12 +612,12 @@ module.exports = class adara extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': 'limit',
+            'type': undefined,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
@@ -749,29 +762,55 @@ module.exports = class adara extends Exchange {
             },
         };
         let response = await this.privatePatchOrderId (this.extend (request, params));
-        const log = require ('ololog').unlimited;
-        log.magenta (response);
-        process.exit ();
         //
-        //     {
-        //         "uuid": "cdd92199-2897-4e14-9448-f923320408ad",
-        //         "side": "bid",
-        //         "ord_type": "limit",
-        //         "price": "100.0",
-        //         "state": "wait",
-        //         "market": "KRW-BTC",
-        //         "created_at": "2018-04-10T15:42:23+09:00",
-        //         "volume": "0.01",
-        //         "remaining_volume": "0.01",
-        //         "reserved_fee": "0.0015",
-        //         "remaining_fee": "0.0015",
-        //         "paid_fee": "0.0",
-        //         "locked": "1.0015",
-        //         "executed_volume": "0.0",
-        //         "trades_count": 0
-        //     }
+        //     { included: [ {       type:   "currency",
+        //                             id:   "XLM",
+        //                     attributes: {          name: "Stellar",
+        //                                       shortName: "XLM",
+        //                                          active:  true,
+        //                                        accuracy:  8,
+        //                                    allowDeposit:  true,
+        //                                   allowWithdraw:  true,
+        //                                     allowWallet:  true,
+        //                                      allowTrade:  false,
+        //                                    serializedAt:  1543437874742 } },
+        //                   {       type:   "currency",
+        //                             id:   "BTC",
+        //                     attributes: {          name: "Bitcoin",
+        //                                       shortName: "BTC",
+        //                                          active:  true,
+        //                                        accuracy:  8,
+        //                                    allowDeposit:  true,
+        //                                   allowWithdraw:  true,
+        //                                     allowWallet:  true,
+        //                                      allowTrade:  true,
+        //                                    serializedAt:  1543437874742 } },
+        //                   {          type:   "symbol",
+        //                                id:   "XLMBTC",
+        //                        attributes: {     fullName: "XLMBTC",
+        //                                            digits:  6,
+        //                                        allowTrade:  true,
+        //                                      serializedAt:  1543437874742 },
+        //                     relationships: { from: { data: { type: "currency", id: "XLM" } },
+        //                                        to: { data: { type: "currency", id: "BTC" } }  } } ],
+        //           data: {          type:   "order",
+        //                              id:   "34794",
+        //                      attributes: { serializedAt:    1543437874742,
+        //                                       operation:   "buy",
+        //                                       orderType:   "limit",
+        //                                        clientId:   "4733ea40-7d5c-4ddc-aec5-eb41baf90555",
+        //                                          amount:    110,
+        //                                           price:    0.000034,
+        //                                    averagePrice:    0,
+        //                                             fee:    0,
+        //                                        timeOpen:   "2018-11-28T20:42:35.486Z",
+        //                                       timeClose:    null,
+        //                                          status:   "canceled",
+        //                                          filled:    0,
+        //                                           flags: []                                        },
+        //                   relationships: { symbol: { data: { type: "symbol", id: "XLMBTC" } } }       } }
         //
-        return this.parseOrder (response);
+        return this.parseOrder (response['data']);
     }
 
     parseOrderStatus (status) {
@@ -802,74 +841,64 @@ module.exports = class adara extends Exchange {
         //                                   flags:  null                                   },
         //           relationships: { symbol: { data: { type: "symbol", id: "XLMBTC" } } } }
         //
-        let id = this.safeString (order, 'uuid');
-        let side = this.safeString (order, 'side');
-        if (side === 'bid') {
-            side = 'buy';
-        } else {
-            side = 'sell';
-        }
-        let type = this.safeString (order, 'ord_type');
-        let timestamp = this.parse8601 (this.safeString (order, 'created_at'));
-        let status = this.parseOrderStatus (this.safeString (order, 'state'));
-        let lastTradeTimestamp = undefined;
-        let price = this.safeFloat (order, 'price');
-        let amount = this.safeFloat (order, 'volume');
-        let remaining = this.safeFloat (order, 'remaining_volume');
-        let filled = this.safeFloat (order, 'executed_volume');
-        let cost = undefined;
-        let average = undefined;
-        if (cost === undefined) {
-            if ((price !== undefined) && (filled !== undefined)) {
-                cost = price * filled;
-            }
-        }
-        let orderTrades = this.safeValue (order, 'trades');
-        let trades = undefined;
-        if (orderTrades !== undefined) {
-            trades = this.parseTrades (orderTrades);
-        }
-        let fee = undefined;
-        let feeCost = this.safeFloat (order, 'paid_fee');
+        const id = this.safeString (order, 'id');
+        const attributes = this.safeValue (order, 'attributes', {});
+        const relationships = this.safeValue (order, 'relationships', {});
+        const symbolRelationship = this.safeValue (relationships, 'symbol', {});
+        const symbolRelationshipData = this.safeValue (symbolRelationship, 'data', {});
+        const tradesRelationship = this.safeValue (relationships, 'trades', {});
+        const tradesRelationshipData = this.safeValue (tradesRelationship, 'data');
+        const marketId = this.safeString (symbolRelationshipData, 'id');
+        market = this.safeValue (this.markets_by_id, marketId, market);
         let feeCurrency = undefined;
-        let marketId = this.safeString (order, 'market');
-        market = this.safeValue (this.markets_by_id, marketId);
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
             feeCurrency = market['quote'];
-        } else {
-            const [ baseId, quoteId ] = marketId.split ('-');
+        } else if (marketId !== undefined) {
+            const baseIdLength = marketId.length - 3;
+            const baseId = marketId.slice (0, baseIdLength);
+            const quoteId = marketId.slice (baseIdLength);
             const base = this.commonCurrencyCode (baseId);
             const quote = this.commonCurrencyCode (quoteId);
             symbol = base + '/' + quote;
             feeCurrency = quote;
         }
-        if (trades !== undefined) {
-            let numTrades = trades.length;
-            if (numTrades > 0) {
-                if (lastTradeTimestamp === undefined) {
-                    lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
-                }
-                if (feeCost === undefined) {
-                    for (let i = 0; i < numTrades; i++) {
-                        let tradeFee = this.safeValue (trades[i], 'fee', {});
-                        let tradeFeeCost = this.safeFloat (tradeFee, 'cost');
-                        if (tradeFeeCost !== undefined) {
-                            if (feeCost === undefined) {
-                                feeCost = 0;
-                            }
-                            feeCost = this.sum (feeCost, tradeFeeCost);
-                        }
-                    }
-                }
+        const timestamp = this.parse8601 (this.safeString (attributes, 'timeOpen'));
+        const side = this.safeString (attributes, 'operation');
+        const type = this.safeString (attributes, 'orderType');
+        const status = this.parseOrderStatus (this.safeString (attributes, 'status'));
+        const lastTradeTimestamp = this.parse8601 (this.safeString (attributes, 'timeClose'));
+        const price = this.safeFloat (attributes, 'price');
+        const amount = this.safeFloat (attributes, 'amount');
+        const filled = this.safeFloat (attributes, 'filled');
+        let remaining = undefined;
+        if (amount !== undefined) {
+            if (filled !== undefined) {
+                remaining = Math.max (0, amount - filled);
             }
         }
+        let cost = undefined;
+        const average = this.safeFloat (attributes, 'averagePrice');
+        if (cost === undefined) {
+            if ((average !== undefined) && (filled !== undefined)) {
+                cost = parseFloat (this.costToPrecision (symbol, average * filled));
+            }
+        }
+        let fee = undefined;
+        const feeCost = this.safeFloat (attributes, 'fee');
         if (feeCost !== undefined) {
             fee = {
                 'currency': feeCurrency,
                 'cost': feeCost,
             };
+        }
+        let trades = undefined;
+        if (tradesRelationshipData !== undefined) {
+            let numTrades = tradesRelationshipData.length;
+            if (numTrades > 0) {
+                trades = this.parseTrades (tradesRelationshipData, market);
+            }
         }
         let result = {
             'info': order,
@@ -961,7 +990,7 @@ module.exports = class adara extends Exchange {
         //                                   createdAt: "2018-11-28T19:47:57.451Z" } }                ],
         //           meta: { total: 1 }                                                                         }
         //
-        return this.parseOrders (response['data'], market, since, limit);
+        return this.parseOrdersResponse (response, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -978,6 +1007,44 @@ module.exports = class adara extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
+    parseOrdersResponse (response, market = undefined, since = undefined, limit = undefined) {
+        const included = this.safeValue (response, 'included', []);
+        const includedByType = this.groupBy (included, 'type');
+        const unparsedTrades = this.safeValue (includedByType, 'trade', []);
+        const trades = this.parseTrades (unparsedTrades, market);
+        const tradesById = this.indexBy (trades, 'id');
+        const orders = this.parseOrders (this.safeValue (response, 'data', []), market, since, limit);
+        const result = [];
+        for (let i = 0; i < orders.length; i++) {
+            let order = orders[i];
+            let orderTrades = [];
+            let orderFee = this.safeValue (order, 'fee', {});
+            let orderFeeCurrency = this.safeString (orderFee, 'currency');
+            if (order['trades'] !== undefined) {
+                for (let j = 0; j < order['trades'].length; j++) {
+                    let orderTrade = order['trades'][j];
+                    let orderTradeId = orderTrade['id'];
+                    if (orderTradeId in tradesById) {
+                        orderTrades.push (this.deepExtend (tradesById[orderTradeId], {
+                            'order': order['id'],
+                            'type': order['type'],
+                            'symbol': order['symbol'],
+                            'fee': {
+                                'currency': orderFeeCurrency,
+                            },
+                        }));
+                    }
+                }
+            }
+            let numOrderTrades = orderTrades.length;
+            if (numOrderTrades > 0) {
+                order['trades'] = orderTrades;
+            }
+            result.push (order);
+        }
+        return result;
+    }
+
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
@@ -985,9 +1052,6 @@ module.exports = class adara extends Exchange {
             'include': 'trades',
         };
         let response = await this.privateGetOrderId (this.extend (request, params));
-        const log = require ('ololog').unlimited;
-        log.red (response);
-        process.exit ();
         //
         //     { included: [ {       type:   "currency",
         //                             id:   "XLM",
@@ -1045,7 +1109,11 @@ module.exports = class adara extends Exchange {
         //                   relationships: { symbol: { data: { type: "symbol", id: "XLMBTC" } },
         //                                    trades: { data: [{ type: "trade", id: "34789_34793" }] } } } }
         //
-        return this.parseOrder (response['data']);
+        const data = this.safeValue (response, 'data');
+        response['data'] = [];
+        response['data'].push (data);
+        const orders = this.parseOrdersResponse (response);
+        return orders[0];
     }
 
     nonce () {
@@ -1074,7 +1142,7 @@ module.exports = class adara extends Exchange {
                 // 'Authorization': 'Bearer ' + jwt,
                 'Cookie': 'token=' + this.apiKey,
             };
-            if (method === 'POST') {
+            if (method !== 'GET') {
                 body = this.json (params);
                 headers['Content-Type'] = 'application/json';
             }
@@ -1089,8 +1157,11 @@ module.exports = class adara extends Exchange {
         //
         //     {"errors":[{"code":"AUTH","title":"Not authorized","detail":"User is not authorized"}]}
         //     {"errors":[{"status":"400","title":"Bad Request","detail":"symbol filter is not filled"}]}
+        //     {"errors":[{"status":"400","title":"Bad Request","detail":"Amount is too small","source":{"pointer":"/data/attributes/amount"}}]}
+        //     {"errors":[{"status":"400","title":"Bad Request","detail":"operation has invalid value"}]}
         //     {"errors":[{"status":"401","title":"Unauthorized","detail":"You are not authorized"}]}
         //     {"errors":[{"status":"404","title":"Not Found","detail":"Order is not found"}]}
+        //     {"errors":[{"status":"422","title":"Unprocessable Entity","detail":"Insufficient funds"}]}
         //     {"errors":[{"status":"423","title":"Locked","detail":"closed order can't be changed"}]}
         //     {"errors":[{"status":"500","title":"TypeError","detail":"TypeError: Cannot read property 'buy' of undefined"}]}
         //
