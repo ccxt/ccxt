@@ -55,6 +55,10 @@ module.exports = class WebsocketConnection extends WebsocketBaseConnection {
             });
         
             client.ws.on('message', async (data) => {
+                if (this.options['verbose']){
+                    console.log("WebsocketConnection: "+data);
+                }
+
                 if (!client.isClosing) {
                     this.emit('message', data);
                 }

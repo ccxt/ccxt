@@ -30,6 +30,8 @@ class MyClientProtocol(WebSocketClientProtocol):
             self.ping_interval = self.loop.call_later(self.ping_interval_ms / 1000, do_ping)
             try:
                 if not self.is_closing:
+                    if self.options['verbose']:
+                        print("PusherLightConnection: ping sent")
                     self.cancelPingTimeout()
                     self.sendMessage('2'.encode('utf8'))
                     #print("ping sent")
@@ -62,6 +64,8 @@ class MyClientProtocol(WebSocketClientProtocol):
         pass
 
     def onMessage(self, payload, isBinary):
+        if self.options['verbose']:
+            print("PusherLightConnection: " + payload)
         if self.is_closing:
             return
         data = payload

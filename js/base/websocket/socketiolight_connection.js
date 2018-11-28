@@ -28,9 +28,13 @@ module.exports = class SocketIoLightConnection extends WebsocketBaseConnection {
             } else {
                 that.cancelPingTimeout();
                 that.client.ws.send('2');
-                // console.log('ping sent');
+                if (this.options['verbose']){
+                    console.log("SocketioLightConnection: ping sent");
+                }
+
                 that.pingTimeout = setTimeout(function(){
                     that.emit('err', 'pong not received from server');
+                    that.close();
                 }, that.client.pingTimeoutMs);
             }
         }, this.client.pingIntervalMs);
@@ -91,7 +95,10 @@ module.exports = class SocketIoLightConnection extends WebsocketBaseConnection {
             });
         
             client.ws.on('message', async (data) => {
-                // console.log(data);
+                if (this.options['verbose']){
+                    console.log("SocketioLightConnection: "- data);
+                }
+
                 if (!client.isClosing) {
                     if (data[0] === '0') {
                         // initial message
@@ -101,7 +108,9 @@ module.exports = class SocketIoLightConnection extends WebsocketBaseConnection {
                         
                     } else if (data[0] == '3') {
                         this.cancelPingTimeout();
-                        // console.log('pong received');
+                        if (this.options['verbose']){
+                            console.log("SocketioLightConnection: pong received");
+                        }
                     } else if (data[0] == '4') {
                         if (data[1] == '2') {
                             this.emit('message', data.slice(2));

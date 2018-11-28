@@ -63,38 +63,21 @@ class PusherLightConnection extends WebsocketBaseConnection {
         $that = $this;
         $this->activityTimer = $this->loop->addTimer($this->client->activityTimeout / 1000, function() use(&$that){
             if (!$that->client->is_closing) {
-                echo "pusher->send ping";
+                if ($this->options['verbose']) {
+                    echo "PusherLightConnection: pusher->send ping\n";
+                }
                 $that->client->ws.send(json_encode(array(
                     "event"=> 'pusher:ping',
                     "data" => array()
                 )));
                 $this->activityTimer = $this->loop->addTimer($this->client->pongTimeout / 1000, function() use(&$that){
                     if (!$that->client->is_closing){
+                        $that->emit('err', 'pong not received from server');
                         $that->client->ws->close();
                     }
                 });
             }
         });
-        /*
-        $that = $this;
-        $promise = new \React\Promise\Promise(function () { });
-        $this->activityTimer = React\Promise\Timer\timeout($promise, $this->client->activityTimeout / 1000, $this->loop)
-            ->otherwise(function($exception) use(&$that) {
-                if (!$that->client->is_closing) {
-                    echo "pusher->send ping";
-                    $that->client->ws.send(json_encode(array(
-                        "event"=> 'pusher:ping',
-                        "data" => array()
-                    )));
-                    $that->activityTimer = React\Promise\Timer\timeout($promise, $this->client->pongTimeout / 1000, $this->loop)
-                        ->otherwise(function($exception) use(&$that) {
-                            if (!$that->client->is_closing){
-                                $that->client->ws->close();
-                            }
-                    });
-                }
-        });
-        */
     }
  
     public function connect () {
@@ -119,7 +102,9 @@ class PusherLightConnection extends WebsocketBaseConnection {
                             if ($that->client->is_closing) {
                                 return;
                             }
-                            // echo ($msg);
+                            if ($this->options['verbose']) {
+                                echo ("PusherLightConnection: Message received from socket: ".$msg."\n");
+                            }
                             $that->resetActivityCheck ();
                             $msgDecoded = json_decode($msg, true);
                             if ($msgDecoded['event'] === 'pusher:connection_established'){
@@ -180,7 +165,9 @@ class PusherLightConnection extends WebsocketBaseConnection {
                         
                         // $conn->send('Hello World!');
                     }, function(\Exception $e) use (&$that, &$reject, $client) {
-                        echo "Could not connect: {$e->getMessage()}\n";
+                        if ($this->options['verbose']) {
+                            echo "PusherLightConnection: Could not connect: {$e->getMessage()}\n";
+                        }
                         $client->connected = false;
                         $client->connected = false;
                         $reject($e);

@@ -9,27 +9,31 @@ require __DIR__ . '/../../vendor/autoload.php';
 
 require_once 'WebsocketBaseConnection.php';
 
-class WsEnvelop {
+class SocketIoEnvelop {
     public $ws;
     public $is_closing;
     public $connecting;
     public $connected;
+    public $ping_interval_ms;
+    public $ping_timeout_ms;
 
     public function __construct () {
         $this->ws = null;
         $this->is_closing = false;
         $this->connecting = false;
         $this->connected = false;
+        $this->ping_interval_ms = 25000;
+        $this->ping_timeout_ms = 5000;
     }
 }
 
-class WebsocketConnection extends WebsocketBaseConnection {
+class SocketIoLightConnection extends WebsocketBaseConnection {
 
     public $options;
     private $timeout;
     private $loop;
     /**
-     * @var WsEnvelop
+     * @var SocketIoEnvelop
      */
     private $client;
 
@@ -38,7 +42,44 @@ class WebsocketConnection extends WebsocketBaseConnection {
         $this->options = $options;
         $this->timeout = $timeout;
         $this->loop = $loop;
-        $this->client = new WsEnvelop();
+        $this->client = new SocketIoEnvelop();
+        $this->ping_interval = null;
+        $this->ping_timeout = null;
+    }
+
+    protected function createPingProcess (){
+        $that = $this;
+        $this->destroyPingProcess();
+        $this->ping_interval = $this->loop->addPeriodicTimer($this->client->ping_interval_ms / 1000, function() use(&$that){
+            if ($that->client->is_closing) {
+                $that->destroyPingProcess();
+            } else {
+                $that->cancelPingTimeout();
+                $that->client->ws->send('2');
+                if ($this->options['verbose']) {
+                    echo('SocketIoLightConnection: ping sent');
+                }
+                $that->ping_timeout = $this->loop->addTimer($this->client->ping_timeout_ms / 1000, function() use(&$that){
+                    $that->emit('err', 'pong not received from server');
+                    $that->client->ws->close();
+                });
+            }
+        });
+    }
+
+    protected function destroyPingProcess() {
+        if ($this->ping_interval != null){
+            $this->loop->cancelTimer($this->ping_interval);
+            $this->ping_interval = null;
+        }
+        $this->cancelPingTimeout();
+    }
+
+    protected function cancelPingTimeout() {
+        if ($this->ping_timeout != null){
+            $this->loop->cancelTimer($this->ping_timeout);
+            $this->ping_timeout = null;
+        }
     }
  
     public function connect () {
@@ -51,7 +92,7 @@ class WebsocketConnection extends WebsocketBaseConnection {
                         $resolve();
                         return;
                     }
-                    $client = new WsEnvelop();
+                    $client = new SocketIoEnvelop();
                     $client->connecting = true;
                     $reactConnector = new React\Socket\Connector($that->loop, [
                         'timeout' => $that->timeout
@@ -59,14 +100,46 @@ class WebsocketConnection extends WebsocketBaseConnection {
                     $connector = new Ratchet\Client\Connector($that->loop, $reactConnector);
                     $connector($that->options['url'])
                     ->then(function(Ratchet\Client\WebSocket $conn) use (&$that, &$client, &$resolve, &$reject){
-                        $conn->on('message', function(\Ratchet\RFC6455\Messaging\MessageInterface $msg) use (&$that){
+                        $conn->on('message', function(\Ratchet\RFC6455\Messaging\MessageInterface $msg) use (&$that,&$resolve){
+                            if ($that->client->is_closing) {
+                                return;
+                            }
                             if ($this->options['verbose']) {
-                                echo("WebsocketConnection: " .$msg."\n");
+                                echo("SocketIoLightConnection: " .$msg."\n");
                             }
-                            if (!$that->client->is_closing) {
-                                $that->emit ('message', $msg);
+                            $code = substr($msg,0,1);
+                            if ($code === '0') {
+                                // initial message
+                                $msgDecoded = json_decode(substr($msg, 1), true);
+                                if ($msgDecoded['pingInterval']){
+                                    $that->client->ping_interval_ms = $msgDecoded['pingInterval'];
+                                }
+                                if ($msgDecoded['pingTimeout']){
+                                    $that->client->ping_timeout_ms = $msgDecoded['pingTimeout'];
+                                }
+                            } else if ($code === '3') {
+                                $that->cancelPingTimeout();
+                                if ($this->options['verbose']) {
+                                    echo("SocketIoLightConnection: pong received");
+                                }
+                            } else if ($code === '4') {
+                                $code2 = substr($msg, 1, 1);
+                                if ($code2 == '2') {
+                                    $that->emit ('message', substr($msg, 2));
+                                } else if ($code2 == '0') {
+                                    $that->createPingProcess();
+                                    $that->emit ('open');
+                                    $resolve();
+                                }
+                            } else if ($code === '1') {
+                                $that->emit ('err', 'server sent disconnect message');
+                                $that->close();
+                            } else {
+                                if ($this->options['verbose']) {
+                                    echo ("SocketIoLightConnection: unknown msg received from iosocket: " . data);
+                                }
                             }
-                            // conn->close();
+
                         });
                 
                         $conn->on('close', function($code = null, $reason = null) use (&$that, $client){
@@ -90,13 +163,12 @@ class WebsocketConnection extends WebsocketBaseConnection {
                         if (isset($that->config['wait-after-connect'])) {
                             Clue\React\Block\sleep($this->options['wait-after-connect'] / 1000, $loop);
                         }
-                        $that->emit ('open');
-                        $resolve();
+                        
                 
                         // $conn->send('Hello World!');
                     }, function(\Exception $e) use (&$that, &$reject, $client) {
                         if ($this->options['verbose']) {
-                            echo "WebsocketConnection: Could not connect: {$e->getMessage()}\n";
+                            echo "SocketIoLightConnection: Could not connect: {$e->getMessage()}\n";
                         }
                         $client->connected = false;
                         $client->connected = false;
@@ -134,7 +206,7 @@ class WebsocketConnection extends WebsocketBaseConnection {
     }
 
     public function send ($data) {
-        $this->client->ws->send ($data);
+        $this->client->ws->send ('42' . $data);
     }
 
     public function isActive() {

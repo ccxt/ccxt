@@ -32,6 +32,8 @@ class MyClientProtocol(WebSocketClientProtocol):
         def do_ping():
             try:
                 if not self.is_closing:
+                    if self.options['verbose']:
+                        print("PusherLightConnection: ping sent")
                     self.sendMessage(json.dumps({
                         'event': 'pusher:ping',
                         'data' : {}
@@ -39,6 +41,7 @@ class MyClientProtocol(WebSocketClientProtocol):
                 # Wait for pong response
                 def wait4pong():
                     if not self.is_closing:
+                        self.event_emitter.emit('err', 'pong not received from server')
                         self._closeConnection(True)
 
                 self._activity_timer = self.loop.call_later(self.pong_timeout, wait4pong)
@@ -54,6 +57,8 @@ class MyClientProtocol(WebSocketClientProtocol):
         pass
 
     async def onMessage(self, payload, isBinary):
+        if self.options['verbose']:
+            print("PusherLightConnection: " + payload)
         if self.is_closing:
             return
         self.resetActivityCheck ()

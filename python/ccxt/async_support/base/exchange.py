@@ -587,6 +587,7 @@ class Exchange(BaseExchange, EventEmitter):
         action = self._websocket_get_action_for_event(conxid, event, symbol, subscribe, subscription_params)
         if (action is not None):
             conx_config = self.safe_value(action, 'conx-config', {})
+            conx_config['verbose'] = self.verbose
             if (not(event in self._contextGetEvents(conxid))):
                 self._contextResetEvent(conxid, event)
             if (not(symbol in self._contextGetSymbols(conxid, event))):

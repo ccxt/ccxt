@@ -1794,6 +1794,7 @@ module.exports = class Exchange extends EventEmitter{
         let action = this._websocketGetActionForEvent (conxid, event, symbol, subscribe, subscriptionParams);
         if (action !== null) {
             let conxConfig = this.safeValue (action, 'conx-config', {});
+            conxConfig['verbose'] = this.verbose;
             if (!(event in this._contextGetEvents(conxid))) {
                 this._contextResetEvent(conxid, event);
             }

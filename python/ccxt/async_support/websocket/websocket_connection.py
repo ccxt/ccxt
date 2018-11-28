@@ -21,6 +21,8 @@ class MyClientProtocol(WebSocketClientProtocol):
         self.future.done() or self.future.set_result(None)
 
     def onMessage(self, payload, isBinary):
+        if self.options['verbose']:
+            print("PusherLightConnection: " + payload)
         if self.is_closing:
             return
         if isBinary:
