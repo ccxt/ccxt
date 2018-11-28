@@ -37,6 +37,7 @@ assert (decimalToPrecision ('99.9999', TRUNCATE, -1, DECIMAL_PLACES) === '90');
 assert (decimalToPrecision ('99.9999', TRUNCATE, -2, DECIMAL_PLACES) === '0');
 
 assert (decimalToPrecision ('0', TRUNCATE, 0, DECIMAL_PLACES) === '0');
+assert (decimalToPrecision ('-0.9', TRUNCATE, 0, DECIMAL_PLACES) === '0');
 
 // ----------------------------------------------------------------------------
 // testDecimalToPrecisionTruncationToNSignificantDigits
@@ -122,6 +123,8 @@ assert (decimalToPrecision ('0.00098765', ROUND, 10, SIGNIFICANT_DIGITS, PAD_WIT
 assert (decimalToPrecision ('0.098765', ROUND, 1, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) === '0.1');
 
 assert (decimalToPrecision ('0', ROUND, 0, SIGNIFICANT_DIGITS) === '0');
+assert (decimalToPrecision ('-0.123', ROUND, 0, SIGNIFICANT_DIGITS) === '0');
+
 
 // ----------------------------------------------------------------------------
 // testDecimalToPrecisionNegativeNumbers
