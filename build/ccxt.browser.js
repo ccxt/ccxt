@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.550'
+const version = '1.17.551'
 
 Exchange.ccxtVersion = version
 
@@ -47448,9 +47448,12 @@ module.exports = class lbank extends Exchange {
 
     async fetchOrderBook (symbol, limit = 60, params = {}) {
         await this.loadMarkets ();
+        let size = 60;
+        if (limit !== undefined)
+            size = Math.min (limit, size);
         let response = await this.publicGetDepth (this.extend ({
             'symbol': this.marketId (symbol),
-            'size': Math.min (limit, 60),
+            'size': size,
         }, params));
         return this.parseOrderBook (response);
     }
