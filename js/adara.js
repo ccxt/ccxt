@@ -740,9 +740,17 @@ module.exports = class adara extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
-            'uuid': id,
+            'id': id,
+            'data': {
+                'attributes': {
+                    'status': 'canceled',
+                },
+            },
         };
-        let response = await this.privateDeleteOrder (this.extend (request, params));
+        let response = await this.privatePatchOrderId (this.extend (request, params));
+        const log = require ('ololog').unlimited;
+        log.magenta (response);
+        process.exit ();
         //
         //     {
         //         "uuid": "cdd92199-2897-4e14-9448-f923320408ad",
@@ -765,18 +773,11 @@ module.exports = class adara extends Exchange {
         return this.parseOrder (response);
     }
 
-    parseSymbol (id) {
-        let [ quote, base ] = id.split (this.options['symbolSeparator']);
-        base = this.commonCurrencyCode (base);
-        quote = this.commonCurrencyCode (quote);
-        return base + '/' + quote;
-    }
-
     parseOrderStatus (status) {
         const statuses = {
-            'wait': 'open',
-            'done': 'closed',
-            'cancel': 'canceled',
+            'open': 'open',
+            'closed': 'closed',
+            'canceled': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
@@ -894,21 +895,18 @@ module.exports = class adara extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            // 'market': this.marketId (symbol),
-            // 'state': 'wait', 'done', 'cancel',
-            // 'page': 1,
-            // 'order_by': 'asc',
+            'include': 'trades',
         };
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.marketId (symbol);
+            market = this.market (symbol);
             request['filters[symbol]'] = market['id'];
         }
         const response = await this.privateGetOrder (this.extend (request, params));
         //
         //     {     data: [ {          type:   "order",
         //                                id:   "34793",
-        //                        attributes: { serializedAt:  1543434809996,
+        //                        attributes: { serializedAt:  1543436770259,
         //                                         operation: "buy",
         //                                         orderType: "limit",
         //                                            amount:  220,
@@ -920,7 +918,8 @@ module.exports = class adara extends Exchange {
         //                                            status: "closed",
         //                                            filled:  220,
         //                                             flags:  null                       },
-        //                     relationships: { symbol: { data: { type: "symbol", id: "XLMBTC" } } } } ],
+        //                     relationships: { symbol: { data: { type: "symbol", id: "XLMBTC" } },
+        //                                      trades: { data: [{ type: "trade", id: "34789_34793" }] } } } ],
         //       included: [ {       type:   "currency",
         //                             id:   "XLM",
         //                     attributes: {          name: "Stellar",
@@ -931,7 +930,7 @@ module.exports = class adara extends Exchange {
         //                                   allowWithdraw:  true,
         //                                     allowWallet:  true,
         //                                      allowTrade:  false,
-        //                                    serializedAt:  1543434809996 } },
+        //                                    serializedAt:  1543436770259 } },
         //                   {       type:   "currency",
         //                             id:   "BTC",
         //                     attributes: {          name: "Bitcoin",
@@ -942,16 +941,24 @@ module.exports = class adara extends Exchange {
         //                                   allowWithdraw:  true,
         //                                     allowWallet:  true,
         //                                      allowTrade:  true,
-        //                                    serializedAt:  1543434809996 } },
+        //                                    serializedAt:  1543436770259 } },
         //                   {          type:   "symbol",
         //                                id:   "XLMBTC",
         //                        attributes: {     fullName: "XLMBTC",
         //                                            digits:  6,
         //                                        allowTrade:  true,
-        //                                      serializedAt:  1543434809996 },
+        //                                      serializedAt:  1543436770259 },
         //                     relationships: { from: { data: { type: "currency", id: "XLM" } },
-        //                                        to: { data: { type: "currency", id: "BTC" } }  } } ],
-        //           meta: { total: 1 }                                                                   }
+        //                                        to: { data: { type: "currency", id: "BTC" } }  } },
+        //                   {       type:   "trade",
+        //                             id:   "34789_34793",
+        //                     attributes: {       fee:  0.0001925,
+        //                                       price:  0.000035,
+        //                                      amount:  220,
+        //                                       total:  0.0077,
+        //                                   operation: "buy",
+        //                                   createdAt: "2018-11-28T19:47:57.451Z" } }                ],
+        //           meta: { total: 1 }                                                                         }
         //
         return this.parseOrders (response['data'], market, since, limit);
     }
@@ -977,7 +984,8 @@ module.exports = class adara extends Exchange {
             'include': 'trades',
         };
         let response = await this.privateGetOrderId (this.extend (request, params));
-        console.log (response);
+        const log = require ('ololog').unlimited;
+        log.red (response);
         process.exit ();
         //
         //     { included: [ {       type:   "currency",
@@ -990,7 +998,7 @@ module.exports = class adara extends Exchange {
         //                                   allowWithdraw:  true,
         //                                     allowWallet:  true,
         //                                      allowTrade:  false,
-        //                                    serializedAt:  1543435013349 } },
+        //                                    serializedAt:  1543436451996 } },
         //                   {       type:   "currency",
         //                             id:   "BTC",
         //                     attributes: {          name: "Bitcoin",
@@ -1001,18 +1009,26 @@ module.exports = class adara extends Exchange {
         //                                   allowWithdraw:  true,
         //                                     allowWallet:  true,
         //                                      allowTrade:  true,
-        //                                    serializedAt:  1543435013349 } },
+        //                                    serializedAt:  1543436451996 } },
         //                   {          type:   "symbol",
         //                                id:   "XLMBTC",
         //                        attributes: {     fullName: "XLMBTC",
         //                                            digits:  6,
         //                                        allowTrade:  true,
-        //                                      serializedAt:  1543435013349 },
+        //                                      serializedAt:  1543436451996 },
         //                     relationships: { from: { data: { type: "currency", id: "XLM" } },
-        //                                        to: { data: { type: "currency", id: "BTC" } }  } } ],
+        //                                        to: { data: { type: "currency", id: "BTC" } }  } },
+        //                   {       type:   "trade",
+        //                             id:   "34789_34793",
+        //                     attributes: {       fee:  0.0001925,
+        //                                       price:  0.000035,
+        //                                      amount:  220,
+        //                                       total:  0.0077,
+        //                                   operation: "buy",
+        //                                   createdAt: "2018-11-28T19:47:57.451Z" } }                ],
         //           data: {          type:   "order",
         //                              id:   "34793",
-        //                      attributes: { serializedAt:  1543435013349,
+        //                      attributes: { serializedAt:  1543436451996,
         //                                       operation: "buy",
         //                                       orderType: "limit",
         //                                        clientId: "4733ea40-7d5c-4ddc-aec5-eb41baf90555",
@@ -1025,7 +1041,8 @@ module.exports = class adara extends Exchange {
         //                                          status: "closed",
         //                                          filled:  220,
         //                                           flags:  null                                   },
-        //                   relationships: { symbol: { data: { type: "symbol", id: "XLMBTC" } } }     } }
+        //                   relationships: { symbol: { data: { type: "symbol", id: "XLMBTC" } },
+        //                                    trades: { data: [{ type: "trade", id: "34789_34793" }] } } } }
         //
         return this.parseOrder (response['data']);
     }
