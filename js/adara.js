@@ -87,6 +87,7 @@ module.exports = class adara extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    "closed order can't be changed": InvalidOrder, // {"errors":[{"status":"423","title":"Locked","detail":"closed order can't be changed"}]}
                     'Order is not found': OrderNotFound, // {"errors":[{"status":"404","title":"Not Found","detail":"Order is not found"}]}
                     'AUTH': AuthenticationError, // {"errors":[{"code":"AUTH","title":"Not authorized","detail":"User is not authorized"}]}
                     'You are not authorized': AuthenticationError, // {"errors":[{"status":"401","title":"Unauthorized","detail":"You are not authorized"}]}
@@ -1089,8 +1090,9 @@ module.exports = class adara extends Exchange {
         //     {"errors":[{"code":"AUTH","title":"Not authorized","detail":"User is not authorized"}]}
         //     {"errors":[{"status":"400","title":"Bad Request","detail":"symbol filter is not filled"}]}
         //     {"errors":[{"status":"401","title":"Unauthorized","detail":"You are not authorized"}]}
-        //     {"errors":[{"status":"500","title":"TypeError","detail":"TypeError: Cannot read property 'buy' of undefined"}]}
         //     {"errors":[{"status":"404","title":"Not Found","detail":"Order is not found"}]}
+        //     {"errors":[{"status":"423","title":"Locked","detail":"closed order can't be changed"}]}
+        //     {"errors":[{"status":"500","title":"TypeError","detail":"TypeError: Cannot read property 'buy' of undefined"}]}
         //
         const errors = this.safeValue (response, 'errors', []);
         const numErrors = errors.length;
