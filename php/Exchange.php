@@ -36,6 +36,7 @@ use Clue;
 require __DIR__.'/../vendor/autoload.php';
 require_once 'php/websocket/WebsocketConnection.php';
 require_once 'php/websocket/PusherLightConnection.php';
+require_once 'php/websocket/SocketIoLightConnection.php';
 
 use kornrunner\Eth;
 use kornrunner\Secp256k1;
@@ -87,7 +88,6 @@ abstract class Exchange extends CcxtEventEmitter {
     );
 
     public static $exchanges = array (
-        '_1btcxe',
         'acx',
         'allcoin',
         'anxpro',
@@ -220,7 +220,6 @@ abstract class Exchange extends CcxtEventEmitter {
         'yunbi',
         'zaif',
         'zb',
-        '_1broker',
         '_1btcxe',
     );
 
@@ -2387,12 +2386,12 @@ abstract class Exchange extends CcxtEventEmitter {
         }
         return $i;
     }
-    public function updateBidAsk ($bidAsk, &$currentBidsAsks, $bids = false) {
+    public function updateBidAsk ($bidAsk, &$currentBidsAsks, $bids = false) {print_r($bidAsk);
         // insert or replace ordered
         $index = $this->searchIndexToInsertOrUpdate ($bidAsk[0], $currentBidsAsks, 0, $bids);
         if (($index < count($currentBidsAsks)) && ($currentBidsAsks[$index][0] === $bidAsk[0])){
             // found
-            if ($bidAsk[1] === 0) {
+            if ($bidAsk[1] == 0) {
                 // remove
                 array_splice ($currentBidsAsks, $index, 1);
             } else {
@@ -2400,9 +2399,9 @@ abstract class Exchange extends CcxtEventEmitter {
                 $currentBidsAsks[$index] = $bidAsk;
             }
         } else {
-            if ($bidAsk[1] !== 0) {
+            if ($bidAsk[1] != 0) {
                 // insert
-                array_splice ($currentBidsAsks, $index, 0, $bidAsk);
+                array_splice ($currentBidsAsks, $index, 0, array($bidAsk));
             }
         }
     }
@@ -2622,7 +2621,14 @@ abstract class Exchange extends CcxtEventEmitter {
         if (! (array_key_exists ('id', $config) && array_key_exists ('url', $config) && array_key_exists('type', $config))) {
             throw new ExchangeError ("invalid websocket configuration in exchange: " . $this->id);
         }
-        if ($config['type'] === 'pusher') {
+        if ($config['type'] === 'ws-io') {
+            return array (
+                'action'=> 'connect',
+                'conx-config'=> $config,
+                'reset-context'=> 'onconnect',
+                'conx-tpl'=> $conxTplName,
+            );
+        } else if ($config['type'] === 'pusher') {
             return array (
                 'action'=> 'connect',
                 'conx-config'=> $config,
@@ -2676,7 +2682,7 @@ abstract class Exchange extends CcxtEventEmitter {
                 }
             }
         } else {
-            throw new NotSupported ("invalid websocket connection: " . $config['type'] + " for exchange " . $this->id);
+            throw new NotSupported ("invalid websocket connection: " . $config['type'] . " for exchange " . $this->id);
         }
     }
 
@@ -2691,6 +2697,7 @@ abstract class Exchange extends CcxtEventEmitter {
         $action = $this->_websocket_get_action_for_event ($conxid, $event, $symbol, $subscribe, $subscriptionParams);
         if ($action != null) {
             $conxConfig = $this->safe_value ($action, 'conx-config', array());
+            $conxConfig['verbose'] = $this->verbose;
             if (!(array_key_exists ($event, $this->_contextGetEvents($conxid)))) {
                 $this->_contextResetEvent($conxid, $event);
             }
@@ -2802,7 +2809,9 @@ abstract class Exchange extends CcxtEventEmitter {
             'ready'=> false,
             'conx'=> null
         );
-        if ($websocketConfig['type'] === 'pusher') {
+        if ($websocketConfig['type'] === 'ws-io') {
+            $websocketConnectionInfo['conx'] = new SocketIoLightConnection ($websocketConfig, $this->timeout, $this->react_loop);
+        } else if ($websocketConfig['type'] === 'pusher') {
             $websocketConnectionInfo['conx'] = new PusherLightConnection ($websocketConfig, $this->timeout, $this->react_loop);
         } else if ($websocketConfig['type'] === 'ws') {
             $websocketConnectionInfo['conx'] = new WebsocketConnection ($websocketConfig, $this->timeout, $this->react_loop);
