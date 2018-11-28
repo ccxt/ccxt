@@ -20,6 +20,7 @@ module.exports = class adara extends Exchange {
             // new metainfo interface
             'has': {
                 'CORS': true,
+                'fetchCurrencies': true,
                 'fetchOrderBooks': true,
                 'createMarketOrder': false,
                 'fetchDepositAddress': false,
@@ -39,12 +40,7 @@ module.exports = class adara extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
-                'api': {
-                    'public': 'https://api.adara-master.io/v2.0',
-                    'private': 'https://api.adara-master.io/v2.0',
-                    'v1public': 'https://crm.adara-test.io/v1.0',
-                    'v1private': 'https://crm.adara-test.io/v1.0',
-                },
+                'api': 'https://api.adara-master.io',
                 'www': 'https://adara.io',
                 'doc': 'https://adara.io/products',
                 'fees': 'https://adara.io/fees',
@@ -52,6 +48,8 @@ module.exports = class adara extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'symbols',
+                        'currencies',
                         'orderBook',
                         'quote',
                         'quote/{id}',
@@ -70,60 +68,6 @@ module.exports = class adara extends Exchange {
                     ],
                     'patch': [
                         'order/{id}',
-                    ],
-                },
-                'v1public': {
-                    'get': [
-                        'symbol',
-                    ],
-                },
-                'v1private': {
-                    'get': [
-                        'company',
-                        'countries',
-                        'currency',
-                        'customerView',
-                        'customer',
-                        'document',
-                        'kyc/{id}',
-                        'kycStatusToVerified/{id}',
-                        'member',
-                        'transaction',
-                        'user',
-                        'wallet',
-                    ],
-                    'post': [
-                        'company',
-                        'countries',
-                        'customer',
-                        'document',
-                        'documentsChangeStatusEmail',
-                        'kycData',
-                        'member',
-                        'token',
-                        'transaction',
-                        'withdrawalConfirmation',
-                        'confirmWithdrawalEmail',
-                    ],
-                    'delete': [
-                        'company/{id}',
-                        'countries',
-                        'customer/{id}',
-                        'document/{id}',
-                        'member/{id}',
-                        'token',
-                        'wallet',
-                    ],
-                    'patch': [
-                        'company/{id}',
-                        'countries',
-                        'customer/{id}',
-                        'customer',
-                        'document/{id}',
-                        'document',
-                        'transaction/{id}',
-                        'transaction',
-                        'user',
                     ],
                 },
             },
@@ -165,78 +109,8 @@ module.exports = class adara extends Exchange {
         });
     }
 
-    async fetchTradingLimits (symbols = undefined, params = {}) {
-        // this method should not be called directly, use loadTradingLimits () instead
-        //  by default it will try load withdrawal fees of all currencies (with separate requests)
-        //  however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
-        await this.loadMarkets ();
-        if (symbols === undefined) {
-            symbols = this.symbols;
-        }
-        let result = {};
-        for (let i = 0; i < symbols.length; i++) {
-            let symbol = symbols[i];
-            result[symbol] = await this.fetchTradingLimitsById (this.marketId (symbol), params);
-        }
-        return result;
-    }
-
-    async fetchTradingLimitsById (id, params = {}) {
-        let request = {
-            'symbol': id,
-        };
-        let response = await this.publicGetCommonExchange (this.extend (request, params));
-        //
-        //     { status:   "ok",
-        //         data: {                                  symbol: "aidocbtc",
-        //                              'buy-limit-must-less-than':  1.1,
-        //                          'sell-limit-must-greater-than':  0.9,
-        //                         'limit-order-must-greater-than':  1,
-        //                            'limit-order-must-less-than':  5000000,
-        //                    'market-buy-order-must-greater-than':  0.0001,
-        //                       'market-buy-order-must-less-than':  100,
-        //                   'market-sell-order-must-greater-than':  1,
-        //                      'market-sell-order-must-less-than':  500000,
-        //                       'circuit-break-when-greater-than':  10000,
-        //                          'circuit-break-when-less-than':  10,
-        //                 'market-sell-order-rate-must-less-than':  0.1,
-        //                  'market-buy-order-rate-must-less-than':  0.1        } }
-        //
-        return this.parseTradingLimits (this.safeValue (response, 'data', {}));
-    }
-
-    parseTradingLimits (limits, symbol = undefined, params = {}) {
-        //
-        //   {                                  symbol: "aidocbtc",
-        //                  'buy-limit-must-less-than':  1.1,
-        //              'sell-limit-must-greater-than':  0.9,
-        //             'limit-order-must-greater-than':  1,
-        //                'limit-order-must-less-than':  5000000,
-        //        'market-buy-order-must-greater-than':  0.0001,
-        //           'market-buy-order-must-less-than':  100,
-        //       'market-sell-order-must-greater-than':  1,
-        //          'market-sell-order-must-less-than':  500000,
-        //           'circuit-break-when-greater-than':  10000,
-        //              'circuit-break-when-less-than':  10,
-        //     'market-sell-order-rate-must-less-than':  0.1,
-        //      'market-buy-order-rate-must-less-than':  0.1        }
-        //
-        return {
-            'info': limits,
-            'limits': {
-                'amount': {
-                    'min': this.safeFloat (limits, 'limit-order-must-greater-than'),
-                    'max': this.safeFloat (limits, 'limit-order-must-less-than'),
-                },
-            },
-        };
-    }
-
     async fetchMarkets (params = {}) {
-        const response = await this.v1publicGetSymbol (params = {});
-        // const log = require ('ololog').unlimited;
-        // log.green (response);
-        // process.exit ();
+        const response = await this.publicGetSymbols (params);
         //
         //     {     meta: { total: 64 },
         //         data: [ {            id:   "ETHBTC",
@@ -317,26 +191,59 @@ module.exports = class adara extends Exchange {
 
     async fetchCurrencies (params = {}) {
         let response = await this.publicGetCurrencies (params);
-        let currencies = response['result'];
-        let result = {};
+        //
+        //     {     meta: { total: 22 },
+        //           data: [ {            id:   "USD",
+        //                              type:   "currency",
+        //                        attributes: {               accuracy:  6,
+        //                                                      active:  true,
+        //                                                allowDeposit:  false,
+        //                                                  allowTrade:  true,
+        //                                                 allowWallet:  false,
+        //                                               allowWithdraw:  false,
+        //                                                        name: "USD",
+        //                                                   shortName: "USD",
+        //                                      transactionUriTemplate:  null,
+        //                                           walletUriTemplate:  null,
+        //                                                 withdrawFee: "0.00000000",
+        //                                           withdrawMinAmount: "0.00000000"  },
+        //                     relationships: {  }                                       },
+        //                   {            id:   "BTC",
+        //                              type:   "currency",
+        //                        attributes: {               accuracy:  8,
+        //                                                      active:  true,
+        //                                                allowDeposit:  true,
+        //                                                  allowTrade:  true,
+        //                                                 allowWallet:  true,
+        //                                               allowWithdraw:  true,
+        //                                                        name: "Bitcoin",
+        //                                                   shortName: "BTC",
+        //                                      transactionUriTemplate: "https://blockexplorer.com/tx/:txId",
+        //                                           walletUriTemplate: "https://blockexplorer.com/address/:address",
+        //                                                 withdrawFee: "0.00050000",
+        //                                           withdrawMinAmount: "0.00200000"                                  },
+        //                     relationships: {  }                                                                      }                           ],
+        //       included: []                                                                                                                          }
+        //
+        const currencies = response['data'];
+        const result = {};
         for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let id = currency['Currency'];
-            // todo: will need to rethink the fees
-            // to add support for multiple withdrawal/deposit methods and
-            // differentiated fees for each particular method
-            let code = this.commonCurrencyCode (id);
-            let precision = 8; // default precision, todo: fix "magic constants"
-            let address = this.safeValue (currency, 'BaseAddress');
+            const currency = currencies[i];
+            const id = this.safeString (currency, 'id');
+            const attributes = this.safeValue (currency, 'attributes', {});
+            const code = this.commonCurrencyCode (id);
+            const precision = this.safeInteger (attributes, 'accuracy');
+            const fee = this.safeFloat (attributes, 'withdrawFee');
+            const active = this.safeValue (attributes, 'active');
+            const allowDeposit = this.safeValue (attributes, 'allowDeposit');
+            const allowWithdraw = this.safeValue (attributes, 'allowWithdraw');
             result[code] = {
                 'id': id,
                 'code': code,
-                'address': address,
                 'info': currency,
-                'type': currency['CoinType'],
-                'name': currency['CurrencyLong'],
-                'active': currency['IsActive'],
-                'fee': this.safeFloat (currency, 'TxFee'), // todo: redesign
+                'name': this.safeString (attributes, 'name'),
+                'active': (active && allowDeposit && allowWithdraw),
+                'fee': fee,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -352,7 +259,7 @@ module.exports = class adara extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': currency['TxFee'],
+                        'min': this.safeFloat (attributes, 'withdrawMinAmount'),
                         'max': Math.pow (10, precision),
                     },
                 },
@@ -754,56 +661,78 @@ module.exports = class adara extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': {
-                'id': market['id'],
-                'type': 'symbol',
+            'data': {
+                'type': 'order',
                 'attributes': {
-                    'digits': 0,
-                    'allowTrade': true,
+                    'amount': amount,
+                    'operation': side,
+                    'orderType': type,
+                    'price': price,
                 },
                 'relationships': {
-                    'from': {
+                    'symbol': {
                         'data': {
-                            'id': market['baseId'],
-                            'type': 'currency',
-                        },
-                    },
-                    'to': {
-                        'data': {
-                            'id': market['quoteId'],
-                            'type': 'currency',
+                            'id': market['id'],
+                            'type': 'symbol',
                         },
                     },
                 },
             },
-            'operation': side,
-            'orderType': type,
-            'amount': amount,
-            'price': price,
+            'included': [
+                {
+                    'id': market['id'],
+                    'type': 'symbol',
+                },
+            ],
         };
-        const response = await this.privatePostOrders (this.extend (request, params));
-        const log = require ('ololog').unlimited;
-        log.green (response);
-        process.exit ();
+        const response = await this.privatePostOrder (this.extend (request, params));
         //
-        //     {
-        //         'uuid': 'cdd92199-2897-4e14-9448-f923320408ad',
-        //         'side': 'bid',
-        //         'ord_type': 'limit',
-        //         'price': '100.0',
-        //         'avg_price': '0.0',
-        //         'state': 'wait',
-        //         'market': 'KRW-BTC',
-        //         'created_at': '2018-04-10T15:42:23+09:00',
-        //         'volume': '0.01',
-        //         'remaining_volume': '0.01',
-        //         'reserved_fee': '0.0015',
-        //         'remaining_fee': '0.0015',
-        //         'paid_fee': '0.0',
-        //         'locked': '1.0015',
-        //         'executed_volume': '0.0',
-        //         'trades_count': 0
-        //     }
+        //     { included: [ {       type:   "currency",
+        //                             id:   "XLM",
+        //                     attributes: {          name: "Stellar",
+        //                                       shortName: "XLM",
+        //                                          active:  true,
+        //                                        accuracy:  8,
+        //                                    allowDeposit:  true,
+        //                                   allowWithdraw:  true,
+        //                                     allowWallet:  true,
+        //                                      allowTrade:  false,
+        //                                    serializedAt:  1543434477449 } },
+        //                   {       type:   "currency",
+        //                             id:   "BTC",
+        //                     attributes: {          name: "Bitcoin",
+        //                                       shortName: "BTC",
+        //                                          active:  true,
+        //                                        accuracy:  8,
+        //                                    allowDeposit:  true,
+        //                                   allowWithdraw:  true,
+        //                                     allowWallet:  true,
+        //                                      allowTrade:  true,
+        //                                    serializedAt:  1543434477449 } },
+        //                   {          type:   "symbol",
+        //                                id:   "XLMBTC",
+        //                        attributes: {     fullName: "XLMBTC",
+        //                                            digits:  6,
+        //                                        allowTrade:  true,
+        //                                      serializedAt:  1543434477449 },
+        //                     relationships: { from: { data: { type: "currency", id: "XLM" } },
+        //                                        to: { data: { type: "currency", id: "BTC" } }  } } ],
+        //           data: {          type:   "order",
+        //                              id:   "34793",
+        //                      attributes: { serializedAt:    1543434477449,
+        //                                       operation:   "buy",
+        //                                       orderType:   "limit",
+        //                                        clientId:   "4733ea40-7d5c-4ddc-aec5-eb41baf90555",
+        //                                          amount:    220,
+        //                                           price:    0.000035,
+        //                                    averagePrice:    0,
+        //                                             fee:    0,
+        //                                        timeOpen:   "2018-11-28T19:47:57.435Z",
+        //                                       timeClose:    null,
+        //                                          status:   "open",
+        //                                          filled:    0,
+        //                                           flags: []                                        },
+        //                   relationships: { symbol: { data: { type: "symbol", id: "XLMBTC" } } }       } }
         //
         return this.parseOrder (response);
     }
@@ -854,47 +783,22 @@ module.exports = class adara extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        //     {
-        //         "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
-        //         "side": "bid",
-        //         "ord_type": "limit",
-        //         "price": "17417000.0",
-        //         "state": "done",
-        //         "market": "KRW-BTC",
-        //         "created_at": "2018-04-05T14:09:14+09:00",
-        //         "volume": "1.0",
-        //         "remaining_volume": "0.0",
-        //         "reserved_fee": "26125.5",
-        //         "remaining_fee": "25974.0",
-        //         "paid_fee": "151.5",
-        //         "locked": "17341974.0",
-        //         "executed_volume": "1.0",
-        //         "trades_count": 2,
-        //         "trades": [
-        //             {
-        //                 "market": "KRW-BTC",
-        //                 "uuid": "78162304-1a4d-4524-b9e6-c9a9e14d76c3",
-        //                 "price": "101000.0",
-        //                 "volume": "0.77368323",
-        //                 "funds": "78142.00623",
-        //                 "ask_fee": "117.213009345",
-        //                 "bid_fee": "117.213009345",
-        //                 "created_at": "2018-04-05T14:09:15+09:00",
-        //                 "side": "bid",
-        //             },
-        //             {
-        //                 "market": "KRW-BTC",
-        //                 "uuid": "f73da467-c42f-407d-92fa-e10d86450a20",
-        //                 "price": "101000.0",
-        //                 "volume": "0.22631677",
-        //                 "funds": "22857.99377",
-        //                 "ask_fee": "34.286990655",
-        //                 "bid_fee": "34.286990655",
-        //                 "created_at": "2018-04-05T14:09:15+09:00",
-        //                 "side": "bid",
-        //             },
-        //         ],
-        //     }
+        //         {          type:   "order",
+        //                      id:   "34793",
+        //              attributes: { serializedAt:  1543435013349,
+        //                               operation: "buy",
+        //                               orderType: "limit",
+        //                                clientId: "4733ea40-7d5c-4ddc-aec5-eb41baf90555",
+        //                                  amount:  220,
+        //                                   price:  0.000035,
+        //                            averagePrice:  0.000035,
+        //                                     fee:  0.0001925,
+        //                                timeOpen: "2018-11-28T19:47:57.435Z",
+        //                               timeClose: "2018-11-28T19:47:57.452Z",
+        //                                  status: "closed",
+        //                                  filled:  220,
+        //                                   flags:  null                                   },
+        //           relationships: { symbol: { data: { type: "symbol", id: "XLMBTC" } } } }
         //
         let id = this.safeString (order, 'uuid');
         let side = this.safeString (order, 'side');
@@ -1002,58 +906,66 @@ module.exports = class adara extends Exchange {
         }
         const response = await this.privateGetOrder (this.extend (request, params));
         //
-        //     {
-        //         "data": [{
-        //             "id": "string",
-        //             "type": "order",
-        //             "attributes": {
-        //                 "operation": "buy",
-        //                 "orderType": "market",
-        //                 "amount": 0,
-        //                 "price": 0,
-        //                 "averagePrice": 0,
-        //                 "fee": 0,
-        //                 "filled": 0,
-        //                 "stop": 0,
-        //                 "timeOpen": "2018-11-27T13:30:21Z",
-        //                 "timeClose": "2018-11-27T13:30:21Z",
-        //                 "comment": "string",
-        //                 "status": "open",
-        //                 "flag": "stop"
-        //             },
-        //             "relationships": {
-        //                 "symbol": { "data": { "id": "string", "type": "symbol" } },
-        //                 "trades": { "data": [ { "id": "string", "type": "trade" } ] }
-        //             }
-        //         }],
-        //         "included": [{
-        //             "id": "string",
-        //             "type": "trade",
-        //             "attributes": {
-        //                 "fee": 0,
-        //                 "price": 0,
-        //                 "amount": 0,
-        //                 "total": 0,
-        //                 "operation": "buy",
-        //                 "createdAt": "2018-11-27T13:30:21Z"
-        //             },
-        //             "relationships": { "symbol": { "data": { "id": "string", "type": "symbol" } } }
-        //         }]
-        //     }
+        //     {     data: [ {          type:   "order",
+        //                                id:   "34793",
+        //                        attributes: { serializedAt:  1543434809996,
+        //                                         operation: "buy",
+        //                                         orderType: "limit",
+        //                                            amount:  220,
+        //                                             price:  0.000035,
+        //                                      averagePrice:  0.000035,
+        //                                               fee:  0.0001925,
+        //                                          timeOpen: "2018-11-28T19:47:57.435Z",
+        //                                         timeClose: "2018-11-28T19:47:57.452Z",
+        //                                            status: "closed",
+        //                                            filled:  220,
+        //                                             flags:  null                       },
+        //                     relationships: { symbol: { data: { type: "symbol", id: "XLMBTC" } } } } ],
+        //       included: [ {       type:   "currency",
+        //                             id:   "XLM",
+        //                     attributes: {          name: "Stellar",
+        //                                       shortName: "XLM",
+        //                                          active:  true,
+        //                                        accuracy:  8,
+        //                                    allowDeposit:  true,
+        //                                   allowWithdraw:  true,
+        //                                     allowWallet:  true,
+        //                                      allowTrade:  false,
+        //                                    serializedAt:  1543434809996 } },
+        //                   {       type:   "currency",
+        //                             id:   "BTC",
+        //                     attributes: {          name: "Bitcoin",
+        //                                       shortName: "BTC",
+        //                                          active:  true,
+        //                                        accuracy:  8,
+        //                                    allowDeposit:  true,
+        //                                   allowWithdraw:  true,
+        //                                     allowWallet:  true,
+        //                                      allowTrade:  true,
+        //                                    serializedAt:  1543434809996 } },
+        //                   {          type:   "symbol",
+        //                                id:   "XLMBTC",
+        //                        attributes: {     fullName: "XLMBTC",
+        //                                            digits:  6,
+        //                                        allowTrade:  true,
+        //                                      serializedAt:  1543434809996 },
+        //                     relationships: { from: { data: { type: "currency", id: "XLM" } },
+        //                                        to: { data: { type: "currency", id: "BTC" } }  } } ],
+        //           meta: { total: 1 }                                                                   }
         //
         return this.parseOrders (response['data'], market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
-            'filters[status]': 'open',
+            'filters[status][]': 'open',
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
-            'filters[status]': 'closed',
+            'filters[status][]': 'closed',
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
@@ -1062,47 +974,58 @@ module.exports = class adara extends Exchange {
         await this.loadMarkets ();
         const request = {
             'id': id,
+            'include': 'trades',
         };
         let response = await this.privateGetOrderId (this.extend (request, params));
+        console.log (response);
+        process.exit ();
         //
-        //     {
-        //         "data": [{
-        //             "id": "string",
-        //             "type": "order",
-        //             "attributes": {
-        //                 "operation": "buy",
-        //                 "orderType": "market",
-        //                 "amount": 0,
-        //                 "price": 0,
-        //                 "averagePrice": 0,
-        //                 "fee": 0,
-        //                 "filled": 0,
-        //                 "stop": 0,
-        //                 "timeOpen": "2018-11-27T13:30:21Z",
-        //                 "timeClose": "2018-11-27T13:30:21Z",
-        //                 "comment": "string",
-        //                 "status": "open",
-        //                 "flag": "stop"
-        //             },
-        //             "relationships": {
-        //                 "symbol": { "data": { "id": "string", "type": "symbol" } },
-        //                 "trades": { "data": [ { "id": "string", "type": "trade" } ] }
-        //             }
-        //         }],
-        //         "included": [{
-        //             "id": "string",
-        //             "type": "trade",
-        //             "attributes": {
-        //                 "fee": 0,
-        //                 "price": 0,
-        //                 "amount": 0,
-        //                 "total": 0,
-        //                 "operation": "buy",
-        //                 "createdAt": "2018-11-27T13:30:21Z"
-        //             },
-        //             "relationships": { "symbol": { "data": { "id": "string", "type": "symbol" } } }
-        //         }]
-        //     }
+        //     { included: [ {       type:   "currency",
+        //                             id:   "XLM",
+        //                     attributes: {          name: "Stellar",
+        //                                       shortName: "XLM",
+        //                                          active:  true,
+        //                                        accuracy:  8,
+        //                                    allowDeposit:  true,
+        //                                   allowWithdraw:  true,
+        //                                     allowWallet:  true,
+        //                                      allowTrade:  false,
+        //                                    serializedAt:  1543435013349 } },
+        //                   {       type:   "currency",
+        //                             id:   "BTC",
+        //                     attributes: {          name: "Bitcoin",
+        //                                       shortName: "BTC",
+        //                                          active:  true,
+        //                                        accuracy:  8,
+        //                                    allowDeposit:  true,
+        //                                   allowWithdraw:  true,
+        //                                     allowWallet:  true,
+        //                                      allowTrade:  true,
+        //                                    serializedAt:  1543435013349 } },
+        //                   {          type:   "symbol",
+        //                                id:   "XLMBTC",
+        //                        attributes: {     fullName: "XLMBTC",
+        //                                            digits:  6,
+        //                                        allowTrade:  true,
+        //                                      serializedAt:  1543435013349 },
+        //                     relationships: { from: { data: { type: "currency", id: "XLM" } },
+        //                                        to: { data: { type: "currency", id: "BTC" } }  } } ],
+        //           data: {          type:   "order",
+        //                              id:   "34793",
+        //                      attributes: { serializedAt:  1543435013349,
+        //                                       operation: "buy",
+        //                                       orderType: "limit",
+        //                                        clientId: "4733ea40-7d5c-4ddc-aec5-eb41baf90555",
+        //                                          amount:  220,
+        //                                           price:  0.000035,
+        //                                    averagePrice:  0.000035,
+        //                                             fee:  0.0001925,
+        //                                        timeOpen: "2018-11-28T19:47:57.435Z",
+        //                                       timeClose: "2018-11-28T19:47:57.452Z",
+        //                                          status: "closed",
+        //                                          filled:  220,
+        //                                           flags:  null                                   },
+        //                   relationships: { symbol: { data: { type: "symbol", id: "XLMBTC" } } }     } }
         //
         return this.parseOrder (response['data']);
     }
@@ -1112,7 +1035,7 @@ module.exports = class adara extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
+        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
             if (Object.keys (query).length)
