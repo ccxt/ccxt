@@ -315,6 +315,52 @@ module.exports = class adara extends Exchange {
         return result;
     }
 
+    async fetchCurrencies (params = {}) {
+        let response = await this.publicGetCurrencies (params);
+        let currencies = response['result'];
+        let result = {};
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
+            let id = currency['Currency'];
+            // todo: will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            let code = this.commonCurrencyCode (id);
+            let precision = 8; // default precision, todo: fix "magic constants"
+            let address = this.safeValue (currency, 'BaseAddress');
+            result[code] = {
+                'id': id,
+                'code': code,
+                'address': address,
+                'info': currency,
+                'type': currency['CoinType'],
+                'name': currency['CurrencyLong'],
+                'active': currency['IsActive'],
+                'fee': this.safeFloat (currency, 'TxFee'), // todo: redesign
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': currency['TxFee'],
+                        'max': Math.pow (10, precision),
+                    },
+                },
+            };
+        }
+        return result;
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetBalance (params);
@@ -705,25 +751,35 @@ module.exports = class adara extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type !== 'limit') {
-            throw new InvalidOrder (this.id + ' createOrder allows limit orders only!');
-        }
-        let orderSide = undefined;
-        if (side === 'buy') {
-            orderSide = 'bid';
-        } else if (side === 'sell') {
-            orderSide = 'ask';
-        } else {
-            throw new InvalidOrder (this.id + ' createOrder allows buy or sell side only!');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'market': market['id'],
-            'side': orderSide,
-            'volume': this.amountToPrecision (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
-            'ord_type': type,
+            'symbol': {
+                'id': market['id'],
+                'type': 'symbol',
+                'attributes': {
+                    'digits': 0,
+                    'allowTrade': true,
+                },
+                'relationships': {
+                    'from': {
+                        'data': {
+                            'id': market['baseId'],
+                            'type': 'currency',
+                        },
+                    },
+                    'to': {
+                        'data': {
+                            'id': market['quoteId'],
+                            'type': 'currency',
+                        },
+                    },
+                },
+            },
+            'operation': side,
+            'orderType': type,
+            'amount': amount,
+            'price': price,
         };
         const response = await this.privatePostOrders (this.extend (request, params));
         const log = require ('ololog').unlimited;
