@@ -1113,7 +1113,11 @@ module.exports = class adara extends Exchange {
         response['data'] = [];
         response['data'].push (data);
         const orders = this.parseOrdersResponse (response);
-        return orders[0];
+        const ordersById = this.indexBy (orders, 'id');
+        if (id in ordersById) {
+            return ordersById[id];
+        }
+        throw OrderNotFound (this.id + ' fetchOrder could not find order id ' + id.toString ());
     }
 
     nonce () {
