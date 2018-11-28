@@ -178,7 +178,7 @@ module.exports = class btcalpha extends Exchange {
             'id': id,
             'order': this.safeString (trade, 'o_id'),
             'type': 'limit',
-            'side': trade['type'],
+            'side': trade['my_side'],
             'price': price,
             'amount': amount,
             'cost': parseFloat (cost),
