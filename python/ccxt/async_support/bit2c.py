@@ -109,7 +109,9 @@ class bit2c (Exchange):
         timestamp = self.milliseconds()
         averagePrice = self.safe_float(ticker, 'av')
         baseVolume = self.safe_float(ticker, 'a')
-        quoteVolume = baseVolume * averagePrice
+        quoteVolume = None
+        if baseVolume is not None and averagePrice is not None:
+            quoteVolume = baseVolume * averagePrice
         last = self.safe_float(ticker, 'll')
         return {
             'symbol': symbol,
