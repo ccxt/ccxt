@@ -113,6 +113,7 @@ class cointiger extends huobipro {
                 '100002' => '\\ccxt\\ExchangeNotAvailable',
                 '100003' => '\\ccxt\\ExchangeError',
                 '100005' => '\\ccxt\\AuthenticationError',
+                '110030' => '\\ccxt\\DDoSProtection',
             ),
             'commonCurrencies' => array (
                 'FGC' => 'FoundGameCoin',
