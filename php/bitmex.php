@@ -139,6 +139,7 @@ class bitmex extends Exchange {
                 ),
                 'broad' => array (
                     'overloaded' => '\\ccxt\\ExchangeNotAvailable',
+                    'Account has insufficient Available Balance' => '\\ccxt\\InsufficientFunds',
                 ),
             ),
             'options' => array (
