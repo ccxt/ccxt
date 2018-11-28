@@ -578,8 +578,6 @@ module.exports = class bibox extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let baseId = market['baseId'];
-        let quoteId = market['quoteId'];
         let size = (limit) ? limit : 200;
         let response = await this.privatePostOrderpending ({
             'cmd': 'orderpending/orderHistoryList',
@@ -588,8 +586,8 @@ module.exports = class bibox extends Exchange {
                 'account_type': 0, // 0 - regular, 1 - margin
                 'page': 1,
                 'size': size,
-                'coin_symbol': baseId,
-                'currency_symbol': quoteId,
+                'coin_symbol': market['baseId'],
+                'currency_symbol': market['quoteId'],
             }, params),
         });
         let trades = this.safeValue (response['result'], 'items', []);
