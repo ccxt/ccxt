@@ -143,6 +143,7 @@ module.exports = class adara extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    'Order is not found': OrderNotFound, // {"errors":[{"status":"404","title":"Not Found","detail":"Order is not found"}]}
                     'AUTH': AuthenticationError, // {"errors":[{"code":"AUTH","title":"Not authorized","detail":"User is not authorized"}]}
                     'You are not authorized': AuthenticationError, // {"errors":[{"status":"401","title":"Unauthorized","detail":"You are not authorized"}]}
                     'Bad Request': BadRequest, // {"errors":[{"status":"400","title":"Bad Request","detail":"symbol filter is not filled"}]}
@@ -932,7 +933,7 @@ module.exports = class adara extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             // 'market': this.marketId (symbol),
             // 'state': 'wait', 'done', 'cancel',
             // 'page': 1,
@@ -941,47 +942,62 @@ module.exports = class adara extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.marketId (symbol);
-            request['market'] = market['id'];
+            request['filters[symbol]'] = market['id'];
         }
         const response = await this.privateGetOrder (this.extend (request, params));
-        const log = require ('ololog').unlimited;
-        log.green (response);
-        process.exit ();
-        // const response =
-        /*
-            [
-                {
-                    "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
-                    "side": "bid",
-                    "ord_type": "limit",
-                    "price": "17417000.0",
-                    "state": "done",
-                    "market": "KRW-BTC",
-                    "created_at": "2018-04-05T14:09:14+09:00",
-                    "volume": "1.0",
-                    "remaining_volume": "0.0",
-                    "reserved_fee": "26125.5",
-                    "remaining_fee": "25974.0",
-                    "paid_fee": "151.5",
-                    "locked": "17341974.0",
-                    "executed_volume": "1.0",
-                    "trades_count":2
-                },
-            ]
-        */
-        return this.parseOrders (response, market, since, limit);
+        //
+        //     {
+        //         "data": [{
+        //             "id": "string",
+        //             "type": "order",
+        //             "attributes": {
+        //                 "operation": "buy",
+        //                 "orderType": "market",
+        //                 "amount": 0,
+        //                 "price": 0,
+        //                 "averagePrice": 0,
+        //                 "fee": 0,
+        //                 "filled": 0,
+        //                 "stop": 0,
+        //                 "timeOpen": "2018-11-27T13:30:21Z",
+        //                 "timeClose": "2018-11-27T13:30:21Z",
+        //                 "comment": "string",
+        //                 "status": "open",
+        //                 "flag": "stop"
+        //             },
+        //             "relationships": {
+        //                 "symbol": { "data": { "id": "string", "type": "symbol" } },
+        //                 "trades": { "data": [ { "id": "string", "type": "trade" } ] }
+        //             }
+        //         }],
+        //         "included": [{
+        //             "id": "string",
+        //             "type": "trade",
+        //             "attributes": {
+        //                 "fee": 0,
+        //                 "price": 0,
+        //                 "amount": 0,
+        //                 "total": 0,
+        //                 "operation": "buy",
+        //                 "createdAt": "2018-11-27T13:30:21Z"
+        //             },
+        //             "relationships": { "symbol": { "data": { "id": "string", "type": "symbol" } } }
+        //         }]
+        //     }
+        //
+        return this.parseOrders (response['data'], market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
-            'state': 'wait',
+            'filters[status]': 'open',
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
-            'state': 'done',
+            'filters[status]': 'closed',
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
@@ -989,9 +1005,9 @@ module.exports = class adara extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'uuid': id,
+            'id': id,
         };
-        let response = await this.publicGetOrder (this.extend (request, params));
+        let response = await this.privateGetOrderId (this.extend (request, params));
         //
         //     {
         //         "data": [{
@@ -1078,6 +1094,7 @@ module.exports = class adara extends Exchange {
         //     {"errors":[{"status":"400","title":"Bad Request","detail":"symbol filter is not filled"}]}
         //     {"errors":[{"status":"401","title":"Unauthorized","detail":"You are not authorized"}]}
         //     {"errors":[{"status":"500","title":"TypeError","detail":"TypeError: Cannot read property 'buy' of undefined"}]}
+        //     {"errors":[{"status":"404","title":"Not Found","detail":"Order is not found"}]}
         //
         const errors = this.safeValue (response, 'errors', []);
         const numErrors = errors.length;
