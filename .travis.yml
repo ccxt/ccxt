@@ -8,6 +8,8 @@ cache:
     - node_modules
 
 before_install:
+# try switching to php 7 on travis
+- phpenv global 7.1
 - set -e
 - . $HOME/.nvm/nvm.sh
 # - nvm ls
