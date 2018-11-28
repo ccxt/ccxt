@@ -28,7 +28,7 @@ module.exports = class SocketIoLightConnection extends WebsocketBaseConnection {
             } else {
                 that.cancelPingTimeout();
                 that.client.ws.send('2');
-                if (this.options['verbose']){
+                if (that.options['verbose']){
                     console.log("SocketioLightConnection: ping sent");
                 }
 
@@ -96,7 +96,7 @@ module.exports = class SocketIoLightConnection extends WebsocketBaseConnection {
         
             client.ws.on('message', async (data) => {
                 if (this.options['verbose']){
-                    console.log("SocketioLightConnection: "- data);
+                    console.log("SocketioLightConnection: "+ data);
                 }
 
                 if (!client.isClosing) {

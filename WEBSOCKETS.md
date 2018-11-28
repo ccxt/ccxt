@@ -3,7 +3,7 @@
 - This file is a work in progress, guidelines are being developed right now!
 ```
 ## Before you test in python or PHP
-If you wnat to use python or PHP language you must execute `npm run export-exchanges` (to ensure exchanges.js will be updated) and `npm run transpile` to update python and PHP exchange modules.
+If you want to use python or PHP language you must execute `npm run export-exchanges` (to ensure exchanges.js will be updated) and `npm run transpile` to update python and PHP exchange modules.
 ## Test it!
 You can test websocket events with the example script:
 * `examples/js/websocket-playground.js` 

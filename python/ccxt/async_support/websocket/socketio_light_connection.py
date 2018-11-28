@@ -9,7 +9,7 @@ import json, sys
 
 
 class MyClientProtocol(WebSocketClientProtocol):
-    def __init__(self, event_emitter, future, loop):
+    def __init__(self, event_emitter, future, loop, verbose):
         super(MyClientProtocol, self).__init__()
         self.event_emitter = event_emitter  # type: pyee.EventEmitter
         self.future = future  # type: asyncio.Future
@@ -19,6 +19,7 @@ class MyClientProtocol(WebSocketClientProtocol):
         self.ping_interval = None
         self.ping_timeout = None
         self.loop = loop
+        self.verbose = verbose
     
     def createPingProcess(self):
         self.destroyPingProcess()
@@ -30,8 +31,9 @@ class MyClientProtocol(WebSocketClientProtocol):
             self.ping_interval = self.loop.call_later(self.ping_interval_ms / 1000, do_ping)
             try:
                 if not self.is_closing:
-                    if self.options['verbose']:
+                    if self.verbose:
                         print("PusherLightConnection: ping sent")
+                        sys.stdout.flush()
                     self.cancelPingTimeout()
                     self.sendMessage('2'.encode('utf8'))
                     #print("ping sent")
@@ -64,8 +66,10 @@ class MyClientProtocol(WebSocketClientProtocol):
         pass
 
     def onMessage(self, payload, isBinary):
-        if self.options['verbose']:
-            print("PusherLightConnection: " + payload)
+        if self.verbose:
+            print("PusherLightConnection: ")
+            print(payload)
+            sys.stdout.flush()
         if self.is_closing:
             return
         data = payload
@@ -128,7 +132,7 @@ class SocketIoLightConnection(WebsocketBaseConnection):
                 ssl = True if url_parsed.scheme == 'wss' else False
                 port = url_parsed.port if url_parsed.port is not None else 443 if ssl else 80
 
-                client = MyClientProtocol(self, future, self.loop)
+                client = MyClientProtocol(self, future, self.loop, self.options['verbose'])
                 if 'proxies' in list(self.options.keys()):
                     if url_parsed.scheme == 'wss':
                         proxy_url_parsed = urlparse(self.options['proxies']['https'])

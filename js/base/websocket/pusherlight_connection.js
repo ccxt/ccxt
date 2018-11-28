@@ -35,7 +35,7 @@ module.exports = class PusherLightConnection extends WebsocketBaseConnection {
         // Send ping after inactivity
         this._activityTimer = setTimeout(function() {
             if (!that.client.isClosing){
-                if (this.options['verbose']){
+                if (that.options['verbose']){
                     console.log("PusherLightConnection: ping sent");
                 }
                 that.client.ws.send(JSON.stringify({

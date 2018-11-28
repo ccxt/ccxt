@@ -5,14 +5,16 @@ from autobahn.asyncio.websocket import WebSocketClientProtocol, \
     WebSocketClientFactory
 import asyncio
 from urllib.parse import urlparse
+import sys
 
 
 class MyClientProtocol(WebSocketClientProtocol):
-    def __init__(self, event_emitter, future):
+    def __init__(self, event_emitter, future, verbose):
         super(MyClientProtocol, self).__init__()
         self.event_emitter = event_emitter  # type: pyee.EventEmitter
         self.future = future  # type: asyncio.Future
         self.is_closing = False
+        self.verbose = verbose
 
     def onConnect(self, response):
         pass
@@ -21,8 +23,10 @@ class MyClientProtocol(WebSocketClientProtocol):
         self.future.done() or self.future.set_result(None)
 
     def onMessage(self, payload, isBinary):
-        if self.options['verbose']:
-            print("PusherLightConnection: " + payload)
+        if self.verbose:
+            print("WebsocketConnection: ")
+            print(payload)
+            sys.stdout.flush
         if self.is_closing:
             return
         if isBinary:
@@ -63,7 +67,7 @@ class WebsocketConnection(WebsocketBaseConnection):
                 ssl = True if url_parsed.scheme == 'wss' else False
                 port = url_parsed.port if url_parsed.port is not None else 443 if ssl else 80
 
-                client = MyClientProtocol(self, future)
+                client = MyClientProtocol(self, future, self.options['verbose'])
                 if 'proxies' in list(self.options.keys()):
                     if url_parsed.scheme == 'wss':
                         proxy_url_parsed = urlparse(self.options['proxies']['https'])
