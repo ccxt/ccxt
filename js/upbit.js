@@ -197,13 +197,13 @@ module.exports = class upbit extends Exchange {
         const walletLocked = this.safeValue (memberInfo, 'wallet_locked');
         const locked = this.safeValue (memberInfo, 'locked');
         let active = true;
-        if (canWithdraw === false) {
+        if ((canWithdraw !== undefined) && canWithdraw) {
             active = false;
         } else if (walletState !== 'working') {
             active = false;
-        } else if (walletLocked === true) {
+        } else if ((walletLocked !== undefined) && walletLocked) {
             active = false;
-        } else if (locked === true) {
+        } else if ((locked !== undefined) && locked) {
             active = false;
         }
         const maxOnetimeWithdrawal = this.safeFloat (withdrawLimits, 'onetime');
@@ -654,17 +654,14 @@ module.exports = class upbit extends Exchange {
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         }
-        let side = this.safeString (trade, 'side');
-        let askOrBid = this.safeString2 (trade, 'ask_bid');
-        if (side === undefined) {
-            if (askOrBid === 'ASK') {
-                side = 'buy';
-            } else if (askOrBid === 'BID') {
-                side = 'sell';
-            }
-        } else if (side === 'ask') {
+        let side = undefined;
+        let askOrBid = this.safeString2 (trade, 'ask_bid', 'side');
+        if (askOrBid !== undefined) {
+            askOrBid = askOrBid.toLowerCase ();
+        }
+        if (askOrBid === 'ask') {
             side = 'sell';
-        } else if (side === 'bid') {
+        } else if (askOrBid === 'bid') {
             side = 'buy';
         }
         let cost = this.safeFloat (trade, 'funds');
