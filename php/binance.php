@@ -748,6 +748,7 @@ class binance extends Exchange {
             if ($stopPrice === null) {
                 throw new InvalidOrder ($this->id . ' createOrder $method requires a $stopPrice extra param for a ' . $type . ' order');
             } else {
+                $params = $this->omit ($params, 'stopPrice');
                 $order['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
             }
         }

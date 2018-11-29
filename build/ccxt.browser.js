@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.556'
+const version = '1.17.557'
 
 Exchange.ccxtVersion = version
 
@@ -6763,6 +6763,7 @@ module.exports = class binance extends Exchange {
             if (stopPrice === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder method requires a stopPrice extra param for a ' + type + ' order');
             } else {
+                params = this.omit (params, 'stopPrice');
                 order['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }
         }
