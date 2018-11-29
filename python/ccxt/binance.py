@@ -706,6 +706,7 @@ class binance (Exchange):
             if stopPrice is None:
                 raise InvalidOrder(self.id + ' createOrder method requires a stopPrice extra param for a ' + type + ' order')
             else:
+                params = self.omit(params, 'stopPrice')
                 order['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         response = getattr(self, method)(self.extend(order, params))
         return self.parse_order(response, market)
