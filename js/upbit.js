@@ -132,6 +132,9 @@ module.exports = class upbit extends Exchange {
             'options': {
                 'fetchTickersMaxLength': 4096, // 2048,
                 'fetchOrderBooksMaxLength': 4096, // 2048,
+                'tradingFeesByQuoteCurrency': {
+                    'KRW': 0.0005,
+                },
             },
         });
     }
@@ -356,6 +359,8 @@ module.exports = class upbit extends Exchange {
                 'price': 8,
             };
             const active = true;
+            const makerFee = this.safeFloat (this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['maker']);
+            const takerFee = this.safeFloat (this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['taker']);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -366,6 +371,8 @@ module.exports = class upbit extends Exchange {
                 'active': active,
                 'info': market,
                 'precision': precision,
+                'maker': makerFee,
+                'taker': takerFee,
                 'limits': {
                     'amount': {
                         'min': Math.pow (10, -precision['amount']),
