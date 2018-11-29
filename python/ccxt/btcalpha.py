@@ -177,6 +177,11 @@ class btcalpha (Exchange):
         amount = float(trade['amount'])
         cost = self.cost_to_precision(symbol, price * amount)
         id = self.safe_string(trade, 'id')
+        side = None
+        if 'my_side' in trade:
+            side = self.safe_string(trade, 'my_side')
+        else:
+            side = self.safe_string(trade, 'side')
         if not id:
             id = self.safe_string(trade, 'tid')
         return {
@@ -186,7 +191,7 @@ class btcalpha (Exchange):
             'id': id,
             'order': self.safe_string(trade, 'o_id'),
             'type': 'limit',
-            'side': trade['type'],
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': float(cost),
