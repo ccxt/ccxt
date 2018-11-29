@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.17.542';
+$version = '1.17.536';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.17.542';
+    const VERSION = '1.17.536';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -269,7 +269,7 @@ class Exchange {
 
     public static function truncate_to_string ($number, $precision = 0) {
         if ($precision > 0) {
-            $string = sprintf ('%.' . ($precision + 1) . 'F', floatval ($number));
+            $string = sprintf ('%.' . ($precision + 1) . 'f', floatval ($number));
             list ($integer, $decimal) = explode ('.', $string);
             $decimal = trim ('.' . substr ($decimal, 0, $precision), '0');
             if (strlen ($decimal) < 2)

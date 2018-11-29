@@ -33,7 +33,6 @@ class livecoin extends Exchange {
                 'api' => 'https://api.livecoin.net',
                 'www' => 'https://www.livecoin.net',
                 'doc' => 'https://www.livecoin.net/api?lang=en',
-                'referral' => 'https://livecoin.net/?from=Livecoin-CQ1hfx44',
             ),
             'api' => array (
                 'public' => array (

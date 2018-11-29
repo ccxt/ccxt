@@ -26,7 +26,6 @@ module.exports = class bitso extends Exchange {
                 'www': 'https://bitso.com',
                 'doc': 'https://bitso.com/api_info',
                 'fees': 'https://bitso.com/fees?l=es',
-                'referral': 'https://bitso.com/?ref=itej',
             },
             'api': {
                 'public': {

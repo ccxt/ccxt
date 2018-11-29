@@ -8,8 +8,6 @@ cache:
     - node_modules
 
 before_install:
-# try switching to php 7 on travis
-- phpenv global 7.1
 - set -e
 - . $HOME/.nvm/nvm.sh
 # - nvm ls
@@ -37,6 +35,7 @@ script:
 - cd python
 - tox -e doc
 - cd ..
+- set -e
 - npm run test-base
 - set +e # (we deactivate set -e here, to prevent sudden log truncation in Travis, as it was suggested by the support team)
 - node run-tests --js --python2 5; export TESTS_FAILED=$?
