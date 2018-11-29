@@ -137,12 +137,16 @@ module.exports = class upbit extends Exchange {
     }
 
     async fetchCurrency (code, params = {}) {
+        // this method is for retrieving funding fees and limits per currency
+        // it requires private access and API keys properly set up
         await this.loadMarkets ();
         const currency = this.currency (code);
         return await this.fetchCurrencyById (currency['id'], params);
     }
 
     async fetchCurrencyById (id, params = {}) {
+        // this method is for retrieving funding fees and limits per currency
+        // it requires private access and API keys properly set up
         const request = {
             'currency': id,
         };
@@ -232,12 +236,16 @@ module.exports = class upbit extends Exchange {
     }
 
     async fetchMarket (symbol, params = {}) {
+        // this method is for retrieving trading fees and limits per market
+        // it requires private access and API keys properly set up
         await this.loadMarkets ();
         const market = this.market (symbol);
         return await this.fetchMarketById (market['id'], params);
     }
 
     async fetchMarketById (id, params = {}) {
+        // this method is for retrieving trading fees and limits per market
+        // it requires private access and API keys properly set up
         const request = {
             'market': id,
         };
