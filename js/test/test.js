@@ -231,6 +231,10 @@ let testExchange = async exchange => {
     await tests['fetchClosedOrders'] (exchange, symbol)
     await tests['fetchMyTrades']     (exchange, symbol)
 
+    // await tests['fetchTransactions'] (exchange, symbol)
+    // await tests['fetchDeposits']     (exchange, symbol)
+    // await tests['fetchWithdrawals']  (exchange, symbol)
+
     if (exchange.extendedTest) {
 
         await tests['InvalidNonce']      (exchange, symbol)
