@@ -62,6 +62,10 @@ module.exports = class coinfloor extends Exchange {
                 'BTC/USD': { 'id': 'XBT/USD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'baseId': 'XBT', 'quoteId': 'USD' },
                 'BTC/PLN': { 'id': 'XBT/PLN', 'symbol': 'BTC/PLN', 'base': 'BTC', 'quote': 'PLN', 'baseId': 'XBT', 'quoteId': 'PLN' },
                 'BCH/GBP': { 'id': 'BCH/GBP', 'symbol': 'BCH/GBP', 'base': 'BCH', 'quote': 'GBP', 'baseId': 'BCH', 'quoteId': 'GBP' },
+                'ETH/GBP': { 'id': 'ETH/GBP', 'symbol': 'ETH/GBP', 'base': 'ETH', 'quote': 'GBP', 'baseId': 'ETH', 'quoteId': 'GBP' },
+                'ETC/GBP': { 'id': 'ETC/GBP', 'symbol': 'ETC/GBP', 'base': 'ETC', 'quote': 'GBP', 'baseId': 'ETC', 'quoteId': 'GBP' },
+                'XRP/GBP': { 'id': 'XRP/GBP', 'symbol': 'XRP/GBP', 'base': 'XRP', 'quote': 'GBP', 'baseId': 'XRP', 'quoteId': 'GBP' },
+                'LTC/GBP': { 'id': 'LTC/GBP', 'symbol': 'LTC/GBP', 'base': 'LTC', 'quote': 'GBP', 'baseId': 'LTC', 'quoteId': 'GBP' },
             },
         });
     }
