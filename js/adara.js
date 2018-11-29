@@ -86,25 +86,17 @@ module.exports = class adara extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    'Insufficient funds': InsufficientFunds, // {"errors":[{"status":"422","title":"Unprocessable Entity","detail":"Insufficient funds"}]}
-                    'Amount is too small': InvalidOrder, // {"errors":[{"status":"400","title":"Bad Request","detail":"Amount is too small","source":{"pointer":"/data/attributes/amount"}}]}
-                    'operation has invalid value': InvalidOrder, // {"errors":[{"status":"400","title":"Bad Request","detail":"operation has invalid value"}]}
-                    "closed order can't be changed": InvalidOrder, // {"errors":[{"status":"423","title":"Locked","detail":"closed order can't be changed"}]}
-                    'Order is not found': OrderNotFound, // {"errors":[{"status":"404","title":"Not Found","detail":"Order is not found"}]}
-                    'AUTH': AuthenticationError, // {"errors":[{"code":"AUTH","title":"Not authorized","detail":"User is not authorized"}]}
-                    'You are not authorized': AuthenticationError, // {"errors":[{"status":"401","title":"Unauthorized","detail":"You are not authorized"}]}
-                    'Bad Request': BadRequest, // {"errors":[{"status":"400","title":"Bad Request","detail":"symbol filter is not filled"}]}
-                    '500': ExchangeError, // {"errors":[{"status":"500","title":"TypeError","detail":"TypeError: Cannot read property 'buy' of undefined"}]}
+                    'Insufficient funds': InsufficientFunds,
+                    'Amount is too small': InvalidOrder,
+                    'operation has invalid value': InvalidOrder,
+                    "closed order can't be changed": InvalidOrder,
+                    'Order is not found': OrderNotFound,
+                    'AUTH': AuthenticationError,
+                    'You are not authorized': AuthenticationError,
+                    'Bad Request': BadRequest,
+                    '500': ExchangeError,
                 },
                 'broad': {
-                },
-            },
-            'options': {
-                'fetchTickersMaxLength': 4096, // 2048,
-                'fetchOrderBooksMaxLength': 4096, // 2048,
-                // price precision by quote currency code
-                'pricePrecisionByCode': {
-                    'USD': 3,
                 },
             },
             'commonCurrencies': {
@@ -1158,17 +1150,6 @@ module.exports = class adara extends Exchange {
         if (!this.isJsonEncodedObject (body))
             return; // fallback to default error handler
         response = JSON.parse (body);
-        //
-        //     {"errors":[{"code":"AUTH","title":"Not authorized","detail":"User is not authorized"}]}
-        //     {"errors":[{"status":"400","title":"Bad Request","detail":"symbol filter is not filled"}]}
-        //     {"errors":[{"status":"400","title":"Bad Request","detail":"Amount is too small","source":{"pointer":"/data/attributes/amount"}}]}
-        //     {"errors":[{"status":"400","title":"Bad Request","detail":"operation has invalid value"}]}
-        //     {"errors":[{"status":"401","title":"Unauthorized","detail":"You are not authorized"}]}
-        //     {"errors":[{"status":"404","title":"Not Found","detail":"Order is not found"}]}
-        //     {"errors":[{"status":"422","title":"Unprocessable Entity","detail":"Insufficient funds"}]}
-        //     {"errors":[{"status":"423","title":"Locked","detail":"closed order can't be changed"}]}
-        //     {"errors":[{"status":"500","title":"TypeError","detail":"TypeError: Cannot read property 'buy' of undefined"}]}
-        //
         const errors = this.safeValue (response, 'errors', []);
         const numErrors = errors.length;
         if (numErrors > 0) {
