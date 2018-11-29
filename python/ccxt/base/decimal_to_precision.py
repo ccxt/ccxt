@@ -72,7 +72,8 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
                 precise = '{:f}'.format(min((below, above), key=lambda x: abs(x - dec)))
             else:
                 precise = '{:f}'.format(dec.quantize(sigfig))
-        precise = precise[1:] if precise == ('-0.' + len(precise) * '0')[:2] else precise
+        if precise == ('-0.' + len(precise) * '0')[:2] or precise == '-0':
+            precise = precise[1:]
 
     elif rounding_mode == TRUNCATE:
         # Slice a string
@@ -92,7 +93,8 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
                 precise = string
             else:
                 precise = string[:end].ljust(dot, '0')
-        precise = precise[1:] if precise == ('-0.' + len(precise) * '0')[:3] else precise        
+        if precise == ('-0.' + len(precise) * '0')[:3] or precise == '-0':
+            precise = precise[1:]      
         precise = precise.rstrip('.')
 
     if padding_mode == NO_PADDING:
