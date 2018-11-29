@@ -48,6 +48,8 @@ Certified Cryptocurrency Exchanges
 +------------+----------+-----------------------------------------------------+----------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+------------------------+
 | |theocean| | theocean | `The Ocean <https://theocean.trade>`__              | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | 0   | `API <https://docs.theocean.trade>`__                                                           | US                     |
 +------------+----------+-----------------------------------------------------+----------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+------------------------+
+| |upbit|    | upbit    | `UPbit <https://upbit.com>`__                       | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | 1   | `API <https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C>`__           | South Korea            |
++------------+----------+-----------------------------------------------------+----------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+------------------------+
 
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
@@ -679,6 +681,7 @@ For business inquiries: info@ccxt.trade
 .. |bittrex| image:: https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg
 .. |kraken| image:: https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg
 .. |theocean| image:: https://user-images.githubusercontent.com/1294454/43103756-d56613ce-8ed7-11e8-924e-68f9d4bcacab.jpg
+.. |upbit| image:: https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg
 .. | _1btcxe| image:: https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg
 .. |acx| image:: https://user-images.githubusercontent.com/1294454/30247614-1fe61c74-9621-11e7-9e8c-f1a627afa279.jpg
 .. |allcoin| image:: https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg
@@ -795,7 +798,6 @@ For business inquiries: info@ccxt.trade
 .. |tidebit| image:: https://user-images.githubusercontent.com/1294454/39034921-e3acf016-4480-11e8-9945-a6086a1082fe.jpg
 .. |tidex| image:: https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg
 .. |uex| image:: https://user-images.githubusercontent.com/1294454/43999923-051d9884-9e1f-11e8-965a-76948cb17678.jpg
-.. |upbit| image:: https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg
 .. |urdubit| image:: https://user-images.githubusercontent.com/1294454/27991453-156bf3ae-6480-11e7-82eb-7295fe1b5bb4.jpg
 .. |vaultoro| image:: https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg
 .. |vbtc| image:: https://user-images.githubusercontent.com/1294454/27991481-1f53d1d8-6481-11e7-884e-21d17e7939db.jpg
