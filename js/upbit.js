@@ -231,68 +231,85 @@ module.exports = class upbit extends Exchange {
         };
     }
 
-    async fetchTradingLimits (symbols = undefined, params = {}) {
-        // this method should not be called directly, use loadTradingLimits () instead
-        //  by default it will try load withdrawal fees of all currencies (with separate requests)
-        //  however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
+    async fetchMarket (symbol, params = {}) {
         await this.loadMarkets ();
-        if (symbols === undefined) {
-            symbols = this.symbols;
-        }
-        let result = {};
-        for (let i = 0; i < symbols.length; i++) {
-            let symbol = symbols[i];
-            result[symbol] = await this.fetchTradingLimitsById (this.marketId (symbol), params);
-        }
-        return result;
+        const market = this.market (symbol);
+        return await this.fetchMarketById (market['id'], params);
     }
 
-    async fetchTradingLimitsById (id, params = {}) {
-        let request = {
-            'symbol': id,
+    async fetchMarketById (id, params = {}) {
+        const request = {
+            'market': id,
         };
-        let response = await this.publicGetCommonExchange (this.extend (request, params));
+        const response = await this.privateGetOrdersChance (this.extend (request, params));
         //
-        //     { status:   "ok",
-        //         data: {                                  symbol: "aidocbtc",
-        //                              'buy-limit-must-less-than':  1.1,
-        //                          'sell-limit-must-greater-than':  0.9,
-        //                         'limit-order-must-greater-than':  1,
-        //                            'limit-order-must-less-than':  5000000,
-        //                    'market-buy-order-must-greater-than':  0.0001,
-        //                       'market-buy-order-must-less-than':  100,
-        //                   'market-sell-order-must-greater-than':  1,
-        //                      'market-sell-order-must-less-than':  500000,
-        //                       'circuit-break-when-greater-than':  10000,
-        //                          'circuit-break-when-less-than':  10,
-        //                 'market-sell-order-rate-must-less-than':  0.1,
-        //                  'market-buy-order-rate-must-less-than':  0.1        } }
+        //     {     bid_fee:   "0.0005",
+        //           ask_fee:   "0.0005",
+        //            market: {          id:   "KRW-BTC",
+        //                             name:   "BTC/KRW",
+        //                      order_types: ["limit"],
+        //                      order_sides: ["ask", "bid"],
+        //                              bid: {   currency: "KRW",
+        //                                     price_unit:  null,
+        //                                      min_total:  1000  },
+        //                              ask: {   currency: "BTC",
+        //                                     price_unit:  null,
+        //                                      min_total:  1000  },
+        //                        max_total:   "1000000000.0",
+        //                            state:   "active"              },
+        //       bid_account: {          currency: "KRW",
+        //                                balance: "0.0",
+        //                                 locked: "0.0",
+        //                      avg_krw_buy_price: "0",
+        //                               modified:  false },
+        //       ask_account: {          currency: "BTC",
+        //                                balance: "0.00780836",
+        //                                 locked: "0.0",
+        //                      avg_krw_buy_price: "6465564.67",
+        //                               modified:  false        }      }
         //
-        return this.parseTradingLimits (this.safeValue (response, 'data', {}));
-    }
-
-    parseTradingLimits (limits, symbol = undefined, params = {}) {
-        //
-        //   {                                  symbol: "aidocbtc",
-        //                  'buy-limit-must-less-than':  1.1,
-        //              'sell-limit-must-greater-than':  0.9,
-        //             'limit-order-must-greater-than':  1,
-        //                'limit-order-must-less-than':  5000000,
-        //        'market-buy-order-must-greater-than':  0.0001,
-        //           'market-buy-order-must-less-than':  100,
-        //       'market-sell-order-must-greater-than':  1,
-        //          'market-sell-order-must-less-than':  500000,
-        //           'circuit-break-when-greater-than':  10000,
-        //              'circuit-break-when-less-than':  10,
-        //     'market-sell-order-rate-must-less-than':  0.1,
-        //      'market-buy-order-rate-must-less-than':  0.1        }
-        //
+        const marketInfo = this.safeValue (response, 'market');
+        const bid = this.safeValue (marketInfo, 'bid');
+        const ask = this.safeValue (marketInfo, 'ask');
+        const marketId = this.safeString (marketInfo, 'id');
+        const baseId = this.safeString (ask, 'currency');
+        const quoteId = this.safeString (bid, 'currency');
+        const base = this.commonCurrencyCode (baseId);
+        const quote = this.commonCurrencyCode (quoteId);
+        const symbol = base + '/' + quote;
+        const precision = {
+            'amount': 8,
+            'price': 8,
+        };
+        const state = this.safeString (marketInfo, 'state');
+        const active = (state === 'active');
+        const bidFee = this.safeFloat (response, 'bid_fee');
+        const askFee = this.safeFloat (response, 'ask_fee');
+        const fee = Math.max (bidFee, askFee);
         return {
-            'info': limits,
+            'info': response,
+            'id': marketId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'active': active,
+            'precision': precision,
+            'maker': fee,
+            'taker': fee,
             'limits': {
                 'amount': {
-                    'min': this.safeFloat (limits, 'limit-order-must-greater-than'),
-                    'max': this.safeFloat (limits, 'limit-order-must-less-than'),
+                    'min': this.safeFloat (ask, 'min_total'),
+                    'max': undefined,
+                },
+                'price': {
+                    'min': Math.pow (10, -precision['price']),
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.safeFloat (bid, 'min_total'),
+                    'max': this.safeFloat (marketInfo, 'max_total'),
                 },
             },
         };
@@ -629,14 +646,17 @@ module.exports = class upbit extends Exchange {
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         }
-        let side = undefined;
-        let askOrBid = this.safeString2 (trade, 'ask_bid', 'side');
-        if (askOrBid !== undefined) {
-            askOrBid = askOrBid.toLowerCase ();
-        }
-        if (askOrBid === 'ask') {
+        let side = this.safeString (trade, 'side');
+        let askOrBid = this.safeString2 (trade, 'ask_bid');
+        if (side === undefined) {
+            if (askOrBid === 'ASK') {
+                side = 'buy';
+            } else if (askOrBid === 'BID') {
+                side = 'sell';
+            }
+        } else if (side === 'ask') {
             side = 'sell';
-        } else if (askOrBid === 'bid') {
+        } else if (side === 'bid') {
             side = 'buy';
         }
         let cost = this.safeFloat (trade, 'funds');
