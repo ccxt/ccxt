@@ -94,7 +94,7 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
             else:
                 precise = string[:end].ljust(dot, '0')
         if precise == ('-0.' + len(precise) * '0')[:3] or precise == '-0':
-            precise = precise[1:]      
+            precise = precise[1:]
         precise = precise.rstrip('.')
 
     if padding_mode == NO_PADDING:
