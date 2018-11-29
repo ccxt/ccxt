@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, ArgumentsRequired, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending } = require ('./base/errors');
+const { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -116,17 +116,17 @@ module.exports = class upbit extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    'Missing request parameter error. Check the required parameters!': BadRequest, // 400 Bad Request {"error":{"name":400,"message":"Missing request parameter error. Check the required parameters!"}}
-                    'side is missing, side does not have a valid value': InvalidOrder, // {"error":{"message":"side is missing, side does not have a valid value","name":"validation_error"}}
+                    'Missing request parameter error. Check the required parameters!': BadRequest,
+                    'side is missing, side does not have a valid value': InvalidOrder,
                 },
                 'broad': {
-                    'thirdparty_agreement_required': PermissionDenied, // {"error":{"message":"개인정보 제 3자 제공 동의가 필요합니다.","name":"thirdparty_agreement_required"}}
-                    'out_of_scope': PermissionDenied, // {"error":{"message":"권한이 부족합니다.","name":"out_of_scope"}}
-                    'order_not_found': OrderNotFound, // {"error":{"message":"주문을 찾지 못했습니다.","name":"order_not_found"}}
-                    'insufficient_funds_ask': InsufficientFunds, // {"error":{"message":"주문가능한 금액(ETH)이 부족합니다.","name":"insufficient_funds_ask"}}
-                    'insufficient_funds_bid': InsufficientFunds, // {"error":{"message":"주문가능한 금액(BTC)이 부족합니다.","name":"insufficient_funds_bid"}}
-                    'invalid_access_key': AuthenticationError, // {"error":{"message":"잘못된 엑세스 키입니다.","name":"invalid_access_key"}}
-                    'jwt_verification': AuthenticationError, // {"error":{"message":"Jwt 토큰 검증에 실패했습니다.","name":"jwt_verification"}}
+                    'thirdparty_agreement_required': PermissionDenied,
+                    'out_of_scope': PermissionDenied,
+                    'order_not_found': OrderNotFound,
+                    'insufficient_funds_ask': InsufficientFunds,
+                    'insufficient_funds_bid': InsufficientFunds,
+                    'invalid_access_key': AuthenticationError,
+                    'jwt_verification': AuthenticationError,
                 },
             },
             'options': {
@@ -209,8 +209,8 @@ module.exports = class upbit extends Exchange {
         };
     }
 
-    async fetchMarkets () {
-        const response = await this.publicGetMarketAll ();
+    async fetchMarkets (params = {}) {
+        const response = await this.publicGetMarketAll (params);
         //
         //     [ {       market: "KRW-BTC",
         //          korean_name: "비트코인",
@@ -786,7 +786,7 @@ module.exports = class upbit extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        const response = await this.accountGetDeposithistory (this.extend (request, params));
+        const response = await this.privateGetDeposits (this.extend (request, params));
         //
         //     [
         //         {
@@ -803,7 +803,7 @@ module.exports = class upbit extends Exchange {
         //         ...,
         //     ]
         //
-        return this.parseTransactions (response['result'], currency, since, limit);
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -814,7 +814,7 @@ module.exports = class upbit extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        const response = await this.accountGetWithdrawalhistory (this.extend (request, params));
+        const response = await this.privateGetWithdraws (this.extend (request, params));
         //
         //     [
         //         {
@@ -832,97 +832,75 @@ module.exports = class upbit extends Exchange {
         //         ...,
         //     ]
         //
-        return this.parseTransactions (response['result'], currency, since, limit);
+        return this.parseTransactions (response, currency, since, limit);
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'ACCEPTED': 'ok',
+            'processing': 'pending',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
         //
-        //      {            Id:  72578097,
-        //               Amount:  0.3,
-        //             Currency: "ETH",
-        //        Confirmations:  15,
-        //          LastUpdated: "2018-06-17T07:12:14.57",
-        //                 TxId: "0xb31b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
-        //        CryptoAddress: "0x2d5f281fa51f1635abd4a60b0870a62d2a7fa404"                    }
+        //     {
+        //         "type": "deposit",
+        //         "uuid": "94332e99-3a87-4a35-ad98-28b0c969f830",
+        //         "currency": "KRW",
+        //         "txid": "9e37c537-6849-4c8b-a134-57313f5dfc5a",
+        //         "state": "ACCEPTED",
+        //         "created_at": "2017-12-08T15:38:02+09:00",
+        //         "done_at": "2017-12-08T15:38:02+09:00",
+        //         "amount": "100000.0",
+        //         "fee": "0.0"
+        //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf",
-        //         "Currency" : "XC",
-        //         "Amount" : 7513.75121715,
-        //         "Address" : "EVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
-        //         "Opened" : "2014-07-08T23:13:31.83",
-        //         "Authorized" : true,
-        //         "PendingPayment" : false,
-        //         "TxCost" : 0.00002000,
-        //         "TxId" : "b4a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
-        //         "Canceled" : false,
-        //         "InvalidAddress" : false
+        //         "type": "withdraw",
+        //         "uuid": "9f432943-54e0-40b7-825f-b6fec8b42b79",
+        //         "currency": "BTC",
+        //         "txid": "cd81e9b45df8da29f936836e58c907a106057e454a45767a7b06fcb19b966bba",
+        //         "state": "processing",
+        //         "created_at": "2018-04-13T11:24:01+09:00",
+        //         "done_at": null,
+        //         "amount": "0.01",
+        //         "fee": "0.0",
+        //         "krw_amount": "80420.0"
         //     }
         //
-        const id = this.safeString2 (transaction, 'Id', 'PaymentUuid');
-        const amount = this.safeFloat (transaction, 'Amount');
-        const address = this.safeString2 (transaction, 'CryptoAddress', 'Address');
-        const txid = this.safeString (transaction, 'TxId');
-        const updated = this.parse8601 (this.safeValue (transaction, 'LastUpdated'));
-        const timestamp = this.parse8601 (this.safeString (transaction, 'Opened', updated));
-        const type = (timestamp !== undefined) ? 'withdrawal' : 'deposit';
+        const id = this.safeString (transaction, 'uuid');
+        const amount = this.safeFloat (transaction, 'amount');
+        const address = undefined; // not present in the data structure received from the exchange
+        const tag = undefined; // not present in the data structure received from the exchange
+        const txid = this.safeString (transaction, 'txid');
+        const updated = this.parse8601 (this.safeString (transaction, 'done_at'));
+        const timestamp = this.parse8601 (this.safeString (transaction, 'created_at', updated));
+        let type = this.safeString (transaction, 'type');
+        if (type === 'withdraw')
+            type = 'withdrawal';
         let code = undefined;
-        let currencyId = this.safeString (transaction, 'Currency');
+        let currencyId = this.safeString (transaction, 'currency');
         currency = this.safeValue (this.currencies_by_id, currencyId);
         if (currency !== undefined) {
             code = currency['code'];
         } else {
             code = this.commonCurrencyCode (currencyId);
         }
-        let status = 'pending';
-        if (type === 'deposit') {
-            if (currency !== undefined) {
-                // deposits numConfirmations never reach the minConfirmations number
-                // we set all of them to 'ok', otherwise they'd all be 'pending'
-                //
-                //     const numConfirmations = this.safeInteger (transaction, 'Confirmations', 0);
-                //     const minConfirmations = this.safeInteger (currency['info'], 'MinConfirmation');
-                //     if (numConfirmations >= minConfirmations) {
-                //         status = 'ok';
-                //     }
-                //
-                status = 'ok';
-            }
-        } else {
-            const authorized = this.safeValue (transaction, 'Authorized', false);
-            const pendingPayment = this.safeValue (transaction, 'PendingPayment', false);
-            const canceled = this.safeValue (transaction, 'Canceled', false);
-            const invalidAddress = this.safeValue (transaction, 'InvalidAddress', false);
-            if (invalidAddress) {
-                status = 'failed';
-            } else if (canceled) {
-                status = 'canceled';
-            } else if (pendingPayment) {
-                status = 'pending';
-            } else if (authorized && (txid !== undefined)) {
-                status = 'ok';
-            }
-        }
-        let feeCost = this.safeFloat (transaction, 'TxCost');
-        if (feeCost === undefined) {
-            if (type === 'deposit') {
-                // according to https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-
-                feeCost = 0; // FIXME: remove hardcoded value that may change any time
-            } else if (type === 'withdrawal') {
-                throw new ExchangeError ('Withdrawal without fee detected!');
-            }
-        }
+        let status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        let feeCost = this.safeFloat (transaction, 'fee');
         return {
             'info': transaction,
             'id': id,
             'currency': code,
             'amount': amount,
             'address': address,
-            'tag': undefined,
+            'tag': tag,
             'status': status,
             'type': type,
             'updated': updated,
@@ -1094,28 +1072,27 @@ module.exports = class upbit extends Exchange {
             request['market'] = market['id'];
         }
         const response = await this.privateGetOrders (this.extend (request, params));
-        // const response =
-        /*
-            [
-                {
-                    "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
-                    "side": "bid",
-                    "ord_type": "limit",
-                    "price": "17417000.0",
-                    "state": "done",
-                    "market": "KRW-BTC",
-                    "created_at": "2018-04-05T14:09:14+09:00",
-                    "volume": "1.0",
-                    "remaining_volume": "0.0",
-                    "reserved_fee": "26125.5",
-                    "remaining_fee": "25974.0",
-                    "paid_fee": "151.5",
-                    "locked": "17341974.0",
-                    "executed_volume": "1.0",
-                    "trades_count":2
-                },
-            ]
-        */
+        //
+        //     [
+        //         {
+        //             "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
+        //             "side": "bid",
+        //             "ord_type": "limit",
+        //             "price": "17417000.0",
+        //             "state": "done",
+        //             "market": "KRW-BTC",
+        //             "created_at": "2018-04-05T14:09:14+09:00",
+        //             "volume": "1.0",
+        //             "remaining_volume": "0.0",
+        //             "reserved_fee": "26125.5",
+        //             "remaining_fee": "25974.0",
+        //             "paid_fee": "151.5",
+        //             "locked": "17341974.0",
+        //             "executed_volume": "1.0",
+        //             "trades_count":2
+        //         },
+        //     ]
+        //
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -1256,7 +1233,7 @@ module.exports = class upbit extends Exchange {
         const currency = this.currency (code);
         const request = {
             'amount': amount,
-        }
+        };
         let method = 'privatePostWithdraws';
         if (code !== 'KRW') {
             method += 'Coin';
@@ -1324,10 +1301,15 @@ module.exports = class upbit extends Exchange {
             return; // fallback to default error handler
         response = JSON.parse (body);
         //
-        //     {"error":{"name":400,"message":"Missing request parameter error. Check the required parameters!"}}
-        //     {"error":{"message":"side is missing, side does not have a valid value","name":"validation_error"}}
-        //     {"error":{"message":"개인정보 제 3자 제공 동의가 필요합니다.","name":"thirdparty_agreement_required"}}
-        //     {"error":{"message":"권한이 부족합니다.","name":"out_of_scope"}}
+        //   { 'error': { 'message': "Missing request parameter error. Check the required parameters!", 'name':  400 } },
+        //   { 'error': { 'message': "side is missing, side does not have a valid value", 'name': "validation_error" } },
+        //   { 'error': { 'message': "개인정보 제 3자 제공 동의가 필요합니다.", 'name': "thirdparty_agreement_required" } },
+        //   { 'error': { 'message': "권한이 부족합니다.", 'name': "out_of_scope" } },
+        //   { 'error': { 'message': "주문을 찾지 못했습니다.", 'name': "order_not_found" } },
+        //   { 'error': { 'message': "주문가능한 금액(ETH)이 부족합니다.", 'name': "insufficient_funds_ask" } },
+        //   { 'error': { 'message': "주문가능한 금액(BTC)이 부족합니다.", 'name': "insufficient_funds_bid" } },
+        //   { 'error': { 'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key" } },
+        //   { 'error': { 'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification" } }
         //
         const error = this.safeValue (response, 'error');
         if (error !== undefined) {
