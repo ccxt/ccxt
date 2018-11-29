@@ -132,14 +132,95 @@ module.exports = class upbit extends Exchange {
             'options': {
                 'fetchTickersMaxLength': 4096, // 2048,
                 'fetchOrderBooksMaxLength': 4096, // 2048,
-                // price precision by quote currency code
-                'pricePrecisionByCode': {
-                    'USD': 3,
-                },
-            },
-            'commonCurrencies': {
             },
         });
+    }
+
+    async fetchWithdrawInfo (code, params = {}) {
+        // by default it will try load withdrawal fees of all currencies (with separate requests)
+        // however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privateGetWithdrawsChance (this.extend (request, params));
+        //
+        //     {
+        //         "member_level": {
+        //             "security_level": 3,
+        //             "fee_level": 0,
+        //             "email_verified": true,
+        //             "identity_auth_verified": true,
+        //             "bank_account_verified": true,
+        //             "kakao_pay_auth_verified": false,
+        //             "locked": false,
+        //             "wallet_locked": false
+        //         },
+        //         "currency": {
+        //             "code": "BTC",
+        //             "withdraw_fee": "0.0005",
+        //             "is_coin": true,
+        //             "wallet_state": "working",
+        //             "wallet_support": [ "deposit", "withdraw" ]
+        //         },
+        //         "account": {
+        //             "currency": "BTC",
+        //             "balance": "10.0",
+        //             "locked": "0.0",
+        //             "avg_krw_buy_price": "8042000",
+        //             "modified": false
+        //         },
+        //         "withdraw_limit": {
+        //             "currency": "BTC",
+        //             "minimum": null,
+        //             "onetime": null,
+        //             "daily": "10.0",
+        //             "remaining_daily": "10.0",
+        //             "remaining_daily_krw": "0.0",
+        //             "fixed": null,
+        //             "can_withdraw": true
+        //         }
+        //     }
+        //
+        const memberInfo = this.safeValue (response, 'member_level', {})
+        const currencyInfo = this.safeValue (response, 'currency', {});
+        const withdrawLimits = this.safeValue (response, 'withdraw_limit', {});
+        const canWithdraw = this.safeValue (withdrawLimits, 'can_withdraw');
+        const walletState = this.safeString (currencyInfo, 'wallet_state');
+        const walletLocked = this.safeValue (memberInfo, 'wallet_locked');
+        const locked = this.safeValue (memberInfo, 'locked');
+        let active = true;
+        if (canWithdraw === false) {
+            active = false;
+        } else if (walletState !== 'working') {
+            active = false;
+        } else if (walletLocked === true) {
+            active = false;
+        } else if (locked === true) {
+            active = false;
+        }
+        const maxOnetimeWithdrawal = this.safeFloat (withdrawLimits, 'onetime');
+        const maxDailyWithdrawal = this.safeFloat (withdrawLimits, 'daily', maxOnetimeWithdrawal);
+        const remainingDailyWithdrawal = this.safeFloat (withdrawLimits, 'remaining_daily', maxDailyWithdrawal);
+        let maxWithdrawLimit = undefined;
+        if (remainingDailyWithdrawal > 0) {
+            maxWithdrawLimit = remainingDailyWithdrawal;
+        } else {
+            maxWithdrawLimit = maxDailyWithdrawal;
+        }
+        return {
+            'info': response,
+            'currency': code,
+            'active': active,
+            'fee': this.safeFloat (currencyInfo, 'withdraw_fee'),
+            'limits': {
+                'withdraw': {
+                    'min': this.safeFloat (withdrawLimits, 'minimum'),
+                    'max': maxWithdrawLimit,
+                },
+            },
+        };
     }
 
     async fetchTradingLimits (symbols = undefined, params = {}) {
@@ -1243,6 +1324,40 @@ module.exports = class upbit extends Exchange {
         //         "secondary_address": null
         //     }
         //
+        return this.parseDepositAddress (response);
+    }
+
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        let request = {
+            'currency': currency['id'],
+        };
+        let response = await this.fetchDepositAddress (code, this.extend (request, params));
+        //
+        // https://docs.upbit.com/v1.0/reference#%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%83%9D%EC%84%B1-%EC%9A%94%EC%B2%AD
+        // can be any of the two responses:
+        //
+        //     {
+        //         "success" : true,
+        //         "message" : "Creating BTC deposit address."
+        //     }
+        //
+        //     {
+        //         "currency": "BTC",
+        //         "deposit_address": "3EusRwybuZUhVDeHL7gh3HSLmbhLcy7NqD",
+        //         "secondary_address": null
+        //     }
+        //
+        const message = this.safeString (response, 'message');
+        if (message !== undefined) {
+            return {
+                'currency': code,
+                'address': undefined,
+                'tag': undefined,
+                'info': response,
+            };
+        }
         return this.parseDepositAddress (response);
     }
 
