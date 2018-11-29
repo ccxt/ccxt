@@ -360,7 +360,7 @@ class bitmex extends Exchange {
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        $timestamp = $this->parse8601 ($ohlcv['timestamp']) - $this->parse_timeframe($timeframe) * 1000;
+        $timestamp = $this->parse8601 ($ohlcv['timestamp']);
         return [
             $timestamp,
             $ohlcv['open'],
