@@ -136,13 +136,15 @@ module.exports = class upbit extends Exchange {
         });
     }
 
-    async fetchWithdrawInfo (code, params = {}) {
-        // by default it will try load withdrawal fees of all currencies (with separate requests)
-        // however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
+    async fetchCurrency (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
+        return await this.fetchCurrencyById (currency['id'], params);
+    }
+
+    async fetchCurrencyById (id, params = {}) {
         const request = {
-            'currency': currency['id'],
+            'currency': id,
         };
         const response = await this.privateGetWithdrawsChance (this.extend (request, params));
         //
@@ -183,7 +185,7 @@ module.exports = class upbit extends Exchange {
         //         }
         //     }
         //
-        const memberInfo = this.safeValue (response, 'member_level', {})
+        const memberInfo = this.safeValue (response, 'member_level', {});
         const currencyInfo = this.safeValue (response, 'currency', {});
         const withdrawLimits = this.safeValue (response, 'withdraw_limit', {});
         const canWithdraw = this.safeValue (withdrawLimits, 'can_withdraw');
@@ -209,11 +211,17 @@ module.exports = class upbit extends Exchange {
         } else {
             maxWithdrawLimit = maxDailyWithdrawal;
         }
+        const precision = undefined;
+        const currencyId = this.safeString (currencyInfo, 'code');
+        let code = this.commonCurrencyCode (currencyId);
         return {
             'info': response,
-            'currency': code,
+            'id': currencyId,
+            'code': code,
+            'name': code,
             'active': active,
             'fee': this.safeFloat (currencyInfo, 'withdraw_fee'),
+            'precision': precision,
             'limits': {
                 'withdraw': {
                     'min': this.safeFloat (withdrawLimits, 'minimum'),
