@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -284,6 +284,9 @@ module.exports = class therock extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privateGetFundsIdTrades (this.extend ({
