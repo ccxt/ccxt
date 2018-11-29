@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.551'
+const version = '1.17.553'
 
 Exchange.ccxtVersion = version
 
@@ -5177,6 +5177,8 @@ module.exports = class bibox extends Exchange {
                 'account_type': 0, // 0 - regular, 1 - margin
                 'page': 1,
                 'size': size,
+                'coin_symbol': market['baseId'],
+                'currency_symbol': market['quoteId'],
             }, params),
         });
         let trades = this.safeValue (response['result'], 'items', []);
@@ -18210,6 +18212,12 @@ module.exports = class btcalpha extends Exchange {
         let amount = parseFloat (trade['amount']);
         let cost = this.costToPrecision (symbol, price * amount);
         let id = this.safeString (trade, 'id');
+        let side = undefined;
+        if ('my_side' in trade) {
+            side = this.safeString (trade, 'my_side');
+        } else {
+            side = this.safeString (trade, 'side');
+        }
         if (!id)
             id = this.safeString (trade, 'tid');
         return {
@@ -18219,7 +18227,7 @@ module.exports = class btcalpha extends Exchange {
             'id': id,
             'order': this.safeString (trade, 'o_id'),
             'type': 'limit',
-            'side': trade['type'],
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': parseFloat (cost),
