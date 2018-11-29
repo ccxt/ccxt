@@ -47,7 +47,7 @@ module.exports = class upbit extends Exchange {
                 '1M': 'months',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg',
                 'api': 'https://api.upbit.com',
                 'www': 'https://upbit.com',
                 'doc': 'https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C',
@@ -780,11 +780,17 @@ module.exports = class upbit extends Exchange {
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
+        const request = {
+            // 'page': 1,
+            // 'order_by': 'asc', // 'desc'
+        };
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default is 100
         }
         const response = await this.privateGetDeposits (this.extend (request, params));
         //
@@ -808,11 +814,16 @@ module.exports = class upbit extends Exchange {
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
+        const request = {
+            // 'state': 'submitting', // 'submitted', 'almost_accepted', 'rejected', 'accepted', 'processing', 'done', 'canceled'
+        };
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default is 100
         }
         const response = await this.privateGetWithdraws (this.extend (request, params));
         //
@@ -837,8 +848,16 @@ module.exports = class upbit extends Exchange {
 
     parseTransactionStatus (status) {
         const statuses = {
-            'ACCEPTED': 'ok',
-            'processing': 'pending',
+            'ACCEPTED': 'ok', // deposits
+            // withdrawals:
+            'submitting': 'pending', // 처리 중
+            'submitted': 'pending', // 처리 완료
+            'almost_accepted': 'pending', // 출금대기중
+            'rejected': 'failed', // 거부
+            'accepted': 'pending', // 승인됨
+            'processing': 'pending', // 처리 중
+            'done': 'ok', // 완료
+            'canceled': 'canceled', // 취소됨
         };
         return this.safeString (statuses, status, status);
     }
