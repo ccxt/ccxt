@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.553'
+const version = '1.17.554'
 
 Exchange.ccxtVersion = version
 
@@ -14961,13 +14961,14 @@ module.exports = class bittrex extends Exchange {
                 '1h': 'hour',
                 '1d': 'day',
             },
+            'hostname': 'bittrex.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
                 'api': {
-                    'public': 'https://bittrex.com/api',
-                    'account': 'https://bittrex.com/api',
-                    'market': 'https://bittrex.com/api',
-                    'v2': 'https://bittrex.com/api/v2.0/pub',
+                    'public': 'https://{hostname}/api',
+                    'account': 'https://{hostname}/api',
+                    'market': 'https://{hostname}/api',
+                    'v2': 'https://{hostname}/api/v2.0/pub',
                 },
                 'www': 'https://bittrex.com',
                 'doc': [
@@ -15818,7 +15819,9 @@ module.exports = class bittrex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/';
+        let url = this.implodeParams (this.urls['api'][api], {
+            'hostname': this.hostname,
+        }) + '/';
         if (api !== 'v2')
             url += this.version + '/';
         if (api === 'public') {
@@ -17241,12 +17244,13 @@ module.exports = class bleutrade extends bittrex {
                 'fetchClosedOrders': true,
                 'fetchOrderTrades': true,
             },
+            'hostname': 'bleutrade.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
                 'api': {
-                    'public': 'https://bleutrade.com/api',
-                    'account': 'https://bleutrade.com/api',
-                    'market': 'https://bleutrade.com/api',
+                    'public': 'https://{hostname}/api',
+                    'account': 'https://{hostname}/api',
+                    'market': 'https://{hostname}/api',
                 },
                 'www': 'https://bleutrade.com',
                 'doc': 'https://bleutrade.com/help/API',

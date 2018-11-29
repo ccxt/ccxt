@@ -27,12 +27,13 @@ class bleutrade (bittrex):
                 'fetchClosedOrders': True,
                 'fetchOrderTrades': True,
             },
+            'hostname': 'bleutrade.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
                 'api': {
-                    'public': 'https://bleutrade.com/api',
-                    'account': 'https://bleutrade.com/api',
-                    'market': 'https://bleutrade.com/api',
+                    'public': 'https://{hostname}/api',
+                    'account': 'https://{hostname}/api',
+                    'market': 'https://{hostname}/api',
                 },
                 'www': 'https://bleutrade.com',
                 'doc': 'https://bleutrade.com/help/API',

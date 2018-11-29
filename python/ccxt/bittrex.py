@@ -61,13 +61,14 @@ class bittrex (Exchange):
                 '1h': 'hour',
                 '1d': 'day',
             },
+            'hostname': 'bittrex.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
                 'api': {
-                    'public': 'https://bittrex.com/api',
-                    'account': 'https://bittrex.com/api',
-                    'market': 'https://bittrex.com/api',
-                    'v2': 'https://bittrex.com/api/v2.0/pub',
+                    'public': 'https://{hostname}/api',
+                    'account': 'https://{hostname}/api',
+                    'market': 'https://{hostname}/api',
+                    'v2': 'https://{hostname}/api/v2.0/pub',
                 },
                 'www': 'https://bittrex.com',
                 'doc': [
@@ -850,7 +851,9 @@ class bittrex (Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'][api] + '/'
+        url = self.implode_params(self.urls['api'][api], {
+            'hostname': self.hostname,
+        }) + '/'
         if api != 'v2':
             url += self.version + '/'
         if api == 'public':
