@@ -28,6 +28,7 @@ module.exports = class upbit extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
+                'fetchOrders': false,
                 'fetchTickers': true,
                 'withdraw': true,
                 'fetchDeposits': true,
@@ -724,7 +725,7 @@ module.exports = class upbit extends Exchange {
         const response = await this.privatePostOrders (this.extend (request, params));
         const log = require ('ololog').unlimited;
         log.green (response);
-        process.exit ();
+        // process.exit ();
         //
         //     {
         //         'uuid': 'cdd92199-2897-4e14-9448-f923320408ad',
@@ -1085,11 +1086,11 @@ module.exports = class upbit extends Exchange {
         return result;
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersByState (state, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
             // 'market': this.marketId (symbol),
-            // 'state': 'wait', 'done', 'cancel',
+            'state': state,
             // 'page': 1,
             // 'order_by': 'asc',
         };
@@ -1125,17 +1126,15 @@ module.exports = class upbit extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'state': 'wait',
-        };
-        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+        return await this.fetchOrdersByState ('wait', symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'state': 'done',
-        };
-        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+        return await this.fetchOrdersByState ('done', symbol, since, limit, params);
+    }
+
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByState ('cancel', symbol, since, limit, params);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -1216,7 +1215,7 @@ module.exports = class upbit extends Exchange {
         const result = {};
         for (let i = 0; i < response.length; i++) {
             let depositAddress = this.parseDepositAddress (response[i]);
-            let code = depositAddress['code'];
+            let code = depositAddress['currency'];
             result[code] = depositAddress;
         }
         return result;
@@ -1319,7 +1318,7 @@ module.exports = class upbit extends Exchange {
             headers = {
                 'Authorization': 'Bearer ' + jwt,
             };
-            if (method === 'POST') {
+            if (method !== 'GET') {
                 body = this.json (params);
                 headers['Content-Type'] = 'application/json';
             }
