@@ -52,7 +52,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 131 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 132 cryptocurrency exchange markets and trading APIs:
 
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | id                 | name                                                                                    | certified                                                            | ver   | doc                                                                                                 | countries                                |
@@ -298,6 +298,8 @@ The ccxt library currently supports the following 131 cryptocurrency exchange ma
 | tidex              | `Tidex <https://tidex.com>`__                                                           |                                                                      | 3     | `API <https://tidex.com/exchange/public-api>`__                                                     | UK                                       |
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | uex                | `UEX <https://www.uex.com/signup.html?code=VAGQLL>`__                                   |                                                                      | 1.0.3 | `API <https://download.uex.com/doc/UEX-API-English-1.0.3.pdf>`__                                    | Singapore, US                            |
++--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
+| upbit              | `UPbit <https://upbit.com>`__                                                           | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | 1     | `API <https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C>`__               | South Korea                              |
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | urdubit            | `UrduBit <https://urdubit.com>`__                                                       |                                                                      | 1     | `API <https://blinktrade.com/docs>`__                                                               | Pakistan                                 |
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -793,6 +795,7 @@ For business inquiries: info@ccxt.trade
 .. |tidebit| image:: https://user-images.githubusercontent.com/1294454/39034921-e3acf016-4480-11e8-9945-a6086a1082fe.jpg
 .. |tidex| image:: https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg
 .. |uex| image:: https://user-images.githubusercontent.com/1294454/43999923-051d9884-9e1f-11e8-965a-76948cb17678.jpg
+.. |upbit| image:: https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg
 .. |urdubit| image:: https://user-images.githubusercontent.com/1294454/27991453-156bf3ae-6480-11e7-82eb-7295fe1b5bb4.jpg
 .. |vaultoro| image:: https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg
 .. |vbtc| image:: https://user-images.githubusercontent.com/1294454/27991481-1f53d1d8-6481-11e7-884e-21d17e7939db.jpg
