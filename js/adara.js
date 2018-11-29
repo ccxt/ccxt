@@ -20,7 +20,7 @@ module.exports = class adara extends Exchange {
             'has': {
                 'CORS': true,
                 'fetchCurrencies': true,
-                'fetchOrderBooks': true,
+                'fetchOrderBooks': false,
                 'createMarketOrder': false,
                 'fetchDepositAddress': false,
                 'fetchClosedOrders': true,
