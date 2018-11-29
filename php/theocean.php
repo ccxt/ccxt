@@ -1037,8 +1037,8 @@ class theocean extends Exchange {
             }
             $feeDecimals = $this->safe_integer($this->options['decimals'], $feeCurrency, 18);
             $fee = array (
-                'сost' => $this->fromWei ($feeCost, 'ether', $feeDecimals),
-                'сurrency' => $feeCurrency,
+                'cost' => $this->fromWei ($feeCost, 'ether', $feeDecimals),
+                'currency' => $feeCurrency,
             );
         }
         $amountPrecision = $market ? $market['precision']['amount'] : 8;

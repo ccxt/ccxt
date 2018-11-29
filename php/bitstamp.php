@@ -157,6 +157,7 @@ class bitstamp extends Exchange {
                 'Missing key, signature and nonce parameters' => '\\ccxt\\AuthenticationError',
                 'Your account is frozen' => '\\ccxt\\PermissionDenied',
                 'Please update your profile with your FATCA information, before using API.' => '\\ccxt\\PermissionDenied',
+                'Order not found' => '\\ccxt\\OrderNotFound',
             ),
         ));
     }

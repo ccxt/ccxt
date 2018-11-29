@@ -113,7 +113,9 @@ class bit2c extends Exchange {
         $timestamp = $this->milliseconds ();
         $averagePrice = $this->safe_float($ticker, 'av');
         $baseVolume = $this->safe_float($ticker, 'a');
-        $quoteVolume = $baseVolume * $averagePrice;
+        $quoteVolume = null;
+        if ($baseVolume !== null && $averagePrice !== null)
+            $quoteVolume = $baseVolume * $averagePrice;
         $last = $this->safe_float($ticker, 'll');
         return array (
             'symbol' => $symbol,

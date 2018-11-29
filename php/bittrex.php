@@ -41,13 +41,14 @@ class bittrex extends Exchange {
                 '1h' => 'hour',
                 '1d' => 'day',
             ),
+            'hostname' => 'bittrex.com',
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
                 'api' => array (
-                    'public' => 'https://bittrex.com/api',
-                    'account' => 'https://bittrex.com/api',
-                    'market' => 'https://bittrex.com/api',
-                    'v2' => 'https://bittrex.com/api/v2.0/pub',
+                    'public' => 'https://{hostname}/api',
+                    'account' => 'https://{hostname}/api',
+                    'market' => 'https://{hostname}/api',
+                    'v2' => 'https://{hostname}/api/v2.0/pub',
                 ),
                 'www' => 'https://bittrex.com',
                 'doc' => array (
@@ -898,7 +899,9 @@ class bittrex extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$api] . '/';
+        $url = $this->implode_params($this->urls['api'][$api], array (
+            'hostname' => $this->hostname,
+        )) . '/';
         if ($api !== 'v2')
             $url .= $this->version . '/';
         if ($api === 'public') {

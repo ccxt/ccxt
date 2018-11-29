@@ -987,8 +987,8 @@ class theocean (Exchange):
                 raise NotSupported(self.id + ' encountered an unsupported order fee option: ' + feeOption)
             feeDecimals = self.safe_integer(self.options['decimals'], feeCurrency, 18)
             fee = {
-                'сost': self.fromWei(feeCost, 'ether', feeDecimals),
-                'сurrency': feeCurrency,
+                'cost': self.fromWei(feeCost, 'ether', feeDecimals),
+                'currency': feeCurrency,
             }
         amountPrecision = market['precision']['amount'] if market else 8
         if remaining is not None:

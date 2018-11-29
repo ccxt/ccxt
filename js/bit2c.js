@@ -112,7 +112,9 @@ module.exports = class bit2c extends Exchange {
         let timestamp = this.milliseconds ();
         let averagePrice = this.safeFloat (ticker, 'av');
         let baseVolume = this.safeFloat (ticker, 'a');
-        let quoteVolume = baseVolume * averagePrice;
+        let quoteVolume = undefined;
+        if (baseVolume !== undefined && averagePrice !== undefined)
+            quoteVolume = baseVolume * averagePrice;
         let last = this.safeFloat (ticker, 'll');
         return {
             'symbol': symbol,

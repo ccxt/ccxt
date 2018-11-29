@@ -391,7 +391,7 @@ class cryptopia (Exchange):
         trades = response['Data']
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_transaction(self, transaction):
+    def parse_transaction(self, transaction, currency=None):
         #
         # fetchWithdrawals
         #
