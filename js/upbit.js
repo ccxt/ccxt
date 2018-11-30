@@ -132,6 +132,7 @@ module.exports = class upbit extends Exchange {
             'options': {
                 'fetchTickersMaxLength': 4096, // 2048,
                 'fetchOrderBooksMaxLength': 4096, // 2048,
+                'symbolSeparator': '-',
                 'tradingFeesByQuoteCurrency': {
                     'KRW': 0.0005,
                 },
@@ -434,7 +435,7 @@ module.exports = class upbit extends Exchange {
         if (market !== undefined) {
             return market['symbol'];
         }
-        const [ baseId, quoteId ] = marketId.split ('-');
+        const [ baseId, quoteId ] = marketId.split (this.options['symbolSeparator']);
         const base = this.commonCurrencyCode (baseId);
         const quote = this.commonCurrencyCode (quoteId);
         return base + '/' + quote;
