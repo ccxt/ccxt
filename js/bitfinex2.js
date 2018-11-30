@@ -162,6 +162,26 @@ module.exports = class bitfinex2 extends bitfinex {
                     },
                 },
             },
+            'wsconf': {
+                'conx-tpls': {
+                    'default': {
+                        'type': 'ws',
+                        'baseurl': 'wss://api.bitfinex.com/ws/2',
+                    },
+                },
+                'methodmap': {
+                    '_websocketTimeoutRemoveNonce': '_websocketTimeoutRemoveNonce',
+                },
+                'events': {
+                    'ob': {
+                        'conx-tpl': 'default',
+                        'conx-param': {
+                            'url': '{baseurl}',
+                            'id': '{id}',
+                        },
+                    },
+                },
+            },
         });
     }
 
@@ -494,5 +514,219 @@ module.exports = class bitfinex2 extends bitfinex {
             throw new ExchangeError (this.id + ' returned empty response');
         }
         return response;
+    }
+
+    _websocketOnMessage (contextId, data) {
+        let msg = JSON.parse (data);
+        // console.log(msg);
+        let event = this.safeString (msg, 'event');
+        if (typeof event !== 'undefined') {
+            if (event === 'subscribed') {
+                let channel = this.safeString (msg, 'channel');
+                if (channel === 'book') {
+                    this._websocketHandleSubscription (contextId, 'ob', msg);
+                }
+            } else if (event === 'unsubscribed') {
+                this._websocketHandleUnsubscription (contextId, msg);
+            } else if (event === 'error') {
+                this._websocketHandleError (contextId, msg);
+            }
+        } else {
+            // channel data
+            let chanId = msg[0];
+            let data = msg[1];
+            if (data === 'hb') {
+                // console.log ('heartbeat');
+                return;
+            }
+            let chanKey = '_' + chanId.toString ();
+            let channels = this._contextGet (contextId, 'channels');
+            if (!(chanKey in channels)) {
+                this.emit ('err', new ExchangeError (this.id + ' msg received from unregistered channels:' + chanId));
+                return;
+            }
+            let symbol = channels[chanKey]['symbol'];
+            let event = channels[chanKey]['event'];
+            if (event === 'ob') {
+                this._websocketHandleOrderBook (contextId, symbol, msg);
+            }
+        }
+    }
+
+    _websocketHandleError (contextId, msg) {
+        let channel = this.safeString (msg, 'channel');
+        let errorMsg = this.safeString (msg, 'msg');
+        let errorCode = this.safeString (msg, 'code');
+        let ex = new ExchangeError (this.id + ' ' + errorCode + ':' + errorMsg);
+        if (channel === 'book') {
+            let id = this.safeString (msg, 'symbol');
+            let symbol = this.findSymbol (id);
+            this._websocketProcessPendingNonces (contextId, 'sub-nonces', 'ob', symbol, false, ex);
+        }
+        this.emit ('err', ex, contextId);
+    }
+
+    _websocketHandleOrderBook (contextId, symbol, msg) {
+        let data = msg[1];
+        let firstElement = data[0];
+        let symbolData = this._contextGetSymbolData (contextId, 'ob', symbol);
+        if (Array.isArray (firstElement)) {
+            // snapshot
+            symbolData['ob'] = {
+                'bids': [],
+                'asks': [],
+                'timestamp': undefined,
+                'datetime': undefined,
+                'nonce': undefined,
+            };
+            for (let i = 0; i < data.length; i++) {
+                let record = data[i];
+                let price = record[0];
+                let c = record[1];
+                let amount = record[2];
+                let side = (amount > 0) ? 'bids' : 'asks';
+                if (c === 0) {
+                    // remove
+                    this.updateBidAsk ([price, 0], symbolData['ob'][side], amount > 0);
+                } else {
+                    // update
+                    this.updateBidAsk ([price, amount], symbolData['ob'][side], amount > 0);
+                }
+            }
+        } else {
+            // update
+            let price = data[0];
+            let c = data[1];
+            let amount = data[2];
+            let side = (amount > 0) ? 'bids' : 'asks';
+            if (c === 0) {
+                // remove
+                this.updateBidAsk ([price, 0], symbolData['ob'][side], amount > 0);
+            } else {
+                // update
+                this.updateBidAsk ([price, amount], symbolData['ob'][side], amount > 0);
+            }
+        }
+        this.emit ('ob', symbol, this._cloneOrderBook (symbolData['ob'], symbolData['limit']));
+        this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
+    }
+
+    _websocketProcessPendingNonces (contextId, nonceKey, event, symbol, success, ex) {
+        let symbolData = this._contextGetSymbolData (contextId, event, symbol);
+        if (nonceKey in symbolData) {
+            let nonces = symbolData[nonceKey];
+            const keys = Object.keys (nonces);
+            for (let i = 0; i < keys.length; i++) {
+                let nonce = keys[i];
+                this._cancelTimeout (nonces[nonce]);
+                this.emit (nonce, success, ex);
+            }
+            symbolData[nonceKey] = {};
+            this._contextSetSymbolData (contextId, event, symbol, symbolData);
+        }
+    }
+
+    _websocketHandleSubscription (contextId, event, msg) {
+        let id = this.safeString (msg, 'symbol');
+        let symbol = this.findSymbol (id);
+        let channel = this.safeInteger (msg, 'chanId');
+        let chanKey = '_' + channel.toString ();
+        let channels = this._contextGet (contextId, 'channels');
+        if (typeof channels === 'undefined') {
+            channels = {};
+        }
+        channels[chanKey] = {
+            'response': msg,
+            'symbol': symbol,
+            'event': event,
+        };
+        this._contextSet (contextId, 'channels', channels);
+        let symbolData = this._contextGetSymbolData (contextId, event, symbol);
+        symbolData['channelId'] = channel;
+        this._contextSetSymbolData (contextId, event, symbol, symbolData);
+        this._websocketProcessPendingNonces (contextId, 'sub-nonces', 'ob', symbol, true, undefined);
+    }
+
+    _websocketHandleUnsubscription (contextId, msg) {
+        let status = this.safeString (msg, 'status');
+        if (status === 'OK') {
+            let chanId = this.safeInteger (msg, 'chanId');
+            let chanKey = '_' + chanId.toString ();
+            let channels = this._contextGet (contextId, 'channels');
+            if (!(chanKey in channels)) {
+                this.emit ('err', new ExchangeError (this.id + ' msg received from unregistered channels:' + chanId));
+                return;
+            }
+            let symbol = channels[chanKey]['symbol'];
+            let event = channels[chanKey]['event'];
+            // remove channel ids ?
+            this.omit (channels, chanKey);
+            this._contextSet (contextId, 'channels', channels);
+            this._websocketProcessPendingNonces (contextId, 'unsub-nonces', event, symbol, true, undefined);
+        }
+    }
+
+    _websocketSubscribe (contextId, event, symbol, nonce, params = {}) {
+        if (event !== 'ob') {
+            throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+        }
+        // save nonce for subscription response
+        let symbolData = this._contextGetSymbolData (contextId, event, symbol);
+        if (!('sub-nonces' in symbolData)) {
+            symbolData['sub-nonces'] = {};
+        }
+        symbolData['limit'] = this.safeInteger (params, 'limit', undefined);
+        let nonceStr = nonce.toString ();
+        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'sub-nonce']);
+        symbolData['sub-nonces'][nonceStr] = handle;
+        this._contextSetSymbolData (contextId, event, symbol, symbolData);
+        // send request
+        const id = this.marketId (symbol);
+        this.websocketSendJson ({
+            'event': 'subscribe',
+            'channel': 'book',
+            'symbol': id,
+            'prec': 'P0',
+            'freq': 'F0',
+            'len': '100',
+        });
+    }
+
+    _websocketUnsubscribe (contextId, event, symbol, nonce, params = {}) {
+        if (event !== 'ob') {
+            throw new NotSupported ('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+        }
+        let symbolData = this._contextGetSymbolData (contextId, event, symbol);
+        let payload = {
+            'event': 'unsubscribe',
+            'chanId': symbolData['channelId'],
+        };
+        if (!('unsub-nonces' in symbolData)) {
+            symbolData['unsub-nonces'] = {};
+        }
+        let nonceStr = nonce.toString ();
+        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'unsub-nonces']);
+        symbolData['unsub-nonces'][nonceStr] = handle;
+        this._contextSetSymbolData (contextId, event, symbol, symbolData);
+        this.websocketSendJson (payload);
+    }
+
+    _websocketTimeoutRemoveNonce (contextId, timerNonce, event, symbol, key) {
+        let symbolData = this._contextGetSymbolData (contextId, event, symbol);
+        if (key in symbolData) {
+            let nonces = symbolData[key];
+            if (timerNonce in nonces) {
+                this.omit (symbolData[key], timerNonce);
+                this._contextSetSymbolData (contextId, event, symbol, symbolData);
+            }
+        }
+    }
+
+    _getCurrentWebsocketOrderbook (contextId, symbol, limit) {
+        let data = this._contextGetSymbolData (contextId, 'ob', symbol);
+        if (('ob' in data) && (typeof data['ob'] !== 'undefined')) {
+            return this._cloneOrderBook (data['ob'], limit);
+        }
+        return undefined;
     }
 };

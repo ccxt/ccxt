@@ -405,7 +405,7 @@ module.exports = class therock extends Exchange {
         }
         if (chan in lastSeqIdData) {
             let lastSeqId = lastSeqIdData[chan];
-            lastSeqId++;
+            lastSeqId = this.sum (lastSeqId, 1);
             if (sequeceId !== lastSeqId) {
                 this.emit ('err', 'sequence error in pusher connection', contextId);
                 return;
