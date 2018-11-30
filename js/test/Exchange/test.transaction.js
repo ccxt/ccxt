@@ -10,7 +10,7 @@ const log       = require ('ololog')
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports = (exchange, transaction, currency, now) => {
+module.exports = (exchange, transaction, code, now) => {
     assert.isOk (transaction)
     assert (typeof transaction.id === 'string')
     assert (typeof transaction.timestamp === 'number')
@@ -22,15 +22,16 @@ module.exports = (exchange, transaction, currency, now) => {
     assert ('txid' in transaction)
     assert (transaction.datetime === exchange.iso8601 (transaction.timestamp))
     assert (transaction.status === 'ok' || transaction.status === 'pending' || transaction.status === 'canceled')
-    assert (transaction.currency === currency)
+    assert (transaction.currency === code)
     assert (typeof transaction.type === 'string')
     assert (transaction.type === 'deposit' || transaction.type === 'withdrawal')
     assert (typeof transaction.amount === 'number')
     assert (transaction.amount >= 0)
     if (transaction.fee) {
         assert (typeof transaction.fee.cost === 'number')
-        if (transaction.fee.cost !== 0)
+        if (transaction.fee.cost !== 0) {
             assert (typeof transaction.fee.currency === 'string')
+        }
     }
     assert.isOk (transaction.info)
 }
