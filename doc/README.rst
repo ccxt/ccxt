@@ -48,7 +48,7 @@ Certified Cryptocurrency Exchanges
 +------------+----------+-----------------------------------------------------+----------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+------------------------+
 | |theocean| | theocean | `The Ocean <https://theocean.trade>`__              | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | 0   | `API <https://docs.theocean.trade>`__                                                           | US                     |
 +------------+----------+-----------------------------------------------------+----------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+------------------------+
-| |upbit|    | upbit    | `UPbit <https://upbit.com>`__                       | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | 1   | `API <https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C>`__           | South Korea            |
+| |upbit|    | upbit    | `Upbit <https://upbit.com>`__                       | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | 1   | `API <https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C>`__           | South Korea            |
 +------------+----------+-----------------------------------------------------+----------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+------------------------+
 
 Supported Cryptocurrency Exchange Markets
