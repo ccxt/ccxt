@@ -66,7 +66,8 @@ class bithumb extends Exchange {
                 ),
             ),
             'exceptions' => array (
-                '5100' => '\\ccxt\\ExchangeError', // array ("status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions")
+                'Bad Request.(Auth Data)' => '\\ccxt\\AuthenticationError', // array ( "status" => "5100", "message" => "Bad Request.(Auth Data)" )
+                'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions' => '\\ccxt\\ExchangeError', // array ("status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions")
             ),
         ));
     }
@@ -365,9 +366,10 @@ class bithumb extends Exchange {
             $response = json_decode ($body, $as_associative_array = true);
             if (is_array ($response) && array_key_exists ('status', $response)) {
                 //
-                //     array ("$status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions")
+                //     array ("$status":"5100","$message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions")
                 //
                 $status = $this->safe_string($response, 'status');
+                $message = $this->safe_string($response, 'message');
                 if ($status !== null) {
                     if ($status === '0000')
                         return; // no error
@@ -375,6 +377,8 @@ class bithumb extends Exchange {
                     $exceptions = $this->exceptions;
                     if (is_array ($exceptions) && array_key_exists ($status, $exceptions)) {
                         throw new $exceptions[$status] ($feedback);
+                    } else if (is_array ($exceptions) && array_key_exists ($message, $exceptions)) {
+                        throw new $exceptions[$message] ($feedback);
                     } else {
                         throw new ExchangeError ($feedback);
                     }

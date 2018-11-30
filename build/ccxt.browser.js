@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.563'
+const version = '1.17.564'
 
 Exchange.ccxtVersion = version
 
@@ -10954,7 +10954,7 @@ module.exports = class bitforex extends Exchange {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -11016,7 +11016,8 @@ module.exports = class bithumb extends Exchange {
                 },
             },
             'exceptions': {
-                '5100': ExchangeError, // {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
+                'Bad Request.(Auth Data)': AuthenticationError, // { "status": "5100", "message": "Bad Request.(Auth Data)" }
+                'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions': ExchangeError, // {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
             },
         });
     }
@@ -11317,7 +11318,8 @@ module.exports = class bithumb extends Exchange {
                 //
                 //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
                 //
-                let status = this.safeString (response, 'status');
+                const status = this.safeString (response, 'status');
+                const message = this.safeString (response, 'message');
                 if (status !== undefined) {
                     if (status === '0000')
                         return; // no error
@@ -11325,6 +11327,8 @@ module.exports = class bithumb extends Exchange {
                     const exceptions = this.exceptions;
                     if (status in exceptions) {
                         throw new exceptions[status] (feedback);
+                    } else if (message in exceptions) {
+                        throw new exceptions[message] (feedback);
                     } else {
                         throw new ExchangeError (feedback);
                     }
