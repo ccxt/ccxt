@@ -427,7 +427,7 @@ class Exchange(object):
             http_response = response.text
             json_response = self.parse_json(http_response)
             headers = response.headers
-            # FIXME remove lastXResponses from subclasses
+            # FIXME remove last_x_responses from subclasses
             if self.enableLastHttpResponse:
                 self.last_http_response = http_response
             if self.enableLastJsonResponse:
