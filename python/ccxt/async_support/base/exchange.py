@@ -334,11 +334,6 @@ class Exchange(BaseExchange, EventEmitter):
     def updateBidAsk(self, bidAsk, currentBidsAsks, bids=False):
         # insert or replace ordered
         index = self.searchIndexToInsertOrUpdate(bidAsk[0], currentBidsAsks, 0, bids)
-        print("index:")
-        print(index)
-        print(bidAsk[1])
-        print(bidAsk[1] == 0)
-        sys.stdout.flush()
         if ((index < len(currentBidsAsks)) and (currentBidsAsks[index][0] == bidAsk[0])):
             # found
             if (bidAsk[1] == 0):
