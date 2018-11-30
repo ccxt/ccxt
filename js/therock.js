@@ -494,6 +494,10 @@ module.exports = class therock extends Exchange {
                 body = this.json (query);
                 headers['Content-Type'] = 'application/json';
             }
+        } else if (api === 'public') {
+            if (Object.keys (query).length) {
+                url += '?' + this.rawencode (query);
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
