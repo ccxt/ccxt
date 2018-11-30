@@ -35,7 +35,6 @@ script:
 - cd python
 - tox -e doc
 - cd ..
-- set -e
 - npm run test-base
 - set +e # (we deactivate set -e here, to prevent sudden log truncation in Travis, as it was suggested by the support team)
 - node run-tests --js --python2 5; export TESTS_FAILED=$?
