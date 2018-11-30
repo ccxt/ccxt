@@ -27,7 +27,7 @@ class bithumb extends Exchange {
                     'private' => 'https://api.bithumb.com',
                 ),
                 'www' => 'https://www.bithumb.com',
-                'doc' => 'https://www.bithumb.com/u1/US127',
+                'doc' => 'https://apidocs.bithumb.com',
             ),
             'api' => array (
                 'public' => array (
@@ -66,7 +66,18 @@ class bithumb extends Exchange {
                 ),
             ),
             'exceptions' => array (
+                'Bad Request(SSL)' => '\\ccxt\\BadRequest',
+                'Bad Request(Bad Method)' => '\\ccxt\\BadRequest',
                 'Bad Request.(Auth Data)' => '\\ccxt\\AuthenticationError', // array ( "status" => "5100", "message" => "Bad Request.(Auth Data)" )
+                'Not Member' => '\\ccxt\\AuthenticationError',
+                'Invalid Apikey' => '\\ccxt\\AuthenticationError', // array ("status":"5300","message":"Invalid Apikey")
+                'Method Not Allowed.(Access IP)' => '\\ccxt\\PermissionDenied',
+                'Method Not Allowed.(BTC Adress)' => '\\ccxt\\InvalidAddress',
+                'Method Not Allowed.(Access)' => '\\ccxt\\PermissionDenied',
+                'Database Fail' => '\\ccxt\\ExchangeNotAvailable',
+                'Invalid Parameter' => '\\ccxt\\BadRequest',
+                '5600' => '\\ccxt\\ExchangeError',
+                'Unknown Error' => '\\ccxt\\ExchangeError',
                 'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions' => '\\ccxt\\ExchangeError', // array ("status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions")
             ),
         ));
