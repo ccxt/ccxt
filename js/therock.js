@@ -327,7 +327,7 @@ module.exports = class therock extends Exchange {
             if (feeCost === undefined) {
                 feeCost = 0;
             }
-            feeCost = this.sum (feeCost, this.safeFloat (feeTransactions[i], 'price');
+            feeCost = this.sum (feeCost, this.safeFloat (feeTransactions[i], 'price'));
         }
         if (feeCost !== undefined) {
             fee = {
