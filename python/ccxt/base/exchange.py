@@ -56,7 +56,6 @@ import time
 import uuid
 import zlib
 from decimal import Decimal
-import codecs
 
 # -----------------------------------------------------------------------------
 
@@ -1689,7 +1688,7 @@ class Exchange(object):
             padding = 8 - missing_padding if missing_padding > 0 else 0
             padded = n.upper() + ('=' * padding)
             b = base64.b32decode(padded)  # throws an error if the key is invalid
-            return codecs.encode(b, 'hex').decode()
+            return base64.b16encode(b).decode()
 
         def get_otp(key):
             epoch = int(time.time())
