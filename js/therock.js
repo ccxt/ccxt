@@ -360,6 +360,12 @@ module.exports = class therock extends Exchange {
         const request = {
             'id': market['id'],
         };
+        if (limit !== undefined) {
+            request['per_page'] = limit; // default 25 max 200
+        }
+        if (since !== undefined) {
+            request['after'] = this.iso8601 (since);
+        }
         const response = await this.privateGetFundsIdTrades (this.extend (request, params));
         //
         //     { trades: [ {           id:    237338,
@@ -402,6 +408,12 @@ module.exports = class therock extends Exchange {
         const request = {
             'id': market['id'],
         };
+        if (limit !== undefined) {
+            request['per_page'] = limit; // default 25 max 200
+        }
+        if (since !== undefined) {
+            request['after'] = this.iso8601 (since);
+        }
         const response = await this.publicGetFundsIdTrades (this.extend (request, params));
         //
         //     { trades: [ {      id:  4493548,
