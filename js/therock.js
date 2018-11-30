@@ -330,10 +330,36 @@ module.exports = class therock extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetFundsIdTrades (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'id': market['id'],
-        }, params));
+        };
+        const response = await this.publicGetFundsIdTrades (this.extend (request, params));
+        //
+        //     { trades: [ {      id:  4493548,
+        //                   fund_id: "ETHBTC",
+        //                    amount:  0.203,
+        //                     price:  0.02783576,
+        //                      side: "buy",
+        //                      dark:  false,
+        //                      date: "2018-11-30T08:19:18.236Z" },
+        //                 {      id:  4492926,
+        //                   fund_id: "ETHBTC",
+        //                    amount:  0.04,
+        //                     price:  0.02767034,
+        //                      side: "buy",
+        //                      dark:  false,
+        //                      date: "2018-11-30T07:03:03.897Z" }  ],
+        //         meta: { total_count:    null,
+        //                       first: { page:  1,
+        //                                href: "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1" },
+        //                    previous:    null,
+        //                     current: { page:  1,
+        //                                href: "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1" },
+        //                        next: { page:  2,
+        //                                href: "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=2" },
+        //                        last:    null                                                                   } }
+        //
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
