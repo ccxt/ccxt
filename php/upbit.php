@@ -12,7 +12,7 @@ class upbit extends Exchange {
     public function describe () {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'upbit',
-            'name' => 'UPbit',
+            'name' => 'Upbit',
             'countries' => array ( 'KR' ),
             'version' => 'v1',
             'rateLimit' => 1000,
@@ -133,6 +133,7 @@ class upbit extends Exchange {
             'options' => array (
                 'fetchTickersMaxLength' => 4096, // 2048,
                 'fetchOrderBooksMaxLength' => 4096, // 2048,
+                'symbolSeparator' => '-',
                 'tradingFeesByQuoteCurrency' => array (
                     'KRW' => 0.0005,
                 ),
@@ -435,7 +436,7 @@ class upbit extends Exchange {
         if ($market !== null) {
             return $market['symbol'];
         }
-        list ($baseId, $quoteId) = explode ('-', $marketId);
+        list ($baseId, $quoteId) = explode ($this->options['symbolSeparator'], $marketId);
         $base = $this->common_currency_code($baseId);
         $quote = $this->common_currency_code($quoteId);
         return $base . '/' . $quote;

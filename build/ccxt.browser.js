@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.559'
+const version = '1.17.560'
 
 Exchange.ccxtVersion = version
 
@@ -59643,7 +59643,7 @@ module.exports = class upbit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'upbit',
-            'name': 'UPbit',
+            'name': 'Upbit',
             'countries': [ 'KR' ],
             'version': 'v1',
             'rateLimit': 1000,
@@ -59764,6 +59764,7 @@ module.exports = class upbit extends Exchange {
             'options': {
                 'fetchTickersMaxLength': 4096, // 2048,
                 'fetchOrderBooksMaxLength': 4096, // 2048,
+                'symbolSeparator': '-',
                 'tradingFeesByQuoteCurrency': {
                     'KRW': 0.0005,
                 },
@@ -60066,7 +60067,7 @@ module.exports = class upbit extends Exchange {
         if (market !== undefined) {
             return market['symbol'];
         }
-        const [ baseId, quoteId ] = marketId.split ('-');
+        const [ baseId, quoteId ] = marketId.split (this.options['symbolSeparator']);
         const base = this.commonCurrencyCode (baseId);
         const quote = this.commonCurrencyCode (quoteId);
         return base + '/' + quote;
