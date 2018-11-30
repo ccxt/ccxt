@@ -25,6 +25,7 @@ module.exports = class bitmex extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchMyTrades': true,
             },
             'timeframes': {
                 '1m': '1m',
