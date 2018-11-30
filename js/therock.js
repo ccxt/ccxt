@@ -288,10 +288,43 @@ module.exports = class therock extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
         }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.privateGetFundsIdTrades (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'id': market['id'],
-        }, params));
+        };
+        const response = await this.privateGetFundsIdTrades (this.extend (request, params));
+        //
+        //     { trades: [ {           id:    237338,
+        //                        fund_id:   "BTCEUR",
+        //                         amount:    0.348,
+        //                          price:    348,
+        //                           side:   "sell",
+        //                           dark:    false,
+        //                       order_id:    14920648,
+        //                           date:   "2015-06-03T00:49:49.000Z",
+        //                   transactions: [ {       id:  2770768,
+        //                                         date: "2015-06-03T00:49:49.000Z",
+        //                                         type: "sold_currency_to_fund",
+        //                                        price:  121.1,
+        //                                     currency: "EUR"                       },
+        //                                   {       id:  2770769,
+        //                                         date: "2015-06-03T00:49:49.000Z",
+        //                                         type: "released_currency_to_fund",
+        //                                        price:  0.348,
+        //                                     currency: "BTC"                        },
+        //                                   {       id:  2770772,
+        //                                         date: "2015-06-03T00:49:49.000Z",
+        //                                         type: "paid_commission",
+        //                                        price:  0.06,
+        //                                     currency: "EUR",
+        //                                     trade_id:  440492                     }   ] } ],
+        //         meta: { total_count:    31,
+        //                       first: { href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1" },
+        //                    previous:    null,
+        //                     current: { href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1" },
+        //                        next: { href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2" },
+        //                        last: { href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2" }  } }
+        //
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
