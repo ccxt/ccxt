@@ -41,7 +41,7 @@ module.exports = class adara extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/49189583-0466a780-f380-11e8-9248-57a631aad2d6.jpg',
                 'api': 'https://api.adara-master.io',
                 'www': 'https://adara.io',
-                'doc': 'https://adara.io/products',
+                'doc': 'https://api.adara-master.io/v2.0',
                 'fees': 'https://adara.io/fees',
             },
             'api': {
@@ -105,50 +105,113 @@ module.exports = class adara extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetSymbols (params);
+        const request = {
+            'include': 'from,to',
+        };
+        const response = await this.publicGetSymbols (this.extend (request, params));
+        const included = this.safeValue (response, 'included', []);
+        const includedByType = this.groupBy (included, 'type');
+        const currencies = this.safeValue (includedByType, 'currency', []);
+        const currenciesById = this.indexBy (currencies, 'id');
         //
-        //     {     meta: { total: 64 },
-        //         data: [ {            id:   "ETHBTC",
-        //                             type:   "symbol",
-        //                     attributes: { allowTrade:  true,
-        //                                     createdAt: "2018-09-18T21:40:10.836Z",
-        //                                         digits:  6,
-        //                                     fullName: "ETHBTC",
-        //                                     makerFee: "0.0025",
-        //                                         name: "ETHBTC",
-        //                                     takerFee: "0.0025",
-        //                                     updatedAt: "2018-10-05T11:38:32.386Z"  },
-        //                     relationships: {  }                                         },
-        //                 {            id:   "MIOTABTC",
-        //                             type:   "symbol",
-        //                     attributes: { allowTrade:  false,
-        //                                     createdAt: "2018-10-23T09:27:29.450Z",
-        //                                         digits:  6,
-        //                                     fullName: "MIOTABTC",
-        //                                     makerFee: "0.0250",
-        //                                         name: "MIOTABTC",
-        //                                     takerFee: "0.0250",
-        //                                     updatedAt: "2018-10-23T09:27:29.450Z"  },
-        //                     relationships: {  }                                         }  ],
-        //     included: []                                                                    }
+        //     {     meta: { total: 61 },
+        //           data: [ {            id:   "XRPUSD",
+        //                              type:   "symbol",
+        //                        attributes: { allowTrade:  false,
+        //                                       createdAt: "2018-10-23T09:31:06.830Z",
+        //                                          digits:  5,
+        //                                        fullName: "XRPUSD",
+        //                                        makerFee: "0.0250",
+        //                                            name: "XRPUSD",
+        //                                        takerFee: "0.0250",
+        //                                       updatedAt: "2018-10-23T09:31:06.830Z"  },
+        //                     relationships: { from: { data: { id: "XRP", type: "currency" } },
+        //                                        to: { data: { id: "USD", type: "currency" } }  } },
+        //                   {            id:   "XRPETH",
+        //                              type:   "symbol",
+        //                        attributes: { allowTrade:  true,
+        //                                       createdAt: "2018-10-09T22:34:28.268Z",
+        //                                          digits:  8,
+        //                                        fullName: "XRPETH",
+        //                                        makerFee: "0.0025",
+        //                                            name: "XRPETH",
+        //                                        takerFee: "0.0025",
+        //                                       updatedAt: "2018-10-09T22:34:28.268Z"  },
+        //                     relationships: { from: { data: { id: "XRP", type: "currency" } },
+        //                                        to: { data: { id: "ETH", type: "currency" } }  } }  ],
+        //       included: [ {            id:   "XRP",
+        //                              type:   "currency",
+        //                        attributes: {               accuracy:  4,
+        //                                                      active:  true,
+        //                                                allowDeposit:  true,
+        //                                                  allowTrade:  false,
+        //                                                 allowWallet:  true,
+        //                                               allowWithdraw:  true,
+        //                                                        name: "Ripple",
+        //                                                   shortName: "XRP",
+        //                                      transactionUriTemplate: "https://www.ripplescan.com/transactions/:txId",
+        //                                           walletUriTemplate: "https://www.ripplescan.com/accounts/:address",
+        //                                                 withdrawFee: "0.20000000",
+        //                                           withdrawMinAmount: "22.00000000"                                    },
+        //                     relationships: {  }                                                                          },
+        //                   {            id:   "ETH",
+        //                              type:   "currency",
+        //                        attributes: {               accuracy:  8,
+        //                                                      active:  true,
+        //                                                allowDeposit:  true,
+        //                                                  allowTrade:  true,
+        //                                                 allowWallet:  true,
+        //                                               allowWithdraw:  true,
+        //                                                        name: "Ethereum",
+        //                                                   shortName: "ETH",
+        //                                      transactionUriTemplate: "https://etherscan.io/tx/:txId",
+        //                                           walletUriTemplate: "https://etherscan.io/address/:address",
+        //                                                 withdrawFee: "0.00800000",
+        //                                           withdrawMinAmount: "0.02000000"                             },
+        //                     relationships: {  }                                                                  },
+        //                   {            id:   "USD",
+        //                              type:   "currency",
+        //                        attributes: {               accuracy:  6,
+        //                                                      active:  true,
+        //                                                allowDeposit:  false,
+        //                                                  allowTrade:  true,
+        //                                                 allowWallet:  false,
+        //                                               allowWithdraw:  false,
+        //                                                        name: "USD",
+        //                                                   shortName: "USD",
+        //                                      transactionUriTemplate:  null,
+        //                                           walletUriTemplate:  null,
+        //                                                 withdrawFee: "0.00000000",
+        //                                           withdrawMinAmount: "0.00000000"  },
+        //                     relationships: {  }                                       }                          ] }
         //
         const result = [];
         const markets = response['data'];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'id');
-            const attributes = this.safeValue (market, 'attributes');
-            const idLength = id.length;
-            const baseIdLength = idLength - 3;
-            const baseId = id.slice (0, baseIdLength);
-            const quoteId = id.slice (baseIdLength);
+            const attributes = this.safeValue (market, 'attributes', {});
+            const relationships = this.safeValue (market, 'relationships', {});
+            const fromRelationship = this.safeValue (relationships, 'from', {});
+            const toRelationship = this.safeValue (relationships, 'to', {});
+            const fromRelationshipData = this.safeValue (fromRelationship, 'data', {});
+            const toRelationshipData = this.safeValue (toRelationship, 'data', {});
+            const baseId = this.safeString (fromRelationshipData, 'id');
+            const quoteId = this.safeString (toRelationshipData, 'id');
             const base = this.commonCurrencyCode (baseId);
             const quote = this.commonCurrencyCode (quoteId);
+            const baseCurrency = this.safeValue (currenciesById, baseId, {});
+            const quoteCurrency = this.safeValue (currenciesById, quoteId, {});
+            const baseCurrencyAttributes = this.safeValue (baseCurrency, 'attributes', {});
+            const quoteCurrencyAttributes = this.safeValue (quoteCurrency, 'attributes', {});
             const symbol = base + '/' + quote;
-            const pricePrecision = this.safeInteger (attributes, 'digits');
+            const amountPrecision = this.safeInteger (baseCurrencyAttributes, 'accuracy', 8);
+            const costPrecision = this.safeInteger (attributes, 'digits', 8);
+            const pricePrecision = this.safeInteger (quoteCurrencyAttributes, 'accuracy', costPrecision);
             const precision = {
-                'amount': 8,
+                'amount': amountPrecision,
                 'price': pricePrecision,
+                'cost': costPrecision,
             };
             const active = this.safeValue (attributes, 'allowTrade');
             const maker = this.safeFloat (attributes, 'makerFee');
@@ -175,7 +238,7 @@ module.exports = class adara extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': Math.pow (10, -precision['cost']),
                         'max': undefined,
                     },
                 },
