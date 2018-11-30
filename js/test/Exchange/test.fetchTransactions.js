@@ -11,15 +11,15 @@ const log       = require ('ololog')
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports = async (exchange, symbol) => {
+module.exports = async (exchange, code) => {
 
     if (exchange.has.fetchTransactions) {
 
         // log ('fetching transactions...')
 
-        let transactions = await exchange.fetchTransactions (symbol)
+        let transactions = await exchange.fetchTransactions (code)
 
-        log ('fetched', orders.length.toString ().green, 'transactions, asserting each...')
+        log ('fetched', transactions.length.toString ().green, 'transactions, asserting each...')
 
         assert (transactions instanceof Array)
 
@@ -27,7 +27,7 @@ module.exports = async (exchange, symbol) => {
 
         for (let i = 0; i < transactions.length; i++) {
             let transaction = transactions[i]
-            testTransaction (exchange, transaction, symbol, now)
+            testTransaction (exchange, transaction, code, now)
         }
 
         // log (asTable (transactions))
