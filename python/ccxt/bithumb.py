@@ -16,6 +16,10 @@ import hashlib
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import BadRequest
+from ccxt.base.errors import InvalidAddress
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class bithumb (Exchange):
@@ -38,7 +42,7 @@ class bithumb (Exchange):
                     'private': 'https://api.bithumb.com',
                 },
                 'www': 'https://www.bithumb.com',
-                'doc': 'https://www.bithumb.com/u1/US127',
+                'doc': 'https://apidocs.bithumb.com',
             },
             'api': {
                 'public': {
@@ -77,7 +81,18 @@ class bithumb (Exchange):
                 },
             },
             'exceptions': {
+                'Bad Request(SSL)': BadRequest,
+                'Bad Request(Bad Method)': BadRequest,
                 'Bad Request.(Auth Data)': AuthenticationError,  # {"status": "5100", "message": "Bad Request.(Auth Data)"}
+                'Not Member': AuthenticationError,
+                'Invalid Apikey': AuthenticationError,  # {"status":"5300","message":"Invalid Apikey"}
+                'Method Not Allowed.(Access IP)': PermissionDenied,
+                'Method Not Allowed.(BTC Adress)': InvalidAddress,
+                'Method Not Allowed.(Access)': PermissionDenied,
+                'Database Fail': ExchangeNotAvailable,
+                'Invalid Parameter': BadRequest,
+                '5600': ExchangeError,
+                'Unknown Error': ExchangeError,
                 'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions': ExchangeError,  # {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
             },
         })
