@@ -1298,8 +1298,9 @@ module.exports = class binance extends Exchange {
                 }
             }
         } else {
+            let config = this._contextGet (contextId, 'config');
             symbolData['ob'] = this.mergeOrderBookDelta (symbolData['ob'], data, undefined, 'b', 'a');
-            this.emit ('ob', symbol, this._cloneOrderBook (symbolData['ob'], symbolData['limit']));
+            this.emit ('ob', symbol, this._cloneOrderBook (symbolData['ob'], config['ob'][symbol]['limit']));
             this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
         }
     }
@@ -1357,6 +1358,7 @@ module.exports = class binance extends Exchange {
         let symbol = context['symbol'];
         let contextId = context['contextId'];
         let data = this._contextGetSymbolData (contextId, 'ob', symbol);
+        let config = this._contextGet (contextId, 'config');
         // console.log ('order book snapshot returned for '+ symbol);
         if (!error) {
             let lastUpdateId = this.safeInteger (response, 'nonce');
@@ -1383,7 +1385,7 @@ module.exports = class binance extends Exchange {
             }
             data['ob'] = response;
             data['deltas'] = [];
-            this.emit ('ob', symbol, this._cloneOrderBook (response, data['limit']));
+            this.emit ('ob', symbol, this._cloneOrderBook (response, config['ob'][symbol]['limit']));
             this._contextSetSymbolData (contextId, 'ob', symbol, data);
         }
     }
@@ -1393,9 +1395,18 @@ module.exports = class binance extends Exchange {
             throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
         }
         if (event === 'ob') {
-            let data = this._contextGetSymbolData (contextId, event, symbol);
-            data['limit'] = this.safeInteger (params, 'limit', undefined);
-            this._contextSetSymbolData (contextId, event, symbol, data);
+            let config = this._contextGet (contextId, 'config');
+            if (typeof config === 'undefined') {
+                config = {};
+            }
+            let newConfig = {
+                'ob': {}
+            };
+            newConfig['ob'][symbol] = {
+                'limit': this.safeInteger (params, 'limit', undefined),
+            };
+            config = this.deepExtend (config, newConfig);
+            this._contextSet (contextId, 'config', config);
         }
         let nonceStr = nonce.toString ();
         this.emit (nonceStr, true);
