@@ -722,8 +722,6 @@ module.exports = class liquid extends Exchange {
         let evt = this.safeString (msg, 'event');
         if (evt === 'subscription_succeeded') {
             this._websocketHandleSubscription (contextId, msg);
-        } else if (evt === 'unsubscription_succeed') {
-            this._websocketHandleUnsubscription (contextId, msg);
         } else if (evt === 'updated') {
             let chan = this.safeString (msg, 'channel');
             if (chan.indexOf ('price_ladders_cash_') >= 0) {
@@ -789,35 +787,6 @@ module.exports = class liquid extends Exchange {
         }
     }
 
-    _websocketHandleUnsubscription (contextId, msg) {
-        let chan = this.safeString (msg, 'channel');
-        if (chan.indexOf ('price_ladders_cash_') >= 0) {
-            let parts = chan.split ('_');
-            let symbol = parts[3];
-            const symbolMap = this._contextGet (contextId, 'symbolmap');
-            if (symbol in symbolMap) {
-                symbol = symbolMap[symbol];
-            }
-            let buyOrSell = (parts[4] === 'buy') ? 'buy_sub' : 'sell_sub';
-            let symbolData = this._contextGetSymbolData (contextId, 'ob', symbol);
-            if ('unsub-nonces' in symbolData) {
-                let nonces = symbolData['unsub-nonces'];
-                const keys = Object.keys (nonces);
-                for (let i = 0; i < keys.length; i++) {
-                    let nonce = keys[i];
-                    nonces[nonce][buyOrSell] = true;
-                    if ((nonces[nonce]['buy_sub']) && (nonces[nonce]['sell_sub'])) {
-                        this._cancelTimeout (nonces[nonce]['handle']);
-                        this.emit (nonce, true);
-                        this.omit (symbolData['unsub-nonces'], nonce);
-                    }
-                }
-                symbolData['unsub-nonces'] = nonces;
-                this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
-            }
-        }
-    }
-
     _websocketOnOpen (contextId, websocketOptions) { // eslint-disable-line no-unused-vars
         let symbolMap = {};
         this._contextSet (contextId, 'symbolmap', symbolMap);
@@ -861,26 +830,16 @@ module.exports = class liquid extends Exchange {
             throw new NotSupported ('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
         }
         let id = this._websocketMarketId (symbol);
-        let symbolData = this._contextGetSymbolData (contextId, event, symbol);
-        if (!('unsub-nonces' in symbolData)) {
-            symbolData['unsub-nonces'] = {};
-        }
-        let nonceStr = nonce.toString ();
-        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'unsub-nonces']);
-        symbolData['unsub-nonces'][nonceStr] = {
-            'handle': handle,
-            'buy_sub': false,
-            'sell_sub': false,
-        };
-        this._contextSetSymbolData (contextId, event, symbol, symbolData);
         this.websocketSendJson ({
-            'type': 'unsubscribe',
+            'event': 'unsubscribe',
             'channel': 'price_ladders_cash_' + id + '_buy',
         });
         this.websocketSendJson ({
-            'type': 'unsubscribe',
+            'event': 'unsubscribe',
             'channel': 'price_ladders_cash_' + id + '_sell',
         });
+        let nonceStr = nonce.toString ();
+        this.emit (nonceStr, true);
     }
 
     _websocketTimeoutRemoveNonce (contextId, timerNonce, event, symbol, key) {

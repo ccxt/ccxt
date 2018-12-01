@@ -193,3 +193,10 @@ Methods to access context data for each websocket:
         });
     }
 ```
+## Added dependencies from ccxt/ccxt master
+* node: pako, ws
+* php: ratchet/pawl, clue/block-react
+* python: autobahn, pyee
+
+
+

@@ -30,7 +30,7 @@ $exchange = new  $cl (array(
     'apiKey' => $apiKey,
     'secret' => $secret,
     'enableRateLimit' => true,
-    'verbose' => false,
+    'verbose' => true,
     'timeout' => 5 * 1000,
     'react_loop' => $loop
 ));

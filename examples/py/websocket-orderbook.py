@@ -8,7 +8,7 @@ pp = pprint.PrettyPrinter(depth=6)
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root + '/python')
 # import ccxt  # noqa: E402
-import ccxt.async as ccxt  # noqa: E402
+import ccxt.async_support as ccxt  # noqa: E402
 import asyncio  # noqa: E402
 
 loop = asyncio.get_event_loop()

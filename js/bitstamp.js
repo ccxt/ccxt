@@ -921,8 +921,6 @@ module.exports = class bitstamp extends Exchange {
         let evt = this.safeString (msg, 'event');
         if (evt === 'subscription_succeeded') {
             this._websocketHandleSubscription (contextId, msg);
-        } else if (evt === 'unsubscription_succeed') {
-            this._websocketHandleUnsubscription (contextId, msg);
         } else if (evt === 'data') {
             let chan = this.safeString (msg, 'channel');
             if (chan.indexOf ('order_book_') >= 0) {
@@ -964,26 +962,6 @@ module.exports = class bitstamp extends Exchange {
         }
     }
 
-    _websocketHandleUnsubscription (contextId, msg) {
-        let chan = this.safeString (msg, 'channel');
-        if (chan.indexOf ('order_book_') >= 0) {
-            let parts = chan.split ('_');
-            let symbol = this.findSymbol (parts[2]);
-            let symbolData = this._contextGetSymbolData (contextId, 'ob', symbol);
-            if ('unsub-nonces' in symbolData) {
-                let nonces = symbolData['unsub-nonces'];
-                const keys = Object.keys (nonces);
-                for (let i = 0; i < keys.length; i++) {
-                    let nonce = keys[i];
-                    this._cancelTimeout (nonces[nonce]);
-                    this.emit (nonce, true);
-                }
-                symbolData['unsub-nonces'] = {};
-                this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
-            }
-        }
-    }
-
     _websocketSubscribe (contextId, event, symbol, nonce, params = {}) {
         if (event !== 'ob') {
             throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
@@ -1012,18 +990,12 @@ module.exports = class bitstamp extends Exchange {
         }
         let id = this.market_id (symbol);
         let payload = {
-            'type': 'unsubscribe',
+            'event': 'unsubscribe',
             'channel': 'order_book_' + id,
         };
-        let symbolData = this._contextGetSymbolData (contextId, event, symbol);
-        if (!('unsub-nonces' in symbolData)) {
-            symbolData['unsub-nonces'] = {};
-        }
-        let nonceStr = nonce.toString ();
-        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'unsub-nonces']);
-        symbolData['unsub-nonces'][nonceStr] = handle;
-        this._contextSetSymbolData (contextId, event, symbol, symbolData);
         this.websocketSendJson (payload);
+        let nonceStr = nonce.toString ();
+        this.emit (nonceStr, true);
     }
 
     _websocketTimeoutRemoveNonce (contextId, timerNonce, event, symbol, key) {

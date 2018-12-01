@@ -2386,7 +2386,7 @@ abstract class Exchange extends CcxtEventEmitter {
         }
         return $i;
     }
-    public function updateBidAsk ($bidAsk, &$currentBidsAsks, $bids = false) {print_r($bidAsk);
+    public function updateBidAsk ($bidAsk, &$currentBidsAsks, $bids = false) {
         // insert or replace ordered
         $index = $this->searchIndexToInsertOrUpdate ($bidAsk[0], $currentBidsAsks, 0, $bids);
         if (($index < count($currentBidsAsks)) && ($currentBidsAsks[$index][0] === $bidAsk[0])){

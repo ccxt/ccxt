@@ -380,8 +380,6 @@ module.exports = class therock extends Exchange {
         let evt = this.safeString (msg, 'event');
         if (evt === 'subscription_succeeded') {
             this._websocketHandleSubscription (contextId, msg);
-        } else if (evt === 'unsubscription_succeed') {
-            this._websocketHandleUnsubscription (contextId, msg);
         } else if (evt === 'orderbook') {
             this._websocketHandleOrderbook (contextId, msg);
         } else if (evt === 'orderbook_diff') {
@@ -407,7 +405,7 @@ module.exports = class therock extends Exchange {
             let lastSeqId = lastSeqIdData[chan];
             lastSeqId = this.sum (lastSeqId, 1);
             if (sequeceId !== lastSeqId) {
-                this.emit ('err', 'sequence error in pusher connection', contextId);
+                this.emit ('err', 'sequence error in pusher connection ' + sequeceId + ' !== ' + lastSeqId, contextId);
                 return;
             }
         }
@@ -471,27 +469,6 @@ module.exports = class therock extends Exchange {
         }
     }
 
-    _websocketHandleUnsubscription (contextId, msg) {
-        let chan = this.safeString (msg, 'channel');
-        let event = 'ob';
-        if (chan === 'currency') {
-            event = 'trade';
-        }
-        let symbol = this.findSymbol (chan);
-        let symbolData = this._contextGetSymbolData (contextId, event, symbol);
-        if ('unsub-nonces' in symbolData) {
-            let nonces = symbolData['unsub-nonces'];
-            const keys = Object.keys (nonces);
-            for (let i = 0; i < keys.length; i++) {
-                let nonce = keys[i];
-                this._cancelTimeout (nonces[nonce]);
-                this.emit (nonce, true);
-            }
-            symbolData['unsub-nonces'] = {};
-            this._contextSetSymbolData (contextId, event, symbol, symbolData);
-        }
-    }
-
     _websocketSubscribe (contextId, event, symbol, nonce, params = {}) {
         if (event !== 'ob') {
             throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
@@ -506,6 +483,9 @@ module.exports = class therock extends Exchange {
         let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'sub-nonce']);
         symbolData['sub-nonces'][nonceStr] = handle;
         this._contextSetSymbolData (contextId, event, symbol, symbolData);
+        // remove sequenceId
+        let sequenceId = undefined;
+        this._contextSet (contextId, 'sequence', sequenceId);
         // send request
         const id = this.marketId (symbol);
         this.websocketSendJson ({
@@ -520,18 +500,12 @@ module.exports = class therock extends Exchange {
         }
         let id = this.market_id (symbol);
         let payload = {
-            'type': 'unsubscribe',
+            'event': 'unsubscribe',
             'channel': id,
         };
-        let symbolData = this._contextGetSymbolData (contextId, event, symbol);
-        if (!('unsub-nonces' in symbolData)) {
-            symbolData['unsub-nonces'] = {};
-        }
         let nonceStr = nonce.toString ();
-        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'unsub-nonces']);
-        symbolData['unsub-nonces'][nonceStr] = handle;
-        this._contextSetSymbolData (contextId, event, symbol, symbolData);
         this.websocketSendJson (payload);
+        this.emit (nonceStr, true);
     }
 
     _websocketTimeoutRemoveNonce (contextId, timerNonce, event, symbol, key) {
