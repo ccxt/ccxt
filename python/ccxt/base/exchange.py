@@ -1677,24 +1677,23 @@ class Exchange(object):
 
     @staticmethod
     def totp(key):
-        def dec_to_hex(n):
-            return hex(n).lstrip('0x')
+        def dec_to_bytes(n):
+            if n > 0:
+                return dec_to_bytes(n // 256) + bytes([n % 256])
+            else:
+                return b''
 
         def hex_to_dec(n):
             return int(n, base=16)
 
-        def base32_to_hex(n):
+        def base32_to_bytes(n):
             missing_padding = len(n) % 8
             padding = 8 - missing_padding if missing_padding > 0 else 0
             padded = n.upper() + ('=' * padding)
-            b = base64.b32decode(padded)  # throws an error if the key is invalid
-            return base64.b16encode(b).decode()
+            return base64.b32decode(padded)  # throws an error if the key is invalid
 
-        def get_otp(key):
-            epoch = int(time.time())
-            ftime = dec_to_hex(epoch // 30).zfill(16)
-            hmac_res = Exchange.hmac(bytes.fromhex(ftime), bytes.fromhex(base32_to_hex(key)), hashlib.sha1, 'hex')
-            offset = hex_to_dec(hmac_res[-1]) * 2
-            otp = str(hex_to_dec(hmac_res[offset: offset + 8]) & 0x7fffffff)
-            return otp[-6:]
-        return get_otp(key)
+        epoch = int(time.time()) // 30
+        hmac_res = Exchange.hmac(dec_to_bytes(epoch).rjust(8, b'\x00'), base32_to_bytes(key), hashlib.sha1, 'hex')
+        offset = hex_to_dec(hmac_res[-1]) * 2
+        otp = str(hex_to_dec(hmac_res[offset: offset + 8]) & 0x7fffffff)
+        return otp[-6:]
