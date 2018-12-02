@@ -41,6 +41,7 @@ class ice3x (Exchange):
                     'https://help.ice3.com/support/solutions/articles/11000008131-what-are-your-fiat-deposit-and-withdrawal-fees-',
                     'https://help.ice3.com/support/solutions/articles/11000033289-deposit-fees',
                 ],
+                'referral': 'https://ice3x.com?ref=14341802',
             },
             'api': {
                 'public': {

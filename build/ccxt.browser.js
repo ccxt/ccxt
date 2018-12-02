@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.571'
+const version = '1.17.572'
 
 Exchange.ccxtVersion = version
 
@@ -1774,8 +1774,14 @@ module.exports = class Exchange {
             // TypeError Failed to execute 'fetch' on 'Window': Illegal invocation
             const fetchImplementation = this.fetchImplementation
 
+            const params = { method, headers, body, timeout: this.timeout }
+
+            if (url.indexOf ('http://') < 0) {
+                params['agent'] = this.agent || null;
+            }
+
             let promise =
-                fetchImplementation (url, this.extend ({ method, headers, body, 'agent': this.agent || null, timeout: this.timeout }, this.fetchOptions))
+                fetchImplementation (url, this.extend (params, this.fetchOptions))
                     .catch (e => {
                         if (isNode)
                             throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
@@ -42020,6 +42026,7 @@ module.exports = class ice3x extends Exchange {
                     'https://help.ice3.com/support/solutions/articles/11000008131-what-are-your-fiat-deposit-and-withdrawal-fees-',
                     'https://help.ice3.com/support/solutions/articles/11000033289-deposit-fees',
                 ],
+                'referral': 'https://ice3x.com?ref=14341802',
             },
             'api': {
                 'public': {
