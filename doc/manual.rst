@@ -778,7 +778,7 @@ In the second example the **price** of any order placed on the market **must sat
       + good: 50, 60, 70, 80, 90, 100, ... 2000, ...
       - bad: 1, 2, 3, ..., 9
 
--  A negative *amount precision* means that the amount should be an integer multiple of 10:
+-  A negative *amount precision* means that the amount should be an integer multiple of 10 (to the absolute power specified):
 
    .. code:: diff
 
