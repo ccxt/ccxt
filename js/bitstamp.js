@@ -182,6 +182,10 @@ module.exports = class bitstamp extends Exchange {
         });
     }
 
+    nonce () {
+        return this.milliseconds ();
+    }
+
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetTradingPairsInfo ();
         let result = [];
