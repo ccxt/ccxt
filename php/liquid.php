@@ -34,6 +34,7 @@ class liquid extends Exchange {
                     'https://developers.quoine.com/v2',
                 ),
                 'fees' => 'https://help.liquid.com/getting-started-with-liquid/the-platform/fee-structure',
+                'referral' => 'https://www.liquid.com?affiliate=SbzC62lt30976',
             ),
             'api' => array (
                 'public' => array (

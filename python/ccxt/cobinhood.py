@@ -537,6 +537,7 @@ class cobinhood (Exchange):
         return order
 
     def edit_order(self, id, symbol, type, side, amount, price, params={}):
+        self.load_markets()
         response = self.privatePutTradingOrdersOrderId(self.extend({
             'order_id': id,
             'price': self.price_to_precision(symbol, price),
@@ -547,6 +548,7 @@ class cobinhood (Exchange):
         }))
 
     def cancel_order(self, id, symbol=None, params={}):
+        self.load_markets()
         response = self.privateDeleteTradingOrdersOrderId(self.extend({
             'order_id': id,
         }, params))

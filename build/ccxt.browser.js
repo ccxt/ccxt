@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.559'
+const version = '1.17.574'
 
 Exchange.ccxtVersion = version
 
@@ -931,7 +931,7 @@ module.exports = class allcoin extends okcoinusd {
                     'private': 'https://api.allcoin.com/api',
                 },
                 'www': 'https://www.allcoin.com',
-                'doc': 'https://www.allcoin.com/About/APIReference',
+                'doc': 'https://www.allcoin.com/api_market/market',
             },
             'api': {
                 'web': {
@@ -1774,8 +1774,14 @@ module.exports = class Exchange {
             // TypeError Failed to execute 'fetch' on 'Window': Illegal invocation
             const fetchImplementation = this.fetchImplementation
 
+            const params = { method, headers, body, timeout: this.timeout }
+
+            if (url.indexOf ('http://') < 0) {
+                params['agent'] = this.agent || null;
+            }
+
             let promise =
-                fetchImplementation (url, this.extend ({ method, headers, body, 'agent': this.agent || null, timeout: this.timeout }, this.fetchOptions))
+                fetchImplementation (url, this.extend (params, this.fetchOptions))
                     .catch (e => {
                         if (isNode)
                             throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
@@ -10954,7 +10960,7 @@ module.exports = class bitforex extends Exchange {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -10977,7 +10983,7 @@ module.exports = class bithumb extends Exchange {
                     'private': 'https://api.bithumb.com',
                 },
                 'www': 'https://www.bithumb.com',
-                'doc': 'https://www.bithumb.com/u1/US127',
+                'doc': 'https://apidocs.bithumb.com',
             },
             'api': {
                 'public': {
@@ -11016,7 +11022,19 @@ module.exports = class bithumb extends Exchange {
                 },
             },
             'exceptions': {
-                '5100': ExchangeError, // {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
+                'Bad Request(SSL)': BadRequest,
+                'Bad Request(Bad Method)': BadRequest,
+                'Bad Request.(Auth Data)': AuthenticationError, // { "status": "5100", "message": "Bad Request.(Auth Data)" }
+                'Not Member': AuthenticationError,
+                'Invalid Apikey': AuthenticationError, // {"status":"5300","message":"Invalid Apikey"}
+                'Method Not Allowed.(Access IP)': PermissionDenied,
+                'Method Not Allowed.(BTC Adress)': InvalidAddress,
+                'Method Not Allowed.(Access)': PermissionDenied,
+                'Database Fail': ExchangeNotAvailable,
+                'Invalid Parameter': BadRequest,
+                '5600': ExchangeError,
+                'Unknown Error': ExchangeError,
+                'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions': ExchangeError, // {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
             },
         });
     }
@@ -11317,7 +11335,8 @@ module.exports = class bithumb extends Exchange {
                 //
                 //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
                 //
-                let status = this.safeString (response, 'status');
+                const status = this.safeString (response, 'status');
+                const message = this.safeString (response, 'message');
                 if (status !== undefined) {
                     if (status === '0000')
                         return; // no error
@@ -11325,6 +11344,8 @@ module.exports = class bithumb extends Exchange {
                     const exceptions = this.exceptions;
                     if (status in exceptions) {
                         throw new exceptions[status] (feedback);
+                    } else if (message in exceptions) {
+                        throw new exceptions[message] (feedback);
                     } else {
                         throw new ExchangeError (feedback);
                     }
@@ -11812,6 +11833,7 @@ module.exports = class bitmarket extends Exchange {
                     'https://www.bitmarket.net/docs.php?file=api_private.html',
                     'https://github.com/bitmarket-net/api',
                 ],
+                'referral': 'https://www.bitmarket.net/?ref=23323',
             },
             'api': {
                 'public': {
@@ -23036,6 +23058,7 @@ module.exports = class cobinhood extends Exchange {
     }
 
     async editOrder (id, symbol, type, side, amount, price, params = {}) {
+        await this.loadMarkets ();
         let response = await this.privatePutTradingOrdersOrderId (this.extend ({
             'order_id': id,
             'price': this.priceToPrecision (symbol, price),
@@ -23047,6 +23070,7 @@ module.exports = class cobinhood extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.privateDeleteTradingOrdersOrderId (this.extend ({
             'order_id': id,
         }, params));
@@ -42002,6 +42026,7 @@ module.exports = class ice3x extends Exchange {
                     'https://help.ice3.com/support/solutions/articles/11000008131-what-are-your-fiat-deposit-and-withdrawal-fees-',
                     'https://help.ice3.com/support/solutions/articles/11000033289-deposit-fees',
                 ],
+                'referral': 'https://ice3x.com?ref=14341802',
             },
             'api': {
                 'public': {
@@ -48639,6 +48664,7 @@ module.exports = class liquid extends Exchange {
                     'https://developers.quoine.com/v2',
                 ],
                 'fees': 'https://help.liquid.com/getting-started-with-liquid/the-platform/fee-structure',
+                'referral': 'https://www.liquid.com?affiliate=SbzC62lt30976',
             },
             'api': {
                 'public': {
@@ -57433,7 +57459,7 @@ module.exports = class theocean extends Exchange {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -57448,6 +57474,7 @@ module.exports = class therock extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchTickers': true,
+                'fetchMyTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
@@ -57695,29 +57722,180 @@ module.exports = class therock extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades
+        //
+        //     {      id:  4493548,
+        //       fund_id: "ETHBTC",
+        //        amount:  0.203,
+        //         price:  0.02783576,
+        //          side: "buy",
+        //          dark:  false,
+        //          date: "2018-11-30T08:19:18.236Z" }
+        //
+        // fetchMyTrades
+        //
+        //     {           id:    237338,
+        //            fund_id:   "BTCEUR",
+        //             amount:    0.348,
+        //              price:    348,
+        //               side:   "sell",
+        //               dark:    false,
+        //           order_id:    14920648,
+        //               date:   "2015-06-03T00:49:49.000Z",
+        //       transactions: [ {       id:  2770768,
+        //                             date: "2015-06-03T00:49:49.000Z",
+        //                             type: "sold_currency_to_fund",
+        //                            price:  121.1,
+        //                         currency: "EUR"                       },
+        //                       {       id:  2770769,
+        //                             date: "2015-06-03T00:49:49.000Z",
+        //                             type: "released_currency_to_fund",
+        //                            price:  0.348,
+        //                         currency: "BTC"                        },
+        //                       {       id:  2770772,
+        //                             date: "2015-06-03T00:49:49.000Z",
+        //                             type: "paid_commission",
+        //                            price:  0.06,
+        //                         currency: "EUR",
+        //                         trade_id:  440492                     }   ] }
+        //
         if (!market)
             market = this.markets_by_id[trade['fund_id']];
-        let timestamp = this.parse8601 (trade['date']);
+        const timestamp = this.parse8601 (this.safeString (trade, 'date'));
+        const id = this.safeString (trade, 'id');
+        const orderId = this.safeString (trade, 'order_id');
+        const side = this.safeString (trade, 'side');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
+        }
+        let fee = undefined;
+        let feeCost = undefined;
+        const transactions = this.safeValue (trade, 'transactions', []);
+        const transactionsByType = this.groupBy (transactions, 'type');
+        const feeTransactions = this.safeValue (transactionsByType, 'paid_commission', []);
+        for (let i = 0; i < feeTransactions.length; i++) {
+            if (feeCost === undefined) {
+                feeCost = 0;
+            }
+            feeCost = this.sum (feeCost, this.safeFloat (feeTransactions[i], 'price'));
+        }
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': market['quote'],
+            };
+        }
         return {
             'info': trade,
-            'id': trade['id'].toString (),
-            'order': undefined,
+            'id': id,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
-            'side': trade['side'],
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
         };
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'id': market['id'],
+        };
+        if (limit !== undefined) {
+            request['per_page'] = limit; // default 25 max 200
+        }
+        if (since !== undefined) {
+            request['after'] = this.iso8601 (since);
+        }
+        const response = await this.privateGetFundsIdTrades (this.extend (request, params));
+        //
+        //     { trades: [ {           id:    237338,
+        //                        fund_id:   "BTCEUR",
+        //                         amount:    0.348,
+        //                          price:    348,
+        //                           side:   "sell",
+        //                           dark:    false,
+        //                       order_id:    14920648,
+        //                           date:   "2015-06-03T00:49:49.000Z",
+        //                   transactions: [ {       id:  2770768,
+        //                                         date: "2015-06-03T00:49:49.000Z",
+        //                                         type: "sold_currency_to_fund",
+        //                                        price:  121.1,
+        //                                     currency: "EUR"                       },
+        //                                   {       id:  2770769,
+        //                                         date: "2015-06-03T00:49:49.000Z",
+        //                                         type: "released_currency_to_fund",
+        //                                        price:  0.348,
+        //                                     currency: "BTC"                        },
+        //                                   {       id:  2770772,
+        //                                         date: "2015-06-03T00:49:49.000Z",
+        //                                         type: "paid_commission",
+        //                                        price:  0.06,
+        //                                     currency: "EUR",
+        //                                     trade_id:  440492                     }   ] } ],
+        //         meta: { total_count:    31,
+        //                       first: { href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1" },
+        //                    previous:    null,
+        //                     current: { href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1" },
+        //                        next: { href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2" },
+        //                        last: { href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2" }  } }
+        //
+        return this.parseTrades (response['trades'], market, since, limit);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetFundsIdTrades (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'id': market['id'],
-        }, params));
+        };
+        if (limit !== undefined) {
+            request['per_page'] = limit; // default 25 max 200
+        }
+        if (since !== undefined) {
+            request['after'] = this.iso8601 (since);
+        }
+        const response = await this.publicGetFundsIdTrades (this.extend (request, params));
+        //
+        //     { trades: [ {      id:  4493548,
+        //                   fund_id: "ETHBTC",
+        //                    amount:  0.203,
+        //                     price:  0.02783576,
+        //                      side: "buy",
+        //                      dark:  false,
+        //                      date: "2018-11-30T08:19:18.236Z" },
+        //                 {      id:  4492926,
+        //                   fund_id: "ETHBTC",
+        //                    amount:  0.04,
+        //                     price:  0.02767034,
+        //                      side: "buy",
+        //                      dark:  false,
+        //                      date: "2018-11-30T07:03:03.897Z" }  ],
+        //         meta: { total_count:    null,
+        //                       first: { page:  1,
+        //                                href: "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1" },
+        //                    previous:    null,
+        //                     current: { page:  1,
+        //                                href: "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1" },
+        //                        next: { page:  2,
+        //                                href: "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=2" },
+        //                        last:    null                                                                   } }
+        //
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
@@ -57771,6 +57949,10 @@ module.exports = class therock extends Exchange {
             if (Object.keys (query).length) {
                 body = this.json (query);
                 headers['Content-Type'] = 'application/json';
+            }
+        } else if (api === 'public') {
+            if (Object.keys (query).length) {
+                url += '?' + this.rawencode (query);
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -59643,7 +59825,7 @@ module.exports = class upbit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'upbit',
-            'name': 'UPbit',
+            'name': 'Upbit',
             'countries': [ 'KR' ],
             'version': 'v1',
             'rateLimit': 1000,
@@ -59764,6 +59946,7 @@ module.exports = class upbit extends Exchange {
             'options': {
                 'fetchTickersMaxLength': 4096, // 2048,
                 'fetchOrderBooksMaxLength': 4096, // 2048,
+                'symbolSeparator': '-',
                 'tradingFeesByQuoteCurrency': {
                     'KRW': 0.0005,
                 },
@@ -60066,7 +60249,7 @@ module.exports = class upbit extends Exchange {
         if (market !== undefined) {
             return market['symbol'];
         }
-        const [ baseId, quoteId ] = marketId.split ('-');
+        const [ baseId, quoteId ] = marketId.split (this.options['symbolSeparator']);
         const base = this.commonCurrencyCode (baseId);
         const quote = this.commonCurrencyCode (quoteId);
         return base + '/' + quote;
@@ -62374,6 +62557,7 @@ module.exports = class yobit extends liqui {
             },
             'options': {
                 'fetchOrdersRequiresSymbol': true,
+                'fetchTickersMaxLength': 512,
             },
         });
     }

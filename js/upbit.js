@@ -11,7 +11,7 @@ module.exports = class upbit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'upbit',
-            'name': 'UPbit',
+            'name': 'Upbit',
             'countries': [ 'KR' ],
             'version': 'v1',
             'rateLimit': 1000,

@@ -20,7 +20,7 @@ class upbit (Exchange):
     def describe(self):
         return self.deep_extend(super(upbit, self).describe(), {
             'id': 'upbit',
-            'name': 'UPbit',
+            'name': 'Upbit',
             'countries': ['KR'],
             'version': 'v1',
             'rateLimit': 1000,
@@ -141,6 +141,7 @@ class upbit (Exchange):
             'options': {
                 'fetchTickersMaxLength': 4096,  # 2048,
                 'fetchOrderBooksMaxLength': 4096,  # 2048,
+                'symbolSeparator': '-',
                 'tradingFeesByQuoteCurrency': {
                     'KRW': 0.0005,
                 },
@@ -430,7 +431,7 @@ class upbit (Exchange):
         market = self.safe_value(self.markets_by_id, marketId, market)
         if market is not None:
             return market['symbol']
-        baseId, quoteId = marketId.split('-')
+        baseId, quoteId = marketId.split(self.options['symbolSeparator'])
         base = self.common_currency_code(baseId)
         quote = self.common_currency_code(quoteId)
         return base + '/' + quote

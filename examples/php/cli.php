@@ -31,7 +31,9 @@ if (count ($argv) > 2) {
         echo print_r ($keys_file, true) . "\n";
         // echo print_r ($config[$id]) . "\n";
 
-        $config = array_merge ($config[$id], array (
+        $settings = array_key_exists ($id, $config) ? $config[$id] : array ();
+
+        $config = array_merge ($settings, array (
             'verbose' => $verbose, // set to true for debugging
         ));
 
