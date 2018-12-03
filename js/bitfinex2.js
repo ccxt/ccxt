@@ -584,13 +584,22 @@ module.exports = class bitfinex2 extends bitfinex {
                 let price = record[0];
                 let c = record[1];
                 let amount = record[2];
-                let side = (amount > 0) ? 'bids' : 'asks';
+                let side = undefined;
+                let isBid = undefined;
+                if (amount > 0) {
+                    side = 'bids';
+                    isBid = true;
+                } else {
+                    side = 'asks'
+                    isBid = false;
+                    amount = -amount;
+                }
                 if (c === 0) {
                     // remove
-                    this.updateBidAsk ([price, 0], symbolData['ob'][side], amount > 0);
+                    this.updateBidAsk ([price, 0], symbolData['ob'][side], isBid);
                 } else {
                     // update
-                    this.updateBidAsk ([price, amount], symbolData['ob'][side], amount > 0);
+                    this.updateBidAsk ([price, amount], symbolData['ob'][side], isBid);
                 }
             }
         } else {
@@ -598,13 +607,22 @@ module.exports = class bitfinex2 extends bitfinex {
             let price = data[0];
             let c = data[1];
             let amount = data[2];
-            let side = (amount > 0) ? 'bids' : 'asks';
+            let side = undefined;
+            let isBid = undefined;
+            if (amount > 0) {
+                side = 'bids';
+                isBid = true;
+            } else {
+                side = 'asks'
+                isBid = false;
+                amount = -amount;
+            }
             if (c === 0) {
                 // remove
-                this.updateBidAsk ([price, 0], symbolData['ob'][side], amount > 0);
+                this.updateBidAsk ([price, 0], symbolData['ob'][side], isBid);
             } else {
                 // update
-                this.updateBidAsk ([price, amount], symbolData['ob'][side], amount > 0);
+                this.updateBidAsk ([price, amount], symbolData['ob'][side], isBid);
             }
         }
         this.emit ('ob', symbol, this._cloneOrderBook (symbolData['ob'], symbolData['limit']));
