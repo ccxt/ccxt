@@ -223,6 +223,8 @@ class zaif extends Exchange {
         $timestamp = $trade['date'] * 1000;
         $id = $this->safe_string($trade, 'id');
         $id = $this->safe_string($trade, 'tid', $id);
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'amount');
         if (!$market)
             $market = $this->markets_by_id[$trade['currency_pair']];
         return array (
@@ -233,8 +235,8 @@ class zaif extends Exchange {
             'symbol' => $market['symbol'],
             'type' => null,
             'side' => $side,
-            'price' => $trade['price'],
-            'amount' => $trade['amount'],
+            'price' => $price,
+            'amount' => $amount,
         );
     }
 

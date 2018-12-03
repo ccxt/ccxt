@@ -213,6 +213,8 @@ class bitflyer extends Exchange {
         if ($order === null)
             $order = $this->safe_string($trade, 'child_order_acceptance_id');
         $timestamp = $this->parse8601 ($trade['exec_date']);
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'size');
         return array (
             'id' => (string) $trade['id'],
             'info' => $trade,
@@ -222,8 +224,8 @@ class bitflyer extends Exchange {
             'order' => $order,
             'type' => null,
             'side' => $side,
-            'price' => $trade['price'],
-            'amount' => $trade['size'],
+            'price' => $price,
+            'amount' => $amount,
         );
     }
 

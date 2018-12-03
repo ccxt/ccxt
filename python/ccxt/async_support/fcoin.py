@@ -216,8 +216,8 @@ class fcoin (Exchange):
             priceField = self.sum(index, priceKey)
             amountField = self.sum(index, amountKey)
             result.append([
-                orders[priceField],
-                orders[amountField],
+                self.safe_float(orders, priceField),
+                self.safe_float(orders, amountField),
             ])
         return result
 

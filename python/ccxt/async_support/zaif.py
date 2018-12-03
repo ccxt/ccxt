@@ -218,6 +218,8 @@ class zaif (Exchange):
         timestamp = trade['date'] * 1000
         id = self.safe_string(trade, 'id')
         id = self.safe_string(trade, 'tid', id)
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
         if not market:
             market = self.markets_by_id[trade['currency_pair']]
         return {
@@ -228,8 +230,8 @@ class zaif (Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': side,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'price': price,
+            'amount': amount,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
