@@ -19,8 +19,8 @@ const hasProps = o => (o !== undefined) &&
 
 /*  .............................................   */
 
-const asFloat   = x => ((isNumber (x) || isString (x)) ? parseFloat (x)     : NaN)
-    , asInteger = x => ((isNumber (x) || isString (x)) ? parseInt   (x, 10) : NaN)
+const asFloat   = x => ((isNumber (x) || isString (x) || x && x.numberStr) ? parseFloat (x)     : NaN)
+    , asInteger = x => ((isNumber (x) || isString (x) || x && x.numberStr) ? parseInt   (x, 10) : NaN)
 
 /*  .............................................   */
 
