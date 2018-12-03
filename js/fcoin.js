@@ -204,8 +204,8 @@ module.exports = class fcoin extends Exchange {
             let priceField = this.sum (index, priceKey);
             let amountField = this.sum (index, amountKey);
             result.push ([
-                orders[priceField],
-                orders[amountField],
+                this.safeFloat (orders, priceField),
+                this.safeFloat (orders, amountField),
             ]);
         }
         return result;
