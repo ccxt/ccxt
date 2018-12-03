@@ -6,16 +6,66 @@
 If you want to use python or PHP language you must execute `npm run export-exchanges` (to ensure exchanges.js will be updated) and `npm run transpile` to update python and PHP exchange modules.
 ## Test it!
 You can test websocket events with two sample scripts:
-* **examples/js/websocket-orderbook.js** tests orderbook subscription/unsubscription with one ore multiple symbols: subscribe to symbol, wait 5 seconds, subscribe second symbol, ..., then unsubscribe symbol, wait 5 seconds, unsubscribe seconds symbol, ...
-  * `node examples/js/websocket-orderbook.js bitstamp None None 5 BTC/EUR`
+* **examples/js/websocket-orderbook-subscription.js** tests orderbook subscription/unsubscription with one ore multiple symbols: subscribe to symbol, wait 5 seconds, subscribe second symbol, ..., then unsubscribe symbol, wait 5 seconds, unsubscribe seconds symbol, ...
+  * `node examples/js/websocket-orderbook-subscription.js bitstamp None None 5 BTC/EUR`
     * test bitstamp orderbook subscription/unsubscription on BTC/EUR symbol
-  * `node examples/js//websocket-orderbook.js bitstamp None None 5 BTC/EUR XRP/EUR`
+  * `node examples/js//websocket-orderbook-subscription.js bitstamp None None 5 BTC/EUR XRP/EUR`
     * test bitstamp orderbook subscription/unsubscription on BTC/EUR and XRP/EUR symbols
 * **examples/js/websocket-playground.js** tests websocket events: orderbook, trade, ... usage:
   * `node examples/js/websocket-playground.js therock ob ETH/BTC`
     * get orderbook updates of *therock* exchange and *ETH/BTC* market
   * `node examples/js/websocket-playground.js binance ob ETH/USDT limit:5`
     * get orderbook updates, limited to 5 bids/5 asks, of *binance* exchange and *ETH/USDT* market
+* **examples/js/websocket-orderbook.js** subscription on one or more markets.
+  * `node examples/js/websocket-orderbook.js`
+    * print orderbook updates on bitfinex2(BTC/USDT, XRP/USDT) & binance(BTC/USDT)
+  * `node examples/js/websocket-orderbook.js config.json`
+    * print orderbook updates on subscribed markets in config.json file
+    ```javascript
+    {
+        // default config in exchange creation
+        "exchangeDefaults": {
+            "verbose": false
+        },
+        // default config on symbol subscription
+        "symbolDefaults": {
+            "limit": 5
+        },
+        // config for printing market tablet
+        "marketTable": {
+            // markets in same row
+            "marketsByRow": 3,
+            // max bids/asks to print
+            "maxLimit": 10,
+            // characters (columns) reserved for each market
+            "marketColumnWidth": 50,
+        },
+        // dict with exchanges ids
+        "exchanges" : {
+            "bitfinex2" : {
+                "symbols": {
+                    "BTC/USDT": {
+                        // config for this symbol subscription
+                    },
+                    "XRP/USDT": {
+
+                    }
+                },
+                "options": {
+                    // config for this exchange creation
+                }
+            },
+            "binance": {
+                "symbols": {
+                    'BTC/USDT':{}
+                },
+                "options": {
+
+                }
+            }
+        }
+    }
+    ```
   
 You can find both examples in python and PHP languages:
 * **examples/php/websocket-playground.php**
