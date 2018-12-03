@@ -2649,6 +2649,8 @@ In some cases you can also use the withdrawal id to check withdrawal status late
 
 if (exchange.has['fetchDeposits']) {
     const deposits = await exchange.fetchDeposits (code, since, limit, params)
+} else {
+    throw new Error (exchange.id + ' does not have the fetchDeposits method')
 }
 ```
 
@@ -2656,9 +2658,10 @@ if (exchange.has['fetchDeposits']) {
 # Python
 # fetch_deposits(code = None, since = None, limit = None, params = {})
 
-if (exchange.has['fetchDeposits']) {
+if exchange.has['fetchDeposits']:
     deposits = exchange.fetch_deposits(code, since, limit, params)
-}
+else:
+    raise Exception (exchange.id + ' does not have the fetch_deposits method')
 ```
 
 ```PHP
@@ -2667,6 +2670,8 @@ if (exchange.has['fetchDeposits']) {
 
 if ($exchange->has['fetchDeposits']) {
     $deposits = $exchange->fetch_deposits ($code, $since, $limit, $params);
+} else {
+    throw new Exception ($exchange->id . ' does not have the fetch_deposits method');
 }
 ```
 
@@ -2678,6 +2683,8 @@ if ($exchange->has['fetchDeposits']) {
 
 if (exchange.has['fetchWithdrawals']) {
     const withdrawals = await exchange.fetchWithdrawals (code, since, limit, params)
+} else {
+    throw new Error (exchange.id + ' does not have the fetchWithdrawals method')
 }
 ```
 
@@ -2685,9 +2692,10 @@ if (exchange.has['fetchWithdrawals']) {
 # Python
 # fetch_withdrawals(code = None, since = None, limit = None, params = {})
 
-if (exchange.has['fetchWithdrawals']) {
+if exchange.has['fetchWithdrawals']:
     withdrawals = exchange.fetch_withdrawals(code, since, limit, params)
-}
+else:
+    raise Exception (exchange.id + ' does not have the fetch_withdrawals method')
 ```
 
 ```PHP
@@ -2696,6 +2704,8 @@ if (exchange.has['fetchWithdrawals']) {
 
 if ($exchange->has['fetchWithdrawals']) {
     $withdrawals = $exchange->fetch_withdrawals ($code, $since, $limit, $params);
+} else {
+    throw new Exception ($exchange->id . ' does not have the fetch_withdrawals method');
 }
 ```
 
@@ -2707,6 +2717,8 @@ if ($exchange->has['fetchWithdrawals']) {
 
 if (exchange.has['fetchTransactions']) {
     const transactions = await exchange.fetchTransactions (code, since, limit, params)
+} else {
+    throw new Error (exchange.id + ' does not have the fetchTransactions method')
 }
 ```
 
@@ -2714,9 +2726,10 @@ if (exchange.has['fetchTransactions']) {
 # Python
 # fetch_transactions(code = None, since = None, limit = None, params = {})
 
-if (exchange.has['fetchTransactions']) {
+if exchange.has['fetchTransactions']:
     transactions = exchange.fetch_transactions(code, since, limit, params)
-}
+else:
+    raise Exception (exchange.id + ' does not have the fetch_transactions method')
 ```
 
 ```PHP
@@ -2725,6 +2738,8 @@ if (exchange.has['fetchTransactions']) {
 
 if ($exchange->has['fetchTransactions']) {
     $transactions = $exchange->fetch_transactions ($code, $since, $limit, $params);
+} else {
+    throw new Exception ($exchange->id . ' does not have the fetch_transactions method');
 }
 ```
 ## Fees
