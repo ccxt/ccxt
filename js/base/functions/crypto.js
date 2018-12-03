@@ -40,8 +40,7 @@ const totp = (secret) => {
 
     const dec2hex = s => ((s < 15.5 ? '0' : '') + Math.round (s).toString (16))
         , hex2dec = s => parseInt (s, 16)
-        , leftpad = (s, l, p) => ((l + 1 >= s.length) ?
-            (Array (l + 1 - s.length).join (p) + s) : s)
+        , leftpad = (s, p) => (p + s).slice (-p.length) // both s and p are short strings
 
     const base32tohex = (base32) => {
         let base32chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
@@ -49,7 +48,7 @@ const totp = (secret) => {
         let hex = ''
         for (let i = 0; i < base32.length; i++) {
             let val = base32chars.indexOf (base32.charAt (i).toUpperCase ())
-            bits += leftpad (val.toString (2), 5, '0')
+            bits += leftpad (val.toString (2), '00000')
         }
         for (let i = 0; i + 4 <= bits.length; i += 4) {
             let chunk = bits.substr (i, 4)
@@ -60,7 +59,7 @@ const totp = (secret) => {
 
     const getOTP = (secret) => {
         let epoch = Math.round (new Date ().getTime () / 1000.0)
-        let time = leftpad (dec2hex (Math.floor (epoch / 30)), 16, '0')
+        let time = leftpad (dec2hex (Math.floor (epoch / 30)), '0000000000000000')
         let hmacRes = hmac (CryptoJS.enc.Hex.parse (time), CryptoJS.enc.Hex.parse (base32tohex (secret)), 'sha1', 'hex')
         let offset = hex2dec (hmacRes.substring (hmacRes.length - 1))
         let otp = (hex2dec (hmacRes.substr (offset * 2, 8)) & hex2dec ('7fffffff')) + ''
