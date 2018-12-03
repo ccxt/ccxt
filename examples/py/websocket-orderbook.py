@@ -191,6 +191,7 @@ class MarketTable:
             self.grid[i] = self.replaceAt (self.grid[i], gridColumn, errLines[index])
 
     def print (self):
+        sys.stdout.write("\u001b[0;0H")
         for line in self.grid:
             print(line)
         sys.stdout.flush()
