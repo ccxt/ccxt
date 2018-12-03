@@ -988,7 +988,8 @@ class poloniex (Exchange):
                 # according to https://poloniex.com/fees/
                 feeCost = 0  # FIXME: remove hardcoded value that may change any time
             elif type == 'withdrawal':
-                raise ExchangeError('Withdrawal without fee detectednot ')
+                #raise ExchangeError('Withdrawal without fee detectednot ')
+                feeCost = 0 #according to poloniex api, fees is not coming
         return {
             'info': transaction,
             'id': id,
