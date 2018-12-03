@@ -3,7 +3,7 @@
 const ccxt = require('../../ccxt.js')
 const extend = ccxt.extend;
 var fs = require('fs');
-
+const { execSync } = require('child_process');
 
 const baseConfig = {
     exchangeDefaults: {
@@ -192,6 +192,11 @@ class MarketTable {
     }
 
     print () {
+        // execSync('tput cup 0 0');
+        // console.log('\\033[2J');
+        //process.stdout.write('\\033c');
+        // process.stdout.write("\u001b[2J\u001b[0;0H");
+        process.stdout.write("\u001b[0;0H");
         for (var i = 0; i<this.grid.length; i++) {
             console.log(this.grid[i]);
         }
