@@ -212,6 +212,8 @@ module.exports = class bitflyer extends Exchange {
         if (order === undefined)
             order = this.safeString (trade, 'child_order_acceptance_id');
         let timestamp = this.parse8601 (trade['exec_date']);
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'size');
         return {
             'id': trade['id'].toString (),
             'info': trade,
@@ -221,8 +223,8 @@ module.exports = class bitflyer extends Exchange {
             'order': order,
             'type': undefined,
             'side': side,
-            'price': trade['price'],
-            'amount': trade['size'],
+            'price': price,
+            'amount': amount,
         };
     }
 
