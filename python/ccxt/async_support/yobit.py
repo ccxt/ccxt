@@ -141,6 +141,7 @@ class yobit (liqui):
             },
             'options': {
                 'fetchOrdersRequiresSymbol': True,
+                'fetchTickersMaxLength': 512,
             },
         })
 
