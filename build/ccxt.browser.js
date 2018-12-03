@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.574'
+const version = '1.17.575'
 
 Exchange.ccxtVersion = version
 
@@ -10175,6 +10175,8 @@ module.exports = class bitflyer extends Exchange {
         if (order === undefined)
             order = this.safeString (trade, 'child_order_acceptance_id');
         let timestamp = this.parse8601 (trade['exec_date']);
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'size');
         return {
             'id': trade['id'].toString (),
             'info': trade,
@@ -10184,8 +10186,8 @@ module.exports = class bitflyer extends Exchange {
             'order': order,
             'type': undefined,
             'side': side,
-            'price': trade['price'],
-            'amount': trade['size'],
+            'price': price,
+            'amount': amount,
         };
     }
 
@@ -35027,8 +35029,8 @@ module.exports = class fcoin extends Exchange {
             let priceField = this.sum (index, priceKey);
             let amountField = this.sum (index, amountKey);
             result.push ([
-                orders[priceField],
-                orders[amountField],
+                this.safeFloat (orders, priceField),
+                this.safeFloat (orders, amountField),
             ]);
         }
         return result;
@@ -36449,8 +36451,8 @@ module.exports = class gatecoin extends Exchange {
         }
         let fee = undefined;
         let feeCost = this.safeFloat (trade, 'feeAmount');
-        let price = trade['price'];
-        let amount = trade['quantity'];
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'quantity');
         let cost = price * amount;
         let feeCurrency = undefined;
         let symbol = undefined;
@@ -46572,8 +46574,8 @@ module.exports = class kucoin extends Exchange {
             } else if (trade[1] === 'SELL') {
                 side = 'sell';
             }
-            price = trade[2];
-            amount = trade[3];
+            price = this.safeFloat (trade, 2);
+            amount = this.safeFloat (trade, 3);
             id = trade[5];
         } else {
             timestamp = this.safeValue (trade, 'createdAt');
@@ -62985,6 +62987,8 @@ module.exports = class zaif extends Exchange {
         let timestamp = trade['date'] * 1000;
         let id = this.safeString (trade, 'id');
         id = this.safeString (trade, 'tid', id);
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'amount');
         if (!market)
             market = this.markets_by_id[trade['currency_pair']];
         return {
@@ -62995,8 +62999,8 @@ module.exports = class zaif extends Exchange {
             'symbol': market['symbol'],
             'type': undefined,
             'side': side,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'price': price,
+            'amount': amount,
         };
     }
 

@@ -374,8 +374,8 @@ class gatecoin (Exchange):
                 market = self.find_market(marketId)
         fee = None
         feeCost = self.safe_float(trade, 'feeAmount')
-        price = trade['price']
-        amount = trade['quantity']
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'quantity')
         cost = price * amount
         feeCurrency = None
         symbol = None
