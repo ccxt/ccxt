@@ -201,17 +201,13 @@ module.exports = class adara extends Exchange {
             const base = this.commonCurrencyCode (baseId);
             const quote = this.commonCurrencyCode (quoteId);
             const baseCurrency = this.safeValue (currenciesById, baseId, {});
-            const quoteCurrency = this.safeValue (currenciesById, quoteId, {});
             const baseCurrencyAttributes = this.safeValue (baseCurrency, 'attributes', {});
-            const quoteCurrencyAttributes = this.safeValue (quoteCurrency, 'attributes', {});
             const symbol = base + '/' + quote;
             const amountPrecision = this.safeInteger (baseCurrencyAttributes, 'accuracy', 8);
-            const costPrecision = this.safeInteger (attributes, 'digits', 8);
-            const pricePrecision = this.safeInteger (quoteCurrencyAttributes, 'accuracy', costPrecision);
+            const pricePrecision = this.safeInteger (attributes, 'digits', 8);
             const precision = {
                 'amount': amountPrecision,
                 'price': pricePrecision,
-                'cost': costPrecision,
             };
             const active = this.safeValue (attributes, 'allowTrade');
             const maker = this.safeFloat (attributes, 'makerFee');
@@ -733,10 +729,10 @@ module.exports = class adara extends Exchange {
             'data': {
                 'type': 'order',
                 'attributes': {
-                    'amount': amount,
+                    'amount': parseFloat (this.amountToPrecision (symbol, amount)),
                     'operation': side,
                     'orderType': type,
-                    'price': price,
+                    'price': parseFloat (this.priceToPrecision (symbol, price)),
                 },
                 'relationships': {
                     'symbol': {
