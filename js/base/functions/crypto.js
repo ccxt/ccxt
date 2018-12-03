@@ -37,20 +37,11 @@ const jwt = function JSON_web_token (request, secret, alg = 'HS256', hash = 'sha
 /*  ------------------------------------------------------------------------ */
 
 const totp = (secret) => {
-    const dec2hex = (s) => {
-        return (s < 15.5 ? '0' : '') + Math.round (s).toString (16)
-    }
 
-    const hex2dec = (s) => {
-        return parseInt (s, 16)
-    }
-
-    const leftpad = (s, l, p) => {
-        if (l + 1 >= s.length) {
-            s = Array (l + 1 - s.length).join (p) + s
-        }
-        return s
-    }
+    const dec2hex = s => ((s < 15.5 ? '0' : '') + Math.round (s).toString (16))
+        , hex2dec = s => parseInt (s, 16)
+        , leftpad = (s, l, p) => ((l + 1 >= s.length) ?
+            (Array (l + 1 - s.length).join (p) + s) : s)
 
     const base32tohex = (base32) => {
         let base32chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
