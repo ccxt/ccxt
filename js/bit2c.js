@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -146,6 +146,9 @@ module.exports = class bit2c extends Exchange {
         let response = await this[method] (this.extend ({
             'pair': market['id'],
         }, params));
+        if (typeof response === 'string') {
+            throw new ExchangeError (response);
+        }
         return this.parseTrades (response, market, since, limit);
     }
 
