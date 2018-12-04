@@ -63,7 +63,6 @@ from ccxt.base.errors import OrderImmediatelyFillable       # noqa: F401
 from ccxt.base.errors import OrderNotFillable               # noqa: F401
 
 
-from ccxt._1btcxe import _1btcxe                            # noqa: F401
 from ccxt.acx import acx                                    # noqa: F401
 from ccxt.allcoin import allcoin                            # noqa: F401
 from ccxt.anxpro import anxpro                              # noqa: F401
@@ -194,11 +193,12 @@ from ccxt.wex import wex                                    # noqa: F401
 from ccxt.xbtce import xbtce                                # noqa: F401
 from ccxt.yobit import yobit                                # noqa: F401
 from ccxt.yunbi import yunbi                                # noqa: F401
+from ccxt.yunex import yunex                                # noqa: F401
 from ccxt.zaif import zaif                                  # noqa: F401
 from ccxt.zb import zb                                      # noqa: F401
+from ccxt._1btcxe import _1btcxe                            # noqa: F401
 
 exchanges = [
-    '_1btcxe',
     'acx',
     'allcoin',
     'anxpro',
@@ -329,8 +329,10 @@ exchanges = [
     'xbtce',
     'yobit',
     'yunbi',
+    'yunex',
     'zaif',
     'zb',
+    '_1btcxe',
 ]
 
 base = [
