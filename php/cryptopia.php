@@ -15,6 +15,7 @@ class cryptopia extends Exchange {
             'name' => 'Cryptopia',
             'rateLimit' => 1500,
             'countries' => array ( 'NZ' ), // New Zealand
+            'parseJsonResponse' => false,
             'has' => array (
                 'CORS' => false,
                 'createMarketOrder' => false,
@@ -916,7 +917,8 @@ class cryptopia extends Exchange {
         return $jsonString;
     }
 
-    public function parse_json ($response, $responseBody, $url, $method) {
-        return parent::parseJson ($response, $this->sanitize_broken_json_string ($responseBody), $url, $method);
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        return $this->parse_if_json_encoded_object($this->sanitize_broken_json_string ($response));
     }
 }
