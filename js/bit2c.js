@@ -64,9 +64,13 @@ module.exports = class bit2c extends Exchange {
             },
             'markets': {
                 'BTC/NIS': { 'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS' },
-                'BCH/NIS': { 'id': 'BchNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS' },
+                'ETH/NIS': { 'id': 'EthNis', 'symbol': 'ETH/NIS', 'base': 'ETH', 'quote': 'NIS' },
+                'BCH/NIS': { 'id': 'BchAbcNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS' },
                 'LTC/NIS': { 'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS' },
+                'ETC/NIS': { 'id': 'EtcNis', 'symbol': 'ETC/NIS', 'base': 'ETC', 'quote': 'NIS' },
                 'BTG/NIS': { 'id': 'BtgNis', 'symbol': 'BTG/NIS', 'base': 'BTG', 'quote': 'NIS' },
+                'LTC/BTC': { 'id': 'LtcBtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
+                'BCHSV/NIS': { 'id': 'BchSvNis', 'symbol': 'BCHSV/NIS', 'base': 'BCHSV', 'quote': 'NIS' },
             },
             'fees': {
                 'trading': {
@@ -304,10 +308,14 @@ module.exports = class bit2c extends Exchange {
             id = this.safeInteger (trade, 'tid');
             price = this.safeFloat (trade, 'price');
             amount = this.safeFloat (trade, 'amount');
-            if (trade.isBid === true) {
+            switch (trade.isBid) {
+            case true:
                 side = 'buy';
-            } else if (trade.isBid === false) {
+                break;
+            case false:
                 side = 'sell';
+                break;
+            default:
             }
         }
         let symbol = undefined;
