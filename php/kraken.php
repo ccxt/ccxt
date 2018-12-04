@@ -1158,6 +1158,9 @@ class kraken extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+        if ($code === 520) {
+            throw new ExchangeNotAvailable ($this->id . ' ' . $body);
+        }
         if (mb_strpos ($body, 'Invalid order') !== false)
             throw new InvalidOrder ($this->id . ' ' . $body);
         if (mb_strpos ($body, 'Invalid nonce') !== false)
