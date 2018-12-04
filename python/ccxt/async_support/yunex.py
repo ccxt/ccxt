@@ -47,7 +47,7 @@ class yunex (Exchange):
                 'api': 'https://a.yunex.io',
                 'www': 'https://yunex.io/',
                 'referral': 'https://yunex.io/user/register?inviter=16609',
-                'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
+                'doc': 'https://github.com/yunexio/openAPI',
                 'fees': 'https://support.yunex.io/hc/en-us/articles/360003486391-Fees',
             },
             'api': {
