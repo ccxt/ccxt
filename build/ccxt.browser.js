@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.579'
+const version = '1.17.580'
 
 Exchange.ccxtVersion = version
 
@@ -31378,6 +31378,7 @@ module.exports = class cryptopia extends Exchange {
             'name': 'Cryptopia',
             'rateLimit': 1500,
             'countries': [ 'NZ' ], // New Zealand
+            'parseJsonResponse': false,
             'has': {
                 'CORS': false,
                 'createMarketOrder': false,
@@ -32279,8 +32280,9 @@ module.exports = class cryptopia extends Exchange {
         return jsonString;
     }
 
-    parseJson (response, responseBody, url, method) { // we have to sanitize JSON before trying to parse
-        return super.parseJson (response, this.sanitizeBrokenJSONString (responseBody), url, method);
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
+        return this.parseIfJsonEncodedObject (this.sanitizeBrokenJSONString (response));
     }
 };
 
