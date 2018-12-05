@@ -234,7 +234,7 @@ module.exports = class adara extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': Math.pow (10, -precision['cost']),
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
