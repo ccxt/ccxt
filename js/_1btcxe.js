@@ -185,7 +185,7 @@ module.exports = class _1btcxe extends Exchange {
         let response = await this.publicGetTransactions (this.extend ({
             'currency': market['id'],
         }, params));
-        let trades = this.omit (response['transactions'], 'request_currency');
+        let trades = this.toArray (this.omit (response['transactions'], 'request_currency'));
         return this.parseTrades (trades, market, since, limit);
     }
 
