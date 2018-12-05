@@ -113,6 +113,7 @@ module.exports = class kraken extends Exchange {
                         'GNO': 0.01,
                         'EOS': 0.5,
                         'BCH': 0.001,
+                        'XTZ': 0.05,
                         'USD': 5, // if domestic wire
                         'EUR': 5, // if domestic wire
                         'CAD': 10, // CAD EFT Withdrawal
@@ -135,6 +136,7 @@ module.exports = class kraken extends Exchange {
                         'GNO': 0,
                         'EOS': 0,
                         'BCH': 0,
+                        'XTZ': 0.05,
                         'USD': 5, // if domestic wire
                         'EUR': 0, // free deposit if EUR SEPA Deposit
                         'CAD': 5, // if domestic wire
