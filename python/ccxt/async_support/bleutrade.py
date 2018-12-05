@@ -250,6 +250,37 @@ class bleutrade (bittrex):
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         return await self.fetch_transactions_by_type('withdrawal', code, since, limit, params)
 
+    def parse_trade(self, trade, market=None):
+        timestamp = self.parse8601(trade['TimeStamp'] + '+00:00')
+        side = None
+        if trade['OrderType'] == 'BUY':
+            side = 'buy'
+        elif trade['OrderType'] == 'SELL':
+            side = 'sell'
+        id = self.safe_string(trade, 'TradeID')
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        cost = None
+        price = self.safe_float(trade, 'Price')
+        amount = self.safe_float(trade, 'Quantity')
+        if amount is not None:
+            if price is not None:
+                cost = price * amount
+        return {
+            'id': id,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
+        }
+
     def parse_transaction(self, transaction, currency=None):
         #
         #  deposit:

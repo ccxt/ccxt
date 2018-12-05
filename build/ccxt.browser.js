@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.584'
+const version = '1.17.585'
 
 Exchange.ccxtVersion = version
 
@@ -17547,6 +17547,41 @@ module.exports = class bleutrade extends bittrex {
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchTransactionsByType ('withdrawal', code, since, limit, params);
+    }
+
+    parseTrade (trade, market = undefined) {
+        let timestamp = this.parse8601 (trade['TimeStamp'] + '+00:00');
+        let side = undefined;
+        if (trade['OrderType'] === 'BUY') {
+            side = 'buy';
+        } else if (trade['OrderType'] === 'SELL') {
+            side = 'sell';
+        }
+        let id = this.safeString (trade, 'TradeID');
+        let symbol = undefined;
+        if (market !== undefined)
+            symbol = market['symbol'];
+        let cost = undefined;
+        let price = this.safeFloat (trade, 'Price');
+        let amount = this.safeFloat (trade, 'Quantity');
+        if (amount !== undefined) {
+            if (price !== undefined) {
+                cost = price * amount;
+            }
+        }
+        return {
+            'id': id,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
+        };
     }
 
     parseTransaction (transaction, currency = undefined) {

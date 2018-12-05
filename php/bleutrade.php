@@ -264,6 +264,41 @@ class bleutrade extends bittrex {
         return $this->fetch_transactions_by_type ('withdrawal', $code, $since, $limit, $params);
     }
 
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = $this->parse8601 ($trade['TimeStamp'] . '+00:00');
+        $side = null;
+        if ($trade['OrderType'] === 'BUY') {
+            $side = 'buy';
+        } else if ($trade['OrderType'] === 'SELL') {
+            $side = 'sell';
+        }
+        $id = $this->safe_string($trade, 'TradeID');
+        $symbol = null;
+        if ($market !== null)
+            $symbol = $market['symbol'];
+        $cost = null;
+        $price = $this->safe_float($trade, 'Price');
+        $amount = $this->safe_float($trade, 'Quantity');
+        if ($amount !== null) {
+            if ($price !== null) {
+                $cost = $price * $amount;
+            }
+        }
+        return array (
+            'id' => $id,
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
+            'type' => 'limit',
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => null,
+        );
+    }
+
     public function parse_transaction ($transaction, $currency = null) {
         //
         //  deposit:
