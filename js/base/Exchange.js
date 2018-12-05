@@ -4,6 +4,7 @@
 
 const functions = require ('./functions')
     , Market    = require ('./Market')
+    , jsonBignum = require ('./json-bignum')
 
 const {
     isNode
@@ -39,8 +40,6 @@ const {
     , ExchangeNotAvailable } = require ('./errors')
 
 const { TRUNCATE, ROUND, DECIMAL_PLACES } = functions.precisionConstants
-
-const jsonBignum = require('json-bignum');
 
 const defaultFetch = typeof (fetch) === "undefined" ? require ('fetch-ponyfill') ().fetch : fetch
 
