@@ -308,14 +308,13 @@ module.exports = class bit2c extends Exchange {
             id = this.safeInteger (trade, 'tid');
             price = this.safeFloat (trade, 'price');
             amount = this.safeFloat (trade, 'amount');
-            switch (trade.isBid) {
-            case true:
-                side = 'buy';
-                break;
-            case false:
-                side = 'sell';
-                break;
-            default:
+            side = this.safeValue (trade, 'isBid');
+            if (side !== undefined) {
+                if (side) {
+                    side = 'buy';
+                } else {
+                    side = 'sell';
+                }
             }
         }
         let symbol = undefined;
