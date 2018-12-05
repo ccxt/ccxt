@@ -135,6 +135,7 @@ module.exports = class bitmex extends Exchange {
                     'Invalid API Key.': AuthenticationError,
                     'Access Denied': PermissionDenied,
                     'Duplicate clOrdID': InvalidOrder,
+                    'Signature not valid': AuthenticationError,
                 },
                 'broad': {
                     'overloaded': ExchangeNotAvailable,
