@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.581'
+const version = '1.17.582'
 
 Exchange.ccxtVersion = version
 
@@ -7236,7 +7236,7 @@ module.exports = class binance extends Exchange {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -7297,9 +7297,13 @@ module.exports = class bit2c extends Exchange {
             },
             'markets': {
                 'BTC/NIS': { 'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS' },
-                'BCH/NIS': { 'id': 'BchNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS' },
+                'ETH/NIS': { 'id': 'EthNis', 'symbol': 'ETH/NIS', 'base': 'ETH', 'quote': 'NIS' },
+                'BCHABC/NIS': { 'id': 'BchAbcNis', 'symbol': 'BCHABC/NIS', 'base': 'BCHABC', 'quote': 'NIS' },
                 'LTC/NIS': { 'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS' },
+                'ETC/NIS': { 'id': 'EtcNis', 'symbol': 'ETC/NIS', 'base': 'ETC', 'quote': 'NIS' },
                 'BTG/NIS': { 'id': 'BtgNis', 'symbol': 'BTG/NIS', 'base': 'BTG', 'quote': 'NIS' },
+                'LTC/BTC': { 'id': 'LtcBtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
+                'BCHSV/NIS': { 'id': 'BchSvNis', 'symbol': 'BCHSV/NIS', 'base': 'BCHSV', 'quote': 'NIS' },
             },
             'fees': {
                 'trading': {
@@ -7379,6 +7383,9 @@ module.exports = class bit2c extends Exchange {
         let response = await this[method] (this.extend ({
             'pair': market['id'],
         }, params));
+        if (typeof response === 'string') {
+            throw new ExchangeError (response);
+        }
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -7534,6 +7541,14 @@ module.exports = class bit2c extends Exchange {
             id = this.safeInteger (trade, 'tid');
             price = this.safeFloat (trade, 'price');
             amount = this.safeFloat (trade, 'amount');
+            side = this.safeValue (trade, 'isBid');
+            if (side !== undefined) {
+                if (side) {
+                    side = 'buy';
+                } else {
+                    side = 'sell';
+                }
+            }
         }
         let symbol = undefined;
         if (market !== undefined)

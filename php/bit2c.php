@@ -65,9 +65,13 @@ class bit2c extends Exchange {
             ),
             'markets' => array (
                 'BTC/NIS' => array ( 'id' => 'BtcNis', 'symbol' => 'BTC/NIS', 'base' => 'BTC', 'quote' => 'NIS' ),
-                'BCH/NIS' => array ( 'id' => 'BchNis', 'symbol' => 'BCH/NIS', 'base' => 'BCH', 'quote' => 'NIS' ),
+                'ETH/NIS' => array ( 'id' => 'EthNis', 'symbol' => 'ETH/NIS', 'base' => 'ETH', 'quote' => 'NIS' ),
+                'BCHABC/NIS' => array ( 'id' => 'BchAbcNis', 'symbol' => 'BCHABC/NIS', 'base' => 'BCHABC', 'quote' => 'NIS' ),
                 'LTC/NIS' => array ( 'id' => 'LtcNis', 'symbol' => 'LTC/NIS', 'base' => 'LTC', 'quote' => 'NIS' ),
+                'ETC/NIS' => array ( 'id' => 'EtcNis', 'symbol' => 'ETC/NIS', 'base' => 'ETC', 'quote' => 'NIS' ),
                 'BTG/NIS' => array ( 'id' => 'BtgNis', 'symbol' => 'BTG/NIS', 'base' => 'BTG', 'quote' => 'NIS' ),
+                'LTC/BTC' => array ( 'id' => 'LtcBtc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
+                'BCHSV/NIS' => array ( 'id' => 'BchSvNis', 'symbol' => 'BCHSV/NIS', 'base' => 'BCHSV', 'quote' => 'NIS' ),
             ),
             'fees' => array (
                 'trading' => array (
@@ -147,6 +151,9 @@ class bit2c extends Exchange {
         $response = $this->$method (array_merge (array (
             'pair' => $market['id'],
         ), $params));
+        if (gettype ($response) === 'string') {
+            throw new ExchangeError ($response);
+        }
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -302,6 +309,14 @@ class bit2c extends Exchange {
             $id = $this->safe_integer($trade, 'tid');
             $price = $this->safe_float($trade, 'price');
             $amount = $this->safe_float($trade, 'amount');
+            $side = $this->safe_value($trade, 'isBid');
+            if ($side !== null) {
+                if ($side) {
+                    $side = 'buy';
+                } else {
+                    $side = 'sell';
+                }
+            }
         }
         $symbol = null;
         if ($market !== null)
