@@ -1126,7 +1126,7 @@ module.exports = class Exchange {
     }
 
     parseTrades (trades, market = undefined, since = undefined, limit = undefined) {
-        // this code is commented out temprorarily to catch for exchange-specific errors
+        // this code is commented out temporarily to catch for exchange-specific errors
         // if (!this.isArray (trades)) {
         //     throw new ExchangeError (this.id + ' parseTrades expected an array in the trades argument, but got ' + typeof trades);
         // }
@@ -1137,7 +1137,7 @@ module.exports = class Exchange {
     }
 
     parseTransactions (transactions, currency = undefined, since = undefined, limit = undefined) {
-        // this code is commented out temprorarily to catch for exchange-specific errors
+        // this code is commented out temporarily to catch for exchange-specific errors
         // if (!this.isArray (transactions)) {
         //     throw new ExchangeError (this.id + ' parseTransactions expected an array in the transactions argument, but got ' + typeof transactions);
         // }
@@ -1148,7 +1148,7 @@ module.exports = class Exchange {
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
-        // this code is commented out temprorarily to catch for exchange-specific errors
+        // this code is commented out temporarily to catch for exchange-specific errors
         // if (!this.isArray (orders)) {
         //     throw new ExchangeError (this.id + ' parseOrders expected an array in the orders argument, but got ' + typeof orders);
         // }
@@ -1167,7 +1167,7 @@ module.exports = class Exchange {
     }
 
     parseOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        // this code is commented out temprorarily to catch for exchange-specific errors
+        // this code is commented out temporarily to catch for exchange-specific errors
         // if (!this.isArray (ohlcvs)) {
         //     throw new ExchangeError (this.id + ' parseOHLCVs expected an array in the ohlcvs argument, but got ' + typeof ohlcvs);
         // }
