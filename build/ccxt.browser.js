@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.6'
+const version = '1.18.7'
 
 Exchange.ccxtVersion = version
 
@@ -33434,6 +33434,7 @@ module.exports = class exmo extends Exchange {
             'countries': [ 'ES', 'RU' ], // Spain, Russia
             'rateLimit': 350, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version': 'v1',
+            'parseJsonResponse': false,
             'has': {
                 'CORS': false,
                 'fetchClosedOrders': 'emulated',
@@ -33530,17 +33531,7 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
-        let response = undefined;
-        let oldParseJsonResponse = this.parseJsonResponse;
-        try {
-            this.parseJsonResponse = false;
-            response = await this.webGetEnDocsFees (params);
-            this.parseJsonResponse = oldParseJsonResponse;
-        } catch (e) {
-            // ensure parseJsonResponse is restored no matter what
-            this.parseJsonResponse = oldParseJsonResponse;
-            throw e;
-        }
+        let response = await this.webGetEnDocsFees (params);
         let parts = response.split ('<td class="th_fees_2" colspan="2">');
         let numParts = parts.length;
         if (numParts !== 2) {
@@ -34477,6 +34468,11 @@ module.exports = class exmo extends Exchange {
                 }
             }
         }
+    }
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
+        return this.parseIfJsonEncodedObject (response);
     }
 };
 

@@ -31,6 +31,7 @@ class exmo (Exchange):
             'countries': ['ES', 'RU'],  # Spain, Russia
             'rateLimit': 350,  # once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version': 'v1',
+            'parseJsonResponse': False,
             'has': {
                 'CORS': False,
                 'fetchClosedOrders': 'emulated',
@@ -126,16 +127,7 @@ class exmo (Exchange):
         })
 
     async def fetch_trading_fees(self, params={}):
-        response = None
-        oldParseJsonResponse = self.parseJsonResponse
-        try:
-            self.parseJsonResponse = False
-            response = await self.webGetEnDocsFees(params)
-            self.parseJsonResponse = oldParseJsonResponse
-        except Exception as e:
-            # ensure parseJsonResponse is restored no matter what
-            self.parseJsonResponse = oldParseJsonResponse
-            raise e
+        response = await self.webGetEnDocsFees(params)
         parts = response.split('<td class="th_fees_2" colspan="2">')
         numParts = len(parts)
         if numParts != 2:
@@ -971,3 +963,7 @@ class exmo (Exchange):
                         raise exceptions[code](feedback)
                     else:
                         raise ExchangeError(feedback)
+
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = await self.fetch2(path, api, method, params, headers, body)
+        return self.parse_if_json_encoded_object(response)
