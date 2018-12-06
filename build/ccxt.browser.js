@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.5'
+const version = '1.18.6'
 
 Exchange.ccxtVersion = version
 
@@ -2475,7 +2475,7 @@ module.exports = class Exchange {
     }
 
     parseTrades (trades, market = undefined, since = undefined, limit = undefined) {
-        // this code is commented out temprorarily to catch for exchange-specific errors
+        // this code is commented out temporarily to catch for exchange-specific errors
         // if (!this.isArray (trades)) {
         //     throw new ExchangeError (this.id + ' parseTrades expected an array in the trades argument, but got ' + typeof trades);
         // }
@@ -2486,7 +2486,7 @@ module.exports = class Exchange {
     }
 
     parseTransactions (transactions, currency = undefined, since = undefined, limit = undefined) {
-        // this code is commented out temprorarily to catch for exchange-specific errors
+        // this code is commented out temporarily to catch for exchange-specific errors
         // if (!this.isArray (transactions)) {
         //     throw new ExchangeError (this.id + ' parseTransactions expected an array in the transactions argument, but got ' + typeof transactions);
         // }
@@ -2497,7 +2497,7 @@ module.exports = class Exchange {
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
-        // this code is commented out temprorarily to catch for exchange-specific errors
+        // this code is commented out temporarily to catch for exchange-specific errors
         // if (!this.isArray (orders)) {
         //     throw new ExchangeError (this.id + ' parseOrders expected an array in the orders argument, but got ' + typeof orders);
         // }
@@ -2516,7 +2516,7 @@ module.exports = class Exchange {
     }
 
     parseOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        // this code is commented out temprorarily to catch for exchange-specific errors
+        // this code is commented out temporarily to catch for exchange-specific errors
         // if (!this.isArray (ohlcvs)) {
         //     throw new ExchangeError (this.id + ' parseOHLCVs expected an array in the ohlcvs argument, but got ' + typeof ohlcvs);
         // }
@@ -6378,7 +6378,7 @@ module.exports = class binance extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
@@ -6387,14 +6387,21 @@ module.exports = class binance extends Exchange {
                     },
                 },
             };
-            if ('PRICE_FILTER' in filters) {
-                let filter = filters['PRICE_FILTER'];
-                entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
-                entry['limits']['price'] = {
-                    'min': this.safeFloat (filter, 'minPrice'),
-                    'max': this.safeFloat (filter, 'maxPrice'),
-                };
-            }
+            // PRICE_FILTER reports zero values for minPrice and maxPrice
+            // since they updated filter types in November 2018
+            // https://github.com/ccxt/ccxt/issues/4286
+            // therefore limits['price']['min'] and limits['price']['max]
+            // don't have any meaningful value except undefined
+            //
+            //     if ('PRICE_FILTER' in filters) {
+            //         let filter = filters['PRICE_FILTER'];
+            //         entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
+            //         entry['limits']['price'] = {
+            //             'min': this.safeFloat (filter, 'minPrice'),
+            //             'max': this.safeFloat (filter, 'maxPrice'),
+            //         };
+            //     }
+            //
             if ('LOT_SIZE' in filters) {
                 let filter = filters['LOT_SIZE'];
                 entry['precision']['amount'] = this.precisionFromString (filter['stepSize']);
