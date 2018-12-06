@@ -551,8 +551,8 @@ class upbit (Exchange):
             'change': change,
             'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'acc_trade_price_24h'),
-            'quoteVolume': self.safe_float(ticker, 'acc_trade_volume_24h'),
+            'baseVolume': self.safe_float(ticker, 'acc_trade_volume_24h'),
+            'quoteVolume': self.safe_float(ticker, 'acc_trade_price_24h'),
             'info': ticker,
         }
 

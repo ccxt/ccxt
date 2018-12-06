@@ -154,7 +154,7 @@ class _1btcxe (Exchange):
             'currency': market['id'],
             'timeframe': self.timeframes[timeframe],
         }, params))
-        ohlcvs = self.omit(response['historical-prices'], 'request_currency')
+        ohlcvs = self.to_array(self.omit(response['historical-prices'], 'request_currency'))
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market):
@@ -177,7 +177,7 @@ class _1btcxe (Exchange):
         response = await self.publicGetTransactions(self.extend({
             'currency': market['id'],
         }, params))
-        trades = self.omit(response['transactions'], 'request_currency')
+        trades = self.to_array(self.omit(response['transactions'], 'request_currency'))
         return self.parse_trades(trades, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):

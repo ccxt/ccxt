@@ -968,6 +968,7 @@ class poloniex extends Exchange {
     }
 
     public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->fetch_transactions_helper ($code, $since, $limit, $params);
         for ($i = 0; $i < count ($response['deposits']); $i++) {
             $response['deposits'][$i]['type'] = 'deposit';
@@ -975,8 +976,12 @@ class poloniex extends Exchange {
         for ($i = 0; $i < count ($response['withdrawals']); $i++) {
             $response['withdrawals'][$i]['type'] = 'withdrawal';
         }
-        $withdrawals = $this->parseTransactions ($response['withdrawals'], $code, $since, $limit);
-        $deposits = $this->parseTransactions ($response['deposits'], $code, $since, $limit);
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+        }
+        $withdrawals = $this->parseTransactions ($response['withdrawals'], $currency, $since, $limit);
+        $deposits = $this->parseTransactions ($response['deposits'], $currency, $since, $limit);
         $transactions = $this->array_concat($deposits, $withdrawals);
         return $this->filterByCurrencySinceLimit ($this->sort_by($transactions, 'timestamp'), $code, $since, $limit);
     }
@@ -986,7 +991,11 @@ class poloniex extends Exchange {
         for ($i = 0; $i < count ($response['withdrawals']); $i++) {
             $response['withdrawals'][$i]['type'] = 'withdrawal';
         }
-        $withdrawals = $this->parseTransactions ($response['withdrawals'], $code, $since, $limit);
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+        }
+        $withdrawals = $this->parseTransactions ($response['withdrawals'], $currency, $since, $limit);
         return $this->filterByCurrencySinceLimit ($withdrawals, $code, $since, $limit);
     }
 
@@ -995,7 +1004,11 @@ class poloniex extends Exchange {
         for ($i = 0; $i < count ($response['deposits']); $i++) {
             $response['deposits'][$i]['type'] = 'deposit';
         }
-        $deposits = $this->parseTransactions ($response['deposits'], $code, $since, $limit);
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+        }
+        $deposits = $this->parseTransactions ($response['deposits'], $currency, $since, $limit);
         return $this->filterByCurrencySinceLimit ($deposits, $code, $since, $limit);
     }
 
@@ -1062,8 +1075,6 @@ class poloniex extends Exchange {
             if ($type === 'deposit') {
                 // according to https://poloniex.com/fees/
                 $feeCost = 0; // FIXME => remove hardcoded value that may change any time
-            } else if ($type === 'withdrawal') {
-                throw new ExchangeError ('Withdrawal without fee detected!');
             }
         }
         return array (

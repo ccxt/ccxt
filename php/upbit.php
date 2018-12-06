@@ -562,8 +562,8 @@ class upbit extends Exchange {
             'change' => $change,
             'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'acc_trade_price_24h'),
-            'quoteVolume' => $this->safe_float($ticker, 'acc_trade_volume_24h'),
+            'baseVolume' => $this->safe_float($ticker, 'acc_trade_volume_24h'),
+            'quoteVolume' => $this->safe_float($ticker, 'acc_trade_price_24h'),
             'info' => $ticker,
         );
     }

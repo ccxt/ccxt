@@ -219,6 +219,7 @@ class bitfinex (Exchange):
                         'AID': 8.08,
                         'MNA': 16.617,
                         'NEC': 1.6504,
+                        'XTZ': 0.2,
                     },
                     'withdraw': {
                         'BTC': 0.0004,
@@ -260,6 +261,7 @@ class bitfinex (Exchange):
                         'AID': 8.08,
                         'MNA': 16.617,
                         'NEC': 1.6504,
+                        'XTZ': 0.2,
                     },
                 },
             },
@@ -385,6 +387,7 @@ class bitfinex (Exchange):
                     'YOYOW': 'yoyow',
                     'ZEC': 'zcash',
                     'ZRX': 'zrx',
+                    'XTZ': 'tezos',
                 },
             },
         })

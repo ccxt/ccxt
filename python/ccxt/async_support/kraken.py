@@ -136,6 +136,7 @@ class kraken (Exchange):
                         'GNO': 0.01,
                         'EOS': 0.5,
                         'BCH': 0.001,
+                        'XTZ': 0.05,
                         'USD': 5,  # if domestic wire
                         'EUR': 5,  # if domestic wire
                         'CAD': 10,  # CAD EFT Withdrawal
@@ -158,6 +159,7 @@ class kraken (Exchange):
                         'GNO': 0,
                         'EOS': 0,
                         'BCH': 0,
+                        'XTZ': 0.05,
                         'USD': 5,  # if domestic wire
                         'EUR': 0,  # free deposit if EUR SEPA Deposit
                         'CAD': 5,  # if domestic wire
@@ -1093,6 +1095,8 @@ class kraken (Exchange):
         return self.milliseconds()
 
     def handle_errors(self, code, reason, url, method, headers, body, response=None):
+        if code == 520:
+            raise ExchangeNotAvailable(self.id + ' ' + body)
         if body.find('Invalid order') >= 0:
             raise InvalidOrder(self.id + ' ' + body)
         if body.find('Invalid nonce') >= 0:

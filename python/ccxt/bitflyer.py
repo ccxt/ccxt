@@ -203,6 +203,8 @@ class bitflyer (Exchange):
         if order is None:
             order = self.safe_string(trade, 'child_order_acceptance_id')
         timestamp = self.parse8601(trade['exec_date'])
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'size')
         return {
             'id': str(trade['id']),
             'info': trade,
@@ -212,8 +214,8 @@ class bitflyer (Exchange):
             'order': order,
             'type': None,
             'side': side,
-            'price': trade['price'],
-            'amount': trade['size'],
+            'price': price,
+            'amount': amount,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

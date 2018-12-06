@@ -183,7 +183,7 @@ The ccxt library currently supports the following 132 cryptocurrency exchange ma
 |![vaultoro](https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg)           | vaultoro           | [Vaultoro](https://www.vaultoro.com)                                                 |                                                                                                                             | 1     | [API](https://api.vaultoro.com)                                                                  | Switzerland                             |
 |![vbtc](https://user-images.githubusercontent.com/1294454/27991481-1f53d1d8-6481-11e7-884e-21d17e7939db.jpg)               | vbtc               | [VBTC](https://vbtc.exchange)                                                        |                                                                                                                             | 1     | [API](https://blinktrade.com/docs)                                                               | Vietnam                                 |
 |![virwox](https://user-images.githubusercontent.com/1294454/27766894-6da9d360-5eea-11e7-90aa-41f2711b7405.jpg)             | virwox             | [VirWoX](https://www.virwox.com)                                                     |                                                                                                                             | *     | [API](https://www.virwox.com/developers.php)                                                     | Austria, EU                             |
-|![wex](https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg)                | wex                | [WEX](https://wex.link)                                                              |                                                                                                                             | 3     | [API](https://wex.link/api/3/docs)                                                               | New Zealand                             |
+|![wex](https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg)                | wex                | [WEX](https://wex.fit)                                                               |                                                                                                                             | 3     | [API](https://wex.fit/api/3/docs)                                                                | New Zealand                             |
 |![xbtce](https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg)              | xbtce              | [xBTCe](https://www.xbtce.com)                                                       |                                                                                                                             | 1     | [API](https://www.xbtce.com/tradeapi)                                                            | Russia                                  |
 |![yobit](https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg)              | yobit              | [YoBit](https://www.yobit.net)                                                       |                                                                                                                             | 3     | [API](https://www.yobit.net/en/api/)                                                             | Russia                                  |
 |![yunbi](https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg)              | yunbi              | [YUNBI](https://yunbi.com)                                                           |                                                                                                                             | 2     | [API](https://yunbi.com/documents/api/guide)                                                     | China                                   |
@@ -2649,6 +2649,8 @@ In some cases you can also use the withdrawal id to check withdrawal status late
 
 if (exchange.has['fetchDeposits']) {
     const deposits = await exchange.fetchDeposits (code, since, limit, params)
+} else {
+    throw new Error (exchange.id + ' does not have the fetchDeposits method')
 }
 ```
 
@@ -2656,9 +2658,10 @@ if (exchange.has['fetchDeposits']) {
 # Python
 # fetch_deposits(code = None, since = None, limit = None, params = {})
 
-if (exchange.has['fetchDeposits']) {
+if exchange.has['fetchDeposits']:
     deposits = exchange.fetch_deposits(code, since, limit, params)
-}
+else:
+    raise Exception (exchange.id + ' does not have the fetch_deposits method')
 ```
 
 ```PHP
@@ -2667,6 +2670,8 @@ if (exchange.has['fetchDeposits']) {
 
 if ($exchange->has['fetchDeposits']) {
     $deposits = $exchange->fetch_deposits ($code, $since, $limit, $params);
+} else {
+    throw new Exception ($exchange->id . ' does not have the fetch_deposits method');
 }
 ```
 
@@ -2678,6 +2683,8 @@ if ($exchange->has['fetchDeposits']) {
 
 if (exchange.has['fetchWithdrawals']) {
     const withdrawals = await exchange.fetchWithdrawals (code, since, limit, params)
+} else {
+    throw new Error (exchange.id + ' does not have the fetchWithdrawals method')
 }
 ```
 
@@ -2685,9 +2692,10 @@ if (exchange.has['fetchWithdrawals']) {
 # Python
 # fetch_withdrawals(code = None, since = None, limit = None, params = {})
 
-if (exchange.has['fetchWithdrawals']) {
+if exchange.has['fetchWithdrawals']:
     withdrawals = exchange.fetch_withdrawals(code, since, limit, params)
-}
+else:
+    raise Exception (exchange.id + ' does not have the fetch_withdrawals method')
 ```
 
 ```PHP
@@ -2696,6 +2704,8 @@ if (exchange.has['fetchWithdrawals']) {
 
 if ($exchange->has['fetchWithdrawals']) {
     $withdrawals = $exchange->fetch_withdrawals ($code, $since, $limit, $params);
+} else {
+    throw new Exception ($exchange->id . ' does not have the fetch_withdrawals method');
 }
 ```
 
@@ -2707,6 +2717,8 @@ if ($exchange->has['fetchWithdrawals']) {
 
 if (exchange.has['fetchTransactions']) {
     const transactions = await exchange.fetchTransactions (code, since, limit, params)
+} else {
+    throw new Error (exchange.id + ' does not have the fetchTransactions method')
 }
 ```
 
@@ -2714,9 +2726,10 @@ if (exchange.has['fetchTransactions']) {
 # Python
 # fetch_transactions(code = None, since = None, limit = None, params = {})
 
-if (exchange.has['fetchTransactions']) {
+if exchange.has['fetchTransactions']:
     transactions = exchange.fetch_transactions(code, since, limit, params)
-}
+else:
+    raise Exception (exchange.id + ' does not have the fetch_transactions method')
 ```
 
 ```PHP
@@ -2725,6 +2738,8 @@ if (exchange.has['fetchTransactions']) {
 
 if ($exchange->has['fetchTransactions']) {
     $transactions = $exchange->fetch_transactions ($code, $since, $limit, $params);
+} else {
+    throw new Exception ($exchange->id . ' does not have the fetch_transactions method');
 }
 ```
 ## Fees

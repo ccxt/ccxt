@@ -312,7 +312,7 @@ The ccxt library currently supports the following 132 cryptocurrency exchange ma
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |virwox|             | virwox             | `VirWoX <https://www.virwox.com>`__                                                     |                                                                      | \*    | `API <https://www.virwox.com/developers.php>`__                                                     | Austria, EU                              |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
-| |wex|                | wex                | `WEX <https://wex.link>`__                                                              |                                                                      | 3     | `API <https://wex.link/api/3/docs>`__                                                               | New Zealand                              |
+| |wex|                | wex                | `WEX <https://wex.fit>`__                                                               |                                                                      | 3     | `API <https://wex.fit/api/3/docs>`__                                                                | New Zealand                              |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |xbtce|              | xbtce              | `xBTCe <https://www.xbtce.com>`__                                                       |                                                                      | 1     | `API <https://www.xbtce.com/tradeapi>`__                                                            | Russia                                   |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -2882,6 +2882,8 @@ Deposits
 
    if (exchange.has['fetchDeposits']) {
        const deposits = await exchange.fetchDeposits (code, since, limit, params)
+   } else {
+       throw new Error (exchange.id + ' does not have the fetchDeposits method')
    }
 
 .. code:: python
@@ -2889,9 +2891,10 @@ Deposits
    # Python
    # fetch_deposits(code = None, since = None, limit = None, params = {})
 
-   if (exchange.has['fetchDeposits']) {
+   if exchange.has['fetchDeposits']:
        deposits = exchange.fetch_deposits(code, since, limit, params)
-   }
+   else:
+       raise Exception (exchange.id + ' does not have the fetch_deposits method')
 
 .. code:: php
 
@@ -2900,6 +2903,8 @@ Deposits
 
    if ($exchange->has['fetchDeposits']) {
        $deposits = $exchange->fetch_deposits ($code, $since, $limit, $params);
+   } else {
+       throw new Exception ($exchange->id . ' does not have the fetch_deposits method');
    }
 
 Withdrawals
@@ -2912,6 +2917,8 @@ Withdrawals
 
    if (exchange.has['fetchWithdrawals']) {
        const withdrawals = await exchange.fetchWithdrawals (code, since, limit, params)
+   } else {
+       throw new Error (exchange.id + ' does not have the fetchWithdrawals method')
    }
 
 .. code:: python
@@ -2919,9 +2926,10 @@ Withdrawals
    # Python
    # fetch_withdrawals(code = None, since = None, limit = None, params = {})
 
-   if (exchange.has['fetchWithdrawals']) {
+   if exchange.has['fetchWithdrawals']:
        withdrawals = exchange.fetch_withdrawals(code, since, limit, params)
-   }
+   else:
+       raise Exception (exchange.id + ' does not have the fetch_withdrawals method')
 
 .. code:: php
 
@@ -2930,6 +2938,8 @@ Withdrawals
 
    if ($exchange->has['fetchWithdrawals']) {
        $withdrawals = $exchange->fetch_withdrawals ($code, $since, $limit, $params);
+   } else {
+       throw new Exception ($exchange->id . ' does not have the fetch_withdrawals method');
    }
 
 All Transactions
@@ -2942,6 +2952,8 @@ All Transactions
 
    if (exchange.has['fetchTransactions']) {
        const transactions = await exchange.fetchTransactions (code, since, limit, params)
+   } else {
+       throw new Error (exchange.id + ' does not have the fetchTransactions method')
    }
 
 .. code:: python
@@ -2949,9 +2961,10 @@ All Transactions
    # Python
    # fetch_transactions(code = None, since = None, limit = None, params = {})
 
-   if (exchange.has['fetchTransactions']) {
+   if exchange.has['fetchTransactions']:
        transactions = exchange.fetch_transactions(code, since, limit, params)
-   }
+   else:
+       raise Exception (exchange.id + ' does not have the fetch_transactions method')
 
 .. code:: php
 
@@ -2960,6 +2973,8 @@ All Transactions
 
    if ($exchange->has['fetchTransactions']) {
        $transactions = $exchange->fetch_transactions ($code, $since, $limit, $params);
+   } else {
+       throw new Exception ($exchange->id . ' does not have the fetch_transactions method');
    }
 
 Fees

@@ -561,8 +561,8 @@ module.exports = class upbit extends Exchange {
             'change': change,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'acc_trade_price_24h'),
-            'quoteVolume': this.safeFloat (ticker, 'acc_trade_volume_24h'),
+            'baseVolume': this.safeFloat (ticker, 'acc_trade_volume_24h'),
+            'quoteVolume': this.safeFloat (ticker, 'acc_trade_price_24h'),
             'info': ticker,
         };
     }

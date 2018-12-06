@@ -204,10 +204,10 @@ class fcoin extends Exchange {
             $index = $i * 2;
             $priceField = $this->sum ($index, $priceKey);
             $amountField = $this->sum ($index, $amountKey);
-            $result[] = [
-                $orders[$priceField],
-                $orders[$amountField],
-            ];
+            $result[] = array (
+                $this->safe_float($orders, $priceField),
+                $this->safe_float($orders, $amountField),
+            );
         }
         return $result;
     }

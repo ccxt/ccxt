@@ -31,6 +31,7 @@ class cryptopia (Exchange):
             'name': 'Cryptopia',
             'rateLimit': 1500,
             'countries': ['NZ'],  # New Zealand
+            'parseJsonResponse': False,
             'has': {
                 'CORS': False,
                 'createMarketOrder': False,
@@ -839,5 +840,6 @@ class cryptopia (Exchange):
             return jsonString[indexOfBracket:]
         return jsonString
 
-    def parse_json(self, response, responseBody, url, method):
-        return super(cryptopia, self).parseJson(response, self.sanitize_broken_json_string(responseBody), url, method)
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = await self.fetch2(path, api, method, params, headers, body)
+        return self.parse_if_json_encoded_object(self.sanitize_broken_json_string(response))

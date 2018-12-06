@@ -1126,6 +1126,9 @@ module.exports = class Exchange {
     }
 
     parseTrades (trades, market = undefined, since = undefined, limit = undefined) {
+        if (!this.isArray (trades)) {
+            throw new ExchangeError (this.id + ' parseTrades expected an array in the trades argument, but got ' + typeof trades);
+        }
         let result = Object.values (trades || []).map (trade => this.parseTrade (trade, market))
         result = sortBy (result, 'timestamp')
         let symbol = (market !== undefined) ? market['symbol'] : undefined
@@ -1133,6 +1136,9 @@ module.exports = class Exchange {
     }
 
     parseTransactions (transactions, currency = undefined, since = undefined, limit = undefined) {
+        if (!this.isArray (transactions)) {
+            throw new ExchangeError (this.id + ' parseTransactions expected an array in the transactions argument, but got ' + typeof transactions);
+        }
         let result = Object.values (transactions || []).map (transaction => this.parseTransaction (transaction, currency))
         result = this.sortBy (result, 'timestamp');
         let code = (currency !== undefined) ? currency['code'] : undefined;
@@ -1140,6 +1146,9 @@ module.exports = class Exchange {
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
+        if (!this.isArray (orders)) {
+            throw new ExchangeError (this.id + ' parseOrders expected an array in the orders argument, but got ' + typeof orders);
+        }
         let result = Object.values (orders).map (order => this.parseOrder (order, market))
         result = sortBy (result, 'timestamp')
         let symbol = (market !== undefined) ? market['symbol'] : undefined
@@ -1155,6 +1164,9 @@ module.exports = class Exchange {
     }
 
     parseOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        if (!this.isArray (ohlcvs)) {
+            throw new ExchangeError (this.id + ' parseOHLCVs expected an array in the ohlcvs argument, but got ' + typeof ohlcvs);
+        }
         ohlcvs = Object.values (ohlcvs)
         let result = []
         for (let i = 0; i < ohlcvs.length; i++) {

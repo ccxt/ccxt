@@ -906,13 +906,17 @@ class poloniex (Exchange):
         return response
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
         response = await self.fetch_transactions_helper(code, since, limit, params)
         for i in range(0, len(response['deposits'])):
             response['deposits'][i]['type'] = 'deposit'
         for i in range(0, len(response['withdrawals'])):
             response['withdrawals'][i]['type'] = 'withdrawal'
-        withdrawals = self.parseTransactions(response['withdrawals'], code, since, limit)
-        deposits = self.parseTransactions(response['deposits'], code, since, limit)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        withdrawals = self.parseTransactions(response['withdrawals'], currency, since, limit)
+        deposits = self.parseTransactions(response['deposits'], currency, since, limit)
         transactions = self.array_concat(deposits, withdrawals)
         return self.filterByCurrencySinceLimit(self.sort_by(transactions, 'timestamp'), code, since, limit)
 
@@ -920,14 +924,20 @@ class poloniex (Exchange):
         response = await self.fetch_transactions_helper(code, since, limit, params)
         for i in range(0, len(response['withdrawals'])):
             response['withdrawals'][i]['type'] = 'withdrawal'
-        withdrawals = self.parseTransactions(response['withdrawals'], code, since, limit)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        withdrawals = self.parseTransactions(response['withdrawals'], currency, since, limit)
         return self.filterByCurrencySinceLimit(withdrawals, code, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         response = await self.fetch_transactions_helper(code, since, limit, params)
         for i in range(0, len(response['deposits'])):
             response['deposits'][i]['type'] = 'deposit'
-        deposits = self.parseTransactions(response['deposits'], code, since, limit)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        deposits = self.parseTransactions(response['deposits'], currency, since, limit)
         return self.filterByCurrencySinceLimit(deposits, code, since, limit)
 
     def parse_transaction_status(self, status):
@@ -987,8 +997,6 @@ class poloniex (Exchange):
             if type == 'deposit':
                 # according to https://poloniex.com/fees/
                 feeCost = 0  # FIXME: remove hardcoded value that may change any time
-            elif type == 'withdrawal':
-                raise ExchangeError('Withdrawal without fee detectednot ')
         return {
             'info': transaction,
             'id': id,

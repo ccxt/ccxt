@@ -113,6 +113,7 @@ module.exports = class kraken extends Exchange {
                         'GNO': 0.01,
                         'EOS': 0.5,
                         'BCH': 0.001,
+                        'XTZ': 0.05,
                         'USD': 5, // if domestic wire
                         'EUR': 5, // if domestic wire
                         'CAD': 10, // CAD EFT Withdrawal
@@ -135,6 +136,7 @@ module.exports = class kraken extends Exchange {
                         'GNO': 0,
                         'EOS': 0,
                         'BCH': 0,
+                        'XTZ': 0.05,
                         'USD': 5, // if domestic wire
                         'EUR': 0, // free deposit if EUR SEPA Deposit
                         'CAD': 5, // if domestic wire
@@ -1158,6 +1160,9 @@ module.exports = class kraken extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response = undefined) {
+        if (code === 520) {
+            throw new ExchangeNotAvailable (this.id + ' ' + body);
+        }
         if (body.indexOf ('Invalid order') >= 0)
             throw new InvalidOrder (this.id + ' ' + body);
         if (body.indexOf ('Invalid nonce') >= 0)

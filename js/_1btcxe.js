@@ -160,7 +160,7 @@ module.exports = class _1btcxe extends Exchange {
             'currency': market['id'],
             'timeframe': this.timeframes[timeframe],
         }, params));
-        let ohlcvs = this.omit (response['historical-prices'], 'request_currency');
+        let ohlcvs = this.toArray (this.omit (response['historical-prices'], 'request_currency'));
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
@@ -185,7 +185,7 @@ module.exports = class _1btcxe extends Exchange {
         let response = await this.publicGetTransactions (this.extend ({
             'currency': market['id'],
         }, params));
-        let trades = this.omit (response['transactions'], 'request_currency');
+        let trades = this.toArray (this.omit (response['transactions'], 'request_currency'));
         return this.parseTrades (trades, market, since, limit);
     }
 

@@ -23,15 +23,15 @@ class wex extends liqui {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg',
                 'api' => array (
-                    'public' => 'https://wex.link/api',
-                    'private' => 'https://wex.link/tapi',
+                    'public' => 'https://wex.fit/api',
+                    'private' => 'https://wex.fit/tapi',
                 ),
-                'www' => 'https://wex.link',
+                'www' => 'https://wex.fit',
                 'doc' => array (
-                    'https://wex.link/api/3/docs',
-                    'https://wex.link/tapi/docs',
+                    'https://wex.fit/api/3/docs',
+                    'https://wex.fit/tapi/docs',
                 ),
-                'fees' => 'https://wex.link/fees',
+                'fees' => 'https://wex.fit/fees',
             ),
             'api' => array (
                 'public' => array (

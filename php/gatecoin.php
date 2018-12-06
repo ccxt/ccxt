@@ -371,8 +371,8 @@ class gatecoin extends Exchange {
         }
         $fee = null;
         $feeCost = $this->safe_float($trade, 'feeAmount');
-        $price = $trade['price'];
-        $amount = $trade['quantity'];
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'quantity');
         $cost = $price * $amount;
         $feeCurrency = null;
         $symbol = null;

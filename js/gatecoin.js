@@ -370,8 +370,8 @@ module.exports = class gatecoin extends Exchange {
         }
         let fee = undefined;
         let feeCost = this.safeFloat (trade, 'feeAmount');
-        let price = trade['price'];
-        let amount = trade['quantity'];
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'quantity');
         let cost = price * amount;
         let feeCurrency = undefined;
         let symbol = undefined;
