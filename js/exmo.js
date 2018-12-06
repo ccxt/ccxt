@@ -1059,4 +1059,9 @@ module.exports = class exmo extends Exchange {
             }
         }
     }
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
+        return this.parseIfJsonEncodedObject (response);
+    }
 };
