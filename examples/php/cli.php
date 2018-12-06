@@ -32,9 +32,9 @@ if (count ($argv) > 2) {
         $exchange = new $exchange ($config);
 
         $args = array_map (function ($arg) {
-			global $exchange;
+            global $exchange;
             if ($arg[0] === '{' || $arg[0] === '[')
-				return json_decode ($arg, true);
+                return json_decode ($arg, true);
             if ($arg === 'NULL' || $arg === 'null')
                 return null;
             if (preg_match ('/^[+-]?[0-9]+$/', $arg))
