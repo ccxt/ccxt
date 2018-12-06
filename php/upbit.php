@@ -495,7 +495,7 @@ class upbit extends Exchange {
             $timestamp = $this->safe_integer($orderbook, 'timestamp');
             $result[$symbol] = array (
                 'bids' => $this->parse_bids_asks($orderbook['orderbook_units'], 'bid_price', 'bid_size'),
-                'asks' => $this->parse_bids_asks($orderbook['orderbook_units'], 'ask_price', 'bid_size'),
+                'asks' => $this->parse_bids_asks($orderbook['orderbook_units'], 'ask_price', 'ask_size'),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601 ($timestamp),
                 'nonce' => null,

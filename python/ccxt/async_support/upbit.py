@@ -487,7 +487,7 @@ class upbit (Exchange):
             timestamp = self.safe_integer(orderbook, 'timestamp')
             result[symbol] = {
                 'bids': self.parse_bids_asks(orderbook['orderbook_units'], 'bid_price', 'bid_size'),
-                'asks': self.parse_bids_asks(orderbook['orderbook_units'], 'ask_price', 'bid_size'),
+                'asks': self.parse_bids_asks(orderbook['orderbook_units'], 'ask_price', 'ask_size'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
                 'nonce': None,
