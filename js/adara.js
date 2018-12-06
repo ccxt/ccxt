@@ -799,7 +799,7 @@ module.exports = class adara extends Exchange {
         //                                           flags: []                                        },
         //                   relationships: { symbol: { data: { type: "symbol", id: "XLMBTC" } } }       } }
         //
-        return this.parseOrder (response);
+        return this.parseOrder (response['data']);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
