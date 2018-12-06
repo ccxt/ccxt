@@ -279,7 +279,6 @@ module.exports = class bitfinex extends Exchange {
                 'SPK': 'SPANK',
                 'STJ': 'STORJ',
                 'YYW': 'YOYOW',
-                'USD': 'USDT',
                 'UTN': 'UTNP',
             },
             'exceptions': {
