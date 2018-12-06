@@ -109,6 +109,8 @@ for arg in argv.args:
         args.append(int(arg))
     elif re.match(r'^[.eE0-9+-]+$', arg):
         args.append(float(arg))
+    elif re.match(r'^[0-9]{4}[-]?[0-9]{2}[-]?[0-9]{2}[T\s]?[0-9]{2}[:]?[0-9]{2}[:]?[0-9]{2}', arg):
+        args.append(exchange.parse8601(arg))
     else:
         args.append(arg)
 

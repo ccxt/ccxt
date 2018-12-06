@@ -604,6 +604,9 @@ class binance extends Exchange {
             'PARTIALLY_FILLED' => 'open',
             'FILLED' => 'closed',
             'CANCELED' => 'canceled',
+            'PENDING_CANCEL' => 'canceling', // currently unused
+            'REJECTED' => 'rejected',
+            'EXPIRED' => 'expired',
         );
         return (is_array ($statuses) && array_key_exists ($status, $statuses)) ? $statuses[$status] : $status;
     }
