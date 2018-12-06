@@ -585,6 +585,9 @@ class binance (Exchange):
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
+            'PENDING_CANCEL': 'canceling',  # currently unused
+            'REJECTED': 'rejected',
+            'EXPIRED': 'expired',
         }
         return statuses[status] if (status in list(statuses.keys())) else status
 
