@@ -465,8 +465,12 @@ class Exchange {
     }
 
     public static function implode_params ($string, $params) {
-        foreach ($params as $key => $value)
-            $string = implode ($value, mb_split ('{' . $key . '}', $string));
+        foreach ($params as $key => $value) {
+            if (gettype ($value) !== 'array') {
+                $string = implode ($value, mb_split ('{' . $key . '}', $string));
+            }
+
+        }
         return $string;
     }
 
@@ -1085,6 +1089,11 @@ class Exchange {
             curl_setopt ($this->curl, CURLOPT_POSTFIELDS, $body);
 
             $headers[] = 'X-HTTP-Method-Override: PUT';
+
+        } else if ($method == 'PATCH') {
+
+            curl_setopt ($this->curl, CURLOPT_CUSTOMREQUEST, "PATCH");
+            curl_setopt ($this->curl, CURLOPT_POSTFIELDS, $body);
 
         } else if ($method == 'DELETE') {
 
