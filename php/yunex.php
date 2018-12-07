@@ -54,10 +54,10 @@ class yunex extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'api/v1/$base/coins/tradepair',
-                        'api/$market/depth',
-                        'api/$market/trade/kline',
-                        'api/$market/trade/info',
+                        'api/v1/base/coins/tradepair',
+                        'api/market/depth',
+                        'api/market/trade/kline',
+                        'api/market/trade/info',
                     ),
                 ),
                 'private' => array (
@@ -81,35 +81,36 @@ class yunex extends Exchange {
                 ),
             ),
             'funding' => array (
-                    'tierBased' => false,
-                    'percentage' => false,
-                    'deposit' => array (),
-                    'withdraw' => array (
-                        'BTC' => 0.001,
-                        'ETH' => 0.01,
-                        'BCH' => 0.001,
-                        'LTC' => 0.01,
-                        'ETC' => 0.01,
-                        'USDT' => 2,
-                        'SNET' => 20,
-                        'KT' => 20,
-                        'YUN' => 20,
-                        'Rating' => 20,
-                        'YBT' => 20,
-                    ),
+                'tierBased' => false,
+                'percentage' => false,
+                'deposit' => array (),
+                'withdraw' => array (
+                    'BTC' => 0.001,
+                    'ETH' => 0.01,
+                    'BCH' => 0.001,
+                    'LTC' => 0.01,
+                    'ETC' => 0.01,
+                    'USDT' => 2,
+                    'SNET' => 20,
+                    'KT' => 20,
+                    'YUN' => 20,
+                    'Rating' => 20,
+                    'YBT' => 20,
                 ),
+            ),
         ));
     }
-    async fetchMarkets () {
+
+    public function fetch_markets () {
         $response = $this->publicGetApiV1BaseCoinsTradepair ();
         $data = $response['data'];
         $result = array ();
         for ($i = 0; $i < count ($data); $i++) {
             $market = $data[$i];
             $id = $market['symbol'];
-            $symbol= $market['name'];
-            $base = $symbol->split('/')[0];
-            $quote = $symbol->split('/')[1];
+            $symbol = $market['name'];
+            $base = explode ('/', $symbol)[0];
+            $quote = explode ('/', $symbol)[1];
             $baseId = $market['base_coin_id'];
             $quoteId = $market['coin_id'];
             $active = true;
@@ -131,14 +132,14 @@ class yunex extends Exchange {
         $this->load_markets();
         $request = array (
             'symbol' => $this->market_id($symbol),
-            'price' => String($price),
-            'volume' => String($amount)
+            'price' => String ($price),
+            'volume' => String ($amount),
         );
-        $response
+        $response = '';
         if ($side === 'buy') {
-          $response = $this->privatePostApiV1OrderBuy (array_merge ($request, $params))
+            $response = $this->privatePostApiV1OrderBuy (array_merge ($request, $params));
         } else if ($side === 'sell') {
-          $response = $this->privatePostApiV1OrderSell (array_merge ($request, $params));
+            $response = $this->privatePostApiV1OrderSell (array_merge ($request, $params));
         }
         $data = $response['data'];
         return array (
@@ -179,9 +180,9 @@ class yunex extends Exchange {
         $average = null;
         $amount = $this->safe_float($order, 'volume');
         $filled = $this->safe_float($order, 'trade_volume');
-        $remaining = null
-        if($amount && $filled) {
-          $remaining = $amount - $filled;
+        $remaining = null;
+        if ($amount && $filled) {
+            $remaining = $amount - $filled;
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $cost = null;
@@ -244,8 +245,8 @@ class yunex extends Exchange {
         $data = $response['data'];
         $timestamp = null;
         $datetime = null;
-        $data['timestamp'] = $timestamp
-        $data['datetime'] = $datetime
+        $data['timestamp'] = $timestamp;
+        $data['datetime'] = $datetime;
         return $data;
     }
 
@@ -270,7 +271,7 @@ class yunex extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $response = $this->publicGetApiMarketTradeKline(array_merge ($request, $params));
+        $response = $this->publicGetApiMarketTradeKline (array_merge ($request, $params));
         // return $response
         return $this->parse_ohlcvs($response['data'], $market, $timeframe, $since, $limit);
     }
@@ -281,10 +282,10 @@ class yunex extends Exchange {
         $request = array (
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetApiMarketTradeInfo(array_merge ($request, $params))
+        $response = $this->publicGetApiMarketTradeInfo (array_merge ($request, $params));
         $data = $response['data'];
         $timestamp = $this->safe_integer($data, 'ts');
-        $timestamp = $timestamp * 1000
+        $timestamp = $timestamp * 1000;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -310,10 +311,10 @@ class yunex extends Exchange {
     }
 
     public function fetch_balance () {
-      $response = $this->privateGetApiV1CoinBalance ();
-      $data = $response['data']['coin'];
-      $result = array ( 'info' => $response );
-      for ($i = 0; $i < count ($data); $i++) {
+        $response = $this->privateGetApiV1CoinBalance ();
+        $data = $response['data']['coin'];
+        $result = array ( 'info' => $response );
+        for ($i = 0; $i < count ($data); $i++) {
             $balance = $data[$i];
             $currency = $balance['name'];
             $account = null;
@@ -326,7 +327,7 @@ class yunex extends Exchange {
             $result[$currency]['free'] = floatval ($balance['usable']);
             $result[$currency]['total'] = floatval ($balance['total']);
         }
-      return $this->parse_balance($result);
+        return $this->parse_balance($result);
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -337,27 +338,27 @@ class yunex extends Exchange {
                 $url .= '?' . $this->urlencode ($query);
             }
             $headers = array (
-                    'Content-Type' => 'application/json',
+                'Content-Type' => 'application/json',
             );
         } else {
-             $this->check_required_credentials();
-             $ts = $this->seconds ();
-             $nonce = Math.random().toString(32).substr(2)
-             $headers = array (
-                    'Content-Type' => 'application/json',
-                    '-x-ts' : $ts,
-                    '-x-nonce' => $nonce,
-                    '-x-key' : $this->apiKey
+            $this->check_required_credentials();
+            $ts = $this->seconds ();
+            $nonce = Math.random ().toString (32).substr (2);
+            $headers = array (
+                'Content-Type' => 'application/json',
+                '-x-ts' => $ts,
+                '-x-nonce' => $nonce,
+                '-x-key' => $this->apiKey,
             );
-            $str_parms = ''
-            $query = $this->keysort($query)
+            $str_parms = '';
+            $query = $this->keysort ($query);
             if ($method === 'POST') {
-                $body = $this->json ($query)
-                $str_parms = $body
+                $body = $this->json ($query);
+                $str_parms = $body;
             }
-            $sign_str = $str_parms . $ts . $nonce . $this->secret
-            $sign = $this->hash ($this->encode ($sign_str),'sha256')
-            $headers['-x-sign'] = $sign
+            $sign_str = $str_parms . $ts . $nonce . $this->secret;
+            $sign = $this->hash ($this->encode ($sign_str), 'sha256');
+            $headers['-x-sign'] = $sign;
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

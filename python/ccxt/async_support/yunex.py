@@ -80,32 +80,33 @@ class yunex (Exchange):
                 },
             },
             'funding': {
-                    'tierBased': False,
-                    'percentage': False,
-                    'deposit': {},
-                    'withdraw': {
-                        'BTC': 0.001,
-                        'ETH': 0.01,
-                        'BCH': 0.001,
-                        'LTC': 0.01,
-                        'ETC': 0.01,
-                        'USDT': 2,
-                        'SNET': 20,
-                        'KT': 20,
-                        'YUN': 20,
-                        'Rating': 20,
-                        'YBT': 20,
-                    },
+                'tierBased': False,
+                'percentage': False,
+                'deposit': {},
+                'withdraw': {
+                    'BTC': 0.001,
+                    'ETH': 0.01,
+                    'BCH': 0.001,
+                    'LTC': 0.01,
+                    'ETC': 0.01,
+                    'USDT': 2,
+                    'SNET': 20,
+                    'KT': 20,
+                    'YUN': 20,
+                    'Rating': 20,
+                    'YBT': 20,
                 },
+            },
         })
-    async fetchMarkets() {
+
+    async def fetch_markets(self):
         response = await self.publicGetApiV1BaseCoinsTradepair()
         data = response['data']
         result = []
         for i in range(0, len(data)):
             market = data[i]
             id = market['symbol']
-            symbol= market['name']
+            symbol = market['name']
             base = symbol.split('/')[0]
             quote = symbol.split('/')[1]
             baseId = market['base_coin_id']
@@ -128,13 +129,13 @@ class yunex (Exchange):
         request = {
             'symbol': self.market_id(symbol),
             'price': String(price),
-            'volume': String(amount)
+            'volume': String(amount),
         }
-        response
+        response = ''
         if side == 'buy':
-          response = await self.privatePostApiV1OrderBuy(self.extend(request, params))
+            response = await self.privatePostApiV1OrderBuy(self.extend(request, params))
         elif side == 'sell':
-          response = await self.privatePostApiV1OrderSell(self.extend(request, params))
+            response = await self.privatePostApiV1OrderSell(self.extend(request, params))
         data = response['data']
         return {
             'info': response,
@@ -171,8 +172,8 @@ class yunex (Exchange):
         amount = self.safe_float(order, 'volume')
         filled = self.safe_float(order, 'trade_volume')
         remaining = None
-        if (amount and filled) {
-          remaining = amount - filled
+        if amount and filled:
+            remaining = amount - filled
         status = self.parse_order_status(self.safe_string(order, 'status'))
         cost = None
         fee = None
@@ -290,10 +291,10 @@ class yunex (Exchange):
         }
 
     async def fetch_balance(self):
-      response = await self.privateGetApiV1CoinBalance()
-      data = response['data']['coin']
-      result = {'info': response}
-      for i in range(0, len(data)):
+        response = await self.privateGetApiV1CoinBalance()
+        data = response['data']['coin']
+        result = {'info': response}
+        for i in range(0, len(data)):
             balance = data[i]
             currency = balance['name']
             account = None
@@ -305,7 +306,7 @@ class yunex (Exchange):
             result[currency]['used'] = float(balance['freezed'])
             result[currency]['free'] = float(balance['usable'])
             result[currency]['total'] = float(balance['total'])
-      return self.parse_balance(result)
+        return self.parse_balance(result)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
@@ -314,17 +315,17 @@ class yunex (Exchange):
             if query:
                 url += '?' + self.urlencode(query)
             headers = {
-                    'Content-Type': 'application/json',
+                'Content-Type': 'application/json',
             }
         else:
-             self.check_required_credentials()
-             ts = self.seconds()
-             nonce = Math.random().toString(32).substr(2)
-             headers = {
-                    'Content-Type': 'application/json',
-                    '-x-ts' : ts,
-                    '-x-nonce': nonce,
-                    '-x-key' : self.apiKey
+            self.check_required_credentials()
+            ts = self.seconds()
+            nonce = Math.random().toString(32).substr(2)
+            headers = {
+                'Content-Type': 'application/json',
+                '-x-ts': ts,
+                '-x-nonce': nonce,
+                '-x-key': self.apiKey,
             }
             str_parms = ''
             query = self.keysort(query)
@@ -332,6 +333,6 @@ class yunex (Exchange):
                 body = self.json(query)
                 str_parms = body
             sign_str = str_parms + ts + nonce + self.secret
-            sign = self.hash(self.encode(sign_str),'sha256')
+            sign = self.hash(self.encode(sign_str), 'sha256')
             headers['-x-sign'] = sign
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

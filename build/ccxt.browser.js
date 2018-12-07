@@ -52,6 +52,7 @@ Exchange.ccxtVersion = version
 //-----------------------------------------------------------------------------
 
 const exchanges = {
+    '_1btcxe':                 require ('./js/_1btcxe.js'),
     'acx':                     require ('./js/acx.js'),
     'allcoin':                 require ('./js/allcoin.js'),
     'anxpro':                  require ('./js/anxpro.js'),
@@ -184,8 +185,7 @@ const exchanges = {
     'yunbi':                   require ('./js/yunbi.js'),
     'yunex':                   require ('./js/yunex.js'),
     'zaif':                    require ('./js/zaif.js'),
-    'zb':                      require ('./js/zb.js'),
-    '_1btcxe':                 require ('./js/_1btcxe.js'),    
+    'zb':                      require ('./js/zb.js'),    
 }
 
 //-----------------------------------------------------------------------------
@@ -60857,7 +60857,7 @@ module.exports = class yunbi extends acx {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, ExchangeNotAvailable, InvalidOrder, OrderNotFound, InsufficientFunds } = require ('./base/errors');
+require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -60934,25 +60934,26 @@ module.exports = class yunex extends Exchange {
                 },
             },
             'funding': {
-                    'tierBased': false,
-                    'percentage': false,
-                    'deposit': {},
-                    'withdraw': {
-                        'BTC': 0.001,
-                        'ETH': 0.01,
-                        'BCH': 0.001,
-                        'LTC': 0.01,
-                        'ETC': 0.01,
-                        'USDT': 2,
-                        'SNET': 20,
-                        'KT': 20,
-                        'YUN': 20,
-                        'Rating': 20,
-                        'YBT': 20,
-                    },
+                'tierBased': false,
+                'percentage': false,
+                'deposit': {},
+                'withdraw': {
+                    'BTC': 0.001,
+                    'ETH': 0.01,
+                    'BCH': 0.001,
+                    'LTC': 0.01,
+                    'ETC': 0.01,
+                    'USDT': 2,
+                    'SNET': 20,
+                    'KT': 20,
+                    'YUN': 20,
+                    'Rating': 20,
+                    'YBT': 20,
                 },
+            },
         });
     }
+
     async fetchMarkets () {
         let response = await this.publicGetApiV1BaseCoinsTradepair ();
         let data = response['data'];
@@ -60960,9 +60961,9 @@ module.exports = class yunex extends Exchange {
         for (let i = 0; i < data.length; i++) {
             let market = data[i];
             let id = market['symbol'];
-            let symbol= market['name'];
-            let base = symbol.split('/')[0];
-            let quote = symbol.split('/')[1];
+            let symbol = market['name'];
+            let base = symbol.split ('/')[0];
+            let quote = symbol.split ('/')[1];
             let baseId = market['base_coin_id'];
             let quoteId = market['coin_id'];
             let active = true;
@@ -60984,14 +60985,14 @@ module.exports = class yunex extends Exchange {
         await this.loadMarkets ();
         let request = {
             'symbol': this.marketId (symbol),
-            'price': String(price),
-            'volume': String(amount)
+            'price': String (price),
+            'volume': String (amount),
         };
-        let response
+        let response = '';
         if (side === 'buy') {
-          response = await this.privatePostApiV1OrderBuy (this.extend (request, params))
+            response = await this.privatePostApiV1OrderBuy (this.extend (request, params));
         } else if (side === 'sell') {
-          response = await this.privatePostApiV1OrderSell (this.extend (request, params));
+            response = await this.privatePostApiV1OrderSell (this.extend (request, params));
         }
         let data = response['data'];
         return {
@@ -61032,9 +61033,9 @@ module.exports = class yunex extends Exchange {
         let average = undefined;
         let amount = this.safeFloat (order, 'volume');
         let filled = this.safeFloat (order, 'trade_volume');
-        let remaining = undefined
-        if(amount && filled) {
-          remaining = amount - filled;
+        let remaining = undefined;
+        if (amount && filled) {
+            remaining = amount - filled;
         }
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let cost = undefined;
@@ -61097,8 +61098,8 @@ module.exports = class yunex extends Exchange {
         let data = response['data'];
         let timestamp = undefined;
         let datetime = undefined;
-        data['timestamp'] = timestamp
-        data['datetime'] = datetime
+        data['timestamp'] = timestamp;
+        data['datetime'] = datetime;
         return data;
     }
 
@@ -61123,7 +61124,7 @@ module.exports = class yunex extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        let response = await this.publicGetApiMarketTradeKline(this.extend (request, params));
+        let response = await this.publicGetApiMarketTradeKline (this.extend (request, params));
         // return response
         return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
     }
@@ -61134,10 +61135,10 @@ module.exports = class yunex extends Exchange {
         let request = {
             'symbol': market['id'],
         };
-        let response = await this.publicGetApiMarketTradeInfo(this.extend (request, params))
+        let response = await this.publicGetApiMarketTradeInfo (this.extend (request, params));
         let data = response['data'];
         let timestamp = this.safeInteger (data, 'ts');
-        timestamp = timestamp * 1000
+        timestamp = timestamp * 1000;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -61163,10 +61164,10 @@ module.exports = class yunex extends Exchange {
     }
 
     async fetchBalance () {
-      let response = await this.privateGetApiV1CoinBalance ();
-      let data = response['data']['coin'];
-      let result = { 'info': response };
-      for (let i = 0; i < data.length; i++) {
+        let response = await this.privateGetApiV1CoinBalance ();
+        let data = response['data']['coin'];
+        let result = { 'info': response };
+        for (let i = 0; i < data.length; i++) {
             let balance = data[i];
             let currency = balance['name'];
             let account = undefined;
@@ -61179,7 +61180,7 @@ module.exports = class yunex extends Exchange {
             result[currency]['free'] = parseFloat (balance['usable']);
             result[currency]['total'] = parseFloat (balance['total']);
         }
-      return this.parseBalance (result);
+        return this.parseBalance (result);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -61190,27 +61191,27 @@ module.exports = class yunex extends Exchange {
                 url += '?' + this.urlencode (query);
             }
             headers = {
-                    'Content-Type': 'application/json',
+                'Content-Type': 'application/json',
             };
         } else {
-             this.checkRequiredCredentials ();
-             let ts = this.seconds ();
-             let nonce = Math.random().toString(32).substr(2)
-             headers = {
-                    'Content-Type': 'application/json',
-                    '-x-ts' : ts,
-                    '-x-nonce': nonce,
-                    '-x-key' : this.apiKey
+            this.checkRequiredCredentials ();
+            let ts = this.seconds ();
+            let nonce = Math.random ().toString (32).substr (2);
+            headers = {
+                'Content-Type': 'application/json',
+                '-x-ts': ts,
+                '-x-nonce': nonce,
+                '-x-key': this.apiKey,
             };
-            let str_parms = ''
-            query = this.keysort(query)
+            let str_parms = '';
+            query = this.keysort (query);
             if (method === 'POST') {
-                body = this.json (query)
-                str_parms = body
+                body = this.json (query);
+                str_parms = body;
             }
-            let sign_str = str_parms + ts + nonce + this.secret
-            let sign = this.hash (this.encode (sign_str),'sha256')
-            headers['-x-sign'] = sign
+            let sign_str = str_parms + ts + nonce + this.secret;
+            let sign = this.hash (this.encode (sign_str), 'sha256');
+            headers['-x-sign'] = sign;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
