@@ -1666,28 +1666,36 @@ class Exchange {
         return $this->fetch_my_trades ($symbol, $since, $limit, $params);
     }
 
-    public function fetchTransactions ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_transactions ($symbol, $since, $limit, $params);
+    public function fetchTransactions ($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions ($code, $since, $limit, $params);
     }
 
-    public function fetch_transactions ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
         throw new NotSupported ($this->id . ' fetch_transactions() not implemented yet');
     }
 
-    public function fetchDeposits ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_deposits ($symbol, $since, $limit, $params);
+    public function fetchDeposits ($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_deposits ($code, $since, $limit, $params);
     }
 
-    public function fetch_deposits ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
         throw new NotSupported ($this->id . ' fetch_deposits() not implemented yet');
     }
 
-    public function fetchWithdrawals ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_withdrawals ($symbol, $since, $limit, $params);
+    public function fetchWithdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_withdrawals ($code, $since, $limit, $params);
     }
 
-    public function fetch_withdrawals ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
         throw new NotSupported ($this->id . ' fetch_withdrawals() not implemented yet');
+    }
+
+    public function fetchDepositAddress ($code, $params = array ()) {
+        return $this->fetch_deposit_address ($code, $params);
+    }
+
+    public function fetch_deposit_address ($code, $params = array ()) {
+        throw new NotSupported ($this->id . ' fetch_deposit_address() not implemented yet');
     }
 
     public function fetch_markets ($params = array()) {
@@ -1856,6 +1864,18 @@ class Exchange {
 
     public function create_market_sell_order ($symbol, $amount, $params = array ()) {
         return $this->create_order ($symbol, 'market', 'sell', $amount, null, $params);
+    }
+
+    public function createOrder ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        return $this->create_order ($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    public function createLimitOrder ($symbol, $side, $amount, $price, $params = array ()) {
+        return $this->create_limit_order ($symbol, $side, $amount, $price, $params);
+    }
+
+    public function createMarketOrder ($symbol, $side, $amount, $price = null, $params = array ()) {
+        return $this->create_market_order ($symbol, $side, $amount, $price, $params);
     }
 
     public function createLimitBuyOrder ($symbol, $amount, $price, $params = array ()) {
