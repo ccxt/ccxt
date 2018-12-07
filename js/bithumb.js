@@ -241,7 +241,7 @@ module.exports = class bithumb extends Exchange {
         timestamp -= 9 * 3600000; // they report UTC + 9 hours (server in Korean timezone)
         let side = (trade['type'] === 'ask') ? 'sell' : 'buy';
         return {
-            'id': undefined,
+            'id': this.safeString (trade, 'cont_no'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
