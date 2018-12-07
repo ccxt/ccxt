@@ -62,7 +62,7 @@ module.exports = class xs2 extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'fetchTradingFees': true,
+                // 'fetchTradingFees': false,
                 // 'fetchTradingLimits': false,
                 // 'fetchTransactions': false,
                 'fetchWithdrawals': true,
@@ -150,8 +150,8 @@ module.exports = class xs2 extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'taker': 0.001,
-                    'maker': 0.001,
+                    'taker': undefined,
+                    'maker': undefined,
                 },
                 'funding': {
                     'tierBased': false,
@@ -353,11 +353,9 @@ module.exports = class xs2 extends Exchange {
         let labels = Object.keys (raw_tickers);
         for (let i = 0; i < labels.length; i++) {
             let symbol = this.findSymbol (labels[i]);
-            if (symbols === undefined || this.inArray (symbol, symbols)) {
-                tickers.push (this.parseTicker (raw_tickers[labels[i]], this.market (symbol)));
-            }
+            tickers.push (this.parseTicker (raw_tickers[labels[i]], this.market (symbol)));
         }
-        return tickers;
+        return this.filterByArray(tickers, 'symbol', symbols);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -396,7 +394,7 @@ module.exports = class xs2 extends Exchange {
             'Market': market['id'],
             'Interval': this.timeframes[timeframe],
         };
-        if (since !== undefined) {
+        if (since !== undefined && since !== 0) {
             request['Start'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
@@ -456,7 +454,7 @@ module.exports = class xs2 extends Exchange {
         let request = {
             'Market': market['id'],
         };
-        if (since !== undefined) {
+        if (since !== undefined && since !== 0) {
             request['Start'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
@@ -489,7 +487,7 @@ module.exports = class xs2 extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
-            'type': undefined,
+            'type': 'limit',
             'side': side,
             'price': this.safeFloat (order, 'rate'),
             'amount': this.safeFloat (order, 'volume'),
@@ -562,7 +560,7 @@ module.exports = class xs2 extends Exchange {
         let request = {
             'Market': market['id'],
         };
-        if (since !== undefined) {
+        if (since !== undefined && since !== 0) {
             request['CreatedFrom'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
@@ -601,7 +599,7 @@ module.exports = class xs2 extends Exchange {
             market = this.market (symbol);
             request['Market'] = market['id'];
         }
-        if (since !== undefined) {
+        if (since !== undefined && since !== 0) {
             request['CreatedFrom'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
@@ -617,7 +615,7 @@ module.exports = class xs2 extends Exchange {
         if (code !== undefined) {
             request['Symbol'] = this.currencyId (code);
         }
-        if (since !== undefined) {
+        if (since !== undefined && since !== 0) {
             request['CreatedFrom'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
@@ -633,7 +631,7 @@ module.exports = class xs2 extends Exchange {
         if (code !== undefined) {
             request['Symbol'] = this.currencyId (code);
         }
-        if (since !== undefined) {
+        if (since !== undefined && since !== 0) {
             request['CreatedFrom'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
