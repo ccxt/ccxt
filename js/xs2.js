@@ -355,7 +355,7 @@ module.exports = class xs2 extends Exchange {
             let symbol = this.findSymbol (labels[i]);
             tickers.push (this.parseTicker (raw_tickers[labels[i]], this.market (symbol)));
         }
-        return this.filterByArray(tickers, 'symbol', symbols);
+        return this.filterByArray (tickers, 'symbol', symbols);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
