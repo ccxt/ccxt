@@ -26,3 +26,6 @@ yarn.lock
 keys.local.json
 nbproject/
 vendor/
+python/package-lock.json
+python/package.json
+python/keys.json
