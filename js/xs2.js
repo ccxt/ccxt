@@ -7,21 +7,21 @@ const { ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, DDoSPr
 
 //  ---------------------------------------------------------------------------
 
-// MISSING DATA:
-//      exchangeInfo:
+// UNSUPPORTED DATA:
+//      describe:
 //      - exact rate-limit rules
 //      tickers:
 //      - Ask/Bid total-volume
 //      - Volume-weighted avg price
 //      - Average price
-//      - last-trade volume
-//      - first/last/count trade-id per interval
+//      order-book:
+//      - time/nonce
 //      my-trades:
 //      - order-id & order-type
 //      order:
-//      - type (LIMIT, LIMIT_MAKER)
-//      - fee paid
-//      - filled trades
+//      - type (only supports LIMIT, LIMIT_MAKER)
+//      - fee when (partially) filled
+//      - filled trade details
 //      transaction:
 //      - updated timestamp (withdrawal)
 
@@ -45,7 +45,7 @@ module.exports = class xs2 extends Exchange {
                 // 'deposit': false,
                 // 'editOrder': 'emulated',
                 'fetchBalance': true,
-                'fetchBidsAsks': true,
+                // 'fetchBidsAsks': false,
                 'fetchClosedOrders': true,
                 // 'fetchCurrencies': false,
                 'fetchDepositAddress': true,
@@ -113,23 +113,25 @@ module.exports = class xs2 extends Exchange {
                         'GetDeposits',
                         'GetWithdrawals',
                         'PlaceBuyOrder',
-                        'PlaceBuyOrderV2',
+                        'PlaceBuyOrderWithOutcome',
                         'PlaceSellOrder',
-                        'PlaceSellOrderV2',
+                        'PlaceSellOrderWithOutcome',
                         'PlaceBuyLiquidityOrder',
-                        'PlaceBuyLiquidityOrderV2',
+                        'PlaceBuyLiquidityOrderWithOutcome',
                         'PlaceSellLiquidityOrder',
-                        'PlaceSellLiquidityOrderV2',
+                        'PlaceSellLiquidityOrderWithOutcome',
                         'CancelBuyOrder',
-                        'CancelBuyOrderV2',
+                        'CancelBuyOrderWithOutcome',
                         'CancelSellOrder',
-                        'CancelSellOrderV2',
+                        'CancelSellOrderWithOutcome',
                         'CancelAllOrders',
                         'GetWalletAddress',
                         'CancelWithdrawal',
                         'GetOrder',
                         'GetOrders',
+                        'GetOrdersWithTop',
                         'GetTrades',
+                        'GetTradesWithTop',
                         'GetTax',
                     ],
                 },
@@ -271,8 +273,9 @@ module.exports = class xs2 extends Exchange {
         for (let w = 0; w < wallets.length; w++) {
             let wallet = wallets[w];
             let currency = wallet['coin'];
-            if (currency in this.currencies_by_id)
+            if (currency in this.currencies_by_id) {
                 currency = this.currencies_by_id[currency]['code'];
+            }
             let account = {
                 'free': parseFloat (wallet['available']),
                 'used': parseFloat (wallet['reserved_trading'] + wallet['reserved_withdrawal']),
@@ -284,36 +287,43 @@ module.exports = class xs2 extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        if (symbol === undefined)
+        if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrderBook requires a symbol argument');
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'Market': market['id'],
         };
+        if (limit !== undefined) {
+            request['Top'] = limit;
+        }
         let response = await this.publicGetGetOrderBook (this.extend (request, params));
         let orderbook = this.parseOrderBook (response['data'], undefined, 'bids', 'asks', 'rate', 'volume');
         return orderbook;
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.parse8601 (ticker['utc']);
+        let timestamp = this.parse8601 (this.safeString (ticker, 'utc'));
         let symbol = market['symbol'];
+        let open = this.safeFloat (ticker, 'open');
+        let high = this.safeFloat (ticker, 'high');
+        let low = this.safeFloat (ticker, 'low');
         let price = this.safeFloat (ticker, 'price');
         let prev_price = this.safeFloat (ticker, 'prev_price');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
+            'high': (high !== undefined) ? high : price,
+            'low': (low !== undefined) ? low : price,
             'bid': this.safeFloat (ticker, 'buy'),
             'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeFloat (ticker, 'open'),
-            'close': this.safeFloat (ticker, 'close'),
+            'open': (open !== undefined) ? open : price,
+            'close': price,
             'last': price,
             'previousClose': prev_price,
             'change': (prev_price && price) ? price - prev_price : undefined,
@@ -326,8 +336,9 @@ module.exports = class xs2 extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
-        if (symbol === undefined)
+        if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTicker requires a symbol argument');
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -355,66 +366,59 @@ module.exports = class xs2 extends Exchange {
         return this.parseTickers (response['data'], symbols);
     }
 
-    async fetchBidsAsks (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        let response = await this.publicGetGet24HrSummaries (params);
-        return this.parseTickers (response['data'], symbols);
-    }
-
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        let utc = this.parse8601 (this.safeString (ohlcv, 'utc'));
         let volume = this.safeFloat (ohlcv, 'volume');
+        let open = this.safeFloat (ohlcv, 'open');
+        let high = this.safeFloat (ohlcv, 'high');
+        let low = this.safeFloat (ohlcv, 'low');
         let price = this.safeFloat (ohlcv, 'price');
-        if (volume > 0)
-            return [
-                this.parse8601 (ohlcv['utc']),
-                this.safeFloat (ohlcv, 'open'),
-                this.safeFloat (ohlcv, 'high'),
-                this.safeFloat (ohlcv, 'low'),
-                price,
-                volume,
-            ];
-        else
-            return [
-                this.parse8601 (ohlcv['utc']),
-                price,
-                price,
-                price,
-                price,
-                volume,
-            ];
+        return [
+            utc,
+            (open !== undefined) ? open : price,
+            (high !== undefined) ? high : price,
+            (low !== undefined) ? low : price,
+            price,
+            volume,
+        ];
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined)
+        if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a symbol argument');
+        }
+        if (!(timeframe in this.timeframes)) {
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV timeframe ' + timeframe + ' is not supported');
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'Market': market['id'],
             'Interval': this.timeframes[timeframe],
         };
-        if (limit !== undefined) {
-            request['Top'] = limit;
-        }
         if (since !== undefined) {
             request['Start'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['Top'] = limit;
         }
         let response = await this.publicGetGetChart (this.extend (request, params));
         return this.parseOHLCVs (response['data']['Stats'], market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.parse8601 (trade['created']);
+        let timestamp = this.parse8601 (this.safeString (trade, 'created'));
         let id = this.safeInteger (trade, 'id');
         let side = this.safeString (trade, 'side');
         let isSell = side === 'S';
         let order_type = this.safeString (trade, 'order_type');
         let takerOrMaker = undefined;
         if (order_type !== undefined) {
-            if (isSell)
-                takerOrMaker = (order_type === 'sell') ? 'taker' : 'maker';
-            else
-                takerOrMaker = (order_type === 'buy') ? 'taker' : 'maker';
+            if (isSell) {
+                takerOrMaker = (order_type === 'Sell') ? 'taker' : 'maker';
+            } else {
+                takerOrMaker = (order_type === 'Buy') ? 'taker' : 'maker';
+            }
         }
         let symbol = undefined;
         if ('market' in trade) {
@@ -444,8 +448,9 @@ module.exports = class xs2 extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined)
+        if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTrades requires a symbol argument');
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -464,7 +469,11 @@ module.exports = class xs2 extends Exchange {
     parseOrder (order, market = undefined) {
         let id = this.safeInteger (order, 'id');
         let side = this.safeString (order, 'order_type');
-        let timestamp = this.parse8601 (order['created']);
+        if (id !== undefined && side !== undefined) {
+            id = side.slice (0, 1) + id.toString ();
+            side = side.toLowerCase ();
+        }
+        let timestamp = this.parse8601 (this.safeString (order, 'created'));
         let symbol = undefined;
         if ('market' in order) {
             let label = this.safeString (order, 'market');
@@ -475,13 +484,13 @@ module.exports = class xs2 extends Exchange {
         let status = this.safeString (order, 'status');
         let result = {
             'info': order,
-            'id': side.slice (0, 1) + id.toString (),
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': undefined,
-            'side': side.toLowerCase (),
+            'side': side,
             'price': this.safeFloat (order, 'rate'),
             'amount': this.safeFloat (order, 'volume'),
             'cost': this.safeFloat (order, 'cost_pays'),
@@ -496,14 +505,18 @@ module.exports = class xs2 extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (symbol === undefined)
+        if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder requires a symbol argument');
-        if (type === undefined)
+        }
+        if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder requires a type argument');
-        if (side === undefined)
+        }
+        if (side === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder requires a side argument');
-        if (amount === undefined)
+        }
+        if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder requires an amount argument');
+        }
         let uppercaseType = type.toUpperCase ();
         let liquidity = '';
         if (uppercaseType === 'LIMIT_MAKER') {
@@ -512,10 +525,12 @@ module.exports = class xs2 extends Exchange {
             throw new InvalidOrder (this.id + ' createOrder method does not support type "' + type + '"');
         }
         let capitalizedSide = this.capitalize (side.toLowerCase ());
-        if (capitalizedSide !== 'Sell' && capitalizedSide !== 'Buy')
+        if (capitalizedSide !== 'Sell' && capitalizedSide !== 'Buy') {
             throw new InvalidOrder (this.id + ' createOrder method does not support side "' + side + '"');
-        if (price === undefined)
+        }
+        if (price === undefined) {
             throw new InvalidOrder (this.id + ' createOrder method requires a price argument for a ' + type + ' order');
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -523,20 +538,15 @@ module.exports = class xs2 extends Exchange {
             'Amount': this.amountToPrecision (symbol, amount),
             'Price': this.priceToPrecision (symbol, price),
         };
-        if (liquidity === 'Liquidity' && params['cancel_order_id']) {
-            let cancel_order_id = this.safeInteger (params, 'cancel_order_id');
-            if (cancel_order_id > 0) {
-                request['CancelOrderID'] = cancel_order_id;
-            }
-        }
-        let method = 'privateGetPlace' + this.capitalize (side.toLowerCase ()) + liquidity + 'OrderV2';
+        let method = 'privateGetPlace' + this.capitalize (side.toLowerCase ()) + liquidity + 'OrderWithOutcome';
         let response = await this[method] (this.extend (request, params));
         return this.parseOrder (response['data'], market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (id === undefined)
+        if (id === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder requires an id argument');
+        }
         await this.loadMarkets ();
         let order_id = parseInt (id.slice (1));
         let response = await this.privateGetGetOrder ({ 'OrderType': id.slice (0, 1), 'OrderID': order_id });
@@ -544,8 +554,9 @@ module.exports = class xs2 extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined)
+        if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -557,7 +568,7 @@ module.exports = class xs2 extends Exchange {
         if (limit !== undefined) {
             request['Top'] = limit;
         }
-        let response = await this.privateGetGetOrders (this.extend (request, params));
+        let response = await this.privateGetGetOrdersWithTop (this.extend (request, params));
         return this.parseOrders (response['data']['orders'], market, since, limit);
     }
 
@@ -571,12 +582,13 @@ module.exports = class xs2 extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (id === undefined)
+        if (id === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder requires an id argument');
+        }
         await this.loadMarkets ();
         let isSell = id.slice (0, 1) === 'S';
         let order_id = parseInt (id.slice (1));
-        let method = isSell ? 'privateGetCancelSellOrderV2' : 'privateGetCancelBuyOrderV2';
+        let method = isSell ? 'privateGetCancelSellOrderWithOutcome' : 'privateGetCancelBuyOrderWithOutcome';
         let response = await this[method] (this.extend ({ 'OrderID': order_id }, params));
         return this.parseOrder (response['data']);
     }
@@ -595,7 +607,7 @@ module.exports = class xs2 extends Exchange {
         if (limit !== undefined) {
             request['Top'] = limit;
         }
-        let response = await this.privateGetGetTrades (this.extend (request, params));
+        let response = await this.privateGetGetTradesWithTop (this.extend (request, params));
         return this.parseTrades (response['data']['trades'], market, since, limit);
     }
 
@@ -652,13 +664,14 @@ module.exports = class xs2 extends Exchange {
         } else {
             feeCode = this.commonCurrencyCode (feeCurrencyId);
         }
-        let timestamp = this.parse8601 (transaction['created']);
+        let timestamp = this.parse8601 (this.safeString (transaction, 'created'));
         let status = undefined;
         if (type === 'deposit') {
-            if (transaction['deposited'])
+            if (transaction['deposited']) {
                 status = 'ok';
-            else
+            } else {
                 status = transaction['pending'] ? 'pending' : 'failed';
+            }
         } else {
             let state = this.safeString (transaction, 'state');
             status = (state in this.WITHDRAWAL_STATUS_MAP) ? this.WITHDRAWAL_STATUS_MAP[state] : state;
@@ -685,8 +698,9 @@ module.exports = class xs2 extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
-        if (code === undefined)
+        if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires a code argument');
+        }
         await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privateGetGetWalletAddress (this.extend ({
@@ -720,26 +734,26 @@ module.exports = class xs2 extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response = undefined) {
-        if ((code === 418) || (code === 429))
+        if ((code === 418) || (code === 429)) {
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
-        // error response in a form: { "success": false, "action": "error", "route": null, "message": "Something went wrong, our development team has been notified. Please try again later.", data: null }
-        if (body.length > 0) {
-            if (body[0] === '{') {
-                response = JSON.parse (body);
-                let success = this.safeValue (response, 'success', false);
-                if (!success) {
+        }
+        if (body.length > 0 && body.slice (0, 1) === '{') {
+            response = JSON.parse (body);
+            let success = this.safeValue (response, 'success', false);
+            if (!success) {
+                let message = this.safeString (response, 'message');
+                if (message.indexOf ('Rate limit exceeded.') >= 0) {
+                    throw new DDoSProtection (this.id + ' ' + message);
+                }
+                if (message.indexOf ('available through the API') >= 0 || message.indexOf ('Oops, looks like you can') >= 0) {
+                    throw new PermissionDenied (this.id + ' ' + message);
+                }
+                throw new ExchangeError (this.id + ' ' + message);
+            } else {
+                let route = this.safeString (response, 'route');
+                if (route === '/login' || route === '/message/restricted') {
                     let message = this.safeString (response, 'message');
-                    if (message.indexOf ('Rate limit exceeded.') >= 0)
-                        throw new DDoSProtection (this.id + ' ' + message);
-                    if (message.indexOf ('available through the API') >= 0 || message.indexOf ('Oops, looks like you can') >= 0)
-                        throw new PermissionDenied (this.id + ' ' + message);
-                    throw new ExchangeError (this.id + ' ' + message);
-                } else {
-                    let route = this.safeString (response, 'route');
-                    if (route === '/login' || route === '/message/restricted') {
-                        let message = this.safeString (response, 'message');
-                        throw new AuthenticationError (this.id + ' ' + message);
-                    }
+                    throw new AuthenticationError (this.id + ' ' + message);
                 }
             }
         }
