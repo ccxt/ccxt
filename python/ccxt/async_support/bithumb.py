@@ -243,7 +243,7 @@ class bithumb (Exchange):
         timestamp -= 9 * 3600000  # they report UTC + 9 hours(server in list(Korean timezone.keys()))
         side = 'sell' if (trade['type'] == 'ask') else 'buy'
         return {
-            'id': None,
+            'id': self.safe_string(trade, 'cont_no'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

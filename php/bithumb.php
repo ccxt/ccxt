@@ -242,7 +242,7 @@ class bithumb extends Exchange {
         $timestamp -= 9 * 3600000; // they report UTC . 9 hours (is_array (Korean timezone) && array_key_exists (server, Korean timezone))
         $side = ($trade['type'] === 'ask') ? 'sell' : 'buy';
         return array (
-            'id' => null,
+            'id' => $this->safe_string($trade, 'cont_no'),
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
