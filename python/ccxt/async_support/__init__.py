@@ -176,7 +176,6 @@ from ccxt.async_support.wex import wex                                    # noqa
 from ccxt.async_support.xbtce import xbtce                                # noqa: F401
 from ccxt.async_support.yobit import yobit                                # noqa: F401
 from ccxt.async_support.yunbi import yunbi                                # noqa: F401
-from ccxt.async_support.yunex import yunex                                # noqa: F401
 from ccxt.async_support.zaif import zaif                                  # noqa: F401
 from ccxt.async_support.zb import zb                                      # noqa: F401
 
@@ -312,7 +311,6 @@ exchanges = [
     'xbtce',
     'yobit',
     'yunbi',
-    'yunex',
     'zaif',
     'zb',
 ]

@@ -211,7 +211,6 @@ class Exchange {
         'xbtce',
         'yobit',
         'yunbi',
-        'yunex',
         'zaif',
         'zb',
     );

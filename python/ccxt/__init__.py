@@ -194,7 +194,6 @@ from ccxt.wex import wex                                    # noqa: F401
 from ccxt.xbtce import xbtce                                # noqa: F401
 from ccxt.yobit import yobit                                # noqa: F401
 from ccxt.yunbi import yunbi                                # noqa: F401
-from ccxt.yunex import yunex                                # noqa: F401
 from ccxt.zaif import zaif                                  # noqa: F401
 from ccxt.zb import zb                                      # noqa: F401
 
@@ -330,7 +329,6 @@ exchanges = [
     'xbtce',
     'yobit',
     'yunbi',
-    'yunex',
     'zaif',
     'zb',
 ]

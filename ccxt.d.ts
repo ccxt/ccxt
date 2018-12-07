@@ -443,7 +443,6 @@ declare module 'ccxt' {
     export class xbtce extends Exchange {}
     export class yobit extends liqui {}
     export class yunbi extends acx {}
-    export class yunex extends Exchange {}
     export class zaif extends Exchange {}
     export class zb extends Exchange {}
 
