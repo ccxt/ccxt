@@ -1355,6 +1355,8 @@ foreach ($exchange->markets as $symbol => $market) {
 }
 ```
 
+### Order Book Structure
+
 The structure of a returned order book is as follows:
 
 ```JavaScript
