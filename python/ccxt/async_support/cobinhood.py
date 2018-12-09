@@ -568,8 +568,16 @@ class cobinhood (Exchange):
         result = await self.privateGetTradingOrders(params)
         orders = self.parse_orders(result['result']['orders'], None, since, limit)
         if symbol is not None:
-            return self.filter_by_symbol(orders, symbol)
-        return orders
+            return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+        return self.filter_by_since_limit(orders, since, limit)
+
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        result = await self.privateGetTradingOrderHistory(params)
+        orders = self.parse_orders(result['result']['orders'], None, since, limit)
+        if symbol is not None:
+            return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+        return self.filter_by_since_limit(orders, since, limit)
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
