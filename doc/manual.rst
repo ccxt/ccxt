@@ -1545,6 +1545,9 @@ The method for fetching an order book for a particular symbol is named ``fetchOr
        usleep ($delay); // rate limit
    }
 
+Order Book Structure
+~~~~~~~~~~~~~~~~~~~~
+
 The structure of a returned order book is as follows:
 
 .. code:: javascript
