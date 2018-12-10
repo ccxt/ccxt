@@ -245,9 +245,9 @@ class poloniex (Exchange):
         for p in range(0, len(keys)):
             id = keys[p]
             market = markets[id]
-            quote, base = id.split('_')
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            quoteId, baseId = id.split('_')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             minCost = self.safe_float(self.options['limits']['cost']['min'], quote, 0.0)
             precision = {
@@ -257,6 +257,8 @@ class poloniex (Exchange):
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
                 'active': True,
