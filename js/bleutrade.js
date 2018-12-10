@@ -118,56 +118,6 @@ module.exports = class bleutrade extends bittrex {
         });
     }
 
-    async fetchMarkets (params = {}) {
-        let markets = await this.publicGetMarkets ();
-        let result = [];
-        for (let p = 0; p < markets['result'].length; p++) {
-            let market = markets['result'][p];
-            let id = market['MarketName'];
-            let baseId = market['MarketCurrency'];
-            let quoteId = market['BaseCurrency'];
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
-            let precision = {
-                'amount': 8,
-                'price': 8,
-            };
-            let active = this.safeString (market, 'IsActive');
-            if (active === 'true') {
-                active = true;
-            } else if (active === 'false') {
-                active = false;
-            }
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': active,
-                'info': market,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': market['MinTradeSize'],
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': 0,
-                        'max': undefined,
-                    },
-                },
-            });
-        }
-        return result;
-    }
-
     parseOrderStatus (status) {
         let statuses = {
             'OK': 'closed',
