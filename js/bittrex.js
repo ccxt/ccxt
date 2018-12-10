@@ -184,6 +184,8 @@ module.exports = class bittrex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        // https://github.com/ccxt/ccxt/commit/866370ba6c9cabaf5995d992c15a82e38b8ca291
+        // https://github.com/ccxt/ccxt/pull/4304
         const response = await this.publicGetMarkets ();
         const result = [];
         const markets = this.safeValue (response, 'result');
