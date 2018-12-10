@@ -396,8 +396,7 @@ class bitmex extends Exchange {
         // if $since is not set, they will return candles starting from 2017-01-01
         if ($since !== null) {
             $ymdhms = $this->ymdhms ($since);
-            $ymdhm = mb_substr ($ymdhms, 0, 16);
-            $request['startTime'] = $ymdhm; // starting date $filter for results
+            $request['startTime'] = $ymdhms; // starting date $filter for results
         }
         $response = $this->publicGetTradeBucketed (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);

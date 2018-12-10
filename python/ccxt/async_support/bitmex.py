@@ -388,8 +388,7 @@ class bitmex (Exchange):
         # if since is not set, they will return candles starting from 2017-01-01
         if since is not None:
             ymdhms = self.ymdhms(since)
-            ymdhm = ymdhms[0:16]
-            request['startTime'] = ymdhm  # starting date filter for results
+            request['startTime'] = ymdhms  # starting date filter for results
         response = await self.publicGetTradeBucketed(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
