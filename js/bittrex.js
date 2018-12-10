@@ -208,7 +208,7 @@ module.exports = class bittrex extends Exchange {
                     active = true;
                 }
             }
-            return {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -228,8 +228,8 @@ module.exports = class bittrex extends Exchange {
                         'max': undefined,
                     },
                 },
-            };
-        });
+            });
+        }
         return result;
     }
 
