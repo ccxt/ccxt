@@ -185,10 +185,13 @@ module.exports = class bittrex extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetMarkets ();
-        const result = response.result.map ((entry) => {
-            let id = entry['MarketName'];
-            let baseId = entry['MarketCurrency'];
-            let quoteId = entry['BaseCurrency'];
+        const result = [];
+        const markets = this.safeValue (response, 'result');
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            let id = market['MarketName'];
+            let baseId = market['MarketCurrency'];
+            let quoteId = market['BaseCurrency'];
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
@@ -199,7 +202,12 @@ module.exports = class bittrex extends Exchange {
                 'amount': 8,
                 'price': pricePrecision,
             };
-            let active = entry['IsActive'] === true || entry['IsActive'] === 'true';
+            let active = this.safeValue (market, 'IsActive', false);
+            if (active !== undefined) {
+                if ((active === 'true') || active) {
+                    active = true;
+                }
+            }
             return {
                 'id': id,
                 'symbol': symbol,
@@ -208,11 +216,11 @@ module.exports = class bittrex extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'info': entry,
+                'info': market,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': entry['MinTradeSize'],
+                        'min': market['MinTradeSize'],
                         'max': undefined,
                     },
                     'price': {
