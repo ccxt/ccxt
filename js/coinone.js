@@ -221,7 +221,7 @@ module.exports = class coinone extends Exchange {
     parseTrade (trade, market = undefined) {
         let timestamp = parseInt (trade['timestamp']) * 1000;
         let symbol = (market !== undefined) ? market['symbol'] : undefined;
-        let is_ask = this.safeString(trade, 'is_ask');
+        let is_ask = this.safeString (trade, 'is_ask');
         let side = undefined;
         if (is_ask === '1') {
             side = 'sell';
