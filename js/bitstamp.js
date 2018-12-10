@@ -332,13 +332,13 @@ module.exports = class bitstamp extends Exchange {
     parseTrade (trade, market = undefined) {
         let timestamp = undefined;
         let symbol = undefined;
+        let side = undefined;
         if ('date' in trade) {
             timestamp = parseInt (trade['date']) * 1000;
         } else if ('datetime' in trade) {
             timestamp = this.parse8601 (trade['datetime']);
         }
-        // only if overrided externally
-        let side = this.safeString (trade, 'side');
+        let type = this.safeString (trade, 'type');
         let orderId = this.safeString (trade, 'order_id');
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'amount');
@@ -369,12 +369,12 @@ module.exports = class bitstamp extends Exchange {
             symbol = market['symbol'];
         }
         if (amount !== undefined) {
-            if (amount < 0) {
-                side = 'sell';
-            } else {
-                side = 'buy';
-            }
             amount = Math.abs (amount);
+        }
+        if (type === '1') {
+            side = 'sell';
+        } else if (type === '0') {
+            side = 'buy';
         }
         if (cost === undefined) {
             if (price !== undefined) {
