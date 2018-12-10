@@ -203,10 +203,8 @@ module.exports = class bittrex extends Exchange {
                 'price': pricePrecision,
             };
             let active = this.safeValue (market, 'IsActive', false);
-            if (active !== undefined) {
-                if ((active === 'true') || active) {
-                    active = true;
-                }
+            if ((active === 'true') || active) {
+                active = true;
             }
             result.push ({
                 'id': id,
