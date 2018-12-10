@@ -409,6 +409,11 @@ module.exports = class xs2 extends Exchange {
         let id = this.safeInteger (trade, 'id');
         let side = this.safeString (trade, 'side');
         let isSell = side === 'S';
+        let order = undefined;
+        let order_id = this.safeInteger (trade, 'order_id');
+        if (order_id !== undefined) {
+            order = side + order_id.toString ();
+        }
         let order_type = this.safeString (trade, 'order_type');
         let takerOrMaker = undefined;
         if (order_type !== undefined) {
@@ -431,7 +436,7 @@ module.exports = class xs2 extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': id.toString (),
-            'order': undefined,
+            'order': order,
             'type': undefined,
             'takerOrMaker': takerOrMaker,
             'side': isSell ? 'sell' : 'buy',
