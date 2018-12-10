@@ -395,8 +395,7 @@ module.exports = class bitmex extends Exchange {
         // if since is not set, they will return candles starting from 2017-01-01
         if (since !== undefined) {
             let ymdhms = this.ymdhms (since);
-            let ymdhm = ymdhms.slice (0, 16);
-            request['startTime'] = ymdhm; // starting date filter for results
+            request['startTime'] = ymdhms; // starting date filter for results
         }
         let response = await this.publicGetTradeBucketed (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
