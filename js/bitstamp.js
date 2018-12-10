@@ -923,7 +923,7 @@ module.exports = class bitstamp extends Exchange {
             this._websocketHandleSubscription (contextId, msg);
         } else if (evt === 'data') {
             let chan = this.safeString (msg, 'channel');
-            if (chan.indexOf ('order_book_') >= 0) {
+            if (chan.indexOf ('order_book') >= 0) {
                 this._websocketHandleOrderbook (contextId, msg);
             }
         }
@@ -932,10 +932,14 @@ module.exports = class bitstamp extends Exchange {
     _websocketHandleOrderbook (contextId, msg) {
         let chan = this.safeString (msg, 'channel');
         let parts = chan.split ('_');
-        let symbol = this.findSymbol (parts[2]);
+        let id = 'btcusd';
+        if (parts.length > 2){
+            id = parts[2];
+        }
+        let symbol = this.findSymbol (id);
         let data = this.safeValue (msg, 'data');
         let timestamp = this.safeInteger (data, 'timestamp');
-        let ob = this.parseOrderBook (data, timestamp);
+        let ob = this.parseOrderBook (data, timestamp * 1000);
         let symbolData = this._contextGetSymbolData (contextId, 'ob', symbol);
         symbolData['ob'] = ob;
         this.emit ('ob', symbol, this._cloneOrderBook (ob, symbolData['limit']));
@@ -944,9 +948,13 @@ module.exports = class bitstamp extends Exchange {
 
     _websocketHandleSubscription (contextId, msg) {
         let chan = this.safeString (msg, 'channel');
-        if (chan.indexOf ('order_book_') >= 0) {
+        if (chan.indexOf ('order_book') >= 0) {
             let parts = chan.split ('_');
-            let symbol = this.findSymbol (parts[2]);
+            let id = 'btcusd';
+            if (parts.length > 2){
+                id = parts[2];
+            }
+            let symbol = this.findSymbol (id);
             let symbolData = this._contextGetSymbolData (contextId, 'ob', symbol);
             if ('sub-nonces' in symbolData) {
                 let nonces = symbolData['sub-nonces'];
@@ -977,10 +985,14 @@ module.exports = class bitstamp extends Exchange {
         symbolData['sub-nonces'][nonceStr] = handle;
         this._contextSetSymbolData (contextId, event, symbol, symbolData);
         // send request
-        const id = this.marketId (symbol);
+        let channel = 'order_book';
+        if (symbol !== 'BTC/USD') {
+            const id = this.marketId (symbol);
+            channel = channel + '_' + id;
+        }
         this.websocketSendJson ({
             'event': 'subscribe',
-            'channel': 'order_book_' + id,
+            'channel': channel,
         }, contextId);
     }
 
@@ -988,12 +1000,15 @@ module.exports = class bitstamp extends Exchange {
         if (event !== 'ob') {
             throw new NotSupported ('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
         }
-        let id = this.market_id (symbol);
-        let payload = {
+        let channel = 'order_book';
+        if (symbol !== 'BTC/USD') {
+            const id = this.marketId (symbol);
+            channel = channel + '_' + id;
+        }
+        this.websocketSendJson ({
             'event': 'unsubscribe',
-            'channel': 'order_book_' + id,
-        };
-        this.websocketSendJson (payload);
+            'channel': channel,
+        });
         let nonceStr = nonce.toString ();
         this.emit (nonceStr, true);
     }
