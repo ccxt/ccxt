@@ -329,21 +329,15 @@ module.exports = class bitstamp extends Exchange {
         return undefined;
     }
 
-    parseTrade (trade, market = undefined) {
-        let timestamp = undefined;
+    parseMyTrade (trade, market = undefined) {
         let symbol = undefined;
         let side = undefined;
-        if ('date' in trade) {
-            timestamp = parseInt (trade['date']) * 1000;
-        } else if ('datetime' in trade) {
-            timestamp = this.parse8601 (trade['datetime']);
-        }
-        let type = this.safeString (trade, 'type');
+        let timestamp = this.parse8601 (trade['datetime']);
         let orderId = this.safeString (trade, 'order_id');
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'amount');
         let cost = this.safeFloat (trade, 'cost');
-        let id = this.safeString2 (trade, 'tid', 'id');
+        let id = this.safeString (trade, 'id');
         if (market === undefined) {
             let keys = Object.keys (trade);
             for (let i = 0; i < keys.length; i++) {
@@ -369,12 +363,12 @@ module.exports = class bitstamp extends Exchange {
             symbol = market['symbol'];
         }
         if (amount !== undefined) {
+            if (amount < 0) {
+                side = 'sell';
+            } else {
+                side = 'buy';
+            }
             amount = Math.abs (amount);
-        }
-        if (type === '1') {
-            side = 'sell';
-        } else if (type === '0') {
-            side = 'buy';
         }
         if (cost === undefined) {
             if (price !== undefined) {
@@ -393,6 +387,69 @@ module.exports = class bitstamp extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'order': orderId,
+            'type': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            },
+        };
+    }
+
+    parseTrade (trade, market = undefined) {
+        if ('id' in trade) {
+            return this.parseMyTrade (trade, market);
+        }
+        let symbol = undefined;
+        let side = undefined;
+        let timestamp = parseInt (trade['date']) * 1000;
+        let type = this.safeString (trade, 'type');
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'amount');
+        let id = this.safeString (trade, 'tid');
+        if (market === undefined) {
+            let keys = Object.keys (trade);
+            for (let i = 0; i < keys.length; i++) {
+                if (keys[i].indexOf ('_') >= 0) {
+                    let marketId = keys[i].replace ('_', '');
+                    if (marketId in this.markets_by_id)
+                        market = this.markets_by_id[marketId];
+                }
+            }
+            // if the market is still not defined
+            // try to deduce it from used keys
+            if (market === undefined) {
+                market = this.getMarketFromTrade (trade);
+            }
+        }
+        let feeCost = this.safeFloat (trade, 'fee');
+        let feeCurrency = undefined;
+        if (market !== undefined) {
+            price = this.safeFloat (trade, market['symbolId'], price);
+            amount = this.safeFloat (trade, market['baseId'], amount);
+            feeCurrency = market['quote'];
+            symbol = market['symbol'];
+        }
+        if (type === '1') {
+            side = 'sell';
+        } else if (type === '0') {
+            side = 'buy';
+        }
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
+        }
+        return {
+            'id': id,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
             'type': undefined,
             'side': side,
             'price': price,
