@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.17'
+const version = '1.18.18'
 
 Exchange.ccxtVersion = version
 
@@ -28334,6 +28334,13 @@ module.exports = class coinone extends Exchange {
     parseTrade (trade, market = undefined) {
         let timestamp = parseInt (trade['timestamp']) * 1000;
         let symbol = (market !== undefined) ? market['symbol'] : undefined;
+        let is_ask = this.safeString (trade, 'is_ask');
+        let side = undefined;
+        if (is_ask === '1') {
+            side = 'sell';
+        } else if (is_ask === '0') {
+            side = 'buy';
+        }
         return {
             'id': undefined,
             'timestamp': timestamp,
@@ -28341,7 +28348,7 @@ module.exports = class coinone extends Exchange {
             'order': undefined,
             'symbol': symbol,
             'type': undefined,
-            'side': undefined,
+            'side': side,
             'price': this.safeFloat (trade, 'price'),
             'amount': this.safeFloat (trade, 'qty'),
             'fee': undefined,
