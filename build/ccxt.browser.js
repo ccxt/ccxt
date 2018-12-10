@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.15'
+const version = '1.18.16'
 
 Exchange.ccxtVersion = version
 
@@ -52398,7 +52398,7 @@ module.exports = class okcoinusd extends Exchange {
                     'NEO': true,
                     'QTUM': true,
                     'USDT': true,
-                    'XUC': true,
+                    'XRP': true,
                 },
             },
         });

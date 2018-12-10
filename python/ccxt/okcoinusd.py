@@ -329,7 +329,7 @@ class okcoinusd (Exchange):
                     'NEO': True,
                     'QTUM': True,
                     'USDT': True,
-                    'XUC': True,
+                    'XRP': True,
                 },
             },
         })
