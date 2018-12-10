@@ -184,10 +184,13 @@ class bittrex extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $response = $this->v2GetMarketsGetMarketSummaries ();
+        // https://github.com/ccxt/ccxt/commit/866370ba6c9cabaf5995d992c15a82e38b8ca291
+        // https://github.com/ccxt/ccxt/pull/4304
+        $response = $this->publicGetMarkets ();
         $result = array ();
-        for ($i = 0; $i < count ($response['result']); $i++) {
-            $market = $response['result'][$i]['Market'];
+        $markets = $this->safe_value($response, 'result');
+        for ($i = 0; $i < count ($markets); $i++) {
+            $market = $markets[$i];
             $id = $market['MarketName'];
             $baseId = $market['MarketCurrency'];
             $quoteId = $market['BaseCurrency'];
@@ -201,7 +204,11 @@ class bittrex extends Exchange {
                 'amount' => 8,
                 'price' => $pricePrecision,
             );
-            $active = $market['IsActive'] || $market['IsActive'] === 'true';
+            // bittrex uses boolean values, bleutrade uses strings
+            $active = $this->safe_value($market, 'IsActive', false);
+            if (($active !== 'false') || $active) {
+                $active = true;
+            }
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,

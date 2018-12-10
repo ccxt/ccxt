@@ -358,7 +358,12 @@ class cobinhood (Exchange):
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'size')
         cost = price * amount
-        side = 'sell' if (trade['maker_side'] == 'bid') else 'buy'
+        # you can't determine your side from maker/taker side and vice versa
+        # you can't determine if your order/trade was a maker or a taker based
+        # on just the side of your order/trade
+        # https://github.com/ccxt/ccxt/issues/4300
+        # side = 'sell' if (trade['maker_side'] == 'bid') else 'buy'
+        side = None
         return {
             'info': trade,
             'timestamp': timestamp,

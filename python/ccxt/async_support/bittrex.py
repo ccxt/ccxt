@@ -201,10 +201,13 @@ class bittrex (Exchange):
         return self.decimal_to_precision(fee, TRUNCATE, self.markets[symbol]['precision']['price'], DECIMAL_PLACES)
 
     async def fetch_markets(self, params={}):
-        response = await self.v2GetMarketsGetMarketSummaries()
+        # https://github.com/ccxt/ccxt/commit/866370ba6c9cabaf5995d992c15a82e38b8ca291
+        # https://github.com/ccxt/ccxt/pull/4304
+        response = await self.publicGetMarkets()
         result = []
-        for i in range(0, len(response['result'])):
-            market = response['result'][i]['Market']
+        markets = self.safe_value(response, 'result')
+        for i in range(0, len(markets)):
+            market = markets[i]
             id = market['MarketName']
             baseId = market['MarketCurrency']
             quoteId = market['BaseCurrency']
@@ -218,7 +221,10 @@ class bittrex (Exchange):
                 'amount': 8,
                 'price': pricePrecision,
             }
-            active = market['IsActive'] or market['IsActive'] == 'true'
+            # bittrex uses boolean values, bleutrade uses strings
+            active = self.safe_value(market, 'IsActive', False)
+            if (active != 'false') or active:
+                active = True
             result.append({
                 'id': id,
                 'symbol': symbol,

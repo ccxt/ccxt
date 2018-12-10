@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.14'
+const version = '1.18.15'
 
 Exchange.ccxtVersion = version
 
@@ -15184,10 +15184,13 @@ module.exports = class bittrex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let response = await this.v2GetMarketsGetMarketSummaries ();
-        let result = [];
-        for (let i = 0; i < response['result'].length; i++) {
-            let market = response['result'][i]['Market'];
+        // https://github.com/ccxt/ccxt/commit/866370ba6c9cabaf5995d992c15a82e38b8ca291
+        // https://github.com/ccxt/ccxt/pull/4304
+        const response = await this.publicGetMarkets ();
+        const result = [];
+        const markets = this.safeValue (response, 'result');
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
             let id = market['MarketName'];
             let baseId = market['MarketCurrency'];
             let quoteId = market['BaseCurrency'];
@@ -15201,7 +15204,11 @@ module.exports = class bittrex extends Exchange {
                 'amount': 8,
                 'price': pricePrecision,
             };
-            let active = market['IsActive'] || market['IsActive'] === 'true';
+            // bittrex uses boolean values, bleutrade uses strings
+            let active = this.safeValue (market, 'IsActive', false);
+            if ((active !== 'false') || active) {
+                active = true;
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -17417,56 +17424,6 @@ module.exports = class bleutrade extends bittrex {
                 'symbolSeparator': '_',
             },
         });
-    }
-
-    async fetchMarkets (params = {}) {
-        let markets = await this.publicGetMarkets ();
-        let result = [];
-        for (let p = 0; p < markets['result'].length; p++) {
-            let market = markets['result'][p];
-            let id = market['MarketName'];
-            let baseId = market['MarketCurrency'];
-            let quoteId = market['BaseCurrency'];
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
-            let precision = {
-                'amount': 8,
-                'price': 8,
-            };
-            let active = this.safeString (market, 'IsActive');
-            if (active === 'true') {
-                active = true;
-            } else if (active === 'false') {
-                active = false;
-            }
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': active,
-                'info': market,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': market['MinTradeSize'],
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': 0,
-                        'max': undefined,
-                    },
-                },
-            });
-        }
-        return result;
     }
 
     parseOrderStatus (status) {
@@ -22945,7 +22902,12 @@ module.exports = class cobinhood extends Exchange {
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'size');
         let cost = price * amount;
-        let side = (trade['maker_side'] === 'bid') ? 'sell' : 'buy';
+        // you can't determine your side from maker/taker side and vice versa
+        // you can't determine if your order/trade was a maker or a taker based
+        // on just the side of your order/trade
+        // https://github.com/ccxt/ccxt/issues/4300
+        // let side = (trade['maker_side'] === 'bid') ? 'sell' : 'buy';
+        let side = undefined;
         return {
             'info': trade,
             'timestamp': timestamp,

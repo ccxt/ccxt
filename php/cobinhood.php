@@ -364,7 +364,12 @@ class cobinhood extends Exchange {
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'size');
         $cost = $price * $amount;
-        $side = ($trade['maker_side'] === 'bid') ? 'sell' : 'buy';
+        // you can't determine your $side from maker/taker $side and vice versa
+        // you can't determine if your order/$trade was a maker or a taker based
+        // on just the $side of your order/$trade
+        // https://github.com/ccxt/ccxt/issues/4300
+        // $side = ($trade['maker_side'] === 'bid') ? 'sell' : 'buy';
+        $side = null;
         return array (
             'info' => $trade,
             'timestamp' => $timestamp,

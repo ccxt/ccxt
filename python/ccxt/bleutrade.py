@@ -121,53 +121,6 @@ class bleutrade (bittrex):
             },
         })
 
-    def fetch_markets(self, params={}):
-        markets = self.publicGetMarkets()
-        result = []
-        for p in range(0, len(markets['result'])):
-            market = markets['result'][p]
-            id = market['MarketName']
-            baseId = market['MarketCurrency']
-            quoteId = market['BaseCurrency']
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
-            symbol = base + '/' + quote
-            precision = {
-                'amount': 8,
-                'price': 8,
-            }
-            active = self.safe_string(market, 'IsActive')
-            if active == 'true':
-                active = True
-            elif active == 'false':
-                active = False
-            result.append({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': active,
-                'info': market,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': market['MinTradeSize'],
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': 0,
-                        'max': None,
-                    },
-                },
-            })
-        return result
-
     def parse_order_status(self, status):
         statuses = {
             'OK': 'closed',
