@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.20';
+$version = '1.18.22';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.20';
+    const VERSION = '1.18.22';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -2114,10 +2114,6 @@ class Exchange {
 
     public static function decimal_to_precision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {
 
-        if ($numPrecisionDigits < 0) {
-            throw new BaseError ('Negative precision is not yet supported');
-        }
-
         if (!is_int ($numPrecisionDigits)) {
             throw new BaseError ('Precision must be an integer');
         }
@@ -2129,6 +2125,19 @@ class Exchange {
         assert ($roundingMode === ROUND || $roundingMode === TRUNCATE);
 
         $result = '';
+
+        // Special handling for negative precision
+        if ($numPrecisionDigits < 0) {
+            $toNearest = 10 ** abs ($numPrecisionDigits);
+            if ($roundingMode === ROUND) {
+                $result = (string) ($toNearest * decimal_to_precision ($x / $toNearest, $roundingMode, 0, DECIMAL_PLACES, $paddingMode));
+            }
+            if ($roundingMode === TRUNCATE) {
+                $result = (string) decimal_to_precision ($x - $x % $toNearest, $roundingMode, 0, DECIMAL_PLACES, $paddingMode);
+            }
+            return $result;
+        }
+
         if ($roundingMode === ROUND) {
             if ($countingMode === DECIMAL_PLACES) {
                 // Requested precision of 100 digits was truncated to PHP maximum of 53 digits
@@ -2204,7 +2213,9 @@ class Exchange {
                 }
             }
         }
-
+        if (($result === '-0') || ($result === '-0.'. str_repeat ('0', max (strlen ($result) - 3, 0)))) {
+            $result = substr ($result, 1);
+        }
         return $result;
     }
 

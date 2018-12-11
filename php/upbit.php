@@ -777,7 +777,7 @@ class upbit extends Exchange {
             $this->safe_float($ohlcv, 'high_price'),
             $this->safe_float($ohlcv, 'low_price'),
             $this->safe_float($ohlcv, 'trade_price'),
-            $this->safe_float($ohlcv, 'candle_acc_trade_price'), // base volume
+            $this->safe_float($ohlcv, 'candle_acc_trade_volume'), // base volume
         );
     }
 
