@@ -749,7 +749,7 @@ class upbit (Exchange):
             self.safe_float(ohlcv, 'high_price'),
             self.safe_float(ohlcv, 'low_price'),
             self.safe_float(ohlcv, 'trade_price'),
-            self.safe_float(ohlcv, 'candle_acc_trade_price'),  # base volume
+            self.safe_float(ohlcv, 'candle_acc_trade_volume'),  # base volume
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):

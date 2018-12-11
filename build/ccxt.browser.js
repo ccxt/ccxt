@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.21'
+const version = '1.18.22'
 
 Exchange.ccxtVersion = version
 
@@ -60680,7 +60680,7 @@ module.exports = class upbit extends Exchange {
             this.safeFloat (ohlcv, 'high_price'),
             this.safeFloat (ohlcv, 'low_price'),
             this.safeFloat (ohlcv, 'trade_price'),
-            this.safeFloat (ohlcv, 'candle_acc_trade_price'), // base volume
+            this.safeFloat (ohlcv, 'candle_acc_trade_volume'), // base volume
         ];
     }
 
