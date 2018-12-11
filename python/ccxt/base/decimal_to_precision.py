@@ -47,6 +47,13 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
     def power_of_10(x):
         return decimal.Decimal('10') ** (-x)
 
+    if precision < 0:
+        to_nearest = power_of_10(precision)
+        if rounding_mode == ROUND:
+            return "{:f}".format(to_nearest * decimal.Decimal(decimal_to_precision(dec / to_nearest, rounding_mode, 0, DECIMAL_PLACES, padding_mode)))
+        elif rounding_mode == TRUNCATE:
+            return decimal_to_precision(dec - dec % to_nearest, rounding_mode, 0, DECIMAL_PLACES, padding_mode)
+
     if rounding_mode == ROUND:
         if counting_mode == DECIMAL_PLACES:
             precise = '{:f}'.format(dec.quantize(power_of_10(precision)))  # ROUND_HALF_EVEN is default context
@@ -61,6 +68,8 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
                 precise = '{:f}'.format(min((below, above), key=lambda x: abs(x - dec)))
             else:
                 precise = '{:f}'.format(dec.quantize(sigfig))
+        if precise == ('-0.' + len(precise) * '0')[:2] or precise == '-0':
+            precise = precise[1:]
 
     elif rounding_mode == TRUNCATE:
         # Slice a string
@@ -80,6 +89,8 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
                 precise = string
             else:
                 precise = string[:end].ljust(dot, '0')
+        if precise == ('-0.' + len(precise) * '0')[:3] or precise == '-0':
+            precise = precise[1:]
         precise = precise.rstrip('.')
 
     if padding_mode == NO_PADDING:
