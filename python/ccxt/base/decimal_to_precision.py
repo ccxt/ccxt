@@ -41,9 +41,8 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
     context.rounding = decimal.ROUND_HALF_UP  # rounds 0.5 away from zero
 
     dec = decimal.Decimal(str(n))
-
-    precise = None
     string = '{:f}'.format(dec)  # convert to string using .format to avoid engineering notation
+    precise = None
 
     def power_of_10(x):
         return decimal.Decimal('10') ** (-x)
