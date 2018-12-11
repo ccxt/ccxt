@@ -988,7 +988,7 @@ class crex24 extends Exchange {
         if ($since !== null) {
             $request['from'] = $this->ymd ($since, 'T');
         }
-        $response = $this->aacountGetMoneyTransfers (array_merge ($request, $params));
+        $response = $this->accountGetMoneyTransfers (array_merge ($request, $params));
         //
         //     array (
         //         array (

@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.18'
+const version = '1.18.19'
 
 Exchange.ccxtVersion = version
 
@@ -30771,7 +30771,7 @@ module.exports = class crex24 extends Exchange {
         if (since !== undefined) {
             request['from'] = this.ymd (since, 'T');
         }
-        let response = await this.aacountGetMoneyTransfers (this.extend (request, params));
+        let response = await this.accountGetMoneyTransfers (this.extend (request, params));
         //
         //     [
         //         {

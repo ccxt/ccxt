@@ -939,7 +939,7 @@ class crex24 (Exchange):
             request['currency'] = currency['id']
         if since is not None:
             request['from'] = self.ymd(since, 'T')
-        response = await self.aacountGetMoneyTransfers(self.extend(request, params))
+        response = await self.accountGetMoneyTransfers(self.extend(request, params))
         #
         #     [
         #         {
