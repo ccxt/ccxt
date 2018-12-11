@@ -987,7 +987,7 @@ module.exports = class crex24 extends Exchange {
         if (since !== undefined) {
             request['from'] = this.ymd (since, 'T');
         }
-        let response = await this.aacountGetMoneyTransfers (this.extend (request, params));
+        let response = await this.accountGetMoneyTransfers (this.extend (request, params));
         //
         //     [
         //         {
