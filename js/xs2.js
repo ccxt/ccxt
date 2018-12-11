@@ -17,7 +17,7 @@ const { ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, DDoSPr
 //      order-book:
 //      - time/nonce
 //      my-trades:
-//      - order-id & order-type
+//      - order-type
 //      order:
 //      - type (only supports LIMIT, LIMIT_MAKER)
 //      - fee when (partially) filled
@@ -411,9 +411,6 @@ module.exports = class xs2 extends Exchange {
         let isSell = side === 'S';
         let order = undefined;
         let order_id = this.safeInteger (trade, 'order_id');
-        if (order_id !== undefined) {
-            order = side + order_id.toString ();
-        }
         let order_type = this.safeString (trade, 'order_type');
         let takerOrMaker = undefined;
         if (order_type !== undefined) {
@@ -421,6 +418,9 @@ module.exports = class xs2 extends Exchange {
                 takerOrMaker = (order_type === 'Sell') ? 'taker' : 'maker';
             } else {
                 takerOrMaker = (order_type === 'Buy') ? 'taker' : 'maker';
+            }
+            if (order_id !== undefined) {
+                order = order_type.slice(0, 1) + order_id.toString();
             }
         }
         let symbol = undefined;
