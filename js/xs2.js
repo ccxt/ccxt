@@ -420,7 +420,7 @@ module.exports = class xs2 extends Exchange {
                 takerOrMaker = (order_type === 'Buy') ? 'taker' : 'maker';
             }
             if (order_id !== undefined) {
-                order = order_type.slice(0, 1) + order_id.toString();
+                order = order_type.slice (0, 1) + order_id.toString ();
             }
         }
         let symbol = undefined;
