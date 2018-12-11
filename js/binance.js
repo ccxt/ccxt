@@ -149,12 +149,20 @@ module.exports = class binance extends Exchange {
                             'stream': '{symbol}@depth',
                         },
                     },
-                    'trade': {
+                    'aggtrade': {
                         'conx-tpl': 'default',
                         'conx-param': {
                             'url': '{baseurl}',
                             'id': '{id}',
                             'stream': '{symbol}@aggTrade',
+                        },
+                    },
+                    'trade': {
+                        'conx-tpl': 'default',
+                        'conx-param': {
+                            'url': '{baseurl}',
+                            'id': '{id}',
+                            'stream': '{symbol}@trade',
                         },
                     },
                     'kline': {
@@ -1262,7 +1270,9 @@ module.exports = class binance extends Exchange {
             let msgType = parts[1];
             if (msgType === 'depth') {
                 this._websocketHandleOb (contextId, resData);
-            } else if (msgType === 'aggTrade') {
+            } else if (msgType === 'trade') {
+                this._websocketHandleTrade (contextId, resData);
+            else if (msgType === 'aggTrade') {
                 this._websocketHandleTrade (contextId, resData);
             } else if (msgType.indexOf ('kline') >= 0) {
                 this._websocketHandleKline (contextId, resData);
@@ -1436,8 +1446,10 @@ module.exports = class binance extends Exchange {
                     let event = pair[1].toLowerCase ();
                     if (event === 'depth')
                         event = 'ob';
-                    else if (event === 'aggtrade')
+                    else if (event === 'trade')
                         event = 'trade';
+                    else if (event === 'aggtrade')
+                        event = 'aggtrade';
                     else if (event.indexOf ('kline') >= 0)
                         event = 'kline';
                     else if (event.indexOf ('24hrTicker') >= 0)
