@@ -776,7 +776,7 @@ module.exports = class upbit extends Exchange {
             this.safeFloat (ohlcv, 'high_price'),
             this.safeFloat (ohlcv, 'low_price'),
             this.safeFloat (ohlcv, 'trade_price'),
-            this.safeFloat (ohlcv, 'candle_acc_trade_price'), // base volume
+            this.safeFloat (ohlcv, 'candle_acc_trade_volume'), // base volume
         ];
     }
 
