@@ -2185,7 +2185,7 @@ class Exchange {
                 }
             }
         }
-        if ($result === '-0') || ($result === '-0.'. str_repeat ('0', max (strlen ($result) - 3, 0))) {
+        if (($result === '-0') || ($result === '-0.'. str_repeat ('0', max (strlen ($result) - 3, 0)))) {
             $result = substr ($result, 1);
         }
         return $result;
