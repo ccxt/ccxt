@@ -89,12 +89,12 @@ const decimalToPrecision = (x, roundingMode
                              , paddingMode        = NO_PADDING) => {
 
     if (numPrecisionDigits < 0) {
-        let toNearest = Math.pow(10,(-numPrecisionDigits))
+        let toNearest = Math.pow (10, -numPrecisionDigits)
         if (roundingMode === ROUND) {
-            return (toNearest*decimalToPrecision(x/toNearest,roundingMode,0,countingMode,paddingMode)).toString()
+            return (toNearest * decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString ()
         }
         if (roundingMode === TRUNCATE) {
-            return (x-(x%toNearest)).toString()
+            return (x - (x % toNearest)).toString ()
         }
     }
 
