@@ -1,4 +1,3 @@
-import re
 import decimal
 import numbers
 import itertools
@@ -45,8 +44,6 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
 
     precise = None
     string = '{:f}'.format(dec)  # convert to string using .format to avoid engineering notation
-    if not re.match(r'[\d.-]+', string):
-        raise ValueError('{} is an invalid decimal number.'.format(string))
 
     def power_of_10(x):
         return decimal.Decimal('10') ** (-x)
