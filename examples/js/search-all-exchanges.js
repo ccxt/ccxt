@@ -3,15 +3,18 @@
 /*  ------------------------------------------------------------------------ */
 
 const [processPath, , argument = null] = process.argv.filter (x => !x.startsWith ('--'))
-    , verbose = process.argv.includes ('--verbose') || false
-    , strict  = process.argv.includes ('--strict')  || false
-    , compact = process.argv.includes ('--compact') || false
+    , verbose = process.argv.includes ('--verbose')
+    , strict  = process.argv.includes ('--strict')
+    , compact = process.argv.includes ('--compact')
+    , debug = process.argv.includes ('--debug')
+    , marketsOnly = process.argv.includes ('--markets')
+    , currenciesOnly = process.argv.includes ('--currencies')
 
 
 /*  ------------------------------------------------------------------------ */
 
 const asTable   = require ('as-table')
-    , log       = require ('ololog')
+    , log       = require ('ololog').noLocate
     , path      = require ('path')
     , fs        = require ('fs')
     , ansi      = require ('ansicolor').nice
@@ -29,9 +32,12 @@ process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit 
 /*  ------------------------------------------------------------------------ */
 
 let printUsage = function () {
-    log ('Non-strict search: node', process.argv[1], 'symbol'.green)
-    log ('Non-strict search: node', process.argv[1], 'currency'.green)
-    log ('    Strict search: node', process.argv[1], '--strict', 'argument'.green)
+    log ('     Non-strict search: node', process.argv[1], 'symbol'.green)
+    log ('     Non-strict search: node', process.argv[1], 'currency'.green)
+    log ('         Strict search: node', process.argv[1], '--strict', 'argument'.green)
+    log ('   Search markets only: node', process.argv[1], '--markets', 'argument'.green)
+    log ('Search currencies only: node', process.argv[1], '--currencies', 'argument'.green)
+
 }
 
 if (process.argv.length < 3) {
@@ -50,7 +56,7 @@ const keys = require (localKeysFile)
 
 /*  ------------------------------------------------------------------------ */
 
-log ('\nLooking up for:', argument.bright, strict ? '(strict search)' : '(non-strict search)', '\n')
+log ('Looking up for:', argument.bright, strict ? '(strict search)' : '(non-strict search)')
 
 const checkAgainst = strict ?
     (a, b) => ((a == b.toLowerCase ()) || (a == b.toUpperCase ())) :
@@ -81,7 +87,9 @@ const checkAgainst = strict ?
 
             } catch (e) {
 
-                log.red (exchange.id, e.constructor.name)
+                if (debug) {
+                    log.red (exchange.id, e.constructor.name)
+                }
                 return undefined
             }
         }
@@ -90,54 +98,56 @@ const checkAgainst = strict ?
     // filter out exchanges that failed to load
     exchanges = exchanges.filter (exchange => exchange)
 
-    log ("\n---------------------------------------------------------------\n")
+    if (!currenciesOnly) {
 
-    log ("Markets And Symbols:\n")
+        log ("---------------------------------------------------------------")
 
-    let markets = ccxt.flatten (exchanges
-        .map (exchange =>
-            Object.values (exchange.markets).map (market =>
-                exchange.extend (market, {
-                    exchange: exchange.id[(market.active !== false) ? 'green' : 'yellow'],
-                }))))
-        .filter (market =>
-            checkAgainst (market['base'],  argument) ||
-            checkAgainst (market['quote'], argument) ||
-            (market['baseId']  ? checkAgainst (market['baseId'],  argument) : false) ||
-            (market['quoteId'] ? checkAgainst (market['quoteId'], argument) : false) ||
-            checkAgainst (market['symbol'], argument) ||
-            checkAgainst (market['id'].toString (), argument))
+        log ("Markets And Symbols:")
 
+        let markets = ccxt.flatten (exchanges
+            .map (exchange =>
+                Object.values (exchange.markets).map (market =>
+                    exchange.extend (market, {
+                        exchange: exchange.id[(market.active !== false) ? 'green' : 'yellow'],
+                    }))))
+            .filter (market =>
+                checkAgainst (market['base'],  argument) ||
+                checkAgainst (market['quote'], argument) ||
+                (market['baseId']  ? checkAgainst (market['baseId'],  argument) : false) ||
+                (market['quoteId'] ? checkAgainst (market['quoteId'], argument) : false) ||
+                checkAgainst (market['symbol'], argument) ||
+                checkAgainst (market['id'].toString (), argument))
 
-    log (asTable (markets.map (market => {
-        market = ccxt.omit (market, [ 'info', 'limits', 'precision', 'tiers' ])
-        return (!compact) ? market : {
-            'symbol': market['symbol'],
-            'exchange': market['exchange'],
-        };
-    })))
+        log (asTable (markets.map (market => {
+            market = ccxt.omit (market, [ 'info', 'limits', 'precision', 'tiers' ])
+            return (!compact) ? market : {
+                'symbol': market['symbol'],
+                'exchange': market['exchange'],
+            };
+        })))
 
-    log ("\n---------------------------------------------------------------\n")
+        log (markets.length.toString ().yellow, 'markets')
+    }
 
-    log ("Currencies:\n")
+    if (!marketsOnly) {
 
-    let currencies = ccxt.flatten (exchanges
-        .map (exchange =>
-            Object.values (exchange.currencies).map (currency =>
-                exchange.extend (currency, {
-                    exchange: exchange.id[(currency.active !== false) ? 'green' : 'yellow'],
-                }))))
-        .filter (currency =>
-            checkAgainst (currency['code'], argument) ||
-            checkAgainst (currency['id'], argument))
+        log ("---------------------------------------------------------------")
 
-    log (asTable (currencies.map (currency => ccxt.omit (currency, [ 'info', 'limits', 'precision' ]))))
+        log ("Currencies:")
 
-    log ("\n---------------------------------------------------------------\n")
+        let currencies = ccxt.flatten (exchanges
+            .map (exchange =>
+                Object.values (exchange.currencies).map (currency =>
+                    exchange.extend (currency, {
+                        exchange: exchange.id[(currency.active !== false) ? 'green' : 'yellow'],
+                    }))))
+            .filter (currency =>
+                checkAgainst (currency['code'], argument) ||
+                checkAgainst (currency['id'], argument))
 
-    // output a summary
-    log (markets.length.toString ().yellow, 'markets and',
-      currencies.length.toString ().yellow, "currencies\n")
+        log (asTable (currencies.map (currency => ccxt.omit (currency, [ 'info', 'limits', 'precision' ]))))
 
+        log (currencies.length.toString ().yellow, 'currencies')
+    }
 
 }) ()
