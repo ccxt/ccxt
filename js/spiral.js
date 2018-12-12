@@ -112,8 +112,9 @@ module.exports = class spiral extends Exchange {
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let active = (market['status'] === 'TRADING');
+            let minTrade = this.safeString (market, 'minTrade');
             let precision = {
-                'amount': this.precisionFromString (market['minTrade'] + ''),
+                'amount': this.precisionFromString (minTrade),
                 'price': this.precisionFromString (market['tickSize']),
             };
             let entry = {
