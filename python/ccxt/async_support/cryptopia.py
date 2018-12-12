@@ -751,6 +751,7 @@ class cryptopia (Exchange):
         tag = self.safe_string(response['Data'], 'Address')
         if (address is None) or len((address) < 1):
             address = tag
+            tag = None
         self.check_address(address)
         return {
             'currency': code,
