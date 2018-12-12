@@ -7,7 +7,7 @@ const { ExchangeError, ArgumentsRequired, BadRequest, InvalidOrder, DDoSProtecti
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class Spiral extends Exchange {
+module.exports = class spiral extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'spiral',
