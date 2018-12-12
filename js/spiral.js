@@ -209,7 +209,7 @@ module.exports = class Spiral extends Exchange {
     parseOrderBook (response) {
         const orderbooks = response['data'];
         const asks = [];
-        const bids = [];
+        let bids = [];
         if (orderbooks) {
             for (let i = 0; i < orderbooks.length; i++) {
                 const price = parseFloat (orderbooks[i][0]);
@@ -221,7 +221,7 @@ module.exports = class Spiral extends Exchange {
                     bids.push ([price, amount]);
                 }
             }
-            bids.sort ((bid1, bid2) => bid2[0] - bid1[0]);
+            bids = this.sortBy (bids, 0, true);
         }
         return {
             'bids': bids,
