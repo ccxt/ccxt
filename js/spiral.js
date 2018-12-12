@@ -206,8 +206,8 @@ module.exports = class Spiral extends Exchange {
         return this.parseBalance (result);
     }
 
-    parseOrderBook (response) {
-        const orderbooks = response['data'];
+    parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
+        const orderbooks = orderbook['data'];
         const asks = [];
         let bids = [];
         if (orderbooks) {
