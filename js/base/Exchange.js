@@ -197,6 +197,8 @@ module.exports = class Exchange {
                 'XBT': 'BTC',
                 'BCC': 'BCH',
                 'DRK': 'DASH',
+                'BCHABC': 'BCH',
+                'BCHSV': 'BSV',
             },
             'precisionMode': DECIMAL_PLACES,
         } // return

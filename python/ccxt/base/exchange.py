@@ -244,6 +244,8 @@ class Exchange(object):
         'XBT': 'BTC',
         'BCC': 'BCH',
         'DRK': 'DASH',
+        'BCHABC': 'BCH',
+        'BCHSV': 'BSV',
     }
 
     def __init__(self, config={}):
