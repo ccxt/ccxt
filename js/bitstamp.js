@@ -933,7 +933,7 @@ module.exports = class bitstamp extends Exchange {
         let chan = this.safeString (msg, 'channel');
         let parts = chan.split ('_');
         let id = 'btcusd';
-        if (parts.length > 2){
+        if (parts.length > 2) {
             id = parts[2];
         }
         let symbol = this.findSymbol (id);
@@ -951,7 +951,7 @@ module.exports = class bitstamp extends Exchange {
         if (chan.indexOf ('order_book') >= 0) {
             let parts = chan.split ('_');
             let id = 'btcusd';
-            if (parts.length > 2){
+            if (parts.length > 2) {
                 id = parts[2];
             }
             let symbol = this.findSymbol (id);

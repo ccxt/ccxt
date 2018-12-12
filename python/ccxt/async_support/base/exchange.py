@@ -700,7 +700,7 @@ class Exchange(BaseExchange, EventEmitter):
             websocket_connection_info['auth'] = False
             self._websocket_on_error(conxid)
             self._websocket_reset_context(conxid)
-            self.emit('err', new NetworkError(error), conxid)
+            self.emit('err', NetworkError(error), conxid)
 
         @conx.on('message')
         def websocket_connection_message(msg):
