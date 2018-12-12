@@ -206,30 +206,24 @@ module.exports = class spiral extends Exchange {
         return this.parseBalance (result);
     }
 
-    parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
-        const orderbooks = orderbook['data'];
+    parseSpiralOrderBook (response) {
+        const orderbooks = this.safeValue (response, 'data', []);
         const asks = [];
-        let bids = [];
-        if (orderbooks) {
-            for (let i = 0; i < orderbooks.length; i++) {
-                const price = parseFloat (orderbooks[i][0]);
-                const amount = parseFloat (orderbooks[i][1]);
-                const side = orderbooks[i][2];
-                if (side === 'ask') {
-                    asks.push ([price, amount]);
-                } else {
-                    bids.push ([price, amount]);
-                }
+        const bids = [];
+        for (let i = 0; i < orderbooks.length; i++) {
+            const price = orderbooks[i][0];
+            const amount = orderbooks[i][1];
+            const side = orderbooks[i][2];
+            if (side === 'ask') {
+                asks.push ([price, amount]);
+            } else {
+                bids.push ([price, amount]);
             }
-            bids = this.sortBy (bids, 0, true);
         }
-        return {
-            'bids': bids,
+        return this.parseOrderBook ({
             'asks': asks,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'nonce': undefined,
-        };
+            'bids': bids,
+        });
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -241,7 +235,7 @@ module.exports = class spiral extends Exchange {
         if (limit !== undefined)
             request['limit'] = limit; // default = maximum = 100
         let response = await this.publicGetOrderbook (this.extend (request, params));
-        let orderbook = this.parseOrderBook (response);
+        let orderbook = this.parseSpiralOrderBook (response);
         orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
         return orderbook;
     }
