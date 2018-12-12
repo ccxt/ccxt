@@ -101,7 +101,7 @@ module.exports = class Spiral extends Exchange {
 
     async fetchMarkets (params = {}) {
         let response = await this.publicGetProducts ();
-        let markets = response['data'] || [];
+        let markets = this.safeValue (response, 'data', []);
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
@@ -144,7 +144,7 @@ module.exports = class Spiral extends Exchange {
 
     async fetchCurrencies (params = {}) {
         let response = await this.publicGetCurrencies (params);
-        let currencies = response['data'] || [];
+        let currencies = this.safeValue (response, 'data', []);
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
@@ -189,7 +189,7 @@ module.exports = class Spiral extends Exchange {
         await this.loadMarkets ();
         let response = await this.privateGetWalletBalances (params);
         let result = { 'info': response };
-        let balances = response['data'];
+        let balances = this.safeValue (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
             let currency = balance['currency'];
@@ -268,7 +268,8 @@ module.exports = class Spiral extends Exchange {
             request['limit'] = limit;
         }
         let response = await this.publicGetKlines (this.extend (request, params));
-        return this.parseOHLCVs (response['data'] || [], market, timeframe, since, limit);
+        const ohlvs = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (ohlvs, market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
@@ -322,7 +323,8 @@ module.exports = class Spiral extends Exchange {
         if (limit !== undefined)
             request['count'] = limit;
         let response = await this.publicGetTrades (this.extend (request, params));
-        return this.parseTrades (response['trades'] || [], market, since, limit);
+        const trades = this.safeValue (response, 'trades', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     parseOrderStatus (status) {
@@ -435,7 +437,8 @@ module.exports = class Spiral extends Exchange {
         if ('filter' in request)
             request['filter'] = this.json (request['filter']);
         let response = await this.privateGetOrder (request);
-        return this.parseOrders (response['orders'] || [], market, since, limit);
+        const orders = this.safeValue (response, 'orders', []);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -482,7 +485,8 @@ module.exports = class Spiral extends Exchange {
             request['start_time'] = since;
         }
         let response = await this.privateGetMyTrades (this.extend (request, params));
-        return this.parseTrades (response['trades'] || [], market, since, limit);
+        const trades = this.safeValue (response, 'trades', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
