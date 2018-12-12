@@ -462,7 +462,7 @@ class dsx (liqui):
             id = ids[i]
             order = self.parse_order(self.extend({
                 'id': str(id),
-            }, orders[i]))
+            }, orders[id]))
             result.append(order)
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 

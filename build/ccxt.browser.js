@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.24'
+const version = '1.18.25'
 
 Exchange.ccxtVersion = version
 
@@ -33281,7 +33281,7 @@ module.exports = class dsx extends liqui {
             let id = ids[i];
             let order = this.parseOrder (this.extend ({
                 'id': id.toString (),
-            }, orders[i]));
+            }, orders[id]));
             result.push (order);
         }
         return this.filterBySymbolSinceLimit (result, symbol, since, limit);
