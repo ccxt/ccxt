@@ -557,14 +557,13 @@ module.exports = class xs2 extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
-        }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
-            'Market': market['id'],
-        };
+        let market = undefined;
+        let request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['Market'] = market['id'];
+        }
         if (since !== undefined && since !== 0) {
             request['CreatedFrom'] = this.iso8601 (since);
         }
