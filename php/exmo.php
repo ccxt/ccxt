@@ -529,13 +529,17 @@ class exmo extends Exchange {
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $request = array ();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market ($symbol);
-            $request['pair'] = $market['id'];
+        // their docs does not mention it, but if you don't supply a $symbol
+        // their API will return an empty $response as if you don't have any trades
+        // therefore we make it required here as calling it without a $symbol is useless
+        if ($symbol === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'pair' => $market['id'],
+        );
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
