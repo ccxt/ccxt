@@ -516,6 +516,8 @@ class exmo (Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
+        if limit is not None:
+            request['limit'] = limit
         response = self.privatePostUserTrades(self.extend(request, params))
         if market is not None:
             response = response[market['id']]
