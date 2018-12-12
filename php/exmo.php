@@ -536,6 +536,9 @@ class exmo extends Exchange {
             $market = $this->market ($symbol);
             $request['pair'] = $market['id'];
         }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
         $response = $this->privatePostUserTrades (array_merge ($request, $params));
         if ($market !== null)
             $response = $response[$market['id']];
