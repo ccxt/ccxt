@@ -875,7 +875,9 @@ class Exchange {
         $this->commonCurrencies = array (
             'XBT' => 'BTC',
             'BCC' => 'BCH',
-            'DRK' => 'DASH'
+            'DRK' => 'DASH',
+            'BCHABC' => 'BCH',
+            'BCHSV' => 'BSV',
         );
 
         $this->urlencode_glue = ini_get ('arg_separator.output'); // can be overrided by exchange constructor params
