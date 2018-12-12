@@ -178,7 +178,7 @@ class bitfinex2 extends bitfinex {
         return 'f' . $code;
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->v1GetSymbolsDetails ();
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {

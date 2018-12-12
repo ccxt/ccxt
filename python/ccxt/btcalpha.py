@@ -117,7 +117,7 @@ class btcalpha (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetPairs()
         result = []
         for i in range(0, len(markets)):
@@ -177,6 +177,11 @@ class btcalpha (Exchange):
         amount = float(trade['amount'])
         cost = self.cost_to_precision(symbol, price * amount)
         id = self.safe_string(trade, 'id')
+        side = None
+        if 'my_side' in trade:
+            side = self.safe_string(trade, 'my_side')
+        else:
+            side = self.safe_string(trade, 'side')
         if not id:
             id = self.safe_string(trade, 'tid')
         return {
@@ -186,7 +191,7 @@ class btcalpha (Exchange):
             'id': id,
             'order': self.safe_string(trade, 'o_id'),
             'type': 'limit',
-            'side': trade['type'],
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': float(cost),
@@ -383,7 +388,7 @@ class btcalpha (Exchange):
             headers['X-NONCE'] = str(self.nonce())
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
         if code < 400:
             return
         if not isinstance(body, basestring):

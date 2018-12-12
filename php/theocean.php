@@ -85,6 +85,7 @@ class theocean extends Exchange {
                     'Order not found' => '\\ccxt\\OrderNotFound', // array ("message":"Order not found","errors":...)
                 ),
                 'broad' => array (
+                    "Price can't exceed 8 digits in precision." => '\\ccxt\\InvalidOrder', // array ("message":"Price can't exceed 8 digits in precision.","type":"paramPrice")
                     'Order cannot be canceled' => '\\ccxt\\InvalidOrder', // array ("message":"Order cannot be canceled","type":"General error")
                     'Greater than available wallet balance.' => '\\ccxt\\InsufficientFunds',
                     'Orderbook exhausted for intent' => '\\ccxt\\OrderNotFillable', // array ("message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g")
@@ -119,7 +120,7 @@ class theocean extends Exchange {
         );
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetTokenPairs ();
         //
         //     array (
@@ -1036,8 +1037,8 @@ class theocean extends Exchange {
             }
             $feeDecimals = $this->safe_integer($this->options['decimals'], $feeCurrency, 18);
             $fee = array (
-                'сost' => $this->fromWei ($feeCost, 'ether', $feeDecimals),
-                'сurrency' => $feeCurrency,
+                'cost' => $this->fromWei ($feeCost, 'ether', $feeDecimals),
+                'currency' => $feeCurrency,
             );
         }
         $amountPrecision = $market ? $market['precision']['amount'] : 8;
@@ -1237,7 +1238,7 @@ class theocean extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response = null) {
         if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)

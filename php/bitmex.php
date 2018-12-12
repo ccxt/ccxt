@@ -136,9 +136,11 @@ class bitmex extends Exchange {
                     'Invalid API Key.' => '\\ccxt\\AuthenticationError',
                     'Access Denied' => '\\ccxt\\PermissionDenied',
                     'Duplicate clOrdID' => '\\ccxt\\InvalidOrder',
+                    'Signature not valid' => '\\ccxt\\AuthenticationError',
                 ),
                 'broad' => array (
                     'overloaded' => '\\ccxt\\ExchangeNotAvailable',
+                    'Account has insufficient Available Balance' => '\\ccxt\\InsufficientFunds',
                 ),
             ),
             'options' => array (
@@ -147,7 +149,7 @@ class bitmex extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetInstrumentActiveAndIndices ();
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
@@ -359,7 +361,7 @@ class bitmex extends Exchange {
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        $timestamp = $this->parse8601 ($ohlcv['timestamp']) - $this->parse_timeframe($timeframe) * 1000;
+        $timestamp = $this->parse8601 ($ohlcv['timestamp']);
         return [
             $timestamp,
             $ohlcv['open'],
@@ -394,8 +396,7 @@ class bitmex extends Exchange {
         // if $since is not set, they will return candles starting from 2017-01-01
         if ($since !== null) {
             $ymdhms = $this->ymdhms ($since);
-            $ymdhm = mb_substr ($ymdhms, 0, 16);
-            $request['startTime'] = $ymdhm; // starting date $filter for results
+            $request['startTime'] = $ymdhms; // starting date $filter for results
         }
         $response = $this->publicGetTradeBucketed (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
@@ -577,7 +578,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
         if ($code === 429)
             throw new DDoSProtection ($this->id . ' ' . $body);
         if ($code >= 400) {

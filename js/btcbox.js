@@ -304,13 +304,13 @@ module.exports = class btcbox extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body) {
+    handleErrors (httpCode, reason, url, method, headers, body, response = undefined) {
         // typical error response: {"result":false,"code":"401"}
         if (httpCode >= 400)
             return; // resort to defaultErrorHandler
         if (body[0] !== '{')
             return; // not json, resort to defaultErrorHandler
-        const response = JSON.parse (body);
+        response = JSON.parse (body);
         const result = this.safeValue (response, 'result');
         if (result === undefined || result === true)
             return; // either public API (no error codes expected) or success

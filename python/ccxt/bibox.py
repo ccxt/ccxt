@@ -562,6 +562,8 @@ class bibox (Exchange):
                 'account_type': 0,  # 0 - regular, 1 - margin
                 'page': 1,
                 'size': size,
+                'coin_symbol': market['baseId'],
+                'currency_symbol': market['quoteId'],
             }, params),
         })
         trades = self.safe_value(response['result'], 'items', [])
@@ -657,7 +659,7 @@ class bibox (Exchange):
         headers = {'Content-Type': 'application/json'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
         if len(body) > 0:
             if body[0] == '{':
                 response = json.loads(body)

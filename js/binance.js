@@ -299,7 +299,7 @@ module.exports = class binance extends Exchange {
         return this.options['timeDifference'];
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetExchangeInfo ();
         if (this.options['adjustForTimeDifference'])
             await this.loadTimeDifference ();
@@ -340,7 +340,7 @@ module.exports = class binance extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
@@ -349,14 +349,21 @@ module.exports = class binance extends Exchange {
                     },
                 },
             };
-            if ('PRICE_FILTER' in filters) {
-                let filter = filters['PRICE_FILTER'];
-                entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
-                entry['limits']['price'] = {
-                    'min': this.safeFloat (filter, 'minPrice'),
-                    'max': this.safeFloat (filter, 'maxPrice'),
-                };
-            }
+            // PRICE_FILTER reports zero values for minPrice and maxPrice
+            // since they updated filter types in November 2018
+            // https://github.com/ccxt/ccxt/issues/4286
+            // therefore limits['price']['min'] and limits['price']['max]
+            // don't have any meaningful value except undefined
+            //
+            //     if ('PRICE_FILTER' in filters) {
+            //         let filter = filters['PRICE_FILTER'];
+            //         entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
+            //         entry['limits']['price'] = {
+            //             'min': this.safeFloat (filter, 'minPrice'),
+            //             'max': this.safeFloat (filter, 'maxPrice'),
+            //         };
+            //     }
+            //
             if ('LOT_SIZE' in filters) {
                 let filter = filters['LOT_SIZE'];
                 entry['precision']['amount'] = this.precisionFromString (filter['stepSize']);
@@ -604,6 +611,9 @@ module.exports = class binance extends Exchange {
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
+            'PENDING_CANCEL': 'canceling', // currently unused
+            'REJECTED': 'rejected',
+            'EXPIRED': 'expired',
         };
         return (status in statuses) ? statuses[status] : status;
     }
@@ -748,6 +758,7 @@ module.exports = class binance extends Exchange {
             if (stopPrice === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder method requires a stopPrice extra param for a ' + type + ' order');
             } else {
+                params = this.omit (params, 'stopPrice');
                 order['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }
         }
@@ -1132,7 +1143,7 @@ module.exports = class binance extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
         if ((code === 418) || (code === 429))
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
@@ -1148,7 +1159,7 @@ module.exports = class binance extends Exchange {
         }
         if (body.length > 0) {
             if (body[0] === '{') {
-                let response = JSON.parse (body);
+                response = JSON.parse (body);
                 // check success value for wapi endpoints
                 // response in format {'msg': 'The coin does not exist.', 'success': true/false}
                 let success = this.safeValue (response, 'success', true);

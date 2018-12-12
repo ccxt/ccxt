@@ -237,7 +237,7 @@ module.exports = class cobinhood extends Exchange {
         return result;
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetMarketTradingPairs ();
         let markets = response['result']['trading_pairs'];
         let result = [];
@@ -363,7 +363,12 @@ module.exports = class cobinhood extends Exchange {
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'size');
         let cost = price * amount;
-        let side = (trade['maker_side'] === 'bid') ? 'sell' : 'buy';
+        // you can't determine your side from maker/taker side and vice versa
+        // you can't determine if your order/trade was a maker or a taker based
+        // on just the side of your order/trade
+        // https://github.com/ccxt/ccxt/issues/4300
+        // let side = (trade['maker_side'] === 'bid') ? 'sell' : 'buy';
+        let side = undefined;
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -556,6 +561,7 @@ module.exports = class cobinhood extends Exchange {
     }
 
     async editOrder (id, symbol, type, side, amount, price, params = {}) {
+        await this.loadMarkets ();
         let response = await this.privatePutTradingOrdersOrderId (this.extend ({
             'order_id': id,
             'price': this.priceToPrecision (symbol, price),
@@ -567,6 +573,7 @@ module.exports = class cobinhood extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.privateDeleteTradingOrdersOrderId (this.extend ({
             'order_id': id,
         }, params));
@@ -587,9 +594,20 @@ module.exports = class cobinhood extends Exchange {
         await this.loadMarkets ();
         let result = await this.privateGetTradingOrders (params);
         let orders = this.parseOrders (result['result']['orders'], undefined, since, limit);
-        if (symbol !== undefined)
-            return this.filterBySymbol (orders, symbol);
-        return orders;
+        if (symbol !== undefined) {
+            return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+        }
+        return this.filterBySinceLimit (orders, since, limit);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let result = await this.privateGetTradingOrderHistory (params);
+        let orders = this.parseOrders (result['result']['orders'], undefined, since, limit);
+        if (symbol !== undefined) {
+            return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+        }
+        return this.filterBySinceLimit (orders, since, limit);
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -797,14 +815,14 @@ module.exports = class cobinhood extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
         if (code < 400 || code >= 600) {
             return;
         }
         if (body[0] !== '{') {
             throw new ExchangeError (this.id + ' ' + body);
         }
-        let response = JSON.parse (body);
+        response = JSON.parse (body);
         const feedback = this.id + ' ' + this.json (response);
         let errorCode = this.safeValue (response['error'], 'error_code');
         if (method === 'DELETE' || method === 'GET') {

@@ -227,7 +227,7 @@ class huobipro (Exchange):
             },
         }
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         method = self.options['fetchMarketsMethod']
         response = await getattr(self, method)()
         markets = response['data']
@@ -827,7 +827,7 @@ class huobipro (Exchange):
         url = self.urls['api'][api] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response=None):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if len(body) < 2:

@@ -87,7 +87,7 @@ class btcchina (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetTicker({
             'market': 'all',
         })

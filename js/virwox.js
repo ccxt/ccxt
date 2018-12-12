@@ -81,7 +81,7 @@ module.exports = class virwox extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetGetInstruments ();
         let keys = Object.keys (markets['result']);
         let result = [];
@@ -267,10 +267,10 @@ module.exports = class virwox extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
         if (code === 200) {
             if ((body[0] === '{') || (body[0] === '[')) {
-                let response = JSON.parse (body);
+                response = JSON.parse (body);
                 if ('result' in response) {
                     let result = response['result'];
                     if ('errorCode' in result) {

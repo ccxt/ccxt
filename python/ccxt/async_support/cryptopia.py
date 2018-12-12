@@ -31,6 +31,7 @@ class cryptopia (Exchange):
             'name': 'Cryptopia',
             'rateLimit': 1500,
             'countries': ['NZ'],  # New Zealand
+            'parseJsonResponse': False,
             'has': {
                 'CORS': False,
                 'createMarketOrder': False,
@@ -146,7 +147,7 @@ class cryptopia (Exchange):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         response = await self.publicGetGetTradePairs()
         result = []
         markets = response['Data']
@@ -391,7 +392,7 @@ class cryptopia (Exchange):
         trades = response['Data']
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_transaction(self, transaction):
+    def parse_transaction(self, transaction, currency=None):
         #
         # fetchWithdrawals
         #
@@ -422,7 +423,7 @@ class cryptopia (Exchange):
         #         Address: null
         #     }
         #
-        timestamp = self.safe_integer(transaction, 'Timestamp')
+        timestamp = self.parse8601(self.safe_string(transaction, 'Timestamp'))
         code = None
         currencyId = self.safe_string(transaction, 'Currency')
         currency = self.safe_value(self.currencies_by_id, currencyId)
@@ -481,10 +482,10 @@ class cryptopia (Exchange):
         return self.parseTransactions(response['Data'], code, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
-        return await self.fetch_transactions_by_type('deposit', code, since, limit, params)
+        return await self.fetch_transactions_by_type('withdrawal', code, since, limit, params)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
-        return await self.fetch_transactions_by_type('withdraw', code, since, limit, params)
+        return await self.fetch_transactions_by_type('deposit', code, since, limit, params)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -748,8 +749,9 @@ class cryptopia (Exchange):
         }, params))
         address = self.safe_string(response['Data'], 'BaseAddress')
         tag = self.safe_string(response['Data'], 'Address')
-        if address is None:
+        if (address is None) or len((address) < 1):
             address = tag
+            tag = None
         self.check_address(address)
         return {
             'currency': code,
@@ -802,7 +804,7 @@ class cryptopia (Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if len(body) < 2:
@@ -839,5 +841,6 @@ class cryptopia (Exchange):
             return jsonString[indexOfBracket:]
         return jsonString
 
-    def parse_json(self, response, responseBody, url, method):
-        return super(cryptopia, self).parseJson(response, self.sanitize_broken_json_string(responseBody), url, method)
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = await self.fetch2(path, api, method, params, headers, body)
+        return self.parse_if_json_encoded_object(self.sanitize_broken_json_string(response))

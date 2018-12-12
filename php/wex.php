@@ -23,15 +23,15 @@ class wex extends liqui {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg',
                 'api' => array (
-                    'public' => 'https://wex.nz/api',
-                    'private' => 'https://wex.nz/tapi',
+                    'public' => 'https://wex1.in/api',
+                    'private' => 'https://wex1.in/tapi',
                 ),
-                'www' => 'https://wex.nz',
+                'www' => 'https://wex1.in',
                 'doc' => array (
-                    'https://wex.nz/api/3/docs',
-                    'https://wex.nz/tapi/docs',
+                    'https://wex1.in/api/3/docs',
+                    'https://wex1.in/tapi/docs',
                 ),
-                'fees' => 'https://wex.nz/fees',
+                'fees' => 'https://wex1.in/fees',
             ),
             'api' => array (
                 'public' => array (
@@ -132,7 +132,7 @@ class wex extends liqui {
         );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
         if ($code === 200) {
             if ($body[0] !== '{') {
                 // $response is not JSON -> resort to default $error handler

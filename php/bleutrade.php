@@ -24,12 +24,13 @@ class bleutrade extends bittrex {
                 'fetchClosedOrders' => true,
                 'fetchOrderTrades' => true,
             ),
+            'hostname' => 'bleutrade.com',
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
                 'api' => array (
-                    'public' => 'https://bleutrade.com/api',
-                    'account' => 'https://bleutrade.com/api',
-                    'market' => 'https://bleutrade.com/api',
+                    'public' => 'https://{hostname}/api',
+                    'account' => 'https://{hostname}/api',
+                    'market' => 'https://{hostname}/api',
                 ),
                 'www' => 'https://bleutrade.com',
                 'doc' => 'https://bleutrade.com/help/API',
@@ -116,56 +117,6 @@ class bleutrade extends bittrex {
                 'symbolSeparator' => '_',
             ),
         ));
-    }
-
-    public function fetch_markets () {
-        $markets = $this->publicGetMarkets ();
-        $result = array ();
-        for ($p = 0; $p < count ($markets['result']); $p++) {
-            $market = $markets['result'][$p];
-            $id = $market['MarketName'];
-            $baseId = $market['MarketCurrency'];
-            $quoteId = $market['BaseCurrency'];
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $precision = array (
-                'amount' => 8,
-                'price' => 8,
-            );
-            $active = $this->safe_string($market, 'IsActive');
-            if ($active === 'true') {
-                $active = true;
-            } else if ($active === 'false') {
-                $active = false;
-            }
-            $result[] = array (
-                'id' => $id,
-                'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'active' => $active,
-                'info' => $market,
-                'precision' => $precision,
-                'limits' => array (
-                    'amount' => array (
-                        'min' => $market['MinTradeSize'],
-                        'max' => null,
-                    ),
-                    'price' => array (
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array (
-                        'min' => 0,
-                        'max' => null,
-                    ),
-                ),
-            );
-        }
-        return $result;
     }
 
     public function parse_order_status ($status) {
@@ -261,6 +212,41 @@ class bleutrade extends bittrex {
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
         return $this->fetch_transactions_by_type ('withdrawal', $code, $since, $limit, $params);
+    }
+
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = $this->parse8601 ($trade['TimeStamp'] . '+00:00');
+        $side = null;
+        if ($trade['OrderType'] === 'BUY') {
+            $side = 'buy';
+        } else if ($trade['OrderType'] === 'SELL') {
+            $side = 'sell';
+        }
+        $id = $this->safe_string($trade, 'TradeID');
+        $symbol = null;
+        if ($market !== null)
+            $symbol = $market['symbol'];
+        $cost = null;
+        $price = $this->safe_float($trade, 'Price');
+        $amount = $this->safe_float($trade, 'Quantity');
+        if ($amount !== null) {
+            if ($price !== null) {
+                $cost = $price * $amount;
+            }
+        }
+        return array (
+            'id' => $id,
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
+            'type' => 'limit',
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => null,
+        );
     }
 
     public function parse_transaction ($transaction, $currency = null) {

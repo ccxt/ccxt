@@ -100,7 +100,7 @@ class acx extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetMarkets ();
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
@@ -431,7 +431,7 @@ class acx extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
         if ($code === 400) {
             $response = json_decode ($body, $as_associative_array = true);
             $error = $this->safe_value($response, 'error');

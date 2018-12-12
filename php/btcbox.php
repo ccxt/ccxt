@@ -305,7 +305,7 @@ class btcbox extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response = null) {
         // typical error $response => array ("$result":false,"code":"401")
         if ($httpCode >= 400)
             return; // resort to defaultErrorHandler

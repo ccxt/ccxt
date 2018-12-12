@@ -89,7 +89,7 @@ class dsx extends liqui {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetInfo ();
         $markets = $response['pairs'];
         $keys = is_array ($markets) ? array_keys ($markets) : array ();
@@ -488,7 +488,7 @@ class dsx extends liqui {
             $id = $ids[$i];
             $order = $this->parse_order(array_merge (array (
                 'id' => (string) $id,
-            ), $orders[$i]));
+            ), $orders[$id]));
             $result[] = $order;
         }
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);

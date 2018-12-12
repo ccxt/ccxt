@@ -31,6 +31,9 @@ class hitbtc2 extends hitbtc {
                 'fetchMyTrades' => true,
                 'withdraw' => true,
                 'fetchOrderTrades' => false, // not implemented yet
+                'fetchDeposits' => false,
+                'fetchWithdrawals' => false,
+                'fetchTransactions' => true,
             ),
             'timeframes' => array (
                 '1m' => 'M1',
@@ -550,7 +553,7 @@ class hitbtc2 extends hitbtc {
         return $this->decimal_to_precision($fee, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetSymbol ();
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
@@ -845,6 +848,111 @@ class hitbtc2 extends hitbtc {
             'cost' => $cost,
             'fee' => $fee,
         );
+    }
+
+    public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $currency = null;
+        $request = array ();
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+            $request['asset'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        $response = $this->privateGetAccountTransactions (array_merge ($request, $params));
+        return $this->parseTransactions ($response);
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        //
+        //     array (
+        //         $id => 'd53ee9df-89bf-4d09-886e-849f8be64647',
+        //         index => 1044718371,
+        //         $type => 'payout',
+        //         $status => 'success',
+        //         $currency => 'ETH',
+        //         $amount => '4.522683200000000000000000',
+        //         createdAt => '2018-06-07T00:43:32.426Z',
+        //         updatedAt => '2018-06-07T00:45:36.447Z',
+        //         hash => '0x973e5683dfdf80a1fb1e0b96e19085b6489221d2ddf864daa46903c5ec283a0f',
+        //         $address => '0xC5a59b21948C1d230c8C54f05590000Eb3e1252c',
+        //         fee => '0.00958',
+        //     ),
+        //     array (
+        //         $id => 'e6c63331-467e-4922-9edc-019e75d20ba3',
+        //         index => 1044714672,
+        //         $type => 'exchangeToBank',
+        //         $status => 'success',
+        //         $currency => 'ETH',
+        //         $amount => '4.532263200000000000',
+        //         createdAt => '2018-06-07T00:42:39.543Z',
+        //         updatedAt => '2018-06-07T00:42:39.683Z',
+        //     ),
+        //     array (
+        //         $id => '3b052faa-bf97-4636-a95c-3b5260015a10',
+        //         index => 1009280164,
+        //         $type => 'bankToExchange',
+        //         $status => 'success',
+        //         $currency => 'CAS',
+        //         $amount => '104797.875800000000000000',
+        //         createdAt => '2018-05-19T02:34:36.750Z',
+        //         updatedAt => '2018-05-19T02:34:36.857Z',
+        //     ),
+        //     {
+        //         $id => 'd525249f-7498-4c81-ba7b-b6ae2037dc08',
+        //         index => 1009279948,
+        //         $type => 'payin',
+        //         $status => 'success',
+        //         $currency => 'CAS',
+        //         $amount => '104797.875800000000000000',
+        //         createdAt => '2018-05-19T02:30:16.698Z',
+        //         updatedAt => '2018-05-19T02:34:28.159Z',
+        //         hash => '0xa6530e1231de409cf1f282196ed66533b103eac1df2aa4a7739d56b02c5f0388',
+        //         $address => '0xd53ed559a6d963af7cb3f3fcd0e7ca499054db8b',
+        //     }
+        //
+        $id = $this->safe_string($transaction, 'id');
+        $timestamp = $this->parse8601 ($this->safe_string($transaction, 'createdAt'));
+        $updated = $this->parse8601 ($this->safe_string($transaction, 'updatedAt'));
+        $code = null;
+        $currencyId = $this->safe_string($transaction, 'currency');
+        if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
+            $currency = $this->currencies_by_id[$currencyId];
+            $code = $currency['code'];
+        } else {
+            $code = $this->common_currency_code($currencyId);
+        }
+        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
+        $amount = $this->safe_float($transaction, 'amount');
+        $type = $this->safe_string($transaction, 'type');
+        $address = $this->safe_string($transaction, 'address');
+        $txid = $this->safe_string($transaction, 'hash');
+        return array (
+            'info' => $transaction,
+            'id' => $id,
+            'txid' => $txid,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'address' => $address,
+            'tag' => null,
+            'type' => $type,
+            'amount' => $amount,
+            'currency' => $code,
+            'status' => $status,
+            'updated' => $updated,
+            'fee' => null,
+        );
+    }
+
+    public function parse_transaction_status ($status) {
+        $statuses = array (
+            'pending' => 'pending',
+            'failed' => 'failed',
+            'success' => 'ok',
+        );
+        return (is_array ($statuses) && array_key_exists ($status, $statuses)) ? $statuses[$status] : $status;
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
@@ -1216,7 +1324,7 @@ class hitbtc2 extends hitbtc {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
         if (gettype ($body) !== 'string')
             return;
         if ($code >= 400) {

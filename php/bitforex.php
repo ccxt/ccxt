@@ -216,7 +216,7 @@ class bitforex extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetApiV1MarketSymbols ();
         $data = $response['data'];
         $result = array ();
@@ -542,7 +542,7 @@ class bitforex extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
         if (gettype ($body) !== 'string') {
             return; // fallback to default error handler
         }

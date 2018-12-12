@@ -207,7 +207,7 @@ class gatecoin extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetReferenceCurrencyPairs ();
         $markets = $response['currencyPairs'];
         $result = array ();
@@ -371,8 +371,8 @@ class gatecoin extends Exchange {
         }
         $fee = null;
         $feeCost = $this->safe_float($trade, 'feeAmount');
-        $price = $trade['price'];
-        $amount = $trade['quantity'];
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'quantity');
         $cost = $price * $amount;
         $feeCurrency = null;
         $symbol = null;
@@ -676,7 +676,7 @@ class gatecoin extends Exchange {
         return $this->privatePostElectronicWalletUserWalletsDigiCurrency (array_merge ($request, $params));
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
         if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)

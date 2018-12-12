@@ -604,7 +604,7 @@ class coinexchange extends Exchange {
         return $result;
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetGetmarkets ();
         $markets = $response['result'];
         $result = array ();

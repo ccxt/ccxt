@@ -60,7 +60,7 @@ class lakebtc (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetTicker()
         result = []
         keys = list(markets.keys())

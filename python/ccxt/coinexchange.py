@@ -602,7 +602,7 @@ class coinexchange (Exchange):
             }
         return result
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetGetmarkets()
         markets = response['result']
         result = []

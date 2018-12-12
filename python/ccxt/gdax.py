@@ -157,7 +157,7 @@ class gdax (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetProducts()
         result = []
         for p in range(0, len(markets)):
@@ -673,7 +673,7 @@ class gdax (Exchange):
             'info': response,
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
         if (code == 400) or (code == 404):
             if body[0] == '{':
                 response = json.loads(body)

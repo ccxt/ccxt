@@ -146,7 +146,7 @@ class fcoin (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetSymbols()
         result = []
         markets = response['data']
@@ -216,8 +216,8 @@ class fcoin (Exchange):
             priceField = self.sum(index, priceKey)
             amountField = self.sum(index, amountKey)
             result.append([
-                orders[priceField],
-                orders[amountField],
+                self.safe_float(orders, priceField),
+                self.safe_float(orders, amountField),
             ])
         return result
 
@@ -510,7 +510,7 @@ class fcoin (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if len(body) < 2:

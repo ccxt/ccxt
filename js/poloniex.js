@@ -227,16 +227,16 @@ module.exports = class poloniex extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetReturnTicker ();
         let keys = Object.keys (markets);
         let result = [];
         for (let p = 0; p < keys.length; p++) {
             let id = keys[p];
             let market = markets[id];
-            let [ quote, base ] = id.split ('_');
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            let [ quoteId, baseId ] = id.split ('_');
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let minCost = this.safeFloat (this.options['limits']['cost']['min'], quote, 0.0);
             let precision = {
@@ -246,6 +246,8 @@ module.exports = class poloniex extends Exchange {
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
                 'active': true,
@@ -398,7 +400,7 @@ module.exports = class poloniex extends Exchange {
             let symbol = undefined;
             let market = undefined;
             if (id in this.markets_by_id) {
-                let market = this.markets_by_id[id];
+                market = this.markets_by_id[id];
                 symbol = market['symbol'];
             } else {
                 let [ quoteId, baseId ] = id.split ('_');
@@ -967,6 +969,7 @@ module.exports = class poloniex extends Exchange {
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.fetchTransactionsHelper (code, since, limit, params);
         for (let i = 0; i < response['deposits'].length; i++) {
             response['deposits'][i]['type'] = 'deposit';
@@ -974,8 +977,12 @@ module.exports = class poloniex extends Exchange {
         for (let i = 0; i < response['withdrawals'].length; i++) {
             response['withdrawals'][i]['type'] = 'withdrawal';
         }
-        let withdrawals = this.parseTransactions (response['withdrawals'], code, since, limit);
-        let deposits = this.parseTransactions (response['deposits'], code, since, limit);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        let withdrawals = this.parseTransactions (response['withdrawals'], currency, since, limit);
+        let deposits = this.parseTransactions (response['deposits'], currency, since, limit);
         let transactions = this.arrayConcat (deposits, withdrawals);
         return this.filterByCurrencySinceLimit (this.sortBy (transactions, 'timestamp'), code, since, limit);
     }
@@ -985,7 +992,11 @@ module.exports = class poloniex extends Exchange {
         for (let i = 0; i < response['withdrawals'].length; i++) {
             response['withdrawals'][i]['type'] = 'withdrawal';
         }
-        let withdrawals = this.parseTransactions (response['withdrawals'], code, since, limit);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        let withdrawals = this.parseTransactions (response['withdrawals'], currency, since, limit);
         return this.filterByCurrencySinceLimit (withdrawals, code, since, limit);
     }
 
@@ -994,7 +1005,11 @@ module.exports = class poloniex extends Exchange {
         for (let i = 0; i < response['deposits'].length; i++) {
             response['deposits'][i]['type'] = 'deposit';
         }
-        let deposits = this.parseTransactions (response['deposits'], code, since, limit);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        let deposits = this.parseTransactions (response['deposits'], currency, since, limit);
         return this.filterByCurrencySinceLimit (deposits, code, since, limit);
     }
 
@@ -1061,8 +1076,6 @@ module.exports = class poloniex extends Exchange {
             if (type === 'deposit') {
                 // according to https://poloniex.com/fees/
                 feeCost = 0; // FIXME: remove hardcoded value that may change any time
-            } else if (type === 'withdrawal') {
-                throw new ExchangeError ('Withdrawal without fee detected!');
             }
         }
         return {
@@ -1107,8 +1120,7 @@ module.exports = class poloniex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
-        let response = undefined;
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
         try {
             response = JSON.parse (body);
         } catch (e) {

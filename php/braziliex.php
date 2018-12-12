@@ -28,6 +28,7 @@ class braziliex extends Exchange {
                 'www' => 'https://braziliex.com/',
                 'doc' => 'https://braziliex.com/exchange/api.php',
                 'fees' => 'https://braziliex.com/exchange/fees.php',
+                'referral' => 'https://braziliex.com/?ref=5FE61AB6F6D67DA885BC98BA27223465',
             ),
             'api' => array (
                 'public' => array (
@@ -132,7 +133,7 @@ class braziliex extends Exchange {
         return $result;
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetTicker ();
         $ids = is_array ($markets) ? array_keys ($markets) : array ();
         $result = array ();

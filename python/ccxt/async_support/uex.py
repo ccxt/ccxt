@@ -186,7 +186,7 @@ class uex (Exchange):
             'cost': float(self.currency_to_precision(market[key], cost)),
         }
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         response = await self.publicGetCommonSymbols()
         #
         #     {code:   "0",
@@ -1123,7 +1123,7 @@ class uex (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response=None):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if len(body) < 2:

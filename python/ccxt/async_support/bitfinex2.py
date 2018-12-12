@@ -179,7 +179,7 @@ class bitfinex2 (bitfinex):
     def get_currency_id(self, code):
         return 'f' + code
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         markets = await self.v1GetSymbolsDetails()
         result = []
         for p in range(0, len(markets)):

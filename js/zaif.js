@@ -108,7 +108,7 @@ module.exports = class zaif extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetCurrencyPairsAll ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
@@ -222,6 +222,8 @@ module.exports = class zaif extends Exchange {
         let timestamp = trade['date'] * 1000;
         let id = this.safeString (trade, 'id');
         id = this.safeString (trade, 'tid', id);
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'amount');
         if (!market)
             market = this.markets_by_id[trade['currency_pair']];
         return {
@@ -232,8 +234,8 @@ module.exports = class zaif extends Exchange {
             'symbol': market['symbol'],
             'type': undefined,
             'side': side,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'price': price,
+            'amount': amount,
         };
     }
 
@@ -408,10 +410,10 @@ module.exports = class zaif extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body) {
+    handleErrors (httpCode, reason, url, method, headers, body, response = undefined) {
         if (!this.isJsonEncodedObject (body))
             return; // fallback to default error handler
-        const response = JSON.parse (body);
+        response = JSON.parse (body);
         //
         //     {"error": "unsupported currency_pair"}
         //

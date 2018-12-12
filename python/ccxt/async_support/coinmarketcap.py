@@ -134,7 +134,7 @@ class coinmarketcap (Exchange):
             return currencies[name]
         return base
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         markets = await self.publicGetTicker({
             'limit': 0,
         })

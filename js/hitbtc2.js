@@ -5,7 +5,6 @@
 const hitbtc = require ('./hitbtc');
 const { PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
-
 // ---------------------------------------------------------------------------
 
 module.exports = class hitbtc2 extends hitbtc {
@@ -31,6 +30,9 @@ module.exports = class hitbtc2 extends hitbtc {
                 'fetchMyTrades': true,
                 'withdraw': true,
                 'fetchOrderTrades': false, // not implemented yet
+                'fetchDeposits': false,
+                'fetchWithdrawals': false,
+                'fetchTransactions': true,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -550,7 +552,7 @@ module.exports = class hitbtc2 extends hitbtc {
         return this.decimalToPrecision (fee, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetSymbol ();
         let result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -845,6 +847,111 @@ module.exports = class hitbtc2 extends hitbtc {
             'cost': cost,
             'fee': fee,
         };
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        let response = await this.privateGetAccountTransactions (this.extend (request, params));
+        return this.parseTransactions (response);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        //     {
+        //         id: 'd53ee9df-89bf-4d09-886e-849f8be64647',
+        //         index: 1044718371,
+        //         type: 'payout',
+        //         status: 'success',
+        //         currency: 'ETH',
+        //         amount: '4.522683200000000000000000',
+        //         createdAt: '2018-06-07T00:43:32.426Z',
+        //         updatedAt: '2018-06-07T00:45:36.447Z',
+        //         hash: '0x973e5683dfdf80a1fb1e0b96e19085b6489221d2ddf864daa46903c5ec283a0f',
+        //         address: '0xC5a59b21948C1d230c8C54f05590000Eb3e1252c',
+        //         fee: '0.00958',
+        //     },
+        //     {
+        //         id: 'e6c63331-467e-4922-9edc-019e75d20ba3',
+        //         index: 1044714672,
+        //         type: 'exchangeToBank',
+        //         status: 'success',
+        //         currency: 'ETH',
+        //         amount: '4.532263200000000000',
+        //         createdAt: '2018-06-07T00:42:39.543Z',
+        //         updatedAt: '2018-06-07T00:42:39.683Z',
+        //     },
+        //     {
+        //         id: '3b052faa-bf97-4636-a95c-3b5260015a10',
+        //         index: 1009280164,
+        //         type: 'bankToExchange',
+        //         status: 'success',
+        //         currency: 'CAS',
+        //         amount: '104797.875800000000000000',
+        //         createdAt: '2018-05-19T02:34:36.750Z',
+        //         updatedAt: '2018-05-19T02:34:36.857Z',
+        //     },
+        //     {
+        //         id: 'd525249f-7498-4c81-ba7b-b6ae2037dc08',
+        //         index: 1009279948,
+        //         type: 'payin',
+        //         status: 'success',
+        //         currency: 'CAS',
+        //         amount: '104797.875800000000000000',
+        //         createdAt: '2018-05-19T02:30:16.698Z',
+        //         updatedAt: '2018-05-19T02:34:28.159Z',
+        //         hash: '0xa6530e1231de409cf1f282196ed66533b103eac1df2aa4a7739d56b02c5f0388',
+        //         address: '0xd53ed559a6d963af7cb3f3fcd0e7ca499054db8b',
+        //     }
+        //
+        const id = this.safeString (transaction, 'id');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
+        const updated = this.parse8601 (this.safeString (transaction, 'updatedAt'));
+        let code = undefined;
+        const currencyId = this.safeString (transaction, 'currency');
+        if (currencyId in this.currencies_by_id) {
+            currency = this.currencies_by_id[currencyId];
+            code = currency['code'];
+        } else {
+            code = this.commonCurrencyCode (currencyId);
+        }
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const amount = this.safeFloat (transaction, 'amount');
+        const type = this.safeString (transaction, 'type');
+        const address = this.safeString (transaction, 'address');
+        const txid = this.safeString (transaction, 'hash');
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': address,
+            'tag': undefined,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': undefined,
+        };
+    }
+
+    parseTransactionStatus (status) {
+        let statuses = {
+            'pending': 'pending',
+            'failed': 'failed',
+            'success': 'ok',
+        };
+        return (status in statuses) ? statuses[status] : status;
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -1216,7 +1323,7 @@ module.exports = class hitbtc2 extends hitbtc {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
         if (typeof body !== 'string')
             return;
         if (code >= 400) {
@@ -1226,7 +1333,7 @@ module.exports = class hitbtc2 extends hitbtc {
                 throw new ExchangeNotAvailable (feedback);
             // {"error":{"code":20002,"message":"Order not found","description":""}}
             if (body[0] === '{') {
-                const response = JSON.parse (body);
+                response = JSON.parse (body);
                 if ('error' in response) {
                     const code = this.safeString (response['error'], 'code');
                     const exceptions = this.exceptions;

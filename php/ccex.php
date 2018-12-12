@@ -81,7 +81,7 @@ class ccex extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $result = array ();
         $response = $this->webGetPairs ();
         $markets = $response['pairs'];

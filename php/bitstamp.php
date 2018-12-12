@@ -157,11 +157,12 @@ class bitstamp extends Exchange {
                 'Missing key, signature and nonce parameters' => '\\ccxt\\AuthenticationError',
                 'Your account is frozen' => '\\ccxt\\PermissionDenied',
                 'Please update your profile with your FATCA information, before using API.' => '\\ccxt\\PermissionDenied',
+                'Order not found' => '\\ccxt\\OrderNotFound',
             ),
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetTradingPairsInfo ();
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
@@ -871,7 +872,7 @@ class bitstamp extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response = null) {
         if (gettype ($body) !== 'string')
             return; // fallback to default $error handler
         if (strlen ($body) < 2)

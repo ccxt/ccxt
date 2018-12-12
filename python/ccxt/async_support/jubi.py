@@ -27,7 +27,7 @@ class jubi (btcbox):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         markets = await self.publicGetAllticker()
         keys = list(markets.keys())
         result = []

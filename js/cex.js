@@ -122,7 +122,7 @@ module.exports = class cex extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetCurrencyLimits ();
         let result = [];
         for (let p = 0; p < markets['data']['pairs'].length; p++) {

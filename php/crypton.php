@@ -70,7 +70,7 @@ class crypton extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetMarkets ();
         $markets = $response['result'];
         $result = array ();
@@ -401,7 +401,7 @@ class crypton extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
         if ($body[0] === '{') {
             $response = json_decode ($body, $as_associative_array = true);
             $success = $this->safe_value($response, 'success');

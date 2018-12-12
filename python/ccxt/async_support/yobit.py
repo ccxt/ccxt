@@ -23,6 +23,9 @@ class yobit (liqui):
             'has': {
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
+                'fetchDeposits': False,
+                'fetchWithdrawals': False,
+                'fetchTransactions': False,
                 'CORS': False,
                 'withdraw': True,
             },
@@ -138,6 +141,7 @@ class yobit (liqui):
             },
             'options': {
                 'fetchOrdersRequiresSymbol': True,
+                'fetchTickersMaxLength': 512,
             },
         })
 
@@ -223,7 +227,7 @@ class yobit (liqui):
             'id': None,
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
         if body[0] == '{':
             response = json.loads(body)
             if 'success' in response:

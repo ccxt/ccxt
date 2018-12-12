@@ -41,6 +41,7 @@ class ice3x (Exchange):
                     'https://help.ice3.com/support/solutions/articles/11000008131-what-are-your-fiat-deposit-and-withdrawal-fees-',
                     'https://help.ice3.com/support/solutions/articles/11000033289-deposit-fees',
                 ],
+                'referral': 'https://ice3x.com?ref=14341802',
             },
             'api': {
                 'public': {
@@ -122,7 +123,7 @@ class ice3x (Exchange):
             }
         return result
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         if not self.currencies:
             self.currencies = self.fetch_currencies()
         self.currencies_by_id = self.index_by(self.currencies, 'id')

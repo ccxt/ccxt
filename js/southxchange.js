@@ -64,7 +64,7 @@ module.exports = class southxchange extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetMarkets ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {

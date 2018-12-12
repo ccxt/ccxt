@@ -104,7 +104,7 @@ module.exports = class xbtce extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.privateGetSymbol ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {

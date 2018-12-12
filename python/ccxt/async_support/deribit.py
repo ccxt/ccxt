@@ -83,7 +83,7 @@ class deribit (Exchange):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         marketsResponse = await self.publicGetGetinstruments()
         markets = marketsResponse['result']
         result = []

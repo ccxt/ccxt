@@ -97,7 +97,7 @@ class coingi (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = None
         try:
             self.parseJsonResponse = False

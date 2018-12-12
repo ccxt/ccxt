@@ -519,7 +519,7 @@ module.exports = class kucoin extends Exchange {
         };
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetMarketOpenSymbols ();
         if (this.options['adjustForTimeDifference'])
             await this.loadTimeDifference ();
@@ -1140,8 +1140,8 @@ module.exports = class kucoin extends Exchange {
             } else if (trade[1] === 'SELL') {
                 side = 'sell';
             }
-            price = trade[2];
-            amount = trade[3];
+            price = this.safeFloat (trade, 2);
+            amount = this.safeFloat (trade, 3);
             id = trade[5];
         } else {
             timestamp = this.safeValue (trade, 'createdAt');

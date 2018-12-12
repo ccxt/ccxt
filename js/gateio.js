@@ -129,7 +129,7 @@ module.exports = class gateio extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetMarketinfo ();
         let markets = this.safeValue (response, 'pairs');
         if (!markets)
@@ -261,7 +261,7 @@ module.exports = class gateio extends Exchange {
         };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
         if (body.length <= 0) {
             return;
         }

@@ -130,7 +130,7 @@ class gateio extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetMarketinfo ();
         $markets = $this->safe_value($response, 'pairs');
         if (!$markets)
@@ -262,7 +262,7 @@ class gateio extends Exchange {
         );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
         if (strlen ($body) <= 0) {
             return;
         }
