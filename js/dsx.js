@@ -487,7 +487,7 @@ module.exports = class dsx extends liqui {
             let id = ids[i];
             let order = this.parseOrder (this.extend ({
                 'id': id.toString (),
-            }, orders[i]));
+            }, orders[id]));
             result.push (order);
         }
         return this.filterBySymbolSinceLimit (result, symbol, since, limit);
