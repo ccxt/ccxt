@@ -37,7 +37,8 @@ const {
     , AuthenticationError
     , DDoSProtection
     , RequestTimeout
-    , ExchangeNotAvailable } = require ('./errors')
+    , ExchangeNotAvailable
+    , NetworkError } = require ('./errors')
 
 const { TRUNCATE, ROUND, DECIMAL_PLACES } = functions.precisionConstants
 
@@ -1890,7 +1891,8 @@ module.exports = class Exchange extends EventEmitter{
         switch (websocketConfig['type']){
             case 'ws-io':
                 websocketConnectionInfo['conx'] = new SocketIoLightConnection (websocketConfig, this.timeout);
-                break;case 'pusher':
+                break;
+            case 'pusher':
                 websocketConnectionInfo['conx'] = new PusherLightConnection (websocketConfig, this.timeout);
                 break;
             case 'ws':
@@ -1910,7 +1912,7 @@ module.exports = class Exchange extends EventEmitter{
             websocketConnectionInfo['auth'] = false;
             this._websocketOnError(conxid, err);
             this._websocketResetContext (conxid);
-            this.emit ('err', err, conxid);
+            this.emit ('err', new NetworkError (err), conxid);
         });
         websocketConnectionInfo['conx'].on ('message', (data) => {
             if (this.verbose)
@@ -1955,7 +1957,7 @@ module.exports = class Exchange extends EventEmitter{
         return ret;
     }
 
-    _executeAndCallback (method, params, callback, context = {}, thisParam = null) {
+    _executeAndCallback (contextId, method, params, callback, context = {}, thisParam = null) {
         try {
             thisParam = thisParam != null ? thisParam: this;
             let promise = this[method].apply (thisParam, params);
@@ -1968,19 +1970,19 @@ module.exports = class Exchange extends EventEmitter{
                     thisParam[callback].apply (thisParam, args);
                 } catch (ex) {
                     console.log (ex.stack);
-                    that.emit ('err', new ExchangeError (that.id + ': error invoking method ' + callback + ' in _executeAndCallback: '+ ex));
+                    that.emit ('err', new ExchangeError (that.id + ': error invoking method ' + callback + ' in _executeAndCallback: '+ ex), contextId);
                 }
             }).catch(function(error) {
                 try {
                     thisParam[callback].apply (thisParam, [context, error]);
                 } catch (ex) {
                     console.log (ex.stack);
-                    that.emit ('err', new ExchangeError (that.id + ': error invoking method ' + callback + ' in _executeAndCallback: '+ ex));
+                    that.emit ('err', new ExchangeError (that.id + ': error invoking method ' + callback + ' in _executeAndCallback: '+ ex), contextId);
                 }
             });
         } catch (ex) {
             console.log (ex.stack);
-            that.emit ('err', new ExchangeError (that.id + ': error invoking method ' + method + ' in _executeAndCallback: '+ ex));
+            that.emit ('err', new ExchangeError (that.id + ': error invoking method ' + method + ' in _executeAndCallback: '+ ex), contextId);
         }
     }
 
@@ -2110,14 +2112,14 @@ module.exports = class Exchange extends EventEmitter{
         return this.wsconf['methodmap'][key];
     }
 
-    _setTimeout (mseconds, method, params, thisParam = null) {
+    _setTimeout (contextId, mseconds, method, params, thisParam = null) {
         thisParam = thisParam != null ? thisParam: this;
         let that = this;
         return setTimeout (function () {
             try {
                 thisParam[method].apply (thisParam, params);
             } catch (ex) {
-                that.emit ('err', new ExchangeError (that.id + ': error invoking method ' + method + ' '+ ex));
+                that.emit ('err', new ExchangeError (that.id + ': error invoking method ' + method + ' '+ ex), contextId);
             }
         }, mseconds);
     }
@@ -2126,14 +2128,14 @@ module.exports = class Exchange extends EventEmitter{
         clearTimeout (handle);
     }
 
-    _setTimer (mseconds, method, params, thisParam = null) {
+    _setTimer (contextId, mseconds, method, params, thisParam = null) {
         thisParam = thisParam != null ? thisParam: this;
         let that = this;
         return setInterval (function () {
             try {
                 thisParam[method].apply (thisParam, params);
             } catch (ex) {
-                that.emit ('err', new ExchangeError (that.id + ': error invoking method ' + method + ' '+ ex));
+                that.emit ('err', new ExchangeError (that.id + ': error invoking method ' + method + ' '+ ex), contextId);
             }
         }, mseconds);
     }

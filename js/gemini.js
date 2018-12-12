@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, NotSupported } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, NotSupported, NetworkError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -479,7 +479,7 @@ module.exports = class gemini extends Exchange {
         if (typeof lastSeqId !== 'undefined') {
             lastSeqId = lastSeqId + 1;
             if (lastSeqId !== seqId) {
-                this.emit ('err', new ExchangeError ('sequence id error in exchange: ' + this.id + ' (' + lastSeqId + '+1 !=' + seqId + ')'), contextId);
+                this.emit ('err', new NetworkError ('sequence id error in exchange: ' + this.id + ' (' + lastSeqId + '+1 !=' + seqId + ')'), contextId);
                 return;
             }
         }

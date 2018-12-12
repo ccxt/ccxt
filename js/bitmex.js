@@ -660,7 +660,7 @@ module.exports = class bitmex extends Exchange {
         if (typeof lastTimer !== 'undefined') {
             this._cancelTimeout (lastTimer);
         }
-        lastTimer = this._setTimeout (5000, this._websocketMethodMap ('_websocketTimeoutSendPing'), []);
+        lastTimer = this._setTimeout (contextId, 5000, this._websocketMethodMap ('_websocketTimeoutSendPing'), []);
         this._contextSet (contextId, 'timer', lastTimer);
         let dbids = {};
         this._contextSet (contextId, 'dbids', dbids);
@@ -859,7 +859,7 @@ module.exports = class bitmex extends Exchange {
         }
         symbolData['limit'] = this.safeInteger (params, 'limit', undefined);
         let nonceStr = nonce.toString ();
-        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'sub-nonce']);
+        let handle = this._setTimeout (contextId, this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'sub-nonce']);
         symbolData['sub-nonces'][nonceStr] = handle;
         this._contextSetSymbolData (contextId, event, symbol, symbolData);
         this.websocketSendJson (payload);
@@ -879,7 +879,7 @@ module.exports = class bitmex extends Exchange {
             symbolData['unsub-nonces'] = {};
         }
         let nonceStr = nonce.toString ();
-        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'unsub-nonces']);
+        let handle = this._setTimeout (contextId, this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'unsub-nonces']);
         symbolData['unsub-nonces'][nonceStr] = handle;
         this._contextSetSymbolData (contextId, event, symbol, symbolData);
         this.websocketSendJson (payload);

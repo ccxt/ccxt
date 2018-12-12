@@ -656,7 +656,7 @@ module.exports = class lbank extends Exchange {
             data['sub-nonces'] = {};
         }
         let nonceStr = nonce.toString ();
-        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'sub-nonces']);
+        let handle = this._setTimeout (contextId, this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'sub-nonces']);
         data['sub-nonces'][nonceStr] = handle;
         this._contextSetSymbolData (contextId, event, symbol, data);
         this.websocketSendJson (payload);
@@ -677,7 +677,7 @@ module.exports = class lbank extends Exchange {
             data['unsub-nonces'] = {};
         }
         let nonceStr = nonce.toString ();
-        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'unsub-nonces']);
+        let handle = this._setTimeout (contextId, this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'unsub-nonces']);
         data['unsub-nonces'][nonceStr] = handle;
         this._contextSetSymbolData (contextId, event, symbol, data);
         this.websocketSendJson (payload);

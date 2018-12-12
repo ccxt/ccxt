@@ -39,7 +39,9 @@ baseConfig = {
         },
         "binance": {
             "symbols": {
-                'BTC/USDT':{}
+                'BTC/USDT':{},
+                'NANO/BTC':{},
+                'ETH/BTC':{}
             },
             "options": {
 

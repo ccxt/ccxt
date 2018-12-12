@@ -1291,7 +1291,7 @@ module.exports = class binance extends Exchange {
                 this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
                 if (!('snaplaunched' in data)) {
                     data['snaplaunched'] = true;
-                    this._executeAndCallback (this._websocketMethodMap ('fetchOrderBook'), [symbol], this._websocketMethodMap ('_websocketHandleObRestSnapshot'), {
+                    this._executeAndCallback (contextId, this._websocketMethodMap ('fetchOrderBook'), [symbol], this._websocketMethodMap ('_websocketHandleObRestSnapshot'), {
                         'symbol': symbol,
                         'contextId': contextId,
                     });

@@ -32,6 +32,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import NetworkError
 
 # -----------------------------------------------------------------------------
 
@@ -699,7 +700,7 @@ class Exchange(BaseExchange, EventEmitter):
             websocket_connection_info['auth'] = False
             self._websocket_on_error(conxid)
             self._websocket_reset_context(conxid)
-            self.emit('err', error, conxid)
+            self.emit('err', new NetworkError(error), conxid)
 
         @conx.on('message')
         def websocket_connection_message(msg):
@@ -737,7 +738,7 @@ class Exchange(BaseExchange, EventEmitter):
             ret['asks'] = ob['asks'][:limit]
         return ret
 
-    def _executeAndCallback(self, method, params, callback, context={}, this_param=None):
+    def _executeAndCallback (self, contextId, method, params, callback, context={}, this_param=None):
         this_param = this_param if (this_param is not None) else self
         eself = self
         # future = asyncio.Future()
@@ -749,12 +750,12 @@ class Exchange(BaseExchange, EventEmitter):
                 try:
                     getattr(this_param, callback)(context, None, ret)
                 except Exception as ex:
-                    eself.emit('err', ExchangeError(eself.id + ': error invoking method ' + callback + ' in _asyncExecute: ' + str(ex)))
+                    eself.emit('err', ExchangeError(eself.id + ': error invoking method ' + callback + ' in _asyncExecute: ' + str(ex)), contextId)
             except Exception as ex:
                 try:
                     getattr(this_param, callback)(context, ex, None)
                 except Exception as ex:
-                    eself.emit('err', ExchangeError(eself.id + ': error invoking method ' + callback + ' in _asyncExecute: ' + str(ex)))
+                    eself.emit('err', ExchangeError(eself.id + ': error invoking method ' + callback + ' in _asyncExecute: ' + str(ex)), contextId)
             # future.set_result(True)
 
         asyncio.ensure_future(t(), loop=self.asyncio_loop)
@@ -793,7 +794,7 @@ class Exchange(BaseExchange, EventEmitter):
             if success:
                 self._contextSetSubscribed(conxid, event, symbol, True)
                 self._contextSetSubscribing(conxid, event, symbol, False)
-                future.done() or future.set_result(True)
+                future.done() or future.set_result(conxid)
             else:
                 self._contextSetSubscribed(conxid, event, symbol, False)
                 self._contextSetSubscribing(conxid, event, symbol, False)
@@ -854,27 +855,27 @@ class Exchange(BaseExchange, EventEmitter):
             raise ExchangeError(self.id + ': ' + key + ' not found in websocket methodmap')
         return self.wsconf['methodmap'][key]
 
-    def _setTimeout(self, mseconds, method, params, this_param=None):
+    def _setTimeout(self, contextId, mseconds, method, params, this_param=None):
         this_param = this_param if (this_param is not None) else self
 
         def f():
             try:
                 getattr(this_param, method)(*params)
             except Exception as ex:
-                self.emit('err', ExchangeError(self.id + ': error invoking method ' + method + ' ' + str(ex)))
+                self.emit('err', ExchangeError(self.id + ': error invoking method ' + method + ' ' + str(ex)), contextId)
         return self.asyncio_loop.call_later(mseconds / 1000, f)
 
     def _cancelTimeout(self, handle):
         handle.cancel()
 
-    def _setTimer(self, mseconds, method, params, this_param=None):
+    def _setTimer(self, contextId, mseconds, method, params, this_param=None):
         this_param = this_param if (this_param is not None) else self
 
         def f():
             try:
                 getattr(this_param, method)(*params)
             except Exception as ex:
-                self.emit('err', ExchangeError(self.id + ': error invoking method ' + method + ' ' + str(ex)))
+                self.emit('err', ExchangeError(self.id + ': error invoking method ' + method + ' ' + str(ex)), contextId)
         return self.call_periodic(mseconds / 1000, f)
 
     def _cancelTimer(self, handle):

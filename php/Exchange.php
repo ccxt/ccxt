@@ -2835,7 +2835,7 @@ abstract class Exchange extends CcxtEventEmitter {
             $websocketConnectionInfo['auth'] = false;
             $this->_websocket_on_error($conxid);
             $this->_websocket_reset_context ($conxid);
-            $this->emit ('err', $err, $conxid);
+            $this->emit ('err', new NetworkError($err), $conxid);
         });
         $conx->on ('message', function ($data) use ($conxid) {
             if ($this->verbose) {
@@ -2886,7 +2886,7 @@ abstract class Exchange extends CcxtEventEmitter {
         return $ret;
     }
     
-    protected function _executeAndCallback ($method, $params, $callback, $context = array(), $thisParam = null) {
+    protected function _executeAndCallback ($contextId, $method, $params, $callback, $context = array(), $thisParam = null) {
         $thisParam = ($thisParam !== null) ? $thisParam : $this;
         $that = $this;
 
@@ -2896,13 +2896,13 @@ abstract class Exchange extends CcxtEventEmitter {
                 try {
                     call_user_func_array (array ($thisParam, $callback), array($context, null, $ret));
                 } catch (Exception $ex) {
-                    $that.emit ('error', new ExchangeError ($that->id . ': error invoking method ' . $callback . ' in _executeAndCallback: '. ex));
+                    $that.emit ('err', new ExchangeError ($that->id . ': error invoking method ' . $callback . ' in _executeAndCallback: '. ex), $contextId);
                 }
             } catch (Exception $ex) {
                 try {
                     call_user_func_array (array ($thisParam, $callback), array($context, $ex, null));
                 } catch (Exception $ex) {
-                    $that.emit ('error', new ExchangeError ($that->id . ': error invoking method ' . $callback . ' in _executeAndCallback: '. ex));
+                    $that.emit ('err', new ExchangeError ($that->id . ': error invoking method ' . $callback . ' in _executeAndCallback: '. ex), $contextId);
                 }
 
             }
@@ -2946,7 +2946,7 @@ abstract class Exchange extends CcxtEventEmitter {
             if ($success) {
                 $that->_contextSetSubscribed($conxid, $event, $symbol, true);
                 $that->_contextSetSubscribing($conxid, $event, $symbol, false);
-                $deferred->resolve ();
+                $deferred->resolve ($conxid);
             } else {
                 $ex = ($ex != null) ? $ex : new ExchangeError ('error subscribing to ' . event . '(' . symbol . ')  in ' . $this->id);
                 $that->_contextSetSubscribed($conxid, $event, $symbol, false);
@@ -3020,14 +3020,14 @@ abstract class Exchange extends CcxtEventEmitter {
         return $this->wsconf['methodmap'][$key];
     }
 
-    protected function _setTimeout ($mseconds, $method, $params, $thisParam = null) {
+    protected function _setTimeout ($contextId, $mseconds, $method, $params, $thisParam = null) {
         $thisParam = ($thisParam !== null) ? $thisParam : $this;
         $that = $this;
         return $this->react_loop->addTimer($mseconds / 1000, function() use ($thisParam, $params, $method, $that) {
             try {
                 call_user_func_array (array ($thisParam, $method), $params);
             } catch (Exception $ex) {
-                $that.emit ('error', new ExchangeError ($that->id . ': error invoking method ' . $method . ': '. ex));
+                $that.emit ('err', new ExchangeError ($that->id . ': error invoking method ' . $method . ': '. ex), $contextId);
             }
         });
     }
@@ -3036,14 +3036,14 @@ abstract class Exchange extends CcxtEventEmitter {
         $this->react_loop->cancelTimer($handle);
     }
 
-    protected function _setTimer ($mseconds, $method, $params, $thisParam = null) {
+    protected function _setTimer ($contextId, $mseconds, $method, $params, $thisParam = null) {
         $thisParam = ($thisParam !== null) ? $thisParam : $this;
         $that = $this;
         return $this->react_loop->addPeriodicTimer($mseconds / 1000, function() use ($thisParam, $params, $method, $that) {
             try {
                 call_user_func_array (array ($thisParam, $method), $params);
             } catch (Exception $ex) {
-                $that.emit ('error', new ExchangeError ($that->id . ': error invoking method ' . $method . ': '. ex));
+                $that.emit ('err', new ExchangeError ($that->id . ': error invoking method ' . $method . ': '. ex), $contextId);
             }
         });
     }

@@ -728,7 +728,7 @@ module.exports = class zb extends Exchange {
             data['sub-nonces'] = {};
         }
         let nonceStr = nonce.toString ();
-        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'sub-nonces']);
+        let handle = this._setTimeout (contextId, this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'sub-nonces']);
         data['sub-nonces'][nonceStr] = handle;
         data['limit'] = this.safeValue (params, 'limit');
         this._contextSetSymbolData (contextId, event, symbol, data);

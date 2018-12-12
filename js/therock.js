@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, NotSupported } = require ('./base/errors');
+const { ExchangeError, NotSupported, NetworkError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -405,7 +405,7 @@ module.exports = class therock extends Exchange {
             let lastSeqId = lastSeqIdData[chan];
             lastSeqId = this.sum (lastSeqId, 1);
             if (sequeceId !== lastSeqId) {
-                this.emit ('err', 'sequence error in pusher connection ' + sequeceId + ' !== ' + lastSeqId, contextId);
+                this.emit ('err', new NetworkError ('sequence error in pusher connection ' + sequeceId + ' !== ' + lastSeqId), contextId);
                 return;
             }
         }
@@ -480,7 +480,7 @@ module.exports = class therock extends Exchange {
         }
         symbolData['limit'] = this.safeInteger (params, 'limit', undefined);
         let nonceStr = nonce.toString ();
-        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'sub-nonce']);
+        let handle = this._setTimeout (contextId, this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'sub-nonce']);
         symbolData['sub-nonces'][nonceStr] = handle;
         this._contextSetSymbolData (contextId, event, symbol, symbolData);
         // remove sequenceId
