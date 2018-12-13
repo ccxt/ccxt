@@ -187,8 +187,6 @@ class bittrex (Exchange):
                 'symbolSeparator': '-',
             },
             'commonCurrencies': {
-                'BCH': 'BCHABC',
-                'BSV': 'BCHSV',
                 'BITS': 'SWIFT',
                 'CPC': 'CapriCoin',
             },

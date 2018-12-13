@@ -15,6 +15,7 @@ import hashlib
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -510,12 +511,16 @@ class exmo (Exchange):
         return self.parse_trades(response[market['id']], market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        # their docs does not mention it, but if you don't supply a symbol
+        # their API will return an empty response as if you don't have any trades
+        # therefore we make it required here as calling it without a symbol is useless
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
-        request = {}
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            request['pair'] = market['id']
+        market = self.market(symbol)
+        request = {
+            'pair': market['id'],
+        }
         if limit is not None:
             request['limit'] = limit
         response = await self.privatePostUserTrades(self.extend(request, params))

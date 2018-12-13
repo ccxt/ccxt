@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.28'
+const version = '1.18.30'
 
 Exchange.ccxtVersion = version
 
@@ -1546,6 +1546,8 @@ module.exports = class Exchange {
                 'XBT': 'BTC',
                 'BCC': 'BCH',
                 'DRK': 'DASH',
+                'BCHABC': 'BCH',
+                'BCHSV': 'BSV',
             },
             'precisionMode': DECIMAL_PLACES,
         } // return
@@ -7338,12 +7340,12 @@ module.exports = class bit2c extends Exchange {
             'markets': {
                 'BTC/NIS': { 'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS' },
                 'ETH/NIS': { 'id': 'EthNis', 'symbol': 'ETH/NIS', 'base': 'ETH', 'quote': 'NIS' },
-                'BCHABC/NIS': { 'id': 'BchAbcNis', 'symbol': 'BCHABC/NIS', 'base': 'BCHABC', 'quote': 'NIS' },
+                'BCH/NIS': { 'id': 'BchAbcNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS' },
                 'LTC/NIS': { 'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS' },
                 'ETC/NIS': { 'id': 'EtcNis', 'symbol': 'ETC/NIS', 'base': 'ETC', 'quote': 'NIS' },
                 'BTG/NIS': { 'id': 'BtgNis', 'symbol': 'BTG/NIS', 'base': 'BTG', 'quote': 'NIS' },
                 'LTC/BTC': { 'id': 'LtcBtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
-                'BCHSV/NIS': { 'id': 'BchSvNis', 'symbol': 'BCHSV/NIS', 'base': 'BCHSV', 'quote': 'NIS' },
+                'BSV/NIS': { 'id': 'BchSvNis', 'symbol': 'BSV/NIS', 'base': 'BSV', 'quote': 'NIS' },
             },
             'fees': {
                 'trading': {
@@ -8761,10 +8763,7 @@ module.exports = class bitfinex extends Exchange {
                 'ABS': 'ABYSS',
                 'AIO': 'AION',
                 'ATM': 'ATMI',
-                'BAB': 'BCHABC',
-                'BCC': 'CST_BCC',
-                'BCU': 'CST_BCU',
-                'BSV': 'BCHSV',
+                'BAB': 'BCH',
                 'CTX': 'CTXC',
                 'DAD': 'DADI',
                 'DAT': 'DATA',
@@ -15180,8 +15179,6 @@ module.exports = class bittrex extends Exchange {
                 'symbolSeparator': '-',
             },
             'commonCurrencies': {
-                'BCH': 'BCHABC',
-                'BSV': 'BCHSV',
                 'BITS': 'SWIFT',
                 'CPC': 'CapriCoin',
             },
@@ -33416,7 +33413,7 @@ module.exports = class ethfinex extends bitfinex {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -33941,13 +33938,17 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let request = {};
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['pair'] = market['id'];
+        // their docs does not mention it, but if you don't supply a symbol
+        // their API will return an empty response as if you don't have any trades
+        // therefore we make it required here as calling it without a symbol is useless
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'pair': market['id'],
+        };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
