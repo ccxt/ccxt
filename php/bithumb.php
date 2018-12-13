@@ -94,13 +94,19 @@ class bithumb extends Exchange {
                 $base = $id;
                 $quote = 'KRW';
                 $symbol = $id . '/' . $quote;
+                $active = true;
+                if (gettype ($market) === 'array' && count (array_filter (array_keys ($market), 'is_string')) == 0) {
+                    if (strlen ($market) === 0) {
+                        $active = false;
+                    }
+                }
                 $result[] = array (
                     'id' => $id,
                     'symbol' => $symbol,
                     'base' => $base,
                     'quote' => $quote,
                     'info' => $market,
-                    'active' => true,
+                    'active' => $active,
                     'precision' => array (
                         'amount' => null,
                         'price' => null,

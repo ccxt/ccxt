@@ -108,13 +108,17 @@ class bithumb (Exchange):
                 base = id
                 quote = 'KRW'
                 symbol = id + '/' + quote
+                active = True
+                if isinstance(market, list):
+                    if len(market) == 0:
+                        active = False
                 result.append({
                     'id': id,
                     'symbol': symbol,
                     'base': base,
                     'quote': quote,
                     'info': market,
-                    'active': True,
+                    'active': active,
                     'precision': {
                         'amount': None,
                         'price': None,
