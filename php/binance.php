@@ -349,21 +349,21 @@ class binance extends Exchange {
                     ),
                 ),
             );
-            // PRICE_FILTER reports zero values for minPrice and maxPrice
-            // since they updated $filter types in November 2018
-            // https://github.com/ccxt/ccxt/issues/4286
-            // therefore limits['price']['min'] and limits['price']['max]
-            // don't have any meaningful value except null
-            //
-            //     if (is_array ($filters) && array_key_exists ('PRICE_FILTER', $filters)) {
-            //         $filter = $filters['PRICE_FILTER'];
-            //         $entry['precision']['price'] = $this->precision_from_string($filter['tickSize']);
-            //         $entry['limits']['price'] = array (
-            //             'min' => $this->safe_float($filter, 'minPrice'),
-            //             'max' => $this->safe_float($filter, 'maxPrice'),
-            //         );
-            //     }
-            //
+            if (is_array ($filters) && array_key_exists ('PRICE_FILTER', $filters)) {
+                $filter = $filters['PRICE_FILTER'];
+                // PRICE_FILTER reports zero values for minPrice and maxPrice
+                // since they updated $filter types in November 2018
+                // https://github.com/ccxt/ccxt/issues/4286
+                // therefore limits['price']['min'] and limits['price']['max]
+                // don't have any meaningful value except null
+                //
+                //     $entry['limits']['price'] = array (
+                //         'min' => $this->safe_float($filter, 'minPrice'),
+                //         'max' => $this->safe_float($filter, 'maxPrice'),
+                //     );
+                //
+                $entry['precision']['price'] = $this->precision_from_string($filter['tickSize']);
+            }
             if (is_array ($filters) && array_key_exists ('LOT_SIZE', $filters)) {
                 $filter = $filters['LOT_SIZE'];
                 $entry['precision']['amount'] = $this->precision_from_string($filter['stepSize']);
