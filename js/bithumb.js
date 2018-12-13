@@ -94,8 +94,10 @@ module.exports = class bithumb extends Exchange {
                 let quote = 'KRW';
                 let symbol = id + '/' + quote;
                 let active = true;
-                if (market.length === 0) {
-                    active = false;
+                if (Array.isArray (market)) {
+                    if (market.length === 0) {
+                        active = false;
+                    }
                 }
                 result.push ({
                     'id': id,
