@@ -22,7 +22,7 @@ module.exports = class fcoin extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchDepositAddress': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchOrder': true,
