@@ -157,7 +157,7 @@ module.exports = class binance extends Exchange {
                             'stream': '{symbol}@aggTrade',
                         },
                     },
-                    'kline': {
+                    'ohlcv': {
                         'conx-tpl': 'default',
                         'conx-param': {
                             'url': '{baseurl}',
@@ -1323,7 +1323,7 @@ module.exports = class binance extends Exchange {
             this.safeFloat (data['k'], 'l'),
             this.safeFloat (data['k'], 'v'),
         ], market, this.safeFloat (data, 'i'));
-        this.emit ('kline', symbol, kline);
+        this.emit ('ohlcv', symbol, kline);
     }
 
     _websocketHandleTicker (contextId, data) {
@@ -1391,7 +1391,7 @@ module.exports = class binance extends Exchange {
     }
 
     _websocketSubscribe (contextId, event, symbol, nonce, params = {}) {
-        if (event !== 'ob' && event !== 'trade' && event !== 'kline' && event !== 'ticker') {
+        if (event !== 'ob' && event !== 'trade' && event !== 'ohlcv' && event !== 'ticker') {
             throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
         }
         if (event === 'ob') {
@@ -1400,7 +1400,7 @@ module.exports = class binance extends Exchange {
                 config = {};
             }
             let newConfig = {
-                'ob': {}
+                'ob': {},
             };
             newConfig['ob'][symbol] = {
                 'limit': this.safeInteger (params, 'limit', undefined),

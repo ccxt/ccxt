@@ -1516,11 +1516,42 @@ module.exports = class Exchange extends EventEmitter{
         }
     }
 
+    updateBidAskDiff (bidAsk, currentBidsAsks, bids = false) {
+        // insert or replace ordered
+        let index = this.searchIndexToInsertOrUpdate (bidAsk[0], currentBidsAsks, 0, bids);
+        if ((index < currentBidsAsks.length) && (currentBidsAsks[index][0] === bidAsk[0])){
+            // found
+            let nextValue = currentBidsAsks[index][1] + bidAsk[1];
+            if (nextValue === 0) {
+                // remove
+                currentBidsAsks.splice (index, 1);
+            } else {
+                // update
+                currentBidsAsks[index][1] = nextValue;
+            }
+        } else {
+            if (bidAsk[1] !== 0) {
+                // insert
+                currentBidsAsks.splice (index, 0, bidAsk);
+            }
+        }
+    }
+
     mergeOrderBookDelta (currentOrderBook, orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
         let bids = (bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [];
         bids.forEach ((bid) => this.updateBidAsk (bid, currentOrderBook.bids, true));
         let asks = (asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [];
         asks.forEach ((ask) => this.updateBidAsk (ask, currentOrderBook.asks, false));
+        currentOrderBook.timestamp = timestamp;
+        currentOrderBook.datetime = (typeof timestamp !== 'undefined') ? this.iso8601 (timestamp) : undefined;
+        return currentOrderBook;
+    }
+
+    mergeOrderBookDeltaDiff (currentOrderBook, orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
+        let bids = (bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [];
+        bids.forEach ((bid) => this.updateBidAskDiff (bid, currentOrderBook.bids, true));
+        let asks = (asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [];
+        asks.forEach ((ask) => this.updateBidAskDiff (ask, currentOrderBook.asks, false));
         currentOrderBook.timestamp = timestamp;
         currentOrderBook.datetime = (typeof timestamp !== 'undefined') ? this.iso8601 (timestamp) : undefined;
         return currentOrderBook;

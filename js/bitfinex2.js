@@ -542,7 +542,7 @@ module.exports = class bitfinex2 extends bitfinex {
             let chanKey = '_' + chanId.toString ();
             let channels = this._contextGet (contextId, 'channels');
             if (!(chanKey in channels)) {
-                this.emit ('err', new ExchangeError (this.id + ' msg received from unregistered channels:' + chanId));
+                this.emit ('err', new ExchangeError (this.id + ' msg received from unregistered channels:' + chanId), contextId);
                 return;
             }
             let symbol = channels[chanKey]['symbol'];
@@ -590,7 +590,7 @@ module.exports = class bitfinex2 extends bitfinex {
                     side = 'bids';
                     isBid = true;
                 } else {
-                    side = 'asks'
+                    side = 'asks';
                     isBid = false;
                     amount = -amount;
                 }
@@ -613,7 +613,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 side = 'bids';
                 isBid = true;
             } else {
-                side = 'asks'
+                side = 'asks';
                 isBid = false;
                 amount = -amount;
             }
@@ -672,7 +672,7 @@ module.exports = class bitfinex2 extends bitfinex {
             let chanKey = '_' + chanId.toString ();
             let channels = this._contextGet (contextId, 'channels');
             if (!(chanKey in channels)) {
-                this.emit ('err', new ExchangeError (this.id + ' msg received from unregistered channels:' + chanId));
+                this.emit ('err', new ExchangeError (this.id + ' msg received from unregistered channels:' + chanId), contextId);
                 return;
             }
             let symbol = channels[chanKey]['symbol'];
