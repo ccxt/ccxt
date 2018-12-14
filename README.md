@@ -22,9 +22,7 @@ Current feature list:
 
 ## Sponsored Promotion
 
-Want this place? Contact us: info@ccxt.trade
-
-![Placehodler](https://user-images.githubusercontent.com/1707/48204972-43569e00-e37c-11e8-9cf3-b86e3dc19ee9.png)
+[![COSS.io](https://uc760018422f42c91e5a54966e8c.previews.dropboxusercontent.com/p/orig/AATabL_zyu_93V4e2XsBtAIOW8WoWjvYUNCeg61u23SBex0YWQ85OOWCq8eQV6Hz0lpTSp2AOZFoccCjSNMUDSNYbML5dI91-85KRQh3SRTZhxi9T8T8PJtHb1bG86WaCICZVYHPWhoLVwO5I1npJz1W1jCbkNgxUulRWUSHclCcqQFpasRGF7LlIKI7lVYWiThDTo21gFeVn2pC-Dq2N7Y_/p.gif?size=2048x1536&size_mode=3)](https://coss.io)
 
 ## Certified Cryptocurrency Exchanges
 
