@@ -22,7 +22,7 @@ Current feature list:
 
 ## Sponsored Promotion
 
-[![COSS.io](https://ucdfbf8eb55a99b62bccf01e7a58.previews.dropboxusercontent.com/p/orig/AATI1NJdqayuhUN2pWH7kQKWPUBnyAXzyj9agesv8cExIa9u7fh0LzBp1sIPqKSxSlewts2F0HLfudqHrXnqV2rat_UYF5dazcvYVNLoDqxgLy6vvvUYwGDWfTD9AXOLEal7G-wGxaW6e2WPE39vn_Eht11N3jlHjAfHTr8IApsK23GpaFFprScfHFV_ddV9Jcd51gtJKdSObM3gFjLmUVNO/p.gif?size=2048x1536&size_mode=3)](https://coss.io)
+[![COSS.io](https://ucdfbf8eb55a99b62bccf01e7a58.previews.dropboxusercontent.com/p/orig/AATI1NJdqayuhUN2pWH7kQKWPUBnyAXzyj9agesv8cExIa9u7fh0LzBp1sIPqKSxSlewts2F0HLfudqHrXnqV2rat_UYF5dazcvYVNLoDqxgLy6vvvUYwGDWfTD9AXOLEal7G-wGxaW6e2WPE39vn_Eht11N3jlHjAfHTr8IApsK23GpaFFprScfHFV_ddV9Jcd51gtJKdSObM3gFjLmUVNO/p.gif?size=2048x1536&size_mode=3)](https://www.coss.io)
 
 ## Certified Cryptocurrency Exchanges
 
