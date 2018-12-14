@@ -36,7 +36,7 @@ async def main():
         "apiKey": apiKey,
         "secret": secret,
         "enableRateLimit": True,
-        'verbose': True,
+        'verbose':  (params['verbose'] == 'true') if ('verbose' in params) else True,
         'timeout': 5 * 1000,
         # 'wsproxy': 'http://185.93.3.123:8080/',
     })

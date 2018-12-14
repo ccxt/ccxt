@@ -2406,6 +2406,27 @@ abstract class Exchange extends CcxtEventEmitter {
         }
     }
 
+    public function updateBidAskDiff ($bidAsk, &$currentBidsAsks, $bids = false) {
+        // insert or replace ordered
+        $index = $this->searchIndexToInsertOrUpdate ($bidAsk[0], $currentBidsAsks, 0, $bids);
+        if (($index < count($currentBidsAsks)) && ($currentBidsAsks[$index][0] === $bidAsk[0])){
+            // found
+            $nextValue = $currentBidsAsks[$index][1] + $bidAsk[1];
+            if ($nextValue == 0) {
+                // remove
+                array_splice ($currentBidsAsks, $index, 1);
+            } else {
+                // update
+                $currentBidsAsks[$index][1] = $nextValue;
+            }
+        } else {
+            if ($bidAsk[1] != 0) {
+                // insert
+                array_splice ($currentBidsAsks, $index, 0, array($bidAsk));
+            }
+        }
+    }
+
     public function &mergeOrderBookDelta (&$currentOrderBook, &$orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
         $bids = is_array ($orderbook) && array_key_exists ($bids_key, $orderbook) ?
             $this->parse_bids_asks ($orderbook[$bids_key], $price_key, $amount_key) :
@@ -2418,6 +2439,25 @@ abstract class Exchange extends CcxtEventEmitter {
                 array ();
         foreach ($asks as $ask) {
             $this->updateBidAsk ($ask, $currentOrderBook['asks'], false);
+        }
+        
+        $currentOrderBook['timestamp'] = $timestamp;
+        $currentOrderBook['datetime'] = isset ($timestamp) ? $this->iso8601 ($timestamp) : null;
+        return $currentOrderBook;
+    }
+
+    public function &mergeOrderBookDeltaDiff (&$currentOrderBook, &$orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
+        $bids = is_array ($orderbook) && array_key_exists ($bids_key, $orderbook) ?
+            $this->parse_bids_asks ($orderbook[$bids_key], $price_key, $amount_key) :
+            array ();
+        foreach ($bids as $bid) {
+            $this->updateBidAskDiff ($bid, $currentOrderBook['bids'], true);
+        }
+        $asks = is_array ($orderbook) && array_key_exists ($asks_key, $orderbook) ?
+                $this->parse_bids_asks ($orderbook[$asks_key], $price_key, $amount_key) :
+                array ();
+        foreach ($asks as $ask) {
+            $this->updateBidAskDiff ($ask, $currentOrderBook['asks'], false);
         }
         
         $currentOrderBook['timestamp'] = $timestamp;

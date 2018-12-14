@@ -348,6 +348,24 @@ class Exchange(BaseExchange, EventEmitter):
                 # insert
                 currentBidsAsks.insert(index, bidAsk)
 
+    def updateBidAskDiff(self, bidAsk, currentBidsAsks, bids=False):
+        # insert or replace ordered
+        index = self.searchIndexToInsertOrUpdate(bidAsk[0], currentBidsAsks, 0, bids)
+        if ((index < len(currentBidsAsks)) and (currentBidsAsks[index][0] == bidAsk[0])):
+            # found
+            nextValue = currentBidsAsks[index][1] + bidAsk[1]
+            if (nextValue == 0):
+                # remove
+                del currentBidsAsks[index]
+            else:
+                # update
+                currentBidsAsks[index][1] = nextValue
+        else:
+            if (bidAsk[1] != 0):
+                # insert
+                currentBidsAsks.insert(index, bidAsk)
+
+
     def mergeOrderBookDelta(self, currentOrderBook, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
         bids = self.parse_bids_asks2(orderbook[bids_key], price_key, amount_key) if (bids_key in orderbook) and isinstance(orderbook[bids_key], list) else []
         asks = self.parse_bids_asks2(orderbook[asks_key], price_key, amount_key) if (asks_key in orderbook) and isinstance(orderbook[asks_key], list) else []
@@ -355,6 +373,18 @@ class Exchange(BaseExchange, EventEmitter):
             self.updateBidAsk(bid, currentOrderBook['bids'], True)
         for ask in asks:
             self.updateBidAsk(ask, currentOrderBook['asks'], False)
+
+        currentOrderBook['timestamp'] = timestamp
+        currentOrderBook['datetime'] = self.iso8601(timestamp) if timestamp is not None else None
+        return currentOrderBook
+
+    def mergeOrderBookDeltaDiff(self, currentOrderBook, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
+        bids = self.parse_bids_asks2(orderbook[bids_key], price_key, amount_key) if (bids_key in orderbook) and isinstance(orderbook[bids_key], list) else []
+        asks = self.parse_bids_asks2(orderbook[asks_key], price_key, amount_key) if (asks_key in orderbook) and isinstance(orderbook[asks_key], list) else []
+        for bid in bids:
+            self.updateBidAskDiff(bid, currentOrderBook['bids'], True)
+        for ask in asks:
+            self.updateBidAskDiff(ask, currentOrderBook['asks'], False)
 
         currentOrderBook['timestamp'] = timestamp
         currentOrderBook['datetime'] = self.iso8601(timestamp) if timestamp is not None else None
