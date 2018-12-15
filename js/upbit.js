@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -135,6 +135,39 @@ module.exports = class upbit extends Exchange {
                 'symbolSeparator': '-',
                 'tradingFeesByQuoteCurrency': {
                     'KRW': 0.0005,
+                },
+            },
+            'wsconf': {
+                'conx-tpls': {
+                    'default': {
+                        'type': 'ws',
+                        'baseurl': 'wss://crix-websocket-sg.upbit.com/sockjs/websocket',
+                        'baseurl2': 'wss://crix-ws.upbit.com/websocket',
+                        'baseurl3': 'wss://api.upbit.com/websocket/v1',
+                    },
+                },
+                'events': {
+                    'ob': {
+                        'conx-tpl': 'default',
+                        'conx-param': {
+                            'url': '{baseurl}',
+                            'id': '{id}',
+                        },
+                    },
+                    'ticker': {
+                        'conx-tpl': 'default',
+                        'conx-param': {
+                            'url': '{baseurl}',
+                            'id': '{id}',
+                        },
+                    },
+                    'trade': {
+                        'conx-tpl': 'default',
+                        'conx-param': {
+                            'url': '{baseurl}',
+                            'id': '{id}',
+                        },
+                    },
                 },
             },
         });
@@ -1509,5 +1542,204 @@ module.exports = class upbit extends Exchange {
             }
             throw new ExchangeError (feedback); // unknown message
         }
+    }
+
+    _websocketOnMessage (contextId, data) {
+        let msg = JSON.parse (data);
+        // console.log(msg);
+        let type = this.safeString (msg, 'type');
+        let code = this.safeString (msg, 'code');
+        // let streamType = this.safeString (msg, 'streamType');
+        let id = code.replace ('CRIX.UPBIT.', '');
+        type = type.replace ('crix', '');
+        type = type.toLowerCase ();
+        let symbol = this.findSymbol (id);
+        if (type === 'orderbook') {
+            this._websocketHandleOrderBook (contextId, symbol, msg);
+        } else if (type === 'trade') {
+            this._websocketHandleTrade (contextId, symbol, msg);
+        } else if (type === 'ticker') {
+            this._websocketHandleTicker (contextId, symbol, msg);
+        }
+    }
+
+    _websocketHandleOrderBook (contextId, symbol, msg) {
+        let obUnits = this.safeValue (msg, 'orderbook_units', []);
+        let timestamp = this.safeFloat (msg, 'timestamp');
+        let ob = {
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': undefined,
+        };
+        for (let i = 0; i < obUnits.length; i++) {
+            let obUnit = obUnits[i];
+            let bidPrice = this.safeFloat (obUnit, 'bid_price');
+            let bidSize = this.safeFloat (obUnit, 'bid_size');
+            let askPrice = this.safeFloat (obUnit, 'ask_price');
+            let askSize = this.safeFloat (obUnit, 'ask_size');
+            this.updateBidAsk ([bidPrice, bidSize], ob['bids'], true);
+            this.updateBidAsk ([askPrice, askSize], ob['asks'], false);
+        }
+        let symbolData = this._contextGetSymbolData (contextId, 'ob', symbol);
+        symbolData['ob'] = ob;
+        this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
+        this.emit ('ob', symbol, this._cloneOrderBook (symbolData['ob'], symbolData['limit']));
+    }
+
+    _websocketHandleTicker (contextId, symbol, msg) {
+        //  {"type":"ticker","code":"BTC-ETH","opening_price":0.02601664,"high_price":0.02615611,"low_price":0.02587020,"trade_price":0.02599133,"prev_closing_price":0.02602994,"acc_trade_price":142.52289604,"change":"FALL","change_price":0.00003861,"signed_change_price":-0.00003861,"change_rate":0.0014832919,"signed_change_rate":-0.0014832919,"ask_bid":"ASK","trade_volume":39.09714085,"acc_trade_volume":5470.69961159,"trade_date":"20181215","trade_time":"153346","trade_timestamp":1544888026830,"acc_ask_volume":2350.63591821,"acc_bid_volume":3120.06369338,"highest_52_week_price":0.12345678,"highest_52_week_date":"2018-02-01","lowest_52_week_price":0.02460824,"lowest_52_week_date":"2018-12-07","trade_status":null,"market_state":"ACTIVE","market_state_for_ios":null,"is_trading_suspended":false,"delisting_date":null,"market_warning":"NONE","timestamp":1544888027872,"acc_trade_price_24h":null,"acc_trade_volume_24h":null,"stream_type":"SNAPSHOT"}
+        let timestamp = this.safeInteger (msg, 'trade_timestamp');
+        let previous = this.safeFloat (msg, 'prev_closing_price');
+        let last = this.safeFloat (msg, 'trade_price');
+        let change = this.safeFloat (msg, 'signed_change_price');
+        let percentage = this.safeFloat (msg, 'signed_change_rate');
+        let t = {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (msg, 'high_price'),
+            'low': this.safeFloat (msg, 'low_price'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeFloat (msg, 'opening_price'),
+            'close': last,
+            'last': last,
+            'previousClose': previous,
+            'change': change,
+            'percentage': percentage,
+            'average': undefined,
+            'baseVolume': this.safeFloat (msg, 'acc_trade_volume_24h'),
+            'quoteVolume': this.safeFloat (msg, 'acc_trade_price_24h'),
+            'info': msg,
+        };
+        this.emit ('ticker', symbol, t);
+    }
+
+    _websocketHandleTrade (contextId, symbol, msg) {
+        // {"prevClosingPrice":0.02602994,"change":"RISE","changePrice":0.00005434,,"type":"crixTrade","code":"CRIX.UPBIT.BTC-ETH",,"streamType":"SNAPSHOT"}
+        let id = this.safeString (msg, 'sequential_id');
+        let orderId = undefined;
+        let timestamp = this.safeInteger (msg, 'trade_timestamp');
+        let side = undefined;
+        let askOrBid = this.safeString (msg, 'ask_bid');
+        if (askOrBid !== undefined) {
+            askOrBid = askOrBid.toLowerCase ();
+        }
+        if (askOrBid === 'ask') {
+            side = 'sell';
+        } else if (askOrBid === 'bid') {
+            side = 'buy';
+        }
+        let cost = undefined;
+        let price = this.safeFloat (msg, 'trade_price');
+        let amount = this.safeFloat (msg, 'trade_volume');
+        if (amount !== undefined) {
+            if (price !== undefined) {
+                cost = price * amount;
+            }
+        }
+        let trade = {
+            'id': id,
+            'info': msg,
+            'order': orderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
+        };
+        this.emit ('trade', symbol, [trade]);
+    }
+
+    _websocketGenerateTicket (contextId, sEvent, sSymbol, subscribe) {
+        let ticket = [
+            {
+                'ticket': 'ram macbook',
+            },
+            {
+                'format': 'DEFAULT',
+            },
+        ];
+        let eventCodes = {};
+        let subscribedEvents = this._websocketContextGetSubscribedEventSymbols (contextId);
+        for (let i = 0; i < subscribedEvents.length; i++) {
+            let subscribedEvent = subscribedEvents[i];
+            let event = subscribedEvent['event'];
+            let symbol = subscribedEvent['symbol'];
+            if (subscribe || (event !== sEvent) && (symbol !== sSymbol)) {
+                // let id = 'CRIX.UPBIT.' + this.marketId (symbol);
+                let id = this.marketId (symbol);
+                if (event in eventCodes) {
+                    eventCodes[event].push (id);
+                } else {
+                    eventCodes[event] = [id];
+                }
+            }
+        }
+        let events = Object.keys (eventCodes);
+        for (let j = 0; j < events.length; j++) {
+            let event = events[j];
+            if (event === 'ob') {
+                ticket.push ({
+                    'type': 'orderbook',
+                    'codes': eventCodes[event],
+                });
+            } else if (event === 'trade') {
+                ticket.push ({
+                    'type': 'trade',
+                    'codes': eventCodes[event],
+                });
+            } else if (event === 'ticker') {
+                ticket.push ({
+                    'type': 'ticker',
+                    'codes': eventCodes[event],
+                });
+            }
+        }
+        return ticket;
+    }
+
+    _websocketSubscribe (contextId, event, symbol, nonce, params = {}) {
+        if ((event !== 'ob') && (event !== 'ticker') && (event !== 'trade')) {
+            throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+        }
+        // save nonce for subscription response
+        let symbolData = this._contextGetSymbolData (contextId, event, symbol);
+        let payload = this._websocketGenerateTicket (contextId, event, symbol, true);
+        if (event === 'ob') {
+            symbolData['limit'] = this.safeInteger (params, 'limit', undefined);
+        }
+        this._contextSetSymbolData (contextId, event, symbol, symbolData);
+        // send request
+        this.websocketSendJson (payload);
+        let nonceStr = nonce.toString ();
+        this.emit (nonceStr, true);
+    }
+
+    _websocketUnsubscribe (contextId, event, symbol, nonce, params = {}) {
+        if ((event !== 'ob') && (event !== 'ticker') && (event !== 'trade')) {
+            throw new NotSupported ('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+        }
+        let payload = this._websocketGenerateTicket (contextId, event, symbol, false);
+        let nonceStr = nonce.toString ();
+        this.websocketSendJson (payload);
+        this.emit (nonceStr, true);
+    }
+
+    _getCurrentWebsocketOrderbook (contextId, symbol, limit) {
+        let data = this._contextGetSymbolData (contextId, 'ob', symbol);
+        if (('ob' in data) && (typeof data['ob'] !== 'undefined')) {
+            return this._cloneOrderBook (data['ob'], limit);
+        }
+        return undefined;
     }
 };

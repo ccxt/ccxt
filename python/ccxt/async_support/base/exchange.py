@@ -391,7 +391,7 @@ class Exchange(BaseExchange, EventEmitter):
         currentOrderBook['datetime'] = self.iso8601(timestamp) if timestamp is not None else None
         return currentOrderBook
 
-    def _websocket_context_get_subscribed_event_symbols(self, conxid):
+    def _websocketContextGetSubscribedEventSymbols(self, conxid):
         ret = []
         events = self._contextGetEvents(conxid)
         for key in events:
@@ -566,7 +566,7 @@ class Exchange(BaseExchange, EventEmitter):
                 'conx-tpl': conx_tpl_name,
             }
         elif (config['type'] == 'ws-s'):
-            subscribed = self._websocket_context_get_subscribed_event_symbols(config['id'])
+            subscribed = self._websocketContextGetSubscribedEventSymbols(config['id'])
             if subscription:
                 subscribed.append({
                     'event': event,

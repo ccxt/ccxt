@@ -2506,7 +2506,7 @@ abstract class Exchange extends CcxtEventEmitter {
         return $currentOrderBook;
     }
 
-    protected function _websocket_context_get_subscribed_event_symbols ($conxid) {
+    protected function _websocketContextGetSubscribedEventSymbols ($conxid) {
         $ret = array();
         $events = $this->_contextGetEvents($conxid);
         foreach ($events as $key => $event) {
@@ -2724,7 +2724,7 @@ abstract class Exchange extends CcxtEventEmitter {
                 'conx-tpl'=> $conxTplName,
             );
         } else if ($config['type'] === 'ws-s') {
-            $subscribed = $this->_websocket_context_get_subscribed_event_symbols ($config['id']);
+            $subscribed = $this->_websocketContextGetSubscribedEventSymbols ($config['id']);
             if ($subscription) {
                 $subscribed[] = array (
                     'event'=> $event,
