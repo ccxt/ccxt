@@ -526,7 +526,7 @@ class kucoin (Exchange):
             'cost': float(self.fee_to_precision(symbol, cost)),
         }
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetMarketOpenSymbols()
         if self.options['adjustForTimeDifference']:
             self.load_time_difference()
@@ -1097,8 +1097,8 @@ class kucoin (Exchange):
                 side = 'buy'
             elif trade[1] == 'SELL':
                 side = 'sell'
-            price = trade[2]
-            amount = trade[3]
+            price = self.safe_float(trade, 2)
+            amount = self.safe_float(trade, 3)
             id = trade[5]
         else:
             timestamp = self.safe_value(trade, 'createdAt')

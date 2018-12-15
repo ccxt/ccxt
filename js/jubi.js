@@ -27,7 +27,7 @@ module.exports = class jubi extends btcbox {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetAllticker ();
         let keys = Object.keys (markets);
         let result = [];

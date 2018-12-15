@@ -204,6 +204,7 @@ class bitfinex extends Exchange {
                         'AID' => 8.08,
                         'MNA' => 16.617,
                         'NEC' => 1.6504,
+                        'XTZ' => 0.2,
                     ),
                     'withdraw' => array (
                         'BTC' => 0.0004,
@@ -245,6 +246,7 @@ class bitfinex extends Exchange {
                         'AID' => 8.08,
                         'MNA' => 16.617,
                         'NEC' => 1.6504,
+                        'XTZ' => 0.2,
                     ),
                 ),
             ),
@@ -252,15 +254,11 @@ class bitfinex extends Exchange {
                 'ABS' => 'ABYSS',
                 'AIO' => 'AION',
                 'ATM' => 'ATMI',
-                'BAB' => 'BCHABC',
-                'BCC' => 'CST_BCC',
-                'BCU' => 'CST_BCU',
-                'BSV' => 'BCHSV',
+                'BAB' => 'BCH',
                 'CTX' => 'CTXC',
                 'DAD' => 'DADI',
                 'DAT' => 'DATA',
                 'DSH' => 'DASH',
-                'EUR' => 'EURT',
                 'HOT' => 'Hydro Protocol',
                 'IOS' => 'IOST',
                 'IOT' => 'IOTA',
@@ -277,7 +275,6 @@ class bitfinex extends Exchange {
                 'SPK' => 'SPANK',
                 'STJ' => 'STORJ',
                 'YYW' => 'YOYOW',
-                'USD' => 'USDT',
                 'UTN' => 'UTNP',
             ),
             'exceptions' => array (
@@ -370,6 +367,7 @@ class bitfinex extends Exchange {
                     'YOYOW' => 'yoyow',
                     'ZEC' => 'zcash',
                     'ZRX' => 'zrx',
+                    'XTZ' => 'tezos',
                 ),
             ),
         ));
@@ -407,7 +405,7 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetSymbolsDetails ();
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
@@ -978,7 +976,7 @@ class bitfinex extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
         if (strlen ($body) < 2)
             return;
         if ($code >= 400) {

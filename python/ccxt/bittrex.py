@@ -61,13 +61,14 @@ class bittrex (Exchange):
                 '1h': 'hour',
                 '1d': 'day',
             },
+            'hostname': 'bittrex.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
                 'api': {
-                    'public': 'https://bittrex.com/api',
-                    'account': 'https://bittrex.com/api',
-                    'market': 'https://bittrex.com/api',
-                    'v2': 'https://bittrex.com/api/v2.0/pub',
+                    'public': 'https://{hostname}/api',
+                    'account': 'https://{hostname}/api',
+                    'market': 'https://{hostname}/api',
+                    'v2': 'https://{hostname}/api/v2.0/pub',
                 },
                 'www': 'https://bittrex.com',
                 'doc': [
@@ -186,8 +187,6 @@ class bittrex (Exchange):
                 'symbolSeparator': '-',
             },
             'commonCurrencies': {
-                'BCH': 'BCHABC',
-                'BSV': 'BCHSV',
                 'BITS': 'SWIFT',
                 'CPC': 'CapriCoin',
             },
@@ -199,11 +198,14 @@ class bittrex (Exchange):
     def fee_to_precision(self, symbol, fee):
         return self.decimal_to_precision(fee, TRUNCATE, self.markets[symbol]['precision']['price'], DECIMAL_PLACES)
 
-    def fetch_markets(self):
-        response = self.v2GetMarketsGetMarketSummaries()
+    def fetch_markets(self, params={}):
+        # https://github.com/ccxt/ccxt/commit/866370ba6c9cabaf5995d992c15a82e38b8ca291
+        # https://github.com/ccxt/ccxt/pull/4304
+        response = self.publicGetMarkets()
         result = []
-        for i in range(0, len(response['result'])):
-            market = response['result'][i]['Market']
+        markets = self.safe_value(response, 'result')
+        for i in range(0, len(markets)):
+            market = markets[i]
             id = market['MarketName']
             baseId = market['MarketCurrency']
             quoteId = market['BaseCurrency']
@@ -217,7 +219,10 @@ class bittrex (Exchange):
                 'amount': 8,
                 'price': pricePrecision,
             }
-            active = market['IsActive'] or market['IsActive'] == 'true'
+            # bittrex uses boolean values, bleutrade uses strings
+            active = self.safe_value(market, 'IsActive', False)
+            if (active != 'false') or active:
+                active = True
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -850,7 +855,9 @@ class bittrex (Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'][api] + '/'
+        url = self.implode_params(self.urls['api'][api], {
+            'hostname': self.hostname,
+        }) + '/'
         if api != 'v2':
             url += self.version + '/'
         if api == 'public':
@@ -877,7 +884,7 @@ class bittrex (Exchange):
             headers = {'apisign': signature}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
         if body[0] == '{':
             response = json.loads(body)
             # {success: False, message: "message"}

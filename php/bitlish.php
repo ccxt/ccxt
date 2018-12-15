@@ -123,7 +123,7 @@ class bitlish extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetPairs ();
         $result = array ();
         $keys = is_array ($markets) ? array_keys ($markets) : array ();
@@ -183,8 +183,19 @@ class bitlish extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $market = $this->markets_by_id[$id];
-            $symbol = $market['symbol'];
+            $market = $this->safe_value($this->markets_by_id, $id);
+            $symbol = null;
+            if ($market !== null) {
+                $symbol = $market['symbol'];
+            } else {
+                $baseId = mb_substr ($id, 0, 3);
+                $quoteId = mb_substr ($id, 3, 6);
+                $base = strtoupper ($baseId);
+                $quote = strtoupper ($quoteId);
+                $base = $this->common_currency_code($base);
+                $quote = $this->common_currency_code($quote);
+                $symbol = $base . '/' . $quote;
+            }
             $ticker = $tickers[$id];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }

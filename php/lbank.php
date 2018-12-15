@@ -107,7 +107,7 @@ class lbank extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetAccuracy ();
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
@@ -246,9 +246,12 @@ class lbank extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = 60, $params = array ()) {
         $this->load_markets();
+        $size = 60;
+        if ($limit !== null)
+            $size = min ($limit, $size);
         $response = $this->publicGetDepth (array_merge (array (
             'symbol' => $this->market_id($symbol),
-            'size' => min ($limit, 60),
+            'size' => $size,
         ), $params));
         return $this->parse_order_book($response);
     }

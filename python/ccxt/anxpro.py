@@ -69,7 +69,6 @@ class anxpro (Exchange):
                 'LTC/BTC': {'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'multiplier': 100000, 'limits': {'amount': {'min': 0.1, 'max': 10000000}, 'price': {'min': None, 'max': None}, 'cost': {'min': None, 'max': None}}},
                 # delisting announced
                 'XLM/BTC': {'id': 'STRBTC', 'symbol': 'XLM/BTC', 'base': 'XLM', 'quote': 'BTC', 'multiplier': 100000000, 'limits': {'amount': {'min': 0.01, 'max': 100000}, 'price': {'min': None, 'max': None}, 'cost': {'min': None, 'max': None}}},
-                'GNT/BTC': {'id': 'GNTBTC', 'symbol': 'GNT/BTC', 'base': 'GNT', 'quote': 'BTC', 'multiplier': 100000000, 'limits': {'amount': {'min': 0.01, 'max': 100000}, 'price': {'min': None, 'max': None}, 'cost': {'min': None, 'max': None}}},
                 'OAX/BTC': {'id': 'OAXBTC', 'symbol': 'OAX/BTC', 'base': 'OAX', 'quote': 'BTC', 'multiplier': 100000000, 'limits': {'amount': {'min': 0.01, 'max': 100000}, 'price': {'min': None, 'max': None}, 'cost': {'min': None, 'max': None}}},
                 'XRP/BTC': {'id': 'XRPBTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'multiplier': 100000000, 'limits': {'amount': {'min': 0.01, 'max': 100000}, 'price': {'min': None, 'max': None}, 'cost': {'min': None, 'max': None}}},
                 'DOGE/BTC': {'id': 'DOGEBTC', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC', 'multiplier': 100000000, 'limits': {'amount': {'min': 10000, 'max': 10000000000}, 'price': {'min': None, 'max': None}, 'cost': {'min': None, 'max': None}}},

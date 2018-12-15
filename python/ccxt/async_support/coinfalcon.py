@@ -67,7 +67,7 @@ class coinfalcon (Exchange):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         response = await self.publicGetMarkets()
         markets = response['data']
         result = []
@@ -332,7 +332,7 @@ class coinfalcon (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
         if code < 400:
             return
         ErrorClass = self.safe_value({

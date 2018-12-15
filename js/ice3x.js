@@ -37,6 +37,7 @@ module.exports = class ice3x extends Exchange {
                     'https://help.ice3.com/support/solutions/articles/11000008131-what-are-your-fiat-deposit-and-withdrawal-fees-',
                     'https://help.ice3.com/support/solutions/articles/11000033289-deposit-fees',
                 ],
+                'referral': 'https://ice3x.com?ref=14341802',
             },
             'api': {
                 'public': {
@@ -121,7 +122,7 @@ module.exports = class ice3x extends Exchange {
         return result;
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         if (!Object.keys (this.currencies).length) {
             this.currencies = await this.fetchCurrencies ();
         }

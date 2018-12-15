@@ -72,7 +72,7 @@ module.exports = class independentreserve extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let baseCurrencies = await this.publicGetGetValidPrimaryCurrencyCodes ();
         let quoteCurrencies = await this.publicGetGetValidSecondaryCurrencyCodes ();
         let result = [];

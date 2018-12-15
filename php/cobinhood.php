@@ -238,7 +238,7 @@ class cobinhood extends Exchange {
         return $result;
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetMarketTradingPairs ();
         $markets = $response['result']['trading_pairs'];
         $result = array ();
@@ -364,7 +364,12 @@ class cobinhood extends Exchange {
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'size');
         $cost = $price * $amount;
-        $side = ($trade['maker_side'] === 'bid') ? 'sell' : 'buy';
+        // you can't determine your $side from maker/taker $side and vice versa
+        // you can't determine if your order/$trade was a maker or a taker based
+        // on just the $side of your order/$trade
+        // https://github.com/ccxt/ccxt/issues/4300
+        // $side = ($trade['maker_side'] === 'bid') ? 'sell' : 'buy';
+        $side = null;
         return array (
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -557,6 +562,7 @@ class cobinhood extends Exchange {
     }
 
     public function edit_order ($id, $symbol, $type, $side, $amount, $price, $params = array ()) {
+        $this->load_markets();
         $response = $this->privatePutTradingOrdersOrderId (array_merge (array (
             'order_id' => $id,
             'price' => $this->price_to_precision($symbol, $price),
@@ -568,6 +574,7 @@ class cobinhood extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->privateDeleteTradingOrdersOrderId (array_merge (array (
             'order_id' => $id,
         ), $params));
@@ -588,9 +595,20 @@ class cobinhood extends Exchange {
         $this->load_markets();
         $result = $this->privateGetTradingOrders ($params);
         $orders = $this->parse_orders($result['result']['orders'], null, $since, $limit);
-        if ($symbol !== null)
-            return $this->filter_by_symbol($orders, $symbol);
-        return $orders;
+        if ($symbol !== null) {
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
+        }
+        return $this->filter_by_since_limit($orders, $since, $limit);
+    }
+
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $result = $this->privateGetTradingOrderHistory ($params);
+        $orders = $this->parse_orders($result['result']['orders'], null, $since, $limit);
+        if ($symbol !== null) {
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
+        }
+        return $this->filter_by_since_limit($orders, $since, $limit);
     }
 
     public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -798,7 +816,7 @@ class cobinhood extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
         if ($code < 400 || $code >= 600) {
             return;
         }

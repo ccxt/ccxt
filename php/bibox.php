@@ -587,6 +587,8 @@ class bibox extends Exchange {
                 'account_type' => 0, // 0 - regular, 1 - margin
                 'page' => 1,
                 'size' => $size,
+                'coin_symbol' => $market['baseId'],
+                'currency_symbol' => $market['quoteId'],
             ), $params),
         ));
         $trades = $this->safe_value($response['result'], 'items', array ());
@@ -689,7 +691,7 @@ class bibox extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
         if (strlen ($body) > 0) {
             if ($body[0] === '{') {
                 $response = json_decode ($body, $as_associative_array = true);

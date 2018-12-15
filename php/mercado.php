@@ -65,6 +65,7 @@ class mercado extends Exchange {
                 'LTC/BRL' => array ( 'id' => 'BRLLTC', 'symbol' => 'LTC/BRL', 'base' => 'LTC', 'quote' => 'BRL', 'suffix' => 'Litecoin' ),
                 'BCH/BRL' => array ( 'id' => 'BRLBCH', 'symbol' => 'BCH/BRL', 'base' => 'BCH', 'quote' => 'BRL', 'suffix' => 'BCash' ),
                 'XRP/BRL' => array ( 'id' => 'BRLXRP', 'symbol' => 'XRP/BRL', 'base' => 'XRP', 'quote' => 'BRL', 'suffix' => 'Ripple' ),
+                'ETH/BRL' => array ( 'id' => 'BRLETH', 'symbol' => 'ETH/BRL', 'base' => 'ETH', 'quote' => 'BRL', 'suffix' => 'Ethereum' ),
             ),
             'fees' => array (
                 'trading' => array (

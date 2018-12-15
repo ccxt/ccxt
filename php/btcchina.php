@@ -87,7 +87,7 @@ class btcchina extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetTicker (array (
             'market' => 'all',
         ));

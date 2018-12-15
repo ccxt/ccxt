@@ -129,7 +129,7 @@ class liqui extends Exchange {
         );
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetInfo ();
         $markets = $response['pairs'];
         $keys = is_array ($markets) ? array_keys ($markets) : array ();
@@ -761,7 +761,7 @@ class liqui extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response = null) {
         if (!$this->is_json_encoded_object($body))
             return; // fallback to default error handler
         $response = json_decode ($body, $as_associative_array = true);

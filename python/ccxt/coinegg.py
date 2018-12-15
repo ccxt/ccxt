@@ -166,7 +166,7 @@ class coinegg (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         quoteIds = self.options['quoteIds']
         result = []
         for b in range(0, len(quoteIds)):
@@ -486,7 +486,7 @@ class coinegg (Exchange):
                 body = query
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
         # checks against error codes
         if not isinstance(body, basestring):
             return

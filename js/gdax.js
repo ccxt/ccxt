@@ -147,7 +147,7 @@ module.exports = class gdax extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetProducts ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
@@ -720,10 +720,10 @@ module.exports = class gdax extends Exchange {
         };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
         if ((code === 400) || (code === 404)) {
             if (body[0] === '{') {
-                let response = JSON.parse (body);
+                response = JSON.parse (body);
                 let message = response['message'];
                 let feedback = this.id + ' ' + message;
                 const exact = this.exceptions['exact'];

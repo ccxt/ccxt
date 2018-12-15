@@ -147,7 +147,7 @@ module.exports = class buda extends Exchange {
         return undefined;
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let marketsResponse = await this.publicGetMarkets ();
         let markets = marketsResponse['markets'];
         let currenciesResponse = await this.publicGetCurrencies ();
@@ -751,12 +751,12 @@ module.exports = class buda extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
         if (!this.isJsonEncodedObject (body)) {
             return; // fallback to default error handler
         }
         if (code >= 400) {
-            const response = JSON.parse (body);
+            response = JSON.parse (body);
             let errorCode = this.safeString (response, 'code');
             let message = this.safeString (response, 'message', body);
             let feedback = this.name + ': ' + message;

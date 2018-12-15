@@ -135,7 +135,7 @@ module.exports = class theocean extends Exchange {
         };
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetTokenPairs ();
         //
         //     [
@@ -1052,8 +1052,8 @@ module.exports = class theocean extends Exchange {
             }
             let feeDecimals = this.safeInteger (this.options['decimals'], feeCurrency, 18);
             fee = {
-                'сost': this.fromWei (feeCost, 'ether', feeDecimals),
-                'сurrency': feeCurrency,
+                'cost': this.fromWei (feeCost, 'ether', feeDecimals),
+                'currency': feeCurrency,
             };
         }
         let amountPrecision = market ? market['precision']['amount'] : 8;
@@ -1253,7 +1253,7 @@ module.exports = class theocean extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body) {
+    handleErrors (httpCode, reason, url, method, headers, body, response = undefined) {
         if (typeof body !== 'string')
             return; // fallback to default error handler
         if (body.length < 2)
@@ -1264,7 +1264,7 @@ module.exports = class theocean extends Exchange {
             throw new AuthenticationError (this.id + ' ' + body);
         }
         if ((body[0] === '{') || (body[0] === '[')) {
-            let response = JSON.parse (body);
+            response = JSON.parse (body);
             const message = this.safeString (response, 'message');
             if (message !== undefined) {
                 //

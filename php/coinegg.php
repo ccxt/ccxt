@@ -151,7 +151,7 @@ class coinegg extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $quoteIds = $this->options['quoteIds'];
         $result = array ();
         for ($b = 0; $b < count ($quoteIds); $b++) {
@@ -502,7 +502,7 @@ class coinegg extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
         // checks against error codes
         if (gettype ($body) !== 'string')
             return;

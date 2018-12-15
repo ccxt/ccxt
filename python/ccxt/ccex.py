@@ -81,7 +81,7 @@ class ccex (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         result = {}
         response = self.webGetPairs()
         markets = response['pairs']

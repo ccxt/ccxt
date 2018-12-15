@@ -24,7 +24,7 @@ module.exports = class allcoin extends okcoinusd {
                     'private': 'https://api.allcoin.com/api',
                 },
                 'www': 'https://www.allcoin.com',
-                'doc': 'https://www.allcoin.com/About/APIReference',
+                'doc': 'https://www.allcoin.com/api_market/market',
             },
             'api': {
                 'web': {
@@ -57,7 +57,7 @@ module.exports = class allcoin extends okcoinusd {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let result = [];
         let response = await this.webGetHomeMarketOverViewDetail ();
         let coins = response['marketCoins'];

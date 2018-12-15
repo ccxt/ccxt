@@ -101,7 +101,7 @@ class acx (Exchange):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         markets = await self.publicGetMarkets()
         result = []
         for p in range(0, len(markets)):
@@ -399,7 +399,7 @@ class acx (Exchange):
                 headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
         if code == 400:
             response = json.loads(body)
             error = self.safe_value(response, 'error')

@@ -204,6 +204,7 @@ module.exports = class bitfinex extends Exchange {
                         'AID': 8.08,
                         'MNA': 16.617,
                         'NEC': 1.6504,
+                        'XTZ': 0.2,
                     },
                     'withdraw': {
                         'BTC': 0.0004,
@@ -245,6 +246,7 @@ module.exports = class bitfinex extends Exchange {
                         'AID': 8.08,
                         'MNA': 16.617,
                         'NEC': 1.6504,
+                        'XTZ': 0.2,
                     },
                 },
             },
@@ -252,15 +254,11 @@ module.exports = class bitfinex extends Exchange {
                 'ABS': 'ABYSS',
                 'AIO': 'AION',
                 'ATM': 'ATMI',
-                'BAB': 'BCHABC',
-                'BCC': 'CST_BCC',
-                'BCU': 'CST_BCU',
-                'BSV': 'BCHSV',
+                'BAB': 'BCH',
                 'CTX': 'CTXC',
                 'DAD': 'DADI',
                 'DAT': 'DATA',
                 'DSH': 'DASH',
-                'EUR': 'EURT',
                 'HOT': 'Hydro Protocol',
                 'IOS': 'IOST',
                 'IOT': 'IOTA',
@@ -277,7 +275,6 @@ module.exports = class bitfinex extends Exchange {
                 'SPK': 'SPANK',
                 'STJ': 'STORJ',
                 'YYW': 'YOYOW',
-                'USD': 'USDT',
                 'UTN': 'UTNP',
             },
             'exceptions': {
@@ -370,6 +367,7 @@ module.exports = class bitfinex extends Exchange {
                     'YOYOW': 'yoyow',
                     'ZEC': 'zcash',
                     'ZRX': 'zrx',
+                    'XTZ': 'tezos',
                 },
             },
         });
@@ -407,7 +405,7 @@ module.exports = class bitfinex extends Exchange {
         };
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetSymbolsDetails ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
@@ -978,12 +976,12 @@ module.exports = class bitfinex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
         if (body.length < 2)
             return;
         if (code >= 400) {
             if (body[0] === '{') {
-                const response = JSON.parse (body);
+                response = JSON.parse (body);
                 const feedback = this.id + ' ' + this.json (response);
                 let message = undefined;
                 if ('message' in response) {

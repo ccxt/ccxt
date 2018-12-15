@@ -219,6 +219,7 @@ class bitfinex (Exchange):
                         'AID': 8.08,
                         'MNA': 16.617,
                         'NEC': 1.6504,
+                        'XTZ': 0.2,
                     },
                     'withdraw': {
                         'BTC': 0.0004,
@@ -260,6 +261,7 @@ class bitfinex (Exchange):
                         'AID': 8.08,
                         'MNA': 16.617,
                         'NEC': 1.6504,
+                        'XTZ': 0.2,
                     },
                 },
             },
@@ -267,15 +269,11 @@ class bitfinex (Exchange):
                 'ABS': 'ABYSS',
                 'AIO': 'AION',
                 'ATM': 'ATMI',
-                'BAB': 'BCHABC',
-                'BCC': 'CST_BCC',
-                'BCU': 'CST_BCU',
-                'BSV': 'BCHSV',
+                'BAB': 'BCH',
                 'CTX': 'CTXC',
                 'DAD': 'DADI',
                 'DAT': 'DATA',
                 'DSH': 'DASH',
-                'EUR': 'EURT',
                 'HOT': 'Hydro Protocol',
                 'IOS': 'IOST',
                 'IOT': 'IOTA',
@@ -292,7 +290,6 @@ class bitfinex (Exchange):
                 'SPK': 'SPANK',
                 'STJ': 'STORJ',
                 'YYW': 'YOYOW',
-                'USD': 'USDT',
                 'UTN': 'UTNP',
             },
             'exceptions': {
@@ -385,6 +382,7 @@ class bitfinex (Exchange):
                     'YOYOW': 'yoyow',
                     'ZEC': 'zcash',
                     'ZRX': 'zrx',
+                    'XTZ': 'tezos',
                 },
             },
         })
@@ -417,7 +415,7 @@ class bitfinex (Exchange):
             'taker': self.safe_float(response, 'taker_fee'),
         }
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         markets = await self.publicGetSymbolsDetails()
         result = []
         for p in range(0, len(markets)):
@@ -931,7 +929,7 @@ class bitfinex (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
         if len(body) < 2:
             return
         if code >= 400:

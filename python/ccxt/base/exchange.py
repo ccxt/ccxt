@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.17.522'
+__version__ = '1.18.37'
 
 # -----------------------------------------------------------------------------
 
@@ -252,6 +252,8 @@ class Exchange():
         'XBT': 'BTC',
         'BCC': 'BCH',
         'DRK': 'DASH',
+        'BCHABC': 'BCH',
+        'BCHSV': 'BSV',
     }
 
     def __init__(self, config={}):
@@ -402,7 +404,7 @@ class Exchange():
                 return key
         return None
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
         pass
 
     def prepare_request_headers(self, headers=None):
@@ -425,7 +427,6 @@ class Exchange():
 
         if self.verbose:
             print("\nRequest:", method, url, request_headers, body)
-
         self.logger.debug("%s %s, Request: %s %s", method, url, request_headers, body)
 
         if body:
@@ -435,6 +436,7 @@ class Exchange():
 
         response = None
         http_response = None
+        json_response = None
         try:
             response = self.session.request(
                 method,
@@ -445,13 +447,17 @@ class Exchange():
                 proxies=self.proxies
             )
             http_response = response.text
+            json_response = self.parse_json(http_response)
+            headers = response.headers
+            # FIXME remove last_x_responses from subclasses
             if self.enableLastHttpResponse:
                 self.last_http_response = http_response
-            headers = response.headers
+            if self.enableLastJsonResponse:
+                self.last_json_response = json_response
             if self.enableLastResponseHeaders:
                 self.last_response_headers = headers
             if self.verbose:
-                print("\nResponse:", method, url, str(response.status_code), str(headers), http_response)
+                print("\nResponse:", method, url, response.status_code, headers, http_response)
             self.logger.debug("%s %s, Response: %s %s %s", method, url, response.status_code, headers, http_response)
             response.raise_for_status()
 
@@ -476,8 +482,9 @@ class Exchange():
             else:
                 self.raise_error(ExchangeError, url, method, e)
 
-        self.handle_errors(response.status_code, response.reason, url, method, None, http_response)
-        return self.handle_rest_response(http_response, url, method, headers, body)
+        self.handle_errors(response.status_code, response.reason, url, method, headers, http_response, json_response)
+        self.handle_rest_response(http_response, json_response, url, method, headers, body)
+        return json_response
 
     def handle_rest_errors(self, exception, http_status_code, response, url, method='GET'):
         error = None
@@ -490,16 +497,8 @@ class Exchange():
         if error:
             self.raise_error(error, url, method, exception if exception else http_status_code, response)
 
-    def handle_rest_response(self, response, url, method='GET', headers=None, body=None):
-        try:
-            if self.parseJsonResponse:
-                json_response = json.loads(response) if len(response) > 1 else None
-                if self.enableLastJsonResponse:
-                    self.last_json_response = json_response
-                return json_response
-            else:
-                return response
-        except ValueError as e:  # ValueError == JsonDecodeError
+    def handle_rest_response(self, response, json_response, url, method='GET', headers=None, body=None):
+        if json_response is None:
             ddos_protection = re.search('(cloudflare|incapsula|overload|ddos)', response, flags=re.IGNORECASE)
             exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', response, flags=re.IGNORECASE)
             if ddos_protection:
@@ -507,7 +506,16 @@ class Exchange():
             if exchange_not_available:
                 message = response + ' exchange downtime, exchange closed for maintenance or offline, DDoS protection or rate-limiting in effect'
                 self.raise_error(ExchangeNotAvailable, method, url, None, message)
-            self.raise_error(ExchangeError, method, url, e, response)
+            self.raise_error(ExchangeError, method, url, ValueError('failed to decode json'), response)
+
+    def parse_json(self, http_response):
+        try:
+            if self.parseJsonResponse:
+                return json.loads(http_response)
+            else:
+                return http_response
+        except ValueError:  # superclass of JsonDecodeError (python2)
+            pass
 
     @staticmethod
     def safe_float(dictionary, key, default_value=None):
@@ -847,7 +855,7 @@ class Exchange():
             ms = ms or '.000'
             msint = int(ms[1:])
             sign = sign or ''
-            sign = int(sign + '1')
+            sign = int(sign + '1') * -1
             hours = int(hours or 0) * sign
             minutes = int(minutes or 0) * sign
             offset = datetime.timedelta(hours=hours, minutes=minutes)
@@ -1032,13 +1040,13 @@ class Exchange():
         self.currencies_by_id = self.index_by(list(self.currencies.values()), 'id')
         return self.markets
 
-    def load_markets(self, reload=False):
+    def load_markets(self, reload=False, params={}):
         if not reload:
             if self.markets:
                 if not self.markets_by_id:
                     return self.set_markets(self.markets)
                 return self.markets
-        markets = self.fetch_markets()
+        markets = self.fetch_markets(params)
         currencies = None
         if self.has['fetchCurrencies']:
             currencies = self.fetch_currencies()
@@ -1070,7 +1078,7 @@ class Exchange():
         self.fees = self.deep_extend(self.fees, fetched_fees)
         return self.fees
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         # markets are returned as a list
         # currencies are returned as a dict
         # this is for historical reasons

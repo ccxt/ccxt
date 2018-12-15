@@ -603,7 +603,7 @@ module.exports = class coinexchange extends Exchange {
         return result;
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetGetmarkets ();
         let markets = response['result'];
         let result = [];

@@ -145,7 +145,7 @@ class gateio (Exchange):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         response = await self.publicGetMarketinfo()
         markets = self.safe_value(response, 'pairs')
         if not markets:
@@ -266,7 +266,7 @@ class gateio (Exchange):
             'info': ticker,
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
         if len(body) <= 0:
             return
         if body[0] != '{':

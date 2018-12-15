@@ -122,7 +122,7 @@ module.exports = class bitlish extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetPairs ();
         let result = [];
         let keys = Object.keys (markets);
@@ -182,8 +182,19 @@ module.exports = class bitlish extends Exchange {
         let result = {};
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            let market = this.markets_by_id[id];
-            let symbol = market['symbol'];
+            let market = this.safeValue (this.markets_by_id, id);
+            let symbol = undefined;
+            if (market !== undefined) {
+                symbol = market['symbol'];
+            } else {
+                let baseId = id.slice (0, 3);
+                let quoteId = id.slice (3, 6);
+                let base = baseId.toUpperCase ();
+                let quote = quoteId.toUpperCase ();
+                base = this.commonCurrencyCode (base);
+                quote = this.commonCurrencyCode (quote);
+                symbol = base + '/' + quote;
+            }
             let ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
         }

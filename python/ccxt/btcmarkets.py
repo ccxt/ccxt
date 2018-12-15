@@ -93,7 +93,7 @@ class btcmarkets (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetV2MarketActive()
         result = []
         markets = response['markets']
@@ -462,7 +462,7 @@ class btcmarkets (Exchange):
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
         if len(body) < 2:
             return  # fallback to default error handler
         if body[0] == '{':

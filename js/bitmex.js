@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InvalidOrder, OrderNotFound, PermissionDenied, NotSupported } = require ('./base/errors');
+const { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -156,9 +156,11 @@ module.exports = class bitmex extends Exchange {
                     'Invalid API Key.': AuthenticationError,
                     'Access Denied': PermissionDenied,
                     'Duplicate clOrdID': InvalidOrder,
+                    'Signature not valid': AuthenticationError,
                 },
                 'broad': {
                     'overloaded': ExchangeNotAvailable,
+                    'Account has insufficient Available Balance': InsufficientFunds,
                 },
             },
             'options': {
@@ -167,7 +169,7 @@ module.exports = class bitmex extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetInstrumentActiveAndIndices ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
@@ -379,7 +381,7 @@ module.exports = class bitmex extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        let timestamp = this.parse8601 (ohlcv['timestamp']) - this.parseTimeframe (timeframe) * 1000;
+        let timestamp = this.parse8601 (ohlcv['timestamp']);
         return [
             timestamp,
             ohlcv['open'],
@@ -414,8 +416,7 @@ module.exports = class bitmex extends Exchange {
         // if since is not set, they will return candles starting from 2017-01-01
         if (since !== undefined) {
             let ymdhms = this.ymdhms (since);
-            let ymdhm = ymdhms.slice (0, 16);
-            request['startTime'] = ymdhm; // starting date filter for results
+            request['startTime'] = ymdhms; // starting date filter for results
         }
         let response = await this.publicGetTradeBucketed (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -597,13 +598,13 @@ module.exports = class bitmex extends Exchange {
         };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
         if (code === 429)
             throw new DDoSProtection (this.id + ' ' + body);
         if (code >= 400) {
             if (body) {
                 if (body[0] === '{') {
-                    let response = JSON.parse (body);
+                    response = JSON.parse (body);
                     const error = this.safeValue (response, 'error', {});
                     const message = this.safeString (error, 'message');
                     const feedback = this.id + ' ' + body;

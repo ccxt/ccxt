@@ -89,7 +89,7 @@ module.exports = class coingi extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = undefined;
         try {
             this.parseJsonResponse = false;
