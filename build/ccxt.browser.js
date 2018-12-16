@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.38'
+const version = '1.18.39'
 
 Exchange.ccxtVersion = version
 
@@ -12371,6 +12371,7 @@ module.exports = class bitmex extends Exchange {
                 },
             },
             'options': {
+                'api-expires': undefined,
                 'fetchTickerQuotes': false,
             },
         });
@@ -12845,20 +12846,29 @@ module.exports = class bitmex extends Exchange {
         let url = this.urls['api'] + query;
         if (api === 'private') {
             this.checkRequiredCredentials ();
+            let auth = method + query;
+            let expires = this.safeInteger (this.options, 'api-expires');
             let nonce = this.nonce ().toString ();
-            let auth = method + query + nonce;
+            headers = {
+                'Content-Type': 'application/json',
+                'api-key': this.apiKey,
+            };
+            if (expires !== undefined) {
+                expires = this.sum (this.seconds (), expires);
+                expires = expires.toString ();
+                auth += expires;
+                headers['api-expires'] = expires;
+            } else {
+                auth += nonce;
+                headers['api-nonce'] = this.nonce ();
+            }
             if (method === 'POST' || method === 'PUT') {
                 if (Object.keys (params).length) {
                     body = this.json (params);
                     auth += body;
                 }
             }
-            headers = {
-                'Content-Type': 'application/json',
-                'api-nonce': nonce,
-                'api-key': this.apiKey,
-                'api-signature': this.hmac (this.encode (auth), this.encode (this.secret)),
-            };
+            headers['api-signature'] = this.hmac (this.encode (auth), this.encode (this.secret));
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
