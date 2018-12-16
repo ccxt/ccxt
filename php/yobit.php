@@ -218,6 +218,45 @@ class yobit extends liqui {
         );
     }
 
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        // some derived classes use camelcase notation for $request fields
+        $request = array (
+            // 'from' => 123456789, // $trade ID, from which the display starts numerical 0 (test $result => liqui ignores this field)
+            // 'count' => 1000, // the number of $trades for display numerical, default = 1000
+            // 'from_id' => $trade ID, from which the display starts numerical 0
+            // 'end_id' => $trade ID on which the display ends numerical ∞
+            // 'order' => 'ASC', // sorting, default = DESC (test $result => liqui ignores this field, most recent $trade always goes last)
+            // 'since' => 1234567890, // UTC start time, default = 0 (test $result => liqui ignores this field)
+            // 'end' => 1234567890, // UTC end time, default = ∞ (test $result => liqui ignores this field)
+            // 'pair' => 'eth_btc', // default = all markets
+        );
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['pair'] = $market['id'];
+        }
+        if ($limit !== null) {
+            $request['count'] = intval ($limit);
+        }
+        if ($since !== null) {
+            $request['since'] = intval ($since / 1000);
+        }
+        $method = $this->options['fetchMyTradesMethod'];
+        $response = $this->$method (array_merge ($request, $params));
+        $trades = $this->safe_value($response, 'return', array ());
+        $ids = is_array ($trades) ? array_keys ($trades) : array ();
+        $result = array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $trade = $this->parse_trade(array_merge ($trades[$id], array (
+                'trade_id' => $id,
+            )), $market);
+            $result[] = $trade;
+        }
+        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+    }
+
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
