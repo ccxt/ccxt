@@ -216,7 +216,7 @@ module.exports = class yobit extends liqui {
             'info': response,
         };
     }
-    
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
@@ -243,14 +243,17 @@ module.exports = class yobit extends liqui {
         }
         let method = this.options['fetchMyTradesMethod'];
         let response = await this[method] (this.extend (request, params));
-        let trades = [];
-        if ('return' in response) {
-            trades = response['return'];
-            for (let id in trades) {
-                trades[id].trade_id = id
-            }    
+        let trades = this.safeValue (response, 'return', {});
+        let ids = Object.keys (trades);
+        let result = [];
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const trade = this.parseTrade (this.extend (trades[id], {
+                'trade_id': id,
+            }), market);
+            result.push (trade);
         }
-        return this.parseTrades (trades, market, since, limit);
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
