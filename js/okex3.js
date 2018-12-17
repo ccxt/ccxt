@@ -26,19 +26,18 @@ module.exports = class okex3 extends Exchange {
                 'futures': false,
             },
             'timeframes': {
-                '1m': '1min',
-                '3m': '3min',
-                '5m': '5min',
-                '15m': '15min',
-                '30m': '30min',
-                '1h': '1hour',
-                '2h': '2hour',
-                '4h': '4hour',
-                '6h': '6hour',
-                '12h': '12hour',
-                '1d': '1day',
-                '3d': '3day',
-                '1w': '1week',
+                '1m': '60',
+                '3m': '180',
+                '5m': '300',
+                '15m': '900',
+                '30m': '1800',
+                '1h': '3600',
+                '2h': '7200',
+                '4h': '14400',
+                '6h': '21600',
+                '12h': '43200',
+                '1d': '86400',
+                '1w': '604800',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
@@ -204,7 +203,7 @@ module.exports = class okex3 extends Exchange {
                     ],
                     'delete': [
                         'orders/{order_id}',
-                    ]
+                    ],
                 },
             },
             'fees': {
@@ -428,7 +427,7 @@ module.exports = class okex3 extends Exchange {
             'instrument_id': market['id'],
         };
         if (limit !== undefined) {
-            request['size'] = limit;
+            request['size'] = limit; // max 200
         }
         let response = await this[method] (this.extend (request, params));
         //
@@ -639,26 +638,50 @@ module.exports = class okex3 extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let method = 'publicGet';
-        let request = {
-            'symbol': market['id'],
-            'type': this.timeframes[timeframe],
+        const method = market['type'] + 'GetInstrumentsInstrumentIdCandles';
+        const request = {
+            'instrument_id': market['id'],
+            'granularity': this.timeframes[timeframe],
         };
-        if (market['future']) {
-            method += 'Future';
-            request['contract_type'] = this.options['defaultContractType']; // this_week, next_week, quarter
+        if (since !== undefined) {
+            request['start'] = this.iso8601 (since);
         }
-        method += 'Kline';
-        if (limit !== undefined) {
-            if (this.options['warnOnFetchOHLCVLimitArgument'])
-                throw new ExchangeError (this.id + ' fetchOHLCV counts "limit" candles from current time backwards, therefore the "limit" argument for ' + this.id + ' is disabled. Set ' + this.id + '.options["warnOnFetchOHLCVLimitArgument"] = false to suppress this warning message.');
-            request['size'] = parseInt (limit); // max is 1440 candles
-        }
-        if (since !== undefined)
-            request['since'] = since;
-        else
-            request['since'] = this.milliseconds () - 86400000; // last 24 hours
-        let response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot markets
+        //
+        //     [ {  close: "0.02683401",
+        //           high: "0.02683401",
+        //            low: "0.02683401",
+        //           open: "0.02683401",
+        //           time: "2018-12-17T23:47:00.000Z",
+        //         volume: "0"                         },
+        //       ...
+        //       {  close: "0.02684545",
+        //           high: "0.02685084",
+        //            low: "0.02683312",
+        //           open: "0.02683894",
+        //           time: "2018-12-17T20:28:00.000Z",
+        //         volume: "101.457222"                }  ]
+        //
+        // futures
+        //
+        //     [ [ 1545090660000,
+        //         0.3171,
+        //         0.3174,
+        //         0.3171,
+        //         0.3173,
+        //         1648,
+        //         51930.38579450868 ],
+        //       ...
+        //       [ 1545072720000,
+        //         0.3159,
+        //         0.3161,
+        //         0.3144,
+        //         0.3149,
+        //         22886,
+        //         725179.26172331 ]    ]
+        //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
