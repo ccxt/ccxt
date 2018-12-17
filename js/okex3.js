@@ -43,7 +43,7 @@ module.exports = class okex3 extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api': 'https://www.okex.com/api',
-                'www': 'https://www.okcoin.com',
+                'www': 'https://www.okex.com',
                 'doc': 'https://www.okex.com/docs/en/',
             },
             'api': {
@@ -195,6 +195,7 @@ module.exports = class okex3 extends Exchange {
                         'accounts/{currency}',
                         'accounts/{currency}/ledger',
                         'orders', // fetchOrder, fetchOrders
+                        // public
                         'constituents/{ett}',
                         'define-price/{ett}',
                     ],
@@ -219,27 +220,44 @@ module.exports = class okex3 extends Exchange {
                 // 403 Forbidden — You do not have access to the requested resource
                 // 404 Not Found
                 // 500 Internal Server Error — We had a problem with our server
+                'exact': {
+                    'failure to get a peer from the ring-balancer': ExchangeError,
+                },
+                'broad': {
+
+                },
             },
             'options': {
+                'markets': [ 'spot', 'futures', 'swap' ],
             },
         });
     }
 
     async fetchMarkets (params = {}) {
-        let response = await this.spotGetInstruments ();
+        const marketTypes = this.safeValue (this.options, 'markets', [ 'spot', 'futures', 'swap' ]);
+        let result = [];
+        for (let i = 0; i < marketTypes.length; i++) {
+            const marketType = marketTypes[i];
+            const method = 'fetch' + this.capitalize (marketType) + 'Markets';
+            const markets = await this[method] (params);
+            result = this.arrayConcat (result, markets);
+        }
+        return result;
+    }
+
+    async parseMarkets (markets) {
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            result.push (this.parseMarket (markets[i]));
+        }
+        return result;
+    }
+
+    parseMarket (market) {
         //
-        //     [ {   base_currency: "DASH",
-        //          base_increment: "0.000001",
-        //           base_min_size: "0.001",
-        //           instrument_id: "DASH-BTC",
-        //                min_size: "0.001",
-        //              product_id: "DASH-BTC",
-        //          quote_currency: "BTC",
-        //         quote_increment: "0.00000001",
-        //          size_increment: "0.000001",
-        //               tick_size: "0.00000001"  },
-        //       ...,
-        //       {   base_currency: "EOS",
+        // fetchSpotMarkets
+        //
+        //     [ {   base_currency: "EOS",
         //          base_increment: "0.000001",
         //           base_min_size: "0.01",
         //           instrument_id: "EOS-OKB",
@@ -250,55 +268,123 @@ module.exports = class okex3 extends Exchange {
         //          size_increment: "0.000001",
         //               tick_size: "0.0001"    }      ]
         //
-        let result = [];
-        for (let i = 0; i < response.length; i++) {
-            let market = response[i];
-            let baseId = this.safeString (market, 'base_currency');
-            let quoteId = this.safeString (market, 'quote_currency');
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
-            let precision = {
-                'amount': markets[i]['maxSizeDigit'],
-                'price': markets[i]['maxPriceDigit'],
-            };
-            let minAmount = markets[i]['minTradeSize'];
-            let minPrice = Math.pow (10, -precision['price']);
-            let active = (markets[i]['online'] !== 0);
-            let baseNumericId = markets[i]['baseCurrency'];
-            let quoteNumericId = markets[i]['quoteCurrency'];
-            let market = this.extend (this.fees['trading'], {
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'baseNumericId': baseNumericId,
-                'quoteNumericId': quoteNumericId,
-                'info': markets[i],
-                'type': 'spot',
-                'spot': true,
-                'future': false,
-                'active': active,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': minAmount,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': minPrice,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': minAmount * minPrice,
-                        'max': undefined,
-                    },
+        // fetchFuturesMarkets
+        //
+        //     [ {    instrument_id: "BTG-USD-190329",
+        //         underlying_index: "BTG",
+        //           quote_currency: "USD",
+        //                tick_size: "0.01",
+        //             contract_val: "10",
+        //                  listing: "2018-12-14",
+        //                 delivery: "2019-03-29",
+        //          trade_increment: "1"               }  ]
+        //
+        // fetchSwapMarkets
+        //
+        //     [ {    instrument_id: "BTC-USD-SWAP",
+        //         underlying_index: "BTC",
+        //           quote_currency: "USD",
+        //                     coin: "BTC",
+        //             contract_val: "100",
+        //                  listing: "2018-10-23T20:11:00.443Z",
+        //                 delivery: "2018-10-24T20:11:00.443Z",
+        //           size_increment: "4",
+        //                tick_size: "4"                         }  ]
+        //
+        const id = this.safeString (market, 'instrument_id');
+        const baseId = this.safeString (market, 'base_currency');
+        const quoteId = this.safeString (market, 'quote_currency');
+        const base = this.commonCurrencyCode (baseId);
+        const quote = this.commonCurrencyCode (quoteId);
+        const symbol = base + '/' + quote;
+        const precision = {
+            'amount': market['maxSizeDigit'],
+            'price': market['maxPriceDigit'],
+        };
+        const minAmount = market['minTradeSize'];
+        const minPrice = Math.pow (10, -precision['price']);
+        const active = (market['online'] !== 0);
+        const baseNumericId = market['baseCurrency'];
+        const quoteNumericId = market['quoteCurrency'];
+        // let market =
+        return this.extend (this.fees['trading'], {
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'baseNumericId': baseNumericId,
+            'quoteNumericId': quoteNumericId,
+            'info': market,
+            'type': 'spot',
+            'spot': true,
+            'future': false,
+            'active': active,
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': minAmount,
+                    'max': undefined,
                 },
-            });
-        }
-        return result;
+                'price': {
+                    'min': minPrice,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': minAmount * minPrice,
+                    'max': undefined,
+                },
+            },
+        });
+    }
+
+    async fetchSwapMarkets (params = {}) {
+        let response = await this.swapGetInstruments (params);
+        //
+        //     [ {    instrument_id: "BTC-USD-SWAP",
+        //         underlying_index: "BTC",
+        //           quote_currency: "USD",
+        //                     coin: "BTC",
+        //             contract_val: "100",
+        //                  listing: "2018-10-23T20:11:00.443Z",
+        //                 delivery: "2018-10-24T20:11:00.443Z",
+        //           size_increment: "4",
+        //                tick_size: "4"                         }  ]
+        //
+        return this.parseMarkets (response);
+    }
+
+    async fetchFuturesMarkets (params = {}) {
+        let response = await this.futuresGetInstruments (params);
+        //
+        //     [ {    instrument_id: "BTG-USD-190329",
+        //         underlying_index: "BTG",
+        //           quote_currency: "USD",
+        //                tick_size: "0.01",
+        //             contract_val: "10",
+        //                  listing: "2018-12-14",
+        //                 delivery: "2019-03-29",
+        //          trade_increment: "1"               }  ]
+        //
+        return this.parseMarkets (response);
+    }
+
+    async fetchSpotMarkets (params = {}) {
+        const response = await this.spotGetInstruments (params);
+        //
+        //     [ {   base_currency: "EOS",
+        //          base_increment: "0.000001",
+        //           base_min_size: "0.01",
+        //           instrument_id: "EOS-OKB",
+        //                min_size: "0.01",
+        //              product_id: "EOS-OKB",
+        //          quote_currency: "OKB",
+        //         quote_increment: "0.0001",
+        //          size_increment: "0.000001",
+        //               tick_size: "0.0001"    }      ]
+        //
+        return this.parseMarkets (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
