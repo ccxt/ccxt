@@ -455,8 +455,8 @@ module.exports = class okex3 extends Exchange {
         //          instrument_id: "ETH-BTC",
         //             product_id: "ETH-BTC",
         //                   last: "0.02665472",
-        //                    ask: "0.02665472",
-        //                    bid: "0.02665221",
+        //                    ask: "0.02665472", // missing in the docs
+        //                    bid: "0.02665221", // not mentioned in the docs
         //               open_24h: "0.02645482",
         //               high_24h: "0.02714633",
         //                low_24h: "0.02614109",
@@ -479,6 +479,8 @@ module.exports = class okex3 extends Exchange {
                 base = this.commonCurrencyCode (base);
                 quote = this.commonCurrencyCode (quote);
                 symbol = base + '/' + quote;
+            } else {
+                symbol = marketId;
             }
         }
         if (market !== undefined) {
@@ -492,9 +494,9 @@ module.exports = class okex3 extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'high_24h'),
             'low': this.safeFloat (ticker, 'low_24h'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'bid': this.safeFloat (ticker, 'best_bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeFloat (ticker, 'best_ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
@@ -517,7 +519,7 @@ module.exports = class okex3 extends Exchange {
         const request = {
             'instrument_id': market['id'],
         };
-        let response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {         best_ask: "0.02665472",
         //               best_bid: "0.02665221",
@@ -534,6 +536,22 @@ module.exports = class okex3 extends Exchange {
         //       quote_volume_24h: "15094.86831261"            }
         //
         return this.parseTicker (response);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const fetchTickersDefaultType = this.safeString (this.options, 'fetchTickersDefaultType', 'spot');
+        const type = this.safeString2 (params, 'type', 'api', fetchTickersDefaultType);
+        params = this.omit (params, [ 'type', 'api' ]);
+        const method = type + 'GetInstrumentsTicker';
+        const response = await this[method] (params);
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const ticker = this.parseTicker (response[i]);
+            const symbol = ticker['symbol'];
+            result[symbol] = ticker;
+        }
+        return result;
     }
 
     parseTrade (trade, market = undefined) {
