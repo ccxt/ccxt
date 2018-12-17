@@ -227,18 +227,36 @@ module.exports = class okex3 extends Exchange {
 
     async fetchMarkets (params = {}) {
         let response = await this.spotGetInstruments ();
-        const log = require ('ololog').unlimited;
-        log.green (response);
-        process.exit ();
-        let markets = response['data'];
+        //
+        //     [ {   base_currency: "DASH",
+        //          base_increment: "0.000001",
+        //           base_min_size: "0.001",
+        //           instrument_id: "DASH-BTC",
+        //                min_size: "0.001",
+        //              product_id: "DASH-BTC",
+        //          quote_currency: "BTC",
+        //         quote_increment: "0.00000001",
+        //          size_increment: "0.000001",
+        //               tick_size: "0.00000001"  },
+        //       ...,
+        //       {   base_currency: "EOS",
+        //          base_increment: "0.000001",
+        //           base_min_size: "0.01",
+        //           instrument_id: "EOS-OKB",
+        //                min_size: "0.01",
+        //              product_id: "EOS-OKB",
+        //          quote_currency: "OKB",
+        //         quote_increment: "0.0001",
+        //          size_increment: "0.000001",
+        //               tick_size: "0.0001"    }      ]
+        //
         let result = [];
-        for (let i = 0; i < markets.length; i++) {
-            let id = markets[i]['symbol'];
-            let [ baseId, quoteId ] = id.split ('_');
-            let baseIdUppercase = baseId.toUpperCase ();
-            let quoteIdUppercase = quoteId.toUpperCase ();
-            let base = this.commonCurrencyCode (baseIdUppercase);
-            let quote = this.commonCurrencyCode (quoteIdUppercase);
+        for (let i = 0; i < response.length; i++) {
+            let market = response[i];
+            let baseId = this.safeString (market, 'base_currency');
+            let quoteId = this.safeString (market, 'quote_currency');
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let precision = {
                 'amount': markets[i]['maxSizeDigit'],
@@ -279,23 +297,6 @@ module.exports = class okex3 extends Exchange {
                     },
                 },
             });
-            result.push (market);
-            if ((this.has['futures']) && (market['base'] in this.options['futures'])) {
-                let fiats = this.options['fiats'];
-                for (let j = 0; j < fiats.length; j++) {
-                    const fiat = fiats[j];
-                    const lowercaseFiat = fiat.toLowerCase ();
-                    result.push (this.extend (market, {
-                        'quote': fiat,
-                        'symbol': market['base'] + '/' + fiat,
-                        'id': market['base'].toLowerCase () + '_' + lowercaseFiat,
-                        'quoteId': lowercaseFiat,
-                        'type': 'future',
-                        'spot': false,
-                        'future': true,
-                    }));
-                }
-            }
         }
         return result;
     }
@@ -1038,7 +1039,7 @@ module.exports = class okex3 extends Exchange {
         // The OK-ACCESS-TIMESTAMP request header must be in the UTC time zone Unix timestamp decimal seconds format or the ISO8601 standard time format. It needs to be accurate to milliseconds.
         // Your timestamp must be within 30 seconds of the api service time or your request will be considered expired and rejected. We recommend using the time endpoint to query for the API server time if you believe there many be time skew between your server and the API servers.
         let url = this.urls['api'] + '/' + api + '/' + this.version + '/' + this.implodeParams (path, params);
-        let query = this.omit (params (this.extractParams (path));
+        let query = this.omit (params, this.extractParams (path));
         if (Object.keys (params).length)
             url += '?' + this.urlencode (params);
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
