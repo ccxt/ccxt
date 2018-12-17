@@ -228,7 +228,7 @@ module.exports = class okex3 extends Exchange {
                 },
             },
             'options': {
-                'markets': [ 'spot', 'futures', 'swap' ],
+                'markets': [ 'spot', 'futures' ],
             },
         });
     }
@@ -266,7 +266,20 @@ module.exports = class okex3 extends Exchange {
         //          quote_currency: "OKB",
         //         quote_increment: "0.0001",
         //          size_increment: "0.000001",
-        //               tick_size: "0.0001"    }      ]
+        //               tick_size: "0.0001"        },
+        //
+        //       ..., // the spot endpoint also returns ETT instruments
+        //
+        //       {   base_currency: "OK06ETT",
+        //          base_increment: "0.00000001",
+        //           base_min_size: "0.01",
+        //           instrument_id: "OK06ETT-USDT",
+        //                min_size: "0.01",
+        //              product_id: "OK06ETT-USDT",
+        //          quote_currency: "USDT",
+        //         quote_increment: "0.0001",
+        //          size_increment: "0.00000001",
+        //               tick_size: "0.0001"        } ]
         //
         // fetchFuturesMarkets
         //
@@ -292,11 +305,27 @@ module.exports = class okex3 extends Exchange {
         //                tick_size: "4"                         }  ]
         //
         const id = this.safeString (market, 'instrument_id');
-        const baseId = this.safeString (market, 'base_currency');
+        let marketType = 'spot';
+        let spot = true;
+        let future = false;
+        let swap = false;
+        let baseId = this.safeString (market, 'base_currency');
+        if (baseId === undefined) {
+            marketType = 'swap';
+            spot = false;
+            swap = true;
+            baseId = this.safeString (market, 'coin');
+            if (baseId === undefined) {
+                swap = false;
+                future = true;
+                marketType = 'future';
+                baseId = this.safeString (market, 'underlying_index');
+            }
+        }
         const quoteId = this.safeString (market, 'quote_currency');
         const base = this.commonCurrencyCode (baseId);
         const quote = this.commonCurrencyCode (quoteId);
-        const symbol = base + '/' + quote;
+        const symbol = spot ? (base + '/' + quote) : id;
         const precision = {
             'amount': market['maxSizeDigit'],
             'price': market['maxPriceDigit'],
@@ -317,9 +346,10 @@ module.exports = class okex3 extends Exchange {
             'baseNumericId': baseNumericId,
             'quoteNumericId': quoteNumericId,
             'info': market,
-            'type': 'spot',
-            'spot': true,
-            'future': false,
+            'type': marketType,
+            'spot': spot,
+            'future': future,
+            'swap': swap,
             'active': active,
             'precision': precision,
             'limits': {
@@ -389,20 +419,32 @@ module.exports = class okex3 extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let method = 'publicGet';
+        const market = this.market (symbol);
+        const marketType = this.safeString (market, 'type', 'spot');
+        let method = marketType + 'GetInstrumentsInstrumentId';
+        method += (marketType === 'swap') ? 'Depth' : 'Book';
         let request = {
-            'symbol': market['id'],
+            'instrument_id': market['id'],
         };
-        if (limit !== undefined)
+        if (limit !== undefined) {
             request['size'] = limit;
-        if (market['future']) {
-            method += 'Future';
-            request['contract_type'] = this.options['defaultContractType']; // this_week, next_week, quarter
         }
-        method += 'Depth';
-        let orderbook = await this[method] (this.extend (request, params));
-        return this.parseOrderBook (orderbook);
+        let response = await this[method] (this.extend (request, params));
+        //
+        //     {      asks: [ ["0.02685268", "0.242571", "1"],
+        //                    ["0.02685493", "0.164085", "1"],
+        //                    ...
+        //                    ["0.02779", "1.039", "1"],
+        //                    ["0.027813", "0.0876", "1"]        ],
+        //            bids: [ ["0.02684052", "10.371849", "1"],
+        //                    ["0.02684051", "3.707", "4"],
+        //                    ...
+        //                    ["0.02634963", "0.132934", "1"],
+        //                    ["0.02634962", "0.264838", "2"]    ],
+        //       timestamp:   "2018-12-17T20:24:16.159Z"            }
+        //
+        const timestamp = this.parse8601 (this.safeString (response, 'timestamp'));
+        return this.parseOrderBook (response, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
