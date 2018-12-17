@@ -14,11 +14,11 @@ module.exports = class coss extends Exchange {
             'name': 'COSS',
             'country': [ 'SG', 'NL' ],
             'rateLimit': 1000,
-            'version': '1',
+            'version': 'v1',
             'comment': 'Certified exchange',
             'urls': {
                 'logo': 'https://example.com/image.jpg',
-                'api': 'https://coss.io/api/v1',
+                'api': 'https://coss.io/api',
                 'www': 'https://coss.io/',
                 'doc': [
                     'https://api.coss.io/v1/spec',
@@ -35,6 +35,9 @@ module.exports = class coss extends Exchange {
                     'get': [
                         'exchange-info',
                         'account/balances',
+                        'account/details',
+                        'getmarketsummaries',
+                        'market-price',
                     ],
                 },
             },
@@ -46,22 +49,22 @@ module.exports = class coss extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let pathArr = (this.urls['api'] + '/' + path).split ('/');
+        let pathArray = (this.urls['api'] + '/' + this.version + '/' + path).split ('/');
         if (api === 'trade') {
-            pathArr[2] = 'trade.' + pathArr[2];
-            pathArr.splice (3, 0, 'c');
+            pathArray[2] = 'trade.' + pathArray[2];
+            pathArray.splice (3, 0, 'c');
         } else if (api === 'engine') {
-            pathArr[2] = 'engine.' + pathArr[2];
+            pathArray[2] = 'engine.' + pathArray[2];
         }
-        path = pathArr.join ('/');
+        path = pathArray.join ('/');
         let url = undefined;
         if (method === 'GET' && path.indexOf ('account') < 0) {
             url = path + '?' + this.urlencode (params);
         } else {
-            let request = this.urlencode ({ 'timestamp': '10', 'recvWindow': '5000' });
+            let request = this.urlencode ({ 'recvWindow': '5000', 'timestamp': this.nonce () });
             url = path + '?' + request;
             headers = {
-                'Signature': this.hmac (request, CryptoJS.enc.Base64.parse (this.secret), 'sha256', 'hex'),
+                'Signature': this.hmac (request, this.secret, 'sha256', 'hex'),
                 'Authorization': this.apiKey,
             };
         }
