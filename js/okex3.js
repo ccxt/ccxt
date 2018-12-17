@@ -319,7 +319,7 @@ module.exports = class okex3 extends Exchange {
             if (baseId === undefined) {
                 swap = false;
                 future = true;
-                marketType = 'future';
+                marketType = 'futures';
                 baseId = this.safeString (market, 'underlying_index');
             }
         }
@@ -349,7 +349,7 @@ module.exports = class okex3 extends Exchange {
             'info': market,
             'type': marketType,
             'spot': spot,
-            'future': future,
+            'futures': future,
             'swap': swap,
             'active': active,
             'precision': precision,
@@ -556,8 +556,9 @@ module.exports = class okex3 extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let symbol = undefined;
-        if (market)
+        if (market !== undefined) {
             symbol = market['symbol'];
+        }
         return {
             'info': trade,
             'timestamp': trade['date_ms'],
@@ -574,17 +575,30 @@ module.exports = class okex3 extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let method = 'publicGet';
-        let request = {
-            'symbol': market['id'],
+        const market = this.market (symbol);
+        const method = market['type'] + 'GetInstrumentsInstrumentIdTrades';
+        const request = {
+            'instrument_id': market['id'],
         };
-        if (market['future']) {
-            method += 'Future';
-            request['contract_type'] = this.options['defaultContractType']; // this_week, next_week, quarter
-        }
-        method += 'Trades';
-        let response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot markets
+        //
+        //     [ {      time: "2018-12-17T23:31:08.268Z",
+        //         timestamp: "2018-12-17T23:31:08.268Z",
+        //          trade_id: "409687906",
+        //             price: "0.02677805",
+        //              size: "0.923467",
+        //              side: "sell"                      }  ]
+        //
+        // futures
+        //
+        //     [ {  trade_id: "1989230840021013",
+        //              side: "buy",
+        //             price: "92.42",
+        //               qty: "184",
+        //         timestamp: "2018-12-17T23:26:04.613Z" }  ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -1180,8 +1194,8 @@ module.exports = class okex3 extends Exchange {
         // Your timestamp must be within 30 seconds of the api service time or your request will be considered expired and rejected. We recommend using the time endpoint to query for the API server time if you believe there many be time skew between your server and the API servers.
         let url = this.urls['api'] + '/' + api + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (Object.keys (params).length)
-            url += '?' + this.urlencode (params);
+        if (Object.keys (query).length)
+            url += '?' + this.urlencode (query);
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
