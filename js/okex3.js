@@ -450,71 +450,62 @@ module.exports = class okex3 extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        //     {              buy:   "48.777300",
-        //                 change:   "-1.244500",
-        //       changePercentage:   "-2.47%",
-        //                  close:   "49.064000",
-        //            createdDate:    1531704852254,
-        //             currencyId:    527,
-        //                dayHigh:   "51.012500",
-        //                 dayLow:   "48.124200",
-        //                   high:   "51.012500",
-        //                inflows:   "0",
-        //                   last:   "49.064000",
-        //                    low:   "48.124200",
-        //             marketFrom:    627,
-        //                   name: {  },
-        //                   open:   "50.308500",
-        //               outflows:   "0",
-        //              productId:    527,
-        //                   sell:   "49.064000",
-        //                 symbol:   "zec_okb",
-        //                 volume:   "1049.092535"   }
+        //     {         best_ask: "0.02665472",
+        //               best_bid: "0.02665221",
+        //          instrument_id: "ETH-BTC",
+        //             product_id: "ETH-BTC",
+        //                   last: "0.02665472",
+        //                    ask: "0.02665472",
+        //                    bid: "0.02665221",
+        //               open_24h: "0.02645482",
+        //               high_24h: "0.02714633",
+        //                low_24h: "0.02614109",
+        //        base_volume_24h: "572298.901923",
+        //              timestamp: "2018-12-17T21:20:07.856Z",
+        //       quote_volume_24h: "15094.86831261"            }
         //
-        let timestamp = this.safeInteger2 (ticker, 'timestamp', 'createdDate');
+        const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
         let symbol = undefined;
-        if (market === undefined) {
-            if ('symbol' in ticker) {
-                let marketId = ticker['symbol'];
-                if (marketId in this.markets_by_id) {
-                    market = this.markets_by_id[marketId];
-                } else {
-                    let [ baseId, quoteId ] = ticker['symbol'].split ('_');
-                    let base = baseId.toUpperCase ();
-                    let quote = quoteId.toUpperCase ();
-                    base = this.commonCurrencyCode (base);
-                    quote = this.commonCurrencyCode (quote);
-                    symbol = base + '/' + quote;
-                }
+        const marketId = this.safeString (ticker, 'instrument_id');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        } else if (marketId !== undefined) {
+            const parts = marketId.split ('-');
+            const numParts = parts.length;
+            if (numParts === 2) {
+                const [ baseId, quoteId ] = parts;
+                let base = baseId.toUpperCase ();
+                let quote = quoteId.toUpperCase ();
+                base = this.commonCurrencyCode (base);
+                quote = this.commonCurrencyCode (quote);
+                symbol = base + '/' + quote;
             }
         }
         if (market !== undefined) {
             symbol = market['symbol'];
         }
         let last = this.safeFloat (ticker, 'last');
-        let open = this.safeFloat (ticker, 'open');
-        let change = this.safeFloat (ticker, 'change');
-        let percentage = this.safeFloat (ticker, 'changePercentage');
+        let open = this.safeFloat (ticker, 'open_24h');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
+            'high': this.safeFloat (ticker, 'high_24h'),
+            'low': this.safeFloat (ticker, 'low_24h'),
+            'bid': this.safeFloat (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
+            'ask': this.safeFloat (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
+            'change': undefined,
+            'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat2 (ticker, 'vol', 'volume'),
-            'quoteVolume': undefined,
+            'baseVolume': this.safeFloat (ticker, 'base_volume_24h'),
+            'quoteVolume': this.safeFloat (ticker, 'quote_volume_24h'),
             'info': ticker,
         };
     }
