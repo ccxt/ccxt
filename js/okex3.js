@@ -222,6 +222,7 @@ module.exports = class okex3 extends Exchange {
                 // 500 Internal Server Error — We had a problem with our server
                 'exact': {
                     'failure to get a peer from the ring-balancer': ExchangeError,
+                    // {"code":30032,"message":"The currency pair does not exist"}
                 },
                 'broad': {
 
@@ -520,26 +521,28 @@ module.exports = class okex3 extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let method = 'publicGet';
-        let request = {
-            'symbol': market['id'],
+        const market = this.market (symbol);
+        const method = market['type'] + 'GetInstrumentsInstrumentIdTicker';
+        const request = {
+            'instrument_id': market['id'],
         };
-        if (market['future']) {
-            method += 'Future';
-            request['contract_type'] = this.options['defaultContractType']; // this_week, next_week, quarter
-        }
-        method += 'Ticker';
         let response = await this[method] (this.extend (request, params));
-        let ticker = this.safeValue (response, 'ticker');
-        if (ticker === undefined)
-            throw new ExchangeError (this.id + ' fetchTicker returned an empty response: ' + this.json (response));
-        let timestamp = this.safeInteger (response, 'date');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-            ticker = this.extend (ticker, { 'timestamp': timestamp });
-        }
-        return this.parseTicker (ticker, market);
+        //
+        //     {         best_ask: "0.02665472",
+        //               best_bid: "0.02665221",
+        //          instrument_id: "ETH-BTC",
+        //             product_id: "ETH-BTC",
+        //                   last: "0.02665472",
+        //                    ask: "0.02665472",
+        //                    bid: "0.02665221",
+        //               open_24h: "0.02645482",
+        //               high_24h: "0.02714633",
+        //                low_24h: "0.02614109",
+        //        base_volume_24h: "572298.901923",
+        //              timestamp: "2018-12-17T21:20:07.856Z",
+        //       quote_volume_24h: "15094.86831261"            }
+        //
+        return this.parseTicker (response);
     }
 
     parseTrade (trade, market = undefined) {
