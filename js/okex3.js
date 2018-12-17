@@ -555,21 +555,40 @@ module.exports = class okex3 extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // spot markets
+        //
+        //     [ {      time: "2018-12-17T23:31:08.268Z",
+        //         timestamp: "2018-12-17T23:31:08.268Z",
+        //          trade_id: "409687906",
+        //             price: "0.02677805",
+        //              size: "0.923467",
+        //              side: "sell"                      }  ]
+        //
+        // futures
+        //
+        //     [ {  trade_id: "1989230840021013",
+        //              side: "buy",
+        //             price: "92.42",
+        //               qty: "184",
+        //         timestamp: "2018-12-17T23:26:04.613Z" }  ]
+        //
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
+        const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         return {
             'info': trade,
-            'timestamp': trade['date_ms'],
-            'datetime': this.iso8601 (trade['date_ms']),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': trade['tid'].toString (),
+            'id': this.safeString (trade, 'trade_id'),
             'order': undefined,
             'type': undefined,
-            'side': trade['type'],
+            'side': this.safeString (trade, 'side'),
             'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'amount'),
+            'amount': this.safeFloat2 (trade, 'qty', 'size'),
         };
     }
 
