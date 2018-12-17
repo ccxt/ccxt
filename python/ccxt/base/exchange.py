@@ -1144,7 +1144,10 @@ class Exchange(object):
         self.raise_error(NotSupported, details='fetch_withdrawals() is not implemented yet')
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
-        return ohlcv[0:6] if isinstance(ohlcv, list) else ohlcv
+        if isinstance(ohlcv, list):
+            return [int(ohclv([0])] + [self.safe_float(ohlcv, i) for i in range(1, 6)]
+        else:
+            return ohlcv
 
     def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
         ohlcvs = self.to_array(ohlcvs)
