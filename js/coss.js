@@ -177,6 +177,17 @@ module.exports = class coss extends Exchange {
         return this.parseBalance (result);
     }
 
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
+        return [
+            parseInt (ohlcv[0]),   // timestamp
+            parseFloat (ohlcv[1]), // (O) open
+            parseFloat (ohlcv[2]), // (H) high
+            parseFloat (ohlcv[3]), // (L) low
+            parseFloat (ohlcv[4]), // (C) close
+            parseFloat (ohlcv[5]), // (V) base volume
+        ];
+    }
+
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
