@@ -185,6 +185,25 @@ module.exports = class coss extends Exchange {
             'tt': this.timeframes[timeframe],
         };
         let response = await this.engineGetCs (this.extend (request, params));
+        //
+        //     {       tt:   "1m",
+        //         symbol:   "ETH_BTC",
+        //       nextTime:    1545138960000,
+        //         series: [ [  1545138960000,
+        //                     "0.02705000",
+        //                     "0.02705000",
+        //                     "0.02705000",
+        //                     "0.02705000",
+        //                     "0.00000000"    ],
+        //                   ...
+        //                   [  1545168900000,
+        //                     "0.02684000",
+        //                     "0.02684000",
+        //                     "0.02684000",
+        //                     "0.02684000",
+        //                     "0.00000000"    ]  ],
+        //          limit:    500                    }
+        //
         return this.parseOHLCVs (response['series'], market, timeframe, since, limit);
     }
 
