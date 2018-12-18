@@ -376,6 +376,12 @@ module.exports = class okex3 extends Exchange {
         });
     }
 
+    async fetchMarketsByType (type, params = {}) {
+        const method = type + 'GetInstruments';
+        const response = await this[method] (params);
+        return this.parseMarkets (response);
+    }
+
     async fetchSwapMarkets (params = {}) {
         let response = await this.swapGetInstruments (params);
         //
@@ -544,11 +550,8 @@ module.exports = class okex3 extends Exchange {
         return this.parseTicker (response);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickersByType (type, symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const fetchTickersDefaultType = this.safeString (this.options, 'fetchTickersDefaultType', 'spot');
-        const type = this.safeString2 (params, 'type', 'api', fetchTickersDefaultType);
-        params = this.omit (params, [ 'type', 'api' ]);
         const method = type + 'GetInstrumentsTicker';
         const response = await this[method] (params);
         const result = {};
@@ -558,6 +561,25 @@ module.exports = class okex3 extends Exchange {
             result[symbol] = ticker;
         }
         return result;
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        const fetchTickerType = this.safeString (this.options, 'fetchTickersType', 'spot');
+        const type = this.safeString2 (params, 'type', 'api', fetchTickersType);
+        params = this.omit (params, [ 'type', 'api' ]);
+        return await this.fetchTickersByType (type, symbols, params);
+    }
+
+    async fetchSpotTickers (symbols = undefined, params = {}) {
+        return await this.fetchTickersByType ('spot', symbols, params);
+    }
+
+    async fetchFuturesTickers (symbols = undefined, params = {}) {
+        return await this.fetchTickersByType ('futures', symbols, params);
+    }
+
+    async fetchSwaoTickers (symbols = undefined, params = {}) {
+        return await this.fetchTickersByType ('swap', symbols, params);
     }
 
     parseTrade (trade, market = undefined) {
@@ -723,34 +745,47 @@ module.exports = class okex3 extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
+    async fetchBalanceByType (type, params = {}) {
+        await this.loadMarkets ();
+        const method = type + 'GetAccounts';
+        const response = await this[method] (params);
+        const log = require ('ololog').unlimited;
+        log.red (response);
+        process.exit ();
+        // let balances = response['info']['funds'];
+        // let result = { 'info': response };
+        // let ids = Object.keys (balances['free']);
+        // let usedField = 'freezed';
+        // // wtf, okex?
+        // // https://github.com/okcoin-okex/API-docs-OKEx.com/commit/01cf9dd57b1f984a8737ef76a037d4d3795d2ac7
+        // if (!(usedField in balances))
+        //     usedField = 'holds';
+        // let usedKeys = Object.keys (balances[usedField]);
+        // ids = this.arrayConcat (ids, usedKeys);
+        // for (let i = 0; i < ids.length; i++) {
+        //     let id = ids[i];
+        //     let code = id.toUpperCase ();
+        //     if (id in this.currencies_by_id) {
+        //         code = this.currencies_by_id[id]['code'];
+        //     } else {
+        //         code = this.commonCurrencyCode (code);
+        //     }
+        //     let account = this.account ();
+        //     account['free'] = this.safeFloat (balances['free'], id, 0.0);
+        //     account['used'] = this.safeFloat (balances[usedField], id, 0.0);
+        //     account['total'] = this.sum (account['free'], account['used']);
+        //     result[code] = account;
+        // }
+        // return this.parseBalance (result);
+        return this.parseBalance (response);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostUserinfo (params);
-        let balances = response['info']['funds'];
-        let result = { 'info': response };
-        let ids = Object.keys (balances['free']);
-        let usedField = 'freezed';
-        // wtf, okex?
-        // https://github.com/okcoin-okex/API-docs-OKEx.com/commit/01cf9dd57b1f984a8737ef76a037d4d3795d2ac7
-        if (!(usedField in balances))
-            usedField = 'holds';
-        let usedKeys = Object.keys (balances[usedField]);
-        ids = this.arrayConcat (ids, usedKeys);
-        for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let code = id.toUpperCase ();
-            if (id in this.currencies_by_id) {
-                code = this.currencies_by_id[id]['code'];
-            } else {
-                code = this.commonCurrencyCode (code);
-            }
-            let account = this.account ();
-            account['free'] = this.safeFloat (balances['free'], id, 0.0);
-            account['used'] = this.safeFloat (balances[usedField], id, 0.0);
-            account['total'] = this.sum (account['free'], account['used']);
-            result[code] = account;
-        }
-        return this.parseBalance (result);
+        const defaultFetchBalanceType = this.safeString (this.options, 'defaultFetchBalanceType', 'spot');
+        const type = this.safeString2 (params, 'type', 'api', defaultFetchBalanceType);
+        params = this.omit (params, [ 'type', 'api' ]);
+        return await this.fetchBalanceByType (type, params);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
