@@ -125,7 +125,7 @@ module.exports = class coss extends Exchange {
         //                                   allow_trading:  true       }     ]               }
         //
         let result = [];
-        const markets = this.safeValue (response, symbols, []);
+        const markets = this.safeValue (response, 'symbols', []);
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let marketId = market['symbol'];
