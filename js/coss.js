@@ -67,6 +67,7 @@ module.exports = class coss extends Exchange {
                     'get': [
                         'coins/getinfo/all', // undocumented
                         'order/symbols', // undocumented
+                        'coins/get_base_list', // undocumented
                     ],
                 },
                 'engine': {
@@ -126,6 +127,10 @@ module.exports = class coss extends Exchange {
         //
         let result = [];
         const markets = this.safeValue (response, 'symbols', []);
+        const baseCurrencies = this.safeValue (response, 'base_currencies', []);
+        const baseCurrenciesByIds = this.indexBy (baseCurrencies, 'currency_code');
+        const currencies = this.safeValue (response, 'coins', []);
+        const currenciesByIds = this.indexBy (currencies, 'currency_code');
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let marketId = market['symbol'];
@@ -137,8 +142,12 @@ module.exports = class coss extends Exchange {
                 'amount': this.safeInteger (market, 'amount_limit_decimal'),
                 'price': this.safeInteger (market, 'price_limit_decimal'),
             };
-            // todo: fill limits
             let active = this.safeValue (market, 'allow_trading', false);
+            const baseCurrency = this.safeValue (baseCurrenciesByIds, baseId, {});
+            const minCost = this.safeFloat (baseCurrency, 'minimum_total_order');
+            const currency = this.safeValue (currenciesByIds, baseId, {});
+            const defaultMinAmount = Math.pow (10, -precision['amount']);
+            const minAmount = this.safeFloat (currency, 'minimum_order_amount', defaultMinAmount);
             result.push ({
                 'symbol': symbol,
                 'id': marketId,
@@ -148,6 +157,20 @@ module.exports = class coss extends Exchange {
                 'quote': quote,
                 'active': active,
                 'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': minAmount,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': minCost,
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             });
         }
