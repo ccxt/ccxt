@@ -21,7 +21,8 @@ module.exports = class coss extends Exchange {
                 'api': {
                     'trade': 'https://trade.coss.io/c/api/v1',
                     'engine': 'https://engine.coss.io/api/v1',
-                    'public': 'https://trade.coss.io/c',
+                    'public': 'https://trade.coss.io/c/api/v1',
+                    'web': 'https://trade.coss.io/c', // undocumented
                 },
                 'www': 'https://www.coss.io',
                 'doc': 'https://api.coss.io/v1/spec',
@@ -55,11 +56,15 @@ module.exports = class coss extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'coins/getinfo/all',
-                        'order/symbols',
-                        'getmarketsummaries',  // broken on COSS's end
+                        'getmarketsummaries', // broken on COSS's end
                         'market-price',
                         'exchange-info',
+                    ],
+                },
+                'web': {
+                    'get': [
+                        'coins/getinfo/all', // undocumented
+                        'order/symbols', // undocumented
                     ],
                 },
                 'engine': {
@@ -90,7 +95,7 @@ module.exports = class coss extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let markets = await this.publicGetOrderSymbols (params);
+        let markets = await this.webGetOrderSymbols (params);
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let entry = markets[i];
@@ -122,7 +127,7 @@ module.exports = class coss extends Exchange {
 
     async fetchCurrencies (params = {}) {
         let result = {};
-        let currencies = await this.publicGetCoinsGetinfoAll (params);
+        let currencies = await this.webGetCoinsGetinfoAll (params);
         for (let i = 0; i < currencies.length; i++) {
             let info = currencies[i];
             let currencyId = info['currency_code'];
@@ -355,7 +360,7 @@ module.exports = class coss extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
-        if (api === 'public' || api === 'engine') {
+        if (api === 'public' || api === 'engine' || api === 'web') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
