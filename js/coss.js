@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
 
 
 //  ---------------------------------------------------------------------------
@@ -19,7 +19,11 @@ module.exports = class coss extends Exchange {
             'comment': 'Certified exchange',
             'urls': {
                 'logo': 'https://example.com/image.jpg',
-                'api': 'https://coss.io/api',
+                'api': {
+                    'trade': 'https://trade.coss.io/c/api/v1',
+                    'engine': 'https://engine.coss.io/api/v1',
+                    'nonstandard': 'https://trade.coss.io/c',
+                },
                 'www': 'https://coss.io/',
                 'doc': [
                     'https://api.coss.io/v1/spec',
@@ -30,10 +34,13 @@ module.exports = class coss extends Exchange {
                 'fetchCurrencies': true,
                 'fetchBalance': true,
                 'fetchOrderBook': true,
+                'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
                 'fetchOHLCV': true,
+                'createOrder': true,
+                'cancelOrder': true,
             },
             'api': {
                 'engine': {
@@ -50,8 +57,6 @@ module.exports = class coss extends Exchange {
                         'getmarketsummaries',  // fetchTicker (broken on COSS's end)
                         'market-price',
                         'exchange-info',
-                        'coins/getinfo/allnonstandard',
-                        'order/symbolsnonstandard',
                     ],
                     'post': [
                         'order/add',
@@ -60,13 +65,22 @@ module.exports = class coss extends Exchange {
                         'order/list/completed',
                         'order/list/all',
                     ],
+                    'delete': [
+                        'order/cancel',
+                    ],
+                },
+                'nonstandard': {
+                    'get': [
+                        'coins/getinfo/all',
+                        'order/symbols',
+                    ],
                 },
             },
         });
     }
 
     async fetchMarkets (params = {}) {
-        let markets = await this.tradeGetOrderSymbolsnonstandard (params);
+        let markets = await this.nonstandardGetOrderSymbols (params);
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let entry = markets[i];
@@ -98,7 +112,7 @@ module.exports = class coss extends Exchange {
 
     async fetchCurrencies (params = {}) {
         let result = {};
-        let currencies = await this.tradeGetCoinsGetinfoAllnonstandard (params);
+        let currencies = await this.nonstandardGetCoinsGetinfoAll (params);
         for (let i = 0; i < currencies.length; i++) {
             let info = currencies[i];
             let currencyId = info['currency_code'];
@@ -153,7 +167,7 @@ module.exports = class coss extends Exchange {
 
     async fetchOHLCV (symbol, params = {}) {
         await this.loadMarkets ();
-        let marketId = this.market (symbol)['id'];
+        let marketId = this.marketId (symbol);
         let response = await this.engineGetCs (this.extend ({ 'symbol': marketId, 'tt': '1m' }, params));
         let ohclvs = response['series'];
         return this.parseOHLCVs (ohclvs);
@@ -161,28 +175,134 @@ module.exports = class coss extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let marketId = this.market (symbol)['marketId'];
+        let marketId = this.marketId (symbol);
         let response = await this.engineGetDp (this.extend ({ 'symbol': marketId }, params));
         let timestamp = this.safeInteger (response, 'time');
         return this.parseOrderBook (response, timestamp, 'asks', 'bids');
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a symbol parameter to fetchOrders');
         }
         await this.loadMarkets ();
-        let marketId = this.market (symbol)['id'];
-        let response = await this.tradePostOrderListAll (this.extend ({ 'symbol': marketId }, params));
-        return response;
+        let market = this.market (symbol);
+        let marketId = market['id'];
+        let response = await this.tradePostOrderListAll (this.extend ({
+            'symbol': marketId,
+            'timestamp': this.nonce (),
+            'limit': limit,
+        }, params));
+        return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return '';
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a symbol parameter to fetchOrders');
+        }
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let marketId = market['id'];
+        let response = await this.tradePostOrderListCompleted (this.extend ({  // returns partial fills also
+            'symbol': marketId,
+            'timestamp': this.nonce (),
+            'limit': limit,
+        }, params));
+        let orders = this.parseOrders (response['list'], market, since, limit);
+        return this.filterBy (orders, 'status', 'closed');
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return '';
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a symbol parameter to fetchOrders');
+        }
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let marketId = market['id'];
+        let response = await this.tradePostOrderListOpen (this.extend ({
+            'symbol': marketId,
+            'timestamp': this.nonce (),
+            'limit': limit,
+        }, params));
+        return this.parseOrders (response['list'], market, since, limit);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.tradePostOrderDetails (this.extend ({
+            'timestamp': this.nonce (),
+            'order_id': id,
+        }));
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        return this.parseOrder (response, market);
+    }
+
+    parseOrderStatus (status) {
+        let statuses = {
+            'OPEN': 'open',
+            'CANCELLED': 'canceled',
+            'FILLED': 'closed',
+            'PARTIAL_FILL': 'open',
+            'CANCELLING': 'open',
+        };
+        return this.safeString (statuses, status.toUpperCase ());
+    }
+
+    parseOrder (order, market = undefined) {
+        let symbol = this.markets_by_id[order['order_symbol']]['symbol'];
+        let timestamp = this.safeInteger (order, 'createTime');
+        let status = this.parseOrderStatus (order['status']);
+        let price = this.safeFloat (order, 'order_price');
+        let filled = this.safeFloat (order, 'executed');
+        let type = this.safeString (order, 'type');
+        let amount = this.safeFloat (order, 'order_size');
+        let average = this.safeFloat (order, 'avg');
+        let side = undefined;
+        if ('order_side' in order) {
+            side = order['order_side'].toLowerCase ();
+        }
+        let cost = this.safeFloat (order, 'total');
+        return {
+            'id': this.safeString (order, 'order_id'),
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'status': status,
+            'price': price,
+            'filled': filled,
+            'remaining': amount - filled,
+            'type': type,
+            'average': average,
+            'side': side,
+            'cost': cost,
+            'fee': undefined,
+            'info': order,
+        };
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let marketId = market['id'];
+        let response = await this.tradePostOrderAdd (this.extend ({
+            'order_symbol': marketId,
+            'order_price': this.priceToPrecision (symbol, price),
+            'order_size': this.amountToPrecision (symbol, amount),
+            'order_side': side.toUpperCase (),
+            'type': type,
+            'timestamp': this.nonce (),
+        }, params));
+        return this.parseOrder (response, market);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        return await this.tradeDeleteOrderCancel (this.extend ({
+            'timestamp': this.nonce (),
+            'order_id': id,
+        }, params));
     }
 
     nonce () {
@@ -190,33 +310,24 @@ module.exports = class coss extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = undefined;
-        if (path.indexOf ('nonstandard') >= 0) {
-            url = this.urls['api'].replace ('/api', '') + '/' + path.replace ('nonstandard', '');
+        let url = this.urls['api'][api] + '/' + path;
+        if (method === 'GET') {
+            if (Object.keys (params).length > 0) {
+                url = url + '&' + this.urlencode (params);
+            }
+            if (path.indexOf ('account') >= 0) {
+                let requestParams = { 'recvWindow': '10000', 'timestamp': this.nonce () };
+                let request = this.implodeParams ('recvWindow={recvWindow}&timestamp={timestamp}', requestParams);
+                url = url + '?' + request;
+                headers = {
+                    'Signature': this.hmac (request, this.secret, 'sha256', 'hex'),
+                    'Authorization': this.apiKey,
+                };
+            }
         } else {
-            url = this.urls['api'] + '/' + this.version + '/' + path;
-        }
-        let urlArray = url.split ('/');
-        if (api === 'trade') {
-            urlArray[2] = 'trade.' + urlArray[2];
-            urlArray.splice (3, 0, 'c');
-        } else if (api === 'engine') {
-            urlArray[2] = 'engine.' + urlArray[2];
-        }
-        url = urlArray.join ('/');
-        if (method === 'GET' && path.indexOf ('account') < 0) {
-            if (Object.keys (params).length > 0) {
-                url = url + '?' + this.urlencode (params);
-            }
-        } else { // todo make post requests work
-            let requestParams = { 'recvWindow': '10000', 'timestamp': this.nonce () };
-            let request = this.implodeParams ('recvWindow={recvWindow}&timestamp={timestamp}', requestParams);
-            if (Object.keys (params).length > 0) {
-                request = request + '&' + this.urlencode (params);
-            }
-            url = url + '?' + request;
+            body = JSON.stringify (params);
             headers = {
-                'Signature': this.hmac (request, this.secret, 'sha256', 'hex'),
+                'Signature': this.hmac (body, this.secret, 'sha256', 'hex'),
                 'Authorization': this.apiKey,
             };
         }

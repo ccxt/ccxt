@@ -1145,7 +1145,7 @@ class Exchange(object):
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         if isinstance(ohlcv, list):
-            return [int(ohclv([0])] + [self.safe_float(ohlcv, i) for i in range(1, 6)]
+            return [int(ohlcv[0])] + [self.safe_float(ohlcv, i) for i in range(1, 6)]
         else:
             return ohlcv
 
