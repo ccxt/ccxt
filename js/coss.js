@@ -96,21 +96,49 @@ module.exports = class coss extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let markets = await this.webGetOrderSymbols (params);
+        const response = await this.publicGetExchangeInfo (params);
+        //
+        //     {        timezone:   "UTC",
+        //           server_time:    1545171487108,
+        //           rate_limits: [ {     type: "REQUESTS",
+        //                            interval: "MINUTE",
+        //                               limit:  1000       } ],
+        //       base_currencies: [ { currency_code: "BTC", minimum_total_order: "0.0001" },
+        //                          { currency_code: "USDT", minimum_total_order: "1" },
+        //                          { currency_code: "EUR", minimum_total_order: "1" } ],
+        //                 coins: [ {        currency_code: "ADI",
+        //                                            name: "Aditus",
+        //                            minimum_order_amount: "0.00000001" },
+        //                          ...
+        //                          {        currency_code: "NPXSXEM",
+        //                                            name: "PundiX-XEM",
+        //                            minimum_order_amount: "0.00000001"  }                ],
+        //               symbols: [ {               symbol: "ADI_BTC",
+        //                            amount_limit_decimal:  0,
+        //                             price_limit_decimal:  8,
+        //                                   allow_trading:  true      },
+        //                          ...
+        //                          {               symbol: "ETH_GUSD",
+        //                            amount_limit_decimal:  5,
+        //                             price_limit_decimal:  3,
+        //                                   allow_trading:  true       }     ]               }
+        //
         let result = [];
+        const markets = this.safeValue (response, symbols, []);
         for (let i = 0; i < markets.length; i++) {
-            let entry = markets[i];
-            let marketId = entry['symbol'];
+            let market = markets[i];
+            let marketId = market['symbol'];
             let [ baseId, quoteId ] = marketId.split ('_');
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let precision = {
-                'amount': this.safeInteger (entry, 'amount_limit_decimal'),  // decimal places (i.e. 2 = 5.03)
-                'price': this.safeInteger (entry, 'price_limit_decimal'),
+                'amount': this.safeInteger (market, 'amount_limit_decimal'),
+                'price': this.safeInteger (market, 'price_limit_decimal'),
             };
-            let active = entry['allow_trading'];
-            let value = {
+            // todo: fill limits
+            let active = this.safeValue (market, 'allow_trading', false);
+            result.push ({
                 'symbol': symbol,
                 'id': marketId,
                 'baseId': baseId,
@@ -119,9 +147,8 @@ module.exports = class coss extends Exchange {
                 'quote': quote,
                 'active': active,
                 'precision': precision,
-                'info': entry,
-            };
-            result.push (value);
+                'info': market,
+            });
         }
         return result;
     }
