@@ -304,15 +304,15 @@ module.exports = class coss extends Exchange {
     parseOrder (order, market = undefined) {
         let symbol = this.markets_by_id[order['order_symbol']]['symbol'];
         let timestamp = this.safeInteger (order, 'createTime');
-        let status = this.parseOrderStatus (order['status']);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let price = this.safeFloat (order, 'order_price');
         let filled = this.safeFloat (order, 'executed');
         let type = this.safeString (order, 'type');
         let amount = this.safeFloat (order, 'order_size');
         let average = this.safeFloat (order, 'avg');
-        let side = undefined;
-        if ('order_side' in order) {
-            side = order['order_side'].toLowerCase ();
+        let side = this.safeString (order, 'order_side');
+        if (side !== undefined) {
+            side = side.toLowerCase ();
         }
         let cost = this.safeFloat (order, 'total');
         return {
