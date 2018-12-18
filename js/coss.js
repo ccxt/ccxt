@@ -21,9 +21,9 @@ module.exports = class coss extends Exchange {
                 'api': {
                     'trade': 'https://trade.coss.io/c/api/v1',
                     'engine': 'https://engine.coss.io/api/v1',
-                    'nonstandard': 'https://trade.coss.io/c',
+                    'public': 'https://trade.coss.io/c',
                 },
-                'www': 'https://coss.io/',
+                'www': 'https://www.coss.io',
                 'doc': [
                     'https://api.coss.io/v1/spec',
                 ],
@@ -55,6 +55,12 @@ module.exports = class coss extends Exchange {
                 '1w': '1w',
             },
             'api': {
+                'public': {
+                    'get': [
+                        'coins/getinfo/all',
+                        'order/symbols',
+                    ],
+                },
                 'engine': {
                     'get': [
                         'dp',
@@ -81,18 +87,12 @@ module.exports = class coss extends Exchange {
                         'order/cancel',
                     ],
                 },
-                'nonstandard': {
-                    'get': [
-                        'coins/getinfo/all',
-                        'order/symbols',
-                    ],
-                },
             },
         });
     }
 
     async fetchMarkets (params = {}) {
-        let markets = await this.nonstandardGetOrderSymbols (params);
+        let markets = await this.publicGetOrderSymbols (params);
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let entry = markets[i];
@@ -124,7 +124,7 @@ module.exports = class coss extends Exchange {
 
     async fetchCurrencies (params = {}) {
         let result = {};
-        let currencies = await this.nonstandardGetCoinsGetinfoAll (params);
+        let currencies = await this.publicGetCoinsGetinfoAll (params);
         for (let i = 0; i < currencies.length; i++) {
             let info = currencies[i];
             let currencyId = info['currency_code'];
@@ -185,8 +185,7 @@ module.exports = class coss extends Exchange {
             'tt': this.timeframes[timeframe],
         };
         let response = await this.engineGetCs (this.extend (request, params));
-        let ohclvs = response['series'];
-        return this.parseOHLCVs (ohclvs, market, timeframe, since, limit);
+        return this.parseOHLCVs (response['series'], market, timeframe, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -328,25 +327,31 @@ module.exports = class coss extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
-        if (method === 'GET') {
-            if (Object.keys (params).length > 0) {
-                url = url + '&' + this.urlencode (params);
+        if (api === 'public' || api === 'engine') {
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
             }
-            if (path.indexOf ('account') >= 0) {
-                let requestParams = { 'recvWindow': '10000', 'timestamp': this.nonce () };
-                let request = this.implodeParams ('recvWindow={recvWindow}&timestamp={timestamp}', requestParams);
-                url = url + '?' + request;
+        } else {
+            if (method === 'GET') {
+                if (Object.keys (params).length > 0) {
+                    url = url + '&' + this.urlencode (params);
+                }
+                if (path.indexOf ('account') >= 0) {
+                    let requestParams = { 'recvWindow': '10000', 'timestamp': this.nonce () };
+                    let request = this.implodeParams ('recvWindow={recvWindow}&timestamp={timestamp}', requestParams);
+                    url = url + '?' + request;
+                    headers = {
+                        'Signature': this.hmac (request, this.secret, 'sha256', 'hex'),
+                        'Authorization': this.apiKey,
+                    };
+                }
+            } else {
+                body = this.json (params);
                 headers = {
-                    'Signature': this.hmac (request, this.secret, 'sha256', 'hex'),
+                    'Signature': this.hmac (body, this.secret, 'sha256', 'hex'),
                     'Authorization': this.apiKey,
                 };
             }
-        } else {
-            body = this.json (params);
-            headers = {
-                'Signature': this.hmac (body, this.secret, 'sha256', 'hex'),
-                'Authorization': this.apiKey,
-            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
