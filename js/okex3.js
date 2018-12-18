@@ -226,7 +226,7 @@ module.exports = class okex3 extends Exchange {
                 // 404 Not Found
                 // 500 Internal Server Error — We had a problem with our server
                 'exact': {
-                    'failure to get a peer from the ring-balancer': ExchangeError,
+                    'failure to get a peer from the ring-balancer': ExchangeError, // {"message":"failure to get a peer from the ring-balancer"}
                     'The currency pair does not exist': ExchangeError, // {"code":30032,"message":"The currency pair does not exist"}
                     'OK-ACCESS-KEY header is required': AuthenticationError, // {"code":30001,"message":"OK-ACCESS-KEY header is required"}
                     'Invalid Sign': AuthenticationError, // {"code":30013,"message":"Invalid Sign"}
@@ -1107,34 +1107,33 @@ module.exports = class okex3 extends Exchange {
     }
 
     getPathAuthenticationType (path) {
-        const publicPaths = {
-            'instruments': true,
-            'rate': true,
-            'constituents/{ett}': true,
-            'define-price/{ett}': true,
+        const paths = {
+            'instruments': 'public',
+            'rate': 'public',
+            'constituents/{ett}': 'public',
+            'define-price/{ett}': 'public',
         };
-        const key = this.findBroadlyMatchedKey (publicPaths, path);
-        return (key !== undefined) ? 'public' : 'private';
+        const key = this.findBroadlyMatchedKey (paths, path);
+        return this.safeString (paths, key, 'private');
     }
 
     handleErrors (code, reason, url, method, headers, body, response = undefined) {
-        if (body.length < 2)
-            return; // fallback to default error handler
-        if (body[0] === '{') {
-            response = JSON.parse (body);
-            if ('error_code' in response) {
-                let error = this.safeString (response, 'error_code');
-                let message = this.id + ' ' + this.json (response);
-                if (error in this.exceptions) {
-                    let ExceptionClass = this.exceptions[error];
-                    throw new ExceptionClass (message);
-                } else {
-                    throw new ExchangeError (message);
-                }
+        if (!this.isJsonEncodedObject (body)) {
+            return;
+        }
+        const feedback = this.id + ' ' + body;
+        if (code === 503) {
+            throw new ExchangeError (feedback);
+        }
+        response = JSON.parse (body);
+        const message = this.safeString (response, 'message');
+        if (message !== undefined) {
+            if (message in this.exceptions) {
+                let ExceptionClass = this.exceptions[message];
+                throw new ExceptionClass (feedback);
+            } else {
+                throw new ExchangeError (feedback);
             }
-            if ('result' in response)
-                if (!response['result'])
-                    throw new ExchangeError (this.id + ' ' + this.json (response));
         }
     }
 };
