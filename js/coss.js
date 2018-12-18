@@ -179,10 +179,14 @@ module.exports = class coss extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let marketId = this.marketId (symbol);
-        let response = await this.engineGetCs (this.extend ({ 'symbol': marketId, 'tt': '1m' }, params));
+        let market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'tt': this.timeframes[timeframe],
+        };
+        let response = await this.engineGetCs (this.extend (request, params));
         let ohclvs = response['series'];
-        return this.parseOHLCVs (ohclvs);
+        return this.parseOHLCVs (ohclvs, market, timeframe, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
