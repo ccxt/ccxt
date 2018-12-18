@@ -1324,15 +1324,8 @@ class Exchange {
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
-        if (gettype ($ohlcv) === 'array' && count (array_filter (array_keys ($ohlcv), 'is_string')) == 0) {
-            $result = array (intval ($ohlcv[0]));
-            for ($i = 1; $i < 6; $i++) {
-                $result[$i] = floatval ($ohlcv[$i]);
-            }
-            return $result;
-        } else {
-            return $ohlcv;
-        }
+        return (gettype ($ohlcv) === 'array' && count (array_filter (array_keys ($ohlcv), 'is_string')) == 0) ?
+            array_slice ($ohlcv, 0, 6) : $ohlcv;
     }
 
     public function parseOHLCV ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
