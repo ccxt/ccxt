@@ -197,7 +197,7 @@ module.exports = class bitfinex2 extends bitfinex {
         return 'f' + code;
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.v1GetSymbolsDetails ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
@@ -369,7 +369,7 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.markets[symbol];
+        let market = this.market (symbol);
         let ticker = await this.publicGetTickerSymbol (this.extend ({
             'symbol': market['id'],
         }, params));
@@ -542,7 +542,7 @@ module.exports = class bitfinex2 extends bitfinex {
             let chanKey = '_' + chanId.toString ();
             let channels = this._contextGet (contextId, 'channels');
             if (!(chanKey in channels)) {
-                this.emit ('err', new ExchangeError (this.id + ' msg received from unregistered channels:' + chanId));
+                this.emit ('err', new ExchangeError (this.id + ' msg received from unregistered channels:' + chanId), contextId);
                 return;
             }
             let symbol = channels[chanKey]['symbol'];
@@ -590,7 +590,7 @@ module.exports = class bitfinex2 extends bitfinex {
                     side = 'bids';
                     isBid = true;
                 } else {
-                    side = 'asks'
+                    side = 'asks';
                     isBid = false;
                     amount = -amount;
                 }
@@ -613,7 +613,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 side = 'bids';
                 isBid = true;
             } else {
-                side = 'asks'
+                side = 'asks';
                 isBid = false;
                 amount = -amount;
             }
@@ -672,7 +672,7 @@ module.exports = class bitfinex2 extends bitfinex {
             let chanKey = '_' + chanId.toString ();
             let channels = this._contextGet (contextId, 'channels');
             if (!(chanKey in channels)) {
-                this.emit ('err', new ExchangeError (this.id + ' msg received from unregistered channels:' + chanId));
+                this.emit ('err', new ExchangeError (this.id + ' msg received from unregistered channels:' + chanId), contextId);
                 return;
             }
             let symbol = channels[chanKey]['symbol'];
@@ -695,7 +695,7 @@ module.exports = class bitfinex2 extends bitfinex {
         }
         symbolData['limit'] = this.safeInteger (params, 'limit', undefined);
         let nonceStr = nonce.toString ();
-        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'sub-nonce']);
+        let handle = this._setTimeout (contextId, this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'sub-nonce']);
         symbolData['sub-nonces'][nonceStr] = handle;
         this._contextSetSymbolData (contextId, event, symbol, symbolData);
         // send request
@@ -723,7 +723,7 @@ module.exports = class bitfinex2 extends bitfinex {
             symbolData['unsub-nonces'] = {};
         }
         let nonceStr = nonce.toString ();
-        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'unsub-nonces']);
+        let handle = this._setTimeout (contextId, this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'unsub-nonces']);
         symbolData['unsub-nonces'][nonceStr] = handle;
         this._contextSetSymbolData (contextId, event, symbol, symbolData);
         this.websocketSendJson (payload);

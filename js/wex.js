@@ -22,15 +22,15 @@ module.exports = class wex extends liqui {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg',
                 'api': {
-                    'public': 'https://wex.nz/api',
-                    'private': 'https://wex.nz/tapi',
+                    'public': 'https://wex1.in/api',
+                    'private': 'https://wex1.in/tapi',
                 },
-                'www': 'https://wex.nz',
+                'www': 'https://wex1.in',
                 'doc': [
-                    'https://wex.nz/api/3/docs',
-                    'https://wex.nz/tapi/docs',
+                    'https://wex1.in/api/3/docs',
+                    'https://wex1.in/tapi/docs',
                 ],
-                'fees': 'https://wex.nz/fees',
+                'fees': 'https://wex1.in/fees',
             },
             'api': {
                 'public': {
@@ -131,13 +131,13 @@ module.exports = class wex extends liqui {
         };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
         if (code === 200) {
             if (body[0] !== '{') {
                 // response is not JSON -> resort to default error handler
                 return;
             }
-            let response = JSON.parse (body);
+            response = JSON.parse (body);
             if ('success' in response) {
                 if (!response['success']) {
                     const error = this.safeString (response, 'error');

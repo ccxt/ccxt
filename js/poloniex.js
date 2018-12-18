@@ -244,130 +244,16 @@ module.exports = class poloniex extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    findMarket (string) {
-        if (typeof this.markets === 'undefined') {
-            throw new ExchangeError (this.id + ' markets not loaded');
-        }
-        // let isNumeric = '/^\d+$/'.test(string);
-        // cannot transpile Number
-        // let isNumeric = !Number.isNaN ( parseInt (string) );
-        // let isNumeric = parseInt (string).toString () === 'NaN';
-        let isNumeric = true;
-        if (string.toString () !== string) {
-            string = string.toString ();
-        }
-        let i = 0;
-        for (i = 0; i < string.length; i++) {
-            let c = string[i];
-            if (c === '0') {
-                continue;
-            }
-            if (c === '1') {
-                continue;
-            }
-            if (c === '2') {
-                continue;
-            }
-            if (c === '3') {
-                continue;
-            }
-            if (c === '4') {
-                continue;
-            }
-            if (c === '5') {
-                continue;
-            }
-            if (c === '6') {
-                continue;
-            }
-            if (c === '7') {
-                continue;
-            }
-            if (c === '8') {
-                continue;
-            }
-            if (c === '9') {
-                continue;
-            }
-            isNumeric = false;
-            break;
-        }
-        if (isNumeric === true) {
-            if (string in this.markets_by_id2) {
-                return this.markets_by_id2[string];
-            }
-        } else if (typeof string === 'string') {
-            if (string in this.markets_by_id) {
-                return this.markets_by_id[string];
-            }
-            if (string in this.markets) {
-                return this.markets[string];
-            }
-        }
-        return string;
-    }
-
-    setMarkets (markets, currencies = undefined) {
-        // Poloniex uses an additional index for its curreny pairs
-        // id2 is string containing only numeric chars
-        // Calling super.setMArkets does not transpile...
-        this.marketsById2 = this.indexBy (markets, 'id2');
-        this.markets_by_id2 = this.marketsById2;
-        return super.setMarkets (markets, currencies);
-        // Cannot use map
-        // let values = Object.values (markets).map (market => this.deepExtend ({
-        //     'limits': this.limits,
-        //     'precision': this.precision,
-        // }, this.fees['trading'], market))
-        // this.marketsById2 = this.indexBy (markets, 'id2');
-        // this.markets_by_id2 = this.marketsById2;
-        // this.markets = this.deepExtend (this.markets, this.indexBy (values, 'symbol'))
-        // this.marketsById = this.indexBy (markets, 'id')
-        // this.markets_by_id = this.marketsById
-        // this.symbols = Object.keys (this.markets).sort ()
-        // this.ids = Object.keys (this.markets_by_id).sort ()
-        // if (currencies) {
-        //     this.currencies = this.deepExtend (currencies, this.currencies)
-        // } else {
-        //     const baseCurrencies =
-        //         values.filter (market => 'base' in market)
-        //             .map (market => ({
-        //                 id: market.baseId || market.base,
-        //                 numericId: (typeof market.baseNumericId !== 'undefined') ? market.baseNumericId : undefined,
-        //                 code: market.base,
-        //                 precision: market.precision ? (market.precision.base || market.precision.amount) : 8,
-        //             }))
-        //     const quoteCurrencies =
-        //         values.filter (market => 'quote' in market)
-        //             .map (market => ({
-        //                 id: market.quoteId || market.quote,
-        //                 numericId: (typeof market.quoteNumericId !== 'undefined') ? market.quoteNumericId : undefined,
-        //                 code: market.quote,
-        //                 precision: market.precision ? (market.precision.quote || market.precision.price) : 8,
-        //             }))
-        //     const allCurrencies = baseCurrencies.concat (quoteCurrencies)
-        //     const groupedCurrencies = this.groupBy (allCurrencies, 'code')
-        //     const currencies = Object.keys (groupedCurrencies).map (code =>
-        //         groupedCurrencies[code].reduce ((previous, current) =>
-        //             ((previous.precision > current.precision) ? previous : current), groupedCurrencies[code][0]))
-        //     const sortedCurrencies = this.sortBy (flatten (currencies), 'code')
-        //     this.currencies = this.deepExtend (this.indexBy (sortedCurrencies, 'code'), this.currencies)
-        // }
-        // this.currencies_by_id = this.indexBy (this.currencies, 'id')
-        // return this.markets
-    }
-
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetReturnTicker ();
         let keys = Object.keys (markets);
         let result = [];
         for (let p = 0; p < keys.length; p++) {
             let id = keys[p];
             let market = markets[id];
-            // let id2 = market['id'].toString ();
-            let [ quote, base ] = id.split ('_');
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            let [ quoteId, baseId ] = id.split ('_');
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let minCost = this.safeFloat (this.options['limits']['cost']['min'], quote, 0.0);
             let precision = {
@@ -378,6 +264,8 @@ module.exports = class poloniex extends Exchange {
                 'id': id,
                 'id2': market['id'].toString (),
                 'symbol': symbol,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
                 'active': true,
@@ -530,7 +418,7 @@ module.exports = class poloniex extends Exchange {
             let symbol = undefined;
             let market = undefined;
             if (id in this.markets_by_id) {
-                let market = this.markets_by_id[id];
+                market = this.markets_by_id[id];
                 symbol = market['symbol'];
             } else {
                 let [ quoteId, baseId ] = id.split ('_');
@@ -1099,6 +987,7 @@ module.exports = class poloniex extends Exchange {
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.fetchTransactionsHelper (code, since, limit, params);
         for (let i = 0; i < response['deposits'].length; i++) {
             response['deposits'][i]['type'] = 'deposit';
@@ -1106,8 +995,12 @@ module.exports = class poloniex extends Exchange {
         for (let i = 0; i < response['withdrawals'].length; i++) {
             response['withdrawals'][i]['type'] = 'withdrawal';
         }
-        let withdrawals = this.parseTransactions (response['withdrawals'], code, since, limit);
-        let deposits = this.parseTransactions (response['deposits'], code, since, limit);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        let withdrawals = this.parseTransactions (response['withdrawals'], currency, since, limit);
+        let deposits = this.parseTransactions (response['deposits'], currency, since, limit);
         let transactions = this.arrayConcat (deposits, withdrawals);
         return this.filterByCurrencySinceLimit (this.sortBy (transactions, 'timestamp'), code, since, limit);
     }
@@ -1117,7 +1010,11 @@ module.exports = class poloniex extends Exchange {
         for (let i = 0; i < response['withdrawals'].length; i++) {
             response['withdrawals'][i]['type'] = 'withdrawal';
         }
-        let withdrawals = this.parseTransactions (response['withdrawals'], code, since, limit);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        let withdrawals = this.parseTransactions (response['withdrawals'], currency, since, limit);
         return this.filterByCurrencySinceLimit (withdrawals, code, since, limit);
     }
 
@@ -1126,7 +1023,11 @@ module.exports = class poloniex extends Exchange {
         for (let i = 0; i < response['deposits'].length; i++) {
             response['deposits'][i]['type'] = 'deposit';
         }
-        let deposits = this.parseTransactions (response['deposits'], code, since, limit);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        let deposits = this.parseTransactions (response['deposits'], currency, since, limit);
         return this.filterByCurrencySinceLimit (deposits, code, since, limit);
     }
 
@@ -1193,8 +1094,6 @@ module.exports = class poloniex extends Exchange {
             if (type === 'deposit') {
                 // according to https://poloniex.com/fees/
                 feeCost = 0; // FIXME: remove hardcoded value that may change any time
-            } else if (type === 'withdrawal') {
-                throw new ExchangeError ('Withdrawal without fee detected!');
             }
         }
         return {
@@ -1239,8 +1138,7 @@ module.exports = class poloniex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
-        let response = undefined;
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
         try {
             response = JSON.parse (body);
         } catch (e) {

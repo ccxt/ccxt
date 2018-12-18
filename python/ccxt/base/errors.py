@@ -31,6 +31,7 @@ __all__ = [
     'InvalidOrder',
     'OrderNotFound',
     'OrderNotCached',
+    'DuplicateOrderId',
     'NetworkError',
     'DDoSProtection',
     'RequestTimeout',
@@ -126,6 +127,11 @@ class OrderNotFound(InvalidOrder):
 
 class OrderNotCached(InvalidOrder):
     """Raised when the order is not found in local cache (where applicable)"""
+    pass
+
+
+class DuplicateOrderId(InvalidOrder):
+    """Raised when the order id set by client is not unique"""
     pass
 
 

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.17.522'
+__version__ = '1.18.37'
 
 # -----------------------------------------------------------------------------
 
@@ -32,6 +32,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import NetworkError
 
 # -----------------------------------------------------------------------------
 
@@ -140,37 +141,37 @@ class Exchange(BaseExchange, EventEmitter):
 
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
-        headers = self.prepare_request_headers(headers)
-
+        request_headers = self.prepare_request_headers(headers)
         url = self.proxy + url
 
         if self.verbose:
             print("\nRequest:", method, url, headers, body)
-
         self.logger.debug("%s %s, Request: %s %s", method, url, headers, body)
 
         encoded_body = body.encode() if body else None
         session_method = getattr(self.session, method.lower())
-        http_status_code = None
 
+        response = None
+        http_response = None
+        json_response = None
         try:
             async with session_method(yarl.URL(url, encoded=True),
                                       data=encoded_body,
-                                      headers=headers,
+                                      headers=request_headers,
                                       timeout=(self.timeout / 1000),
                                       proxy=self.aiohttp_proxy) as response:
-                http_status_code = response.status
-                text = await response.text()
-                if self.enableLastHttpResponse:
-                    self.last_http_response = text
+                http_response = await response.text()
+                json_response = self.parse_json(http_response)
                 headers = response.headers
+                if self.enableLastHttpResponse:
+                    self.last_http_response = http_response
                 if self.enableLastResponseHeaders:
                     self.last_response_headers = headers
-                self.handle_errors(http_status_code, text, url, method, headers, text)
-                self.handle_rest_errors(None, http_status_code, text, url, method)
+                if self.enableLastJsonResponse:
+                    self.last_json_response = json_response
                 if self.verbose:
-                    print("\nResponse:", method, url, str(http_status_code), str(headers), text)
-                self.logger.debug("%s %s, Response: %s %s %s", method, url, response.status, headers, text)
+                    print("\nResponse:", method, url, response.status, headers, http_response)
+                self.logger.debug("%s %s, Response: %s %s %s", method, url, response.status, headers, http_response)
 
         except socket.gaierror as e:
             self.raise_error(ExchangeNotAvailable, url, method, e, None)
@@ -181,19 +182,20 @@ class Exchange(BaseExchange, EventEmitter):
         except aiohttp.client_exceptions.ClientConnectionError as e:
             self.raise_error(ExchangeNotAvailable, url, method, e, None)
 
-        except aiohttp.client_exceptions.ClientError as e:
+        except aiohttp.client_exceptions.ClientError as e:  # base exception class
             self.raise_error(ExchangeError, url, method, e, None)
 
-        self.handle_errors(http_status_code, text, url, method, headers, text)
-        return self.handle_rest_response(text, url, method, headers, body)
+        self.handle_errors(response.status, response.reason, url, method, headers, http_response, json_response)
+        self.handle_rest_response(http_response, json_response, url, method, headers, body)
+        return json_response
 
-    async def load_markets(self, reload=False):
+    async def load_markets(self, reload=False, params={}):
         if not reload:
             if self.markets:
                 if not self.markets_by_id:
                     return self.set_markets(self.markets)
                 return self.markets
-        markets = await self.fetch_markets()
+        markets = await self.fetch_markets(params)
         currencies = None
         if self.has['fetchCurrencies']:
             currencies = await self.fetch_currencies()
@@ -236,7 +238,7 @@ class Exchange(BaseExchange, EventEmitter):
         self.fees = self.deep_extend(self.fees, fetched_fees)
         return self.fees
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         # markets are returned as a list
         # currencies are returned as a dict
         # this is for historical reasons
@@ -347,6 +349,24 @@ class Exchange(BaseExchange, EventEmitter):
                 # insert
                 currentBidsAsks.insert(index, bidAsk)
 
+    def updateBidAskDiff(self, bidAsk, currentBidsAsks, bids=False):
+        # insert or replace ordered
+        index = self.searchIndexToInsertOrUpdate(bidAsk[0], currentBidsAsks, 0, bids)
+        if ((index < len(currentBidsAsks)) and (currentBidsAsks[index][0] == bidAsk[0])):
+            # found
+            nextValue = currentBidsAsks[index][1] + bidAsk[1]
+            if (nextValue == 0):
+                # remove
+                del currentBidsAsks[index]
+            else:
+                # update
+                currentBidsAsks[index][1] = nextValue
+        else:
+            if (bidAsk[1] != 0):
+                # insert
+                currentBidsAsks.insert(index, bidAsk)
+
+
     def mergeOrderBookDelta(self, currentOrderBook, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
         bids = self.parse_bids_asks2(orderbook[bids_key], price_key, amount_key) if (bids_key in orderbook) and isinstance(orderbook[bids_key], list) else []
         asks = self.parse_bids_asks2(orderbook[asks_key], price_key, amount_key) if (asks_key in orderbook) and isinstance(orderbook[asks_key], list) else []
@@ -359,7 +379,19 @@ class Exchange(BaseExchange, EventEmitter):
         currentOrderBook['datetime'] = self.iso8601(timestamp) if timestamp is not None else None
         return currentOrderBook
 
-    def _websocket_context_get_subscribed_event_symbols(self, conxid):
+    def mergeOrderBookDeltaDiff(self, currentOrderBook, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
+        bids = self.parse_bids_asks2(orderbook[bids_key], price_key, amount_key) if (bids_key in orderbook) and isinstance(orderbook[bids_key], list) else []
+        asks = self.parse_bids_asks2(orderbook[asks_key], price_key, amount_key) if (asks_key in orderbook) and isinstance(orderbook[asks_key], list) else []
+        for bid in bids:
+            self.updateBidAskDiff(bid, currentOrderBook['bids'], True)
+        for ask in asks:
+            self.updateBidAskDiff(ask, currentOrderBook['asks'], False)
+
+        currentOrderBook['timestamp'] = timestamp
+        currentOrderBook['datetime'] = self.iso8601(timestamp) if timestamp is not None else None
+        return currentOrderBook
+
+    def _websocketContextGetSubscribedEventSymbols(self, conxid):
         ret = []
         events = self._contextGetEvents(conxid)
         for key in events:
@@ -534,7 +566,7 @@ class Exchange(BaseExchange, EventEmitter):
                 'conx-tpl': conx_tpl_name,
             }
         elif (config['type'] == 'ws-s'):
-            subscribed = self._websocket_context_get_subscribed_event_symbols(config['id'])
+            subscribed = self._websocketContextGetSubscribedEventSymbols(config['id'])
             if subscription:
                 subscribed.append({
                     'event': event,
@@ -699,7 +731,7 @@ class Exchange(BaseExchange, EventEmitter):
             websocket_connection_info['auth'] = False
             self._websocket_on_error(conxid)
             self._websocket_reset_context(conxid)
-            self.emit('err', error, conxid)
+            self.emit('err', NetworkError(error), conxid)
 
         @conx.on('message')
         def websocket_connection_message(msg):
@@ -737,7 +769,7 @@ class Exchange(BaseExchange, EventEmitter):
             ret['asks'] = ob['asks'][:limit]
         return ret
 
-    def _executeAndCallback(self, method, params, callback, context={}, this_param=None):
+    def _executeAndCallback (self, contextId, method, params, callback, context={}, this_param=None):
         this_param = this_param if (this_param is not None) else self
         eself = self
         # future = asyncio.Future()
@@ -749,12 +781,12 @@ class Exchange(BaseExchange, EventEmitter):
                 try:
                     getattr(this_param, callback)(context, None, ret)
                 except Exception as ex:
-                    eself.emit('err', ExchangeError(eself.id + ': error invoking method ' + callback + ' in _asyncExecute: ' + str(ex)))
+                    eself.emit('err', ExchangeError(eself.id + ': error invoking method ' + callback + ' in _asyncExecute: ' + str(ex)), contextId)
             except Exception as ex:
                 try:
                     getattr(this_param, callback)(context, ex, None)
                 except Exception as ex:
-                    eself.emit('err', ExchangeError(eself.id + ': error invoking method ' + callback + ' in _asyncExecute: ' + str(ex)))
+                    eself.emit('err', ExchangeError(eself.id + ': error invoking method ' + callback + ' in _asyncExecute: ' + str(ex)), contextId)
             # future.set_result(True)
 
         asyncio.ensure_future(t(), loop=self.asyncio_loop)
@@ -793,7 +825,7 @@ class Exchange(BaseExchange, EventEmitter):
             if success:
                 self._contextSetSubscribed(conxid, event, symbol, True)
                 self._contextSetSubscribing(conxid, event, symbol, False)
-                future.done() or future.set_result(True)
+                future.done() or future.set_result(conxid)
             else:
                 self._contextSetSubscribed(conxid, event, symbol, False)
                 self._contextSetSubscribing(conxid, event, symbol, False)
@@ -854,27 +886,27 @@ class Exchange(BaseExchange, EventEmitter):
             raise ExchangeError(self.id + ': ' + key + ' not found in websocket methodmap')
         return self.wsconf['methodmap'][key]
 
-    def _setTimeout(self, mseconds, method, params, this_param=None):
+    def _setTimeout(self, contextId, mseconds, method, params, this_param=None):
         this_param = this_param if (this_param is not None) else self
 
         def f():
             try:
                 getattr(this_param, method)(*params)
             except Exception as ex:
-                self.emit('err', ExchangeError(self.id + ': error invoking method ' + method + ' ' + str(ex)))
+                self.emit('err', ExchangeError(self.id + ': error invoking method ' + method + ' ' + str(ex)), contextId)
         return self.asyncio_loop.call_later(mseconds / 1000, f)
 
     def _cancelTimeout(self, handle):
         handle.cancel()
 
-    def _setTimer(self, mseconds, method, params, this_param=None):
+    def _setTimer(self, contextId, mseconds, method, params, this_param=None):
         this_param = this_param if (this_param is not None) else self
 
         def f():
             try:
                 getattr(this_param, method)(*params)
             except Exception as ex:
-                self.emit('err', ExchangeError(self.id + ': error invoking method ' + method + ' ' + str(ex)))
+                self.emit('err', ExchangeError(self.id + ': error invoking method ' + method + ' ' + str(ex)), contextId)
         return self.call_periodic(mseconds / 1000, f)
 
     def _cancelTimer(self, handle):

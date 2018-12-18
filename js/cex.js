@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, NullResponse, InvalidOrder, NotSupported, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, NullResponse, InvalidOrder, NotSupported, AuthenticationError, NetworkError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -154,7 +154,7 @@ module.exports = class cex extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetCurrencyLimits ();
         let result = [];
         for (let p = 0; p < markets['data']['pairs'].length; p++) {
@@ -651,7 +651,7 @@ module.exports = class cex extends Exchange {
         let data = this._contextGetSymbolData (contextId, 'ob', symbol);
         if (data['ob']['nonce'] !== (resData['id'] - 1)) {
             this.websocketClose ();
-            this.emit ('err', new ExchangeError ('invalid orderbook sequence in ' + this.id + ' ' + data['ob']['nonce'] + ' !== ' + resData['id'] + ' -1'));
+            this.emit ('err', new NetworkError ('invalid orderbook sequence in ' + this.id + ' ' + data['ob']['nonce'] + ' !== ' + resData['id'] + ' -1'));
         } else {
             let ob = this.mergeOrderBookDelta (data['ob'], resData, timestamp);
             ob['nonce'] = resData['id'];

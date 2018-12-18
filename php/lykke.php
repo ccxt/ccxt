@@ -141,7 +141,7 @@ class lykke extends Exchange {
         );
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetAssetPairs ();
         //
         //     array ( array (                Id => "AEBTC",

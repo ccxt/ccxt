@@ -106,7 +106,7 @@ class btcalpha extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetPairs ();
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
@@ -170,6 +170,12 @@ class btcalpha extends Exchange {
         $amount = floatval ($trade['amount']);
         $cost = $this->cost_to_precision($symbol, $price * $amount);
         $id = $this->safe_string($trade, 'id');
+        $side = null;
+        if (is_array ($trade) && array_key_exists ('my_side', $trade)) {
+            $side = $this->safe_string($trade, 'my_side');
+        } else {
+            $side = $this->safe_string($trade, 'side');
+        }
         if (!$id)
             $id = $this->safe_string($trade, 'tid');
         return array (
@@ -179,7 +185,7 @@ class btcalpha extends Exchange {
             'id' => $id,
             'order' => $this->safe_string($trade, 'o_id'),
             'type' => 'limit',
-            'side' => $trade['type'],
+            'side' => $side,
             'price' => $price,
             'amount' => $amount,
             'cost' => floatval ($cost),
@@ -402,7 +408,7 @@ class btcalpha extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
         if ($code < 400)
             return;
         if (gettype ($body) !== 'string')

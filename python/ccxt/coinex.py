@@ -125,7 +125,7 @@ class coinex (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.webGetResMarket()
         markets = response['data']['market_info']
         result = []

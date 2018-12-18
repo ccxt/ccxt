@@ -89,7 +89,7 @@ class dsx (liqui):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetInfo()
         markets = response['pairs']
         keys = list(markets.keys())
@@ -462,7 +462,7 @@ class dsx (liqui):
             id = ids[i]
             order = self.parse_order(self.extend({
                 'id': str(id),
-            }, orders[i]))
+            }, orders[id]))
             result.append(order)
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 

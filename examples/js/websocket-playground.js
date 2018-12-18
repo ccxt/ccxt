@@ -31,12 +31,11 @@ let sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
             const parts = process.argv[i].split(':',2);
             params[parts[0]] = parts[1];
         }
-
         let exchange = new ccxt[id]({
             apiKey: apiKey,
             secret: secret,
             enableRateLimit: true,
-            verbose: true,
+            verbose: ('verbose' in params)? (params.verbose == 'true'): true,
             timeout: 20000,
             // agent: agent
           });

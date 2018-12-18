@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const huobipro = require ('./huobipro.js');
-const { ExchangeError, ArgumentsRequired, BadRequest, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadRequest, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -112,6 +112,7 @@ module.exports = class cointiger extends huobipro {
                 '100002': ExchangeNotAvailable,
                 '100003': ExchangeError,
                 '100005': AuthenticationError,
+                '110030': DDoSProtection,
             },
             'commonCurrencies': {
                 'FGC': 'FoundGameCoin',
@@ -120,7 +121,7 @@ module.exports = class cointiger extends huobipro {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         const response = await this.v2publicGetCurrencys ();
         //
         //     {
@@ -866,13 +867,13 @@ module.exports = class cointiger extends huobipro {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body) {
+    handleErrors (httpCode, reason, url, method, headers, body, response = undefined) {
         if (typeof body !== 'string')
             return; // fallback to default error handler
         if (body.length < 2)
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
-            let response = JSON.parse (body);
+            response = JSON.parse (body);
             if ('code' in response) {
                 //
                 //     { "code": "100005", "msg": "request sign illegal", "data": null }

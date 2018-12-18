@@ -149,7 +149,7 @@ class crex24 (Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetInstruments()
         #
         #     [{             symbol:   "$PAC-BTC",
@@ -939,7 +939,7 @@ class crex24 (Exchange):
             request['currency'] = currency['id']
         if since is not None:
             request['from'] = self.ymd(since, 'T')
-        response = self.aacountGetMoneyTransfers(self.extend(request, params))
+        response = self.accountGetMoneyTransfers(self.extend(request, params))
         #
         #     [
         #         {
@@ -1119,7 +1119,7 @@ class crex24 (Exchange):
             headers['X-CREX24-API-SIGN'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
         if not self.is_json_encoded_object(body):
             return  # fallback to default error handler
         if (code >= 200) and(code < 300):

@@ -9,6 +9,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
@@ -144,9 +145,11 @@ class bitmex (Exchange):
                     'Invalid API Key.': AuthenticationError,
                     'Access Denied': PermissionDenied,
                     'Duplicate clOrdID': InvalidOrder,
+                    'Signature not valid': AuthenticationError,
                 },
                 'broad': {
                     'overloaded': ExchangeNotAvailable,
+                    'Account has insufficient Available Balance': InsufficientFunds,
                 },
             },
             'options': {
@@ -154,7 +157,7 @@ class bitmex (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetInstrumentActiveAndIndices()
         result = []
         for p in range(0, len(markets)):
@@ -351,7 +354,7 @@ class bitmex (Exchange):
         }
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
-        timestamp = self.parse8601(ohlcv['timestamp']) - self.parse_timeframe(timeframe) * 1000
+        timestamp = self.parse8601(ohlcv['timestamp'])
         return [
             timestamp,
             ohlcv['open'],
@@ -385,8 +388,7 @@ class bitmex (Exchange):
         # if since is not set, they will return candles starting from 2017-01-01
         if since is not None:
             ymdhms = self.ymdhms(since)
-            ymdhm = ymdhms[0:16]
-            request['startTime'] = ymdhm  # starting date filter for results
+            request['startTime'] = ymdhms  # starting date filter for results
         response = self.publicGetTradeBucketed(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
@@ -551,7 +553,7 @@ class bitmex (Exchange):
             'id': response['transactID'],
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
         if code == 429:
             raise DDoSProtection(self.id + ' ' + body)
         if code >= 400:

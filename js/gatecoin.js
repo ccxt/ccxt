@@ -206,7 +206,7 @@ module.exports = class gatecoin extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetReferenceCurrencyPairs ();
         let markets = response['currencyPairs'];
         let result = [];
@@ -370,8 +370,8 @@ module.exports = class gatecoin extends Exchange {
         }
         let fee = undefined;
         let feeCost = this.safeFloat (trade, 'feeAmount');
-        let price = trade['price'];
-        let amount = trade['quantity'];
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'quantity');
         let cost = price * amount;
         let feeCurrency = undefined;
         let symbol = undefined;
@@ -675,7 +675,7 @@ module.exports = class gatecoin extends Exchange {
         return await this.privatePostElectronicWalletUserWalletsDigiCurrency (this.extend (request, params));
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
         if (typeof body !== 'string')
             return; // fallback to default error handler
         if (body.length < 2)
@@ -684,7 +684,7 @@ module.exports = class gatecoin extends Exchange {
             throw new PermissionDenied (body);
         }
         if (body[0] === '{') {
-            let response = JSON.parse (body);
+            response = JSON.parse (body);
             if ('responseStatus' in response) {
                 let errorCode = this.safeString (response['responseStatus'], 'errorCode');
                 let message = this.safeString (response['responseStatus'], 'message');

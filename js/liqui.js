@@ -124,7 +124,7 @@ module.exports = class liqui extends Exchange {
         };
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetInfo ();
         let markets = response['pairs'];
         let keys = Object.keys (markets);
@@ -756,10 +756,10 @@ module.exports = class liqui extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body) {
+    handleErrors (httpCode, reason, url, method, headers, body, response = undefined) {
         if (!this.isJsonEncodedObject (body))
             return; // fallback to default error handler
-        let response = JSON.parse (body);
+        response = JSON.parse (body);
         if ('success' in response) {
             //
             // 1 - Liqui only returns the integer 'success' key from their private API

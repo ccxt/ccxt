@@ -50,11 +50,15 @@ assert (decimal_to_precision ('0.00000001', TRUNCATE, 8, DECIMAL_PLACES) === '0.
 assert (decimal_to_precision ('0.000000000', TRUNCATE, 9, DECIMAL_PLACES, PAD_WITH_ZERO) === '0.000000000');
 assert (decimal_to_precision ('0.000000001', TRUNCATE, 9, DECIMAL_PLACES, PAD_WITH_ZERO) === '0.000000001');
 
-// assert (decimal_to_precision ('12.3456', TRUNCATE, -1, DECIMAL_PLACES) === '10');  // not yet supported
-// assert (decimal_to_precision ('123.456', TRUNCATE, -2, DECIMAL_PLACES) === '120'); // not yet supported
-// assert (decimal_to_precision ('123.456', TRUNCATE, -3, DECIMAL_PLACES) === '100'); // not yet supported
+assert (decimal_to_precision ('12.3456', TRUNCATE, -1, DECIMAL_PLACES) === '10');
+assert (decimal_to_precision ('123.456', TRUNCATE, -1, DECIMAL_PLACES) === '120');
+assert (decimal_to_precision ('123.456', TRUNCATE, -2, DECIMAL_PLACES) === '100');
+assert (decimal_to_precision ('9.99999', TRUNCATE, -1, DECIMAL_PLACES) === '0');
+assert (decimal_to_precision ('99.9999', TRUNCATE, -1, DECIMAL_PLACES) === '90');
+assert (decimal_to_precision ('99.9999', TRUNCATE, -2, DECIMAL_PLACES) === '0');
 
 assert (decimal_to_precision ('0', TRUNCATE, 0, DECIMAL_PLACES) === '0');
+assert (decimal_to_precision ('-0.9', TRUNCATE, 0, DECIMAL_PLACES) === '0');
 
 // ----------------------------------------------------------------------------
 // testDecimalToPrecisionTruncationToNSignificantDigits
@@ -102,9 +106,12 @@ assert (decimal_to_precision ('12.3456', ROUND, 0, DECIMAL_PLACES) === '12');
 assert (decimal_to_precision ('10000', ROUND, 6, DECIMAL_PLACES) === '10000');
 assert (decimal_to_precision ('0.00003186', ROUND, 8, DECIMAL_PLACES) === '0.00003186');
 
-// assert (decimal_to_precision ('12.3456', ROUND, -1, DECIMAL_PLACES) === '10');   // not yet supported
-// assert (decimal_to_precision ('123.456', ROUND, -1, DECIMAL_PLACES) === '120');  // not yet supported
-// assert (decimal_to_precision ('123.456', ROUND, -2, DECIMAL_PLACES) === '100');  // not yet supported
+assert (decimal_to_precision ('12.3456', ROUND, -1, DECIMAL_PLACES) === '10');
+assert (decimal_to_precision ('123.456', ROUND, -1, DECIMAL_PLACES) === '120');
+assert (decimal_to_precision ('123.456', ROUND, -2, DECIMAL_PLACES) === '100');
+assert (decimal_to_precision ('9.99999', ROUND, -1, DECIMAL_PLACES) === '10');
+assert (decimal_to_precision ('99.9999', ROUND, -1, DECIMAL_PLACES) === '100');
+assert (decimal_to_precision ('99.9999', ROUND, -2, DECIMAL_PLACES) === '100');
 
 assert (decimal_to_precision ('9.999', ROUND, 3, DECIMAL_PLACES) === '9.999');
 assert (decimal_to_precision ('9.999', ROUND, 2, DECIMAL_PLACES) === '10');
@@ -137,6 +144,8 @@ assert (decimal_to_precision ('0.00098765', ROUND, 10, SIGNIFICANT_DIGITS, PAD_W
 assert (decimal_to_precision ('0.098765', ROUND, 1, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) === '0.1');
 
 assert (decimal_to_precision ('0', ROUND, 0, SIGNIFICANT_DIGITS) === '0');
+assert (decimal_to_precision ('-0.123', ROUND, 0, SIGNIFICANT_DIGITS) === '0');
+
 
 // ----------------------------------------------------------------------------
 // testDecimalToPrecisionNegativeNumbers
@@ -164,6 +173,24 @@ assert (decimal_to_precision ('0.', TRUNCATE, 5, DECIMAL_PLACES, PAD_WITH_ZERO) 
 assert (decimal_to_precision ('1.44', ROUND, 1, DECIMAL_PLACES) === '1.4');
 assert (decimal_to_precision ('1.45', ROUND, 1, DECIMAL_PLACES) === '1.5');
 assert (decimal_to_precision ('1.45', ROUND, 0, DECIMAL_PLACES) === '1'); // not 2
+
+// ----------------------------------------------------------------------------
+// negative precision only implemented so far in python
+// pretty useless for decimal applications as anything |x| < 5 === 0
+// NO_PADDING and PAD_WITH_ZERO are ignored
+
+assert (decimal_to_precision ('5', ROUND, -1, DECIMAL_PLACES) === '10');
+assert (decimal_to_precision ('4.999', ROUND, -1, DECIMAL_PLACES) === '0');
+assert (decimal_to_precision ('0.0431531423', ROUND, -1, DECIMAL_PLACES) === '0');
+assert (decimal_to_precision ('-69.3', ROUND, -1, DECIMAL_PLACES) === '-70');
+assert (decimal_to_precision ('5001', ROUND, -4, DECIMAL_PLACES) === '10000');
+assert (decimal_to_precision ('4999.999', ROUND, -4, DECIMAL_PLACES) === '0');
+
+assert (decimal_to_precision ('69.3', TRUNCATE, -2, DECIMAL_PLACES) === '0');
+assert (decimal_to_precision ('-69.3', TRUNCATE, -2, DECIMAL_PLACES) === '0');
+assert (decimal_to_precision ('69.3', TRUNCATE, -1, SIGNIFICANT_DIGITS) === '60');
+assert (decimal_to_precision ('-69.3', TRUNCATE, -1, SIGNIFICANT_DIGITS) === '-60');
+assert (decimal_to_precision ('69.3', TRUNCATE, -2, SIGNIFICANT_DIGITS) === '0');
 
 // ----------------------------------------------------------------------------
 // testDecimalToPrecisionErrorHandling (todo)

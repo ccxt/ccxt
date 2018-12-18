@@ -69,7 +69,7 @@ module.exports = class flowbtc extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicPostGetProductPairs ();
         let markets = response['productPairs'];
         let result = {};

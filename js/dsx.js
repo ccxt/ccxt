@@ -88,7 +88,7 @@ module.exports = class dsx extends liqui {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetInfo ();
         let markets = response['pairs'];
         let keys = Object.keys (markets);
@@ -487,7 +487,7 @@ module.exports = class dsx extends liqui {
             let id = ids[i];
             let order = this.parseOrder (this.extend ({
                 'id': id.toString (),
-            }, orders[i]));
+            }, orders[id]));
             result.push (order);
         }
         return this.filterBySymbolSinceLimit (result, symbol, since, limit);

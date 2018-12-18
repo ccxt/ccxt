@@ -57,7 +57,7 @@ class _1btcxe extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         return array (
             array ( 'id' => 'USD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
             array ( 'id' => 'EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
@@ -161,7 +161,7 @@ class _1btcxe extends Exchange {
             'currency' => $market['id'],
             'timeframe' => $this->timeframes[$timeframe],
         ), $params));
-        $ohlcvs = $this->omit ($response['historical-prices'], 'request_currency');
+        $ohlcvs = $this->to_array($this->omit ($response['historical-prices'], 'request_currency'));
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
@@ -186,7 +186,7 @@ class _1btcxe extends Exchange {
         $response = $this->publicGetTransactions (array_merge (array (
             'currency' => $market['id'],
         ), $params));
-        $trades = $this->omit ($response['transactions'], 'request_currency');
+        $trades = $this->to_array($this->omit ($response['transactions'], 'request_currency'));
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 

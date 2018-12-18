@@ -21,6 +21,7 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 
 
@@ -130,6 +131,7 @@ class cointiger (huobipro):
                 '100002': ExchangeNotAvailable,
                 '100003': ExchangeError,
                 '100005': AuthenticationError,
+                '110030': DDoSProtection,
             },
             'commonCurrencies': {
                 'FGC': 'FoundGameCoin',
@@ -137,7 +139,7 @@ class cointiger (huobipro):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.v2publicGetCurrencys()
         #
         #     {
@@ -819,7 +821,7 @@ class cointiger (huobipro):
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response=None):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if len(body) < 2:

@@ -3,6 +3,7 @@ import sys
 import pprint
 import traceback
 import datetime
+import json
 
 pp = pprint.PrettyPrinter(depth=6)
 
@@ -39,7 +40,9 @@ baseConfig = {
         },
         "binance": {
             "symbols": {
-                'BTC/USDT':{}
+                'BTC/USDT':{},
+                'NANO/BTC':{},
+                'ETH/BTC':{}
             },
             "options": {
 
@@ -50,8 +53,8 @@ baseConfig = {
 marketTable = None
 def main():
     global marketTable
-    if (len(sys.argv) > 2):
-        with open(sys.argv[2]) as f:
+    if (len(sys.argv) > 1):
+        with open(sys.argv[1]) as f:
             config = BaseExchange.extend ({}, baseConfig, json.load(f))
     else:
         config = BaseExchange.extend ({} , baseConfig)

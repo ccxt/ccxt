@@ -48,6 +48,9 @@ class hitbtc2 (hitbtc):
                 'fetchMyTrades': True,
                 'withdraw': True,
                 'fetchOrderTrades': False,  # not implemented yet
+                'fetchDeposits': False,
+                'fetchWithdrawals': False,
+                'fetchTransactions': True,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -565,7 +568,7 @@ class hitbtc2 (hitbtc):
     def fee_to_precision(self, symbol, fee):
         return self.decimal_to_precision(fee, TRUNCATE, 8, DECIMAL_PLACES)
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         markets = await self.publicGetSymbol()
         result = []
         for i in range(0, len(markets)):
@@ -843,6 +846,105 @@ class hitbtc2 (hitbtc):
             'cost': cost,
             'fee': fee,
         }
+
+    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['asset'] = currency['id']
+        if since is not None:
+            request['startTime'] = since
+        response = await self.privateGetAccountTransactions(self.extend(request, params))
+        return self.parseTransactions(response)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        #     {
+        #         id: 'd53ee9df-89bf-4d09-886e-849f8be64647',
+        #         index: 1044718371,
+        #         type: 'payout',
+        #         status: 'success',
+        #         currency: 'ETH',
+        #         amount: '4.522683200000000000000000',
+        #         createdAt: '2018-06-07T00:43:32.426Z',
+        #         updatedAt: '2018-06-07T00:45:36.447Z',
+        #         hash: '0x973e5683dfdf80a1fb1e0b96e19085b6489221d2ddf864daa46903c5ec283a0f',
+        #         address: '0xC5a59b21948C1d230c8C54f05590000Eb3e1252c',
+        #         fee: '0.00958',
+        #     },
+        #     {
+        #         id: 'e6c63331-467e-4922-9edc-019e75d20ba3',
+        #         index: 1044714672,
+        #         type: 'exchangeToBank',
+        #         status: 'success',
+        #         currency: 'ETH',
+        #         amount: '4.532263200000000000',
+        #         createdAt: '2018-06-07T00:42:39.543Z',
+        #         updatedAt: '2018-06-07T00:42:39.683Z',
+        #     },
+        #     {
+        #         id: '3b052faa-bf97-4636-a95c-3b5260015a10',
+        #         index: 1009280164,
+        #         type: 'bankToExchange',
+        #         status: 'success',
+        #         currency: 'CAS',
+        #         amount: '104797.875800000000000000',
+        #         createdAt: '2018-05-19T02:34:36.750Z',
+        #         updatedAt: '2018-05-19T02:34:36.857Z',
+        #     },
+        #     {
+        #         id: 'd525249f-7498-4c81-ba7b-b6ae2037dc08',
+        #         index: 1009279948,
+        #         type: 'payin',
+        #         status: 'success',
+        #         currency: 'CAS',
+        #         amount: '104797.875800000000000000',
+        #         createdAt: '2018-05-19T02:30:16.698Z',
+        #         updatedAt: '2018-05-19T02:34:28.159Z',
+        #         hash: '0xa6530e1231de409cf1f282196ed66533b103eac1df2aa4a7739d56b02c5f0388',
+        #         address: '0xd53ed559a6d963af7cb3f3fcd0e7ca499054db8b',
+        #     }
+        #
+        id = self.safe_string(transaction, 'id')
+        timestamp = self.parse8601(self.safe_string(transaction, 'createdAt'))
+        updated = self.parse8601(self.safe_string(transaction, 'updatedAt'))
+        code = None
+        currencyId = self.safe_string(transaction, 'currency')
+        if currencyId in self.currencies_by_id:
+            currency = self.currencies_by_id[currencyId]
+            code = currency['code']
+        else:
+            code = self.common_currency_code(currencyId)
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        amount = self.safe_float(transaction, 'amount')
+        type = self.safe_string(transaction, 'type')
+        address = self.safe_string(transaction, 'address')
+        txid = self.safe_string(transaction, 'hash')
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'address': address,
+            'tag': None,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': None,
+        }
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            'pending': 'pending',
+            'failed': 'failed',
+            'success': 'ok',
+        }
+        return statuses[status] if (status in list(statuses.keys())) else status
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1175,7 +1277,7 @@ class hitbtc2 (hitbtc):
         url = self.urls['api'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
         if not isinstance(body, basestring):
             return
         if code >= 400:

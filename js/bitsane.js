@@ -128,7 +128,7 @@ module.exports = class bitsane extends Exchange {
         return result;
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetAssetsPairs ();
         let result = [];
         let marketIds = Object.keys (markets);
@@ -436,13 +436,13 @@ module.exports = class bitsane extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body) {
+    handleErrors (httpCode, reason, url, method, headers, body, response = undefined) {
         if (typeof body !== 'string')
             return; // fallback to default error handler
         if (body.length < 2)
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
-            let response = JSON.parse (body);
+            response = JSON.parse (body);
             let statusCode = this.safeString (response, 'statusCode');
             if (statusCode !== undefined) {
                 if (statusCode !== '0') {

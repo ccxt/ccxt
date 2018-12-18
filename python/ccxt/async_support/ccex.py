@@ -81,7 +81,7 @@ class ccex (Exchange):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         result = {}
         response = await self.webGetPairs()
         markets = response['pairs']

@@ -320,13 +320,13 @@ module.exports = class okcoinusd extends Exchange {
                     'NEO': true,
                     'QTUM': true,
                     'USDT': true,
-                    'XUC': true,
+                    'XRP': true,
                 },
             },
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.webGetSpotMarketsProducts ();
         let markets = response['data'];
         let result = [];
@@ -958,11 +958,11 @@ module.exports = class okcoinusd extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
         if (body.length < 2)
             return; // fallback to default error handler
         if (body[0] === '{') {
-            let response = JSON.parse (body);
+            response = JSON.parse (body);
             if ('error_code' in response) {
                 let error = this.safeString (response, 'error_code');
                 let message = this.id + ' ' + this.json (response);

@@ -139,7 +139,7 @@ module.exports = class lykke extends Exchange {
         };
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetAssetPairs ();
         //
         //     [ {                Id: "AEBTC",

@@ -127,7 +127,7 @@ module.exports = class lbank extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetAccuracy ();
         let result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -266,9 +266,12 @@ module.exports = class lbank extends Exchange {
 
     async fetchOrderBook (symbol, limit = 60, params = {}) {
         await this.loadMarkets ();
+        let size = 60;
+        if (limit !== undefined)
+            size = Math.min (limit, size);
         let response = await this.publicGetDepth (this.extend ({
             'symbol': this.marketId (symbol),
-            'size': Math.min (limit, 60),
+            'size': size,
         }, params));
         return this.parseOrderBook (response);
     }
@@ -656,7 +659,7 @@ module.exports = class lbank extends Exchange {
             data['sub-nonces'] = {};
         }
         let nonceStr = nonce.toString ();
-        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'sub-nonces']);
+        let handle = this._setTimeout (contextId, this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'sub-nonces']);
         data['sub-nonces'][nonceStr] = handle;
         this._contextSetSymbolData (contextId, event, symbol, data);
         this.websocketSendJson (payload);
@@ -677,7 +680,7 @@ module.exports = class lbank extends Exchange {
             data['unsub-nonces'] = {};
         }
         let nonceStr = nonce.toString ();
-        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'unsub-nonces']);
+        let handle = this._setTimeout (contextId, this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'unsub-nonces']);
         data['unsub-nonces'][nonceStr] = handle;
         this._contextSetSymbolData (contextId, event, symbol, data);
         this.websocketSendJson (payload);

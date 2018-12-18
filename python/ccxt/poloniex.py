@@ -238,16 +238,16 @@ class poloniex (Exchange):
         response = self.publicGetReturnChartData(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetReturnTicker()
         keys = list(markets.keys())
         result = []
         for p in range(0, len(keys)):
             id = keys[p]
             market = markets[id]
-            quote, base = id.split('_')
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            quoteId, baseId = id.split('_')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             minCost = self.safe_float(self.options['limits']['cost']['min'], quote, 0.0)
             precision = {
@@ -257,6 +257,8 @@ class poloniex (Exchange):
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
                 'active': True,
@@ -906,13 +908,17 @@ class poloniex (Exchange):
         return response
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
         response = self.fetch_transactions_helper(code, since, limit, params)
         for i in range(0, len(response['deposits'])):
             response['deposits'][i]['type'] = 'deposit'
         for i in range(0, len(response['withdrawals'])):
             response['withdrawals'][i]['type'] = 'withdrawal'
-        withdrawals = self.parseTransactions(response['withdrawals'], code, since, limit)
-        deposits = self.parseTransactions(response['deposits'], code, since, limit)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        withdrawals = self.parseTransactions(response['withdrawals'], currency, since, limit)
+        deposits = self.parseTransactions(response['deposits'], currency, since, limit)
         transactions = self.array_concat(deposits, withdrawals)
         return self.filterByCurrencySinceLimit(self.sort_by(transactions, 'timestamp'), code, since, limit)
 
@@ -920,14 +926,20 @@ class poloniex (Exchange):
         response = self.fetch_transactions_helper(code, since, limit, params)
         for i in range(0, len(response['withdrawals'])):
             response['withdrawals'][i]['type'] = 'withdrawal'
-        withdrawals = self.parseTransactions(response['withdrawals'], code, since, limit)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        withdrawals = self.parseTransactions(response['withdrawals'], currency, since, limit)
         return self.filterByCurrencySinceLimit(withdrawals, code, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         response = self.fetch_transactions_helper(code, since, limit, params)
         for i in range(0, len(response['deposits'])):
             response['deposits'][i]['type'] = 'deposit'
-        deposits = self.parseTransactions(response['deposits'], code, since, limit)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        deposits = self.parseTransactions(response['deposits'], currency, since, limit)
         return self.filterByCurrencySinceLimit(deposits, code, since, limit)
 
     def parse_transaction_status(self, status):
@@ -987,8 +999,6 @@ class poloniex (Exchange):
             if type == 'deposit':
                 # according to https://poloniex.com/fees/
                 feeCost = 0  # FIXME: remove hardcoded value that may change any time
-            elif type == 'withdrawal':
-                raise ExchangeError('Withdrawal without fee detectednot ')
         return {
             'info': transaction,
             'id': id,
@@ -1027,8 +1037,7 @@ class poloniex (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
-        response = None
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
         try:
             response = json.loads(body)
         except Exception as e:

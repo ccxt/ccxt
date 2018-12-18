@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, NotSupported } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, NotSupported, NetworkError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -106,7 +106,7 @@ module.exports = class gemini extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetSymbols ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
@@ -479,7 +479,7 @@ module.exports = class gemini extends Exchange {
         if (typeof lastSeqId !== 'undefined') {
             lastSeqId = lastSeqId + 1;
             if (lastSeqId !== seqId) {
-                this.emit ('err', new ExchangeError ('sequence id error in exchange: ' + this.id + ' (' + lastSeqId + '+1 !=' + seqId + ')'), contextId);
+                this.emit ('err', new NetworkError ('sequence id error in exchange: ' + this.id + ' (' + lastSeqId.toString () + '+1 !=' + seqId.toString () + ')'), contextId);
                 return;
             }
         }
@@ -509,6 +509,7 @@ module.exports = class gemini extends Exchange {
                         };
                     } else {
                         let timestamp = this.safeFloat (msg, 'timestamp');
+                        timestamp = timestamp * 1000;
                         symbolData['ob']['timestamp'] = timestamp;
                         symbolData['ob']['datetime'] = this.iso8601 (timestamp);
                     }
@@ -555,6 +556,8 @@ module.exports = class gemini extends Exchange {
     }
 
     _websocketOnOpen (contextId, websocketConexConfig) {
+        let undef = undefined;
+        this._contextSet (contextId, 'sequence_id', undef);
         let url = websocketConexConfig['url'];
         let parts = url.split ('?');
         let partsLen = parts.length;

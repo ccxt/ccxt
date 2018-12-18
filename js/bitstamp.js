@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, NotSupported, PermissionDenied, InvalidNonce } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -156,6 +156,7 @@ module.exports = class bitstamp extends Exchange {
                 'Missing key, signature and nonce parameters': AuthenticationError,
                 'Your account is frozen': PermissionDenied,
                 'Please update your profile with your FATCA information, before using API.': PermissionDenied,
+                'Order not found': OrderNotFound,
             },
             'wsconf': {
                 'conx-tpls': {
@@ -180,7 +181,7 @@ module.exports = class bitstamp extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetTradingPairsInfo ();
         let result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -890,13 +891,13 @@ module.exports = class bitstamp extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body) {
+    handleErrors (httpCode, reason, url, method, headers, body, response = undefined) {
         if (typeof body !== 'string')
             return; // fallback to default error handler
         if (body.length < 2)
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
-            let response = JSON.parse (body);
+            response = JSON.parse (body);
             // fetchDepositAddress returns {"error": "No permission found"} on apiKeys that don't have the permission required
             let error = this.safeString (response, 'error');
             let exceptions = this.exceptions;
@@ -933,7 +934,7 @@ module.exports = class bitstamp extends Exchange {
         let chan = this.safeString (msg, 'channel');
         let parts = chan.split ('_');
         let id = 'btcusd';
-        if (parts.length > 2){
+        if (parts.length > 2) {
             id = parts[2];
         }
         let symbol = this.findSymbol (id);
@@ -951,7 +952,7 @@ module.exports = class bitstamp extends Exchange {
         if (chan.indexOf ('order_book') >= 0) {
             let parts = chan.split ('_');
             let id = 'btcusd';
-            if (parts.length > 2){
+            if (parts.length > 2) {
                 id = parts[2];
             }
             let symbol = this.findSymbol (id);
@@ -981,7 +982,7 @@ module.exports = class bitstamp extends Exchange {
         }
         symbolData['limit'] = this.safeInteger (params, 'limit', undefined);
         let nonceStr = nonce.toString ();
-        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'sub-nonce']);
+        let handle = this._setTimeout (contextId, this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'sub-nonce']);
         symbolData['sub-nonces'][nonceStr] = handle;
         this._contextSetSymbolData (contextId, event, symbol, symbolData);
         // send request

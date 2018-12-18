@@ -32,6 +32,7 @@ class braziliex (Exchange):
                 'www': 'https://braziliex.com/',
                 'doc': 'https://braziliex.com/exchange/api.php',
                 'fees': 'https://braziliex.com/exchange/fees.php',
+                'referral': 'https://braziliex.com/?ref=5FE61AB6F6D67DA885BC98BA27223465',
             },
             'api': {
                 'public': {
@@ -132,7 +133,7 @@ class braziliex (Exchange):
             }
         return result
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetTicker()
         ids = list(markets.keys())
         result = []

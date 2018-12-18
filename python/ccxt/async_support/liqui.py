@@ -142,7 +142,7 @@ class liqui (Exchange):
             'cost': cost,
         }
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         response = await self.publicGetInfo()
         markets = response['pairs']
         keys = list(markets.keys())
@@ -694,7 +694,7 @@ class liqui (Exchange):
                     }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response=None):
         if not self.is_json_encoded_object(body):
             return  # fallback to default error handler
         response = json.loads(body)

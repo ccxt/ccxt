@@ -61,8 +61,8 @@ class okex extends okcoinusd {
         );
     }
 
-    public function fetch_markets () {
-        $markets = parent::fetch_markets();
+    public function fetch_markets ($params = array ()) {
+        $markets = parent::fetch_markets($params);
         // TODO => they have a new fee schedule as of Feb 7
         // the new fees are progressive and depend on 30-day traded volume
         // the following is the worst case

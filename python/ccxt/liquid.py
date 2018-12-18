@@ -43,6 +43,7 @@ class liquid (Exchange):
                     'https://developers.quoine.com/v2',
                 ],
                 'fees': 'https://help.liquid.com/getting-started-with-liquid/the-platform/fee-structure',
+                'referral': 'https://www.liquid.com?affiliate=SbzC62lt30976',
             },
             'api': {
                 'public': {
@@ -170,7 +171,7 @@ class liquid (Exchange):
             }
         return result
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetProducts()
         #
         #     [

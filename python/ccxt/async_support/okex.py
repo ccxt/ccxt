@@ -57,8 +57,8 @@ class okex (okcoinusd):
             'cost': float(self.fee_to_precision(symbol, cost)),
         }
 
-    async def fetch_markets(self):
-        markets = await super(okex, self).fetch_markets()
+    async def fetch_markets(self, params={}):
+        markets = await super(okex, self).fetch_markets(params)
         # TODO: they have a new fee schedule as of Feb 7
         # the new fees are progressive and depend on 30-day traded volume
         # the following is the worst case

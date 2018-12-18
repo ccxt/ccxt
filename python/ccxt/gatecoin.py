@@ -222,7 +222,7 @@ class gatecoin (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetReferenceCurrencyPairs()
         markets = response['currencyPairs']
         result = []
@@ -374,8 +374,8 @@ class gatecoin (Exchange):
                 market = self.find_market(marketId)
         fee = None
         feeCost = self.safe_float(trade, 'feeAmount')
-        price = trade['price']
-        amount = trade['quantity']
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'quantity')
         cost = price * amount
         feeCurrency = None
         symbol = None
@@ -650,7 +650,7 @@ class gatecoin (Exchange):
         # not unified yet
         return self.privatePostElectronicWalletUserWalletsDigiCurrency(self.extend(request, params))
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if len(body) < 2:

@@ -111,7 +111,7 @@ module.exports = class exx extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetMarkets ();
         let ids = Object.keys (markets);
         let result = [];
@@ -397,13 +397,13 @@ module.exports = class exx extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body) {
+    handleErrors (httpCode, reason, url, method, headers, body, response = undefined) {
         if (typeof body !== 'string')
             return; // fallback to default error handler
         if (body.length < 2)
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
-            let response = JSON.parse (body);
+            response = JSON.parse (body);
             //
             //  {"result":false,"message":"服务端忙碌"}
             //  ... and other formats
@@ -454,7 +454,7 @@ module.exports = class exx extends Exchange {
         }
         symbolData['limit'] = this.safeInteger (params, 'limit', undefined);
         let nonceStr = nonce.toString ();
-        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'sub-nonce']);
+        let handle = this._setTimeout (contextId, this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'sub-nonce']);
         symbolData['sub-nonces'][nonceStr] = handle;
         this._contextSetSymbolData (contextId, event, symbol, symbolData);
         // send request
@@ -481,7 +481,7 @@ module.exports = class exx extends Exchange {
             symbolData['unsub-nonces'] = {};
         }
         let nonceStr = nonce.toString ();
-        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'unsub-nonces']);
+        let handle = this._setTimeout (contextId, this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'unsub-nonces']);
         symbolData['unsub-nonces'][nonceStr] = handle;
         this._contextSetSymbolData (contextId, event, symbol, symbolData);
         this.websocketSendJson (payload);

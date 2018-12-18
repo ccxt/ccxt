@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -15,6 +15,7 @@ module.exports = class exmo extends Exchange {
             'countries': [ 'ES', 'RU' ], // Spain, Russia
             'rateLimit': 350, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version': 'v1',
+            'parseJsonResponse': false,
             'has': {
                 'CORS': false,
                 'fetchClosedOrders': 'emulated',
@@ -111,17 +112,7 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
-        let response = undefined;
-        let oldParseJsonResponse = this.parseJsonResponse;
-        try {
-            this.parseJsonResponse = false;
-            response = await this.webGetEnDocsFees (params);
-            this.parseJsonResponse = oldParseJsonResponse;
-        } catch (e) {
-            // ensure parseJsonResponse is restored no matter what
-            this.parseJsonResponse = oldParseJsonResponse;
-            throw e;
-        }
+        let response = await this.webGetEnDocsFees (params);
         let parts = response.split ('<td class="th_fees_2" colspan="2">');
         let numParts = parts.length;
         if (numParts !== 2) {
@@ -329,7 +320,7 @@ module.exports = class exmo extends Exchange {
         return result;
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let fees = await this.fetchTradingFees ();
         let markets = await this.publicGetPairSettings ();
         let keys = Object.keys (markets);
@@ -537,12 +528,19 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // their docs does not mention it, but if you don't supply a symbol
+        // their API will return an empty response as if you don't have any trades
+        // therefore we make it required here as calling it without a symbol is useless
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
-        let request = {};
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['pair'] = market['id'];
+        let market = this.market (symbol);
+        let request = {
+            'pair': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
         }
         let response = await this.privatePostUserTrades (this.extend (request, params));
         if (market !== undefined)
@@ -1020,13 +1018,13 @@ module.exports = class exmo extends Exchange {
         return this.milliseconds ();
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body) {
+    handleErrors (httpCode, reason, url, method, headers, body, response = undefined) {
         if (typeof body !== 'string')
             return; // fallback to default error handler
         if (body.length < 2)
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
-            let response = JSON.parse (body);
+            response = JSON.parse (body);
             if ('result' in response) {
                 //
                 //     {"result":false,"error":"Error 50052: Insufficient funds"}
@@ -1058,5 +1056,10 @@ module.exports = class exmo extends Exchange {
                 }
             }
         }
+    }
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
+        return this.parseIfJsonEncodedObject (response);
     }
 };

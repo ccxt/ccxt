@@ -70,7 +70,7 @@ class flowbtc extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicPostGetProductPairs ();
         $markets = $response['productPairs'];
         $result = array ();
