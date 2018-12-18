@@ -107,7 +107,6 @@ const exchanges = {
     'coinspot':                require ('./js/coinspot.js'),
     'cointiger':               require ('./js/cointiger.js'),
     'coolcoin':                require ('./js/coolcoin.js'),
-    'coss':                    require ('./js/coss.js'),
     'crex24':                  require ('./js/crex24.js'),
     'crypton':                 require ('./js/crypton.js'),
     'cryptopia':               require ('./js/cryptopia.js'),
@@ -176,7 +175,7 @@ const exchanges = {
     'yobit':                   require ('./js/yobit.js'),
     'yunbi':                   require ('./js/yunbi.js'),
     'zaif':                    require ('./js/zaif.js'),
-    'zb':                      require ('./js/zb.js'),
+    'zb':                      require ('./js/zb.js'),    
 }
 
 //-----------------------------------------------------------------------------
