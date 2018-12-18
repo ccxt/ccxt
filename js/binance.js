@@ -165,7 +165,7 @@ module.exports = class binance extends Exchange {
                             'stream': '{symbol}@trade',
                         },
                     },
-                    'kline': {
+                    'ohlcv': {
                         'conx-tpl': 'default',
                         'conx-param': {
                             'url': '{baseurl}',
