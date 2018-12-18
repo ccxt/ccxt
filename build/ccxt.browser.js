@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.41'
+const version = '1.18.42'
 
 Exchange.ccxtVersion = version
 
@@ -12860,7 +12860,7 @@ module.exports = class bitmex extends Exchange {
                 headers['api-expires'] = expires;
             } else {
                 auth += nonce;
-                headers['api-nonce'] = this.nonce ();
+                headers['api-nonce'] = nonce;
             }
             if (method === 'POST' || method === 'PUT') {
                 if (Object.keys (params).length) {
