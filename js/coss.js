@@ -24,9 +24,7 @@ module.exports = class coss extends Exchange {
                     'public': 'https://trade.coss.io/c',
                 },
                 'www': 'https://www.coss.io',
-                'doc': [
-                    'https://api.coss.io/v1/spec',
-                ],
+                'doc': 'https://api.coss.io/v1/spec',
             },
             'has': {
                 'fetchMarkets': true,
