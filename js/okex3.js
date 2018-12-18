@@ -780,6 +780,35 @@ module.exports = class okex3 extends Exchange {
         return this.parseBalance (response);
     }
 
+    async fetchSpotBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = this.spotGetAccounts (params);
+        //
+        //     [ {    frozen: "0",
+        //              hold: "0",
+        //                id: "2149632",
+        //          currency: "BTC",
+        //           balance: "0.0000000497717339",
+        //         available: "0.0000000497717339",
+        //             holds: "0"                   },
+        //       {    frozen: "0",
+        //              hold: "0",
+        //                id: "2149632",
+        //          currency: "ETH",
+        //           balance: "0.000835354575",
+        //         available: "0.000835354575",
+        //             holds: "0"               },
+        //       {    frozen: "0",
+        //              hold: "0",
+        //                id: "2149632",
+        //          currency: "ICN",
+        //           balance: "0.00000000925",
+        //         available: "0.00000000925",
+        //             holds: "0"              }       ]
+        //
+
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const defaultFetchBalanceType = this.safeString (this.options, 'defaultFetchBalanceType', 'spot');
