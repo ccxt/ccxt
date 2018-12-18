@@ -194,7 +194,7 @@ module.exports = class coss extends Exchange {
         let marketId = this.marketId (symbol);
         let response = await this.engineGetDp (this.extend ({ 'symbol': marketId }, params));
         let timestamp = this.safeInteger (response, 'time');
-        return this.parseOrderBook (response, timestamp, 'asks', 'bids');
+        return this.parseOrderBook (response, timestamp);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
