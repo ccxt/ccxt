@@ -804,7 +804,7 @@ module.exports = class upbit extends Exchange {
         //                            unit:  1                     },
         //
         return [
-            this.safeInteger (ohlcv, 'timestamp'),
+            this.parse8601 (this.safeString (ohlcv, 'candle_date_time_utc')),
             this.safeFloat (ohlcv, 'opening_price'),
             this.safeFloat (ohlcv, 'high_price'),
             this.safeFloat (ohlcv, 'low_price'),

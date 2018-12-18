@@ -772,7 +772,7 @@ class upbit extends Exchange {
         //                            unit =>  1                     ),
         //
         return array (
-            $this->safe_integer($ohlcv, 'timestamp'),
+            $this->parse8601 ($this->safe_string($ohlcv, 'candle_date_time_utc')),
             $this->safe_float($ohlcv, 'opening_price'),
             $this->safe_float($ohlcv, 'high_price'),
             $this->safe_float($ohlcv, 'low_price'),

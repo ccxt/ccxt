@@ -153,6 +153,7 @@ class bitmex (Exchange):
                 },
             },
             'options': {
+                'api-expires': None,
                 'fetchTickerQuotes': False,
             },
         })
@@ -585,16 +586,24 @@ class bitmex (Exchange):
         url = self.urls['api'] + query
         if api == 'private':
             self.check_required_credentials()
+            auth = method + query
+            expires = self.safe_integer(self.options, 'api-expires')
             nonce = str(self.nonce())
-            auth = method + query + nonce
+            headers = {
+                'Content-Type': 'application/json',
+                'api-key': self.apiKey,
+            }
+            if expires is not None:
+                expires = self.sum(self.seconds(), expires)
+                expires = str(expires)
+                auth += expires
+                headers['api-expires'] = expires
+            else:
+                auth += nonce
+                headers['api-nonce'] = self.nonce()
             if method == 'POST' or method == 'PUT':
                 if params:
                     body = self.json(params)
                     auth += body
-            headers = {
-                'Content-Type': 'application/json',
-                'api-nonce': nonce,
-                'api-key': self.apiKey,
-                'api-signature': self.hmac(self.encode(auth), self.encode(self.secret)),
-            }
+            headers['api-signature'] = self.hmac(self.encode(auth), self.encode(self.secret))
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
