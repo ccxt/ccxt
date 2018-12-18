@@ -621,18 +621,49 @@ module.exports = class okex3 extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        let numElements = ohlcv.length;
-        let volumeIndex = (numElements > 6) ? 6 : 5;
-        return [
-            ohlcv[0], // timestamp
-            parseFloat (ohlcv[1]), // Open
-            parseFloat (ohlcv[2]), // High
-            parseFloat (ohlcv[3]), // Low
-            parseFloat (ohlcv[4]), // Close
-            // parseFloat (ohlcv[5]), // quote volume
-            // parseFloat (ohlcv[6]), // base volume
-            parseFloat (ohlcv[volumeIndex]), // okex will return base volume in the 7th element for future markets
-        ];
+        //
+        // spot markets
+        //
+        //       {  close: "0.02684545",
+        //           high: "0.02685084",
+        //            low: "0.02683312",
+        //           open: "0.02683894",
+        //           time: "2018-12-17T20:28:00.000Z",
+        //         volume: "101.457222"                }
+        //
+        // futures
+        //
+        //       [ 1545072720000,
+        //         0.3159,
+        //         0.3161,
+        //         0.3144,
+        //         0.3149,
+        //         22886,
+        //         725179.26172331 ]
+        //
+        if (Array.isArray (ohlcv)) {
+            let numElements = ohlcv.length;
+            let volumeIndex = (numElements > 6) ? 6 : 5;
+            return [
+                ohlcv[0], // timestamp
+                parseFloat (ohlcv[1]), // (O) Open
+                parseFloat (ohlcv[2]), // (H) High
+                parseFloat (ohlcv[3]), // (L) Low
+                parseFloat (ohlcv[4]), // (C) Close
+                // parseFloat (ohlcv[5]), // (V) quote volume
+                // parseFloat (ohlcv[6]), // (V) base volume
+                parseFloat (ohlcv[volumeIndex]), // (V) okex will return base volume in the 7th element for future markets
+            ];
+        } else {
+            return [
+                this.parse8601 (this.safeString (ohlcv, 'time')),
+                this.safeFloat (ohlcv, 'open'),  // (O) Open
+                this.safeFloat (ohlcv, 'high'),  // (H) High
+                this.safeFloat (ohlcv, 'low'),   // (L) Low
+                this.safeFloat (ohlcv, 'close'), // (C) Close
+                this.safeFloat (ohlcv, 'volume'), // (V) base volume
+            ];
+        }
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
