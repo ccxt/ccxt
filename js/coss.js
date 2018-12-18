@@ -57,6 +57,9 @@ module.exports = class coss extends Exchange {
                     'get': [
                         'coins/getinfo/all',
                         'order/symbols',
+                        'getmarketsummaries',  // broken on COSS's end
+                        'market-price',
+                        'exchange-info',
                     ],
                 },
                 'engine': {
@@ -70,9 +73,6 @@ module.exports = class coss extends Exchange {
                     'get': [
                         'account/balances',
                         'account/details',
-                        'getmarketsummaries',  // fetchTicker (broken on COSS's end)
-                        'market-price',
-                        'exchange-info',
                     ],
                     'post': [
                         'order/add',
