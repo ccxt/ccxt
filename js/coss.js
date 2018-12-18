@@ -17,7 +17,7 @@ module.exports = class coss extends Exchange {
             'version': 'v1',
             'comment': 'Certified exchange',
             'urls': {
-                'logo': 'https://example.com/image.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/50185321-88c99c00-0328-11e9-8bc1-0ce1f7606ef3.jpg',
                 'api': {
                     'trade': 'https://trade.coss.io/c/api/v1',
                     'engine': 'https://engine.coss.io/api/v1',
