@@ -164,7 +164,7 @@ module.exports = class coss extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOHLCV (symbol, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let marketId = this.marketId (symbol);
         let response = await this.engineGetCs (this.extend ({ 'symbol': marketId, 'tt': '1m' }, params));
