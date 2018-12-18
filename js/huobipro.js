@@ -750,7 +750,7 @@ module.exports = class huobipro extends Exchange {
                 }
             }
         }
-        if (type === 'limit') {
+        if (type === 'limit' || type === 'ioc' || type === 'limit-maker') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         let method = this.options['createOrderMethod'];
