@@ -202,7 +202,8 @@ module.exports = class coss extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let marketId = market['id'];
-        let response = await this.tradePostOrderListCompleted (this.extend ({  // returns partial fills also
+        // returns partial fills also
+        let response = await this.tradePostOrderListCompleted (this.extend ({
             'symbol': marketId,
             'timestamp': this.nonce (),
             'limit': limit,
@@ -324,7 +325,7 @@ module.exports = class coss extends Exchange {
                 };
             }
         } else {
-            body = JSON.stringify (params);
+            body = this.json (params);
             headers = {
                 'Signature': this.hmac (body, this.secret, 'sha256', 'hex'),
                 'Authorization': this.apiKey,
