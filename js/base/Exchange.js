@@ -1165,11 +1165,7 @@ module.exports = class Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        if (Array.isArray (ohlcv)) {
-            return [parseInt (ohlcv[0])].concat (ohlcv.slice (1,6).map (parseFloat))
-        } else {
-            return ohlcv
-        }
+        return Array.isArray (ohlcv) ? ohlcv.slice (0, 6) : ohlcv
     }
 
     parseOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
