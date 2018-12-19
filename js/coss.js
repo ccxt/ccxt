@@ -117,7 +117,7 @@ module.exports = class coss extends Exchange {
                     'withdraw': {},
                     'deposit': {},
                 },
-            }
+            },
         });
     }
 
