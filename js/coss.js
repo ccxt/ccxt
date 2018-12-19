@@ -639,11 +639,7 @@ module.exports = class coss extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
-        if (api === 'public' || api === 'engine' || api === 'web') {
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
-            }
-        } else {
+        if (api === 'trade') {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ();
             const query = this.extend ({
@@ -662,6 +658,10 @@ module.exports = class coss extends Exchange {
                 'Signature': this.hmac (request, this.secret),
                 'Authorization': this.apiKey,
             };
+        } else {
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
