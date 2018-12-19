@@ -343,6 +343,7 @@ class bitstamp extends Exchange {
         $orderId = $this->safe_string($trade, 'order_id');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
+        $cost = $this->safe_float($trade, 'cost');
         $id = $this->safe_string_2($trade, 'tid', 'id');
         if ($market === null) {
             $keys = is_array ($trade) ? array_keys ($trade) : array ();
@@ -364,6 +365,7 @@ class bitstamp extends Exchange {
         if ($market !== null) {
             $price = $this->safe_float($trade, $market['symbolId'], $price);
             $amount = $this->safe_float($trade, $market['baseId'], $amount);
+            $cost = $this->safe_float($trade, $market['quoteId'], $cost);
             $feeCurrency = $market['quote'];
             $symbol = $market['symbol'];
         }
@@ -375,10 +377,11 @@ class bitstamp extends Exchange {
             }
             $amount = abs ($amount);
         }
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
+        if ($cost === null) {
+            if ($price !== null) {
+                if ($amount !== null) {
+                    $cost = $price * $amount;
+                }
             }
         }
         if ($cost !== null) {
