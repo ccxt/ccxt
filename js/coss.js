@@ -239,11 +239,8 @@ module.exports = class coss extends Exchange {
                 const parts = decimalFormat.split ('.');
                 const numParts = parts.length; // transpiler workaround for array lengths
                 if (numParts > 1) {
-                    const decimalPart = parts[1];
-                    const decimalsParts = decimalPart.split ('');
-                    const numDecimalParts = decimalsParts.length;
-                    if (numDecimalParts > 1) {
-                        precision = numDecimalParts;
+                    if (parts[1].length > 1) {
+                        precision = parts[1].length;
                     }
                 }
             }
