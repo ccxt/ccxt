@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.47'
+const version = '1.18.48'
 
 Exchange.ccxtVersion = version
 
@@ -14613,10 +14613,15 @@ module.exports = class bitstamp extends Exchange {
                 price = cost / filled;
             }
         }
-        let fee = {
-            'cost': feeCost,
-            'currency': feeCurrency,
-        };
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            if (feeCurrency !== undefined) {
+                fee = {
+                    'cost': feeCost,
+                    'currency': feeCurrency,
+                };
+            }
+        }
         return {
             'id': id,
             'datetime': this.iso8601 (timestamp),
@@ -14643,8 +14648,19 @@ module.exports = class bitstamp extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let orders = await this.privatePostOpenOrdersAll ();
-        return this.parseOrders (orders, market, since, limit);
+        const response = await this.privatePostOpenOrdersAll (params);
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const order = this.parseOrder (response[i], market, since, limit);
+            result.push (this.extend (order, {
+                'status': 'open',
+                'type': 'limit',
+            }));
+        }
+        if (symbol === undefined) {
+            return this.filterBySinceLimit (result, since, limit);
+        }
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
     getCurrencyName (code) {

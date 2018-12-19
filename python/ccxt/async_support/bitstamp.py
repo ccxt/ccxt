@@ -698,10 +698,13 @@ class bitstamp (Exchange):
         elif price is None:
             if filled > 0:
                 price = cost / filled
-        fee = {
-            'cost': feeCost,
-            'currency': feeCurrency,
-        }
+        fee = None
+        if feeCost is not None:
+            if feeCurrency is not None:
+                fee = {
+                    'cost': feeCost,
+                    'currency': feeCurrency,
+                }
         return {
             'id': id,
             'datetime': self.iso8601(timestamp),
@@ -726,8 +729,17 @@ class bitstamp (Exchange):
         await self.load_markets()
         if symbol is not None:
             market = self.market(symbol)
-        orders = await self.privatePostOpenOrdersAll()
-        return self.parse_orders(orders, market, since, limit)
+        response = await self.privatePostOpenOrdersAll(params)
+        result = []
+        for i in range(0, len(response)):
+            order = self.parse_order(response[i], market, since, limit)
+            result.append(self.extend(order, {
+                'status': 'open',
+                'type': 'limit',
+            }))
+        if symbol is None:
+            return self.filter_by_since_limit(result, since, limit)
+        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
     def get_currency_name(self, code):
         if code == 'BTC':
