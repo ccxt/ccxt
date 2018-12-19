@@ -5,11 +5,13 @@ from autobahn.asyncio.websocket import WebSocketClientProtocol, \
     WebSocketClientFactory
 import asyncio
 from urllib.parse import urlparse
-import json, sys
+import json
+import sys
 
 CLIENT = 'ccxt-light-client'
 VERSION = '1.0'
 PROTOCOL = '7'
+
 
 class MyClientProtocol(WebSocketClientProtocol):
     def __init__(self, event_emitter, future, loop, verbose):
@@ -26,7 +28,7 @@ class MyClientProtocol(WebSocketClientProtocol):
     def resetActivityCheck(self):
         if self._activity_timer is not None:
             self._activity_timer.cancel()
-            
+
         if self.is_closing:
             return
 
@@ -38,8 +40,9 @@ class MyClientProtocol(WebSocketClientProtocol):
                         sys.stdout.flush()
                     self.sendMessage(json.dumps({
                         'event': 'pusher:ping',
-                        'data' : {}
+                        'data': {}
                     }).encode('utf8'))
+
                 # Wait for pong response
                 def wait4pong():
                     if not self.is_closing:
@@ -65,7 +68,7 @@ class MyClientProtocol(WebSocketClientProtocol):
             sys.stdout.flush()
         if self.is_closing:
             return
-        self.resetActivityCheck ()
+        self.resetActivityCheck()
         if isBinary:
             msg = json.loads(payload)
         else:
@@ -79,7 +82,7 @@ class MyClientProtocol(WebSocketClientProtocol):
         elif msg['event'] == 'pusher:ping':
             self.sendMessage(json.dumps({
                 'event': 'pusher:pong',
-                'data' : {}
+                'data': {}
             }).encode('utf8'))
         elif msg['event'] == 'pusher_internal:subscription_succeeded':
             channel = msg['channel']
@@ -89,7 +92,7 @@ class MyClientProtocol(WebSocketClientProtocol):
             }))
         elif msg['event'] == 'pusher:error':
             # {"event":"pusher:error","data":{"code":null,"message":"Unsupported event received on socket: subscribe"}
-            self.event_emitter.emit ('err', msg['data']['message'])
+            self.event_emitter.emit('err', msg['data']['message'])
         else:
             event_data = json.loads(msg['data'])
             channel = msg['channel']
@@ -116,9 +119,8 @@ class PusherLightConnection(WebsocketBaseConnection):
         self.timeout = timeout
         self.loop = loop  # type: asyncio.BaseEventLoop
         self.client = None
-        self.urlParam = '?client='+CLIENT+'&version='+VERSION+'&protocol='+PROTOCOL
+        self.urlParam = '?client=' + CLIENT + '&version=' + VERSION + '&protocol=' + PROTOCOL
 
-    
     # def connect (self):
     async def connect(self):
         if (self.client is not None) and (self.client.state == WebSocketClientProtocol.STATE_OPEN):
@@ -170,14 +172,14 @@ class PusherLightConnection(WebsocketBaseConnection):
         if self.client is not None:
             json_data = json.loads(data)
             if json_data['event'] == 'subscribe':
-                self.client.sendMessage (json.dumps({
+                self.client.sendMessage(json.dumps({
                     'event': 'pusher:subscribe',
                     'data': {
                         'channel': json_data['channel']
                     }
                 }).encode('utf8'))
             elif json_data['event'] == 'unsubscribe':
-                self.client.sendMessage (json.dumps({
+                self.client.sendMessage(json.dumps({
                     'event': 'pusher:unsubscribe',
                     'data': {
                         'channel': json_data['channel']

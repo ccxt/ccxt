@@ -19,7 +19,6 @@ import sys
 import yarl
 import re
 import json
-import sys
 
 # -----------------------------------------------------------------------------
 
@@ -42,9 +41,6 @@ from ccxt.async_support.websocket.websocket_connection import WebsocketConnectio
 from ccxt.async_support.websocket.pusher_light_connection import PusherLightConnection
 from ccxt.async_support.websocket.socketio_light_connection import SocketIoLightConnection
 from pyee import EventEmitter
-import zlib
-import gzip
-import io
 
 # -----------------------------------------------------------------------------
 
@@ -365,7 +361,6 @@ class Exchange(BaseExchange, EventEmitter):
             if (bidAsk[1] != 0):
                 # insert
                 currentBidsAsks.insert(index, bidAsk)
-
 
     def mergeOrderBookDelta(self, currentOrderBook, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
         bids = self.parse_bids_asks2(orderbook[bids_key], price_key, amount_key) if (bids_key in orderbook) and isinstance(orderbook[bids_key], list) else []
@@ -769,7 +764,7 @@ class Exchange(BaseExchange, EventEmitter):
             ret['asks'] = ob['asks'][:limit]
         return ret
 
-    def _executeAndCallback (self, contextId, method, params, callback, context={}, this_param=None):
+    def _executeAndCallback(self, contextId, method, params, callback, context={}, this_param=None):
         this_param = this_param if (this_param is not None) else self
         eself = self
         # future = asyncio.Future()
@@ -940,14 +935,14 @@ class Exchange(BaseExchange, EventEmitter):
         # return the 'wrapper'
         return periodic
 
-    def gunzip (self, data):
+    def gunzip(self, data):
         # return data.decode('zlib_codec').decode('utf8')
         # return zlib.decompress(data, 16+zlib.MAX_WBITS)
         return "{}"
         # return gzip.GzipFile(fileobj=StringIO(data)).read()
-        #in_ = io.BytesIO()
-        #in_.write(data)
-        #in_.seek(0)
-        #with gzip.GzipFile(fileobj=in_, mode='rb') as fo:
+        # in_ = io.BytesIO()
+        # in_.write(data)
+        # in_.seek(0)
+        # with gzip.GzipFile(fileobj=in_, mode='rb') as fo:
         #    gunzipped_bytes_obj = fo.read()
-        #return gunzipped_bytes_obj.decode()
+        # return gunzipped_bytes_obj.decode()

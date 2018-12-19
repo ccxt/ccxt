@@ -23,7 +23,6 @@ async def main():
     secret = 'do not care'
     limit = 2
     symbol = 'ETH/BTC'
-    
 
     exchange = getattr(ccxt, exchange_id)({
         "apiKey": apiKey,
@@ -49,8 +48,6 @@ async def main():
 
     sys.stdout.flush()
 
-    
-
     print("subscribe: " + symbol)
     sys.stdout.flush()
     await exchange.websocket_subscribe('ob', symbol, {'limit': limit})
@@ -61,7 +58,6 @@ async def main():
     # print(ob)
     sys.stdout.flush()
     await asyncio.sleep(15)
-
 
     print("unsubscribe: " + symbol)
     sys.stdout.flush()

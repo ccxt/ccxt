@@ -149,11 +149,7 @@ module.exports = class okex extends okcoinusd {
         if (typeof heartbeatTimer !== 'undefined') {
             this._cancelTimer (heartbeatTimer);
         }
-        heartbeatTimer = this._setTimer (contextId, 
-            30000,
-            this._websocketMethodMap ('_websocketSendHeartbeat'),
-            [contextId]
-        );
+        heartbeatTimer = this._setTimer (contextId, 30000, this._websocketMethodMap ('_websocketSendHeartbeat'), [contextId]);
         this._contextSet (contextId, 'heartbeattimer', heartbeatTimer);
     }
 
