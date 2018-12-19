@@ -31,7 +31,6 @@ module.exports = class coss extends Exchange {
             'has': {
                 'fetchTrades': true,
                 'fetchTicker': false, // temporarily
-                'fetchTickers': true,
                 'fetchMarkets': true,
                 'fetchCurrencies': true,
                 'fetchBalance': true,
@@ -389,7 +388,10 @@ module.exports = class coss extends Exchange {
         //
         let timestamp = this.parse8601 (this.safeString (ticker, 'TimeStamp'));
         let symbol = undefined;
-        const marketId = this.safeString (ticker, 'MarketName');
+        let marketId = this.safeString (ticker, 'MarketName');
+        if (marketId !== undefined) {
+            marketId = marketId.replace ('-', '_');
+        }
         market = this.safeValue (this.markets_by_id, marketId, market);
         if (market === undefined) {
             if (marketId !== undefined) {
