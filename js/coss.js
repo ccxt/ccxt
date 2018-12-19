@@ -439,21 +439,25 @@ module.exports = class coss extends Exchange {
         };
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersByType (type, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
-            // 'from_id': 'b2a2d379-f9b6-418b-9414-cbf8330b20d1', string (uuid)
+            'symbol': market['id'], // required
+            // 'from_id': 'b2a2d379-f9b6-418b-9414-cbf8330b20d1', // string (uuid), fetchOrders (all orders) only!
+            // 'page': 0, // different pagination in fetchOpenOrders and fetchClosedOrders
             // 'limit': 50, // optional, max = default = 50
         };
         if (limit !== undefined) {
             request['limit'] = limit; // max = default = 50
         }
-        const response = await this.tradePostOrderListAll (this.extend (request, params));
+        const method = 'tradePostOrderList' + type;
+        const response = await this[method] (this.extend (request, params));
+        //
+        // fetchOrders, fetchClosedOrders
         //
         //     [ {       hex_id: "5c192784330fe51149f556bb",
         //             order_id: "5e46e1b1-93d5-4656-9b43-a5635b08eae9",
@@ -471,39 +475,7 @@ module.exports = class coss extends Exchange {
         //                  avg: "0.00065900",
         //                total: "0.00659000 ETH"                        }  ]
         //
-        return this.parseOrders (response, market, since, limit);
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let marketId = market['id'];
-        // returns partial fills also
-        let response = await this.tradePostOrderListCompleted (this.extend ({
-            'symbol': marketId,
-            'limit': limit,
-        }, params));
-        let orders = this.parseOrders (response['list'], market, since, limit);
-        return this.filterBy (orders, 'status', 'closed');
-    }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-            // "page": 0,
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this.tradePostOrderListOpen (this.extend (request, params));
+        // fetchOpenOrders
         //
         //     {
         //         "total": 2,
@@ -526,7 +498,26 @@ module.exports = class coss extends Exchange {
         //         ]
         //     }
         //
-        return this.parseOrders (response['list'], market, since, limit);
+        // the following code is to handle the above difference in response formats
+        let orders = undefined;
+        if (Array.isArray (response)) {
+            orders = response;
+        } else {
+            orders = this.safeValue (response, 'list', []);
+        }
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByType ('All', symbol, since, limit, params);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByType ('Completed', symbol, since, limit, params);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByType ('Open', symbol, since, limit, params);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
