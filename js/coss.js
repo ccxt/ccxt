@@ -446,10 +446,10 @@ module.exports = class coss extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'], // required
-            // 'from_id': 'b2a2d379-f9b6-418b-9414-cbf8330b20d1', // string (uuid), fetchOrders (all orders) only!
+            // 'from_id': 'b2a2d379-f9b6-418b-9414-cbf8330b20d1', // string (uuid), fetchOrders (all orders) only
             // 'page': 0, // different pagination in fetchOpenOrders and fetchClosedOrders
             // 'limit': 50, // optional, max = default = 50
+            'symbol': market['id'], // required
         };
         if (limit !== undefined) {
             request['limit'] = limit; // max = default = 50
