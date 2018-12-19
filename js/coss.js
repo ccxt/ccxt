@@ -373,6 +373,55 @@ module.exports = class coss extends Exchange {
         return this.parseOrderBook (response, timestamp);
     }
 
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.exchangeGetGetmarketsummaries (params);
+        //
+        //     { success:    true,
+        //       message:   "",
+        //        result: [ { MarketName: "COSS-ETH",
+        //                          High:  0.00066,
+        //                           Low:  0.000628,
+        //                    BaseVolume:  131.09652674,
+        //                          Last:  0.000636,
+        //                     TimeStamp: "2018-12-19T05:16:41.369Z",
+        //                        Volume:  206126.6143710692,
+        //                           Ask: "0.00063600",
+        //                           Bid: "0.00063400",
+        //                       PrevDay:  0.000636                   },
+        //                  ...
+        //                  { MarketName: "XLM-BTC",
+        //                          High:  0.0000309,
+        //                           Low:  0.0000309,
+        //                    BaseVolume:  0,
+        //                          Last:  0.0000309,
+        //                     TimeStamp: "2018-12-19T02:00:02.145Z",
+        //                        Volume:  0,
+        //                           Ask: "0.00003300",
+        //                           Bid: "0.00003090",
+        //                       PrevDay:  0.0000309                  }  ],
+        //       volumes: [ { CoinName: "ETH", Volume: 668.1928095999999 }, // these are overall exchange volumes
+        //                  { CoinName: "USD", Volume: 9942.58480324 },
+        //                  { CoinName: "BTC", Volume: 43.749184570000004 },
+        //                  { CoinName: "COSS", Volume: 909909.26644574 },
+        //                  { CoinName: "EUR", Volume: 0 },
+        //                  { CoinName: "TUSD", Volume: 2613.3395026999997 },
+        //                  { CoinName: "USDT", Volume: 1017152.07416519 },
+        //                  { CoinName: "GUSD", Volume: 1.80438 },
+        //                  { CoinName: "XRP", Volume: 15.95508 },
+        //                  { CoinName: "GBP", Volume: 0 },
+        //                  { CoinName: "USDC", Volume: 0 }                   ],
+        //             t:    1545196604371                                       }
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const ticker = this.parseTicker (response[i]);
+            const symbol = ticker['symbol'];
+            result[symbol] = ticker;
+        }
+        return result;
+    }
+
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
