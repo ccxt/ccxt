@@ -490,17 +490,42 @@ module.exports = class coss extends Exchange {
         return this.filterBy (orders, 'status', 'closed');
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
         }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let marketId = market['id'];
-        let response = await this.tradePostOrderListOpen (this.extend ({
-            'symbol': marketId,
-            'limit': limit,
-        }, params));
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            // "page": 0,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.tradePostOrderListOpen (this.extend (request, params));
+        //
+        //     {
+        //         "total": 2,
+        //         "list": [
+        //             {
+        //                 "order_id": "9e5ae4dd-3369-401d-81f5-dff985e1c4ty",
+        //                 "account_id": "9e5ae4dd-3369-401d-81f5-dff985e1c4a6",
+        //                 "order_symbol": "eth-btc",
+        //                 "order_side": "BUY",
+        //                 "status": "OPEN",
+        //                 "createTime": 1538114348750,
+        //                 "type": "limit",
+        //                 "order_price": "0.12345678",
+        //                 "order_size": "10.12345678",
+        //                 "executed": "0",
+        //                 "stop_price": "02.12345678",
+        //                 "avg": "1.12345678",
+        //                 "total": "2.12345678"
+        //             }
+        //         ]
+        //     }
+        //
         return this.parseOrders (response['list'], market, since, limit);
     }
 
