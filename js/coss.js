@@ -23,6 +23,7 @@ module.exports = class coss extends Exchange {
                     'engine': 'https://engine.coss.io/api/v1',
                     'public': 'https://trade.coss.io/c/api/v1',
                     'web': 'https://trade.coss.io/c', // undocumented
+                    'exchange': 'https://exchange.coss.io/api',
                 },
                 'www': 'https://www.coss.io',
                 'doc': 'https://api.coss.io/v1/spec',
@@ -56,9 +57,13 @@ module.exports = class coss extends Exchange {
                 '1w': '1w',
             },
             'api': {
+                'exchange': {
+                    'get': [
+                        'getmarketsummaries',
+                    ],
+                },
                 'public': {
                     'get': [
-                        'getmarketsummaries', // broken on COSS's end
                         'market-price',
                         'exchange-info',
                     ],
