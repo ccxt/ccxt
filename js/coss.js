@@ -511,6 +511,23 @@ module.exports = class coss extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         "order_id": "9e5ae4dd-3369-401d-81f5-dff985e1c4ty",
+        //         "account_id": "9e5ae4dd-3369-401d-81f5-dff985e1c4a6",
+        //         "order_symbol": "eth-btc",
+        //         "order_side": "BUY",
+        //         "status": "OPEN",
+        //         "createTime": 1538114348750,
+        //         "type": "limit",
+        //         "order_price": "0.12345678",
+        //         "order_size": "10.12345678",
+        //         "executed": "0",
+        //         "stop_price": "02.12345678",
+        //         "avg": "1.12345678",
+        //         "total": "2.12345678"
+        //     }
+        //
         let symbol = this.markets_by_id[order['order_symbol']]['symbol'];
         let timestamp = this.safeInteger (order, 'createTime');
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -544,16 +561,33 @@ module.exports = class coss extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let marketId = market['id'];
-        let response = await this.tradePostOrderAdd (this.extend ({
-            'order_symbol': marketId,
+        const market = this.market (symbol);
+        const request = {
+            'order_symbol': market['id'],
             'order_price': this.priceToPrecision (symbol, price),
             'order_size': this.amountToPrecision (symbol, amount),
             'order_side': side.toUpperCase (),
             'type': type,
             'timestamp': this.nonce (),
-        }, params));
+        };
+        const response = await this.tradePostOrderAdd (this.extend (request, params));
+        //
+        //     {
+        //         "order_id": "9e5ae4dd-3369-401d-81f5-dff985e1c4ty",
+        //         "account_id": "9e5ae4dd-3369-401d-81f5-dff985e1c4a6",
+        //         "order_symbol": "eth-btc",
+        //         "order_side": "BUY",
+        //         "status": "OPEN",
+        //         "createTime": 1538114348750,
+        //         "type": "limit",
+        //         "order_price": "0.12345678",
+        //         "order_size": "10.12345678",
+        //         "executed": "0",
+        //         "stop_price": "02.12345678",
+        //         "avg": "1.12345678",
+        //         "total": "2.12345678"
+        //     }
+        //
         return this.parseOrder (response, market);
     }
 
