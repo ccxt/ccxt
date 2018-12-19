@@ -31,6 +31,7 @@ module.exports = class coss extends Exchange {
             'has': {
                 'fetchTrades': true,
                 'fetchTicker': false, // temporarily
+                'fetchTickers': true,
                 'fetchMarkets': true,
                 'fetchCurrencies': true,
                 'fetchBalance': true,
