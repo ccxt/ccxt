@@ -621,7 +621,6 @@ module.exports = class coss extends Exchange {
                 'Signature': this.hmac (request, this.secret),
                 'Authorization': this.apiKey,
             };
-
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
