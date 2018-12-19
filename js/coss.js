@@ -125,24 +125,24 @@ module.exports = class coss extends Exchange {
         //                             price_limit_decimal:  3,
         //                                   allow_trading:  true       }     ]               }
         //
-        let result = [];
+        const result = [];
         const markets = this.safeValue (response, 'symbols', []);
         const baseCurrencies = this.safeValue (response, 'base_currencies', []);
         const baseCurrenciesByIds = this.indexBy (baseCurrencies, 'currency_code');
         const currencies = this.safeValue (response, 'coins', []);
         const currenciesByIds = this.indexBy (currencies, 'currency_code');
         for (let i = 0; i < markets.length; i++) {
-            let market = markets[i];
-            let marketId = market['symbol'];
-            let [ baseId, quoteId ] = marketId.split ('_');
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
-            let precision = {
+            const market = markets[i];
+            const marketId = market['symbol'];
+            const [ baseId, quoteId ] = marketId.split ('_');
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const precision = {
                 'amount': this.safeInteger (market, 'amount_limit_decimal'),
                 'price': this.safeInteger (market, 'price_limit_decimal'),
             };
-            let active = this.safeValue (market, 'allow_trading', false);
+            const active = this.safeValue (market, 'allow_trading', false);
             const baseCurrency = this.safeValue (baseCurrenciesByIds, baseId, {});
             const minCost = this.safeFloat (baseCurrency, 'minimum_total_order');
             const currency = this.safeValue (currenciesByIds, baseId, {});
@@ -178,35 +178,94 @@ module.exports = class coss extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        let result = {};
-        let currencies = await this.webGetCoinsGetinfoAll (params);
-        for (let i = 0; i < currencies.length; i++) {
-            let info = currencies[i];
-            let currencyId = info['currency_code'];
-            let code = this.commonCurrencyCode (currencyId);
-            let name = info['name'];
-            let limits = {
-                'amount': {
-                    'min': this.safeFloat (info, 'minimum_order_amount'),
-                    'max': undefined,
-                },
-                'withdraw': {
-                    'min': this.safeFloat (info, 'minimum_withdrawn_amount'),
-                    'max': undefined,
-                },
-            };
-            let active = info['allow_buy'] && info['allow_sell'] && info['allow_withdrawn'] && info['allow_deposit'];
-            let fee = this.safeFloat (info, 'withdrawn_fee');
-            let type = this.safeString (info, 'token_type');
+        const response = await this.webGetCoinsGetinfoAll (params);
+        //
+        //     [ {                 currency_code: "VET",
+        //                                  name: "VeChain",
+        //                             buy_limit:  0,
+        //                            sell_limit:  0,
+        //                                  usdt:  0,
+        //                transaction_time_limit:  5,
+        //                                status: "trade",
+        //                         withdrawn_fee: "0.6",
+        //              minimum_withdrawn_amount: "1.2",
+        //                minimum_deposit_amount: "0.6",
+        //                  minimum_order_amount: "0.00000001",
+        //                        decimal_format: "0.########",
+        //                            token_type:  null, // "erc", "eos", "stellar", "tron", "ripple"...
+        //                                buy_at:  0,
+        //                               sell_at:  0,
+        //                              min_rate:  0,
+        //                              max_rate:  0,
+        //                       allow_withdrawn:  false,
+        //                         allow_deposit:  false,
+        //         explorer_website_mainnet_link:  null,
+        //         explorer_website_testnet_link:  null,
+        //            deposit_block_confirmation: "6",
+        //           withdraw_block_confirmation: "0",
+        //                              icon_url: "https://s2.coinmarketcap.com/static/img/coins/32x32/3077.png",
+        //                               is_fiat:  false,
+        //                            allow_sell:  true,
+        //                             allow_buy:  true                                                           }]
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const currencyId = this.safeString (currency, 'currency_code');
+            const code = this.commonCurrencyCode (currencyId);
+            const name = this.safeString (currency, 'name');
+            const allowBuy = this.safeValue (currency, 'allow_buy');
+            const allowSell = this.safeValue (currency, 'allow_sell');
+            const allowWithdrawals = this.safeValue (currency, 'allow_withdrawn');
+            const allowDeposits = this.safeValue (currency, 'allow_deposit');
+            const active = allowBuy && allowSell && allowWithdrawals && allowDeposits;
+            const fee = this.safeFloat (currency, 'withdrawn_fee');
+            const type = this.safeString (currency, 'token_type');
+            //
+            // decimal_format can be anything...
+            //
+            //     0.########
+            //     #.########
+            //     0.##
+            //     '' (empty string)
+            //     0.000000
+            //     null (undefined)
+            //     0.0000
+            //     0.###
+            //
+            const decimalFormat = this.safeString (currency, 'decimal_format');
+            let precision = 8;
+            if (decimalFormat !== undefined) {
+                const parts = decimalFormat.split ('.');
+                const numParts = parts.length; // transpiler workaround for array lengths
+                if (numParts > 1) {
+                    const decimalPart = parts[1];
+                    const decimalsParts = decimalPart.split ('');
+                    const numDecimalParts = decimalsParts.length;
+                    if (numDecimalParts > 1) {
+                        precision = numDecimalParts;
+                    }
+                }
+            }
             result[code] = {
-                'code': code,
                 'id': currencyId,
-                'limits': limits,
+                'code': code,
+                'info': currency,
                 'name': name,
                 'active': active,
                 'fee': fee,
+                'precision': precision,
                 'type': type,
-                'info': info,
+                'limits': {
+                    'amount': {
+                        'min': this.safeFloat (currency, 'minimum_order_amount'),
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeFloat (currency, 'minimum_withdrawn_amount'),
+                        'max': undefined,
+                    },
+                },
             };
         }
         return result;
