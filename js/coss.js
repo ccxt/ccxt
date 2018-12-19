@@ -529,6 +529,23 @@ module.exports = class coss extends Exchange {
         return this.parseTrades (response['history'], market, since, limit);
     }
 
+    parseTradeFee (fee) {
+        if (fee === undefined) {
+            return fee;
+        }
+        const parts = fee.split (' ');
+        const numParts = parts.length;
+        const cost = parts[0];
+        let code = undefined;
+        if (numParts > 1) {
+            code = this.commonCurrencyCode (parts[1]);
+        }
+        return {
+            'cost': cost,
+            'currency': code,
+        };
+    }
+
     parseTrade (trade, market = undefined) {
         //
         // fetchTrades (public)
@@ -539,34 +556,76 @@ module.exports = class coss extends Exchange {
         //        isBuyerMaker:  true,
         //                time:  1545180847535 }
         //
+        // fetchOrderTrades (private)
+        //
+        //     [ {         hex_id:  null,
+        //                 symbol: "COSS_ETH",
+        //               order_id: "ad6f6b47-3def-4add-a5d5-2549a9df1593",
+        //             order_side: "BUY",
+        //                  price: "0.00065900",
+        //               quantity: "10",
+        //                    fee: "0.00700000 COSS",
+        //         additional_fee: "0.00000461 ETH",
+        //                  total: "0.00659000 ETH",
+        //              timestamp:  1545152356075                          } ]
+        //
         const id = this.safeString (trade, 'id');
         const timestamp = this.safeInteger (trade, 'time');
-        const side = undefined;
+        const orderId = this.safeString (trade, 'order_id');
+        let side = this.safeString (trade, 'order_side');
+        if (side !== undefined) {
+            side = side.toLowerCase ();
+        }
         let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
+        const marketId = this.safeString (trade, 'symbol');
+        if (marketId === undefined) {
+            if (market !== undefined) {
+                symbol = market['symbol'];
+            }
+        } else {
+            market = this.safeValue (this.markets_by_id, marketId, market);
+            if (market === undefined) {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.commonCurrencyCode (baseId);
+                const quote = this.commonCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
         }
         let cost = undefined;
         const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'qty');
+        const amount = this.safeFloat2 (trade, 'qty', 'quantity');
         if (amount !== undefined) {
             if (price !== undefined) {
                 cost = price * amount;
             }
         }
-        return {
-            'id': id,
+        const result = {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': 'limit',
+            'id': id,
+            'order': orderId,
+            'type': undefined,
+            'takerOrMaker': undefined,
             'side': side,
             'price': price,
-            'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'amount': amount,
         };
+        const fee = this.parseTradeFee (this.safeString (trade, 'fee'));
+        if (fee !== undefined) {
+            const additionalFee = this.parseTradeFee (this.safeString (trade, 'additional_fee'));
+            if (additionalFee === undefined) {
+                result['fee'] = fee;
+            } else {
+                result['fees'] = [
+                    fee,
+                    additionalFee,
+                ];
+            }
+        }
+        return result;
     }
 
     async fetchOrdersByType (type, symbol = undefined, since = undefined, limit = undefined, params = {}) {
