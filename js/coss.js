@@ -399,6 +399,46 @@ module.exports = class coss extends Exchange {
         return this.parseTrades (response['history'], market, since, limit);
     }
 
+    parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //      {           id:  481322,
+        //               price: "0.00065200",
+        //                 qty: "1.90000000",
+        //        isBuyerMaker:  true,
+        //                time:  1545180847535 }
+        //
+        const id = this.safeString (trade, 'id');
+        const timestamp = this.safeInteger (trade, 'time');
+        const side = undefined;
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        let cost = undefined;
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'qty');
+        if (amount !== undefined) {
+            if (price !== undefined) {
+                cost = price * amount;
+            }
+        }
+        return {
+            'id': id,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
+        };
+    }
+
     async fetchOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a symbol parameter to fetchOrders');
