@@ -38,6 +38,7 @@ module.exports = class coss extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
+                'fetchOrderTrades': true,
                 'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
                 'fetchOHLCV': true,
@@ -655,6 +656,31 @@ module.exports = class coss extends Exchange {
             'order_id': id,
         }, params));
         return this.parseOrder (response);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {
+            'order_id': id,
+        };
+        let response = await this.tradePostOrderTradeDetail (this.extend (request, params));
+        //
+        //     [ {         hex_id:  null,
+        //                 symbol: "COSS_ETH",
+        //               order_id: "ad6f6b47-3def-4add-a5d5-2549a9df1593",
+        //             order_side: "BUY",
+        //                  price: "0.00065900",
+        //               quantity: "10",
+        //                    fee: "0.00700000 COSS",
+        //         additional_fee: "0.00000461 ETH",
+        //                  total: "0.00659000 ETH",
+        //              timestamp:  1545152356075                          } ]
+        //
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseOrderStatus (status) {
