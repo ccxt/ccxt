@@ -692,9 +692,7 @@ module.exports = class kucoin extends Exchange {
             side = order['type'];
         if (side !== undefined)
             side = side.toLowerCase ();
-        let orderId = this.safeString (order, 'orderOid');
-        if (orderId === undefined)
-            orderId = this.safeString (order, 'oid');
+        let orderId = this.safeString2 (order, 'oid', 'orderOid');
         // do not confuse trades with orders
         let trades = undefined;
         if ('dealOrders' in order)
