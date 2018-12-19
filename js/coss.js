@@ -610,26 +610,24 @@ module.exports = class coss extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
+            const timestamp = this.nonce ();
+            const query = this.extend ({
+                'timestamp': timestamp, // required (int64)
+                // 'recvWindow': 10000, // optional (int32)
+            }, params);
+            let request = undefined;
             if (method === 'GET') {
-                if (Object.keys (params).length > 0) {
-                    url = url + '&' + this.urlencode (params);
-                }
-                if (path.indexOf ('account') >= 0) {
-                    const requestParams = { 'recvWindow': '10000', 'timestamp': this.nonce () };
-                    const request = this.implodeParams ('recvWindow={recvWindow}&timestamp={timestamp}', requestParams);
-                    url = url + '?' + request;
-                    headers = {
-                        'Signature': this.hmac (request, this.secret),
-                        'Authorization': this.apiKey,
-                    };
-                }
+                request = this.urlencode (query);
+                url += '?' + request;
             } else {
-                body = this.json (params);
-                headers = {
-                    'Signature': this.hmac (body, this.secret),
-                    'Authorization': this.apiKey,
-                };
+                request = this.json (params);
+                body = request;
             }
+            headers = {
+                'Signature': this.hmac (request, this.secret),
+                'Authorization': this.apiKey,
+            };
+
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
