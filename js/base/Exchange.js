@@ -27,7 +27,10 @@ const {
     , timeout
     , TimedOut
     , buildOHLCVC
-    , decimalToPrecision } = functions
+    , decimalToPrecision
+    , asString
+    , asInteger
+    , asFloat } = functions
 
 const {
     ExchangeError
@@ -297,6 +300,11 @@ module.exports = class Exchange {
 
         // do not delete this line, it is needed for users to be able to define their own fetchImplementation
         this.fetchImplementation = defaultFetch
+
+        // types
+        this.String = asString
+        this.Integer = asInteger
+        this.Decimal = asFloat
 
         this.timeout       = 10000 // milliseconds
         this.verbose       = false

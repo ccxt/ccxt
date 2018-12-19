@@ -21,6 +21,7 @@ const hasProps = o => (o !== undefined) &&
 
 const asFloat   = x => ((isNumber (x) || isString (x)) ? parseFloat (x)     : NaN)
     , asInteger = x => ((isNumber (x) || isString (x)) ? parseInt   (x, 10) : NaN)
+    , asString  = x => (isStringCoercible (x) ? String (x) : undefined)
 
 /*  .............................................   */
 
@@ -38,6 +39,7 @@ module.exports =
 
     , asFloat
     , asInteger
+    , asString
 
     , safeFloat:   (o, k, $default, n =   asFloat (prop (o, k))) => isNumber (n)          ? n          : $default
     , safeInteger: (o, k, $default, n = asInteger (prop (o, k))) => isNumber (n)          ? n          : $default

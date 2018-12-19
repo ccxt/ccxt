@@ -237,6 +237,11 @@ class Exchange(object):
     last_json_response = None
     last_response_headers = None
 
+    # types
+    String = str
+    Integer = int
+    Decimal = float
+
     requiresWeb3 = False
     web3 = None
 
@@ -497,29 +502,26 @@ class Exchange(object):
         except ValueError:  # superclass of JsonDecodeError (python2)
             pass
 
-    @staticmethod
-    def safe_float(dictionary, key, default_value=None):
+    def safe_float(self, dictionary, key, default_value=None):
         value = default_value
         try:
             if isinstance(dictionary, list) and isinstance(key, int) and len(dictionary) > key:
-                value = float(dictionary[key])
+                value = self.Decimal(dictionary[key])
             else:
-                value = float(dictionary[key]) if (key is not None) and (key in dictionary) and (dictionary[key] is not None) else default_value
+                value = self.Decimal(dictionary[key]) if (key is not None) and (key in dictionary) and (dictionary[key] is not None) else default_value
         except ValueError as e:
             value = default_value
         return value
 
-    @staticmethod
-    def safe_string(dictionary, key, default_value=None):
-        return str(dictionary[key]) if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
+    def safe_string(self, dictionary, key, default_value=None):
+        return self.String(dictionary[key]) if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
 
-    @staticmethod
-    def safe_integer(dictionary, key, default_value=None):
+    def safe_integer(self, dictionary, key, default_value=None):
         if key is None or (key not in dictionary):
             return default_value
         value = dictionary[key]
         if isinstance(value, Number) or (isinstance(value, basestring) and value.isnumeric()):
-            return int(value)
+            return self.Integer(value)
         return default_value
 
     @staticmethod

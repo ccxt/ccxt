@@ -218,20 +218,28 @@ class Exchange {
         return explode ($delimiters[0], str_replace ($delimiters, $delimiters[0], $string));
     }
 
-    public static function decimal ($number) {
-        return '' + $number;
+    public static function Decimal ($x) {
+        return (float) $x;
+    }
+
+    public static function String ($x) {
+        return (string) $x;
+    }
+
+    public static function Integer ($x) {
+        return (int) $x;
     }
 
     public static function safe_float ($object, $key, $default_value = null) {
-        return (isset ($object[$key]) && is_numeric ($object[$key])) ? floatval ($object[$key]) : $default_value;
+        return (isset ($object[$key]) && is_numeric ($object[$key])) ? static::Decimal ($object[$key]) : $default_value;
     }
 
     public static function safe_string ($object, $key, $default_value = null) {
-        return (isset ($object[$key]) && is_scalar ($object[$key])) ? strval ($object[$key]) : $default_value;
+        return (isset ($object[$key]) && is_scalar ($object[$key])) ? static::String ($object[$key]) : $default_value;
     }
 
     public static function safe_integer ($object, $key, $default_value = null) {
-        return (isset ($object[$key]) && is_numeric ($object[$key])) ? intval ($object[$key]) : $default_value;
+        return (isset ($object[$key]) && is_numeric ($object[$key])) ? static::Integer ($object[$key]) : $default_value;
     }
 
     public static function safe_value ($object, $key, $default_value = null) {
