@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.44'
+const version = '1.18.45'
 
 Exchange.ccxtVersion = version
 
@@ -14204,6 +14204,7 @@ module.exports = class bitstamp extends Exchange {
         let orderId = this.safeString (trade, 'order_id');
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'amount');
+        let cost = this.safeFloat (trade, 'cost');
         let id = this.safeString2 (trade, 'tid', 'id');
         if (market === undefined) {
             let keys = Object.keys (trade);
@@ -14225,6 +14226,7 @@ module.exports = class bitstamp extends Exchange {
         if (market !== undefined) {
             price = this.safeFloat (trade, market['symbolId'], price);
             amount = this.safeFloat (trade, market['baseId'], amount);
+            cost = this.safeFloat (trade, market['quoteId'], cost);
             feeCurrency = market['quote'];
             symbol = market['symbol'];
         }
@@ -14236,10 +14238,11 @@ module.exports = class bitstamp extends Exchange {
             }
             amount = Math.abs (amount);
         }
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
+        if (cost === undefined) {
+            if (price !== undefined) {
+                if (amount !== undefined) {
+                    cost = price * amount;
+                }
             }
         }
         if (cost !== undefined) {
