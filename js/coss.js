@@ -441,7 +441,7 @@ module.exports = class coss extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' requires a symbol parameter to fetchOrders');
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
         }
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -456,7 +456,7 @@ module.exports = class coss extends Exchange {
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' requires a symbol parameter to fetchOrders');
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires a symbol argument');
         }
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -473,7 +473,7 @@ module.exports = class coss extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' requires a symbol parameter to fetchOrders');
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
         }
         await this.loadMarkets ();
         let market = this.market (symbol);
