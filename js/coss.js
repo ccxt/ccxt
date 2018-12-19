@@ -488,6 +488,11 @@ module.exports = class coss extends Exchange {
         return result;
     }
 
+    async fetchTicker (symbol, params = {}) {
+        let tickers = await this.fetchTickers ([ symbol ], params);
+        return tickers[symbol];
+    }
+
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
