@@ -750,10 +750,15 @@ module.exports = class bitstamp extends Exchange {
                 price = cost / filled;
             }
         }
-        let fee = typeof feeCost !== 'undefined' && feeCurrency ? {
-            'cost': feeCost,
-            'currency': feeCurrency,
-        } : undefined;
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            if (feeCurrency !== undefined) {
+                fee = {
+                    'cost': feeCost,
+                    'currency': feeCurrency,
+                };
+            }
+        }
         return {
             'id': id,
             'datetime': this.iso8601 (timestamp),
@@ -780,13 +785,19 @@ module.exports = class bitstamp extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let ordersResponse = await this.privatePostOpenOrdersAll ();
-        let orders = this.parseOrders (ordersResponse, market, since, limit);
-        for (let i = 0; i < orders.length; i++) {
-            orders[i].status = 'open';
-            orders[i].type = 'limit';
+        const response = await this.privatePostOpenOrdersAll (params);
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const order = this.parseOrder (response[i], market, since, limit);
+            result.push (this.extend (order, {
+                'status': 'open',
+                'type': 'limit',
+            }));
         }
-        return orders;
+        if (symbol === undefined) {
+            return this.filterBySinceLimit (result, since, limit);
+        }
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
     getCurrencyName (code) {
