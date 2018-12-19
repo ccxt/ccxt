@@ -348,9 +348,26 @@ module.exports = class coss extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let marketId = this.marketId (symbol);
-        let response = await this.engineGetDp (this.extend ({ 'symbol': marketId }, params));
-        let timestamp = this.safeInteger (response, 'time');
+        const marketId = this.marketId (symbol);
+        const request = { 'symbol': marketId };
+        // limit argument is not supported on COSS's end
+        const response = await this.engineGetDp (this.extend (request, params));
+        //
+        //     { symbol:   "COSS_ETH",
+        //         asks: [ ["0.00065200", "214.15000000"],
+        //                 ["0.00065300", "645.45000000"],
+        //                 ...
+        //                 ["0.00076400", "380.00000000"],
+        //                 ["0.00076900", "25.00000000"]     ],
+        //        limit:    100,
+        //         bids: [ ["0.00065100", "666.99000000"],
+        //                 ["0.00065000", "1171.93000000"],
+        //                 ...
+        //                 ["0.00037700", "3300.00000000"],
+        //                 ["0.00037600", "2010.82000000"]   ],
+        //         time:    1545180569354                       }
+        //
+        const timestamp = this.safeInteger (response, 'time');
         return this.parseOrderBook (response, timestamp);
     }
 
