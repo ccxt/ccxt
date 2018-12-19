@@ -28,7 +28,7 @@ module.exports = class coss extends Exchange {
                 'doc': 'https://api.coss.io/v1/spec',
             },
             'has': {
-                'fetchTrades': false, // temporarily
+                'fetchTrades': true,
                 'fetchTicker': false, // temporarily
                 'fetchMarkets': true,
                 'fetchCurrencies': true,
