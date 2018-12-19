@@ -15,7 +15,7 @@ module.exports = class coss extends Exchange {
             'country': [ 'SG', 'NL' ],
             'rateLimit': 1000,
             'version': 'v1',
-            'comment': 'Certified exchange',
+            'certified': true,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/50185321-88c99c00-0328-11e9-8bc1-0ce1f7606ef3.jpg',
                 'api': {
