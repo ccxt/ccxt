@@ -18,7 +18,7 @@ loop = asyncio.get_event_loop()
 notRecoverableError = False
 nextRecoverableErrorTimeout = None
 
-async def doUnsubscribe(exchange, symbols, params):
+async def doUnsubscribe(exchange, symbols, params):  # noqa: E302
     for symbol in symbols:
         print('unsubscribe: ' + symbol)
         sys.stdout.flush()
@@ -26,7 +26,7 @@ async def doUnsubscribe(exchange, symbols, params):
         print('unsubscribed: ' + symbol)
         sys.stdout.flush()
 
-async def doSubscribe(exchange, symbols, params):
+async def doSubscribe(exchange, symbols, params):  # noqa: E302
     global nextRecoverableErrorTimeout
     for symbol in symbols:
         if notRecoverableError:
@@ -41,11 +41,12 @@ async def doSubscribe(exchange, symbols, params):
     seconds2wait = randint(5, 10)
     print("NEXT PROGRAMATED WEBSOCKET ERROR AFTER " + str(seconds2wait) + " seconds")
     sys.stdout.flush()
-    def raise_recoverable_error():
+
+    def raise_recoverable_error():  # noqa: E302
         keys = list(exchange.websocketContexts.keys())
-        keyIndex = randint(0, len(keys)-1)
+        keyIndex = randint(0, len(keys) - 1)
         contextId = keys[keyIndex]
-        exchange.websocketContexts[contextId]['conx']['conx'].emit('err','recoverable error')
+        exchange.websocketContexts[contextId]['conx']['conx'].emit('err', 'recoverable error')
     nextRecoverableErrorTimeout = loop.call_later(seconds2wait, raise_recoverable_error)
 
 
@@ -80,7 +81,7 @@ async def main():
         # traceback.print_stack()
         sys.stdout.flush()
         exchange.websocketClose(conxid)
-        if isinstance(err,ccxt.NetworkError):
+        if isinstance(err, ccxt.NetworkError):
             print("waiting 5 seconds ...")
             sys.stdout.flush()
             await asyncio.sleep(5)
@@ -89,10 +90,10 @@ async def main():
                     return
                 print("subscribing again ...")
                 sys.stdout.flush()
-                await doSubscribe (exchange, symbols, {
+                await doSubscribe(exchange, symbols, {
                     'limit': limit,
                 })
-            except ex: 
+            except Exception as ex:
                 print(ex)
                 sys.stdout.flush()
         else:
@@ -112,18 +113,16 @@ async def main():
         sys.stdout.flush()
         # pp.pprint(ob)
 
-
-          
     await exchange.loadMarkets()
 
     def raise_unrecoverable_error():
         keys = list(exchange.websocketContexts.keys())
-        keyIndex = randint(0, len(keys)-1)
+        keyIndex = randint(0, len(keys) - 1)
         contextId = keys[keyIndex]
-        exchange.emit('err', ccxt.ExchangeError ('not recoverable error'), contextId )
+        exchange.emit('err', ccxt.ExchangeError('not recoverable error'), contextId)
     loop.call_later(30, raise_unrecoverable_error)
-        
-    await doSubscribe (exchange, symbols, {
+
+    await doSubscribe(exchange, symbols, {
         'limit': limit
     })
 

@@ -28,15 +28,14 @@ async def main():
     symbol = sys.argv[3]
     params = {}
     for i in range(4, len(sys.argv)):
-        parts = sys.argv[i].split(':',2)
+        parts = sys.argv[i].split(':', 2)
         params[parts[0]] = parts[1]
-
 
     exchange = getattr(ccxt, exchange_id)({
         "apiKey": apiKey,
         "secret": secret,
         "enableRateLimit": True,
-        'verbose':  (params['verbose'] == 'true') if ('verbose' in params) else True,
+        'verbose': (params['verbose'] == 'true') if ('verbose' in params) else True,
         'timeout': 5 * 1000,
         # 'wsproxy': 'http://185.93.3.123:8080/',
     })
@@ -59,7 +58,7 @@ async def main():
     await exchange.websocket_subscribe(event, symbol, params)
     print("subscribed: " + symbol)
 
-#loop.run_until_complete(main())
+# loop.run_until_complete(main())
 try:
     asyncio.ensure_future(main())
     loop.run_forever()

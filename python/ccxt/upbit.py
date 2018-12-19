@@ -744,7 +744,7 @@ class upbit (Exchange):
         #                            unit:  1                     },
         #
         return [
-            self.safe_integer(ohlcv, 'timestamp'),
+            self.parse8601(self.safe_string(ohlcv, 'candle_date_time_utc')),
             self.safe_float(ohlcv, 'opening_price'),
             self.safe_float(ohlcv, 'high_price'),
             self.safe_float(ohlcv, 'low_price'),

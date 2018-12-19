@@ -1163,17 +1163,6 @@ module.exports = class poloniex extends Exchange {
     }
 
     _websocketGenerateUrlStream (events, options) {
-        // let streamList = [];
-        // for (let i = 0; i < events.length; i++) {
-        //     let element = events[i];
-        //     let params = {
-        //         'event': element['event'],
-        //         'symbol': this._websocketMarketId (element['symbol']),
-        //     };
-        //     let streamGenerator = this.wsconf['events'][element['event']]['conx-param']['stream'];
-        //     streamList.push (this.implodeParams (streamGenerator, params));
-        // }
-        // let stream = streamList.join ('/');
         return options['url'];
     }
 

@@ -5,7 +5,8 @@ from autobahn.asyncio.websocket import WebSocketClientProtocol, \
     WebSocketClientFactory
 import asyncio
 from urllib.parse import urlparse
-import json, sys
+import json
+import sys
 
 
 class MyClientProtocol(WebSocketClientProtocol):
@@ -20,13 +21,15 @@ class MyClientProtocol(WebSocketClientProtocol):
         self.ping_timeout = None
         self.loop = loop
         self.verbose = verbose
-    
+
     def createPingProcess(self):
         self.destroyPingProcess()
+
         def wait4pong():
             if not self.is_closing:
                 self.event_emitter.emit('err', 'pong not received from server')
                 self._closeConnection(True)
+
         def do_ping():
             self.ping_interval = self.loop.call_later(self.ping_interval_ms / 1000, do_ping)
             try:
@@ -36,8 +39,8 @@ class MyClientProtocol(WebSocketClientProtocol):
                         sys.stdout.flush()
                     self.cancelPingTimeout()
                     self.sendMessage('2'.encode('utf8'))
-                    #print("ping sent")
-                    #sys.stdout.flush()
+                    # print("ping sent")
+                    # sys.stdout.flush()
                     self.ping_timeout = self.loop.call_later(self.ping_timeout_ms / 1000, wait4pong)
                 else:
                     self.destroyPingProcess()
@@ -50,7 +53,7 @@ class MyClientProtocol(WebSocketClientProtocol):
         if self.ping_interval is not None:
             self.ping_interval.cancel()
             self.ping_interval = None
-        
+
         self.cancelPingTimeout()
 
     def cancelPingTimeout(self):
@@ -75,8 +78,8 @@ class MyClientProtocol(WebSocketClientProtocol):
         data = payload
         if not isBinary:
             data = payload.decode('utf8')
-        #print(payload)
-        #sys.stdout.flush()
+        # print(payload)
+        # sys.stdout.flush()
         if data[0] == '0':
             msg = json.loads(data[1:])
             if 'pingInterval' in msg:
@@ -85,8 +88,8 @@ class MyClientProtocol(WebSocketClientProtocol):
                 self.ping_timeout_ms = msg['pingTimeout']
         elif data[0] == '3':
             self.cancelPingTimeout()
-            #print('pong received')
-            #sys.stdout.flush()
+            # print('pong received')
+            # sys.stdout.flush()
         elif data[0] == '4':
             if data[1] == '2':
                 self.event_emitter.emit('message', data[2:])
@@ -94,10 +97,10 @@ class MyClientProtocol(WebSocketClientProtocol):
                 self.createPingProcess()
                 self.future.done() or self.future.set_result(None)
         elif data[0] == '1':
-            self.event_emitter.emit ('err', 'server sent disconnect message')
+            self.event_emitter.emit('err', 'server sent disconnect message')
             self._closeConnection(True)
         else:
-            print("unknown msg received from iosocket: "+ data)
+            print("unknown msg received from iosocket: " + data)
 
     def onClose(self, wasClean, code, reason):
         self.future.done() or self.future.set_exception(Exception(reason))
@@ -166,7 +169,7 @@ class SocketIoLightConnection(WebsocketBaseConnection):
 
     def send(self, data):
         if self.client is not None:
-            self.client.sendMessage(('42'+data).encode('utf8'))
+            self.client.sendMessage(('42' + data).encode('utf8'))
             pass
 
     def isActive(self):
