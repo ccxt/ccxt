@@ -273,7 +273,7 @@ module.exports = class coss extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.tradeGetAccountBalances ();
+        const response = await this.tradeGetAccountBalances ();
         let result = {};
         for (let i = 0; i < response.length; i++) {
             let info = response[i];
@@ -291,7 +291,7 @@ module.exports = class coss extends Exchange {
         return this.parseBalance (result);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
             parseInt (ohlcv[0]),   // timestamp
             parseFloat (ohlcv[1]), // Open
@@ -476,23 +476,24 @@ module.exports = class coss extends Exchange {
                 url += '?' + this.urlencode (params);
             }
         } else {
+            this.checkRequiredCredentials ();
             if (method === 'GET') {
                 if (Object.keys (params).length > 0) {
                     url = url + '&' + this.urlencode (params);
                 }
                 if (path.indexOf ('account') >= 0) {
-                    let requestParams = { 'recvWindow': '10000', 'timestamp': this.nonce () };
-                    let request = this.implodeParams ('recvWindow={recvWindow}&timestamp={timestamp}', requestParams);
+                    const requestParams = { 'recvWindow': '10000', 'timestamp': this.nonce () };
+                    const request = this.implodeParams ('recvWindow={recvWindow}&timestamp={timestamp}', requestParams);
                     url = url + '?' + request;
                     headers = {
-                        'Signature': this.hmac (request, this.secret, 'sha256', 'hex'),
+                        'Signature': this.hmac (request, this.secret),
                         'Authorization': this.apiKey,
                     };
                 }
             } else {
                 body = this.json (params);
                 headers = {
-                    'Signature': this.hmac (body, this.secret, 'sha256', 'hex'),
+                    'Signature': this.hmac (body, this.secret),
                     'Authorization': this.apiKey,
                 };
             }
