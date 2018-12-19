@@ -439,17 +439,38 @@ module.exports = class coss extends Exchange {
         };
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
         }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let marketId = market['id'];
-        let response = await this.tradePostOrderListAll (this.extend ({
-            'symbol': marketId,
-            'limit': limit,
-        }, params));
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            // 'from_id': 'b2a2d379-f9b6-418b-9414-cbf8330b20d1', string (uuid)
+            // 'limit': 50, // optional, max = default = 50
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // max = default = 50
+        }
+        const response = await this.tradePostOrderListAll (this.extend (request, params));
+        //
+        //     [ {       hex_id: "5c192784330fe51149f556bb",
+        //             order_id: "5e46e1b1-93d5-4656-9b43-a5635b08eae9",
+        //           account_id: "a0c20128-b9e0-484e-9bc8-b8bb86340e5b",
+        //         order_symbol: "COSS_ETH",
+        //           order_side: "BUY",
+        //               status: "filled",
+        //           createTime:  1545152388019,
+        //                 type: "limit",
+        //         timeMatching:  0,
+        //          order_price: "0.00065900",
+        //           order_size: "10",
+        //             executed: "10",
+        //           stop_price: "0.00000000",
+        //                  avg: "0.00065900",
+        //                total: "0.00659000 ETH"                        }  ]
+        //
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -496,6 +517,9 @@ module.exports = class coss extends Exchange {
     }
 
     parseOrderStatus (status) {
+        if (status === undefined) {
+            return status;
+        }
         let statuses = {
             'OPEN': 'open',
             'CANCELLED': 'canceled',
@@ -503,7 +527,7 @@ module.exports = class coss extends Exchange {
             'PARTIAL_FILL': 'open',
             'CANCELLING': 'open',
         };
-        return this.safeString (statuses, status.toUpperCase ());
+        return this.safeString (statuses, status.toUpperCase (), status);
     }
 
     parseOrder (order, market = undefined) {
