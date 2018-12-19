@@ -791,12 +791,15 @@ module.exports = class coss extends Exchange {
         //
         const id = this.safeString (order, 'order_id');
         let symbol = undefined;
-        const marketId = this.safeString (order, 'order_symbol');
+        let marketId = this.safeString (order, 'order_symbol');
         if (marketId === undefined) {
             if (market !== undefined) {
                 symbol = market['symbol'];
             }
         } else {
+            // a minor workaround for lowercase eth-btc symbols
+            marketId = marketId.toUppercase ();
+            marketId = marketId.replace ('-', '_');
             market = this.safeValue (this.markets_by_id, marketId, market);
             if (market === undefined) {
                 const [ baseId, quoteId ] = marketId.split ('_');
