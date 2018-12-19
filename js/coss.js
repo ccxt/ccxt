@@ -27,6 +27,7 @@ module.exports = class coss extends Exchange {
                 },
                 'www': 'https://www.coss.io',
                 'doc': 'https://api.coss.io/v1/spec',
+                'referral': 'https://www.coss.io/c/reg?r=OWCMHQVW2Q',
             },
             'has': {
                 'fetchTrades': true,
