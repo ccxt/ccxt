@@ -806,8 +806,12 @@ module.exports = class cryptopia extends Exchange {
         }, params));
         let address = this.safeString (response['Data'], 'BaseAddress');
         let tag = this.safeString (response['Data'], 'Address');
-        const addressEmpty = address.length < 1;
-        if ((address === undefined) || addressEmpty) {
+        if (address !== undefined) {
+            if (address.length < 1) {
+                address = undefined;
+            }
+        }
+        if (address === undefined) {
             address = tag;
             tag = undefined;
         }
