@@ -448,7 +448,6 @@ module.exports = class coss extends Exchange {
         let marketId = market['id'];
         let response = await this.tradePostOrderListAll (this.extend ({
             'symbol': marketId,
-            'timestamp': this.nonce (),
             'limit': limit,
         }, params));
         return this.parseOrders (response, market, since, limit);
@@ -464,7 +463,6 @@ module.exports = class coss extends Exchange {
         // returns partial fills also
         let response = await this.tradePostOrderListCompleted (this.extend ({
             'symbol': marketId,
-            'timestamp': this.nonce (),
             'limit': limit,
         }, params));
         let orders = this.parseOrders (response['list'], market, since, limit);
@@ -480,7 +478,6 @@ module.exports = class coss extends Exchange {
         let marketId = market['id'];
         let response = await this.tradePostOrderListOpen (this.extend ({
             'symbol': marketId,
-            'timestamp': this.nonce (),
             'limit': limit,
         }, params));
         return this.parseOrders (response['list'], market, since, limit);
@@ -489,7 +486,6 @@ module.exports = class coss extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.tradePostOrderDetails (this.extend ({
-            'timestamp': this.nonce (),
             'order_id': id,
         }));
         let market = undefined;
@@ -568,7 +564,6 @@ module.exports = class coss extends Exchange {
             'order_size': this.amountToPrecision (symbol, amount),
             'order_side': side.toUpperCase (),
             'type': type,
-            'timestamp': this.nonce (),
         };
         const response = await this.tradePostOrderAdd (this.extend (request, params));
         //
@@ -593,7 +588,6 @@ module.exports = class coss extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.tradeDeleteOrderCancel (this.extend ({
-            'timestamp': this.nonce (),
             'order_id': id,
         }, params));
     }
@@ -620,7 +614,7 @@ module.exports = class coss extends Exchange {
                 request = this.urlencode (query);
                 url += '?' + request;
             } else {
-                request = this.json (params);
+                request = this.json (query);
                 body = request;
             }
             headers = {
