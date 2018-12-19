@@ -273,15 +273,29 @@ module.exports = class coss extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.tradeGetAccountBalances ();
-        let result = {};
+        const response = await this.tradeGetAccountBalances (params);
+        //
+        //     [ { currency_code: "ETH",
+        //               address: "0x6820511d43111a941d3e187b9e36ec64af763bde", // deposit address
+        //                 total: "0.20399125",
+        //             available: "0.20399125",
+        //              in_order: "0",
+        //                  memo:  null                                         }, // tag, if any
+        //       { currency_code: "ICX",
+        //               address: "",
+        //                 total: "0",
+        //             available: "0",
+        //              in_order: "0",
+        //                  memo:  null  }                                         ]
+        //
+        const result = {};
         for (let i = 0; i < response.length; i++) {
-            let info = response[i];
-            let currencyId = info['currency_code'];
-            let code = this.currencies_by_id[currencyId]['code'];
-            let total = this.safeFloat (info, 'total');
-            let used = this.safeFloat (info, 'in_order');
-            let free = this.safeFloat (info, 'available');
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'currency_code');
+            const code = this.commonCurrencyCode (currencyId);
+            const total = this.safeFloat (balance, 'total');
+            const used = this.safeFloat (balance, 'in_order');
+            const free = this.safeFloat (balance, 'available');
             result[code] = {
                 'total': total,
                 'used': used,
