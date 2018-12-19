@@ -30,7 +30,7 @@ module.exports = class coss extends Exchange {
             },
             'has': {
                 'fetchTrades': true,
-                'fetchTicker': true,
+                'fetchTicker': false, // temporarily
                 'fetchMarkets': true,
                 'fetchCurrencies': true,
                 'fetchBalance': true,
@@ -721,8 +721,8 @@ module.exports = class coss extends Exchange {
         const market = this.market (symbol);
         const request = {
             'order_symbol': market['id'],
-            'order_price': this.priceToPrecision (symbol, price),
-            'order_size': this.amountToPrecision (symbol, amount),
+            'order_price': parseFloat (this.priceToPrecision (symbol, price)),
+            'order_size': parseFloat (this.amountToPrecision (symbol, amount)),
             'order_side': side.toUpperCase (),
             'type': type,
         };
@@ -748,9 +748,25 @@ module.exports = class coss extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.tradeDeleteOrderCancel (this.extend ({
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
             'order_id': id,
-        }, params));
+            'order_symbol': market['id'],
+        };
+        const response = await this.tradeDeleteOrderCancel (this.extend (request, params));
+        //
+        //     { order_symbol: "COSS_ETH",
+        //           order_id: "30f2d698-39a0-4b9f-a3a6-a179542373bd",
+        //         order_size:  0,
+        //         account_id: "a0c20128-b9e0-484e-9bc8-b8bb86340e5b",
+        //          timestamp:  1545202728814,
+        //         recvWindow:  null                                   }
+        //
+        return this.parseOrder (response);
     }
 
     nonce () {
