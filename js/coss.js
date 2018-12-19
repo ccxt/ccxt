@@ -85,6 +85,8 @@ module.exports = class coss extends Exchange {
                 },
                 'trade': {
                     'get': [
+                        'ping',
+                        'time',
                         'account/balances',
                         'account/details',
                     ],
@@ -94,6 +96,7 @@ module.exports = class coss extends Exchange {
                         'order/list/open',
                         'order/list/completed',
                         'order/list/all',
+                        'order/trade-detail',
                     ],
                     'delete': [
                         'order/cancel',
