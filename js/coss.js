@@ -524,12 +524,8 @@ module.exports = class coss extends Exchange {
         await this.loadMarkets ();
         let response = await this.tradePostOrderDetails (this.extend ({
             'order_id': id,
-        }));
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        return this.parseOrder (response, market);
+        }, params));
+        return this.parseOrder (response);
     }
 
     parseOrderStatus (status) {
@@ -548,21 +544,21 @@ module.exports = class coss extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        //     {
-        //         "order_id": "9e5ae4dd-3369-401d-81f5-dff985e1c4ty",
-        //         "account_id": "9e5ae4dd-3369-401d-81f5-dff985e1c4a6",
-        //         "order_symbol": "eth-btc",
-        //         "order_side": "BUY",
-        //         "status": "OPEN",
-        //         "createTime": 1538114348750,
-        //         "type": "limit",
-        //         "order_price": "0.12345678",
-        //         "order_size": "10.12345678",
-        //         "executed": "0",
-        //         "stop_price": "02.12345678",
-        //         "avg": "1.12345678",
-        //         "total": "2.12345678"
-        //     }
+        //       {       hex_id: "5c192784330fe51149f556bb", // missing in fetchOpenOrders
+        //             order_id: "5e46e1b1-93d5-4656-9b43-a5635b08eae9",
+        //           account_id: "a0c20128-b9e0-484e-9bc8-b8bb86340e5b",
+        //         order_symbol: "COSS_ETH", // coss-eth in docs
+        //           order_side: "BUY",
+        //               status: "filled",
+        //           createTime:  1545152388019,
+        //                 type: "limit",
+        //         timeMatching:  0, // missing in fetchOpenOrders
+        //          order_price: "0.00065900",
+        //           order_size: "10",
+        //             executed: "10",
+        //           stop_price: "0.00000000",
+        //                  avg: "0.00065900",
+        //                total: "0.00659000 ETH"                        }
         //
         let symbol = this.markets_by_id[order['order_symbol']]['symbol'];
         let timestamp = this.safeInteger (order, 'createTime');
