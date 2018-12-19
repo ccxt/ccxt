@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.49'
+const version = '1.18.50'
 
 Exchange.ccxtVersion = version
 
@@ -46246,9 +46246,7 @@ module.exports = class kucoin extends Exchange {
             side = order['type'];
         if (side !== undefined)
             side = side.toLowerCase ();
-        let orderId = this.safeString (order, 'orderOid');
-        if (orderId === undefined)
-            orderId = this.safeString (order, 'oid');
+        let orderId = this.safeString2 (order, 'orderOid', 'oid');
         // do not confuse trades with orders
         let trades = undefined;
         if ('dealOrders' in order)

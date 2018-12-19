@@ -689,9 +689,7 @@ class kucoin (Exchange):
             side = order['type']
         if side is not None:
             side = side.lower()
-        orderId = self.safe_string(order, 'orderOid')
-        if orderId is None:
-            orderId = self.safe_string(order, 'oid')
+        orderId = self.safe_string_2(order, 'orderOid', 'oid')
         # do not confuse trades with orders
         trades = None
         if 'dealOrders' in order:
