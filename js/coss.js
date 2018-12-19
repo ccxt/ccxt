@@ -373,6 +373,68 @@ module.exports = class coss extends Exchange {
         return this.parseOrderBook (response, timestamp);
     }
 
+    parseTicker (ticker, market = undefined) {
+        //
+        //      { MarketName: "COSS-ETH",
+        //              High:  0.00066,
+        //               Low:  0.000628,
+        //        BaseVolume:  131.09652674,
+        //              Last:  0.000636,
+        //         TimeStamp: "2018-12-19T05:16:41.369Z",
+        //            Volume:  206126.6143710692,
+        //               Ask: "0.00063600",
+        //               Bid: "0.00063400",
+        //           PrevDay:  0.000636                   }
+        //
+        let timestamp = this.parse8601 (this.safeString (ticker, 'TimeStamp'));
+        let symbol = undefined;
+        const marketId = this.safeString (ticker, 'MarketName');
+        market = this.safeValue (this.markets_by_id, marketId, market);
+        if (market === undefined) {
+            if (marketId !== undefined) {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.commonCurrencyCode (baseId);
+                const quote = this.commonCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        let previous = this.safeFloat (ticker, 'PrevDay');
+        let last = this.safeFloat (ticker, 'Last');
+        let change = undefined;
+        let percentage = undefined;
+        if (last !== undefined)
+            if (previous !== undefined) {
+                change = last - previous;
+                if (previous > 0)
+                    percentage = (change / previous) * 100;
+            }
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'High'),
+            'low': this.safeFloat (ticker, 'Low'),
+            'bid': this.safeFloat (ticker, 'Bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'Ask'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': previous,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': undefined,
+            'baseVolume': this.safeFloat (ticker, 'Volume'),
+            'quoteVolume': this.safeFloat (ticker, 'BaseVolume'),
+            'info': ticker,
+        };
+    }
+
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.exchangeGetGetmarketsummaries (params);
@@ -413,9 +475,10 @@ module.exports = class coss extends Exchange {
         //                  { CoinName: "USDC", Volume: 0 }                   ],
         //             t:    1545196604371                                       }
         //
+        const tickers = this.safeValue (response, 'result', []);
         const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const ticker = this.parseTicker (response[i]);
+        for (let i = 0; i < tickers.length; i++) {
+            const ticker = this.parseTicker (tickers[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
