@@ -376,6 +376,13 @@ module.exports = class bitstamp extends Exchange {
             }
             amount = Math.abs (amount);
         }
+        if (cost === undefined) {
+            if (price !== undefined) {
+                if (amount !== undefined) {
+                    cost = price * amount;
+                }
+            }
+        }
         if (cost !== undefined) {
             cost = Math.abs (cost);
         }
