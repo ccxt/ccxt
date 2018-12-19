@@ -749,7 +749,10 @@ class cryptopia (Exchange):
         }, params))
         address = self.safe_string(response['Data'], 'BaseAddress')
         tag = self.safe_string(response['Data'], 'Address')
-        if (address is None) or len((address) < 1):
+        if address is not None:
+            if len(address) < 1:
+                address = None
+        if address is None:
             address = tag
             tag = None
         self.check_address(address)

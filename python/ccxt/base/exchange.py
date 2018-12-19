@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.28'
+__version__ = '1.18.50'
 
 # -----------------------------------------------------------------------------
 
@@ -244,6 +244,8 @@ class Exchange(object):
         'XBT': 'BTC',
         'BCC': 'BCH',
         'DRK': 'DASH',
+        'BCHABC': 'BCH',
+        'BCHSV': 'BSV',
     }
 
     def __init__(self, config={}):
@@ -833,7 +835,7 @@ class Exchange(object):
             ms = ms or '.000'
             msint = int(ms[1:])
             sign = sign or ''
-            sign = int(sign + '1')
+            sign = int(sign + '1') * -1
             hours = int(hours or 0) * sign
             minutes = int(minutes or 0) * sign
             offset = datetime.timedelta(hours=hours, minutes=minutes)

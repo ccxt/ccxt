@@ -336,7 +336,7 @@ class bitfinex2 (bitfinex):
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
-        market = self.markets[symbol]
+        market = self.market(symbol)
         ticker = self.publicGetTickerSymbol(self.extend({
             'symbol': market['id'],
         }, params))

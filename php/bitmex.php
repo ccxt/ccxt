@@ -144,6 +144,7 @@ class bitmex extends Exchange {
                 ),
             ),
             'options' => array (
+                'api-expires' => null,
                 'fetchTickerQuotes' => false,
             ),
         ));
@@ -618,20 +619,29 @@ class bitmex extends Exchange {
         $url = $this->urls['api'] . $query;
         if ($api === 'private') {
             $this->check_required_credentials();
+            $auth = $method . $query;
+            $expires = $this->safe_integer($this->options, 'api-expires');
             $nonce = (string) $this->nonce ();
-            $auth = $method . $query . $nonce;
+            $headers = array (
+                'Content-Type' => 'application/json',
+                'api-key' => $this->apiKey,
+            );
+            if ($expires !== null) {
+                $expires = $this->sum ($this->seconds (), $expires);
+                $expires = (string) $expires;
+                $auth .= $expires;
+                $headers['api-expires'] = $expires;
+            } else {
+                $auth .= $nonce;
+                $headers['api-nonce'] = $nonce;
+            }
             if ($method === 'POST' || $method === 'PUT') {
                 if ($params) {
                     $body = $this->json ($params);
                     $auth .= $body;
                 }
             }
-            $headers = array (
-                'Content-Type' => 'application/json',
-                'api-nonce' => $nonce,
-                'api-key' => $this->apiKey,
-                'api-signature' => $this->hmac ($this->encode ($auth), $this->encode ($this->secret)),
-            );
+            $headers['api-signature'] = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

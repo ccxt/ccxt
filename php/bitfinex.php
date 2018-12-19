@@ -254,10 +254,7 @@ class bitfinex extends Exchange {
                 'ABS' => 'ABYSS',
                 'AIO' => 'AION',
                 'ATM' => 'ATMI',
-                'BAB' => 'BCHABC',
-                'BCC' => 'CST_BCC',
-                'BCU' => 'CST_BCU',
-                'BSV' => 'BCHSV',
+                'BAB' => 'BCH',
                 'CTX' => 'CTXC',
                 'DAD' => 'DADI',
                 'DAT' => 'DATA',
@@ -511,10 +508,9 @@ class bitfinex extends Exchange {
         $tickers = $this->publicGetTickers ($params);
         $result = array ();
         for ($i = 0; $i < count ($tickers); $i++) {
-            $ticker = $tickers[$i];
-            $parsedTicker = $this->parse_ticker($ticker);
-            $symbol = $parsedTicker['symbol'];
-            $result[$symbol] = $parsedTicker;
+            $ticker = $this->parse_ticker($tickers[$i]);
+            $symbol = $ticker['symbol'];
+            $result[$symbol] = $ticker;
         }
         return $result;
     }

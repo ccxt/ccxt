@@ -93,13 +93,19 @@ module.exports = class bithumb extends Exchange {
                 let base = id;
                 let quote = 'KRW';
                 let symbol = id + '/' + quote;
+                let active = true;
+                if (Array.isArray (market)) {
+                    if (market.length === 0) {
+                        active = false;
+                    }
+                }
                 result.push ({
                     'id': id,
                     'symbol': symbol,
                     'base': base,
                     'quote': quote,
                     'info': market,
-                    'active': true,
+                    'active': active,
                     'precision': {
                         'amount': undefined,
                         'price': undefined,
@@ -217,8 +223,10 @@ module.exports = class bithumb extends Exchange {
                 symbol = market['symbol'];
             }
             let ticker = tickers[id];
-            ticker['date'] = timestamp;
-            result[symbol] = this.parseTicker (ticker, market);
+            if (!Array.isArray (ticker)) {
+                ticker['date'] = timestamp;
+                result[symbol] = this.parseTicker (ticker, market);
+            }
         }
         return result;
     }

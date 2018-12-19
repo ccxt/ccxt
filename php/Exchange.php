@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.28';
+$version = '1.18.50';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.28';
+    const VERSION = '1.18.50';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -875,7 +875,9 @@ class Exchange {
         $this->commonCurrencies = array (
             'XBT' => 'BTC',
             'BCC' => 'BCH',
-            'DRK' => 'DASH'
+            'DRK' => 'DASH',
+            'BCHABC' => 'BCH',
+            'BCHSV' => 'BSV',
         );
 
         $this->urlencode_glue = ini_get ('arg_separator.output'); // can be overrided by exchange constructor params

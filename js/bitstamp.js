@@ -342,6 +342,7 @@ module.exports = class bitstamp extends Exchange {
         let orderId = this.safeString (trade, 'order_id');
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'amount');
+        let cost = this.safeFloat (trade, 'cost');
         let id = this.safeString2 (trade, 'tid', 'id');
         if (market === undefined) {
             let keys = Object.keys (trade);
@@ -363,6 +364,7 @@ module.exports = class bitstamp extends Exchange {
         if (market !== undefined) {
             price = this.safeFloat (trade, market['symbolId'], price);
             amount = this.safeFloat (trade, market['baseId'], amount);
+            cost = this.safeFloat (trade, market['quoteId'], cost);
             feeCurrency = market['quote'];
             symbol = market['symbol'];
         }
@@ -374,10 +376,11 @@ module.exports = class bitstamp extends Exchange {
             }
             amount = Math.abs (amount);
         }
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
+        if (cost === undefined) {
+            if (price !== undefined) {
+                if (amount !== undefined) {
+                    cost = price * amount;
+                }
             }
         }
         if (cost !== undefined) {
@@ -747,10 +750,15 @@ module.exports = class bitstamp extends Exchange {
                 price = cost / filled;
             }
         }
-        let fee = {
-            'cost': feeCost,
-            'currency': feeCurrency,
-        };
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            if (feeCurrency !== undefined) {
+                fee = {
+                    'cost': feeCost,
+                    'currency': feeCurrency,
+                };
+            }
+        }
         return {
             'id': id,
             'datetime': this.iso8601 (timestamp),
@@ -777,8 +785,19 @@ module.exports = class bitstamp extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let orders = await this.privatePostOpenOrdersAll ();
-        return this.parseOrders (orders, market, since, limit);
+        const response = await this.privatePostOpenOrdersAll (params);
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const order = this.parseOrder (response[i], market, since, limit);
+            result.push (this.extend (order, {
+                'status': 'open',
+                'type': 'limit',
+            }));
+        }
+        if (symbol === undefined) {
+            return this.filterBySinceLimit (result, since, limit);
+        }
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
     getCurrencyName (code) {

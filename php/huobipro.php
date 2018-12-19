@@ -751,7 +751,7 @@ class huobipro extends Exchange {
                 }
             }
         }
-        if ($type === 'limit') {
+        if ($type === 'limit' || $type === 'ioc' || $type === 'limit-maker') {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $method = $this->options['createOrderMethod'];

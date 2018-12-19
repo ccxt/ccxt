@@ -349,7 +349,7 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.markets[symbol];
+        let market = this.market (symbol);
         let ticker = await this.publicGetTickerSymbol (this.extend ({
             'symbol': market['id'],
         }, params));

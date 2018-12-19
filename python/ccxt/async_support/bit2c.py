@@ -75,12 +75,12 @@ class bit2c (Exchange):
             'markets': {
                 'BTC/NIS': {'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS'},
                 'ETH/NIS': {'id': 'EthNis', 'symbol': 'ETH/NIS', 'base': 'ETH', 'quote': 'NIS'},
-                'BCHABC/NIS': {'id': 'BchAbcNis', 'symbol': 'BCHABC/NIS', 'base': 'BCHABC', 'quote': 'NIS'},
+                'BCH/NIS': {'id': 'BchAbcNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS'},
                 'LTC/NIS': {'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS'},
                 'ETC/NIS': {'id': 'EtcNis', 'symbol': 'ETC/NIS', 'base': 'ETC', 'quote': 'NIS'},
                 'BTG/NIS': {'id': 'BtgNis', 'symbol': 'BTG/NIS', 'base': 'BTG', 'quote': 'NIS'},
                 'LTC/BTC': {'id': 'LtcBtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC'},
-                'BCHSV/NIS': {'id': 'BchSvNis', 'symbol': 'BCHSV/NIS', 'base': 'BCHSV', 'quote': 'NIS'},
+                'BSV/NIS': {'id': 'BchSvNis', 'symbol': 'BSV/NIS', 'base': 'BSV', 'quote': 'NIS'},
             },
             'fees': {
                 'trading': {

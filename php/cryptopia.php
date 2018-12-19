@@ -807,7 +807,12 @@ class cryptopia extends Exchange {
         ), $params));
         $address = $this->safe_string($response['Data'], 'BaseAddress');
         $tag = $this->safe_string($response['Data'], 'Address');
-        if (($address === null) || (strlen ($address) < 1)) {
+        if ($address !== null) {
+            if (strlen ($address) < 1) {
+                $address = null;
+            }
+        }
+        if ($address === null) {
             $address = $tag;
             $tag = null;
         }
