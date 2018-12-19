@@ -286,7 +286,7 @@ class lbank extends Exchange {
             'size' => 100,
         );
         if ($since !== null)
-            $request['time'] = intval ($since / 1000);
+            $request['time'] = intval ($since);
         if ($limit !== null)
             $request['size'] = $limit;
         $response = $this->publicGetTrades (array_merge ($request, $params));
