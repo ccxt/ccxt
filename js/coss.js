@@ -788,34 +788,60 @@ module.exports = class coss extends Exchange {
         //                  avg: "0.00065900",
         //                total: "0.00659000 ETH"                        }
         //
-        let symbol = this.markets_by_id[order['order_symbol']]['symbol'];
-        let timestamp = this.safeInteger (order, 'createTime');
-        let status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let price = this.safeFloat (order, 'order_price');
-        let filled = this.safeFloat (order, 'executed');
-        let type = this.safeString (order, 'type');
-        let amount = this.safeFloat (order, 'order_size');
-        let average = this.safeFloat (order, 'avg');
+        const id = this.safeString (order, 'order_id');
+        let symbol = undefined;
+        const marketId = this.safeString (order, 'order_symbol');
+        if (marketId === undefined) {
+            if (market !== undefined) {
+                symbol = market['symbol'];
+            }
+        } else {
+            market = this.safeValue (this.markets_by_id, marketId, market);
+            if (market === undefined) {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.commonCurrencyCode (baseId);
+                const quote = this.commonCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        const timestamp = this.safeInteger (order, 'createTime');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const price = this.safeFloat (order, 'order_price');
+        const filled = this.safeFloat (order, 'executed');
+        const type = this.safeString (order, 'type');
+        const amount = this.safeFloat (order, 'order_size');
+        let remaining = undefined;
+        if (amount !== undefined) {
+            if (filled !== undefined) {
+                remaining = amount - filled;
+            }
+        }
+        const average = this.safeFloat (order, 'avg');
         let side = this.safeString (order, 'order_side');
         if (side !== undefined) {
             side = side.toLowerCase ();
         }
-        let cost = this.safeFloat (order, 'total');
+        const cost = this.safeFloat (order, 'total');
+        const fee = undefined;
+        const trades = undefined;
         return {
-            'id': this.safeString (order, 'order_id'),
-            'symbol': symbol,
+            'info': order,
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'status': status,
-            'price': price,
-            'filled': filled,
-            'remaining': amount - filled,
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
             'type': type,
-            'average': average,
             'side': side,
+            'price': price,
+            'amount': amount,
             'cost': cost,
-            'fee': undefined,
-            'info': order,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+            'trades': trades,
         };
     }
 
