@@ -617,9 +617,9 @@ class exmo extends Exchange {
         $market = null;
         if ($symbol !== null)
             $market = $this->market ($symbol);
-        $response = $this->privatePostOrderTrades (array (
+        $response = $this->privatePostOrderTrades (array_merge (array (
             'order_id' => (string) $id,
-        ));
+        ), $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 

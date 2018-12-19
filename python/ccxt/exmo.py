@@ -590,9 +590,9 @@ class exmo (Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        response = self.privatePostOrderTrades({
+        response = self.privatePostOrderTrades(self.extend({
             'order_id': str(id),
-        })
+        }, params))
         return self.parse_trades(response, market, since, limit)
 
     def update_cached_orders(self, openOrders, symbol):

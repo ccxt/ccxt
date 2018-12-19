@@ -509,10 +509,9 @@ class bitfinex (Exchange):
         tickers = await self.publicGetTickers(params)
         result = {}
         for i in range(0, len(tickers)):
-            ticker = tickers[i]
-            parsedTicker = self.parse_ticker(ticker)
-            symbol = parsedTicker['symbol']
-            result[symbol] = parsedTicker
+            ticker = self.parse_ticker(tickers[i])
+            symbol = ticker['symbol']
+            result[symbol] = ticker
         return result
 
     async def fetch_ticker(self, symbol, params={}):
