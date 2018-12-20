@@ -332,7 +332,7 @@ class coinfalcon (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if code < 400:
             return
         ErrorClass = self.safe_value({

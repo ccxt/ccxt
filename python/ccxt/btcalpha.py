@@ -388,7 +388,7 @@ class btcalpha (Exchange):
             headers['X-NONCE'] = str(self.nonce())
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if code < 400:
             return
         if not isinstance(body, basestring):

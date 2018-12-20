@@ -266,7 +266,7 @@ class gateio (Exchange):
             'info': ticker,
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if len(body) <= 0:
             return
         if body[0] != '{':

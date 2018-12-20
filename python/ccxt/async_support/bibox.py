@@ -659,7 +659,7 @@ class bibox (Exchange):
         headers = {'Content-Type': 'application/json'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if len(body) > 0:
             if body[0] == '{':
                 response = json.loads(body)
