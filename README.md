@@ -27,6 +27,7 @@ Current feature list:
 ## Our Partners
 
 - **[Nomics](https://nomics.com/)** an index of cryptocurrency market rankings, along with charts, all-time high and supply data.
+- **[TokenTax](https://tokentax.us/)** the easiest way to report your cryptocurrency capital gains and income taxes.
 - **[Gilded](https://gilded.finance/)** crypto invoicing, bookkeeping, and financial reporting for crypto businesses.
 
 ## Certified Cryptocurrency Exchanges
