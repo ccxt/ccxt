@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.18.50'
+__version__ = '1.18.51'
 
 # ----------------------------------------------------------------------------
 
@@ -127,6 +127,7 @@ from ccxt.coinone import coinone                            # noqa: F401
 from ccxt.coinspot import coinspot                          # noqa: F401
 from ccxt.cointiger import cointiger                        # noqa: F401
 from ccxt.coolcoin import coolcoin                          # noqa: F401
+from ccxt.coss import coss                                  # noqa: F401
 from ccxt.crex24 import crex24                              # noqa: F401
 from ccxt.crypton import crypton                            # noqa: F401
 from ccxt.cryptopia import cryptopia                        # noqa: F401
@@ -261,6 +262,7 @@ exchanges = [
     'coinspot',
     'cointiger',
     'coolcoin',
+    'coss',
     'crex24',
     'crypton',
     'cryptopia',
