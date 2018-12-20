@@ -177,7 +177,7 @@ module.exports = class coincheck extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetTrades (this.extend (, params));
+        const response = await this.publicGetTrades (this.extend (request, params));
         if ('success' in response)
             if (response['success'])
                 if (response['data'] !== undefined)
