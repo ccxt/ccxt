@@ -131,7 +131,7 @@ module.exports = class wex extends liqui {
         };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if (code === 200) {
             if (body[0] !== '{') {
                 // response is not JSON -> resort to default error handler

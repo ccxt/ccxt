@@ -304,7 +304,7 @@ module.exports = class btcbox extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response = undefined) {
+    handleErrors (httpCode, reason, url, method, headers, body, response) {
         // typical error response: {"result":false,"code":"401"}
         if (httpCode >= 400)
             return; // resort to defaultErrorHandler
