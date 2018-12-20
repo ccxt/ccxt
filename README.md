@@ -26,9 +26,9 @@ Current feature list:
 
 ## Our Partners
 
-- **[![Nomics](https://user-images.githubusercontent.com/1294454/50313498-99ab1680-04bc-11e9-9f78-6cfe6790bf97.png)](https://nomics.com) [Nomics](https://nomics.com)**  an index of cryptocurrency market rankings, along with charts, all-time high and supply data.
-- **[![TokenTax](https://user-images.githubusercontent.com/1294454/50313499-9a43ad00-04bc-11e9-9448-131107005133.png)](https://tokentax.us) [TokenTax](https://tokentax.us)** the easiest way to report your cryptocurrency capital gains and income taxes.
-- **[![Gilded](https://user-images.githubusercontent.com/1294454/50313497-99ab1680-04bc-11e9-94cb-a6cdefb543b7.png)](https://gilded.finance) [Gilded](https://gilded.finance)** crypto invoicing, bookkeeping, and financial reporting for crypto businesses.
+- **[![Nomics](https://user-images.githubusercontent.com/1294454/50313498-99ab1680-04bc-11e9-9f78-6cfe6790bf97.png)](https://nomics.com) – [Nomics](https://nomics.com)** – an index of cryptocurrency market rankings, along with charts, all-time high and supply data.
+- **[![TokenTax](https://user-images.githubusercontent.com/1294454/50313499-9a43ad00-04bc-11e9-9448-131107005133.png)](https://tokentax.us) – [TokenTax](https://tokentax.us)** – the easiest way to report your cryptocurrency capital gains and income taxes.
+- **[![Gilded](https://user-images.githubusercontent.com/1294454/50313497-99ab1680-04bc-11e9-94cb-a6cdefb543b7.png)](https://gilded.finance) – [Gilded](https://gilded.finance)** – crypto invoicing, bookkeeping, and financial reporting for crypto businesses.
 
 ## Certified Cryptocurrency Exchanges
 
