@@ -12,7 +12,7 @@ module.exports = class coss extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'coss',
             'name': 'COSS',
-            'country': [ 'SG', 'NL' ],
+            'countries': [ 'SG', 'NL' ],
             'rateLimit': 1000,
             'version': 'v1',
             'certified': true,
