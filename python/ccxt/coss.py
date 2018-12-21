@@ -867,7 +867,7 @@ class coss (Exchange):
                 request = self.json(query)
                 body = request
             headers = {
-                'Signature': self.hmac(request, self.secret),
+                'Signature': self.hmac(self.encode(request), self.encode(self.secret)),
                 'Authorization': self.apiKey,
             }
         else:

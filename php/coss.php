@@ -925,7 +925,7 @@ class coss extends Exchange {
                 $body = $request;
             }
             $headers = array (
-                'Signature' => $this->hmac ($request, $this->secret),
+                'Signature' => $this->hmac ($this->encode ($request), $this->encode ($this->secret)),
                 'Authorization' => $this->apiKey,
             );
         } else {
