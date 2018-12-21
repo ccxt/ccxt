@@ -1320,7 +1320,7 @@ module.exports = class binance extends Exchange {
             }
         } else {
             let config = this._contextGet (contextId, 'config');
-            symbolData['ob'] = this.mergeOrderBookDelta (symbolData['ob'], data, undefined, 'b', 'a');
+            symbolData['ob'] = this.mergeOrderBookDelta (symbolData['ob'], data, data['E'], 'b', 'a');
             this.emit ('ob', symbol, this._cloneOrderBook (symbolData['ob'], config['ob'][symbol]['limit']));
             this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
         }
