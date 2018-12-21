@@ -416,7 +416,7 @@ class coss extends Exchange {
         $market = $this->safe_value($this->markets_by_id, $marketId, $market);
         if ($market === null) {
             if ($marketId !== null) {
-                list ($baseId, $quoteId) = explode ('-', $marketId);
+                list ($baseId, $quoteId) = explode ('_', $marketId);
                 $base = $this->common_currency_code($baseId);
                 $quote = $this->common_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
