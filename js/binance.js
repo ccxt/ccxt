@@ -1309,14 +1309,14 @@ module.exports = class binance extends Exchange {
                 this.websocketClose (contextId);
             } else {
                 symbolData['deltas'].push (data);
-                this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
-                if (!('snaplaunched' in data)) {
-                    data['snaplaunched'] = true;
+                if (!('snaplaunched' in symbolData)) {
+                    symbolData['snaplaunched'] = true;
                     this._executeAndCallback (contextId, this._websocketMethodMap ('fetchOrderBook'), [symbol], this._websocketMethodMap ('_websocketHandleObRestSnapshot'), {
                         'symbol': symbol,
                         'contextId': contextId,
                     });
                 }
+                this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
             }
         } else {
             let config = this._contextGet (contextId, 'config');
