@@ -1293,7 +1293,7 @@ class kucoin (Exchange):
                 raise InsufficientFunds(feedback)
         raise ExchangeError(self.id + ': unknown response: ' + self.json(response))
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if response is not None:
             # JS callchain parses body beforehand
             self.throw_exception_on_error(response)

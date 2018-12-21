@@ -1355,7 +1355,7 @@ class kucoin extends Exchange {
         throw new ExchangeError ($this->id . ' => unknown $response => ' . $this->json ($response));
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if ($response !== null) {
             // JS callchain parses $body beforehand
             $this->throw_exception_on_error($response);
