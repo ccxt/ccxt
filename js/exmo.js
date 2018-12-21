@@ -923,6 +923,11 @@ module.exports = class exmo extends Exchange {
         if (!this.fees['funding']['percentage']) {
             let key = (type === 'withdrawal') ? 'withdraw' : 'deposit';
             let feeCost = this.safeFloat (this.options['fundingFees'][key], code);
+            // users don't pay for cashbacks, no fees for that
+            const provider = this.safeString (transaction, 'provider');
+            if (provider === 'cashback') {
+                feeCost = 0;
+            }
             if (feeCost !== undefined) {
                 fee = {
                     'cost': feeCost,
