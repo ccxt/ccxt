@@ -415,7 +415,7 @@ module.exports = class coss extends Exchange {
         market = this.safeValue (this.markets_by_id, marketId, market);
         if (market === undefined) {
             if (marketId !== undefined) {
-                const [ baseId, quoteId ] = marketId.split ('-');
+                const [ baseId, quoteId ] = marketId.split ('_');
                 const base = this.commonCurrencyCode (baseId);
                 const quote = this.commonCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
