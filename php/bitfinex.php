@@ -32,8 +32,8 @@ class bitfinex extends Exchange {
                 'fetchOrder' => true,
                 'fetchTickers' => true,
                 'fetchTransactions' => true,
-                'fetchDeposits' => false,
-                'fetchWithdrawals' => false,
+                'fetchDeposits' => true,
+                'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array (
@@ -1002,5 +1002,46 @@ class bitfinex extends Exchange {
                 throw new ExchangeError ($feedback); // unknown $message
             }
         }
+    }
+
+    public function fetch_deposits ($code, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $currency = null;
+        $request = array ();
+        $currency = $this->currency ($code);
+        $request['currency'] = $currency['id'];
+        if ($since !== null) {
+            $request['since'] = $since;
+        }
+        $response = $this->privatePostHistoryMovements (array_merge ($request, $params));
+        $result = array () 
+        //var_dump($response)
+        for(is_array ($response) && array_key_exists ($each, $response)){
+            $val = $response[$each]
+            if($val["type"]=="DEPOSIT"){
+                $result[] = $val)
+            }
+        }
+        return $this->parseTransactions ($result, $currency, $since, $limit;
+    }
+
+    public function fetch_withdrawals ($code, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $currency = null;
+        $request = array ();
+        $currency = $this->currency ($code);
+        $request['currency'] = $currency['id'];
+        if ($since !== null) {
+            $request['since'] = $since;
+        }
+        $response = $this->privatePostHistoryMovements (array_merge ($request, $params));
+        $result = array () 
+        for(is_array ($response) && array_key_exists ($each, $response)){
+            $val = $response[$each]
+            if($val["type"]=="WITHDRAWAL"){
+                $result[] = $val)
+            }
+        }
+        return $this->parseTransactions ($result, $currency, $since, $limit;
     }
 }

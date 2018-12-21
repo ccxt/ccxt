@@ -47,8 +47,8 @@ class bitfinex (Exchange):
                 'fetchOrder': True,
                 'fetchTickers': True,
                 'fetchTransactions': True,
-                'fetchDeposits': False,
-                'fetchWithdrawals': False,
+                'fetchDeposits': True,
+                'fetchWithdrawals': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -950,3 +950,36 @@ class bitfinex (Exchange):
                 if broadKey is not None:
                     raise broad[broadKey](feedback)
                 raise ExchangeError(feedback)  # unknown message
+
+    def fetch_deposits(self, code, since=None, limit=None, params={}):
+        self.load_markets()
+        currency = None
+        request = {}
+        currency = self.currency(code)
+        request['currency'] = currency['id']
+        if since is not None:
+            request['since'] = since
+        response = self.privatePostHistoryMovements(self.extend(request, params))
+        result = [] 
+        #console.log(response)
+        for(each in list(response.keys())){
+            val = response[each]
+            if (val["type"]=="DEPOSIT"){
+                result.append(val)
+        return self.parseTransactions(result, currency, since, limit)
+
+    def fetch_withdrawals(self, code, since=None, limit=None, params={}):
+        self.load_markets()
+        currency = None
+        request = {}
+        currency = self.currency(code)
+        request['currency'] = currency['id']
+        if since is not None:
+            request['since'] = since
+        response = self.privatePostHistoryMovements(self.extend(request, params))
+        result = [] 
+        for(each in list(response.keys())){
+            val = response[each]
+            if (val["type"]=="WITHDRAWAL"){
+                result.append(val)
+        return self.parseTransactions(result, currency, since, limit)

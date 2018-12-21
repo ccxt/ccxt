@@ -52,7 +52,6 @@ Exchange.ccxtVersion = version
 //-----------------------------------------------------------------------------
 
 const exchanges = {
-    '_1btcxe':                 require ('./js/_1btcxe.js'),
     'acx':                     require ('./js/acx.js'),
     'allcoin':                 require ('./js/allcoin.js'),
     'anxpro':                  require ('./js/anxpro.js'),
@@ -184,7 +183,8 @@ const exchanges = {
     'yobit':                   require ('./js/yobit.js'),
     'yunbi':                   require ('./js/yunbi.js'),
     'zaif':                    require ('./js/zaif.js'),
-    'zb':                      require ('./js/zb.js'),    
+    'zb':                      require ('./js/zb.js'),
+    '_1btcxe':                 require ('./js/_1btcxe.js'),    
 }
 
 //-----------------------------------------------------------------------------
@@ -8542,8 +8542,8 @@ module.exports = class bitfinex extends Exchange {
                 'fetchOrder': true,
                 'fetchTickers': true,
                 'fetchTransactions': true,
-                'fetchDeposits': false,
-                'fetchWithdrawals': false,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -9512,6 +9512,47 @@ module.exports = class bitfinex extends Exchange {
                 throw new ExchangeError (feedback); // unknown message
             }
         }
+    }
+
+    async fetchDeposits (code, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {};
+        currency = this.currency (code);
+        request['currency'] = currency['id'];
+        if (since !== undefined) {
+            request['since'] = since;
+        }
+        let response = await this.privatePostHistoryMovements (this.extend (request, params));
+        let result = [] 
+        //console.log(response)
+        for(var each in response){
+            var val = response[each]
+            if(val["type"]=="DEPOSIT"){
+                result.push(val)
+            }
+        }
+        return this.parseTransactions (result, currency, since, limit);
+    }
+
+    async fetchWithdrawals (code , since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {};
+        currency = this.currency (code);
+        request['currency'] = currency['id'];
+        if (since !== undefined) {
+            request['since'] = since;
+        }
+        let response = await this.privatePostHistoryMovements (this.extend (request, params));
+        let result = [] 
+        for(var each in response){
+            var val = response[each]
+            if(val["type"]=="WITHDRAWAL"){
+                result.push(val)
+            }
+        }
+        return this.parseTransactions (result, currency, since, limit);
     }
 };
 

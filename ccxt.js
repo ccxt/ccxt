@@ -44,7 +44,6 @@ Exchange.ccxtVersion = version
 //-----------------------------------------------------------------------------
 
 const exchanges = {
-    '_1btcxe':                 require ('./js/_1btcxe.js'),
     'acx':                     require ('./js/acx.js'),
     'allcoin':                 require ('./js/allcoin.js'),
     'anxpro':                  require ('./js/anxpro.js'),
@@ -176,7 +175,8 @@ const exchanges = {
     'yobit':                   require ('./js/yobit.js'),
     'yunbi':                   require ('./js/yunbi.js'),
     'zaif':                    require ('./js/zaif.js'),
-    'zb':                      require ('./js/zb.js'),    
+    'zb':                      require ('./js/zb.js'),
+    '_1btcxe':                 require ('./js/_1btcxe.js'),    
 }
 
 //-----------------------------------------------------------------------------
