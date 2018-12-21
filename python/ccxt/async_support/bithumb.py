@@ -110,7 +110,8 @@ class bithumb (Exchange):
                 symbol = id + '/' + quote
                 active = True
                 if isinstance(market, list):
-                    if len(market) == 0:
+                    numElements = len(market)
+                    if numElements == 0:
                         active = False
                 result.append({
                     'id': id,
@@ -350,7 +351,7 @@ class bithumb (Exchange):
                 'endpoint': endpoint,
             }, query))
             nonce = str(self.nonce())
-            auth = endpoint + '\0' + body + '\0' + nonce
+            auth = endpoint + "\0" + body + "\0" + nonce  # eslint-disable-line quotes
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
             signature64 = self.decode(base64.b64encode(self.encode(signature)))
             headers = {
