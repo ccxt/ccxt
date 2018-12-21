@@ -95,7 +95,8 @@ module.exports = class bithumb extends Exchange {
                 let symbol = id + '/' + quote;
                 let active = true;
                 if (Array.isArray (market)) {
-                    if (market.length === 0) {
+                    let numElements = market.length;
+                    if (numElements === 0) {
                         active = false;
                     }
                 }
@@ -361,7 +362,7 @@ module.exports = class bithumb extends Exchange {
                 'endpoint': endpoint,
             }, query));
             let nonce = this.nonce ().toString ();
-            let auth = endpoint + '\0' + body + '\0' + nonce;
+            let auth = endpoint + "\0" + body + "\0" + nonce; // eslint-disable-line quotes
             let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
             let signature64 = this.decode (this.stringToBase64 (this.encode (signature)));
             headers = {
