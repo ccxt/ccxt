@@ -1283,7 +1283,7 @@ module.exports = class binance extends Exchange {
                 this._websocketHandleOb (contextId, resData);
             } else if (msgType === 'trade') {
                 this._websocketHandleTrade (contextId, resData);
-            else if (msgType === 'aggTrade') {
+            } else if (msgType === 'aggTrade') {
                 this._websocketHandleTrade (contextId, resData);
             } else if (msgType.indexOf ('kline') >= 0) {
                 this._websocketHandleKline (contextId, resData);
@@ -1305,8 +1305,19 @@ module.exports = class binance extends Exchange {
             let deltas = symbolData['deltas'];
             let partsLen = deltas.length;
             if (partsLen > 50) {
-                this.emit ('err', new ExchangeError (this.id + ': max deltas reached for symbol ' + symbol));
-                this.websocketClose (contextId);
+                if (!('failCount' in symbolData)) {
+                    symbolData['failCount'] = 0;
+                }
+                symbolData['failCount'] = symbolData['failCount'] + 1;
+                if (symbolData['failCount'] > 5) {
+                    this.emit ('err', new ExchangeError (this.id + ': max deltas failCount reached for symbol ' + symbol));
+                    this.websocketClose (contextId);
+                } else {
+                    // Launch again
+                    delete symbolData['ob'];
+                    delete symbolData['deltas'];
+                }
+                this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
             } else {
                 symbolData['deltas'].push (data);
                 if (!('snaplaunched' in symbolData)) {
