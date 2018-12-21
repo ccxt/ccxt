@@ -702,9 +702,9 @@ Market Structure
        'quote':  'USD',      // uppercase string, quote currency, 3 or more letters
        'active': true,       // boolean, market status
        'precision': {        // number of decimal digits "after the dot"
-           'price': 8,       // integer
-           'amount': 8,      // integer
-           'cost': 8,        // integer
+           'price': 8,       // integer, might be missing if not supplied by the exchange
+           'amount': 8,      // integer, might be missing if not supplied by the exchange
+           'cost': 8,        // integer, very few exchanges actually have it
        },
        'limits': {           // value limits when placing orders on this market
            'amount': {
