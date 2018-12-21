@@ -403,7 +403,7 @@ class coss (Exchange):
         market = self.safe_value(self.markets_by_id, marketId, market)
         if market is None:
             if marketId is not None:
-                baseId, quoteId = marketId.split('-')
+                baseId, quoteId = marketId.split('_')
                 base = self.common_currency_code(baseId)
                 quote = self.common_currency_code(quoteId)
                 symbol = base + '/' + quote
