@@ -853,6 +853,10 @@ class exmo (Exchange):
         if not self.fees['funding']['percentage']:
             key = 'withdraw' if (type == 'withdrawal') else 'deposit'
             feeCost = self.safe_float(self.options['fundingFees'][key], code)
+            # users don't pay for cashbacks, no fees for that
+            provider = self.safe_string(transaction, 'provider')
+            if provider == 'cashback':
+                feeCost = 0
             if feeCost is not None:
                 fee = {
                     'cost': feeCost,

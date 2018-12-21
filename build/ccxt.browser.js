@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.54'
+const version = '1.18.55'
 
 Exchange.ccxtVersion = version
 
@@ -35319,6 +35319,11 @@ module.exports = class exmo extends Exchange {
         if (!this.fees['funding']['percentage']) {
             let key = (type === 'withdrawal') ? 'withdraw' : 'deposit';
             let feeCost = this.safeFloat (this.options['fundingFees'][key], code);
+            // users don't pay for cashbacks, no fees for that
+            const provider = this.safeString (transaction, 'provider');
+            if (provider === 'cashback') {
+                feeCost = 0;
+            }
             if (feeCost !== undefined) {
                 fee = {
                     'cost': feeCost,
