@@ -268,7 +268,6 @@ module.exports = class gateio extends Exchange {
         if (body[0] !== '{') {
             return;
         }
-        let jsonbodyParsed = JSON.parse (body);
         let resultString = this.safeString (jsonbodyParsed, 'result', '');
         if (resultString !== 'false') {
             return;

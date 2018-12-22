@@ -137,7 +137,6 @@ module.exports = class wex extends liqui {
                 // response is not JSON -> resort to default error handler
                 return;
             }
-            response = JSON.parse (body);
             if ('success' in response) {
                 if (!response['success']) {
                     const error = this.safeString (response, 'error');

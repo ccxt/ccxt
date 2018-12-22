@@ -429,7 +429,6 @@ module.exports = class indodax extends Exchange {
         // [{ data, ... }, { ... }, ... ]
         if (response === undefined)
             if (body[0] === '{' || body[0] === '[')
-                response = JSON.parse (body);
         if (Array.isArray (response))
             return; // public endpoints may return []-arrays
         if (!('success' in response))
