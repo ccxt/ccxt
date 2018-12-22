@@ -1283,7 +1283,7 @@ module.exports = class binance extends Exchange {
                 this._websocketHandleOb (contextId, resData);
             } else if (msgType === 'trade') {
                 this._websocketHandleTrade (contextId, resData);
-            else if (msgType === 'aggTrade') {
+            } else if (msgType === 'aggTrade') {
                 this._websocketHandleTrade (contextId, resData);
             } else if (msgType.indexOf ('kline') >= 0) {
                 this._websocketHandleKline (contextId, resData);
@@ -1321,7 +1321,11 @@ module.exports = class binance extends Exchange {
         } else {
             let config = this._contextGet (contextId, 'config');
             symbolData['ob'] = this.mergeOrderBookDelta (symbolData['ob'], data, undefined, 'b', 'a');
-            this.emit ('ob', symbol, this._cloneOrderBook (symbolData['ob'], config['ob'][symbol]['limit']));
+            if (typeof config !== 'undefined') {
+                this.emit ('ob', symbol, this._cloneOrderBook (symbolData['ob'], config['ob'][symbol]['limit']));
+            } else {
+                this.emit ('ob', symbol, this._cloneOrderBook (symbolData['ob']));
+            }
             this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
         }
     }
@@ -1406,7 +1410,11 @@ module.exports = class binance extends Exchange {
             }
             data['ob'] = response;
             data['deltas'] = [];
-            this.emit ('ob', symbol, this._cloneOrderBook (response, config['ob'][symbol]['limit']));
+            if (typeof config !== 'undefined') {
+                this.emit ('ob', symbol, this._cloneOrderBook (response, config['ob'][symbol]['limit']));
+            } else {
+                this.emit ('ob', symbol, this._cloneOrderBook (response));
+            }
             this._contextSetSymbolData (contextId, 'ob', symbol, data);
         }
     }
