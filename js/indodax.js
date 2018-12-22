@@ -427,8 +427,8 @@ module.exports = class indodax extends Exchange {
         // { success: 0, error: "invalid order." }
         // or
         // [{ data, ... }, { ... }, ... ]
-        if (response === undefined)
-            if (body[0] === '{' || body[0] === '[')
+        if (typeof response === 'undefined')
+            return;
         if (Array.isArray (response))
             return; // public endpoints may return []-arrays
         if (!('success' in response))
