@@ -798,7 +798,7 @@ module.exports = class coss extends Exchange {
             }
         } else {
             // a minor workaround for lowercase eth-btc symbols
-            marketId = marketId.toUppercase ();
+            marketId = marketId.toUpperCase ();
             marketId = marketId.replace ('-', '_');
             market = this.safeValue (this.markets_by_id, marketId, market);
             if (market === undefined) {
