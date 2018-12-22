@@ -1472,7 +1472,7 @@ module.exports = class upbit extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response) {
-        if (!this.isJsonEncodedObject (body))
+        if (typeof response === 'undefined')
             return; // fallback to default error handler
         //
         //   { 'error': { 'message': "Missing request parameter error. Check the required parameters!", 'name':  400 } },
