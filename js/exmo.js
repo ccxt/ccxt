@@ -1024,9 +1024,7 @@ module.exports = class exmo extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response) {
-        if (typeof body !== 'string')
-            return; // fallback to default error handler
-        if (body.length < 2)
+        if (typeof response === 'undefined')
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
             if ('result' in response) {
