@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.61'
+const version = '1.18.62'
 
 Exchange.ccxtVersion = version
 
@@ -30640,7 +30640,7 @@ module.exports = class coss extends Exchange {
             }
         } else {
             // a minor workaround for lowercase eth-btc symbols
-            marketId = marketId.toUppercase ();
+            marketId = marketId.toUpperCase ();
             marketId = marketId.replace ('-', '_');
             market = this.safeValue (this.markets_by_id, marketId, market);
             if (market === undefined) {
