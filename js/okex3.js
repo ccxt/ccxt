@@ -9,6 +9,7 @@ const { ExchangeError, ArgumentsRequired, DDoSProtection, InsufficientFunds, Inv
 
 module.exports = class okex3 extends Exchange {
     describe () {
+        const allTypes = [ 'spot', 'futures', 'swap' ]
         return this.deepExtend (super.describe (), {
             'id': 'okex3',
             'name': 'OKEX',
@@ -230,18 +231,25 @@ module.exports = class okex3 extends Exchange {
                     'The currency pair does not exist': ExchangeError, // {"code":30032,"message":"The currency pair does not exist"}
                     'OK-ACCESS-KEY header is required': AuthenticationError, // {"code":30001,"message":"OK-ACCESS-KEY header is required"}
                     'Invalid Sign': AuthenticationError, // {"code":30013,"message":"Invalid Sign"}
+                    'User does not exist': AuthenticationError, // {"code":35005,"message":"User does not exist"}
                 },
                 'broad': {
                 },
             },
             'options': {
-                'markets': [ 'spot', 'futures' ],
+                'fetchMarkets': allTypes,
+                'fetchTickers': allTypes,
+                'fetchBalance': allTypes,
             },
         });
     }
 
     async fetchMarkets (params = {}) {
-        const marketTypes = this.safeValue (this.options, 'markets', [ 'spot', 'futures', 'swap' ]);
+        const marketTypes = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'futures', 'swap' ]);
+        const warning = this.safeValue (this.options, 'somename', true);
+        if (warning) {
+            throw new ExchangeError (this.id + ' is configured to use ' + marketTypes.join (', ') + ' API by default'
+        }
         let result = [];
         for (let i = 0; i < marketTypes.length; i++) {
             const marketType = marketTypes[i];
@@ -564,8 +572,8 @@ module.exports = class okex3 extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        const fetchTickerType = this.safeString (this.options, 'fetchTickersType', 'spot');
-        const type = this.safeString2 (params, 'type', 'api', fetchTickersType);
+        const defaultType = this.safeString (this.options, 'fetchTickersType', 'spot');
+        const type = this.safeString2 (params, 'type', 'api', defaultType);
         params = this.omit (params, [ 'type', 'api' ]);
         return await this.fetchTickersByType (type, symbols, params);
     }
@@ -578,7 +586,7 @@ module.exports = class okex3 extends Exchange {
         return await this.fetchTickersByType ('futures', symbols, params);
     }
 
-    async fetchSwaoTickers (symbols = undefined, params = {}) {
+    async fetchSwapTickers (symbols = undefined, params = {}) {
         return await this.fetchTickersByType ('swap', symbols, params);
     }
 
