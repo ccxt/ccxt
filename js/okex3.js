@@ -232,29 +232,27 @@ module.exports = class okex3 extends Exchange {
                     'OK-ACCESS-KEY header is required': AuthenticationError, // {"code":30001,"message":"OK-ACCESS-KEY header is required"}
                     'Invalid Sign': AuthenticationError, // {"code":30013,"message":"Invalid Sign"}
                     'User does not exist': AuthenticationError, // {"code":35005,"message":"User does not exist"}
+                    'OK-ACCESS-SIGN header is required': AuthenticationError, // {"code":30002,"message":"OK-ACCESS-SIGN header is required"}
+                    'OK-ACCESS-TIMESTAMP header is required': AuthenticationError, // {"code":30003,"message":"OK-ACCESS-TIMESTAMP header is required"}
+                    'OK-ACCESS-PASSPHRASE header is required': AuthenticationError, // {"code":30004,"message":"OK-ACCESS-PASSPHRASE header is required"}
+                    'Invalid OK-ACCESS-TIMESTAMP': AuthenticationError, // {"code":30005,"message":"Invalid OK-ACCESS-TIMESTAMP"}
                 },
                 'broad': {
                 },
             },
             'options': {
-                'fetchMarkets': allTypes,
-                'fetchTickers': allTypes,
-                'fetchBalance': allTypes,
+                'type': 'spot', // a string or an array of types like [ 'spot', 'futures', 'swap' ]
             },
         });
     }
 
     async fetchMarkets (params = {}) {
-        const marketTypes = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'futures', 'swap' ]);
-        const warning = this.safeValue (this.options, 'somename', true);
-        if (warning) {
-            throw new ExchangeError (this.id + ' is configured to use ' + marketTypes.join (', ') + ' API by default'
-        }
+        const defaultType = this.safeValue (this.options, 'type');
+        const type = this.safeValue (params, 'type', defaultType);
+        const types = Array.isArray (type) ? type : [ type ];
         let result = [];
-        for (let i = 0; i < marketTypes.length; i++) {
-            const marketType = marketTypes[i];
-            const method = 'fetch' + this.capitalize (marketType) + 'Markets';
-            const markets = await this[method] (params);
+        for (let i = 0; i < types.length; i++) {
+            const markets = await this.fetchMarketsByType (types[i], this.omit (params, 'type'));
             result = this.arrayConcat (result, markets);
         }
         return result;
@@ -270,7 +268,7 @@ module.exports = class okex3 extends Exchange {
 
     parseMarket (market) {
         //
-        // fetchSpotMarkets
+        // spot markets
         //
         //     [ {   base_currency: "EOS",
         //          base_increment: "0.000001",
@@ -296,7 +294,7 @@ module.exports = class okex3 extends Exchange {
         //          size_increment: "0.00000001",
         //               tick_size: "0.0001"        } ]
         //
-        // fetchFuturesMarkets
+        // futures markets
         //
         //     [ {    instrument_id: "BTG-USD-190329",
         //         underlying_index: "BTG",
@@ -307,7 +305,7 @@ module.exports = class okex3 extends Exchange {
         //                 delivery: "2019-03-29",
         //          trade_increment: "1"               }  ]
         //
-        // fetchSwapMarkets
+        // swap markets
         //
         //     [ {    instrument_id: "BTC-USD-SWAP",
         //         underlying_index: "BTC",
@@ -436,6 +434,55 @@ module.exports = class okex3 extends Exchange {
         //               tick_size: "0.0001"    }      ]
         //
         return this.parseMarkets (response);
+    }
+
+    async fetchCurrencies (params = {}) {
+        if (this.requiredCredentialsMissing ()) {
+            return; // the what ?
+        }
+        let response = await this.accountGetCurrencies (params);
+        let currencies = response['result'];
+        let result = {};
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
+            let id = currency['Currency'];
+            // todo: will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            let code = this.commonCurrencyCode (id);
+            let precision = 8; // default precision, todo: fix "magic constants"
+            let address = this.safeValue (currency, 'BaseAddress');
+            result[code] = {
+                'id': id,
+                'code': code,
+                'address': address,
+                'info': currency,
+                'type': currency['CoinType'],
+                'name': currency['CurrencyLong'],
+                'active': currency['IsActive'],
+                'fee': this.safeFloat (currency, 'TxFee'), // todo: redesign
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': currency['TxFee'],
+                        'max': Math.pow (10, precision),
+                    },
+                },
+            };
+        }
+        return result;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -572,10 +619,9 @@ module.exports = class okex3 extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        const defaultType = this.safeString (this.options, 'fetchTickersType', 'spot');
-        const type = this.safeString2 (params, 'type', 'api', defaultType);
-        params = this.omit (params, [ 'type', 'api' ]);
-        return await this.fetchTickersByType (type, symbols, params);
+        const defaultType = this.safeString (this.options, 'type', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        return await this.fetchTickersByType (type, symbols, this.omit (params, 'type'));
     }
 
     async fetchSpotTickers (symbols = undefined, params = {}) {
@@ -753,76 +799,66 @@ module.exports = class okex3 extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async fetchBalanceByType (type, params = {}) {
-        await this.loadMarkets ();
-        const method = type + 'GetAccounts';
-        const response = await this[method] (params);
-        const log = require ('ololog').unlimited;
-        log.red (response);
-        process.exit ();
-        // let balances = response['info']['funds'];
-        // let result = { 'info': response };
-        // let ids = Object.keys (balances['free']);
-        // let usedField = 'freezed';
-        // // wtf, okex?
-        // // https://github.com/okcoin-okex/API-docs-OKEx.com/commit/01cf9dd57b1f984a8737ef76a037d4d3795d2ac7
-        // if (!(usedField in balances))
-        //     usedField = 'holds';
-        // let usedKeys = Object.keys (balances[usedField]);
-        // ids = this.arrayConcat (ids, usedKeys);
-        // for (let i = 0; i < ids.length; i++) {
-        //     let id = ids[i];
-        //     let code = id.toUpperCase ();
-        //     if (id in this.currencies_by_id) {
-        //         code = this.currencies_by_id[id]['code'];
-        //     } else {
-        //         code = this.commonCurrencyCode (code);
-        //     }
-        //     let account = this.account ();
-        //     account['free'] = this.safeFloat (balances['free'], id, 0.0);
-        //     account['used'] = this.safeFloat (balances[usedField], id, 0.0);
-        //     account['total'] = this.sum (account['free'], account['used']);
-        //     result[code] = account;
-        // }
-        // return this.parseBalance (result);
-        return this.parseBalance (response);
-    }
-
-    async fetchSpotBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = this.spotGetAccounts (params);
-        //
-        //     [ {    frozen: "0",
-        //              hold: "0",
-        //                id: "2149632",
-        //          currency: "BTC",
-        //           balance: "0.0000000497717339",
-        //         available: "0.0000000497717339",
-        //             holds: "0"                   },
-        //       {    frozen: "0",
-        //              hold: "0",
-        //                id: "2149632",
-        //          currency: "ETH",
-        //           balance: "0.000835354575",
-        //         available: "0.000835354575",
-        //             holds: "0"               },
-        //       {    frozen: "0",
-        //              hold: "0",
-        //                id: "2149632",
-        //          currency: "ICN",
-        //           balance: "0.00000000925",
-        //         available: "0.00000000925",
-        //             holds: "0"              }       ]
-        //
-
-    }
-
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const defaultFetchBalanceType = this.safeString (this.options, 'defaultFetchBalanceType', 'spot');
-        const type = this.safeString2 (params, 'type', 'api', defaultFetchBalanceType);
-        params = this.omit (params, [ 'type', 'api' ]);
-        return await this.fetchBalanceByType (type, params);
+        const defaultType = this.safeValue (this.options, 'type');
+        const type = this.safeValue (params, 'type', defaultType);
+        const method = (type === 'wallet') ? 'accountGetWallet' : (type + 'GetAccounts');
+        const response = await this[method] (this.omit (params, 'type'));
+        const result = { 'info': response };
+        if ((type === 'wallet') || (type === 'spot')) {
+            //
+            // wallet
+            //
+            //     [ {   balance:  0,
+            //         available:  0,
+            //          currency: "BTC",
+            //              hold:  0     },
+            //       ...
+            //       {   balance:  0,
+            //         available:  0,
+            //          currency: "ETH",
+            //              hold:  0     }  ]
+            //
+            // spot
+            //
+            //     [ {    frozen: "0",
+            //              hold: "0",
+            //                id: "2149632",
+            //          currency: "BTC",
+            //           balance: "0.0000000497717339",
+            //         available: "0.0000000497717339",
+            //             holds: "0"                   },
+            //       ...,
+            //       {    frozen: "0",
+            //              hold: "0",
+            //                id: "2149632",
+            //          currency: "ICN",
+            //           balance: "0.00000000925",
+            //         available: "0.00000000925",
+            //             holds: "0"              }       ]
+            //
+            for (let i = 0; i < response.length; i++) {
+                const balance = response[i];
+                const currencyId = this.safeString (balance, 'currency');
+                const code = this.commonCurrencyCode (currencyId);
+                const account = this.account ();
+                const total = this.safeFloat (balance, 'balance');
+                const used = this.safeFloat (balance, 'hold');
+                let free = this.safeFloat (balance, 'available');
+                if (free === undefined) {
+                    if ((total !== undefined) && (used !== undefined)) {
+                        free = total - used;
+                    }
+                }
+                account['total'] = total;
+                account['used'] = used;
+                account['free'] = free;
+                result[code] = account;
+            }
+            return this.parseBalance (result);
+        }
+        return response;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1000,18 +1036,6 @@ module.exports = class okex3 extends Exchange {
         return result;
     }
 
-    getCreateDateField () {
-        // needed for derived exchanges
-        // allcoin typo create_data instead of create_date
-        return 'create_date';
-    }
-
-    getOrdersField () {
-        // needed for derived exchanges
-        // allcoin typo order instead of orders (expected based on their API docs)
-        return 'orders';
-    }
-
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined)
             throw new ExchangeError (this.id + ' fetchOrder requires a symbol parameter');
@@ -1180,6 +1204,7 @@ module.exports = class okex3 extends Exchange {
 
     getPathAuthenticationType (path) {
         const paths = {
+            'currencies': 'public',
             'instruments': 'public',
             'rate': 'public',
             'constituents/{ett}': 'public',
