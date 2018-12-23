@@ -805,7 +805,7 @@ module.exports = class coss extends Exchange {
                 const quote = this.commonCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             } else {
-                symbol = market['symbol']
+                symbol = market['symbol'];
             }
         }
         const timestamp = this.safeInteger (order, 'createTime');
