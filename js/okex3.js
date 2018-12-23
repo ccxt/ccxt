@@ -3,13 +3,12 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, DDoSProtection, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadRequest, DDoSProtection, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class okex3 extends Exchange {
     describe () {
-        const allTypes = [ 'spot', 'futures', 'swap' ]
         return this.deepExtend (super.describe (), {
             'id': 'okex3',
             'name': 'OKEX',
@@ -228,7 +227,7 @@ module.exports = class okex3 extends Exchange {
                 // 500 Internal Server Error — We had a problem with our server
                 'exact': {
                     'failure to get a peer from the ring-balancer': ExchangeError, // {"message":"failure to get a peer from the ring-balancer"}
-                    'The currency pair does not exist': ExchangeError, // {"code":30032,"message":"The currency pair does not exist"}
+                    'The currency pair does not exist': BadRequest, // {"code":30032,"message":"The currency pair does not exist"}
                     'OK-ACCESS-KEY header is required': AuthenticationError, // {"code":30001,"message":"OK-ACCESS-KEY header is required"}
                     'Invalid Sign': AuthenticationError, // {"code":30013,"message":"Invalid Sign"}
                     'User does not exist': AuthenticationError, // {"code":35005,"message":"User does not exist"}
@@ -236,18 +235,21 @@ module.exports = class okex3 extends Exchange {
                     'OK-ACCESS-TIMESTAMP header is required': AuthenticationError, // {"code":30003,"message":"OK-ACCESS-TIMESTAMP header is required"}
                     'OK-ACCESS-PASSPHRASE header is required': AuthenticationError, // {"code":30004,"message":"OK-ACCESS-PASSPHRASE header is required"}
                     'Invalid OK-ACCESS-TIMESTAMP': AuthenticationError, // {"code":30005,"message":"Invalid OK-ACCESS-TIMESTAMP"}
+                    'Currency does not exist': BadRequest, // {"code":30031,"message":"Currency does not exist"}
                 },
                 'broad': {
                 },
             },
             'options': {
-                'type': 'spot', // a string or an array of types like [ 'spot', 'futures', 'swap' ]
+                'fetchMarkets': [ 'spot', 'futures', 'swap' ],
+                'allTypes': [ 'spot', 'futures', 'swap' ],
+                'defaultType': 'spot',
             },
         });
     }
 
     async fetchMarkets (params = {}) {
-        const defaultType = this.safeValue (this.options, 'type');
+        const defaultType = this.safeValue (this.options, 'defaultType');
         const type = this.safeValue (params, 'type', defaultType);
         const types = Array.isArray (type) ? type : [ type ];
         let result = [];
@@ -488,9 +490,8 @@ module.exports = class okex3 extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketType = this.safeString (market, 'type', 'spot');
-        let method = marketType + 'GetInstrumentsInstrumentId';
-        method += (marketType === 'swap') ? 'Depth' : 'Book';
+        let method = market['type'] + 'GetInstrumentsInstrumentId';
+        method += (market['type'] === 'swap') ? 'Depth' : 'Book';
         let request = {
             'instrument_id': market['id'],
         };
@@ -619,7 +620,7 @@ module.exports = class okex3 extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        const defaultType = this.safeString (this.options, 'type', 'spot');
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         return await this.fetchTickersByType (type, symbols, this.omit (params, 'type'));
     }
@@ -801,7 +802,7 @@ module.exports = class okex3 extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const defaultType = this.safeValue (this.options, 'type');
+        const defaultType = this.safeValue (this.options, 'defaultType');
         const type = this.safeValue (params, 'type', defaultType);
         const method = (type === 'wallet') ? 'accountGetWallet' : (type + 'GetAccounts');
         const response = await this[method] (this.omit (params, 'type'));
@@ -1225,12 +1226,16 @@ module.exports = class okex3 extends Exchange {
         response = JSON.parse (body);
         const message = this.safeString (response, 'message');
         if (message !== undefined) {
-            if (message in this.exceptions) {
-                let ExceptionClass = this.exceptions[message];
-                throw new ExceptionClass (feedback);
-            } else {
-                throw new ExchangeError (feedback);
+            const exact = this.exceptions['exact'];
+            if (message in exact) {
+                throw new exact[message] (feedback);
             }
+            const broad = this.exceptions['broad'];
+            const broadKey = this.findBroadlyMatchedKey (broad, message);
+            if (broadKey !== undefined) {
+                throw new broad[broadKey] (feedback);
+            }
+            throw new ExchangeError (feedback); // unknown message
         }
     }
 };
