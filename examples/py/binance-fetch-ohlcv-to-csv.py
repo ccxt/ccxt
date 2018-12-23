@@ -41,7 +41,7 @@ def scrape_ohlcv(exchange, max_retries, symbol, timeframe, since, limit):
         earliest_timestamp = ohlcv[0][0]
         all_ohlcv = ohlcv + all_ohlcv
         print(len(all_ohlcv), 'candles in total from', exchange.iso8601(all_ohlcv[0][0]), 'to', exchange.iso8601(all_ohlcv[-1][0]))
-        # if we have reached
+        # if we have reached the checkpoint
         if fetch_since < since:
             break
     return all_ohlcv
