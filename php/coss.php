@@ -799,7 +799,7 @@ class coss extends Exchange {
             }
         } else {
             // a minor workaround for lowercase eth-btc symbols
-            $marketId = $marketId->toUppercase ();
+            $marketId = strtoupper ($marketId);
             $marketId = str_replace ('-', '_', $marketId);
             $market = $this->safe_value($this->markets_by_id, $marketId, $market);
             if ($market === null) {

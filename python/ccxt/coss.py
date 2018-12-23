@@ -752,7 +752,7 @@ class coss (Exchange):
                 symbol = market['symbol']
         else:
             # a minor workaround for lowercase eth-btc symbols
-            marketId = marketId.toUppercase()
+            marketId = marketId.upper()
             marketId = marketId.replace('-', '_')
             market = self.safe_value(self.markets_by_id, marketId, market)
             if market is None:
