@@ -660,7 +660,7 @@ module.exports = class liquid extends Exchange {
         if (code === 429) {
             throw new DDoSProtection (this.id + ' ' + body);
         }
-        if (typeof response === 'undefined') {
+        if (response === undefined) {
             return;
         }
         const feedback = this.id + ' ' + body;

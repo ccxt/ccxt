@@ -411,7 +411,7 @@ module.exports = class zaif extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response) {
-        if (typeof response === 'undefined') {
+        if (response === undefined) {
             return;
         }
         //

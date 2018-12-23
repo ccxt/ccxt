@@ -1121,7 +1121,7 @@ module.exports = class poloniex extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
-        if (typeof response === 'undefined') {
+        if (response === undefined) {
             return;
         }
         // {"error":"Permission denied."}
