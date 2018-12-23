@@ -594,17 +594,15 @@ class coss extends Exchange {
         }
         $symbol = null;
         $marketId = $this->safe_string($trade, 'symbol');
-        if ($marketId === null) {
-            if ($market !== null) {
-                $symbol = $market['symbol'];
-            }
-        } else {
+        if ($marketId !== null) {
             $market = $this->safe_value($this->markets_by_id, $marketId, $market);
             if ($market === null) {
                 list ($baseId, $quoteId) = explode ('_', $marketId);
                 $base = $this->common_currency_code($baseId);
                 $quote = $this->common_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
+            } else {
+                $symbol = $market['symbol'];
             }
         }
         $cost = null;
@@ -807,6 +805,8 @@ class coss extends Exchange {
                 $base = $this->common_currency_code($baseId);
                 $quote = $this->common_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
+            } else {
+                $symbol = $market['symbol'];
             }
         }
         $timestamp = $this->safe_integer($order, 'createTime');

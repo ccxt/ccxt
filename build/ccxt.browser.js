@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.64'
+const version = '1.18.65'
 
 Exchange.ccxtVersion = version
 
@@ -30435,17 +30435,15 @@ module.exports = class coss extends Exchange {
         }
         let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
-        if (marketId === undefined) {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
-        } else {
+        if (marketId !== undefined) {
             market = this.safeValue (this.markets_by_id, marketId, market);
             if (market === undefined) {
                 const [ baseId, quoteId ] = marketId.split ('_');
                 const base = this.commonCurrencyCode (baseId);
                 const quote = this.commonCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
+            } else {
+                symbol = market['symbol'];
             }
         }
         let cost = undefined;
@@ -30648,6 +30646,8 @@ module.exports = class coss extends Exchange {
                 const base = this.commonCurrencyCode (baseId);
                 const quote = this.commonCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
+            } else {
+                symbol = market['symbol'];
             }
         }
         const timestamp = this.safeInteger (order, 'createTime');
