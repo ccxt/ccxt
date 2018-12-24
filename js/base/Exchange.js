@@ -635,8 +635,7 @@ module.exports = class Exchange {
 
         return response.text ().then ((responseBody) => {
 
-            let jsonRequired = this.parseJsonResponse && !this.skipJsonOnStatusCodes.includes (response.status)
-            let json = jsonRequired ? this.parseJson (response, responseBody, url, method) : undefined
+            let json = this.isJsonEncodedObject (responseBody) ? this.parseJson (response, responseBody, url, method) : undefined
 
             let responseHeaders = this.getResponseHeaders (response)
 
