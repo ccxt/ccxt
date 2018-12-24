@@ -166,9 +166,12 @@ class coincheck (Exchange):
         if symbol != 'BTC/JPY':
             raise NotSupported(self.id + ' fetchTrades() supports BTC/JPY only')
         market = self.market(symbol)
-        response = self.publicGetTrades(self.extend({
+        request = {
             'pair': market['id'],
-        }, params))
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = self.publicGetTrades(self.extend(request, params))
         if 'success' in response:
             if response['success']:
                 if response['data'] is not None:

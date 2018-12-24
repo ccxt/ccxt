@@ -277,7 +277,7 @@ class lbank (Exchange):
             'size': 100,
         }
         if since is not None:
-            request['time'] = int(since / 1000)
+            request['time'] = int(since)
         if limit is not None:
             request['size'] = limit
         response = await self.publicGetTrades(self.extend(request, params))

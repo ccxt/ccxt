@@ -590,9 +590,9 @@ class exmo (Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        response = await self.privatePostOrderTrades({
+        response = await self.privatePostOrderTrades(self.extend({
             'order_id': str(id),
-        })
+        }, params))
         return self.parse_trades(response, market, since, limit)
 
     def update_cached_orders(self, openOrders, symbol):
@@ -853,6 +853,10 @@ class exmo (Exchange):
         if not self.fees['funding']['percentage']:
             key = 'withdraw' if (type == 'withdrawal') else 'deposit'
             feeCost = self.safe_float(self.options['fundingFees'][key], code)
+            # users don't pay for cashbacks, no fees for that
+            provider = self.safe_string(transaction, 'provider')
+            if provider == 'cashback':
+                feeCost = 0
             if feeCost is not None:
                 fee = {
                     'cost': feeCost,
@@ -938,7 +942,7 @@ class exmo (Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response=None):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if len(body) < 2:

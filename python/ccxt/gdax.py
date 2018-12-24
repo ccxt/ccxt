@@ -673,7 +673,7 @@ class gdax (Exchange):
             'info': response,
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if (code == 400) or (code == 404):
             if body[0] == '{':
                 response = json.loads(body)

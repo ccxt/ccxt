@@ -168,12 +168,17 @@ class coincheck extends Exchange {
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
-        if ($symbol !== 'BTC/JPY')
+        if ($symbol !== 'BTC/JPY') {
             throw new NotSupported ($this->id . ' fetchTrades () supports BTC/JPY only');
+        }
         $market = $this->market ($symbol);
-        $response = $this->publicGetTrades (array_merge (array (
+        $request = array (
             'pair' => $market['id'],
-        ), $params));
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->publicGetTrades (array_merge ($request, $params));
         if (is_array ($response) && array_key_exists ('success', $response))
             if ($response['success'])
                 if ($response['data'] !== null)

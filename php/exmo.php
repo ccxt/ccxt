@@ -617,9 +617,9 @@ class exmo extends Exchange {
         $market = null;
         if ($symbol !== null)
             $market = $this->market ($symbol);
-        $response = $this->privatePostOrderTrades (array (
+        $response = $this->privatePostOrderTrades (array_merge (array (
             'order_id' => (string) $id,
-        ));
+        ), $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -885,7 +885,7 @@ class exmo extends Exchange {
         //            "$type" => "deposit",
         //            "curr" => "RUB",
         //            "$status" => "processing",
-        //            "provider" => "Qiwi (LA) [12345]",
+        //            "$provider" => "Qiwi (LA) [12345]",
         //            "$amount" => "1",
         //            "account" => "",
         //            "$txid" => "ec46f784ad976fd7f7539089d1a129fe46...",
@@ -924,6 +924,11 @@ class exmo extends Exchange {
         if (!$this->fees['funding']['percentage']) {
             $key = ($type === 'withdrawal') ? 'withdraw' : 'deposit';
             $feeCost = $this->safe_float($this->options['fundingFees'][$key], $code);
+            // users don't pay for cashbacks, no fees for that
+            $provider = $this->safe_string($transaction, 'provider');
+            if ($provider === 'cashback') {
+                $feeCost = 0;
+            }
             if ($feeCost !== null) {
                 $fee = array (
                     'cost' => $feeCost,
@@ -1019,7 +1024,7 @@ class exmo extends Exchange {
         return $this->milliseconds ();
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
         if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)

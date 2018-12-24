@@ -807,7 +807,12 @@ class cryptopia extends Exchange {
         ), $params));
         $address = $this->safe_string($response['Data'], 'BaseAddress');
         $tag = $this->safe_string($response['Data'], 'Address');
-        if (($address === null) || (strlen ($address) < 1)) {
+        if ($address !== null) {
+            if (strlen ($address) < 1) {
+                $address = null;
+            }
+        }
+        if ($address === null) {
             $address = $tag;
             $tag = null;
         }
@@ -868,7 +873,7 @@ class cryptopia extends Exchange {
         return $this->milliseconds ();
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (gettype ($body) !== 'string')
             return; // fallback to default $error handler
         if (strlen ($body) < 2)

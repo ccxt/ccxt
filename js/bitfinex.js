@@ -508,10 +508,9 @@ module.exports = class bitfinex extends Exchange {
         let tickers = await this.publicGetTickers (params);
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
-            let ticker = tickers[i];
-            let parsedTicker = this.parseTicker (ticker);
-            let symbol = parsedTicker['symbol'];
-            result[symbol] = parsedTicker;
+            let ticker = this.parseTicker (tickers[i]);
+            let symbol = ticker['symbol'];
+            result[symbol] = ticker;
         }
         return result;
     }
@@ -976,7 +975,7 @@ module.exports = class bitfinex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if (body.length < 2)
             return;
         if (code >= 400) {

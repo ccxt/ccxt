@@ -616,9 +616,9 @@ module.exports = class exmo extends Exchange {
         let market = undefined;
         if (symbol !== undefined)
             market = this.market (symbol);
-        let response = await this.privatePostOrderTrades ({
+        let response = await this.privatePostOrderTrades (this.extend ({
             'order_id': id.toString (),
-        });
+        }, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -923,6 +923,11 @@ module.exports = class exmo extends Exchange {
         if (!this.fees['funding']['percentage']) {
             let key = (type === 'withdrawal') ? 'withdraw' : 'deposit';
             let feeCost = this.safeFloat (this.options['fundingFees'][key], code);
+            // users don't pay for cashbacks, no fees for that
+            const provider = this.safeString (transaction, 'provider');
+            if (provider === 'cashback') {
+                feeCost = 0;
+            }
             if (feeCost !== undefined) {
                 fee = {
                     'cost': feeCost,
@@ -1018,7 +1023,7 @@ module.exports = class exmo extends Exchange {
         return this.milliseconds ();
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response = undefined) {
+    handleErrors (httpCode, reason, url, method, headers, body, response) {
         if (typeof body !== 'string')
             return; // fallback to default error handler
         if (body.length < 2)

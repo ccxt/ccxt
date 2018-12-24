@@ -285,7 +285,7 @@ module.exports = class lbank extends Exchange {
             'size': 100,
         };
         if (since !== undefined)
-            request['time'] = parseInt (since / 1000);
+            request['time'] = parseInt (since);
         if (limit !== undefined)
             request['size'] = limit;
         let response = await this.publicGetTrades (this.extend (request, params));

@@ -96,7 +96,8 @@ class bithumb extends Exchange {
                 $symbol = $id . '/' . $quote;
                 $active = true;
                 if (gettype ($market) === 'array' && count (array_filter (array_keys ($market), 'is_string')) == 0) {
-                    if (strlen ($market) === 0) {
+                    $numElements = is_array ($market) ? count ($market) : 0;
+                    if ($numElements === 0) {
                         $active = false;
                     }
                 }
@@ -224,8 +225,10 @@ class bithumb extends Exchange {
                 $symbol = $market['symbol'];
             }
             $ticker = $tickers[$id];
-            $ticker['date'] = $timestamp;
-            $result[$symbol] = $this->parse_ticker($ticker, $market);
+            if (!gettype ($ticker) === 'array' && count (array_filter (array_keys ($ticker), 'is_string')) == 0) {
+                $ticker['date'] = $timestamp;
+                $result[$symbol] = $this->parse_ticker($ticker, $market);
+            }
         }
         return $result;
     }
@@ -360,7 +363,7 @@ class bithumb extends Exchange {
                 'endpoint' => $endpoint,
             ), $query));
             $nonce = (string) $this->nonce ();
-            $auth = $endpoint . '\0' . $body . '\0' . $nonce;
+            $auth = $endpoint . "\0" . $body . "\0" . $nonce; // eslint-disable-line quotes
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512');
             $signature64 = $this->decode (base64_encode ($this->encode ($signature)));
             $headers = array (
@@ -374,7 +377,7 @@ class bithumb extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
         if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)

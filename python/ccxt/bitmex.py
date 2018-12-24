@@ -554,7 +554,7 @@ class bitmex (Exchange):
             'id': response['transactID'],
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if code == 429:
             raise DDoSProtection(self.id + ' ' + body)
         if code >= 400:
@@ -600,7 +600,7 @@ class bitmex (Exchange):
                 headers['api-expires'] = expires
             else:
                 auth += nonce
-                headers['api-nonce'] = self.nonce()
+                headers['api-nonce'] = nonce
             if method == 'POST' or method == 'PUT':
                 if params:
                     body = self.json(params)

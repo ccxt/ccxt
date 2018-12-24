@@ -771,7 +771,7 @@ module.exports = class upbit extends Exchange {
         //                            unit:  1                     },
         //
         return [
-            this.safeInteger (ohlcv, 'timestamp'),
+            this.parse8601 (this.safeString (ohlcv, 'candle_date_time_utc')),
             this.safeFloat (ohlcv, 'opening_price'),
             this.safeFloat (ohlcv, 'high_price'),
             this.safeFloat (ohlcv, 'low_price'),
@@ -1471,7 +1471,7 @@ module.exports = class upbit extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response = undefined) {
+    handleErrors (httpCode, reason, url, method, headers, body, response) {
         if (!this.isJsonEncodedObject (body))
             return; // fallback to default error handler
         response = JSON.parse (body);

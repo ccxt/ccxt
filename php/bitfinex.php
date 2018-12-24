@@ -508,10 +508,9 @@ class bitfinex extends Exchange {
         $tickers = $this->publicGetTickers ($params);
         $result = array ();
         for ($i = 0; $i < count ($tickers); $i++) {
-            $ticker = $tickers[$i];
-            $parsedTicker = $this->parse_ticker($ticker);
-            $symbol = $parsedTicker['symbol'];
-            $result[$symbol] = $parsedTicker;
+            $ticker = $this->parse_ticker($tickers[$i]);
+            $symbol = $ticker['symbol'];
+            $result[$symbol] = $ticker;
         }
         return $result;
     }
@@ -976,7 +975,7 @@ class bitfinex extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (strlen ($body) < 2)
             return;
         if ($code >= 400) {

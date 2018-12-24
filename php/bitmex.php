@@ -579,7 +579,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if ($code === 429)
             throw new DDoSProtection ($this->id . ' ' . $body);
         if ($code >= 400) {
@@ -633,7 +633,7 @@ class bitmex extends Exchange {
                 $headers['api-expires'] = $expires;
             } else {
                 $auth .= $nonce;
-                $headers['api-nonce'] = $this->nonce ();
+                $headers['api-nonce'] = $nonce;
             }
             if ($method === 'POST' || $method === 'PUT') {
                 if ($params) {

@@ -689,9 +689,7 @@ class kucoin (Exchange):
             side = order['type']
         if side is not None:
             side = side.lower()
-        orderId = self.safe_string(order, 'orderOid')
-        if orderId is None:
-            orderId = self.safe_string(order, 'oid')
+        orderId = self.safe_string_2(order, 'orderOid', 'oid')
         # do not confuse trades with orders
         trades = None
         if 'dealOrders' in order:
@@ -1295,7 +1293,7 @@ class kucoin (Exchange):
                 raise InsufficientFunds(feedback)
         raise ExchangeError(self.id + ': unknown response: ' + self.json(response))
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if response is not None:
             # JS callchain parses body beforehand
             self.throw_exception_on_error(response)

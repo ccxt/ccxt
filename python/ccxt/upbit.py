@@ -744,7 +744,7 @@ class upbit (Exchange):
         #                            unit:  1                     },
         #
         return [
-            self.safe_integer(ohlcv, 'timestamp'),
+            self.parse8601(self.safe_string(ohlcv, 'candle_date_time_utc')),
             self.safe_float(ohlcv, 'opening_price'),
             self.safe_float(ohlcv, 'high_price'),
             self.safe_float(ohlcv, 'low_price'),
@@ -1391,7 +1391,7 @@ class upbit (Exchange):
                 headers['Content-Type'] = 'application/json'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response=None):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
         if not self.is_json_encoded_object(body):
             return  # fallback to default error handler
         response = json.loads(body)

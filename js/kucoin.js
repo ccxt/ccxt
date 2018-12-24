@@ -692,9 +692,7 @@ module.exports = class kucoin extends Exchange {
             side = order['type'];
         if (side !== undefined)
             side = side.toLowerCase ();
-        let orderId = this.safeString (order, 'orderOid');
-        if (orderId === undefined)
-            orderId = this.safeString (order, 'oid');
+        let orderId = this.safeString2 (order, 'orderOid', 'oid');
         // do not confuse trades with orders
         let trades = undefined;
         if ('dealOrders' in order)
@@ -1357,7 +1355,7 @@ module.exports = class kucoin extends Exchange {
         throw new ExchangeError (this.id + ': unknown response: ' + this.json (response));
     }
 
-    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if (response !== undefined) {
             // JS callchain parses body beforehand
             this.throwExceptionOnError (response);

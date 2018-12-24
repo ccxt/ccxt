@@ -261,7 +261,7 @@ class yobit (liqui):
             'id': None,
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if body[0] == '{':
             response = json.loads(body)
             if 'success' in response:

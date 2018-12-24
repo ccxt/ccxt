@@ -772,7 +772,7 @@ class upbit extends Exchange {
         //                            unit =>  1                     ),
         //
         return array (
-            $this->safe_integer($ohlcv, 'timestamp'),
+            $this->parse8601 ($this->safe_string($ohlcv, 'candle_date_time_utc')),
             $this->safe_float($ohlcv, 'opening_price'),
             $this->safe_float($ohlcv, 'high_price'),
             $this->safe_float($ohlcv, 'low_price'),
@@ -1472,7 +1472,7 @@ class upbit extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
         if (!$this->is_json_encoded_object($body))
             return; // fallback to default $error handler
         $response = json_decode ($body, $as_associative_array = true);

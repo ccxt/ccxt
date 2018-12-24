@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.39';
+$version = '1.18.65';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.39';
+    const VERSION = '1.18.65';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -143,6 +143,7 @@ class Exchange {
         'coinspot',
         'cointiger',
         'coolcoin',
+        'coss',
         'crex24',
         'crypton',
         'cryptopia',
@@ -1026,7 +1027,7 @@ class Exchange {
         return null;
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         // it's a stub function, does nothing in base code
     }
 
@@ -1189,7 +1190,7 @@ class Exchange {
             print_r (array ($method, $url, $http_status_code, $curl_error, $response_headers, $result));
         }
 
-        $this->handle_errors ($http_status_code, $curl_error, $url, $method, $response_headers, $result ? $result : null);
+        $this->handle_errors ($http_status_code, $curl_error, $url, $method, $response_headers, $result ? $result : null, $json_response);
 
         if ($result === false) {
 

@@ -110,7 +110,8 @@ class bithumb (Exchange):
                 symbol = id + '/' + quote
                 active = True
                 if isinstance(market, list):
-                    if len(market) == 0:
+                    numElements = len(market)
+                    if numElements == 0:
                         active = False
                 result.append({
                     'id': id,
@@ -226,8 +227,9 @@ class bithumb (Exchange):
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
             ticker = tickers[id]
-            ticker['date'] = timestamp
-            result[symbol] = self.parse_ticker(ticker, market)
+            if not isinstance(ticker, list):
+                ticker['date'] = timestamp
+                result[symbol] = self.parse_ticker(ticker, market)
         return result
 
     async def fetch_ticker(self, symbol, params={}):
@@ -349,7 +351,7 @@ class bithumb (Exchange):
                 'endpoint': endpoint,
             }, query))
             nonce = str(self.nonce())
-            auth = endpoint + '\0' + body + '\0' + nonce
+            auth = endpoint + "\0" + body + "\0" + nonce  # eslint-disable-line quotes
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
             signature64 = self.decode(base64.b64encode(self.encode(signature)))
             headers = {
@@ -361,7 +363,7 @@ class bithumb (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response=None):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if len(body) < 2:
