@@ -56,6 +56,7 @@ const exchange = new (ccxt)[exchangeId] ({
     enableRateLimit,
     debug,
     timeout: 20000,
+    bignumParse: true,
 })
 
 //-----------------------------------------------------------------------------

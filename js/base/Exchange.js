@@ -4,6 +4,7 @@
 
 const functions = require ('./functions')
     , Market    = require ('./Market')
+    , jsonBignum = require ('./json-bignum')
 
 const {
     isNode
@@ -304,6 +305,7 @@ module.exports = class Exchange {
         this.journal       = 'debug.json'
         this.userAgent     = undefined
         this.twofa         = false // two-factor authentication (2FA)
+        this.bignumParse   = false
 
         this.apiKey        = undefined
         this.secret        = undefined
@@ -543,7 +545,7 @@ module.exports = class Exchange {
     parseJson (response, responseBody, url, method) {
         try {
 
-            return (responseBody.length > 0) ? JSON.parse (responseBody) : {} // empty object for empty body
+            return (responseBody.length > 0) ? (this.bignumParse ? jsonBignum.parse : JSON.parse) (responseBody) : {} // empty object for empty body
 
         } catch (e) {
 
@@ -618,7 +620,7 @@ module.exports = class Exchange {
     }
 
     parseIfJsonEncodedObject (input) {
-        return (this.isJsonEncodedObject (input) ? JSON.parse (input) : input)
+        return (this.isJsonEncodedObject (input) ? (this.bignumParse ? jsonBignum.parse : JSON.parse) (input) : input)
     }
 
     isJsonEncodedObject (object) {

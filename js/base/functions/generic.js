@@ -2,7 +2,7 @@
 
 /*  ------------------------------------------------------------------------ */
 
-const { isObject, isNumber, isDictionary, isArray } = require ('./type')
+const { isObject, isNumber, isDictionary, isArray, asFloat } = require ('./type')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -202,7 +202,7 @@ module.exports =
         const ns = xs.filter (isNumber) // leave only numbers
 
         return (ns.length > 0)
-                    ? ns.reduce ((a, b) => a + b, 0)
+                    ? ns.reduce ((a, b) => a + asFloat (b), 0)
                     : undefined
     }
 

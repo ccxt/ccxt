@@ -528,6 +528,8 @@ Below is a detailed description of each of the base exchange properties:
       import logging
       logging.basicConfig(level=logging.DEBUG)
 
+-  ``bignumParse``: Uses `bignum-json <https://github.com/datalanche/json-bignum>`__ instead of built-in JSON.parse to parse incoming JSON data. This means that unmodified versions of numeric values are still available in `info` values. This is slower than using JSON.parse.
+
 -  ``markets``: An associative array of markets indexed by common trading pairs or symbols. Markets should be loaded prior to accessing this property. Markets are unavailable until you call the ``loadMarkets() / load_markets()`` method on exchange instance.
 
 -  ``symbols``: A non-associative array (a list) of symbols available with an exchange, sorted in alphabetical order. These are the keys of the ``markets`` property. Symbols are loaded and reloaded from markets. This property is a convenient shorthand for all market keys.

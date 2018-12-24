@@ -2,7 +2,7 @@
 
 /*  ------------------------------------------------------------------------ */
 
-const isNumber          = Number.isFinite
+const isNumber          = x => Number.isFinite(x) || x && x.numberStr
     , isArray           = Array.isArray
     , isString          = s =>                 (typeof s === 'string')
     , isObject          = o => (o !== null) && (typeof o === 'object')

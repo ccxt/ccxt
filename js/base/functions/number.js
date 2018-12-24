@@ -1,6 +1,6 @@
 'use strict'
 
-const { isString, isNumber } = require ('./type')
+const { isString } = require ('./type')
 const { max } = Math
 
 /*  ------------------------------------------------------------------------
