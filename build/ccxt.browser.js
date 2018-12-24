@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.68'
+const version = '1.18.69'
 
 Exchange.ccxtVersion = version
 
@@ -39090,7 +39090,7 @@ module.exports = class gdax extends Exchange {
             return 'canceled';
         } else if ('completed_at' in transaction && transaction['completed_at']) {
             return 'ok';
-        } else if (('canceled_at' in transaction && !transaction['canceled_at']) && ('completed_at' in transaction && !transaction['completed_at']) && ('processed_at' in transaction && !transaction['processed_at'])) {
+        } else if ((('canceled_at' in transaction) && !transaction['canceled_at']) && (('completed_at' in transaction) && !transaction['completed_at']) && (('processed_at' in transaction) && !transaction['processed_at'])) {
             return 'pending';
         } else if ('processed_at' in transaction && transaction['processed_at']) {
             return 'pending';

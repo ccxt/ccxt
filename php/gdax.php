@@ -608,7 +608,7 @@ class gdax extends Exchange {
             return 'canceled';
         } else if (is_array ($transaction && $transaction['completed_at']) && array_key_exists ('completed_at', $transaction && $transaction['completed_at'])) {
             return 'ok';
-        } else if ((is_array ($transaction && !$transaction['canceled_at']) && array_key_exists ('canceled_at', $transaction && !$transaction['canceled_at'])) && (is_array ($transaction && !$transaction['completed_at']) && array_key_exists ('completed_at', $transaction && !$transaction['completed_at'])) && (is_array ($transaction && !$transaction['processed_at']) && array_key_exists ('processed_at', $transaction && !$transaction['processed_at']))) {
+        } else if (((is_array ($transaction) && array_key_exists ('canceled_at', $transaction)) && !$transaction['canceled_at']) && ((is_array ($transaction) && array_key_exists ('completed_at', $transaction)) && !$transaction['completed_at']) && ((is_array ($transaction) && array_key_exists ('processed_at', $transaction)) && !$transaction['processed_at'])) {
             return 'pending';
         } else if (is_array ($transaction && $transaction['processed_at']) && array_key_exists ('processed_at', $transaction && $transaction['processed_at'])) {
             return 'pending';
