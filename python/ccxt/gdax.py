@@ -575,7 +575,7 @@ class gdax (Exchange):
             return 'ok'
         elif ('canceled_at' in list(transaction and not transaction['canceled_at'].keys())) and('completed_at' in list(transaction and not transaction['completed_at'].keys())) and('processed_at' in list(transaction and not transaction['processed_at'].keys())):
             return 'pending'
-        elif 'procesed_at' in transaction and transaction['procesed_at']:
+        elif 'processed_at' in transaction and transaction['processed_at']:
             return 'pending'
         else:
             return 'failed'
