@@ -393,7 +393,7 @@ module.exports = class Exchange {
                 if (error) {
                     throw new AuthenticationError (this.id + ' requires `' + key + '`')
                 } else {
-                    return error;
+                    return error
                 }
             }
         })
