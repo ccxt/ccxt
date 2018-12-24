@@ -666,11 +666,15 @@ class Exchange {
         return $this->seconds ();
     }
 
-    public function check_required_credentials () {
+    public function check_required_credentials ($error = true) {
         $keys = array_keys ($this->requiredCredentials);
         foreach ($this->requiredCredentials as $key => $value) {
             if ($value && (!$this->$key)) {
-                throw new AuthenticationError ($this->id . ' requires `' . $key . '`');
+                if ($error) {
+                    throw new AuthenticationError ($this->id . ' requires `' . $key . '`');
+                } else {
+                    return $error;
+                }
             }
         }
     }

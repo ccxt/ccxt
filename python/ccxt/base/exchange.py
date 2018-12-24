@@ -925,11 +925,14 @@ class Exchange(object):
     def nonce(self):
         return Exchange.seconds()
 
-    def check_required_credentials(self):
+    def check_required_credentials(self, error=True):
         keys = list(self.requiredCredentials.keys())
         for key in keys:
             if self.requiredCredentials[key] and not getattr(self, key):
-                self.raise_error(AuthenticationError, details='requires `' + key + '`')
+                if error:
+                    self.raise_error(AuthenticationError, details='requires `' + key + '`')
+                else:
+                    return error
 
     def check_address(self, address):
         """Checks an address is not the same character repeated or an empty sequence"""
