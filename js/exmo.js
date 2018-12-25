@@ -15,7 +15,6 @@ module.exports = class exmo extends Exchange {
             'countries': [ 'ES', 'RU' ], // Spain, Russia
             'rateLimit': 350, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version': 'v1',
-            'parseJsonResponse': false,
             'has': {
                 'CORS': false,
                 'fetchClosedOrders': 'emulated',
@@ -1058,10 +1057,5 @@ module.exports = class exmo extends Exchange {
                 }
             }
         }
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        return this.parseIfJsonEncodedObject (response);
     }
 };
