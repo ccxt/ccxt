@@ -807,7 +807,6 @@ class Exchange {
         $this->minFundingAddressLength = 1; // used in check_address
         $this->substituteCommonCurrencyCodes = true;
         $this->timeframes = null;
-        $this->parseJsonResponse = true;
 
         $this->requiredCredentials = array (
             'apiKey' => true,
@@ -1031,6 +1030,10 @@ class Exchange {
         // it's a stub function, does nothing in base code
     }
 
+    public function parse_json ($json_string) {
+        return json_decode ($json_string, $as_associative_array = true);
+    }
+
     public function fetch ($url, $method = 'GET', $headers = null, $body = null) {
 
         if ($this->enableRateLimit)
@@ -1165,17 +1168,10 @@ class Exchange {
             $this->last_response_headers = $response_headers;
         }
 
-        $json_response = null;
+        $json_response = $this->parse_json ($result, $as_associative_array = true);
 
-        if ($this->is_json_encoded_object ($result)) {
-
-            $json_response =
-                ((gettype ($result) == 'string') &&  (strlen ($result) > 1)) ?
-                    json_decode ($result, $as_associative_array = true) : null;
-
-            if ($this->enableLastJsonResponse) {
-                $this->last_json_response = $json_response;
-            }
+        if ($this->enableLastJsonResponse) {
+            $this->last_json_response = $json_response;
         }
 
         $curl_errno = curl_errno ($this->curl);
