@@ -13,7 +13,6 @@ module.exports = class theocean extends Exchange {
             'rateLimit': 3000,
             'version': 'v0',
             'certified': true,
-            'parseJsonResponse': false,
             'requiresWeb3': true,
             // add GET https://api.staging.theocean.trade/api/v0/candlesticks/intervals to fetchMarkets
             'timeframes': {
@@ -1266,16 +1265,5 @@ module.exports = class theocean extends Exchange {
                 throw new ExchangeError (feedback); // unknown message
             }
         }
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (typeof response !== 'string') {
-            throw new ExchangeError (this.id + ' returned a non-string response: ' + response.toString ());
-        }
-        if ((response[0] === '{' || response[0] === '[')) {
-            return JSON.parse (response);
-        }
-        return response;
     }
 };
