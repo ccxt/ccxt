@@ -1167,6 +1167,8 @@ class Exchange {
         if ($this->enableLastResponseHeaders) {
             $this->last_response_headers = $response_headers;
         }
+        
+        $json_response = null;
 
         if ($this->is_json_encoded_object ($result)) {
          
