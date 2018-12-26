@@ -904,7 +904,7 @@ module.exports = class cryptopia extends Exchange {
             }
         }
     }
-    
+
     parseJson (jsonString) {
         const fixedJsonString = this.sanitizeBrokenJSONString (jsonString);
         return super.parseJson (fixedJsonString);
