@@ -162,7 +162,6 @@ module.exports = class Exchange {
                     'deposit': {},
                 },
             },
-            'parseJsonResponse': true, // whether a reply is required to be in JSON or not
             'skipJsonOnStatusCodes': [], // array of http status codes which override requirement for JSON response
             'exceptions': undefined,
             'httpExceptions': {
@@ -534,11 +533,15 @@ module.exports = class Exchange {
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         return this.fetch2 (path, type, method, params, headers, body)
     }
+    
+    parseJson (jsonString) {
+        return JSON.parse (jsonString)
+    }
 
-    parseJson (response, responseBody, url, method) {
+    parseRestResponse (response, responseBody, url, method) {
         try {
 
-            return (responseBody.length > 0) ? JSON.parse (responseBody) : {} // empty object for empty body
+            return (responseBody.length > 0) ? this.parseJson (responseBody) : {} // empty object for empty body
 
         } catch (e) {
 
@@ -636,7 +639,7 @@ module.exports = class Exchange {
         return response.text ().then ((responseBody) => {
 
             const shouldParseJson = this.isJsonEncodedObject (responseBody) && !this.skipJsonOnStatusCodes.includes (response.status)
-            const json = shouldParseJson ? this.parseJson (response, responseBody, url, method) : undefined
+            const json = shouldParseJson ? this.parseRestResponse (response, responseBody, url, method) : undefined
 
             let responseHeaders = this.getResponseHeaders (response)
 
