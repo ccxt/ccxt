@@ -14,7 +14,6 @@ except NameError:
 import base64
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
@@ -516,7 +515,6 @@ class fcoin (Exchange):
         if len(body) < 2:
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
             status = self.safe_string(response, 'status')
             if status != '0':
                 feedback = self.id + ' ' + body

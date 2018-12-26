@@ -980,7 +980,6 @@ class bitfinex extends Exchange {
             return;
         if ($code >= 400) {
             if ($body[0] === '{') {
-                $response = json_decode ($body, $as_associative_array = true);
                 $feedback = $this->id . ' ' . $this->json ($response);
                 $message = null;
                 if (is_array ($response) && array_key_exists ('message', $response)) {

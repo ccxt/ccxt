@@ -1473,9 +1473,8 @@ class upbit extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
-        if (!$this->is_json_encoded_object($body))
+        if ($response === null)
             return; // fallback to default $error handler
-        $response = json_decode ($body, $as_associative_array = true);
         //
         //   array ( 'error' => array ( 'message' => "Missing request parameter $error-> Check the required parameters!", 'name' =>  400 ) ),
         //   array ( 'error' => array ( 'message' => "side is missing, side does not have a valid value", 'name' => "validation_error" ) ),

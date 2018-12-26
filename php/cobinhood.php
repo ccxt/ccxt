@@ -823,7 +823,6 @@ class cobinhood extends Exchange {
         if ($body[0] !== '{') {
             throw new ExchangeError ($this->id . ' ' . $body);
         }
-        $response = json_decode ($body, $as_associative_array = true);
         $feedback = $this->id . ' ' . $this->json ($response);
         $errorCode = $this->safe_value($response['error'], 'error_code');
         if ($method === 'DELETE' || $method === 'GET') {

@@ -13,7 +13,6 @@ except NameError:
     basestring = str  # Python 2
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -658,7 +657,6 @@ class gatecoin (Exchange):
         if body.find('You are not authorized') >= 0:
             raise PermissionDenied(body)
         if body[0] == '{':
-            response = json.loads(body)
             if 'responseStatus' in response:
                 errorCode = self.safe_string(response['responseStatus'], 'errorCode')
                 message = self.safe_string(response['responseStatus'], 'message')

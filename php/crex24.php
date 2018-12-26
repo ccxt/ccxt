@@ -1190,7 +1190,6 @@ class crex24 extends Exchange {
         if (($code >= 200) && ($code < 300)) {
             return; // no error
         }
-        $response = json_decode ($body, $as_associative_array = true);
         $message = $this->safe_string($response, 'errorDescription');
         $feedback = $this->id . ' ' . $this->json ($response);
         $exact = $this->exceptions['exact'];

@@ -14,7 +14,6 @@ except NameError:
 import base64
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InvalidNonce
@@ -428,7 +427,6 @@ class bitsane (Exchange):
         if len(body) < 2:
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
             statusCode = self.safe_string(response, 'statusCode')
             if statusCode is not None:
                 if statusCode != '0':

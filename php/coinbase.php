@@ -572,7 +572,6 @@ class coinbase extends Exchange {
         if (strlen ($body) < 2)
             return; // fallback to default error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             $feedback = $this->id . ' ' . $body;
             //
             //    array ("error" => "invalid_request", "error_description" => "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.")

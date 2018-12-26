@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import json
 from ccxt.base.errors import ExchangeError
 
 
@@ -256,7 +255,6 @@ class virwox (Exchange):
     def handle_errors(self, code, reason, url, method, headers, body, response):
         if code == 200:
             if (body[0] == '{') or (body[0] == '['):
-                response = json.loads(body)
                 if 'result' in response:
                     result = response['result']
                     if 'errorCode' in result:

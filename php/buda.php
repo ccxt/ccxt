@@ -757,7 +757,6 @@ class buda extends Exchange {
             return; // fallback to default error handler
         }
         if ($code >= 400) {
-            $response = json_decode ($body, $as_associative_array = true);
             $errorCode = $this->safe_string($response, 'code');
             $message = $this->safe_string($response, 'message', $body);
             $feedback = $this->name . ' => ' . $message;

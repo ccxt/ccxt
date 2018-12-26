@@ -663,7 +663,6 @@ class bigone extends Exchange {
         if (strlen ($body) < 2)
             return; // fallback to default $error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             //
             //      array ("$errors":{"detail":"Internal server $error")}
             //      array ("$errors":[{"message":"invalid nonce, nonce should be a 19bits number","$code":10030)],"$data":null}

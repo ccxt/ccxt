@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -301,7 +300,6 @@ class btcbox (Exchange):
             return  # resort to defaultErrorHandler
         if body[0] != '{':
             return  # not json, resort to defaultErrorHandler
-        response = json.loads(body)
         result = self.safe_value(response, 'result')
         if result is None or result is True:
             return  # either public API(no error codes expected) or success

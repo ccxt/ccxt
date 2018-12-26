@@ -13,7 +13,6 @@ except NameError:
     basestring = str  # Python 2
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
@@ -271,11 +270,10 @@ class gateio (Exchange):
             return
         if body[0] != '{':
             return
-        jsonbodyParsed = json.loads(body)
-        resultString = self.safe_string(jsonbodyParsed, 'result', '')
+        resultString = self.safe_string(response, 'result', '')
         if resultString != 'false':
             return
-        errorCode = self.safe_string(jsonbodyParsed, 'code')
+        errorCode = self.safe_string(response, 'code')
         if errorCode is not None:
             exceptions = self.exceptions
             errorCodeNames = self.errorCodeNames
@@ -284,7 +282,7 @@ class gateio (Exchange):
                 if errorCode in errorCodeNames:
                     message = errorCodeNames[errorCode]
                 else:
-                    message = self.safe_string(jsonbodyParsed, 'message', '(unknown)')
+                    message = self.safe_string(response, 'message', '(unknown)')
                 raise exceptions[errorCode](message)
 
     async def fetch_tickers(self, symbols=None, params={}):

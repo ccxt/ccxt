@@ -510,7 +510,6 @@ class coinegg extends Exchange {
             return;
         if ($body[0] !== '{')
             return;
-        $response = json_decode ($body, $as_associative_array = true);
         // private endpoints return the following structure:
         // array ("$result":true,"data":{...)} - success
         // array ("$result":false,"$code":"103") - failure

@@ -547,7 +547,6 @@ class bitforex extends Exchange {
             return; // fallback to default error handler
         }
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             $feedback = $this->id . ' ' . $body;
             $success = $this->safe_value($response, 'success');
             if ($success !== null) {

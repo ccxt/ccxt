@@ -13,7 +13,6 @@ except NameError:
     basestring = str  # Python 2
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -618,7 +617,6 @@ class livecoin (Exchange):
         if not isinstance(body, basestring):
             return
         if body[0] == '{':
-            response = json.loads(body)
             if code >= 300:
                 errorCode = self.safe_string(response, 'errorCode')
                 if errorCode in self.exceptions:

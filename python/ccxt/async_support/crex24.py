@@ -7,7 +7,6 @@ from ccxt.async_support.base.exchange import Exchange
 import base64
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
@@ -1124,7 +1123,6 @@ class crex24 (Exchange):
             return  # fallback to default error handler
         if (code >= 200) and(code < 300):
             return  # no error
-        response = json.loads(body)
         message = self.safe_string(response, 'errorDescription')
         feedback = self.id + ' ' + self.json(response)
         exact = self.exceptions['exact']

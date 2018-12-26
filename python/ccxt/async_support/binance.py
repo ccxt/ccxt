@@ -1084,7 +1084,6 @@ class binance (Exchange):
                 raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use self.price_to_precision(symbol, amount) ' + body)
         if len(body) > 0:
             if body[0] == '{':
-                response = json.loads(body)
                 # check success value for wapi endpoints
                 # response in format {'msg': 'The coin does not exist.', 'success': True/false}
                 success = self.safe_value(response, 'success', True)

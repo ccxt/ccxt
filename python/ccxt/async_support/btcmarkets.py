@@ -7,7 +7,6 @@ from ccxt.async_support.base.exchange import Exchange
 import base64
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -466,7 +465,6 @@ class btcmarkets (Exchange):
         if len(body) < 2:
             return  # fallback to default error handler
         if body[0] == '{':
-            response = json.loads(body)
             if 'success' in response:
                 if not response['success']:
                     error = self.safe_string(response, 'errorCode')

@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -612,10 +611,8 @@ class liquid (Exchange):
                 return
         if code == 429:
             raise DDoSProtection(self.id + ' ' + body)
-        if not self.is_json_encoded_object(body):
-            return  # fallback to default error handler
         if response is None:
-            response = json.loads(body)
+            return
         feedback = self.id + ' ' + body
         message = self.safe_string(response, 'message')
         errors = self.safe_value(response, 'errors')

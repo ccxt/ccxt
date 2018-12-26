@@ -311,7 +311,6 @@ class btcbox extends Exchange {
             return; // resort to defaultErrorHandler
         if ($body[0] !== '{')
             return; // not json, resort to defaultErrorHandler
-        $response = json_decode ($body, $as_associative_array = true);
         $result = $this->safe_value($response, 'result');
         if ($result === null || $result === true)
             return; // either public API (no error codes expected) or success

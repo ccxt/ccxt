@@ -11,7 +11,6 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -631,7 +630,6 @@ class bcex (Exchange):
         if len(body) < 2:
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
             code = self.safe_value(response, 'code')
             if code is not None:
                 if code != 0:

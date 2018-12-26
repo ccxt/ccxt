@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.liqui import liqui
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
@@ -138,7 +137,6 @@ class wex (liqui):
             if body[0] != '{':
                 # response is not JSON -> resort to default error handler
                 return
-            response = json.loads(body)
             if 'success' in response:
                 if not response['success']:
                     error = self.safe_string(response, 'error')

@@ -897,7 +897,6 @@ class bitstamp extends Exchange {
         if (strlen ($body) < 2)
             return; // fallback to default $error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             // fetchDepositAddress returns array ("$error" => "No permission found") on apiKeys that don't have the permission required
             $error = $this->safe_string($response, 'error');
             $exceptions = $this->exceptions;

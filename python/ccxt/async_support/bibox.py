@@ -13,7 +13,6 @@ except NameError:
     basestring = str  # Python 2
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -662,7 +661,6 @@ class bibox (Exchange):
     def handle_errors(self, code, reason, url, method, headers, body, response):
         if len(body) > 0:
             if body[0] == '{':
-                response = json.loads(body)
                 if 'error' in response:
                     if 'code' in response['error']:
                         code = self.safe_string(response['error'], 'code')

@@ -6,7 +6,6 @@
 from ccxt.async_support.base.exchange import Exchange
 import base64
 import hashlib
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -676,7 +675,6 @@ class gdax (Exchange):
     def handle_errors(self, code, reason, url, method, headers, body, response):
         if (code == 400) or (code == 404):
             if body[0] == '{':
-                response = json.loads(body)
                 message = response['message']
                 feedback = self.id + ' ' + message
                 exact = self.exceptions['exact']

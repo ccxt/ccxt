@@ -12,7 +12,6 @@ try:
 except NameError:
     basestring = str  # Python 2
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -633,7 +632,6 @@ class bigone (Exchange):
         if len(body) < 2:
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
             #
             #      {"errors":{"detail":"Internal server error"}}
             #      {"errors":[{"message":"invalid nonce, nonce should be a 19bits number","code":10030}],"data":null}

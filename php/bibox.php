@@ -694,7 +694,6 @@ class bibox extends Exchange {
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (strlen ($body) > 0) {
             if ($body[0] === '{') {
-                $response = json_decode ($body, $as_associative_array = true);
                 if (is_array ($response) && array_key_exists ('error', $response)) {
                     if (is_array ($response['error']) && array_key_exists ('code', $response['error'])) {
                         $code = $this->safe_string($response['error'], 'code');

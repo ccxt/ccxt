@@ -18,7 +18,6 @@ class theocean extends Exchange {
             'rateLimit' => 3000,
             'version' => 'v0',
             'certified' => true,
-            'parseJsonResponse' => false,
             'requiresWeb3' => true,
             // add GET https://api.staging.theocean.trade/api/v0/candlesticks/intervals to fetchMarkets
             'timeframes' => array (
@@ -1249,7 +1248,6 @@ class theocean extends Exchange {
             throw new AuthenticationError ($this->id . ' ' . $body);
         }
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             $message = $this->safe_string($response, 'message');
             if ($message !== null) {
                 //
@@ -1272,16 +1270,5 @@ class theocean extends Exchange {
                 throw new ExchangeError ($feedback); // unknown $message
             }
         }
-    }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (gettype ($response) !== 'string') {
-            throw new ExchangeError ($this->id . ' returned a non-string $response => ' . (string) $response);
-        }
-        if (($response[0] === '{' || $response[0] === '[')) {
-            return json_decode ($response, $as_associative_array = true);
-        }
-        return $response;
     }
 }

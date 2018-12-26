@@ -12,7 +12,6 @@ try:
 except NameError:
     basestring = str  # Python 2
 import hashlib
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -32,7 +31,6 @@ class exmo (Exchange):
             'countries': ['ES', 'RU'],  # Spain, Russia
             'rateLimit': 350,  # once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version': 'v1',
-            'parseJsonResponse': False,
             'has': {
                 'CORS': False,
                 'fetchClosedOrders': 'emulated',
@@ -943,12 +941,9 @@ class exmo (Exchange):
         return self.milliseconds()
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response):
-        if not isinstance(body, basestring):
-            return  # fallback to default error handler
-        if len(body) < 2:
+        if response is None:
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
             if 'result' in response:
                 #
                 #     {"result":false,"error":"Error 50052: Insufficient funds"}
@@ -974,7 +969,3 @@ class exmo (Exchange):
                         raise exceptions[code](feedback)
                     else:
                         raise ExchangeError(feedback)
-
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        return self.parse_if_json_encoded_object(response)

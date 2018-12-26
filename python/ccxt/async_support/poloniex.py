@@ -6,7 +6,6 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -1038,10 +1037,7 @@ class poloniex (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response):
-        try:
-            response = json.loads(body)
-        except Exception as e:
-            # syntax error, resort to default error handler
+        if response is None:
             return
         # {"error":"Permission denied."}
         if 'error' in response:

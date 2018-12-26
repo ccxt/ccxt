@@ -585,7 +585,6 @@ class bitmex extends Exchange {
         if ($code >= 400) {
             if ($body) {
                 if ($body[0] === '{') {
-                    $response = json_decode ($body, $as_associative_array = true);
                     $error = $this->safe_value($response, 'error', array ());
                     $message = $this->safe_string($error, 'message');
                     $feedback = $this->id . ' ' . $body;

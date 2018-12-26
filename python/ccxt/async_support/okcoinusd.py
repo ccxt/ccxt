@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -913,7 +912,6 @@ class okcoinusd (Exchange):
         if len(body) < 2:
             return  # fallback to default error handler
         if body[0] == '{':
-            response = json.loads(body)
             if 'error_code' in response:
                 error = self.safe_string(response, 'error_code')
                 message = self.id + ' ' + self.json(response)

@@ -764,7 +764,6 @@ class liqui extends Exchange {
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
         if (!$this->is_json_encoded_object($body))
             return; // fallback to default error handler
-        $response = json_decode ($body, $as_associative_array = true);
         if (is_array ($response) && array_key_exists ('success', $response)) {
             //
             // 1 - Liqui only returns the integer 'success' key from their private API

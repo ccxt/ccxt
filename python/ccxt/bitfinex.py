@@ -7,7 +7,6 @@ from ccxt.base.exchange import Exchange
 import base64
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -933,7 +932,6 @@ class bitfinex (Exchange):
             return
         if code >= 400:
             if body[0] == '{':
-                response = json.loads(body)
                 feedback = self.id + ' ' + self.json(response)
                 message = None
                 if 'message' in response:

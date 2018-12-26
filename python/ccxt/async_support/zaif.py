@@ -6,7 +6,6 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 
@@ -387,9 +386,8 @@ class zaif (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response):
-        if not self.is_json_encoded_object(body):
-            return  # fallback to default error handler
-        response = json.loads(body)
+        if response is None:
+            return
         #
         #     {"error": "unsupported currency_pair"}
         #

@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -1392,9 +1391,8 @@ class upbit (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response):
-        if not self.is_json_encoded_object(body):
+        if response is None:
             return  # fallback to default error handler
-        response = json.loads(body)
         #
         #   {'error': {'message': "Missing request parameter error. Check the required parametersnot ", 'name':  400} },
         #   {'error': {'message': "side is missing, side does not have a valid value", 'name': "validation_error"} },

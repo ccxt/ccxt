@@ -14,7 +14,6 @@ except NameError:
 import base64
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -40,7 +39,6 @@ class kraken (Exchange):
             'version': '0',
             'rateLimit': 3000,
             'certified': True,
-            'parseJsonResponse': False,
             'has': {
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
@@ -1108,7 +1106,6 @@ class kraken (Exchange):
         if body.find('Invalid arguments:volume') >= 0:
             raise InvalidOrder(self.id + ' ' + body)
         if body[0] == '{':
-            response = json.loads(body)
             if not isinstance(response, basestring):
                 if 'error' in response:
                     numErrors = len(response['error'])
@@ -1118,7 +1115,3 @@ class kraken (Exchange):
                             if response['error'][i] in self.exceptions:
                                 raise self.exceptions[response['error'][i]](message)
                         raise ExchangeError(message)
-
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
-        return self.parse_if_json_encoded_object(response)

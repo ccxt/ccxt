@@ -685,7 +685,6 @@ class gatecoin extends Exchange {
             throw new PermissionDenied ($body);
         }
         if ($body[0] === '{') {
-            $response = json_decode ($body, $as_associative_array = true);
             if (is_array ($response) && array_key_exists ('responseStatus', $response)) {
                 $errorCode = $this->safe_string($response['responseStatus'], 'errorCode');
                 $message = $this->safe_string($response['responseStatus'], 'message');

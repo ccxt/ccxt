@@ -412,9 +412,9 @@ class zaif extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
-        if (!$this->is_json_encoded_object($body))
-            return; // fallback to default $error handler
-        $response = json_decode ($body, $as_associative_array = true);
+        if ($response === null) {
+            return;
+        }
         //
         //     array ("$error" => "unsupported currency_pair")
         //

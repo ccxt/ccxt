@@ -647,7 +647,6 @@ class livecoin extends Exchange {
         if (gettype ($body) !== 'string')
             return;
         if ($body[0] === '{') {
-            $response = json_decode ($body, $as_associative_array = true);
             if ($code >= 300) {
                 $errorCode = $this->safe_string($response, 'errorCode');
                 if (is_array ($this->exceptions) && array_key_exists ($errorCode, $this->exceptions)) {

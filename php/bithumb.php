@@ -383,7 +383,6 @@ class bithumb extends Exchange {
         if (strlen ($body) < 2)
             return; // fallback to default error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             if (is_array ($response) && array_key_exists ('status', $response)) {
                 //
                 //     array ("$status":"5100","$message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions")

@@ -403,7 +403,6 @@ class crypton extends Exchange {
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if ($body[0] === '{') {
-            $response = json_decode ($body, $as_associative_array = true);
             $success = $this->safe_value($response, 'success');
             if (!$success) {
                 throw new ExchangeError ($this->id . ' ' . $body);

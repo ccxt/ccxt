@@ -1122,10 +1122,7 @@ class poloniex extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
-        try {
-            $response = json_decode ($body, $as_associative_array = true);
-        } catch (Exception $e) {
-            // syntax error, resort to default error handler
+        if ($response === null) {
             return;
         }
         // array ("error":"Permission denied.")

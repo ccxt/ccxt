@@ -11,7 +11,6 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import OrderNotFound
@@ -462,7 +461,6 @@ class bitso (Exchange):
         if len(body) < 2:
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
             if 'success' in response:
                 #
                 #     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}

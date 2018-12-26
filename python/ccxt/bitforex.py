@@ -11,7 +11,6 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
@@ -528,7 +527,6 @@ class bitforex (Exchange):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
             feedback = self.id + ' ' + body
             success = self.safe_value(response, 'success')
             if success is not None:

@@ -661,7 +661,6 @@ class bcex extends Exchange {
         if (strlen ($body) < 2)
             return; // fallback to default error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             $code = $this->safe_value($response, 'code');
             if ($code !== null) {
                 if ($code !== 0) {
