@@ -904,18 +904,4 @@ module.exports = class cryptopia extends Exchange {
             }
         }
     }
-
-    parseJson (jsonString) {
-        const fixedJsonString = this.sanitizeBrokenJSONString (jsonString);
-        return super.parseJson (fixedJsonString);
-    }
-
-    sanitizeBrokenJSONString (jsonString) {
-        // sometimes cryptopia will return a unicode symbol before actual JSON string.
-        const indexOfBracket = jsonString.indexOf ('{');
-        if (indexOfBracket >= 0) {
-            return jsonString.slice (indexOfBracket);
-        }
-        return jsonString;
-    }
 };
