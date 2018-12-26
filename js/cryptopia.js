@@ -14,7 +14,6 @@ module.exports = class cryptopia extends Exchange {
             'name': 'Cryptopia',
             'rateLimit': 1500,
             'countries': [ 'NZ' ], // New Zealand
-            'parseJsonResponse': false,
             'has': {
                 'CORS': false,
                 'createMarketOrder': false,
