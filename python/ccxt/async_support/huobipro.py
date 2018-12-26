@@ -600,6 +600,23 @@ class huobipro (Exchange):
             market = self.market(symbol)
             request['symbol'] = market['id']
         response = await self.privateGetOrderOrders(self.extend(request, params))
+        #
+        #     {status:   "ok",
+        #         data: [{                 id:  13997833014,
+        #                                symbol: "ethbtc",
+        #                          'account-id':  3398321,
+        #                                amount: "0.045000000000000000",
+        #                                 price: "0.034014000000000000",
+        #                          'created-at':  1545836976871,
+        #                                  type: "sell-limit",
+        #                        'field-amount': "0.045000000000000000",
+        #                   'field-cash-amount': "0.001530630000000000",
+        #                          'field-fees': "0.000003061260000000",
+        #                         'finished-at':  1545837948214,
+        #                                source: "spot-api",
+        #                                 state: "filled",
+        #                         'canceled-at':  0                      }  ]}
+        #
         return self.parse_orders(response['data'], market, since, limit)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -629,6 +646,37 @@ class huobipro (Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #
+        #     {                 id:  13997833014,
+        #                    symbol: "ethbtc",
+        #              'account-id':  3398321,
+        #                    amount: "0.045000000000000000",
+        #                     price: "0.034014000000000000",
+        #              'created-at':  1545836976871,
+        #                      type: "sell-limit",
+        #            'field-amount': "0.045000000000000000",
+        #       'field-cash-amount': "0.001530630000000000",
+        #              'field-fees': "0.000003061260000000",
+        #             'finished-at':  1545837948214,
+        #                    source: "spot-api",
+        #                     state: "filled",
+        #             'canceled-at':  0                      }
+        #
+        #     {                 id:  20395337822,
+        #                    symbol: "ethbtc",
+        #              'account-id':  5685075,
+        #                    amount: "0.001000000000000000",
+        #                     price: "0.0",
+        #              'created-at':  1545831584023,
+        #                      type: "buy-market",
+        #            'field-amount': "0.029100000000000000",
+        #       'field-cash-amount': "0.000999788700000000",
+        #              'field-fees': "0.000058200000000000",
+        #             'finished-at':  1545831584181,
+        #                    source: "spot-api",
+        #                     state: "filled",
+        #             'canceled-at':  0                      }
+        #
         id = self.safe_string(order, 'id')
         side = None
         type = None
@@ -649,17 +697,30 @@ class huobipro (Exchange):
         timestamp = self.safe_integer(order, 'created-at')
         amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'field-amount')  # typo in their API, filled amount
+        if (type == 'market') and(side == 'buy'):
+            amount = filled if (status == 'closed') else None
         price = self.safe_float(order, 'price')
+        if price == 0.0:
+            price = None
         cost = self.safe_float(order, 'field-cash-amount')  # same typo
         remaining = None
         average = None
         if filled is not None:
-            average = 0
             if amount is not None:
                 remaining = amount - filled
             # if cost is defined and filled is not zero
             if (cost is not None) and(filled > 0):
                 average = cost / filled
+        feeCost = self.safe_float(order, 'field-fees')  # typo in their API, filled fees
+        fee = None
+        if feeCost is not None:
+            feeCurrency = None
+            if market is not None:
+                feeCurrency = market['quote'] if (side == 'sell') else market['base']
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            }
         result = {
             'info': order,
             'id': id,
@@ -676,7 +737,7 @@ class huobipro (Exchange):
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': None,
+            'fee': fee,
         }
         return result
 
