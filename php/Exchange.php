@@ -1168,10 +1168,13 @@ class Exchange {
             $this->last_response_headers = $response_headers;
         }
 
-        $json_response = $this->parse_json ($result, $as_associative_array = true);
+        if ($this->is_json_encoded_object ($result)) {
+         
+            $json_response = $this->parse_json ($result, $as_associative_array = true);
 
-        if ($this->enableLastJsonResponse) {
-            $this->last_json_response = $json_response;
+            if ($this->enableLastJsonResponse) {
+                $this->last_json_response = $json_response;
+            }
         }
 
         $curl_errno = curl_errno ($this->curl);
