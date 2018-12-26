@@ -881,9 +881,8 @@ module.exports = class cryptopia extends Exchange {
             if (success !== undefined) {
                 if (!success) {
                     let error = this.safeString (response, 'Error');
-                    let feedback = this.id;
+                    let feedback = this.id + ' ' + body;
                     if (typeof error === 'string') {
-                        feedback = feedback + ' ' + error;
                         if (error.indexOf ('Invalid trade amount') >= 0) {
                             throw new InvalidOrder (feedback);
                         }
@@ -899,8 +898,6 @@ module.exports = class cryptopia extends Exchange {
                         if (error.indexOf ('Nonce has already been used') >= 0) {
                             throw new InvalidNonce (feedback);
                         }
-                    } else {
-                        feedback = feedback + ' ' + fixedJSONString;
                     }
                     throw new ExchangeError (feedback);
                 }
