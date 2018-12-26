@@ -533,7 +533,7 @@ module.exports = class Exchange {
     request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         return this.fetch2 (path, type, method, params, headers, body)
     }
-    
+
     parseJson (jsonString) {
         return JSON.parse (jsonString)
     }
