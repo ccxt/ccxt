@@ -601,9 +601,9 @@ class coss extends Exchange {
                 $base = $this->common_currency_code($baseId);
                 $quote = $this->common_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
-            } else {
-                $symbol = $market['symbol'];
             }
+        } else if ($market !== null) {
+            $symbol = $market['symbol'];
         }
         $cost = null;
         $price = $this->safe_float($trade, 'price');

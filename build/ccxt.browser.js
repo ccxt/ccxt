@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.72'
+const version = '1.18.73'
 
 Exchange.ccxtVersion = version
 
@@ -30422,9 +30422,9 @@ module.exports = class coss extends Exchange {
                 const base = this.commonCurrencyCode (baseId);
                 const quote = this.commonCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
-            } else {
-                symbol = market['symbol'];
             }
+        } else if (market !== undefined) {
+            symbol = market['symbol'];
         }
         let cost = undefined;
         const price = this.safeFloat (trade, 'price');
