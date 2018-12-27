@@ -31,6 +31,7 @@ __all__ = [
 # -----------------------------------------------------------------------------
 
 # Python 2 & 3
+import types
 import logging
 import base64
 import calendar
@@ -82,6 +83,21 @@ except ImportError:
     Web3 = HTTPProvider = None  # web3/0x not supported in Python 2
 
 # -----------------------------------------------------------------------------
+
+
+class PartialDescriptor:
+    def __init__(self, entry, args, kwargs):
+        self.entry = entry
+        self.args = args
+        self.kwargs = kwargs
+        self.partial = None
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return None
+        if self.partial is None:
+            self.partial = functools.partial(self.entry, instance, *self.args, **self.kwargs)
+        return self.partial
 
 
 class Exchange(object):
@@ -290,7 +306,12 @@ class Exchange(object):
             if name[0] != '_'and name[-1] != '_' and '_' in name:
                 parts = name.split('_')
                 camelcase = parts[0] + ''.join(self.capitalize(i) for i in parts[1:])
-                setattr(self, camelcase, getattr(self, name))
+                attr = getattr(self, name)
+                if not isinstance(attr, functools.partial):
+                    if isinstance(attr, types.MethodType):
+                        setattr(type(self), camelcase, PartialDescriptor(attr.__func__, [], {}))
+                    else:
+                        setattr(self, camelcase, attr)
 
         self.tokenBucket = self.extend({
             'refillRate': 1.0 / self.rateLimit,
@@ -313,8 +334,10 @@ class Exchange(object):
     def describe(self):
         return {}
 
-    def define_rest_api(self, api, method_name, options={}):
+    @classmethod
+    def define_rest_api(cls, api, method_name, options={}):
         delimiters = re.compile('[^a-zA-Z0-9]')
+        entry = cls.__dict__[method_name] if method_name in cls.__dict__ else Exchange.__dict__[method_name]
         for api_type, methods in api.items():
             for http_method, urls in methods.items():
                 for url in urls:
@@ -337,9 +360,10 @@ class Exchange(object):
                         if 'underscore' in options['suffixes']:
                             underscore += options['suffixes']['underscore']
 
-                    partial = functools.partial(getattr(self, method_name), url, api_type, uppercase_method)
-                    setattr(self, camelcase, partial)
-                    setattr(self, underscore, partial)
+                    args = [url, api_type, uppercase_method]
+                    partial_descriptor = PartialDescriptor(entry, args, {})
+                    setattr(cls, camelcase, partial_descriptor)
+                    setattr(cls, underscore, partial_descriptor)
 
     def raise_error(self, exception_type, url=None, method=None, error=None, details=None):
         if error:
