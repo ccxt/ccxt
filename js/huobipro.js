@@ -985,7 +985,7 @@ module.exports = class huobipro extends Exchange {
         }
     }
 
-    async fetchDeposits (code, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         if (limit === undefined || limit > 100) {
             limit = 100;
         }
@@ -1002,7 +1002,7 @@ module.exports = class huobipro extends Exchange {
         return this.parseTransactions (response.data, currency, since, limit);
     }
 
-    async fetchWithdrawals (code, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         if (limit === undefined || limit > 100) {
             limit = 100;
         }
