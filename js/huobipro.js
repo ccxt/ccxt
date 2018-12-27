@@ -32,6 +32,8 @@ module.exports = class huobipro extends Exchange {
                 'fetchMyTrades': true,
                 'withdraw': true,
                 'fetchCurrencies': true,
+                'fetchDeposits': 'emulated',
+                'fetchWithdrawals': 'emulated',
             },
             'timeframes': {
                 '1m': '1min',
@@ -981,5 +983,117 @@ module.exports = class huobipro extends Exchange {
                 }
             }
         }
+    }
+
+    async fetchDeposits (code, since = undefined, limit = 100, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {};
+        currency = this.currency (code);
+        request['currency'] = currency['id'];
+        request['type'] = "deposit";
+        request['from'] = 0;        //From 'id' ... if you want to get results after a particular Transaction id, pass the id in params.from 
+        request['size'] = limit;    //Maximum transfers that can be fetched is 100 
+        
+        let response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
+        
+        //return response
+        return this.parseTransactions(response.data, currency, since, limit);
+    }
+
+    async fetchWithdrawals (code , since = undefined, limit = 100, params = {}) {
+       await this.loadMarkets ();
+        let currency = undefined;
+        const request = {};
+        currency = this.currency (code);
+        request['currency'] = currency['id'];
+        request['type'] = "withdraw";
+        request['from'] = 0;        //From 'id' ... if you want to get results after a particular Transaction id, pass the id in params.from 
+        request['size'] = limit;    //Maximum transfers that can be fetched is 100 
+        
+       let response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
+        
+        //return response
+        return this.parseTransactions(response.data, currency, since, limit);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        let timestamp = this.safeFloat (transaction, 'created-at');
+        if (timestamp !== undefined) {
+            timestamp = parseInt (timestamp);
+        }
+        let updated = this.safeFloat (transaction, 'updated-at');
+        if (updated !== undefined) {
+            updated = parseInt (updated);
+        }
+        let code = undefined;
+        if (currency === undefined) {
+            let currencyId = this.safeString (transaction, 'currency');
+            if (currencyId in this.currencies_by_id) {
+                currency = this.currencies_by_id[currencyId];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
+            }
+        }
+        if (currency !== undefined) {
+            code = currency['code'];
+        }
+        let type = this.safeString (transaction, 'type'); // DEPOSIT or WITHDRAWAL
+        if (type !== undefined) {
+            type = type.toLowerCase ();
+        }
+        let status = this.parseTransactionStatusByType (this.safeString (transaction, 'state'), type);
+        let feeCost = this.safeFloat (transaction, 'fee');
+        if (feeCost !== undefined) {
+            feeCost = Math.abs (feeCost);
+        }
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'tx-hash'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': this.safeString (transaction, 'address'),
+            'tag': undefined, // refix it properly for the tag from description
+            'type': type,
+            'amount': this.safeFloat (transaction, 'amount'),
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+                'rate': undefined,
+            },
+        };
+    }
+
+    parseTransactionStatusByType (status, type = undefined) {
+        if (type === undefined) {
+            return status;
+        }
+        let statuses = {
+            'deposit': {
+                'unknown': 'pending',
+                'confirming': 'pending',
+                'confirmed': 'ok',
+                'safe': 'ok',
+                'orphan': 'orphan'
+            },
+            'withdraw': {
+                'submitted': 'pending', 
+                'canceled': 'canceled', 
+                'reexamine': 'pending', 
+                'reject': 'failed', 
+                'pass': 'pending', 
+                'wallet-reject': 'failed', 
+                'confirmed': 'ok', 
+                'confirm-error': 'failed', 
+                'repealed': 'failed',
+                'wallet-transfer': 'pending', 
+                'pre-transfer': 'pending', 
+            },
+        };
+        return (status in statuses[type]) ? statuses[type][status] : status;
     }
 };
