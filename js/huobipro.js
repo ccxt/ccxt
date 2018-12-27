@@ -985,7 +985,10 @@ module.exports = class huobipro extends Exchange {
         }
     }
 
-    async fetchDeposits (code, since = undefined, limit = 100, params = {}) {
+    async fetchDeposits (code, since = undefined, limit = undefined, params = {}) {
+        if (limit === undefined || limit > 100) {
+            limit = 100
+        }
         await this.loadMarkets ();
         let currency = undefined;
         const request = {};
@@ -999,7 +1002,10 @@ module.exports = class huobipro extends Exchange {
         return this.parseTransactions (response.data, currency, since, limit);
     }
 
-    async fetchWithdrawals (code, since = undefined, limit = 100, params = {}) {
+    async fetchWithdrawals (code, since = undefined, limit = undefined, params = {}) {
+        if (limit === undefined || limit > 100) {
+            limit = 100
+        }
         await this.loadMarkets ();
         let currency = undefined;
         const request = {};
@@ -1074,7 +1080,7 @@ module.exports = class huobipro extends Exchange {
                 'confirming': 'pending',
                 'confirmed': 'ok',
                 'safe': 'ok',
-                'orphan': 'orphan'
+                'orphan': 'orphan',
             },
             'withdraw': {
                 'submitted': 'pending',
