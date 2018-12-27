@@ -269,7 +269,10 @@ class binance extends Exchange {
                 'timeDifference' => 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'parseOrderToPrecision' => false, // force amounts and costs in parseOrder to precision
-                'newOrderRespType' => 'RESULT', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+                'newOrderRespTypes' => array (
+                    'market' => 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+                    'limit' => 'RESULT', // we change it from 'ACK' by default to 'RESULT'
+                ),
             ),
             'exceptions' => array (
                 '-1000' => '\\ccxt\\ExchangeNotAvailable', // array ("code":-1000,"msg":"An unknown error occured while processing the request.")
@@ -722,12 +725,13 @@ class binance extends Exchange {
             $params = $this->omit ($params, 'test');
         }
         $uppercaseType = strtoupper ($type);
+        $newOrderRespType = $this->safe_value($this->options['newOrderRespType'], $type, 'RESULT');
         $order = array (
             'symbol' => $market['id'],
             'quantity' => $this->amount_to_precision($symbol, $amount),
             'type' => $uppercaseType,
             'side' => strtoupper ($side),
-            'newOrderRespType' => $this->options['newOrderRespType'], // 'ACK' for $order id, 'RESULT' for full $order or 'FULL' for $order with fills
+            'newOrderRespType' => $newOrderRespType, // 'ACK' for $order id, 'RESULT' for full $order or 'FULL' for $order with fills
         );
         $timeInForceIsRequired = false;
         $priceIsRequired = false;
