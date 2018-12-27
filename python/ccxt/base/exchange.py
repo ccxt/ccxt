@@ -85,7 +85,7 @@ except ImportError:
 # -----------------------------------------------------------------------------
 
 
-class PartialDescriptor:
+class PartialDescriptor(object):
     def __init__(self, entry, args, kwargs):
         self.entry = entry
         self.args = args
