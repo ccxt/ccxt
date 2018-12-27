@@ -999,7 +999,7 @@ module.exports = class huobipro extends Exchange {
         request['size'] = limit; // Maximum transfers that can be fetched is 100
         let response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
         // return response
-        return this.parseTransactions (response.data, currency, since, limit);
+        return this.parseTransactions (response['data'], currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1016,7 +1016,7 @@ module.exports = class huobipro extends Exchange {
         request['size'] = limit; // Maximum transfers that can be fetched is 100
         let response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
         // return response
-        return this.parseTransactions (response.data, currency, since, limit);
+        return this.parseTransactions (response['data'], currency, since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
