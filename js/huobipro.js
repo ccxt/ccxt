@@ -991,30 +991,26 @@ module.exports = class huobipro extends Exchange {
         const request = {};
         currency = this.currency (code);
         request['currency'] = currency['id'];
-        request['type'] = "deposit";
-        request['from'] = 0;        //From 'id' ... if you want to get results after a particular Transaction id, pass the id in params.from 
-        request['size'] = limit;    //Maximum transfers that can be fetched is 100 
-        
+        request['type'] = 'deposit';
+        request['from'] = 0; // From 'id' ... if you want to get results after a particular Transaction id, pass the id in params.from
+        request['size'] = limit; // Maximum transfers that can be fetched is 100
         let response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
-        
-        //return response
-        return this.parseTransactions(response.data, currency, since, limit);
+        // return response
+        return this.parseTransactions (response.data, currency, since, limit);
     }
 
-    async fetchWithdrawals (code , since = undefined, limit = 100, params = {}) {
-       await this.loadMarkets ();
+    async fetchWithdrawals (code, since = undefined, limit = 100, params = {}) {
+        await this.loadMarkets ();
         let currency = undefined;
         const request = {};
         currency = this.currency (code);
         request['currency'] = currency['id'];
-        request['type'] = "withdraw";
-        request['from'] = 0;        //From 'id' ... if you want to get results after a particular Transaction id, pass the id in params.from 
-        request['size'] = limit;    //Maximum transfers that can be fetched is 100 
-        
-       let response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
-        
-        //return response
-        return this.parseTransactions(response.data, currency, since, limit);
+        request['type'] = 'withdraw';
+        request['from'] = 0; // From 'id' ... if you want to get results after a particular Transaction id, pass the id in params.from
+        request['size'] = limit; // Maximum transfers that can be fetched is 100
+        let response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
+        // return response
+        return this.parseTransactions (response.data, currency, since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -1081,17 +1077,17 @@ module.exports = class huobipro extends Exchange {
                 'orphan': 'orphan'
             },
             'withdraw': {
-                'submitted': 'pending', 
-                'canceled': 'canceled', 
-                'reexamine': 'pending', 
-                'reject': 'failed', 
-                'pass': 'pending', 
-                'wallet-reject': 'failed', 
-                'confirmed': 'ok', 
-                'confirm-error': 'failed', 
+                'submitted': 'pending',
+                'canceled': 'canceled',
+                'reexamine': 'pending',
+                'reject': 'failed',
+                'pass': 'pending',
+                'wallet-reject': 'failed',
+                'confirmed': 'ok',
+                'confirm-error': 'failed',
                 'repealed': 'failed',
-                'wallet-transfer': 'pending', 
-                'pre-transfer': 'pending', 
+                'wallet-transfer': 'pending',
+                'pre-transfer': 'pending',
             },
         };
         return (status in statuses[type]) ? statuses[type][status] : status;
