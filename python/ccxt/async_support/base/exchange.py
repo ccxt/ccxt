@@ -137,7 +137,7 @@ class Exchange(BaseExchange):
                                       timeout=(self.timeout / 1000),
                                       proxy=self.aiohttp_proxy) as response:
                 http_response = await response.text()
-                json_response = self.parse_json(http_response)
+                json_response = self.parse_json(http_response) if self.is_json_encoded_object(http_response) else None
                 headers = response.headers
                 if self.enableLastHttpResponse:
                     self.last_http_response = http_response
