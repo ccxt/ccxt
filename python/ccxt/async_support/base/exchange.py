@@ -163,7 +163,9 @@ class Exchange(BaseExchange):
 
         self.handle_errors(response.status, response.reason, url, method, headers, http_response, json_response)
         self.handle_rest_response(http_response, json_response, url, method, headers, body)
-        return json_response
+        if json_response is not None:
+            return json_response
+        return http_response
 
     async def load_markets(self, reload=False, params={}):
         if not reload:
