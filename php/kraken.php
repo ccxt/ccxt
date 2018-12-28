@@ -741,6 +741,17 @@ class kraken extends Exchange {
         return $market;
     }
 
+    public function parse_order_status ($status) {
+        $statuses = array (
+            'pending' => 'open', // order pending book entry
+            'open' => 'open',
+            'closed' => 'closed',
+            'canceled' => 'canceled',
+            'expired' => 'expired',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
     public function parse_order ($order, $market = null) {
         $description = $order['descr'];
         $side = $description['type'];
@@ -782,13 +793,14 @@ class kraken extends Exchange {
                 }
             }
         }
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         return array (
             'id' => $order['id'],
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
-            'status' => $order['status'],
+            'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,

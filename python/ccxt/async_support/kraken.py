@@ -709,6 +709,16 @@ class kraken (Exchange):
         self.options['delistedMarketsById'][id] = market
         return market
 
+    def parse_order_status(self, status):
+        statuses = {
+            'pending': 'open',  # order pending book entry
+            'open': 'open',
+            'closed': 'closed',
+            'canceled': 'canceled',
+            'expired': 'expired',
+        }
+        return self.safe_string(statuses, status, status)
+
     def parse_order(self, order, market=None):
         description = order['descr']
         side = description['type']
@@ -746,13 +756,14 @@ class kraken (Exchange):
                     fee['currency'] = market['quote']
                 elif flags.find('fcib') >= 0:
                     fee['currency'] = market['base']
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         return {
             'id': order['id'],
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'status': order['status'],
+            'status': status,
             'symbol': symbol,
             'type': type,
             'side': side,
