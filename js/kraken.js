@@ -741,6 +741,17 @@ module.exports = class kraken extends Exchange {
         return market;
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'pending': 'open', // order pending book entry
+            'open': 'open',
+            'closed': 'closed',
+            'canceled': 'canceled',
+            'expired': 'expired',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrder (order, market = undefined) {
         let description = order['descr'];
         let side = description['type'];
@@ -782,6 +793,7 @@ module.exports = class kraken extends Exchange {
                 }
             }
         }
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         return {
             'id': order['id'],
             'info': order,
