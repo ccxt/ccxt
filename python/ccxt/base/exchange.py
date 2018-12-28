@@ -85,19 +85,6 @@ except ImportError:
 # -----------------------------------------------------------------------------
 
 
-class PartialDescriptor(object):
-    """Manages the generated (publicGetX) methods for different instances of a class"""
-    def __init__(self, entry, args, kwargs):
-        self.entry = entry
-        self.args = args
-        self.kwargs = kwargs
-
-    def __get__(self, instance, owner):
-        if instance is None:
-            return None
-        return functools.partial(self.entry, instance, *self.args, **self.kwargs)
-
-
 class Exchange(object):
     """Base exchange class"""
     id = None
@@ -301,16 +288,16 @@ class Exchange(object):
             self.set_markets(self.markets)
 
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
+        cls = type(self)
         for name in dir(self):
             if name[0] != '_' and name[-1] != '_' and '_' in name:
                 parts = name.split('_')
                 camelcase = parts[0] + ''.join(self.capitalize(i) for i in parts[1:])
                 attr = getattr(self, name)
-                if not (isinstance(attr, functools.partial) and attr.args[0] is self):
-                    if isinstance(attr, types.MethodType):
-                        setattr(type(self), camelcase, types.MethodType(attr.__func__, self))
-                    else:
-                        setattr(self, camelcase, attr)
+                if isinstance(attr, types.MethodType):
+                    setattr(cls, camelcase, getattr(cls, name))
+                else:
+                    setattr(self, camelcase, attr)
 
         self.tokenBucket = self.extend({
             'refillRate': 1.0 / self.rateLimit,
@@ -335,7 +322,7 @@ class Exchange(object):
 
     @classmethod
     def define_rest_api(cls, api, method_name, options={}):
-        if cls.rest_api_defined:
+        if cls.rest_api_defined and cls.mro()[1] is Exchange:
             return
         delimiters = re.compile('[^a-zA-Z0-9]')
         entry = getattr(cls, method_name)  # returns a function (instead of a bound method)
@@ -361,10 +348,20 @@ class Exchange(object):
                         if 'underscore' in options['suffixes']:
                             underscore += options['suffixes']['underscore']
 
-                    args = [url, api_type, uppercase_method]
-                    partial_descriptor = PartialDescriptor(entry, args, {})
-                    setattr(cls, camelcase, partial_descriptor)
-                    setattr(cls, underscore, partial_descriptor)
+                    def partialer():
+                        outer_kwargs = {'path': url, 'api': api_type, 'method': uppercase_method}
+
+                        @functools.wraps(entry)
+                        def inner(*args):
+                            inner_kwargs = dict(outer_kwargs)  # avoid mutation
+                            if len(args) > 1:
+                                inner_kwargs['params'] = args[1]
+                                args = [args[0]]  # a reference to self without circular dependencies
+                            return entry(*args, **inner_kwargs)
+                        return inner
+                    to_bind = partialer()
+                    setattr(cls, camelcase, to_bind)
+                    setattr(cls, underscore, to_bind)
         cls.rest_api_defined = True
         # ^ this code only runs once per class
 
@@ -389,7 +386,7 @@ class Exchange(object):
         request = self.sign(path, api, method, params, headers, body)
         return self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path=None, api='public', method='GET', params={}, headers=None, body=None):
         return self.fetch2(path, api, method, params, headers, body)
 
     @staticmethod
