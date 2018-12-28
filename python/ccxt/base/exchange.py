@@ -86,18 +86,16 @@ except ImportError:
 
 
 class PartialDescriptor(object):
+    """Manages the generated (publicGetX) methods for different instances of a class"""
     def __init__(self, entry, args, kwargs):
         self.entry = entry
         self.args = args
         self.kwargs = kwargs
-        self.partial = None
 
     def __get__(self, instance, owner):
         if instance is None:
             return None
-        if self.partial is None:
-            self.partial = functools.partial(self.entry, instance, *self.args, **self.kwargs)
-        return self.partial
+        return functools.partial(self.entry, instance, *self.args, **self.kwargs)
 
 
 class Exchange(object):
@@ -252,6 +250,7 @@ class Exchange(object):
     last_http_response = None
     last_json_response = None
     last_response_headers = None
+    rest_api_defined = False
 
     requiresWeb3 = False
     web3 = None
@@ -303,13 +302,13 @@ class Exchange(object):
 
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
         for name in dir(self):
-            if name[0] != '_'and name[-1] != '_' and '_' in name:
+            if name[0] != '_' and name[-1] != '_' and '_' in name:
                 parts = name.split('_')
                 camelcase = parts[0] + ''.join(self.capitalize(i) for i in parts[1:])
                 attr = getattr(self, name)
-                if not isinstance(attr, functools.partial):
+                if not (isinstance(attr, functools.partial) and attr.args[0] is self):
                     if isinstance(attr, types.MethodType):
-                        setattr(type(self), camelcase, PartialDescriptor(attr.__func__, [], {}))
+                        setattr(type(self), camelcase, types.MethodType(attr.__func__, self))
                     else:
                         setattr(self, camelcase, attr)
 
@@ -336,8 +335,10 @@ class Exchange(object):
 
     @classmethod
     def define_rest_api(cls, api, method_name, options={}):
+        if cls.rest_api_defined:
+            return
         delimiters = re.compile('[^a-zA-Z0-9]')
-        entry = cls.__dict__[method_name] if method_name in cls.__dict__ else Exchange.__dict__[method_name]
+        entry = getattr(cls, method_name)  # returns a function (instead of a bound method)
         for api_type, methods in api.items():
             for http_method, urls in methods.items():
                 for url in urls:
@@ -364,6 +365,8 @@ class Exchange(object):
                     partial_descriptor = PartialDescriptor(entry, args, {})
                     setattr(cls, camelcase, partial_descriptor)
                     setattr(cls, underscore, partial_descriptor)
+        cls.rest_api_defined = True
+        # ^ this code only runs once per class
 
     def raise_error(self, exception_type, url=None, method=None, error=None, details=None):
         if error:
