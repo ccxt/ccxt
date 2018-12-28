@@ -294,7 +294,7 @@ class Exchange(object):
 
         self.tokenBucket = self.extend({
             'refillRate': 1.0 / self.rateLimit,
-            'delay': 1.0,
+            'delay': 0.001,
             'capacity': 1.0,
             'defaultCost': 1.0,
         }, getattr(self, 'tokenBucket') if hasattr(self, 'tokenBucket') else {})
