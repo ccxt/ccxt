@@ -756,7 +756,10 @@ class huobipro (Exchange):
                 if price is None:
                     raise InvalidOrder(self.id + " market buy order requires price argument to calculate cost(total amount of quote currency to spend for buying, amount * price). To switch off self warning exception and specify cost in the amount argument, set .options['createMarketBuyOrderRequiresPrice'] = False. Make sure you know what you're doing.")
                 else:
-                    request['amount'] = self.price_to_precision(symbol, float(amount) * float(price))
+                    # despite that cost = amount * price is in quote currency and should have quote precision
+                    # the exchange API requires the cost supplied in 'amount' to be of base precision
+                    # more about it here: https://github.com/ccxt/ccxt/pull/4395
+                    request['amount'] = self.amount_to_precision(symbol, float(amount) * float(price))
         if type == 'limit' or type == 'ioc' or type == 'limit-maker':
             request['price'] = self.price_to_precision(symbol, price)
         method = self.options['createOrderMethod']
