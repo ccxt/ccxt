@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, ExchangeNotAvailable, InvalidOrder, OrderNotFound, InsufficientFunds } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, ExchangeError, ExchangeNotAvailable, InvalidOrder, OrderNotFound, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -450,22 +450,16 @@ module.exports = class huobipro extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
-        let market = undefined;
-        let request = {};
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            market = market['id'];
-            request = {
-                'symbol': market['id'],
-            };
-        }
+        let market = this.market (symbol);
+        let request = {
+            'symbol': market['id'],
+        };
         let response = await this.privateGetOrderMatchresults (this.extend (request, params));
-        let trades = this.parseTrades (response['data'], undefined, since, limit);
-        if (symbol !== undefined) {
-            let market = this.market (symbol);
-            trades = this.filterBySymbol (trades, market['symbol']);
-        }
+        let trades = this.parseTrades (response['data'], symbol, since, limit);
         return trades;
     }
 
@@ -995,6 +989,9 @@ module.exports = class huobipro extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a code argument');
+        }
         if (limit === undefined || limit > 100) {
             limit = 100;
         }
@@ -1012,6 +1009,9 @@ module.exports = class huobipro extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a code argument');
+        }
         if (limit === undefined || limit > 100) {
             limit = 100;
         }
