@@ -464,7 +464,9 @@ class Exchange(object):
 
         self.handle_errors(response.status_code, response.reason, url, method, headers, http_response, json_response)
         self.handle_rest_response(http_response, json_response, url, method, headers, body)
-        return json_response or http_response
+        if json_response is not None:
+            return json_response
+        return http_response
 
     def handle_rest_errors(self, exception, http_status_code, response, url, method='GET'):
         error = None
