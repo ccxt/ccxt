@@ -490,8 +490,7 @@ class Exchange(object):
                 self.raise_error(ExchangeNotAvailable, method, url, None, message)
             self.raise_error(ExchangeError, method, url, ValueError('failed to decode json'), response)
 
-    @staticmethod
-    def parse_json(http_response):
+    def parse_json(self, http_response):
         try:
             if Exchange.is_json_encoded_object(http_response):
                 return json.loads(http_response)
