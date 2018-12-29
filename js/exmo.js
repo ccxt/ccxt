@@ -313,7 +313,7 @@ module.exports = class exmo extends Exchange {
                         'max': this.safeFloat (maxCosts, code),
                     },
                 },
-                'info': info,
+                'info': id,
             };
         }
         return result;
