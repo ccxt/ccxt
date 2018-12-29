@@ -315,7 +315,7 @@ class exmo (Exchange):
                         'max': self.safe_float(maxCosts, code),
                     },
                 },
-                'info': fee,
+                'info': id,
             }
         return result
 

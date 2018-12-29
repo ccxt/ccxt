@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.83'
+const version = '1.18.84'
 
 Exchange.ccxtVersion = version
 
@@ -34673,7 +34673,7 @@ module.exports = class exmo extends Exchange {
                         'max': this.safeFloat (maxCosts, code),
                     },
                 },
-                'info': fee,
+                'info': id,
             };
         }
         return result;

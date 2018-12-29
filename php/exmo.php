@@ -314,7 +314,7 @@ class exmo extends Exchange {
                         'max' => $this->safe_float($maxCosts, $code),
                     ),
                 ),
-                'info' => $fee,
+                'info' => $id,
             );
         }
         return $result;
