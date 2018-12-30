@@ -22,6 +22,8 @@ module.exports = class kucoin extends Exchange {
                 'cancelOrders': true,
                 'createMarketOrder': false,
                 'fetchDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true, // see the method implementation below
                 'fetchOrder': true,
@@ -582,6 +584,108 @@ module.exports = class kucoin extends Exchange {
             'address': address,
             'tag': tag,
             'info': response,
+        };
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        // https://kucoinapidocs.docs.apiary.io/#reference/0/assets-operation/list-deposit-&-withdrawal-records
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits requires a currency code argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+        };
+        const response = await this.privateGetAccountCoinWalletRecords (this.extend (request, params));
+        const transactions = this.filterByValueSinceLimit (response['data']['datas'], 'type', 'DEPOSIT', since, limit);
+        return this.parseTransactions (transactions, currency, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        // https://kucoinapidocs.docs.apiary.io/#reference/0/assets-operation/list-deposit-&-withdrawal-records
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits requires a currency code argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+        };
+        const response = await this.privateGetAccountCoinWalletRecords (this.extend (request, params));
+        const transactions = this.filterByValueSinceLimit (response['data']['datas'], 'type', 'WITHDRAW', since, limit);
+        return this.parseTransactions (transactions, currency, since, limit);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //
+        // {
+        //     'coinType': 'ETH',
+        //     'createdAt': 1516134636000,
+        //     'amount': 2.5,
+        //     'address': '0x4cd00e7983e54add886442d3b866f95243cf9b30',
+        //     'fee': 0.0,
+        //     'outerWalletTxid': '0x820cde65b1fab0a9527a5c2466b3e7807fee45c6a81691486bf954114b12c873
+        //     @0x4cd00e7983e54add886442d3b866f95243cf9b30@eth',
+        //     'remark': None,
+        //     'oid': '5a5e60ecaf2c5807eda65443',
+        //     'confirmation': 14,
+        //     'type': 'DEPOSIT',
+        //     'status': 'SUCCESS',
+        //     'updatedAt': 1516134827000
+        //
+        // fetchWithdrawals
+        //
+        // {
+        //     'coinType':'POLY',
+        //     'createdAt':1520696078000,
+        //     'amount':838.2247,
+        //     'address':'0x54fc433e95549e68fa362eb85c235177d94a8745',
+        //     'fee':3.0,
+        //     'outerWalletTxid':'0x055da84b7557498785d6acecf2b71d0158fec32fce246e51f5c49b79826a8481',
+        //     'remark':None,
+        //     'oid':'5aa3fb0d7bd394763bde55c1',
+        //     'confirmation':0,
+        //     'type':'WITHDRAW',
+        //     'status':'SUCCESS',
+        //     'updatedAt':1520696196000
+        //   }
+        //
+        const id = this.safeString (transaction, 'oid');
+        const txid = this.safeString (transaction, 'outerWalletTxid');
+        let timestamp = this.safeInteger (transaction, 'createdAt');
+        let code = undefined;
+        let currencyId = this.safeString (transaction, 'coinType');
+        currency = this.safeValue (this.currencies_by_id, currencyId);
+        if (currency !== undefined) {
+            code = currency['code'];
+        } else {
+            code = this.commonCurrencyCode (currencyId);
+        }
+        const address = this.safeString (transaction, 'address');
+        const amount = this.safeFloat (transaction, 'amount');
+        const status = this.safeString (transaction, 'status');
+        const type = this.safeString (transaction, 'type').toLowerCase (); // injected from the outside
+        const feeCost = this.safeFloat (transaction, 'fee');
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': undefined,
+            'status': status,
+            'type': type,
+            'updated': undefined,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+            },
         };
     }
 
