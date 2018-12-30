@@ -653,7 +653,7 @@ module.exports = class kucoin extends Exchange {
         const tag = this.safeString (transaction, 'remark');
         const amount = this.safeFloat (transaction, 'amount');
         const status = this.safeString (transaction, 'status');
-        const type = this.safeString (transaction, 'type');
+        let type = this.safeString (transaction, 'type');
         if (type !== undefined) {
             // they return 'DEPOSIT' or 'WITHDRAW', ccxt used 'deposit' or 'withdrawal'
             type = (type === 'DEPOSIT') ? 'deposit' : 'withdrawal';
