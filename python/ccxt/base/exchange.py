@@ -492,7 +492,8 @@ class Exchange(object):
 
     def parse_json(self, http_response):
         try:
-            return json.loads(http_response)
+            if Exchange.is_json_encoded_object(http_response):
+                return json.loads(http_response)
         except ValueError:  # superclass of JsonDecodeError (python2)
             pass
 
@@ -898,10 +899,6 @@ class Exchange(object):
     @staticmethod
     def json(data, params=None):
         return json.dumps(data, separators=(',', ':'))
-
-    @staticmethod
-    def parse_if_json_encoded_object(input):
-        return json.loads(input) if Exchange.is_json_encoded_object(input) else input
 
     @staticmethod
     def is_json_encoded_object(input):
