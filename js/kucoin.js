@@ -22,8 +22,6 @@ module.exports = class kucoin extends Exchange {
                 'cancelOrders': true,
                 'createMarketOrder': false,
                 'fetchDepositAddress': true,
-                'fetchDeposits': true,
-                'fetchWithdrawals': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true, // see the method implementation below
                 'fetchOrder': true,
@@ -33,6 +31,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchMyTrades': 'emulated', // this method is to be deleted, see implementation and comments below
                 'fetchCurrencies': true,
                 'withdraw': true,
+                'fetchTransactions': true,
             },
             'timeframes': {
                 '1m': 1,
@@ -587,7 +586,7 @@ module.exports = class kucoin extends Exchange {
         };
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         // https://kucoinapidocs.docs.apiary.io/#reference/0/assets-operation/list-deposit-&-withdrawal-records
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposits requires a currency code argument');
@@ -598,23 +597,7 @@ module.exports = class kucoin extends Exchange {
             'coin': currency['id'],
         };
         const response = await this.privateGetAccountCoinWalletRecords (this.extend (request, params));
-        const transactions = this.filterByValueSinceLimit (response['data']['datas'], 'type', 'DEPOSIT', since, limit);
-        return this.parseTransactions (transactions, currency, since, limit);
-    }
-
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        // https://kucoinapidocs.docs.apiary.io/#reference/0/assets-operation/list-deposit-&-withdrawal-records
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits requires a currency code argument');
-        }
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'coin': currency['id'],
-        };
-        const response = await this.privateGetAccountCoinWalletRecords (this.extend (request, params));
-        const transactions = this.filterByValueSinceLimit (response['data']['datas'], 'type', 'WITHDRAW', since, limit);
-        return this.parseTransactions (transactions, currency, since, limit);
+        return this.parseTransactions (response['data']['datas'], currency, since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
