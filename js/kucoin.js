@@ -602,45 +602,47 @@ module.exports = class kucoin extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         //
-        // fetchDeposits
+        //     {
+        //         'coinType': 'ETH',
+        //         'createdAt': 1516134636000,
+        //         'amount': 2.5,
+        //         'address': '0x4cd00e7983e54add886442d3b866f95243cf9b30',
+        //         'fee': 0.0,
+        //         'outerWalletTxid': '0x820cde65b1fab0a9527a5c2466b3e7807fee45c6a81691486bf954114b12c873@0x4cd00e7983e54add886442d3b866f95243cf9b30@eth',
+        //         'remark': None,
+        //         'oid': '5a5e60ecaf2c5807eda65443',
+        //         'confirmation': 14,
+        //         'type': 'DEPOSIT',
+        //         'status': 'SUCCESS',
+        //         'updatedAt': 1516134827000
+        //     }
         //
-        // {
-        //     'coinType': 'ETH',
-        //     'createdAt': 1516134636000,
-        //     'amount': 2.5,
-        //     'address': '0x4cd00e7983e54add886442d3b866f95243cf9b30',
-        //     'fee': 0.0,
-        //     'outerWalletTxid': '0x820cde65b1fab0a9527a5c2466b3e7807fee45c6a81691486bf954114b12c873
-        //     @0x4cd00e7983e54add886442d3b866f95243cf9b30@eth',
-        //     'remark': None,
-        //     'oid': '5a5e60ecaf2c5807eda65443',
-        //     'confirmation': 14,
-        //     'type': 'DEPOSIT',
-        //     'status': 'SUCCESS',
-        //     'updatedAt': 1516134827000
-        //
-        // fetchWithdrawals
-        //
-        // {
-        //     'coinType':'POLY',
-        //     'createdAt':1520696078000,
-        //     'amount':838.2247,
-        //     'address':'0x54fc433e95549e68fa362eb85c235177d94a8745',
-        //     'fee':3.0,
-        //     'outerWalletTxid':'0x055da84b7557498785d6acecf2b71d0158fec32fce246e51f5c49b79826a8481',
-        //     'remark':None,
-        //     'oid':'5aa3fb0d7bd394763bde55c1',
-        //     'confirmation':0,
-        //     'type':'WITHDRAW',
-        //     'status':'SUCCESS',
-        //     'updatedAt':1520696196000
-        //   }
+        //     {
+        //         'coinType':'POLY',
+        //         'createdAt':1520696078000,
+        //         'amount':838.2247,
+        //         'address':'0x54fc433e95549e68fa362eb85c235177d94a8745',
+        //         'fee':3.0,
+        //         'outerWalletTxid':'0x055da84b7557498785d6acecf2b71d0158fec32fce246e51f5c49b79826a8481',
+        //         'remark':None,
+        //         'oid':'5aa3fb0d7bd394763bde55c1',
+        //         'confirmation':0,
+        //         'type':'WITHDRAW',
+        //         'status':'SUCCESS',
+        //         'updatedAt':1520696196000
+        //     }
         //
         const id = this.safeString (transaction, 'oid');
-        const txid = this.safeString (transaction, 'outerWalletTxid');
-        let timestamp = this.safeInteger (transaction, 'createdAt');
+        let txid = this.safeString (transaction, 'outerWalletTxid');
+        if (txid !== undefined) {
+            if (txid.indexOf ('@') >= 0) {
+                const parts = txid.split ('@');
+                txid = parts[0];
+            }
+        }
+        const timestamp = this.safeInteger (transaction, 'createdAt');
         let code = undefined;
-        let currencyId = this.safeString (transaction, 'coinType');
+        const currencyId = this.safeString (transaction, 'coinType');
         currency = this.safeValue (this.currencies_by_id, currencyId);
         if (currency !== undefined) {
             code = currency['code'];
@@ -648,20 +650,26 @@ module.exports = class kucoin extends Exchange {
             code = this.commonCurrencyCode (currencyId);
         }
         const address = this.safeString (transaction, 'address');
+        const tag = this.safeString (transaction, 'remark');
         const amount = this.safeFloat (transaction, 'amount');
         const status = this.safeString (transaction, 'status');
-        const type = this.safeString (transaction, 'type').toLowerCase (); // injected from the outside
+        const type = this.safeString (transaction, 'type');
+        if (type !== undefined) {
+            // they return 'DEPOSIT' or 'WITHDRAW', ccxt used 'deposit' or 'withdrawal'
+            type = (type === 'DEPOSIT') ? 'deposit' : 'withdrawal';
+        }
         const feeCost = this.safeFloat (transaction, 'fee');
+        const updated = this.safeInteger (transaction, 'updatedAt');
         return {
             'info': transaction,
             'id': id,
             'currency': code,
             'amount': amount,
             'address': address,
-            'tag': undefined,
+            'tag': tag,
             'status': status,
             'type': type,
-            'updated': undefined,
+            'updated': updated,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
