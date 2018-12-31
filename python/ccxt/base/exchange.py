@@ -237,7 +237,6 @@ class Exchange(object):
     last_http_response = None
     last_json_response = None
     last_response_headers = None
-    rest_api_defined = False
 
     requiresWeb3 = False
     web3 = None
@@ -322,8 +321,6 @@ class Exchange(object):
 
     @classmethod
     def define_rest_api(cls, api, method_name, options={}):
-        if cls.rest_api_defined and cls.mro()[1] is Exchange:
-            return
         delimiters = re.compile('[^a-zA-Z0-9]')
         entry = getattr(cls, method_name)  # returns a function (instead of a bound method)
         for api_type, methods in api.items():
@@ -362,8 +359,6 @@ class Exchange(object):
                     to_bind = partialer()
                     setattr(cls, camelcase, to_bind)
                     setattr(cls, underscore, to_bind)
-        cls.rest_api_defined = True
-        # ^ this code only runs once per class
 
     def raise_error(self, exception_type, url=None, method=None, error=None, details=None):
         if error:
