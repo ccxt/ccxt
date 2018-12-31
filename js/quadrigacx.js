@@ -20,6 +20,7 @@ module.exports = class quadrigacx extends Exchange {
                 'fetchTickers': true,
                 'fetchOrder': true,
                 'fetchMyTrades': true,
+                'fetchTransactions': true,
                 'CORS': true,
                 'withdraw': true,
             },
@@ -114,6 +115,85 @@ module.exports = class quadrigacx extends Exchange {
         let response = await this.privatePostUserTransactions (this.extend (request, params));
         let trades = this.filterBy (response, 'type', 2);
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchTransactions (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let market = undefined;
+        let request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['book'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let response = await this.privatePostUserTransactions (this.extend (request, params));
+        let user_transactions = this.filterByArray (response, 'type', [0, 1], false);
+        // return user_transactions;
+        return this.parseTransactions (user_transactions, market, since, limit);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // {
+        //     "btc":"0.99985260",
+        //     "method":"Bitcoin",
+        //     "fee":"0.00000000",
+        //     "type":0,
+        //     "datetime":"2018-10-08 05:26:23"
+        // }
+        //
+        // {
+        //     "btc":"-0.50000000",
+        //     "method":"Bitcoin",
+        //     "fee":"0.00000000",
+        //     "type":1,
+        //     "datetime":"2018-08-27 13:50:10"
+        // }
+        //
+        let code = undefined;
+        let amount = undefined;
+        let omitted = this.omit (transaction, [ 'datetime', 'type', 'method', 'fee' ]);
+        let keys = Object.keys (omitted);
+        for (let i = 0; i < keys.length; i++) {
+            if (keys[i] in this.currencies_by_id) {
+                code = keys[i];
+            }
+        }
+        if (code !== undefined) {
+            amount = this.safeString (transaction, code);
+        }
+        let timestamp = this.parse8601 (this.safeString (transaction, 'datetime'));
+        let status = undefined;
+        let type = this.safeString (transaction, 'type');
+        const fee = this.safeFloat (transaction, 'fee');
+        if (status === undefined) {
+            if (type === '0') {
+                type = 'deposit';
+            } else if (type === '1') {
+                type = 'withdrawal';
+            }
+        } else {
+            type = 'withdrawal';
+        }
+        return {
+            'info': transaction,
+            'id': undefined,
+            'txid': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': undefined,
+            'tag': undefined,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': undefined,
+            'updated': undefined,
+            'fee': {
+                'currency': code,
+                'cost': fee,
+            },
+        };
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
