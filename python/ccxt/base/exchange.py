@@ -349,12 +349,16 @@ class Exchange(object):
                         outer_kwargs = {'path': url, 'api': api_type, 'method': uppercase_method}
 
                         @functools.wraps(entry)
-                        def inner(*args):
+                        def inner(_self, params=None):
+                            """
+                            Inner is called when a generated method (publicGetX) is called.
+                            _self is a reference to self created by function.__get__(exchange, type(exchange))
+                            https://en.wikipedia.org/wiki/Closure_(computer_programming) equivalent to functools.partial
+                            """
                             inner_kwargs = dict(outer_kwargs)  # avoid mutation
-                            if len(args) > 1:
-                                inner_kwargs['params'] = args[1]
-                                args = [args[0]]  # a reference to self without circular dependencies
-                            return entry(*args, **inner_kwargs)
+                            if params is not None:
+                                inner_kwargs['params'] = params
+                            return entry(_self, **inner_kwargs)
                         return inner
                     to_bind = partialer()
                     setattr(cls, camelcase, to_bind)
@@ -381,7 +385,7 @@ class Exchange(object):
         request = self.sign(path, api, method, params, headers, body)
         return self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
-    def request(self, path=None, api='public', method='GET', params={}, headers=None, body=None):
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         return self.fetch2(path, api, method, params, headers, body)
 
     @staticmethod
