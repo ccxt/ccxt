@@ -91,6 +91,7 @@ class bibox extends Exchange {
                 '2033' => '\\ccxt\\OrderNotFound', // operation failed! Orders have been completed or revoked
                 '2067' => '\\ccxt\\InvalidOrder', // Does not support market orders
                 '2068' => '\\ccxt\\InvalidOrder', // The number of orders can not be less than
+                '2085' => '\\ccxt\\InvalidOrder', // Order quantity is too small
                 '3012' => '\\ccxt\\AuthenticationError', // invalid apiKey
                 '3024' => '\\ccxt\\PermissionDenied', // wrong apikey permissions
                 '3025' => '\\ccxt\\AuthenticationError', // signature failed
