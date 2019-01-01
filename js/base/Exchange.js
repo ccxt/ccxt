@@ -620,10 +620,6 @@ module.exports = class Exchange {
         throw new error ([ this.id, method, url, code, reason, details ].join (' '))
     }
 
-    parseIfJsonEncodedObject (input) {
-        return (this.isJsonEncodedObject (input) ? JSON.parse (input) : input)
-    }
-
     isJsonEncodedObject (object) {
         return ((typeof object === 'string') &&
                 (object.length >= 2) &&

@@ -31,6 +31,7 @@ class kucoin extends Exchange {
                 'fetchMyTrades' => 'emulated', // this method is to be deleted, see implementation and comments below
                 'fetchCurrencies' => true,
                 'withdraw' => true,
+                'fetchTransactions' => true,
             ),
             'timeframes' => array (
                 '1m' => 1,
@@ -582,6 +583,100 @@ class kucoin extends Exchange {
             'address' => $address,
             'tag' => $tag,
             'info' => $response,
+        );
+    }
+
+    public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+        // https://kucoinapidocs.docs.apiary.io/#reference/0/assets-operation/list-deposit-&-withdrawal-records
+        if ($code === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchDeposits requires a $currency $code argument');
+        }
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $request = array (
+            'coin' => $currency['id'],
+        );
+        $response = $this->privateGetAccountCoinWalletRecords (array_merge ($request, $params));
+        return $this->parseTransactions ($response['data']['datas'], $currency, $since, $limit);
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        //
+        //     {
+        //         'coinType' => 'ETH',
+        //         'createdAt' => 1516134636000,
+        //         'amount' => 2.5,
+        //         'address' => '0x4cd00e7983e54add886442d3b866f95243cf9b30',
+        //         'fee' => 0.0,
+        //         'outerWalletTxid' => '0x820cde65b1fab0a9527a5c2466b3e7807fee45c6a81691486bf954114b12c873@0x4cd00e7983e54add886442d3b866f95243cf9b30@eth',
+        //         'remark' => None,
+        //         'oid' => '5a5e60ecaf2c5807eda65443',
+        //         'confirmation' => 14,
+        //         'type' => 'DEPOSIT',
+        //         'status' => 'SUCCESS',
+        //         'updatedAt' => 1516134827000
+        //     }
+        //
+        //     {
+        //         'coinType':'POLY',
+        //         'createdAt':1520696078000,
+        //         'amount':838.2247,
+        //         'address':'0x54fc433e95549e68fa362eb85c235177d94a8745',
+        //         'fee':3.0,
+        //         'outerWalletTxid':'0x055da84b7557498785d6acecf2b71d0158fec32fce246e51f5c49b79826a8481',
+        //         'remark':None,
+        //         'oid':'5aa3fb0d7bd394763bde55c1',
+        //         'confirmation':0,
+        //         'type':'WITHDRAW',
+        //         'status':'SUCCESS',
+        //         'updatedAt':1520696196000
+        //     }
+        //
+        $id = $this->safe_string($transaction, 'oid');
+        $txid = $this->safe_string($transaction, 'outerWalletTxid');
+        if ($txid !== null) {
+            if (mb_strpos ($txid, '@') !== false) {
+                $parts = explode ('@', $txid);
+                $txid = $parts[0];
+            }
+        }
+        $timestamp = $this->safe_integer($transaction, 'createdAt');
+        $code = null;
+        $currencyId = $this->safe_string($transaction, 'coinType');
+        $currency = $this->safe_value($this->currencies_by_id, $currencyId);
+        if ($currency !== null) {
+            $code = $currency['code'];
+        } else {
+            $code = $this->common_currency_code($currencyId);
+        }
+        $address = $this->safe_string($transaction, 'address');
+        $tag = $this->safe_string($transaction, 'remark');
+        $amount = $this->safe_float($transaction, 'amount');
+        $status = $this->safe_string($transaction, 'status');
+        $type = $this->safe_string($transaction, 'type');
+        if ($type !== null) {
+            // they return 'DEPOSIT' or 'WITHDRAW', ccxt used 'deposit' or 'withdrawal'
+            $type = ($type === 'DEPOSIT') ? 'deposit' : 'withdrawal';
+        }
+        $feeCost = $this->safe_float($transaction, 'fee');
+        $updated = $this->safe_integer($transaction, 'updatedAt');
+        return array (
+            'info' => $transaction,
+            'id' => $id,
+            'currency' => $code,
+            'amount' => $amount,
+            'address' => $address,
+            'tag' => $tag,
+            'status' => $status,
+            'type' => $type,
+            'updated' => $updated,
+            'txid' => $txid,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'fee' => array (
+                'currency' => $code,
+                'cost' => $feeCost,
+            ),
         );
     }
 
