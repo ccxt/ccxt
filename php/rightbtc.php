@@ -646,7 +646,7 @@ class rightbtc extends Exchange {
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $ids = $this->safe_string($params, 'ids');
         if (($symbol === null) || ($ids === null)) {
-            throw new ExchangeError ($this->id . " fetchOrders requires a 'symbol' argument and an extra 'ids' parameter. The 'ids' should be an array or a string of one or more order $ids separated with slashes."); // eslint-disable-line quotes
+            throw new ArgumentsRequired ($this->id . " fetchOrders requires a 'symbol' argument and an extra 'ids' parameter. The 'ids' should be an array or a string of one or more order $ids separated with slashes."); // eslint-disable-line quotes
         }
         if (gettype ($ids) === 'array' && count (array_filter (array_keys ($ids), 'is_string')) == 0) {
             $ids = implode ('/', $ids);

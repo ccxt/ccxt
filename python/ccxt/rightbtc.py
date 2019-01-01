@@ -615,7 +615,7 @@ class rightbtc (Exchange):
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         ids = self.safe_string(params, 'ids')
         if (symbol is None) or (ids is None):
-            raise ExchangeError(self.id + " fetchOrders requires a 'symbol' argument and an extra 'ids' parameter. The 'ids' should be an array or a string of one or more order ids separated with slashes.")  # eslint-disable-line quotes
+            raise ArgumentsRequired(self.id + " fetchOrders requires a 'symbol' argument and an extra 'ids' parameter. The 'ids' should be an array or a string of one or more order ids separated with slashes.")  # eslint-disable-line quotes
         if isinstance(ids, list):
             ids = '/'.join(ids)
         self.load_markets()
