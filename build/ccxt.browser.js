@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.94'
+const version = '1.18.95'
 
 Exchange.ccxtVersion = version
 
@@ -9640,6 +9640,7 @@ module.exports = class bitfinex2 extends bitfinex {
                         'auth/r/funding/trades/{symbol}/hist',
                         'auth/r/info/margin/{key}',
                         'auth/r/info/funding/{key}',
+                        'auth/r/movements/hist',
                         'auth/r/movements/{currency}/hist',
                         'auth/r/stats/perf:{timeframe}/hist',
                         'auth/r/alerts',
