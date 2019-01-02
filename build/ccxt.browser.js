@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.93'
+const version = '1.18.94'
 
 Exchange.ccxtVersion = version
 
@@ -34607,7 +34607,7 @@ module.exports = class exmo extends Exchange {
         // sets fiat fees to undefined
         const fiatGroups = this.toArray (this.omit (groupsByGroup, 'crypto'));
         for (let i = 0; i < fiatGroups.length; i++) {
-            const code = this.safeString (fiatGroups[i], 'title');
+            const code = this.commonCurrencyCode (this.safeString (fiatGroups[i], 'title'));
             withdraw[code] = undefined;
             deposit[code] = undefined;
         }

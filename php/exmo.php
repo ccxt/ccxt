@@ -249,7 +249,7 @@ class exmo extends Exchange {
         // sets fiat fees to null
         $fiatGroups = $this->to_array($this->omit ($groupsByGroup, 'crypto'));
         for ($i = 0; $i < count ($fiatGroups); $i++) {
-            $code = $this->safe_string($fiatGroups[$i], 'title');
+            $code = $this->common_currency_code($this->safe_string($fiatGroups[$i], 'title'));
             $withdraw[$code] = null;
             $deposit[$code] = null;
         }

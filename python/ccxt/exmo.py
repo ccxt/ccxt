@@ -252,7 +252,7 @@ class exmo (Exchange):
         # sets fiat fees to None
         fiatGroups = self.to_array(self.omit(groupsByGroup, 'crypto'))
         for i in range(0, len(fiatGroups)):
-            code = self.safe_string(fiatGroups[i], 'title')
+            code = self.common_currency_code(self.safe_string(fiatGroups[i], 'title'))
             withdraw[code] = None
             deposit[code] = None
         result = {
