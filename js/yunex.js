@@ -100,7 +100,7 @@ module.exports = class yunex extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetApiV1BaseCoinsTradepair ();
         let data = response['data'];
         let result = [];
@@ -309,7 +309,7 @@ module.exports = class yunex extends Exchange {
         };
     }
 
-    async fetchBalance () {
+    async fetchBalance (params = {}) {
         let response = await this.privateGetApiV1CoinBalance ();
         let data = response['data']['coin'];
         let result = { 'info': response };
