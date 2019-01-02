@@ -131,8 +131,8 @@ module.exports = class yunex extends Exchange {
         await this.loadMarkets ();
         let request = {
             'symbol': this.marketId (symbol),
-            'price': String (price),
-            'volume': String (amount),
+            'price': price,
+            'volume': amount,
         };
         let response = '';
         if (side === 'buy') {
@@ -342,7 +342,7 @@ module.exports = class yunex extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let ts = this.seconds ();
-            let nonce = Math.random ().toString (32).substr (2);
+            let nonce = '308072f419';
             headers = {
                 'Content-Type': 'application/json',
                 '-x-ts': ts,
