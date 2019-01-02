@@ -249,6 +249,12 @@ class exmo (Exchange):
             if depositFee is not None:
                 if len(depositFee) > 0:
                     deposit[code] = self.parse_fixed_float_value(depositFee)
+        # sets fiat fees to None
+        fiatGroups = self.to_array(self.omit(groupsByGroup, 'crypto'))
+        for i in range(0, len(fiatGroups)):
+            code = self.safe_string(fiatGroups[i], 'title')
+            withdraw[code] = None
+            deposit[code] = None
         result = {
             'info': response,
             'withdraw': withdraw,

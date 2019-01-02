@@ -204,8 +204,8 @@ class virwox (Exchange):
             'instrument': symbol,
             'timespan': 3600,
         }, params))
-        result = response['result']
-        trades = result['data']
+        result = self.safe_value(response, 'result', {})
+        trades = self.safe_value(result, 'data', [])
         return self.parse_trades(trades, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
