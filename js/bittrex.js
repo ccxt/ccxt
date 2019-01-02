@@ -41,13 +41,14 @@ module.exports = class bittrex extends Exchange {
                 '1h': 'hour',
                 '1d': 'day',
             },
+            'hostname': 'bittrex.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
                 'api': {
-                    'public': 'https://bittrex.com/api',
-                    'account': 'https://bittrex.com/api',
-                    'market': 'https://bittrex.com/api',
-                    'v2': 'https://bittrex.com/api/v2.0/pub',
+                    'public': 'https://{hostname}/api',
+                    'account': 'https://{hostname}/api',
+                    'market': 'https://{hostname}/api',
+                    'v2': 'https://{hostname}/api/v2.0/pub',
                 },
                 'www': 'https://bittrex.com',
                 'doc': [
@@ -163,6 +164,7 @@ module.exports = class bittrex extends Exchange {
                 },
                 'parseOrderStatus': false,
                 'hasAlreadyAuthenticatedSuccessfully': false, // a workaround for APIKEY_INVALID
+                'symbolSeparator': '-',
             },
             'commonCurrencies': {
                 'BITS': 'SWIFT',
@@ -179,11 +181,14 @@ module.exports = class bittrex extends Exchange {
         return this.decimalToPrecision (fee, TRUNCATE, this.markets[symbol]['precision']['price'], DECIMAL_PLACES);
     }
 
-    async fetchMarkets () {
-        let response = await this.v2GetMarketsGetMarketSummaries ();
-        let result = [];
-        for (let i = 0; i < response['result'].length; i++) {
-            let market = response['result'][i]['Market'];
+    async fetchMarkets (params = {}) {
+        // https://github.com/ccxt/ccxt/commit/866370ba6c9cabaf5995d992c15a82e38b8ca291
+        // https://github.com/ccxt/ccxt/pull/4304
+        const response = await this.publicGetMarkets ();
+        const result = [];
+        const markets = this.safeValue (response, 'result');
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
             let id = market['MarketName'];
             let baseId = market['MarketCurrency'];
             let quoteId = market['BaseCurrency'];
@@ -197,7 +202,11 @@ module.exports = class bittrex extends Exchange {
                 'amount': 8,
                 'price': pricePrecision,
             };
-            let active = market['IsActive'] || market['IsActive'] === 'true';
+            // bittrex uses boolean values, bleutrade uses strings
+            let active = this.safeValue (market, 'IsActive', false);
+            if ((active !== 'false') || active) {
+                active = true;
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -398,19 +407,30 @@ module.exports = class bittrex extends Exchange {
         } else if (trade['OrderType'] === 'SELL') {
             side = 'sell';
         }
-        let id = undefined;
-        if ('Id' in trade)
-            id = trade['Id'].toString ();
+        let id = this.safeString2 (trade, 'Id', 'ID');
+        let symbol = undefined;
+        if (market !== undefined)
+            symbol = market['symbol'];
+        let cost = undefined;
+        let price = this.safeFloat (trade, 'Price');
+        let amount = this.safeFloat (trade, 'Quantity');
+        if (amount !== undefined) {
+            if (price !== undefined) {
+                cost = price * amount;
+            }
+        }
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': 'limit',
             'side': side,
-            'price': this.safeFloat (trade, 'Price'),
-            'amount': this.safeFloat (trade, 'Quantity'),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
@@ -612,7 +632,7 @@ module.exports = class bittrex extends Exchange {
         const address = this.safeString2 (transaction, 'CryptoAddress', 'Address');
         const txid = this.safeString (transaction, 'TxId');
         const updated = this.parse8601 (this.safeValue (transaction, 'LastUpdated'));
-        const timestamp = this.parse8601 (this.safeString (transaction, 'Opened'), updated);
+        const timestamp = this.parse8601 (this.safeString (transaction, 'Opened', updated));
         const type = (timestamp !== undefined) ? 'withdrawal' : 'deposit';
         let code = undefined;
         let currencyId = this.safeString (transaction, 'Currency');
@@ -681,7 +701,7 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseSymbol (id) {
-        let [ quote, base ] = id.split ('-');
+        let [ quote, base ] = id.split (this.options['symbolSeparator']);
         base = this.commonCurrencyCode (base);
         quote = this.commonCurrencyCode (quote);
         return base + '/' + quote;
@@ -884,7 +904,9 @@ module.exports = class bittrex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/';
+        let url = this.implodeParams (this.urls['api'][api], {
+            'hostname': this.hostname,
+        }) + '/';
         if (api !== 'v2')
             url += this.version + '/';
         if (api === 'public') {
@@ -914,16 +936,16 @@ module.exports = class bittrex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if (body[0] === '{') {
-            let response = JSON.parse (body);
             // { success: false, message: "message" }
             let success = this.safeValue (response, 'success');
             if (success === undefined)
                 throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
-            if (typeof success === 'string')
+            if (typeof success === 'string') {
                 // bleutrade uses string instead of boolean
                 success = (success === 'true') ? true : false;
+            }
             if (!success) {
                 const message = this.safeString (response, 'message');
                 const feedback = this.id + ' ' + this.json (response);

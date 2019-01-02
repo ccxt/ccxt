@@ -17,7 +17,6 @@ module.exports = class kraken extends Exchange {
             'version': '0',
             'rateLimit': 3000,
             'certified': true,
-            'parseJsonResponse': false,
             'has': {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
@@ -113,6 +112,7 @@ module.exports = class kraken extends Exchange {
                         'GNO': 0.01,
                         'EOS': 0.5,
                         'BCH': 0.001,
+                        'XTZ': 0.05,
                         'USD': 5, // if domestic wire
                         'EUR': 5, // if domestic wire
                         'CAD': 10, // CAD EFT Withdrawal
@@ -135,6 +135,7 @@ module.exports = class kraken extends Exchange {
                         'GNO': 0,
                         'EOS': 0,
                         'BCH': 0,
+                        'XTZ': 0.05,
                         'USD': 5, // if domestic wire
                         'EUR': 0, // free deposit if EUR SEPA Deposit
                         'CAD': 5, // if domestic wire
@@ -236,18 +237,17 @@ module.exports = class kraken extends Exchange {
             if (amountAndCode !== 'To Be Announced') {
                 let pieces = amountAndCode.split (' ');
                 let numPieces = pieces.length;
-                if (numPieces !== 2) {
-                    throw new ExchangeError (this.id + ' fetchMinOrderAmounts HTML page markup has changed: https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-');
+                if (numPieces === 2) {
+                    let amount = parseFloat (pieces[0]);
+                    let code = this.commonCurrencyCode (pieces[1]);
+                    result[code] = amount;
                 }
-                let amount = parseFloat (pieces[0]);
-                let code = this.commonCurrencyCode (pieces[1]);
-                result[code] = amount;
             }
         }
         return result;
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetAssetPairs ();
         let limits = await this.fetchMinOrderAmounts ();
         let keys = Object.keys (markets['result']);
@@ -433,7 +433,9 @@ module.exports = class kraken extends Exchange {
             symbol = market['symbol'];
         let baseVolume = parseFloat (ticker['v'][1]);
         let vwap = parseFloat (ticker['p'][1]);
-        let quoteVolume = baseVolume * vwap;
+        let quoteVolume = undefined;
+        if (baseVolume !== undefined && vwap !== undefined)
+            quoteVolume = baseVolume * vwap;
         let last = parseFloat (ticker['c'][0]);
         return {
             'symbol': symbol,
@@ -739,6 +741,17 @@ module.exports = class kraken extends Exchange {
         return market;
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'pending': 'open', // order pending book entry
+            'open': 'open',
+            'closed': 'closed',
+            'canceled': 'canceled',
+            'expired': 'expired',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrder (order, market = undefined) {
         let description = order['descr'];
         let side = description['type'];
@@ -780,13 +793,14 @@ module.exports = class kraken extends Exchange {
                 }
             }
         }
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         return {
             'id': order['id'],
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'status': order['status'],
+            'status': status,
             'symbol': symbol,
             'type': type,
             'side': side,
@@ -1156,7 +1170,10 @@ module.exports = class kraken extends Exchange {
         return this.milliseconds ();
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response) {
+        if (code === 520) {
+            throw new ExchangeNotAvailable (this.id + ' ' + body);
+        }
         if (body.indexOf ('Invalid order') >= 0)
             throw new InvalidOrder (this.id + ' ' + body);
         if (body.indexOf ('Invalid nonce') >= 0)
@@ -1168,7 +1185,6 @@ module.exports = class kraken extends Exchange {
         if (body.indexOf ('Invalid arguments:volume') >= 0)
             throw new InvalidOrder (this.id + ' ' + body);
         if (body[0] === '{') {
-            let response = JSON.parse (body);
             if (typeof response !== 'string') {
                 if ('error' in response) {
                     let numErrors = response['error'].length;
@@ -1184,10 +1200,5 @@ module.exports = class kraken extends Exchange {
                 }
             }
         }
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        return this.parseIfJsonEncodedObject (response);
     }
 };

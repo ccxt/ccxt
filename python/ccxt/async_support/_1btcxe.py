@@ -56,7 +56,7 @@ class _1btcxe (Exchange):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         return [
             {'id': 'USD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD'},
             {'id': 'EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'},
@@ -154,7 +154,7 @@ class _1btcxe (Exchange):
             'currency': market['id'],
             'timeframe': self.timeframes[timeframe],
         }, params))
-        ohlcvs = self.omit(response['historical-prices'], 'request_currency')
+        ohlcvs = self.to_array(self.omit(response['historical-prices'], 'request_currency'))
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market):
@@ -174,10 +174,13 @@ class _1btcxe (Exchange):
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)
-        response = await self.publicGetTransactions(self.extend({
+        request = {
             'currency': market['id'],
-        }, params))
-        trades = self.omit(response['transactions'], 'request_currency')
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.publicGetTransactions(self.extend(request, params))
+        trades = self.to_array(self.omit(response['transactions'], 'request_currency'))
         return self.parse_trades(trades, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):

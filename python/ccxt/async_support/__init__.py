@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.17.492'
+__version__ = '1.18.91'
 
 # -----------------------------------------------------------------------------
 
@@ -30,6 +30,7 @@ from ccxt.base.errors import InsufficientFunds                  # noqa: F401
 from ccxt.base.errors import InvalidOrder                       # noqa: F401
 from ccxt.base.errors import OrderNotFound                      # noqa: F401
 from ccxt.base.errors import OrderNotCached                     # noqa: F401
+from ccxt.base.errors import DuplicateOrderId                   # noqa: F401
 from ccxt.base.errors import CancelPending                      # noqa: F401
 from ccxt.base.errors import NetworkError                       # noqa: F401
 from ccxt.base.errors import DDoSProtection                     # noqa: F401
@@ -108,6 +109,7 @@ from ccxt.async_support.coinone import coinone                            # noqa
 from ccxt.async_support.coinspot import coinspot                          # noqa: F401
 from ccxt.async_support.cointiger import cointiger                        # noqa: F401
 from ccxt.async_support.coolcoin import coolcoin                          # noqa: F401
+from ccxt.async_support.coss import coss                                  # noqa: F401
 from ccxt.async_support.crex24 import crex24                              # noqa: F401
 from ccxt.async_support.crypton import crypton                            # noqa: F401
 from ccxt.async_support.cryptopia import cryptopia                        # noqa: F401
@@ -129,8 +131,6 @@ from ccxt.async_support.getbtc import getbtc                              # noqa
 from ccxt.async_support.hadax import hadax                                # noqa: F401
 from ccxt.async_support.hitbtc import hitbtc                              # noqa: F401
 from ccxt.async_support.hitbtc2 import hitbtc2                            # noqa: F401
-from ccxt.async_support.huobi import huobi                                # noqa: F401
-from ccxt.async_support.huobicny import huobicny                          # noqa: F401
 from ccxt.async_support.huobipro import huobipro                          # noqa: F401
 from ccxt.async_support.ice3x import ice3x                                # noqa: F401
 from ccxt.async_support.independentreserve import independentreserve      # noqa: F401
@@ -168,6 +168,7 @@ from ccxt.async_support.therock import therock                            # noqa
 from ccxt.async_support.tidebit import tidebit                            # noqa: F401
 from ccxt.async_support.tidex import tidex                                # noqa: F401
 from ccxt.async_support.uex import uex                                    # noqa: F401
+from ccxt.async_support.upbit import upbit                                # noqa: F401
 from ccxt.async_support.urdubit import urdubit                            # noqa: F401
 from ccxt.async_support.vaultoro import vaultoro                          # noqa: F401
 from ccxt.async_support.vbtc import vbtc                                  # noqa: F401
@@ -243,6 +244,7 @@ exchanges = [
     'coinspot',
     'cointiger',
     'coolcoin',
+    'coss',
     'crex24',
     'crypton',
     'cryptopia',
@@ -264,8 +266,6 @@ exchanges = [
     'hadax',
     'hitbtc',
     'hitbtc2',
-    'huobi',
-    'huobicny',
     'huobipro',
     'ice3x',
     'independentreserve',
@@ -303,6 +303,7 @@ exchanges = [
     'tidebit',
     'tidex',
     'uex',
+    'upbit',
     'urdubit',
     'vaultoro',
     'vbtc',

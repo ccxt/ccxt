@@ -11,7 +11,6 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -42,7 +41,7 @@ class coinbase (Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': False,
                 'fetchMarkets': False,
-                'fetchMyTrades': True,
+                'fetchMyTrades': False,
                 'fetchOHLCV': False,
                 'fetchOpenOrders': False,
                 'fetchOrder': False,
@@ -56,6 +55,8 @@ class coinbase (Exchange):
                 'fetchTransactions': False,
                 'fetchDeposits': True,
                 'fetchWithdrawals': True,
+                'fetchMySells': True,
+                'fetchMyBuys': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg',
@@ -184,7 +185,20 @@ class coinbase (Exchange):
         response = self.privateGetAccounts()
         return response['data']
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_sells(self, symbol=None, since=None, limit=None, params={}):
+        # they don't have an endpoint for all historical trades
+        accountId = self.safe_string_2(params, 'account_id', 'accountId')
+        if accountId is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires an account_id or accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.')
+        self.load_markets()
+        query = self.omit(params, ['account_id', 'accountId'])
+        sells = self.privateGetAccountsAccountIdSells(self.extend({
+            'account_id': accountId,
+        }, query))
+        return self.parse_trades(sells['data'], None, since, limit)
+
+    def fetch_my_buys(self, symbol=None, since=None, limit=None, params={}):
+        # they don't have an endpoint for all historical trades
         accountId = self.safe_string_2(params, 'account_id', 'accountId')
         if accountId is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades requires an account_id or accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.')
@@ -193,14 +207,7 @@ class coinbase (Exchange):
         buys = self.privateGetAccountsAccountIdBuys(self.extend({
             'account_id': accountId,
         }, query))
-        sells = self.privateGetAccountsAccountIdSells(self.extend({
-            'account_id': accountId,
-        }, query))
-        parsedBuys = self.parse_trades(buys['data'], None, since, limit)
-        parsedSells = self.parse_trades(sells['data'], None, since, limit)
-        result = self.array_concat(parsedBuys, parsedSells)
-        sortedResult = self.sort_by(result, 'timestamp')
-        return self.filter_by_symbol_since_limit(sortedResult, symbol, since, limit)
+        return self.parse_trades(buys['data'], None, since, limit)
 
     def fetch_transactions_with_method(self, method, code=None, since=None, limit=None, params={}):
         accountId = self.safe_string_2(params, 'account_id', 'accountId')
@@ -535,13 +542,12 @@ class coinbase (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if len(body) < 2:
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
             feedback = self.id + ' ' + body
             #
             #    {"error": "invalid_request", "error_description": "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed."}

@@ -99,7 +99,7 @@ module.exports = class acx extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetMarkets ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
@@ -108,6 +108,11 @@ module.exports = class acx extends Exchange {
             let symbol = market['name'];
             let baseId = this.safeString (market, 'base_unit');
             let quoteId = this.safeString (market, 'quote_unit');
+            if ((baseId === undefined) || (quoteId === undefined)) {
+                let ids = symbol.split ('/');
+                baseId = ids[0].toLowerCase ();
+                quoteId = ids[1].toLowerCase ();
+            }
             let base = baseId.toUpperCase ();
             let quote = quoteId.toUpperCase ();
             base = this.commonCurrencyCode (base);
@@ -425,9 +430,8 @@ module.exports = class acx extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if (code === 400) {
-            const response = JSON.parse (body);
             const error = this.safeValue (response, 'error');
             const errorCode = this.safeString (error, 'code');
             const feedback = this.id + ' ' + this.json (response);

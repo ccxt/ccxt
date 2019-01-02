@@ -150,7 +150,7 @@ module.exports = class coinegg extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let quoteIds = this.options['quoteIds'];
         let result = [];
         for (let b = 0; b < quoteIds.length; b++) {
@@ -501,7 +501,7 @@ module.exports = class coinegg extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         // checks against error codes
         if (typeof body !== 'string')
             return;
@@ -509,7 +509,6 @@ module.exports = class coinegg extends Exchange {
             return;
         if (body[0] !== '{')
             return;
-        let response = JSON.parse (body);
         // private endpoints return the following structure:
         // {"result":true,"data":{...}} - success
         // {"result":false,"code":"103"} - failure

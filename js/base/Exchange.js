@@ -162,7 +162,6 @@ module.exports = class Exchange {
                     'deposit': {},
                 },
             },
-            'parseJsonResponse': true, // whether a reply is required to be in JSON or not
             'skipJsonOnStatusCodes': [], // array of http status codes which override requirement for JSON response
             'exceptions': undefined,
             'httpExceptions': {
@@ -197,6 +196,8 @@ module.exports = class Exchange {
                 'XBT': 'BTC',
                 'BCC': 'BCH',
                 'DRK': 'DASH',
+                'BCHABC': 'BCH',
+                'BCHSV': 'BSV',
             },
             'precisionMode': DECIMAL_PLACES,
         } // return
@@ -364,7 +365,8 @@ module.exports = class Exchange {
         }
 
         if (this.requiresWeb3 && !this.web3 && Web3) {
-            this.web3 = new Web3 (new Web3.providers.HttpProvider ())
+            const provider = (this.web3ProviderURL) ? new Web3.providers.HttpProvider (this.web3ProviderURL) : new Web3.providers.HttpProvider ()
+            this.web3 = new Web3 (Web3.givenProvider || provider)
         }
     }
 
@@ -384,10 +386,15 @@ module.exports = class Exchange {
         return encodeURIComponent (...args)
     }
 
-    checkRequiredCredentials () {
+    checkRequiredCredentials (error = true) {
         Object.keys (this.requiredCredentials).forEach ((key) => {
-            if (this.requiredCredentials[key] && !this[key])
-                throw new AuthenticationError (this.id + ' requires `' + key + '`')
+            if (this.requiredCredentials[key] && !this[key]) {
+                if (error) {
+                    throw new AuthenticationError (this.id + ' requires `' + key + '`')
+                } else {
+                    return error
+                }
+            }
         })
     }
 
@@ -424,8 +431,14 @@ module.exports = class Exchange {
             // TypeError Failed to execute 'fetch' on 'Window': Illegal invocation
             const fetchImplementation = this.fetchImplementation
 
+            const params = { method, headers, body, timeout: this.timeout }
+
+            if (url.indexOf ('http://') < 0) {
+                params['agent'] = this.agent || null;
+            }
+
             let promise =
-                fetchImplementation (url, this.extend ({ method, headers, body, 'agent': this.agent || null, timeout: this.timeout }, this.fetchOptions))
+                fetchImplementation (url, this.extend (params, this.fetchOptions))
                     .catch (e => {
                         if (isNode)
                             throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
@@ -526,10 +539,14 @@ module.exports = class Exchange {
         return this.fetch2 (path, type, method, params, headers, body)
     }
 
-    parseJson (response, responseBody, url, method) {
+    parseJson (jsonString) {
+        return JSON.parse (jsonString)
+    }
+
+    parseRestResponse (response, responseBody, url, method) {
         try {
 
-            return (responseBody.length > 0) ? JSON.parse (responseBody) : {} // empty object for empty body
+            return (responseBody.length > 0) ? this.parseJson (responseBody) : {} // empty object for empty body
 
         } catch (e) {
 
@@ -572,7 +589,7 @@ module.exports = class Exchange {
         return undefined;
     }
 
-    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, json) {
+    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response) {
         // override me
     }
 
@@ -603,10 +620,6 @@ module.exports = class Exchange {
         throw new error ([ this.id, method, url, code, reason, details ].join (' '))
     }
 
-    parseIfJsonEncodedObject (input) {
-        return (this.isJsonEncodedObject (input) ? JSON.parse (input) : input)
-    }
-
     isJsonEncodedObject (object) {
         return ((typeof object === 'string') &&
                 (object.length >= 2) &&
@@ -626,8 +639,8 @@ module.exports = class Exchange {
 
         return response.text ().then ((responseBody) => {
 
-            let jsonRequired = this.parseJsonResponse && !this.skipJsonOnStatusCodes.includes (response.status)
-            let json = jsonRequired ? this.parseJson (response, responseBody, url, method) : undefined
+            const shouldParseJson = this.isJsonEncodedObject (responseBody) && !this.skipJsonOnStatusCodes.includes (response.status)
+            const json = shouldParseJson ? this.parseRestResponse (response, responseBody, url, method) : undefined
 
             let responseHeaders = this.getResponseHeaders (response)
 
@@ -650,7 +663,7 @@ module.exports = class Exchange {
             this.handleErrors (...args)
             this.defaultErrorHandler (response, responseBody, url, method)
 
-            return jsonRequired ? json : responseBody
+            return json || responseBody
         })
     }
 
@@ -695,14 +708,14 @@ module.exports = class Exchange {
         return this.markets
     }
 
-    async loadMarkets (reload = false) {
+    async loadMarkets (reload = false, params = {}) {
         if (!reload && this.markets) {
             if (!this.markets_by_id) {
                 return this.setMarkets (this.markets)
             }
             return this.markets
         }
-        const markets = await this.fetchMarkets ()
+        const markets = await this.fetchMarkets (params)
         let currencies = undefined
         if (this.has.fetchCurrencies) {
             currencies = await this.fetchCurrencies ()
@@ -826,7 +839,7 @@ module.exports = class Exchange {
         return new Promise ((resolve, reject) => resolve (this.currencies));
     }
 
-    fetchMarkets () {
+    fetchMarkets (params = {}) {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
@@ -1119,6 +1132,10 @@ module.exports = class Exchange {
     }
 
     parseTrades (trades, market = undefined, since = undefined, limit = undefined) {
+        // this code is commented out temporarily to catch for exchange-specific errors
+        // if (!this.isArray (trades)) {
+        //     throw new ExchangeError (this.id + ' parseTrades expected an array in the trades argument, but got ' + typeof trades);
+        // }
         let result = Object.values (trades || []).map (trade => this.parseTrade (trade, market))
         result = sortBy (result, 'timestamp')
         let symbol = (market !== undefined) ? market['symbol'] : undefined
@@ -1126,6 +1143,10 @@ module.exports = class Exchange {
     }
 
     parseTransactions (transactions, currency = undefined, since = undefined, limit = undefined) {
+        // this code is commented out temporarily to catch for exchange-specific errors
+        // if (!this.isArray (transactions)) {
+        //     throw new ExchangeError (this.id + ' parseTransactions expected an array in the transactions argument, but got ' + typeof transactions);
+        // }
         let result = Object.values (transactions || []).map (transaction => this.parseTransaction (transaction, currency))
         result = this.sortBy (result, 'timestamp');
         let code = (currency !== undefined) ? currency['code'] : undefined;
@@ -1133,6 +1154,10 @@ module.exports = class Exchange {
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
+        // this code is commented out temporarily to catch for exchange-specific errors
+        // if (!this.isArray (orders)) {
+        //     throw new ExchangeError (this.id + ' parseOrders expected an array in the orders argument, but got ' + typeof orders);
+        // }
         let result = Object.values (orders).map (order => this.parseOrder (order, market))
         result = sortBy (result, 'timestamp')
         let symbol = (market !== undefined) ? market['symbol'] : undefined
@@ -1148,7 +1173,11 @@ module.exports = class Exchange {
     }
 
     parseOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        ohlcvs = Object.values (ohlcvs)
+        // this code is commented out temporarily to catch for exchange-specific errors
+        // if (!this.isArray (ohlcvs)) {
+        //     throw new ExchangeError (this.id + ' parseOHLCVs expected an array in the ohlcvs argument, but got ' + typeof ohlcvs);
+        // }
+        ohlcvs = Object.values (ohlcvs || [])
         let result = []
         for (let i = 0; i < ohlcvs.length; i++) {
             if (limit && (result.length >= limit))

@@ -19,6 +19,7 @@ class coinexchange (Exchange):
             # new metainfo interface
             'has': {
                 'privateAPI': False,
+                'fetchBalance': False,
                 'createOrder': False,
                 'createMarketOrder': False,
                 'createLimitOrder': False,
@@ -602,7 +603,7 @@ class coinexchange (Exchange):
             }
         return result
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         response = await self.publicGetGetmarkets()
         markets = response['result']
         result = []

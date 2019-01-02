@@ -88,7 +88,15 @@ const decimalToPrecision = (x, roundingMode
                              , countingMode       = DECIMAL_PLACES
                              , paddingMode        = NO_PADDING) => {
 
-    if (numPrecisionDigits < 0) throw new Error ('negative precision is not yet supported')
+    if (numPrecisionDigits < 0) {
+        let toNearest = Math.pow (10, -numPrecisionDigits)
+        if (roundingMode === ROUND) {
+            return (toNearest * decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString ()
+        }
+        if (roundingMode === TRUNCATE) {
+            return (x - (x % toNearest)).toString ()
+        }
+    }
 
 /*  Convert to a string (if needed), skip leading minus sign (if any)   */
 
@@ -163,6 +171,8 @@ const decimalToPrecision = (x, roundingMode
         memo  =         ---0     --1-     -1--     0---                     */
 
     let allZeros = true;
+    let signNeeded = isNegative;
+
     for (let i = chars.length - 1, memo = 0; i >= 0; i--) {
 
         let c = chars[i]
@@ -192,11 +202,15 @@ const decimalToPrecision = (x, roundingMode
         }
     }
 
-/*  Update the precision range, as `digitsStart` may have changed...     */
+/*  Update the precision range, as `digitsStart` may have changed... & the need for a negative sign if it is only 0    */
 
     if (countingMode === SIGNIFICANT_DIGITS) {
         precisionStart = digitsStart
         precisionEnd   = precisionStart + numPrecisionDigits
+    }
+
+    if (allZeros) {
+        signNeeded = false
     }
 
 /*  Determine the input character range     */
@@ -206,7 +220,7 @@ const decimalToPrecision = (x, roundingMode
 
 /*  Compute various sub-ranges       */
 
-    const nSign         =     (isNegative ? 1 : 0)                // (-)123.456
+    const nSign         =     (signNeeded ? 1 : 0)                // (-)123.456
         , nBeforeDot    =     (nSign + (afterDot - readStart))    // (-123).456
         , nAfterDot     = max (readEnd - afterDot, 0)             // -123.(456)
         , actualLength  =     (readEnd - readStart)               // -(123.456)
@@ -223,7 +237,7 @@ const decimalToPrecision = (x, roundingMode
 
     const out = new Uint8Array (nBeforeDot + (isInteger ? 0 : 1) + nAfterDot + pad)
                                                                                                   // ---------------------
-    if  (isNegative)                                                  out[0]          = MINUS     // -     minus sign
+    if  (signNeeded)                                out[0]          = MINUS     // -     minus sign
     for (i = nSign, j = readStart;          i < nBeforeDot; i++, j++) out[i]          = chars[j]  // 123   before dot
     if  (!isInteger)                                                  out[nBeforeDot] = DOT       // .     dot
     for (i = nBeforeDot + 1, j = afterDot;  i < padStart;   i++, j++) out[i]          = chars[j]  // 456   after dot

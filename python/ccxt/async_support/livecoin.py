@@ -13,7 +13,6 @@ except NameError:
     basestring = str  # Python 2
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -53,6 +52,7 @@ class livecoin (Exchange):
                 'api': 'https://api.livecoin.net',
                 'www': 'https://www.livecoin.net',
                 'doc': 'https://www.livecoin.net/api?lang=en',
+                'referral': 'https://livecoin.net/?from=Livecoin-CQ1hfx44',
             },
             'api': {
                 'public': {
@@ -140,7 +140,7 @@ class livecoin (Exchange):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         markets = await self.publicGetExchangeTicker()
         restrictions = await self.publicGetExchangeRestrictions()
         restrictionsById = self.index_by(restrictions['restrictions'], 'currencyPair')
@@ -316,7 +316,9 @@ class livecoin (Exchange):
             symbol = market['symbol']
         vwap = self.safe_float(ticker, 'vwap')
         baseVolume = self.safe_float(ticker, 'volume')
-        quoteVolume = baseVolume * vwap
+        quoteVolume = None
+        if baseVolume is not None and vwap is not None:
+            quoteVolume = baseVolume * vwap
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -611,11 +613,10 @@ class livecoin (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if not isinstance(body, basestring):
             return
         if body[0] == '{':
-            response = json.loads(body)
             if code >= 300:
                 errorCode = self.safe_string(response, 'errorCode')
                 if errorCode in self.exceptions:

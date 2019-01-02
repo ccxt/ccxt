@@ -31,7 +31,7 @@ class coinbase extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => false,
                 'fetchMarkets' => false,
-                'fetchMyTrades' => true,
+                'fetchMyTrades' => false,
                 'fetchOHLCV' => false,
                 'fetchOpenOrders' => false,
                 'fetchOrder' => false,
@@ -45,6 +45,8 @@ class coinbase extends Exchange {
                 'fetchTransactions' => false,
                 'fetchDeposits' => true,
                 'fetchWithdrawals' => true,
+                'fetchMySells' => true,
+                'fetchMyBuys' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg',
@@ -179,7 +181,22 @@ class coinbase extends Exchange {
         return $response['data'];
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_my_sells ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        // they don't have an endpoint for all historical trades
+        $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
+        if ($accountId === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchMyTrades requires an account_id or $accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.');
+        }
+        $this->load_markets();
+        $query = $this->omit ($params, array ( 'account_id', 'accountId' ));
+        $sells = $this->privateGetAccountsAccountIdSells (array_merge (array (
+            'account_id' => $accountId,
+        ), $query));
+        return $this->parse_trades($sells['data'], null, $since, $limit);
+    }
+
+    public function fetch_my_buys ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        // they don't have an endpoint for all historical trades
         $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
         if ($accountId === null) {
             throw new ArgumentsRequired ($this->id . ' fetchMyTrades requires an account_id or $accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.');
@@ -189,14 +206,7 @@ class coinbase extends Exchange {
         $buys = $this->privateGetAccountsAccountIdBuys (array_merge (array (
             'account_id' => $accountId,
         ), $query));
-        $sells = $this->privateGetAccountsAccountIdSells (array_merge (array (
-            'account_id' => $accountId,
-        ), $query));
-        $parsedBuys = $this->parse_trades($buys['data'], null, $since, $limit);
-        $parsedSells = $this->parse_trades($sells['data'], null, $since, $limit);
-        $result = $this->array_concat($parsedBuys, $parsedSells);
-        $sortedResult = $this->sort_by($result, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sortedResult, $symbol, $since, $limit);
+        return $this->parse_trades($buys['data'], null, $since, $limit);
     }
 
     public function fetch_transactions_with_method ($method, $code = null, $since = null, $limit = null, $params = array ()) {
@@ -556,13 +566,12 @@ class coinbase extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return; // fallback to default error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             $feedback = $this->id . ' ' . $body;
             //
             //    array ("error" => "invalid_request", "error_description" => "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.")

@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 import base64
 import hashlib
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -157,7 +156,7 @@ class gdax (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetProducts()
         result = []
         for p in range(0, len(markets)):
@@ -573,9 +572,9 @@ class gdax (Exchange):
             return 'canceled'
         elif 'completed_at' in transaction and transaction['completed_at']:
             return 'ok'
-        elif ('canceled_at' in list(transaction and not transaction['canceled_at'].keys())) and('completed_at' in list(transaction and not transaction['completed_at'].keys())) and('processed_at' in list(transaction and not transaction['processed_at'].keys())):
+        elif (('canceled_at' in list(transaction.keys())) and not transaction['canceled_at']) and(('completed_at' in list(transaction.keys())) and not transaction['completed_at']) and(('processed_at' in list(transaction.keys())) and not transaction['processed_at']):
             return 'pending'
-        elif 'procesed_at' in transaction and transaction['procesed_at']:
+        elif 'processed_at' in transaction and transaction['processed_at']:
             return 'pending'
         else:
             return 'failed'
@@ -673,10 +672,9 @@ class gdax (Exchange):
             'info': response,
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if (code == 400) or (code == 404):
             if body[0] == '{':
-                response = json.loads(body)
                 message = response['message']
                 feedback = self.id + ' ' + message
                 exact = self.exceptions['exact']

@@ -108,7 +108,9 @@ class paymium extends Exchange {
         $timestamp = $ticker['at'] * 1000;
         $vwap = $this->safe_float($ticker, 'vwap');
         $baseVolume = $this->safe_float($ticker, 'volume');
-        $quoteVolume = $baseVolume * $vwap;
+        $quoteVolume = null;
+        if ($baseVolume !== null && $vwap !== null)
+            $quoteVolume = $baseVolume * $vwap;
         $last = $this->safe_float($ticker, 'price');
         return array (
             'symbol' => $symbol,

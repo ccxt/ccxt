@@ -57,7 +57,7 @@ class kuna (acx):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         quotes = ['btc', 'eth', 'eurs', 'gbg', 'uah']
         pricePrecisions = {
             'UAH': 0,

@@ -12,7 +12,6 @@ try:
 except NameError:
     basestring = str  # Python 2
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -150,7 +149,7 @@ class rightbtc (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetTradingPairs()
         # zh = self.publicGetGetAssetsTradingPairsZh()
         markets = self.extend(response['status']['message'])
@@ -616,7 +615,7 @@ class rightbtc (Exchange):
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         ids = self.safe_string(params, 'ids')
         if (symbol is None) or (ids is None):
-            raise ExchangeError(self.id + " fetchOrders requires a 'symbol' argument and an extra 'ids' parameter. The 'ids' should be an array or a string of one or more order ids separated with slashes.")  # eslint-disable-line quotes
+            raise ArgumentsRequired(self.id + " fetchOrders requires a 'symbol' argument and an extra 'ids' parameter. The 'ids' should be an array or a string of one or more order ids separated with slashes.")  # eslint-disable-line quotes
         if isinstance(ids, list):
             ids = '/'.join(ids)
         self.load_markets()
@@ -709,13 +708,12 @@ class rightbtc (Exchange):
                 headers['Content-Type'] = 'application/json'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if len(body) < 2:
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
             status = self.safe_value(response, 'status')
             if status is not None:
                 #

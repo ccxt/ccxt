@@ -33,6 +33,7 @@ class livecoin extends Exchange {
                 'api' => 'https://api.livecoin.net',
                 'www' => 'https://www.livecoin.net',
                 'doc' => 'https://www.livecoin.net/api?lang=en',
+                'referral' => 'https://livecoin.net/?from=Livecoin-CQ1hfx44',
             ),
             'api' => array (
                 'public' => array (
@@ -121,7 +122,7 @@ class livecoin extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetExchangeTicker ();
         $restrictions = $this->publicGetExchangeRestrictions ();
         $restrictionsById = $this->index_by($restrictions['restrictions'], 'currencyPair');
@@ -308,7 +309,9 @@ class livecoin extends Exchange {
             $symbol = $market['symbol'];
         $vwap = $this->safe_float($ticker, 'vwap');
         $baseVolume = $this->safe_float($ticker, 'volume');
-        $quoteVolume = $baseVolume * $vwap;
+        $quoteVolume = null;
+        if ($baseVolume !== null && $vwap !== null)
+            $quoteVolume = $baseVolume * $vwap;
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
@@ -640,11 +643,10 @@ class livecoin extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (gettype ($body) !== 'string')
             return;
         if ($body[0] === '{') {
-            $response = json_decode ($body, $as_associative_array = true);
             if ($code >= 300) {
                 $errorCode = $this->safe_string($response, 'errorCode');
                 if (is_array ($this->exceptions) && array_key_exists ($errorCode, $this->exceptions)) {

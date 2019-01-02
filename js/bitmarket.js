@@ -44,6 +44,7 @@ module.exports = class bitmarket extends Exchange {
                     'https://www.bitmarket.net/docs.php?file=api_private.html',
                     'https://github.com/bitmarket-net/api',
                 ],
+                'referral': 'https://www.bitmarket.net/?ref=23323',
             },
             'api': {
                 'public': {
@@ -211,7 +212,9 @@ module.exports = class bitmarket extends Exchange {
         let timestamp = this.milliseconds ();
         let vwap = this.safeFloat (ticker, 'vwap');
         let baseVolume = this.safeFloat (ticker, 'volume');
-        let quoteVolume = baseVolume * vwap;
+        let quoteVolume = undefined;
+        if (baseVolume !== undefined && vwap !== undefined)
+            quoteVolume = baseVolume * vwap;
         let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,

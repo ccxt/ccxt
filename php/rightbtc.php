@@ -137,7 +137,7 @@ class rightbtc extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetTradingPairs ();
         // $zh = $this->publicGetGetAssetsTradingPairsZh ();
         $markets = array_merge ($response['status']['message']);
@@ -646,7 +646,7 @@ class rightbtc extends Exchange {
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $ids = $this->safe_string($params, 'ids');
         if (($symbol === null) || ($ids === null)) {
-            throw new ExchangeError ($this->id . " fetchOrders requires a 'symbol' argument and an extra 'ids' parameter. The 'ids' should be an array or a string of one or more order $ids separated with slashes."); // eslint-disable-line quotes
+            throw new ArgumentsRequired ($this->id . " fetchOrders requires a 'symbol' argument and an extra 'ids' parameter. The 'ids' should be an array or a string of one or more order $ids separated with slashes."); // eslint-disable-line quotes
         }
         if (gettype ($ids) === 'array' && count (array_filter (array_keys ($ids), 'is_string')) == 0) {
             $ids = implode ('/', $ids);
@@ -747,13 +747,12 @@ class rightbtc extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
         if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return; // fallback to default error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             $status = $this->safe_value($response, 'status');
             if ($status !== null) {
                 //

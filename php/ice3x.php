@@ -38,6 +38,7 @@ class ice3x extends Exchange {
                     'https://help.ice3.com/support/solutions/articles/11000008131-what-are-your-fiat-deposit-and-withdrawal-fees-',
                     'https://help.ice3.com/support/solutions/articles/11000033289-deposit-fees',
                 ),
+                'referral' => 'https://ice3x.com?ref=14341802',
             ),
             'api' => array (
                 'public' => array (
@@ -92,8 +93,10 @@ class ice3x extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
-            $id = $currency['currency_id'];
-            $code = $this->common_currency_code(strtoupper ($currency['iso']));
+            $id = $this->safe_string($currency, 'currency_id');
+            $code = $this->safe_string($currency, 'iso');
+            $code = strtoupper ($code);
+            $code = $this->common_currency_code($code);
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
@@ -120,7 +123,7 @@ class ice3x extends Exchange {
         return $result;
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         if (!$this->currencies) {
             $this->currencies = $this->fetch_currencies();
         }
@@ -130,9 +133,9 @@ class ice3x extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
-            $id = $market['pair_id'];
-            $baseId = (string) $market['currency_id_from'];
-            $quoteId = (string) $market['currency_id_to'];
+            $id = $this->safe_string($market, 'pair_id');
+            $baseId = $this->safe_string($market, 'currency_id_from');
+            $quoteId = $this->safe_string($market, 'currency_id_to');
             $baseCurrency = $this->currencies_by_id[$baseId];
             $quoteCurrency = $this->currencies_by_id[$quoteId];
             $base = $this->common_currency_code($baseCurrency['code']);
@@ -196,9 +199,12 @@ class ice3x extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($tickers); $i++) {
             $ticker = $tickers[$i];
-            $market = $this->marketsById[$ticker['pair_id']];
-            $symbol = $market['symbol'];
-            $result[$symbol] = $this->parse_ticker($ticker, $market);
+            $marketId = $this->safe_string($ticker, 'pair_id');
+            $market = $this->safe_value($this->marketsById, $marketId);
+            if ($market !== null) {
+                $symbol = $market['symbol'];
+                $result[$symbol] = $this->parse_ticker($ticker, $market);
+            }
         }
         return $result;
     }

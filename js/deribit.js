@@ -82,7 +82,7 @@ module.exports = class deribit extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let marketsResponse = await this.publicGetGetinstruments ();
         let markets = marketsResponse['result'];
         let result = [];

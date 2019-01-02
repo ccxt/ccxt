@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import json
 from ccxt.base.errors import ExchangeError
 
 
@@ -82,7 +81,7 @@ class virwox (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetGetInstruments()
         keys = list(markets['result'].keys())
         result = []
@@ -253,10 +252,9 @@ class virwox (Exchange):
             })
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if code == 200:
             if (body[0] == '{') or (body[0] == '['):
-                response = json.loads(body)
                 if 'result' in response:
                     result = response['result']
                     if 'errorCode' in result:

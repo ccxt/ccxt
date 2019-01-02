@@ -113,6 +113,7 @@ class cointiger extends huobipro {
                 '100002' => '\\ccxt\\ExchangeNotAvailable',
                 '100003' => '\\ccxt\\ExchangeError',
                 '100005' => '\\ccxt\\AuthenticationError',
+                '110030' => '\\ccxt\\DDoSProtection',
             ),
             'commonCurrencies' => array (
                 'FGC' => 'FoundGameCoin',
@@ -121,7 +122,7 @@ class cointiger extends huobipro {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->v2publicGetCurrencys ();
         //
         //     {
@@ -867,13 +868,12 @@ class cointiger extends huobipro {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
         if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return; // fallback to default error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             if (is_array ($response) && array_key_exists ('code', $response)) {
                 //
                 //     array ( "$code" => "100005", "msg" => "request sign illegal", "data" => null )

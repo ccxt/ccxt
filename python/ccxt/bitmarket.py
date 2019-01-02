@@ -46,6 +46,7 @@ class bitmarket (Exchange):
                     'https://www.bitmarket.net/docs.php?file=api_private.html',
                     'https://github.com/bitmarket-net/api',
                 ],
+                'referral': 'https://www.bitmarket.net/?ref=23323',
             },
             'api': {
                 'public': {
@@ -209,7 +210,9 @@ class bitmarket (Exchange):
         timestamp = self.milliseconds()
         vwap = self.safe_float(ticker, 'vwap')
         baseVolume = self.safe_float(ticker, 'volume')
-        quoteVolume = baseVolume * vwap
+        quoteVolume = None
+        if baseVolume is not None and vwap is not None:
+            quoteVolume = baseVolume * vwap
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,

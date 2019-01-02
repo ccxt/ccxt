@@ -18,7 +18,6 @@ class theocean extends Exchange {
             'rateLimit' => 3000,
             'version' => 'v0',
             'certified' => true,
-            'parseJsonResponse' => false,
             'requiresWeb3' => true,
             // add GET https://api.staging.theocean.trade/api/v0/candlesticks/intervals to fetchMarkets
             'timeframes' => array (
@@ -85,6 +84,8 @@ class theocean extends Exchange {
                     'Order not found' => '\\ccxt\\OrderNotFound', // array ("message":"Order not found","errors":...)
                 ),
                 'broad' => array (
+                    "Price can't exceed 8 digits in precision." => '\\ccxt\\InvalidOrder', // array ("message":"Price can't exceed 8 digits in precision.","type":"paramPrice")
+                    'Order cannot be canceled' => '\\ccxt\\InvalidOrder', // array ("message":"Order cannot be canceled","type":"General error")
                     'Greater than available wallet balance.' => '\\ccxt\\InsufficientFunds',
                     'Orderbook exhausted for intent' => '\\ccxt\\OrderNotFillable', // array ("message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g")
                     'Fillable amount under minimum' => '\\ccxt\\InvalidOrder', // array ("message":"Fillable amount under minimum WETH trade size.","type":"paramQuoteTokenAmount")
@@ -118,7 +119,7 @@ class theocean extends Exchange {
         );
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetTokenPairs ();
         //
         //     array (
@@ -298,7 +299,19 @@ class theocean extends Exchange {
         }
         $price = floatval ($bidask[$priceKey]);
         $amountDecimals = $this->safe_integer($this->options['decimals'], $market['base'], 18);
-        $amount = $this->fromWei ($bidask[$amountKey], 'ether', $amountDecimals);
+        //
+        // the following does not work with this $bidask => array ("orderHash":"0x8b5d8d34eded1cbf8519733401ae3ced8069089fd16d5431cb3d4b016d7788f2","$price":"133.74013659","availableAmount":"4652691526891295598045.34542621578779823835103356911924523765168638519704923461215973053000214547556058831637954647252647510035865072314678676592576536328447541178082827906517347971793654011427890554542683570544867337525450220078254745116898401756810404232673589363421879924390066378804261951784","creationTimestamp":"1542743835","expirationTimestampInSec":"1545339435")
+        // therefore we apply a dirty string-based patch
+        //
+        // $amount = $this->fromWei ($bidask[$amountKey], 'ether', $amountDecimals);
+        //
+        $amountString = $this->safe_string($bidask, $amountKey);
+        $amountParts = explode ('.', $amountString);
+        $numParts = is_array ($amountParts) ? count ($amountParts) : 0;
+        if ($numParts === 2) {
+            $amountString = $amountParts[0];
+        }
+        $amount = $this->fromWei ($amountString, 'ether', $amountDecimals);
         // return array ( $price, $amount, $bidask );
         return array ( $price, $amount );
     }
@@ -1023,8 +1036,8 @@ class theocean extends Exchange {
             }
             $feeDecimals = $this->safe_integer($this->options['decimals'], $feeCurrency, 18);
             $fee = array (
-                'сost' => $this->fromWei ($feeCost, 'ether', $feeDecimals),
-                'сurrency' => $feeCurrency,
+                'cost' => $this->fromWei ($feeCost, 'ether', $feeDecimals),
+                'currency' => $feeCurrency,
             );
         }
         $amountPrecision = $market ? $market['precision']['amount'] : 8;
@@ -1224,7 +1237,7 @@ class theocean extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
         if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
@@ -1235,7 +1248,6 @@ class theocean extends Exchange {
             throw new AuthenticationError ($this->id . ' ' . $body);
         }
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             $message = $this->safe_string($response, 'message');
             if ($message !== null) {
                 //
@@ -1258,16 +1270,5 @@ class theocean extends Exchange {
                 throw new ExchangeError ($feedback); // unknown $message
             }
         }
-    }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (gettype ($response) !== 'string') {
-            throw new ExchangeError ($this->id . ' returned a non-string $response => ' . (string) $response);
-        }
-        if (($response[0] === '{' || $response[0] === '[')) {
-            return json_decode ($response, $as_associative_array = true);
-        }
-        return $response;
     }
 }

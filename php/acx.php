@@ -100,7 +100,7 @@ class acx extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetMarkets ();
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
@@ -109,6 +109,11 @@ class acx extends Exchange {
             $symbol = $market['name'];
             $baseId = $this->safe_string($market, 'base_unit');
             $quoteId = $this->safe_string($market, 'quote_unit');
+            if (($baseId === null) || ($quoteId === null)) {
+                $ids = explode ('/', $symbol);
+                $baseId = strtolower ($ids[0]);
+                $quoteId = strtolower ($ids[1]);
+            }
             $base = strtoupper ($baseId);
             $quote = strtoupper ($quoteId);
             $base = $this->common_currency_code($base);
@@ -426,9 +431,8 @@ class acx extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if ($code === 400) {
-            $response = json_decode ($body, $as_associative_array = true);
             $error = $this->safe_value($response, 'error');
             $errorCode = $this->safe_string($error, 'code');
             $feedback = $this->id . ' ' . $this->json ($response);

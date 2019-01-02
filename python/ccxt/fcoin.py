@@ -14,7 +14,6 @@ except NameError:
 import base64
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
@@ -41,7 +40,7 @@ class fcoin (Exchange):
             'has': {
                 'CORS': False,
                 'fetchDepositAddress': False,
-                'fetchOHCLV': False,
+                'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchOrder': True,
@@ -146,7 +145,7 @@ class fcoin (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetSymbols()
         result = []
         markets = response['data']
@@ -216,8 +215,8 @@ class fcoin (Exchange):
             priceField = self.sum(index, priceKey)
             amountField = self.sum(index, amountKey)
             result.append([
-                orders[priceField],
-                orders[amountField],
+                self.safe_float(orders, priceField),
+                self.safe_float(orders, amountField),
             ])
         return result
 
@@ -510,13 +509,12 @@ class fcoin (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if len(body) < 2:
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
             status = self.safe_string(response, 'status')
             if status != '0':
                 feedback = self.id + ' ' + body

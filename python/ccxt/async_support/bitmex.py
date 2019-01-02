@@ -4,10 +4,12 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import BadRequest
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
@@ -141,17 +143,21 @@ class bitmex (Exchange):
                 'exact': {
                     'Invalid API Key.': AuthenticationError,
                     'Access Denied': PermissionDenied,
+                    'Duplicate clOrdID': InvalidOrder,
+                    'Signature not valid': AuthenticationError,
                 },
                 'broad': {
                     'overloaded': ExchangeNotAvailable,
+                    'Account has insufficient Available Balance': InsufficientFunds,
                 },
             },
             'options': {
+                'api-expires': None,
                 'fetchTickerQuotes': False,
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         markets = await self.publicGetInstrumentActiveAndIndices()
         result = []
         for p in range(0, len(markets)):
@@ -348,7 +354,7 @@ class bitmex (Exchange):
         }
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
-        timestamp = self.parse8601(ohlcv['timestamp']) - self.parse_timeframe(timeframe) * 1000
+        timestamp = self.parse8601(ohlcv['timestamp'])
         return [
             timestamp,
             ohlcv['open'],
@@ -382,8 +388,7 @@ class bitmex (Exchange):
         # if since is not set, they will return candles starting from 2017-01-01
         if since is not None:
             ymdhms = self.ymdhms(since)
-            ymdhm = ymdhms[0:16]
-            request['startTime'] = ymdhm  # starting date filter for results
+            request['startTime'] = ymdhms  # starting date filter for results
         response = await self.publicGetTradeBucketed(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
@@ -548,22 +553,24 @@ class bitmex (Exchange):
             'id': response['transactID'],
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if code == 429:
             raise DDoSProtection(self.id + ' ' + body)
         if code >= 400:
             if body:
                 if body[0] == '{':
-                    response = json.loads(body)
-                    message = self.safe_string(response, 'error')
+                    error = self.safe_value(response, 'error', {})
+                    message = self.safe_string(error, 'message')
                     feedback = self.id + ' ' + body
                     exact = self.exceptions['exact']
-                    if code in exact:
-                        raise exact[code](feedback)
+                    if message in exact:
+                        raise exact[message](feedback)
                     broad = self.exceptions['broad']
                     broadKey = self.findBroadlyMatchedKey(broad, message)
                     if broadKey is not None:
                         raise broad[broadKey](feedback)
+                    if code == 400:
+                        raise BadRequest(feedback)
                     raise ExchangeError(feedback)  # unknown message
 
     def nonce(self):
@@ -577,16 +584,24 @@ class bitmex (Exchange):
         url = self.urls['api'] + query
         if api == 'private':
             self.check_required_credentials()
+            auth = method + query
+            expires = self.safe_integer(self.options, 'api-expires')
             nonce = str(self.nonce())
-            auth = method + query + nonce
+            headers = {
+                'Content-Type': 'application/json',
+                'api-key': self.apiKey,
+            }
+            if expires is not None:
+                expires = self.sum(self.seconds(), expires)
+                expires = str(expires)
+                auth += expires
+                headers['api-expires'] = expires
+            else:
+                auth += nonce
+                headers['api-nonce'] = nonce
             if method == 'POST' or method == 'PUT':
                 if params:
                     body = self.json(params)
                     auth += body
-            headers = {
-                'Content-Type': 'application/json',
-                'api-nonce': nonce,
-                'api-key': self.apiKey,
-                'api-signature': self.hmac(self.encode(auth), self.encode(self.secret)),
-            }
+            headers['api-signature'] = self.hmac(self.encode(auth), self.encode(self.secret))
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

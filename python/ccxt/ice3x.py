@@ -41,6 +41,7 @@ class ice3x (Exchange):
                     'https://help.ice3.com/support/solutions/articles/11000008131-what-are-your-fiat-deposit-and-withdrawal-fees-',
                     'https://help.ice3.com/support/solutions/articles/11000033289-deposit-fees',
                 ],
+                'referral': 'https://ice3x.com?ref=14341802',
             },
             'api': {
                 'public': {
@@ -94,8 +95,10 @@ class ice3x (Exchange):
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
-            id = currency['currency_id']
-            code = self.common_currency_code(currency['iso'].upper())
+            id = self.safe_string(currency, 'currency_id')
+            code = self.safe_string(currency, 'iso')
+            code = code.upper()
+            code = self.common_currency_code(code)
             result[code] = {
                 'id': id,
                 'code': code,
@@ -120,7 +123,7 @@ class ice3x (Exchange):
             }
         return result
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         if not self.currencies:
             self.currencies = self.fetch_currencies()
         self.currencies_by_id = self.index_by(self.currencies, 'id')
@@ -129,9 +132,9 @@ class ice3x (Exchange):
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            id = market['pair_id']
-            baseId = str(market['currency_id_from'])
-            quoteId = str(market['currency_id_to'])
+            id = self.safe_string(market, 'pair_id')
+            baseId = self.safe_string(market, 'currency_id_from')
+            quoteId = self.safe_string(market, 'currency_id_to')
             baseCurrency = self.currencies_by_id[baseId]
             quoteCurrency = self.currencies_by_id[quoteId]
             base = self.common_currency_code(baseCurrency['code'])
@@ -191,9 +194,11 @@ class ice3x (Exchange):
         result = {}
         for i in range(0, len(tickers)):
             ticker = tickers[i]
-            market = self.marketsById[ticker['pair_id']]
-            symbol = market['symbol']
-            result[symbol] = self.parse_ticker(ticker, market)
+            marketId = self.safe_string(ticker, 'pair_id')
+            market = self.safe_value(self.marketsById, marketId)
+            if market is not None:
+                symbol = market['symbol']
+                result[symbol] = self.parse_ticker(ticker, market)
         return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):

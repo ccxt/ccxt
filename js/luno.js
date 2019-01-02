@@ -82,7 +82,7 @@ module.exports = class luno extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetTickers ();
         let result = [];
         for (let p = 0; p < markets['tickers'].length; p++) {

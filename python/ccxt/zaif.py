@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 
@@ -112,7 +111,7 @@ class zaif (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetCurrencyPairsAll()
         result = []
         for p in range(0, len(markets)):
@@ -186,7 +185,9 @@ class zaif (Exchange):
         timestamp = self.milliseconds()
         vwap = ticker['vwap']
         baseVolume = ticker['volume']
-        quoteVolume = baseVolume * vwap
+        quoteVolume = None
+        if baseVolume is not None and vwap is not None:
+            quoteVolume = baseVolume * vwap
         last = ticker['last']
         return {
             'symbol': symbol,
@@ -216,6 +217,8 @@ class zaif (Exchange):
         timestamp = trade['date'] * 1000
         id = self.safe_string(trade, 'id')
         id = self.safe_string(trade, 'tid', id)
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
         if not market:
             market = self.markets_by_id[trade['currency_pair']]
         return {
@@ -226,8 +229,8 @@ class zaif (Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': side,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'price': price,
+            'amount': amount,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -382,10 +385,9 @@ class zaif (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body):
-        if not self.is_json_encoded_object(body):
-            return  # fallback to default error handler
-        response = json.loads(body)
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+        if response is None:
+            return
         #
         #     {"error": "unsupported currency_pair"}
         #

@@ -62,7 +62,7 @@ module.exports = class nova extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetMarkets ();
         let markets = response['markets'];
         let result = [];

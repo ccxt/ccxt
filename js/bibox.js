@@ -90,6 +90,7 @@ module.exports = class bibox extends Exchange {
                 '2033': OrderNotFound, // operation failed! Orders have been completed or revoked
                 '2067': InvalidOrder, // Does not support market orders
                 '2068': InvalidOrder, // The number of orders can not be less than
+                '2085': InvalidOrder, // Order quantity is too small
                 '3012': AuthenticationError, // invalid apiKey
                 '3024': PermissionDenied, // wrong apikey permissions
                 '3025': AuthenticationError, // signature failed
@@ -586,6 +587,8 @@ module.exports = class bibox extends Exchange {
                 'account_type': 0, // 0 - regular, 1 - margin
                 'page': 1,
                 'size': size,
+                'coin_symbol': market['baseId'],
+                'currency_symbol': market['quoteId'],
             }, params),
         });
         let trades = this.safeValue (response['result'], 'items', []);
@@ -688,10 +691,9 @@ module.exports = class bibox extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if (body.length > 0) {
             if (body[0] === '{') {
-                let response = JSON.parse (body);
                 if ('error' in response) {
                     if ('code' in response['error']) {
                         let code = this.safeString (response['error'], 'code');

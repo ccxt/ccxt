@@ -13,7 +13,6 @@ except NameError:
     basestring = str  # Python 2
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -61,13 +60,14 @@ class bittrex (Exchange):
                 '1h': 'hour',
                 '1d': 'day',
             },
+            'hostname': 'bittrex.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
                 'api': {
-                    'public': 'https://bittrex.com/api',
-                    'account': 'https://bittrex.com/api',
-                    'market': 'https://bittrex.com/api',
-                    'v2': 'https://bittrex.com/api/v2.0/pub',
+                    'public': 'https://{hostname}/api',
+                    'account': 'https://{hostname}/api',
+                    'market': 'https://{hostname}/api',
+                    'v2': 'https://{hostname}/api/v2.0/pub',
                 },
                 'www': 'https://bittrex.com',
                 'doc': [
@@ -183,6 +183,7 @@ class bittrex (Exchange):
                 },
                 'parseOrderStatus': False,
                 'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
+                'symbolSeparator': '-',
             },
             'commonCurrencies': {
                 'BITS': 'SWIFT',
@@ -196,11 +197,14 @@ class bittrex (Exchange):
     def fee_to_precision(self, symbol, fee):
         return self.decimal_to_precision(fee, TRUNCATE, self.markets[symbol]['precision']['price'], DECIMAL_PLACES)
 
-    def fetch_markets(self):
-        response = self.v2GetMarketsGetMarketSummaries()
+    def fetch_markets(self, params={}):
+        # https://github.com/ccxt/ccxt/commit/866370ba6c9cabaf5995d992c15a82e38b8ca291
+        # https://github.com/ccxt/ccxt/pull/4304
+        response = self.publicGetMarkets()
         result = []
-        for i in range(0, len(response['result'])):
-            market = response['result'][i]['Market']
+        markets = self.safe_value(response, 'result')
+        for i in range(0, len(markets)):
+            market = markets[i]
             id = market['MarketName']
             baseId = market['MarketCurrency']
             quoteId = market['BaseCurrency']
@@ -214,7 +218,10 @@ class bittrex (Exchange):
                 'amount': 8,
                 'price': pricePrecision,
             }
-            active = market['IsActive'] or market['IsActive'] == 'true'
+            # bittrex uses boolean values, bleutrade uses strings
+            active = self.safe_value(market, 'IsActive', False)
+            if (active != 'false') or active:
+                active = True
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -397,19 +404,28 @@ class bittrex (Exchange):
             side = 'buy'
         elif trade['OrderType'] == 'SELL':
             side = 'sell'
-        id = None
-        if 'Id' in trade:
-            id = str(trade['Id'])
+        id = self.safe_string_2(trade, 'Id', 'ID')
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        cost = None
+        price = self.safe_float(trade, 'Price')
+        amount = self.safe_float(trade, 'Quantity')
+        if amount is not None:
+            if price is not None:
+                cost = price * amount
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': 'limit',
             'side': side,
-            'price': self.safe_float(trade, 'Price'),
-            'amount': self.safe_float(trade, 'Quantity'),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -596,7 +612,7 @@ class bittrex (Exchange):
         address = self.safe_string_2(transaction, 'CryptoAddress', 'Address')
         txid = self.safe_string(transaction, 'TxId')
         updated = self.parse8601(self.safe_value(transaction, 'LastUpdated'))
-        timestamp = self.parse8601(self.safe_string(transaction, 'Opened'), updated)
+        timestamp = self.parse8601(self.safe_string(transaction, 'Opened', updated))
         type = 'withdrawal' if (timestamp is not None) else 'deposit'
         code = None
         currencyId = self.safe_string(transaction, 'Currency')
@@ -658,7 +674,7 @@ class bittrex (Exchange):
         }
 
     def parse_symbol(self, id):
-        quote, base = id.split('-')
+        quote, base = id.split(self.options['symbolSeparator'])
         base = self.common_currency_code(base)
         quote = self.common_currency_code(quote)
         return base + '/' + quote
@@ -838,7 +854,9 @@ class bittrex (Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'][api] + '/'
+        url = self.implode_params(self.urls['api'][api], {
+            'hostname': self.hostname,
+        }) + '/'
         if api != 'v2':
             url += self.version + '/'
         if api == 'public':
@@ -865,9 +883,8 @@ class bittrex (Exchange):
             headers = {'apisign': signature}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if body[0] == '{':
-            response = json.loads(body)
             # {success: False, message: "message"}
             success = self.safe_value(response, 'success')
             if success is None:

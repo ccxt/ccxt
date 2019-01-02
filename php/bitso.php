@@ -27,6 +27,7 @@ class bitso extends Exchange {
                 'www' => 'https://bitso.com',
                 'doc' => 'https://bitso.com/api_info',
                 'fees' => 'https://bitso.com/fees?l=es',
+                'referral' => 'https://bitso.com/?ref=itej',
             ),
             'api' => array (
                 'public' => array (
@@ -89,7 +90,7 @@ class bitso extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetAvailableBooks ();
         $result = array ();
         for ($i = 0; $i < count ($markets['payload']); $i++) {
@@ -165,7 +166,9 @@ class bitso extends Exchange {
         $timestamp = $this->parse8601 ($ticker['created_at']);
         $vwap = $this->safe_float($ticker, 'vwap');
         $baseVolume = $this->safe_float($ticker, 'volume');
-        $quoteVolume = $baseVolume * $vwap;
+        $quoteVolume = null;
+        if ($baseVolume !== null && $vwap !== null)
+            $quoteVolume = $baseVolume * $vwap;
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
@@ -473,13 +476,12 @@ class bitso extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
         if (gettype ($body) !== 'string')
             return; // fallback to default $error handler
         if (strlen ($body) < 2)
             return; // fallback to default $error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             if (is_array ($response) && array_key_exists ('success', $response)) {
                 //
                 //     array ("$success":false,"$error":{"$code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237")}

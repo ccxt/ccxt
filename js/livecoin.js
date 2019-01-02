@@ -33,6 +33,7 @@ module.exports = class livecoin extends Exchange {
                 'api': 'https://api.livecoin.net',
                 'www': 'https://www.livecoin.net',
                 'doc': 'https://www.livecoin.net/api?lang=en',
+                'referral': 'https://livecoin.net/?from=Livecoin-CQ1hfx44',
             },
             'api': {
                 'public': {
@@ -121,7 +122,7 @@ module.exports = class livecoin extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetExchangeTicker ();
         let restrictions = await this.publicGetExchangeRestrictions ();
         let restrictionsById = this.indexBy (restrictions['restrictions'], 'currencyPair');
@@ -308,7 +309,9 @@ module.exports = class livecoin extends Exchange {
             symbol = market['symbol'];
         let vwap = this.safeFloat (ticker, 'vwap');
         let baseVolume = this.safeFloat (ticker, 'volume');
-        let quoteVolume = baseVolume * vwap;
+        let quoteVolume = undefined;
+        if (baseVolume !== undefined && vwap !== undefined)
+            quoteVolume = baseVolume * vwap;
         let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -640,11 +643,10 @@ module.exports = class livecoin extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if (typeof body !== 'string')
             return;
         if (body[0] === '{') {
-            let response = JSON.parse (body);
             if (code >= 300) {
                 let errorCode = this.safeString (response, 'errorCode');
                 if (errorCode in this.exceptions) {

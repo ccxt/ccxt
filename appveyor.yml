@@ -13,7 +13,7 @@ install:
   - SET PATH=C:\Program Files\curl;%PATH%
   - ps: Set-Service wuauserv -StartupType Manual
   - cinst -y php --allow-empty-checksums
-  - cd c:\tools\php72
+  - cd c:\tools\php73
   - copy php.ini-production php.ini
   - echo date.timezone="UTC" >> php.ini
   - echo extension_dir=ext >> php.ini

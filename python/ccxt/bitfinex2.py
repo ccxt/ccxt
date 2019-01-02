@@ -105,6 +105,7 @@ class bitfinex2 (bitfinex):
                         'auth/r/orders/{symbol}/new',
                         'auth/r/orders/{symbol}/hist',
                         'auth/r/order/{symbol}:{id}/trades',
+                        'auth/r/trades/hist',
                         'auth/r/trades/{symbol}/hist',
                         'auth/r/positions',
                         'auth/r/funding/offers/{symbol}',
@@ -179,7 +180,7 @@ class bitfinex2 (bitfinex):
     def get_currency_id(self, code):
         return 'f' + code
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.v1GetSymbolsDetails()
         result = []
         for p in range(0, len(markets)):
@@ -336,7 +337,7 @@ class bitfinex2 (bitfinex):
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
-        market = self.markets[symbol]
+        market = self.market(symbol)
         ticker = self.publicGetTickerSymbol(self.extend({
             'symbol': market['id'],
         }, params))

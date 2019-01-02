@@ -27,6 +27,7 @@ module.exports = class gateio extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchOrders': true,
                 'fetchOrder': true,
+                'fetchMyTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
@@ -128,7 +129,7 @@ module.exports = class gateio extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetMarketinfo ();
         let markets = this.safeValue (response, 'pairs');
         if (!markets)
@@ -260,19 +261,18 @@ module.exports = class gateio extends Exchange {
         };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if (body.length <= 0) {
             return;
         }
         if (body[0] !== '{') {
             return;
         }
-        let jsonbodyParsed = JSON.parse (body);
-        let resultString = this.safeString (jsonbodyParsed, 'result', '');
+        let resultString = this.safeString (response, 'result', '');
         if (resultString !== 'false') {
             return;
         }
-        let errorCode = this.safeString (jsonbodyParsed, 'code');
+        let errorCode = this.safeString (response, 'code');
         if (errorCode !== undefined) {
             const exceptions = this.exceptions;
             const errorCodeNames = this.errorCodeNames;
@@ -281,7 +281,7 @@ module.exports = class gateio extends Exchange {
                 if (errorCode in errorCodeNames) {
                     message = errorCodeNames[errorCode];
                 } else {
-                    message = this.safeString (jsonbodyParsed, 'message', '(unknown)');
+                    message = this.safeString (response, 'message', '(unknown)');
                 }
                 throw new exceptions[errorCode] (message);
             }

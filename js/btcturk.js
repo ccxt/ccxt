@@ -58,7 +58,7 @@ module.exports = class btcturk extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetTicker ();
         let result = [];
         for (let i = 0; i < response.length; i++) {

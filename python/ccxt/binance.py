@@ -107,7 +107,6 @@ class binance (Exchange):
                 },
                 'public': {
                     'get': [
-                        'exchangeInfo',
                         'ping',
                         'time',
                         'depth',
@@ -281,7 +280,10 @@ class binance (Exchange):
                 'timeDifference': 0,  # the difference between system clock and Binance clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'parseOrderToPrecision': False,  # force amounts and costs in parseOrder to precision
-                'newOrderRespType': 'RESULT',  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+                'newOrderRespType': {
+                    'market': 'FULL',  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+                    'limit': 'RESULT',  # we change it from 'ACK' by default to 'RESULT'
+                },
             },
             'exceptions': {
                 '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
@@ -308,7 +310,7 @@ class binance (Exchange):
         self.options['timeDifference'] = int(after - response['serverTime'])
         return self.options['timeDifference']
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetExchangeInfo()
         if self.options['adjustForTimeDifference']:
             self.load_time_difference()
@@ -349,7 +351,7 @@ class binance (Exchange):
                         'max': None,
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
+                        'min': None,
                         'max': None,
                     },
                     'cost': {
@@ -360,11 +362,18 @@ class binance (Exchange):
             }
             if 'PRICE_FILTER' in filters:
                 filter = filters['PRICE_FILTER']
+                # PRICE_FILTER reports zero values for minPrice and maxPrice
+                # since they updated filter types in November 2018
+                # https://github.com/ccxt/ccxt/issues/4286
+                # therefore limits['price']['min'] and limits['price']['max]
+                # don't have any meaningful value except None
+                #
+                #     entry['limits']['price'] = {
+                #         'min': self.safe_float(filter, 'minPrice'),
+                #         'max': self.safe_float(filter, 'maxPrice'),
+                #     }
+                #
                 entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
-                entry['limits']['price'] = {
-                    'min': self.safe_float(filter, 'minPrice'),
-                    'max': self.safe_float(filter, 'maxPrice'),
-                }
             if 'LOT_SIZE' in filters:
                 filter = filters['LOT_SIZE']
                 entry['precision']['amount'] = self.precision_from_string(filter['stepSize'])
@@ -586,6 +595,9 @@ class binance (Exchange):
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
+            'PENDING_CANCEL': 'canceling',  # currently unused
+            'REJECTED': 'rejected',
+            'EXPIRED': 'expired',
         }
         return statuses[status] if (status in list(statuses.keys())) else status
 
@@ -675,12 +687,13 @@ class binance (Exchange):
             method += 'Test'
             params = self.omit(params, 'test')
         uppercaseType = type.upper()
+        newOrderRespType = self.safe_value(self.options['newOrderRespType'], type, 'RESULT')
         order = {
             'symbol': market['id'],
             'quantity': self.amount_to_precision(symbol, amount),
             'type': uppercaseType,
             'side': side.upper(),
-            'newOrderRespType': self.options['newOrderRespType'],  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+            'newOrderRespType': newOrderRespType,  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         }
         timeInForceIsRequired = False
         priceIsRequired = False
@@ -707,6 +720,7 @@ class binance (Exchange):
             if stopPrice is None:
                 raise InvalidOrder(self.id + ' createOrder method requires a stopPrice extra param for a ' + type + ' order')
             else:
+                params = self.omit(params, 'stopPrice')
                 order['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         response = getattr(self, method)(self.extend(order, params))
         return self.parse_order(response, market)
@@ -735,6 +749,8 @@ class binance (Exchange):
         request = {
             'symbol': market['id'],
         }
+        if since is not None:
+            request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
         response = self.privateGetAllOrders(self.extend(request, params))
@@ -1057,7 +1073,7 @@ class binance (Exchange):
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if (code == 418) or (code == 429):
             raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
         # error response in a form: {"code": -1013, "msg": "Invalid quantity."}
@@ -1072,7 +1088,6 @@ class binance (Exchange):
                 raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use self.price_to_precision(symbol, amount) ' + body)
         if len(body) > 0:
             if body[0] == '{':
-                response = json.loads(body)
                 # check success value for wapi endpoints
                 # response in format {'msg': 'The coin does not exist.', 'success': True/false}
                 success = self.safe_value(response, 'success', True)

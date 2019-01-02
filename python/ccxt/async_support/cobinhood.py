@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import InsufficientFunds
@@ -241,7 +240,7 @@ class cobinhood (Exchange):
             }
         return result
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         response = await self.publicGetMarketTradingPairs()
         markets = response['result']['trading_pairs']
         result = []
@@ -358,7 +357,12 @@ class cobinhood (Exchange):
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'size')
         cost = price * amount
-        side = 'sell' if (trade['maker_side'] == 'bid') else 'buy'
+        # you can't determine your side from maker/taker side and vice versa
+        # you can't determine if your order/trade was a maker or a taker based
+        # on just the side of your order/trade
+        # https://github.com/ccxt/ccxt/issues/4300
+        # side = 'sell' if (trade['maker_side'] == 'bid') else 'buy'
+        side = None
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -537,6 +541,7 @@ class cobinhood (Exchange):
         return order
 
     async def edit_order(self, id, symbol, type, side, amount, price, params={}):
+        await self.load_markets()
         response = await self.privatePutTradingOrdersOrderId(self.extend({
             'order_id': id,
             'price': self.price_to_precision(symbol, price),
@@ -547,6 +552,7 @@ class cobinhood (Exchange):
         }))
 
     async def cancel_order(self, id, symbol=None, params={}):
+        await self.load_markets()
         response = await self.privateDeleteTradingOrdersOrderId(self.extend({
             'order_id': id,
         }, params))
@@ -566,8 +572,16 @@ class cobinhood (Exchange):
         result = await self.privateGetTradingOrders(params)
         orders = self.parse_orders(result['result']['orders'], None, since, limit)
         if symbol is not None:
-            return self.filter_by_symbol(orders, symbol)
-        return orders
+            return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+        return self.filter_by_since_limit(orders, since, limit)
+
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        result = await self.privateGetTradingOrderHistory(params)
+        orders = self.parse_orders(result['result']['orders'], None, since, limit)
+        if symbol is not None:
+            return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+        return self.filter_by_since_limit(orders, since, limit)
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -753,12 +767,11 @@ class cobinhood (Exchange):
             body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if code < 400 or code >= 600:
             return
         if body[0] != '{':
             raise ExchangeError(self.id + ' ' + body)
-        response = json.loads(body)
         feedback = self.id + ' ' + self.json(response)
         errorCode = self.safe_value(response['error'], 'error_code')
         if method == 'DELETE' or method == 'GET':

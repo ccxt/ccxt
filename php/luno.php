@@ -83,7 +83,7 @@ class luno extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetTickers ();
         $result = array ();
         for ($p = 0; $p < count ($markets['tickers']); $p++) {

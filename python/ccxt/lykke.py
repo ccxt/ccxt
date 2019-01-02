@@ -135,7 +135,7 @@ class lykke (Exchange):
             'info': result,
         }
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetAssetPairs()
         #
         #     [{               Id: "AEBTC",

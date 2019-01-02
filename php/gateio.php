@@ -28,6 +28,7 @@ class gateio extends Exchange {
                 'fetchOrderTrades' => true,
                 'fetchOrders' => true,
                 'fetchOrder' => true,
+                'fetchMyTrades' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
@@ -129,7 +130,7 @@ class gateio extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetMarketinfo ();
         $markets = $this->safe_value($response, 'pairs');
         if (!$markets)
@@ -261,19 +262,18 @@ class gateio extends Exchange {
         );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (strlen ($body) <= 0) {
             return;
         }
         if ($body[0] !== '{') {
             return;
         }
-        $jsonbodyParsed = json_decode ($body, $as_associative_array = true);
-        $resultString = $this->safe_string($jsonbodyParsed, 'result', '');
+        $resultString = $this->safe_string($response, 'result', '');
         if ($resultString !== 'false') {
             return;
         }
-        $errorCode = $this->safe_string($jsonbodyParsed, 'code');
+        $errorCode = $this->safe_string($response, 'code');
         if ($errorCode !== null) {
             $exceptions = $this->exceptions;
             $errorCodeNames = $this->errorCodeNames;
@@ -282,7 +282,7 @@ class gateio extends Exchange {
                 if (is_array ($errorCodeNames) && array_key_exists ($errorCode, $errorCodeNames)) {
                     $message = $errorCodeNames[$errorCode];
                 } else {
-                    $message = $this->safe_string($jsonbodyParsed, 'message', '(unknown)');
+                    $message = $this->safe_string($response, 'message', '(unknown)');
                 }
                 throw new $exceptions[$errorCode] ($message);
             }

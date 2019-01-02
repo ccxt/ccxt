@@ -100,6 +100,7 @@ module.exports = class bitfinex2 extends bitfinex {
                         'auth/r/orders/{symbol}/new',
                         'auth/r/orders/{symbol}/hist',
                         'auth/r/order/{symbol}:{id}/trades',
+                        'auth/r/trades/hist',
                         'auth/r/trades/{symbol}/hist',
                         'auth/r/positions',
                         'auth/r/funding/offers/{symbol}',
@@ -177,7 +178,7 @@ module.exports = class bitfinex2 extends bitfinex {
         return 'f' + code;
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.v1GetSymbolsDetails ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
@@ -349,7 +350,7 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.markets[symbol];
+        let market = this.market (symbol);
         let ticker = await this.publicGetTickerSymbol (this.extend ({
             'symbol': market['id'],
         }, params));

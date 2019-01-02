@@ -85,7 +85,7 @@ module.exports = class btcchina extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetTicker ({
             'market': 'all',
         });

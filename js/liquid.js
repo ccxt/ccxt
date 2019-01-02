@@ -33,6 +33,7 @@ module.exports = class liquid extends Exchange {
                     'https://developers.quoine.com/v2',
                 ],
                 'fees': 'https://help.liquid.com/getting-started-with-liquid/the-platform/fee-structure',
+                'referral': 'https://www.liquid.com?affiliate=SbzC62lt30976',
             },
             'api': {
                 'public': {
@@ -83,6 +84,7 @@ module.exports = class liquid extends Exchange {
             },
             'skipJsonOnStatusCodes': [401],
             'exceptions': {
+                'API rate limit exceeded. Please retry after 300s': DDoSProtection,
                 'API Authentication failed': AuthenticationError,
                 'Nonce is too small': InvalidNonce,
                 'Order not found': OrderNotFound,
@@ -162,7 +164,7 @@ module.exports = class liquid extends Exchange {
         return result;
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetProducts ();
         //
         //     [
@@ -643,7 +645,7 @@ module.exports = class liquid extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if (code >= 200 && code < 300)
             return;
         const exceptions = this.exceptions;
@@ -658,11 +660,8 @@ module.exports = class liquid extends Exchange {
         if (code === 429) {
             throw new DDoSProtection (this.id + ' ' + body);
         }
-        if (!this.isJsonEncodedObject (body)) {
-            return; // fallback to default error handler
-        }
         if (response === undefined) {
-            response = JSON.parse (body);
+            return;
         }
         const feedback = this.id + ' ' + body;
         const message = this.safeString (response, 'message');

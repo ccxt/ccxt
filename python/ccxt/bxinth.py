@@ -75,7 +75,7 @@ class bxinth (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetPairing()
         keys = list(markets.keys())
         result = []

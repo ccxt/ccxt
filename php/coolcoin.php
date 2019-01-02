@@ -63,6 +63,9 @@ class coolcoin extends coinegg {
                     ),
                 ),
             ),
+            'options' => array (
+                'quoteIds' => ['btc', 'usdt'],
+            ),
         ));
     }
 }

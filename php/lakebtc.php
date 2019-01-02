@@ -59,7 +59,7 @@ class lakebtc extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetTicker ();
         $result = array ();
         $keys = is_array ($markets) ? array_keys ($markets) : array ();

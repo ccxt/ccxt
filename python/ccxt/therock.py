@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 
 
 class therock (Exchange):
@@ -20,6 +21,7 @@ class therock (Exchange):
             'has': {
                 'CORS': False,
                 'fetchTickers': True,
+                'fetchMyTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
@@ -99,7 +101,7 @@ class therock (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetFunds()
         #
         #     {funds: [{                     id:   "BTCEUR",
@@ -256,28 +258,168 @@ class therock (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades
+        #
+        #     {     id:  4493548,
+        #       fund_id: "ETHBTC",
+        #        amount:  0.203,
+        #         price:  0.02783576,
+        #          side: "buy",
+        #          dark:  False,
+        #          date: "2018-11-30T08:19:18.236Z"}
+        #
+        # fetchMyTrades
+        #
+        #     {          id:    237338,
+        #            fund_id:   "BTCEUR",
+        #             amount:    0.348,
+        #              price:    348,
+        #               side:   "sell",
+        #               dark:    False,
+        #           order_id:    14920648,
+        #               date:   "2015-06-03T00:49:49.000Z",
+        #       transactions: [{      id:  2770768,
+        #                             date: "2015-06-03T00:49:49.000Z",
+        #                             type: "sold_currency_to_fund",
+        #                            price:  121.1,
+        #                         currency: "EUR"                       },
+        #                       {      id:  2770769,
+        #                             date: "2015-06-03T00:49:49.000Z",
+        #                             type: "released_currency_to_fund",
+        #                            price:  0.348,
+        #                         currency: "BTC"                        },
+        #                       {      id:  2770772,
+        #                             date: "2015-06-03T00:49:49.000Z",
+        #                             type: "paid_commission",
+        #                            price:  0.06,
+        #                         currency: "EUR",
+        #                         trade_id:  440492                     }   ]}
+        #
         if not market:
             market = self.markets_by_id[trade['fund_id']]
-        timestamp = self.parse8601(trade['date'])
+        timestamp = self.parse8601(self.safe_string(trade, 'date'))
+        id = self.safe_string(trade, 'id')
+        orderId = self.safe_string(trade, 'order_id')
+        side = self.safe_string(trade, 'side')
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
+        fee = None
+        feeCost = None
+        transactions = self.safe_value(trade, 'transactions', [])
+        transactionsByType = self.group_by(transactions, 'type')
+        feeTransactions = self.safe_value(transactionsByType, 'paid_commission', [])
+        for i in range(0, len(feeTransactions)):
+            if feeCost is None:
+                feeCost = 0
+            feeCost = self.sum(feeCost, self.safe_float(feeTransactions[i], 'price'))
+        if feeCost is not None:
+            fee = {
+                'cost': feeCost,
+                'currency': market['quote'],
+            }
         return {
             'info': trade,
-            'id': str(trade['id']),
-            'order': None,
+            'id': id,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': None,
-            'side': trade['side'],
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
         }
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'id': market['id'],
+        }
+        if limit is not None:
+            request['per_page'] = limit  # default 25 max 200
+        if since is not None:
+            request['after'] = self.iso8601(since)
+        response = self.privateGetFundsIdTrades(self.extend(request, params))
+        #
+        #     {trades: [{          id:    237338,
+        #                        fund_id:   "BTCEUR",
+        #                         amount:    0.348,
+        #                          price:    348,
+        #                           side:   "sell",
+        #                           dark:    False,
+        #                       order_id:    14920648,
+        #                           date:   "2015-06-03T00:49:49.000Z",
+        #                   transactions: [{      id:  2770768,
+        #                                         date: "2015-06-03T00:49:49.000Z",
+        #                                         type: "sold_currency_to_fund",
+        #                                        price:  121.1,
+        #                                     currency: "EUR"                       },
+        #                                   {      id:  2770769,
+        #                                         date: "2015-06-03T00:49:49.000Z",
+        #                                         type: "released_currency_to_fund",
+        #                                        price:  0.348,
+        #                                     currency: "BTC"                        },
+        #                                   {      id:  2770772,
+        #                                         date: "2015-06-03T00:49:49.000Z",
+        #                                         type: "paid_commission",
+        #                                        price:  0.06,
+        #                                     currency: "EUR",
+        #                                     trade_id:  440492                     }   ]}],
+        #         meta: {total_count:    31,
+        #                       first: {href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1"},
+        #                    previous:    null,
+        #                     current: {href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1"},
+        #                        next: {href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2"},
+        #                        last: {href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2"}  }}
+        #
+        return self.parse_trades(response['trades'], market, since, limit)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetFundsIdTrades(self.extend({
+        request = {
             'id': market['id'],
-        }, params))
+        }
+        if limit is not None:
+            request['per_page'] = limit  # default 25 max 200
+        if since is not None:
+            request['after'] = self.iso8601(since)
+        response = self.publicGetFundsIdTrades(self.extend(request, params))
+        #
+        #     {trades: [{     id:  4493548,
+        #                   fund_id: "ETHBTC",
+        #                    amount:  0.203,
+        #                     price:  0.02783576,
+        #                      side: "buy",
+        #                      dark:  False,
+        #                      date: "2018-11-30T08:19:18.236Z"},
+        #                 {     id:  4492926,
+        #                   fund_id: "ETHBTC",
+        #                    amount:  0.04,
+        #                     price:  0.02767034,
+        #                      side: "buy",
+        #                      dark:  False,
+        #                      date: "2018-11-30T07:03:03.897Z"}  ],
+        #         meta: {total_count:    null,
+        #                       first: {page:  1,
+        #                                href: "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1"},
+        #                    previous:    null,
+        #                     current: {page:  1,
+        #                                href: "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1"},
+        #                        next: {page:  2,
+        #                                href: "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=2"},
+        #                        last:    null                                                                   }}
+        #
         return self.parse_trades(response['trades'], market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -302,6 +444,16 @@ class therock (Exchange):
             'fund_id': self.market_id(symbol),
         }, params))
 
+    def parse_order_status(self, status):
+        statuses = {
+            'active': 'open',
+            'executed': 'closed',
+            'deleted': 'canceled',
+            # don't know what self status means
+            # 'conditional': '?',
+        }
+        return self.safe_string(statuses, status, status)
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -317,6 +469,9 @@ class therock (Exchange):
             if query:
                 body = self.json(query)
                 headers['Content-Type'] = 'application/json'
+        elif api == 'public':
+            if query:
+                url += '?' + self.rawencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

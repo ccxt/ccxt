@@ -112,17 +112,7 @@ class exmo extends Exchange {
     }
 
     public function fetch_trading_fees ($params = array ()) {
-        $response = null;
-        $oldParseJsonResponse = $this->parseJsonResponse;
-        try {
-            $this->parseJsonResponse = false;
-            $response = $this->webGetEnDocsFees ($params);
-            $this->parseJsonResponse = $oldParseJsonResponse;
-        } catch (Exception $e) {
-            // ensure parseJsonResponse is restored no matter what
-            $this->parseJsonResponse = $oldParseJsonResponse;
-            throw $e;
-        }
+        $response = $this->webGetEnDocsFees ($params);
         $parts = explode ('<td class="th_fees_2" colspan="2">', $response);
         $numParts = is_array ($parts) ? count ($parts) : 0;
         if ($numParts !== 2) {
@@ -243,8 +233,18 @@ class exmo extends Exchange {
         for ($i = 0; $i < count ($items); $i++) {
             $item = $items[$i];
             $code = $this->common_currency_code($this->safe_string($item, 'prov'));
-            $withdraw[$code] = $this->parse_fixed_float_value ($this->safe_string($item, 'wd'));
-            $deposit[$code] = $this->parse_fixed_float_value ($this->safe_string($item, 'dep'));
+            $withdrawalFee = $this->safe_string($item, 'wd');
+            $depositFee = $this->safe_string($item, 'dep');
+            if ($withdrawalFee !== null) {
+                if (strlen ($withdrawalFee) > 0) {
+                    $withdraw[$code] = $this->parse_fixed_float_value ($withdrawalFee);
+                }
+            }
+            if ($depositFee !== null) {
+                if (strlen ($depositFee) > 0) {
+                    $deposit[$code] = $this->parse_fixed_float_value ($depositFee);
+                }
+            }
         }
         $result = array (
             'info' => $response,
@@ -314,13 +314,13 @@ class exmo extends Exchange {
                         'max' => $this->safe_float($maxCosts, $code),
                     ),
                 ),
-                'info' => $fee,
+                'info' => $id,
             );
         }
         return $result;
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $fees = $this->fetch_trading_fees();
         $markets = $this->publicGetPairSettings ();
         $keys = is_array ($markets) ? array_keys ($markets) : array ();
@@ -528,12 +528,19 @@ class exmo extends Exchange {
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        // their docs does not mention it, but if you don't supply a $symbol
+        // their API will return an empty $response as if you don't have any trades
+        // therefore we make it required here as calling it without a $symbol is useless
+        if ($symbol === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchMyTrades() requires a $symbol argument');
+        }
         $this->load_markets();
-        $request = array ();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market ($symbol);
-            $request['pair'] = $market['id'];
+        $market = $this->market ($symbol);
+        $request = array (
+            'pair' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
         }
         $response = $this->privatePostUserTrades (array_merge ($request, $params));
         if ($market !== null)
@@ -609,9 +616,9 @@ class exmo extends Exchange {
         $market = null;
         if ($symbol !== null)
             $market = $this->market ($symbol);
-        $response = $this->privatePostOrderTrades (array (
+        $response = $this->privatePostOrderTrades (array_merge (array (
             'order_id' => (string) $id,
-        ));
+        ), $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -877,7 +884,7 @@ class exmo extends Exchange {
         //            "$type" => "deposit",
         //            "curr" => "RUB",
         //            "$status" => "processing",
-        //            "provider" => "Qiwi (LA) [12345]",
+        //            "$provider" => "Qiwi (LA) [12345]",
         //            "$amount" => "1",
         //            "account" => "",
         //            "$txid" => "ec46f784ad976fd7f7539089d1a129fe46...",
@@ -916,6 +923,11 @@ class exmo extends Exchange {
         if (!$this->fees['funding']['percentage']) {
             $key = ($type === 'withdrawal') ? 'withdraw' : 'deposit';
             $feeCost = $this->safe_float($this->options['fundingFees'][$key], $code);
+            // users don't pay for cashbacks, no fees for that
+            $provider = $this->safe_string($transaction, 'provider');
+            if ($provider === 'cashback') {
+                $feeCost = 0;
+            }
             if ($feeCost !== null) {
                 $fee = array (
                     'cost' => $feeCost,
@@ -1011,13 +1023,10 @@ class exmo extends Exchange {
         return $this->milliseconds ();
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
-        if (gettype ($body) !== 'string')
-            return; // fallback to default error handler
-        if (strlen ($body) < 2)
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+        if ($response === null)
             return; // fallback to default error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             if (is_array ($response) && array_key_exists ('result', $response)) {
                 //
                 //     array ("result":false,"error":"Error 50052 => Insufficient funds")

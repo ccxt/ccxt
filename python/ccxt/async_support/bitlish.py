@@ -122,7 +122,7 @@ class bitlish (Exchange):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         markets = await self.publicGetPairs()
         result = []
         keys = list(markets.keys())
@@ -179,8 +179,18 @@ class bitlish (Exchange):
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            market = self.markets_by_id[id]
-            symbol = market['symbol']
+            market = self.safe_value(self.markets_by_id, id)
+            symbol = None
+            if market is not None:
+                symbol = market['symbol']
+            else:
+                baseId = id[0:3]
+                quoteId = id[3:6]
+                base = baseId.upper()
+                quote = quoteId.upper()
+                base = self.common_currency_code(base)
+                quote = self.common_currency_code(quote)
+                symbol = base + '/' + quote
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
         return result

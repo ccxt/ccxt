@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import json
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 
@@ -101,7 +100,7 @@ class acx (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetMarkets()
         result = []
         for p in range(0, len(markets)):
@@ -110,6 +109,10 @@ class acx (Exchange):
             symbol = market['name']
             baseId = self.safe_string(market, 'base_unit')
             quoteId = self.safe_string(market, 'quote_unit')
+            if (baseId is None) or (quoteId is None):
+                ids = symbol.split('/')
+                baseId = ids[0].lower()
+                quoteId = ids[1].lower()
             base = baseId.upper()
             quote = quoteId.upper()
             base = self.common_currency_code(base)
@@ -395,9 +398,8 @@ class acx (Exchange):
                 headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if code == 400:
-            response = json.loads(body)
             error = self.safe_value(response, 'error')
             errorCode = self.safe_string(error, 'code')
             feedback = self.id + ' ' + self.json(response)

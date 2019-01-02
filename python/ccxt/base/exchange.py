@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.17.492'
+__version__ = '1.18.91'
 
 # -----------------------------------------------------------------------------
 
@@ -244,6 +244,8 @@ class Exchange(object):
         'XBT': 'BTC',
         'BCC': 'BCH',
         'DRK': 'DASH',
+        'BCHABC': 'BCH',
+        'BCHSV': 'BSV',
     }
 
     def __init__(self, config={}):
@@ -292,7 +294,7 @@ class Exchange(object):
 
         self.tokenBucket = self.extend({
             'refillRate': 1.0 / self.rateLimit,
-            'delay': 1.0,
+            'delay': 0.001,
             'capacity': 1.0,
             'defaultCost': 1.0,
         }, getattr(self, 'tokenBucket') if hasattr(self, 'tokenBucket') else {})
@@ -382,7 +384,7 @@ class Exchange(object):
                 return key
         return None
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         pass
 
     def prepare_request_headers(self, headers=None):
@@ -405,7 +407,6 @@ class Exchange(object):
 
         if self.verbose:
             print("\nRequest:", method, url, request_headers, body)
-
         self.logger.debug("%s %s, Request: %s %s", method, url, request_headers, body)
 
         if body:
@@ -415,6 +416,7 @@ class Exchange(object):
 
         response = None
         http_response = None
+        json_response = None
         try:
             response = self.session.request(
                 method,
@@ -425,13 +427,17 @@ class Exchange(object):
                 proxies=self.proxies
             )
             http_response = response.text
+            json_response = self.parse_json(http_response) if self.is_json_encoded_object(http_response) else None
+            headers = response.headers
+            # FIXME remove last_x_responses from subclasses
             if self.enableLastHttpResponse:
                 self.last_http_response = http_response
-            headers = response.headers
+            if self.enableLastJsonResponse:
+                self.last_json_response = json_response
             if self.enableLastResponseHeaders:
                 self.last_response_headers = headers
             if self.verbose:
-                print("\nResponse:", method, url, str(response.status_code), str(headers), http_response)
+                print("\nResponse:", method, url, response.status_code, headers, http_response)
             self.logger.debug("%s %s, Response: %s %s %s", method, url, response.status_code, headers, http_response)
             response.raise_for_status()
 
@@ -445,7 +451,7 @@ class Exchange(object):
             self.raise_error(ExchangeError, url, method, e)
 
         except HTTPError as e:
-            self.handle_errors(response.status_code, response.reason, url, method, headers, http_response)
+            self.handle_errors(response.status_code, response.reason, url, method, headers, http_response, json_response)
             self.handle_rest_errors(e, response.status_code, http_response, url, method)
             self.raise_error(ExchangeError, url, method, e, http_response)
 
@@ -456,8 +462,11 @@ class Exchange(object):
             else:
                 self.raise_error(ExchangeError, url, method, e)
 
-        self.handle_errors(response.status_code, response.reason, url, method, None, http_response)
-        return self.handle_rest_response(http_response, url, method, headers, body)
+        self.handle_errors(response.status_code, response.reason, url, method, headers, http_response, json_response)
+        self.handle_rest_response(http_response, json_response, url, method, headers, body)
+        if json_response is not None:
+            return json_response
+        return http_response
 
     def handle_rest_errors(self, exception, http_status_code, response, url, method='GET'):
         error = None
@@ -470,16 +479,8 @@ class Exchange(object):
         if error:
             self.raise_error(error, url, method, exception if exception else http_status_code, response)
 
-    def handle_rest_response(self, response, url, method='GET', headers=None, body=None):
-        try:
-            if self.parseJsonResponse:
-                json_response = json.loads(response) if len(response) > 1 else None
-                if self.enableLastJsonResponse:
-                    self.last_json_response = json_response
-                return json_response
-            else:
-                return response
-        except ValueError as e:  # ValueError == JsonDecodeError
+    def handle_rest_response(self, response, json_response, url, method='GET', headers=None, body=None):
+        if self.is_json_encoded_object(response) and json_response is None:
             ddos_protection = re.search('(cloudflare|incapsula|overload|ddos)', response, flags=re.IGNORECASE)
             exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', response, flags=re.IGNORECASE)
             if ddos_protection:
@@ -487,7 +488,14 @@ class Exchange(object):
             if exchange_not_available:
                 message = response + ' exchange downtime, exchange closed for maintenance or offline, DDoS protection or rate-limiting in effect'
                 self.raise_error(ExchangeNotAvailable, method, url, None, message)
-            self.raise_error(ExchangeError, method, url, e, response)
+            self.raise_error(ExchangeError, method, url, ValueError('failed to decode json'), response)
+
+    def parse_json(self, http_response):
+        try:
+            if Exchange.is_json_encoded_object(http_response):
+                return json.loads(http_response)
+        except ValueError:  # superclass of JsonDecodeError (python2)
+            pass
 
     @staticmethod
     def safe_float(dictionary, key, default_value=None):
@@ -827,7 +835,7 @@ class Exchange(object):
             ms = ms or '.000'
             msint = int(ms[1:])
             sign = sign or ''
-            sign = int(sign + '1')
+            sign = int(sign + '1') * -1
             hours = int(hours or 0) * sign
             minutes = int(minutes or 0) * sign
             offset = datetime.timedelta(hours=hours, minutes=minutes)
@@ -893,10 +901,6 @@ class Exchange(object):
         return json.dumps(data, separators=(',', ':'))
 
     @staticmethod
-    def parse_if_json_encoded_object(input):
-        return json.loads(input) if Exchange.is_json_encoded_object(input) else input
-
-    @staticmethod
     def is_json_encoded_object(input):
         return (isinstance(input, basestring) and
                 (len(input) >= 2) and
@@ -917,11 +921,14 @@ class Exchange(object):
     def nonce(self):
         return Exchange.seconds()
 
-    def check_required_credentials(self):
+    def check_required_credentials(self, error=True):
         keys = list(self.requiredCredentials.keys())
         for key in keys:
             if self.requiredCredentials[key] and not getattr(self, key):
-                self.raise_error(AuthenticationError, details='requires `' + key + '`')
+                if error:
+                    self.raise_error(AuthenticationError, details='requires `' + key + '`')
+                else:
+                    return error
 
     def check_address(self, address):
         """Checks an address is not the same character repeated or an empty sequence"""
@@ -1012,13 +1019,13 @@ class Exchange(object):
         self.currencies_by_id = self.index_by(list(self.currencies.values()), 'id')
         return self.markets
 
-    def load_markets(self, reload=False):
+    def load_markets(self, reload=False, params={}):
         if not reload:
             if self.markets:
                 if not self.markets_by_id:
                     return self.set_markets(self.markets)
                 return self.markets
-        markets = self.fetch_markets()
+        markets = self.fetch_markets(params)
         currencies = None
         if self.has['fetchCurrencies']:
             currencies = self.fetch_currencies()
@@ -1050,7 +1057,7 @@ class Exchange(object):
         self.fees = self.deep_extend(self.fees, fetched_fees)
         return self.fees
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         # markets are returned as a list
         # currencies are returned as a dict
         # this is for historical reasons

@@ -34,6 +34,7 @@ class liquid extends Exchange {
                     'https://developers.quoine.com/v2',
                 ),
                 'fees' => 'https://help.liquid.com/getting-started-with-liquid/the-platform/fee-structure',
+                'referral' => 'https://www.liquid.com?affiliate=SbzC62lt30976',
             ),
             'api' => array (
                 'public' => array (
@@ -84,6 +85,7 @@ class liquid extends Exchange {
             ),
             'skipJsonOnStatusCodes' => [401],
             'exceptions' => array (
+                'API rate limit exceeded. Please retry after 300s' => '\\ccxt\\DDoSProtection',
                 'API Authentication failed' => '\\ccxt\\AuthenticationError',
                 'Nonce is too small' => '\\ccxt\\InvalidNonce',
                 'Order not found' => '\\ccxt\\OrderNotFound',
@@ -163,7 +165,7 @@ class liquid extends Exchange {
         return $result;
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetProducts ();
         //
         //     array (
@@ -644,7 +646,7 @@ class liquid extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if ($code >= 200 && $code < 300)
             return;
         $exceptions = $this->exceptions;
@@ -659,11 +661,8 @@ class liquid extends Exchange {
         if ($code === 429) {
             throw new DDoSProtection ($this->id . ' ' . $body);
         }
-        if (!$this->is_json_encoded_object($body)) {
-            return; // fallback to default error handler
-        }
         if ($response === null) {
-            $response = json_decode ($body, $as_associative_array = true);
+            return;
         }
         $feedback = $this->id . ' ' . $body;
         $message = $this->safe_string($response, 'message');

@@ -7,7 +7,6 @@ from ccxt.async_support.base.exchange import Exchange
 import base64
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -219,6 +218,7 @@ class bitfinex (Exchange):
                         'AID': 8.08,
                         'MNA': 16.617,
                         'NEC': 1.6504,
+                        'XTZ': 0.2,
                     },
                     'withdraw': {
                         'BTC': 0.0004,
@@ -260,6 +260,7 @@ class bitfinex (Exchange):
                         'AID': 8.08,
                         'MNA': 16.617,
                         'NEC': 1.6504,
+                        'XTZ': 0.2,
                     },
                 },
             },
@@ -267,8 +268,7 @@ class bitfinex (Exchange):
                 'ABS': 'ABYSS',
                 'AIO': 'AION',
                 'ATM': 'ATMI',
-                'BCC': 'CST_BCC',
-                'BCU': 'CST_BCU',
+                'BAB': 'BCH',
                 'CTX': 'CTXC',
                 'DAD': 'DADI',
                 'DAT': 'DATA',
@@ -289,7 +289,6 @@ class bitfinex (Exchange):
                 'SPK': 'SPANK',
                 'STJ': 'STORJ',
                 'YYW': 'YOYOW',
-                'USD': 'USDT',
                 'UTN': 'UTNP',
             },
             'exceptions': {
@@ -382,6 +381,7 @@ class bitfinex (Exchange):
                     'YOYOW': 'yoyow',
                     'ZEC': 'zcash',
                     'ZRX': 'zrx',
+                    'XTZ': 'tezos',
                 },
             },
         })
@@ -414,7 +414,7 @@ class bitfinex (Exchange):
             'taker': self.safe_float(response, 'taker_fee'),
         }
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         markets = await self.publicGetSymbolsDetails()
         result = []
         for p in range(0, len(markets)):
@@ -508,10 +508,9 @@ class bitfinex (Exchange):
         tickers = await self.publicGetTickers(params)
         result = {}
         for i in range(0, len(tickers)):
-            ticker = tickers[i]
-            parsedTicker = self.parse_ticker(ticker)
-            symbol = parsedTicker['symbol']
-            result[symbol] = parsedTicker
+            ticker = self.parse_ticker(tickers[i])
+            symbol = ticker['symbol']
+            result[symbol] = ticker
         return result
 
     async def fetch_ticker(self, symbol, params={}):
@@ -928,12 +927,11 @@ class bitfinex (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if len(body) < 2:
             return
         if code >= 400:
             if body[0] == '{':
-                response = json.loads(body)
                 feedback = self.id + ' ' + self.json(response)
                 message = None
                 if 'message' in response:

@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -43,6 +42,7 @@ class liquid (Exchange):
                     'https://developers.quoine.com/v2',
                 ],
                 'fees': 'https://help.liquid.com/getting-started-with-liquid/the-platform/fee-structure',
+                'referral': 'https://www.liquid.com?affiliate=SbzC62lt30976',
             },
             'api': {
                 'public': {
@@ -93,6 +93,7 @@ class liquid (Exchange):
             },
             'skipJsonOnStatusCodes': [401],
             'exceptions': {
+                'API rate limit exceeded. Please retry after 300s': DDoSProtection,
                 'API Authentication failed': AuthenticationError,
                 'Nonce is too small': InvalidNonce,
                 'Order not found': OrderNotFound,
@@ -169,7 +170,7 @@ class liquid (Exchange):
             }
         return result
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         markets = await self.publicGetProducts()
         #
         #     [
@@ -598,7 +599,7 @@ class liquid (Exchange):
         url = self.urls['api'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if code >= 200 and code < 300:
             return
         exceptions = self.exceptions
@@ -610,10 +611,8 @@ class liquid (Exchange):
                 return
         if code == 429:
             raise DDoSProtection(self.id + ' ' + body)
-        if not self.is_json_encoded_object(body):
-            return  # fallback to default error handler
         if response is None:
-            response = json.loads(body)
+            return
         feedback = self.id + ' ' + body
         message = self.safe_string(response, 'message')
         errors = self.safe_value(response, 'errors')

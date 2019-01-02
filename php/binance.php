@@ -96,7 +96,6 @@ class binance extends Exchange {
                 ),
                 'public' => array (
                     'get' => array (
-                        'exchangeInfo',
                         'ping',
                         'time',
                         'depth',
@@ -270,7 +269,10 @@ class binance extends Exchange {
                 'timeDifference' => 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'parseOrderToPrecision' => false, // force amounts and costs in parseOrder to precision
-                'newOrderRespType' => 'RESULT', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+                'newOrderRespType' => array (
+                    'market' => 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+                    'limit' => 'RESULT', // we change it from 'ACK' by default to 'RESULT'
+                ),
             ),
             'exceptions' => array (
                 '-1000' => '\\ccxt\\ExchangeNotAvailable', // array ("code":-1000,"msg":"An unknown error occured while processing the request.")
@@ -300,7 +302,7 @@ class binance extends Exchange {
         return $this->options['timeDifference'];
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetExchangeInfo ();
         if ($this->options['adjustForTimeDifference'])
             $this->load_time_difference ();
@@ -341,7 +343,7 @@ class binance extends Exchange {
                         'max' => null,
                     ),
                     'price' => array (
-                        'min' => pow (10, -$precision['price']),
+                        'min' => null,
                         'max' => null,
                     ),
                     'cost' => array (
@@ -352,11 +354,18 @@ class binance extends Exchange {
             );
             if (is_array ($filters) && array_key_exists ('PRICE_FILTER', $filters)) {
                 $filter = $filters['PRICE_FILTER'];
+                // PRICE_FILTER reports zero values for minPrice and maxPrice
+                // since they updated $filter types in November 2018
+                // https://github.com/ccxt/ccxt/issues/4286
+                // therefore limits['price']['min'] and limits['price']['max]
+                // don't have any meaningful value except null
+                //
+                //     $entry['limits']['price'] = array (
+                //         'min' => $this->safe_float($filter, 'minPrice'),
+                //         'max' => $this->safe_float($filter, 'maxPrice'),
+                //     );
+                //
                 $entry['precision']['price'] = $this->precision_from_string($filter['tickSize']);
-                $entry['limits']['price'] = array (
-                    'min' => $this->safe_float($filter, 'minPrice'),
-                    'max' => $this->safe_float($filter, 'maxPrice'),
-                );
             }
             if (is_array ($filters) && array_key_exists ('LOT_SIZE', $filters)) {
                 $filter = $filters['LOT_SIZE'];
@@ -605,6 +614,9 @@ class binance extends Exchange {
             'PARTIALLY_FILLED' => 'open',
             'FILLED' => 'closed',
             'CANCELED' => 'canceled',
+            'PENDING_CANCEL' => 'canceling', // currently unused
+            'REJECTED' => 'rejected',
+            'EXPIRED' => 'expired',
         );
         return (is_array ($statuses) && array_key_exists ($status, $statuses)) ? $statuses[$status] : $status;
     }
@@ -713,12 +725,13 @@ class binance extends Exchange {
             $params = $this->omit ($params, 'test');
         }
         $uppercaseType = strtoupper ($type);
+        $newOrderRespType = $this->safe_value($this->options['newOrderRespType'], $type, 'RESULT');
         $order = array (
             'symbol' => $market['id'],
             'quantity' => $this->amount_to_precision($symbol, $amount),
             'type' => $uppercaseType,
             'side' => strtoupper ($side),
-            'newOrderRespType' => $this->options['newOrderRespType'], // 'ACK' for $order id, 'RESULT' for full $order or 'FULL' for $order with fills
+            'newOrderRespType' => $newOrderRespType, // 'ACK' for $order id, 'RESULT' for full $order or 'FULL' for $order with fills
         );
         $timeInForceIsRequired = false;
         $priceIsRequired = false;
@@ -749,6 +762,7 @@ class binance extends Exchange {
             if ($stopPrice === null) {
                 throw new InvalidOrder ($this->id . ' createOrder $method requires a $stopPrice extra param for a ' . $type . ' order');
             } else {
+                $params = $this->omit ($params, 'stopPrice');
                 $order['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
             }
         }
@@ -781,8 +795,12 @@ class binance extends Exchange {
         $request = array (
             'symbol' => $market['id'],
         );
-        if ($limit !== null)
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
             $request['limit'] = $limit;
+        }
         $response = $this->privateGetAllOrders (array_merge ($request, $params));
         //
         //     array (
@@ -1133,7 +1151,7 @@ class binance extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (($code === 418) || ($code === 429))
             throw new DDoSProtection ($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
         // $error $response in a form => array ( "$code" => -1013, "msg" => "Invalid quantity." )
@@ -1149,7 +1167,6 @@ class binance extends Exchange {
         }
         if (strlen ($body) > 0) {
             if ($body[0] === '{') {
-                $response = json_decode ($body, $as_associative_array = true);
                 // check $success value for wapi endpoints
                 // $response in format array ('msg' => 'The coin does not exist.', 'success' => true/false)
                 $success = $this->safe_value($response, 'success', true);

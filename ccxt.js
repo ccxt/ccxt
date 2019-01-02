@@ -37,7 +37,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.492'
+const version = '1.18.91'
 
 Exchange.ccxtVersion = version
 
@@ -107,6 +107,7 @@ const exchanges = {
     'coinspot':                require ('./js/coinspot.js'),
     'cointiger':               require ('./js/cointiger.js'),
     'coolcoin':                require ('./js/coolcoin.js'),
+    'coss':                    require ('./js/coss.js'),
     'crex24':                  require ('./js/crex24.js'),
     'crypton':                 require ('./js/crypton.js'),
     'cryptopia':               require ('./js/cryptopia.js'),
@@ -128,8 +129,6 @@ const exchanges = {
     'hadax':                   require ('./js/hadax.js'),
     'hitbtc':                  require ('./js/hitbtc.js'),
     'hitbtc2':                 require ('./js/hitbtc2.js'),
-    'huobi':                   require ('./js/huobi.js'),
-    'huobicny':                require ('./js/huobicny.js'),
     'huobipro':                require ('./js/huobipro.js'),
     'ice3x':                   require ('./js/ice3x.js'),
     'independentreserve':      require ('./js/independentreserve.js'),
@@ -167,6 +166,7 @@ const exchanges = {
     'tidebit':                 require ('./js/tidebit.js'),
     'tidex':                   require ('./js/tidex.js'),
     'uex':                     require ('./js/uex.js'),
+    'upbit':                   require ('./js/upbit.js'),
     'urdubit':                 require ('./js/urdubit.js'),
     'vaultoro':                require ('./js/vaultoro.js'),
     'vbtc':                    require ('./js/vbtc.js'),
