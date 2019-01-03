@@ -126,24 +126,26 @@ declare module 'ccxt' {
     }
 
     export interface Ticker {
-        ask: number;
-        average?: number;
-        baseVolume?: number;
-        bid: number;
-        change?: number;
-        close?: number;
-        datetime: string;
-        first?: number;
-        high: number;
-        info: object;
-        last?: number;
-        low: number;
-        open?: number;
-        percentage?: number;
-        quoteVolume?: number;
         symbol: string,
+        info: object;
         timestamp: number;
+        datetime: string;
+        high: number;
+        low: number;
+        bid: number;
+        bidVolume?: number;
+        ask: number;
+        askVolume?: number;
         vwap?: number;
+        open?: number;
+        close?: number;
+        last?: number;
+        previousClose?: number;
+        change?: number;
+        percentage?: number;
+        average?: number;
+        quoteVolume?: number;
+        baseVolume?: number;
     }
 
     export interface Transaction {
