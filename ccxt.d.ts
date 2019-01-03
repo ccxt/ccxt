@@ -70,14 +70,14 @@ declare module 'ccxt' {
 
     export interface Market {
         [key: string]: any
-        base: string;
         id: string;
-        info: any;
-        limits: { amount: MinMax, price: MinMax, cost?: MinMax };
-        lot: number;
-        precision: { amount: number, price: number };
-        quote: string;
         symbol: string;
+        base: string;
+        quote: string;
+        active: boolean;
+        precision: { amount: number, price: number, cost: number };
+        limits: { amount: MinMax, price: MinMax, cost?: MinMax };
+        info: any;
     }
 
     export interface Order {
