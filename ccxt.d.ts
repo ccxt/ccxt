@@ -106,16 +106,23 @@ declare module 'ccxt' {
     }
 
     export interface Trade {
-        amount: number;            // amount of base currency
-        datetime: string;          // ISO8601 datetime with milliseconds;
-        id: string;                // string trade id
-        info: {};                  // the original decoded JSON as is
-        order?: string;            // string order id or undefined/None/null
-        price: number;             // float price in quote currency
-        timestamp: number;         // Unix timestamp in milliseconds
-        type?: 'market' | 'limit'; // order type, 'market', 'limit' or undefined/None/null
-        side: 'buy' | 'sell';
-        symbol: string;            // symbol in CCXT format
+        amount: number;                  // amount of base currency
+        datetime: string;                // ISO8601 datetime with milliseconds;
+        id: string;                      // string trade id
+        info: {};                        // the original decoded JSON as is
+        order?: string;                  // string order id or undefined/None/null
+        price: number;                   // float price in quote currency
+        timestamp: number;               // Unix timestamp in milliseconds
+        type?: 'market' | 'limit';       // order type, 'market', 'limit' or undefined/None/null
+        side: 'buy' | 'sell';            // direction of the trade, 'buy' or 'sell'
+        symbol: string;                  // symbol in CCXT format
+        takerOrMaker: 'taker' | 'maker'; // string, 'taker' or 'maker'
+        cost: number;                    // total cost (including fees), `price * amount`
+        fee: {                           // provided by exchange or calculated by ccxt
+          cost: number;                  // float
+          currency: number;              // usually base currency for buys, quote currency for sells
+          rate?: number;                 // the fee rate (if available)
+        };
     }
 
     export interface Ticker {
