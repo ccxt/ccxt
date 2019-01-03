@@ -82,19 +82,25 @@ declare module 'ccxt' {
 
     export interface Order {
         id: string,
-        info: {},
-        timestamp: number,
         datetime: string,
+        timestamp: number,
+        lastTradeTimestamp: number,
         status: 'open' | 'closed' | 'canceled',
         symbol: string,
         type: 'market' | 'limit',
         side: 'buy' | 'sell',
         price: number,
-        cost: number,
         amount: number,
         filled: number,
         remaining: number,
-        fee: number
+        cost: number,
+        trades: Trade[],
+        fee: {
+          cost: number;
+          currency: number;
+          rate?: number;
+        };
+        info: {},
     }
 
     export interface OrderBook {
