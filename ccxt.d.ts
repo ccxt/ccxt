@@ -70,31 +70,37 @@ declare module 'ccxt' {
 
     export interface Market {
         [key: string]: any
-        base: string;
         id: string;
-        info: any;
-        limits: { amount: MinMax, price: MinMax, cost?: MinMax };
-        lot: number;
-        precision: { amount: number, price: number };
-        quote: string;
         symbol: string;
+        base: string;
+        quote: string;
+        active: boolean;
+        precision: { amount: number, price: number, cost: number };
+        limits: { amount: MinMax, price: MinMax, cost?: MinMax };
+        info: any;
     }
 
     export interface Order {
         id: string,
-        info: {},
-        timestamp: number,
         datetime: string,
+        timestamp: number,
+        lastTradeTimestamp: number,
         status: 'open' | 'closed' | 'canceled',
         symbol: string,
         type: 'market' | 'limit',
         side: 'buy' | 'sell',
         price: number,
-        cost: number,
         amount: number,
         filled: number,
         remaining: number,
-        fee: number
+        cost: number,
+        trades: Trade[],
+        fee: {
+          cost: number;
+          currency: number;
+          rate?: number;
+        };
+        info: {},
     }
 
     export interface OrderBook {
@@ -126,24 +132,26 @@ declare module 'ccxt' {
     }
 
     export interface Ticker {
-        ask: number;
-        average?: number;
-        baseVolume?: number;
-        bid: number;
-        change?: number;
-        close?: number;
-        datetime: string;
-        first?: number;
-        high: number;
-        info: object;
-        last?: number;
-        low: number;
-        open?: number;
-        percentage?: number;
-        quoteVolume?: number;
         symbol: string,
+        info: object;
         timestamp: number;
+        datetime: string;
+        high: number;
+        low: number;
+        bid: number;
+        bidVolume?: number;
+        ask: number;
+        askVolume?: number;
         vwap?: number;
+        open?: number;
+        close?: number;
+        last?: number;
+        previousClose?: number;
+        change?: number;
+        percentage?: number;
+        average?: number;
+        quoteVolume?: number;
+        baseVolume?: number;
     }
 
     export interface Transaction {
