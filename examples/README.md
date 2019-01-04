@@ -59,6 +59,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [Let’s write a cryptocurrency bot](https://medium.com/@joeldg/an-advanced-tutorial-a-new-crypto-currency-trading-bot-boilerplate-framework-e777733607ae) – A multi-part advanced tutorial on a new cryptocurrency trading framework also integrating ccxt.
 
+[Download Cryptocurrency Data with CCXT](https://backtest-rookies.com/2018/03/08/download-cryptocurrency-data-with-ccxt/) – A sample script to download historical data from exchanges with a video overview: [Easy Python script to download crypto currency market data with CCXT package](https://www.youtube.com/watch?v=PTGkJsrF7kQ).
+
 [Experiments : Creating a Crypto Twitter Bot to Announce Newly Listed CryptoCoins](https://medium.com/@kennychuaio/experiments-creating-a-crypto-twitter-bot-to-announce-newly-listed-cryptocoins-9cd23930f5cb) – An article on how to integrate with CCXT and Twitter to get new currencies from exchanges automatically.
 
 [How to make your own trading bot](https://codeburst.io/how-to-make-your-own-trading-bot-83b5c6e35036) – A tutorial on algortrading in Python.

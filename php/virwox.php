@@ -214,8 +214,8 @@ class virwox extends Exchange {
             'instrument' => $symbol,
             'timespan' => 3600,
         ), $params));
-        $result = $response['result'];
-        $trades = $result['data'];
+        $result = $this->safe_value($response, 'result', array ());
+        $trades = $this->safe_value($result, 'data', array ());
         return $this->parse_trades($trades, $market);
     }
 

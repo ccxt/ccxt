@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.74'
+__version__ = '1.18.97'
 
 # -----------------------------------------------------------------------------
 
@@ -300,7 +300,7 @@ class Exchange(object):
 
         self.tokenBucket = self.extend({
             'refillRate': 1.0 / self.rateLimit,
-            'delay': 1.0,
+            'delay': 0.001,
             'capacity': 1.0,
             'defaultCost': 1.0,
         }, getattr(self, 'tokenBucket') if hasattr(self, 'tokenBucket') else {})
@@ -487,7 +487,9 @@ class Exchange(object):
 
         self.handle_errors(response.status_code, response.reason, url, method, headers, http_response, json_response)
         self.handle_rest_response(http_response, json_response, url, method, headers, body)
-        return json_response
+        if json_response is not None:
+            return json_response
+        return http_response
 
     def handle_rest_errors(self, exception, http_status_code, response, url, method='GET'):
         error = None
@@ -501,7 +503,7 @@ class Exchange(object):
             self.raise_error(error, url, method, exception if exception else http_status_code, response)
 
     def handle_rest_response(self, response, json_response, url, method='GET', headers=None, body=None):
-        if json_response is None:
+        if self.is_json_encoded_object(response) and json_response is None:
             ddos_protection = re.search('(cloudflare|incapsula|overload|ddos)', response, flags=re.IGNORECASE)
             exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', response, flags=re.IGNORECASE)
             if ddos_protection:
@@ -513,7 +515,8 @@ class Exchange(object):
 
     def parse_json(self, http_response):
         try:
-            return json.loads(http_response)
+            if Exchange.is_json_encoded_object(http_response):
+                return json.loads(http_response)
         except ValueError:  # superclass of JsonDecodeError (python2)
             pass
 
@@ -919,10 +922,6 @@ class Exchange(object):
     @staticmethod
     def json(data, params=None):
         return json.dumps(data, separators=(',', ':'))
-
-    @staticmethod
-    def parse_if_json_encoded_object(input):
-        return json.loads(input) if Exchange.is_json_encoded_object(input) else input
 
     @staticmethod
     def is_json_encoded_object(input):

@@ -280,7 +280,7 @@ class binance (Exchange):
                 'timeDifference': 0,  # the difference between system clock and Binance clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'parseOrderToPrecision': False,  # force amounts and costs in parseOrder to precision
-                'newOrderRespTypes': {
+                'newOrderRespType': {
                     'market': 'FULL',  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit': 'RESULT',  # we change it from 'ACK' by default to 'RESULT'
                 },

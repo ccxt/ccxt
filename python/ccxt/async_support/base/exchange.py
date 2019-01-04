@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.74'
+__version__ = '1.18.97'
 
 # -----------------------------------------------------------------------------
 
@@ -137,7 +137,7 @@ class Exchange(BaseExchange):
                                       timeout=(self.timeout / 1000),
                                       proxy=self.aiohttp_proxy) as response:
                 http_response = await response.text()
-                json_response = self.parse_json(http_response)
+                json_response = self.parse_json(http_response) if self.is_json_encoded_object(http_response) else None
                 headers = response.headers
                 if self.enableLastHttpResponse:
                     self.last_http_response = http_response
@@ -163,7 +163,9 @@ class Exchange(BaseExchange):
 
         self.handle_errors(response.status, response.reason, url, method, headers, http_response, json_response)
         self.handle_rest_response(http_response, json_response, url, method, headers, body)
-        return json_response
+        if json_response is not None:
+            return json_response
+        return http_response
 
     async def load_markets(self, reload=False, params={}):
         if not reload:

@@ -43,6 +43,7 @@ class kucoin (Exchange):
                 'fetchMyTrades': 'emulated',  # self method is to be deleted, see implementation and comments below
                 'fetchCurrencies': True,
                 'withdraw': True,
+                'fetchTransactions': True,
             },
             'timeframes': {
                 '1m': 1,
@@ -587,6 +588,93 @@ class kucoin (Exchange):
             'address': address,
             'tag': tag,
             'info': response,
+        }
+
+    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        # https://kucoinapidocs.docs.apiary.io/#reference/0/assets-operation/list-deposit-&-withdrawal-records
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchDeposits requires a currency code argument')
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+        }
+        response = self.privateGetAccountCoinWalletRecords(self.extend(request, params))
+        return self.parseTransactions(response['data']['datas'], currency, since, limit)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        #     {
+        #         'coinType': 'ETH',
+        #         'createdAt': 1516134636000,
+        #         'amount': 2.5,
+        #         'address': '0x4cd00e7983e54add886442d3b866f95243cf9b30',
+        #         'fee': 0.0,
+        #         'outerWalletTxid': '0x820cde65b1fab0a9527a5c2466b3e7807fee45c6a81691486bf954114b12c873@0x4cd00e7983e54add886442d3b866f95243cf9b30@eth',
+        #         'remark': None,
+        #         'oid': '5a5e60ecaf2c5807eda65443',
+        #         'confirmation': 14,
+        #         'type': 'DEPOSIT',
+        #         'status': 'SUCCESS',
+        #         'updatedAt': 1516134827000
+        #     }
+        #
+        #     {
+        #         'coinType':'POLY',
+        #         'createdAt':1520696078000,
+        #         'amount':838.2247,
+        #         'address':'0x54fc433e95549e68fa362eb85c235177d94a8745',
+        #         'fee':3.0,
+        #         'outerWalletTxid':'0x055da84b7557498785d6acecf2b71d0158fec32fce246e51f5c49b79826a8481',
+        #         'remark':None,
+        #         'oid':'5aa3fb0d7bd394763bde55c1',
+        #         'confirmation':0,
+        #         'type':'WITHDRAW',
+        #         'status':'SUCCESS',
+        #         'updatedAt':1520696196000
+        #     }
+        #
+        id = self.safe_string(transaction, 'oid')
+        txid = self.safe_string(transaction, 'outerWalletTxid')
+        if txid is not None:
+            if txid.find('@') >= 0:
+                parts = txid.split('@')
+                txid = parts[0]
+        timestamp = self.safe_integer(transaction, 'createdAt')
+        code = None
+        currencyId = self.safe_string(transaction, 'coinType')
+        currency = self.safe_value(self.currencies_by_id, currencyId)
+        if currency is not None:
+            code = currency['code']
+        else:
+            code = self.common_currency_code(currencyId)
+        address = self.safe_string(transaction, 'address')
+        tag = self.safe_string(transaction, 'remark')
+        amount = self.safe_float(transaction, 'amount')
+        status = self.safe_string(transaction, 'status')
+        type = self.safe_string(transaction, 'type')
+        if type is not None:
+            # they return 'DEPOSIT' or 'WITHDRAW', ccxt used 'deposit' or 'withdrawal'
+            type = 'deposit' if (type == 'DEPOSIT') else 'withdrawal'
+        feeCost = self.safe_float(transaction, 'fee')
+        updated = self.safe_integer(transaction, 'updatedAt')
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': tag,
+            'status': status,
+            'type': type,
+            'updated': updated,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+            },
         }
 
     def fetch_currencies(self, params={}):

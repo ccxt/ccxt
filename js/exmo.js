@@ -245,6 +245,13 @@ module.exports = class exmo extends Exchange {
                 }
             }
         }
+        // sets fiat fees to undefined
+        const fiatGroups = this.toArray (this.omit (groupsByGroup, 'crypto'));
+        for (let i = 0; i < fiatGroups.length; i++) {
+            const code = this.commonCurrencyCode (this.safeString (fiatGroups[i], 'title'));
+            withdraw[code] = undefined;
+            deposit[code] = undefined;
+        }
         const result = {
             'info': response,
             'withdraw': withdraw,
@@ -313,7 +320,7 @@ module.exports = class exmo extends Exchange {
                         'max': this.safeFloat (maxCosts, code),
                     },
                 },
-                'info': fee,
+                'info': id,
             };
         }
         return result;
