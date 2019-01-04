@@ -273,6 +273,7 @@ module.exports = class binance extends Exchange {
                     'market': 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit': 'RESULT', // we change it from 'ACK' by default to 'RESULT'
                 },
+                'loadTradesForOrder': true,
             },
             'exceptions': {
                 '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
@@ -784,6 +785,15 @@ module.exports = class binance extends Exchange {
         else
             request['orderId'] = parseInt (id);
         let response = await this.privateGetOrder (this.extend (request, params));
+        if(response['fills'] === undefined && this.options['loadTradesForOrder']) {
+            let requestTrades = {
+                'symbol': market['id'],
+                'startTime': request['transactTime'],
+            };
+            let trades = await this.privateGetMyTrades (requestTrades); // temporary slow workaround todo implement caching layer
+            trades = Object.values (trades).filter (trade => trade['orderId'] === parseInt (id));
+            response['fills'] = trades;
+        }
         return this.parseOrder (response, market);
     }
 
