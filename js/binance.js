@@ -1283,7 +1283,7 @@ module.exports = class binance extends Exchange {
                 this._websocketHandleOb (contextId, resData);
             } else if (msgType === 'trade') {
                 this._websocketHandleTrade (contextId, resData);
-            else if (msgType === 'aggTrade') {
+            } else if (msgType === 'aggTrade') {
                 this._websocketHandleTrade (contextId, resData);
             } else if (msgType.indexOf ('kline') >= 0) {
                 this._websocketHandleKline (contextId, resData);
