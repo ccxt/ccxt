@@ -164,18 +164,10 @@ module.exports = class quadrigacx extends Exchange {
             amount = this.safeString (transaction, code);
         }
         let timestamp = this.parse8601 (this.safeString (transaction, 'datetime'));
-        let status = undefined;
-        let type = this.safeString (transaction, 'type');
+        let status = 'ok';
         const fee = this.safeFloat (transaction, 'fee');
-        if (status === undefined) {
-            if (type === '0') {
-                type = 'deposit';
-            } else if (type === '1') {
-                type = 'withdrawal';
-            }
-        } else {
-            type = 'withdrawal';
-        }
+        let type = this.safeInteger (transaction, 'type');
+        type = (type === 1) ? 'withdrawal' : 'deposit';
         return {
             'info': transaction,
             'id': undefined,
