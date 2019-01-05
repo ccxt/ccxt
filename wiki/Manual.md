@@ -2627,7 +2627,7 @@ In some cases you can also use the withdrawal id to check withdrawal status late
     'address':  '0x02b0a9b7b4cDe774af0f8e47cb4f1c2ccdEa0806', // "from" or "to"
     'tag':      '0x0123456789' // "tag" or "memo" or "payment_id" associated with the address
     'type':     'deposit',   // or 'withdrawal', string
-    'amount':    1.2345,     // float
+    'amount':    1.2345,     // float (does not include the fee)
     'currency': 'ETH',       // a common unified currency code, string
     'status':   'pending',   // 'ok', 'failed', 'canceled', string
     'updated':   undefined,  // UTC timestamp in ms of most recent status change
