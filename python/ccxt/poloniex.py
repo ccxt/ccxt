@@ -998,6 +998,9 @@ class poloniex (Exchange):
             if type == 'deposit':
                 # according to https://poloniex.com/fees/
                 feeCost = 0  # FIXME: remove hardcoded value that may change any time
+            else:
+                # poloniex withdrawal amount includes the fee
+                amount = amount - feeCost
         return {
             'info': transaction,
             'id': id,

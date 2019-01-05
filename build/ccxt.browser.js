@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.99'
+const version = '1.18.100'
 
 Exchange.ccxtVersion = version
 
@@ -55596,13 +55596,16 @@ module.exports = class poloniex extends Exchange {
         }
         const id = this.safeString (transaction, 'withdrawalNumber');
         const type = (id !== undefined) ? 'withdrawal' : 'deposit';
-        const amount = this.safeFloat (transaction, 'amount');
+        let amount = this.safeFloat (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
         let feeCost = this.safeFloat (transaction, 'fee');
         if (feeCost === undefined) {
             if (type === 'deposit') {
                 // according to https://poloniex.com/fees/
                 feeCost = 0; // FIXME: remove hardcoded value that may change any time
+            } else {
+                // poloniex withdrawal amount includes the fee
+                amount = amount - feeCost;
             }
         }
         return {
