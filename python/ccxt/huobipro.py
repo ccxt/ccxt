@@ -143,6 +143,7 @@ class huobipro (Exchange):
                 },
             },
             'exceptions': {
+                'gateway-internal-error': ExchangeNotAvailable,  # {"status":"error","err-code":"gateway-internal-error","err-msg":"Failed to load data. Try again later.","data":null}
                 'account-frozen-balance-insufficient-error': InsufficientFunds,  # {"status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left: `0.0027`","data":null}
                 'invalid-amount': InvalidOrder,  # eg "Paramemter `amount` is invalid."
                 'order-limitorder-amount-min-error': InvalidOrder,  # limit order amount error, min: `0.001`

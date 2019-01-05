@@ -129,6 +129,7 @@ class huobipro extends Exchange {
                 ),
             ),
             'exceptions' => array (
+                'gateway-internal-error' => '\\ccxt\\ExchangeNotAvailable', // array ("status":"error","err-code":"gateway-internal-error","err-msg":"Failed to load data. Try again later.","data":null)
                 'account-frozen-balance-insufficient-error' => '\\ccxt\\InsufficientFunds', // array ("status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left => `0.0027`","data":null)
                 'invalid-amount' => '\\ccxt\\InvalidOrder', // eg "Paramemter `amount` is invalid."
                 'order-limitorder-amount-min-error' => '\\ccxt\\InvalidOrder', // limit order amount error, min => `0.001`
