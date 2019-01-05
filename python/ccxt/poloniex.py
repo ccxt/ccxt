@@ -856,7 +856,7 @@ class poloniex (Exchange):
         self.load_markets()
         year = 31104000  # 60 * 60 * 24 * 30 * 12 = one year of history, why not
         now = self.seconds()
-        start = int(since / 1000) if (since is not None) else now - year
+        start = int(since / 1000) if (since is not None) else now - 10 * year
         request = {
             'start': start,  # UNIX timestamp, required
             'end': now,  # UNIX timestamp, required
@@ -994,13 +994,13 @@ class poloniex (Exchange):
         amount = self.safe_float(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
         feeCost = self.safe_float(transaction, 'fee')
-        if feeCost is None:
-            if type == 'deposit':
+        if type == 'deposit':
+            if feeCost is None:
                 # according to https://poloniex.com/fees/
                 feeCost = 0  # FIXME: remove hardcoded value that may change any time
-            else:
-                # poloniex withdrawal amount includes the fee
-                amount = amount - feeCost
+        else:
+            # poloniex withdrawal amount includes the fee
+            amount = amount - feeCost
         return {
             'info': transaction,
             'id': id,

@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.100'
+const version = '1.18.101'
 
 Exchange.ccxtVersion = version
 
@@ -55444,7 +55444,7 @@ module.exports = class poloniex extends Exchange {
         await this.loadMarkets ();
         const year = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
         const now = this.seconds ();
-        let start = (since !== undefined) ? parseInt (since / 1000) : now - year;
+        let start = (since !== undefined) ? parseInt (since / 1000) : now - 10 * year;
         let request = {
             'start': start, // UNIX timestamp, required
             'end': now, // UNIX timestamp, required
@@ -55599,14 +55599,14 @@ module.exports = class poloniex extends Exchange {
         let amount = this.safeFloat (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
         let feeCost = this.safeFloat (transaction, 'fee');
-        if (feeCost === undefined) {
-            if (type === 'deposit') {
+        if (type === 'deposit') {
+            if (feeCost === undefined) {
                 // according to https://poloniex.com/fees/
                 feeCost = 0; // FIXME: remove hardcoded value that may change any time
-            } else {
-                // poloniex withdrawal amount includes the fee
-                amount = amount - feeCost;
             }
+        } else {
+            // poloniex withdrawal amount includes the fee
+            amount = amount - feeCost;
         }
         return {
             'info': transaction,
