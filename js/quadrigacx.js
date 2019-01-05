@@ -178,7 +178,7 @@ module.exports = class quadrigacx extends Exchange {
         }
         return {
             'info': transaction,
-            'id': Math.random () * 1e18,
+            'id': undefined,
             'txid': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
