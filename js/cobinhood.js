@@ -194,6 +194,7 @@ module.exports = class cobinhood extends Exchange {
                     },
                 },
                 'methodmap': {
+                    '_websocketSendHeartbeat': '_websocketSendHeartbeat',
                     '_websocketTimeoutRemoveNonce': '_websocketTimeoutRemoveNonce',
                 },
                 'events': {
@@ -902,6 +903,8 @@ module.exports = class cobinhood extends Exchange {
         let symbol = this.findSymbol (id);
         if (type === 'error') {
             this.emit ('err', new ExchangeError (this.id + ' error ' + h[3] + ':' + h[4]));
+        } else if (type === 'pong') {
+            this.emit ('pong');
         } else if (channel.indexOf ('order-book.') >= 0) {
             if (type === 'subscribed') {
                 this._websocketHandleSubscription (contextId, 'ob', msg, symbol);
@@ -954,6 +957,21 @@ module.exports = class cobinhood extends Exchange {
                 this.emit ('err', new ExchangeError (this.id + ' invalid ohlcv message :' + type), contextId);
             }
         }
+    }
+
+    _websocketOnOpen (contextId, params) {
+        let heartbeatTimer = this._contextGet (contextId, 'heartbeattimer');
+        if (typeof heartbeatTimer !== 'undefined') {
+            this._cancelTimer (heartbeatTimer);
+        }
+        heartbeatTimer = this._setTimer (contextId, 60000, this._websocketMethodMap ('_websocketSendHeartbeat'), [contextId]);
+        this._contextSet (contextId, 'heartbeattimer', heartbeatTimer);
+    }
+
+    _websocketSendHeartbeat (contextId) {
+        this.websocketSendJson ({
+            'action': 'ping',
+        }, contextId);
     }
 
     _websocketHandleOrderBookSnapshot (contextId, symbol, msg) {
