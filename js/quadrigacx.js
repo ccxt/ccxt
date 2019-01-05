@@ -135,21 +135,21 @@ module.exports = class quadrigacx extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         //
-        // {
-        //     "btc":"0.99985260",
-        //     "method":"Bitcoin",
-        //     "fee":"0.00000000",
-        //     "type":0,
-        //     "datetime":"2018-10-08 05:26:23"
-        // }
+        //     {
+        //         "btc":"0.99985260",
+        //         "method":"Bitcoin",
+        //         "fee":"0.00000000",
+        //         "type":0,
+        //         "datetime":"2018-10-08 05:26:23"
+        //     }
         //
-        // {
-        //     "btc":"-0.50000000",
-        //     "method":"Bitcoin",
-        //     "fee":"0.00000000",
-        //     "type":1,
-        //     "datetime":"2018-08-27 13:50:10"
-        // }
+        //     {
+        //         "btc":"-0.50000000",
+        //         "method":"Bitcoin",
+        //         "fee":"0.00000000",
+        //         "type":1,
+        //         "datetime":"2018-08-27 13:50:10"
+        //     }
         //
         let code = undefined;
         let amount = undefined;
