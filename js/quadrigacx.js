@@ -179,7 +179,7 @@ module.exports = class quadrigacx extends Exchange {
             'type': type,
             'amount': amount,
             'currency': code,
-            'status': undefined,
+            'status': status,
             'updated': undefined,
             'fee': {
                 'currency': code,
