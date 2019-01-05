@@ -2758,7 +2758,7 @@ Fees are often grouped into two categories:
 
 Because the fee structure can depend on the actual volume of currencies traded by the user, the fees can be account-specific. Methods to work with account-specific fees:
 
-```
+```Javascript
 fetchFees (params = {})
 fetchTradingFees (params = {})
 fetchFundingFees (params = {})
@@ -2770,7 +2770,7 @@ Because this is still a work in progress, some or all of methods and info descri
 
 **DO NOT use the `.fees` property as most often it contains the predefined/hardcoded info, which is now deprecated. Actual fees should only be accessed from markets and currencies.**
 
-### Fee structure
+### Fee Structure
 
 ```Javascript
 {
@@ -2795,7 +2795,7 @@ The `calculateFee` method will return a unified fee structure with precalculated
 
 Accessing trading fee rates should be done via the `.markets` property, like so:
 
-```
+```Javascript
 exchange.markets['ETH/BTC']['taker'] // taker fee rate for ETH/BTC
 exchange.markets['BTC/USD']['maker'] // maker fee rate for BTC/USD
 ```
@@ -2808,14 +2808,64 @@ Funding fees are properties of currencies (account balance).
 
 Accessing funding fee rates should be done via the `.currencies` property. This aspect is not unified yet and is subject to change.
 
-```
+```Javascript
 exchange.currencies['ETH']['fee'] // tx/withdrawal fee rate for ETH
 exchange.currencies['BTC']['fee'] // tx/withdrawal fee rate for BTC
 ```
 
-### Ledger
+## Ledger
 
 ```UNDER CONSTRUCTION```
+
+Some exchanges provide additional endpoints for fetching the all-in-one ledger history. The ledger is simply the history of changes, actions done by the user or operations that altered the user's balance in any way, that is, the history of movements of all funds from/to all accounts of the user. That includes deposits and withdrawals (funding), amounts incoming and outcoming in result of a trade or an order, trading fees, transfers between accounts, rebates, cashbacks and other types of events that are subject to accounting.
+
+```JavaScript
+async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Some exchanges don't allow to fetch all ledger entries for all assets at once, those require the `code` argument to be supplied to `fetchLedger` method.
+
+### Ledger Structure
+
+```JavaScript
+{
+    'id': 'string-id',                      // id of the ledger entry, a string
+    'direction': 'out',                     // or 'in'
+    'account': 'my-account-id',             // string id of the account if any
+    'referenceId': 'trade-id',              // the reference type id
+    'referenceAccount': 'other-account-id', // string id of the opposite account (if any)
+    'type': 'trade',                        // string, reference type, see below
+    'currency': 'BTC',                      // string, unified currency code, 'ETH', 'USDT'...
+    'amount': 123.45,                       // absolute number, float (does not include the fee)
+    'timestamp': 1544582941735,             // milliseconds since epoch time in UTC
+    'datetime': "2018-12-12T02:49:01.735Z", // string of timestamp, ISO8601
+    'fee': {                                // object or or undefined
+        'cost': 54.321,                     // absolute number on top of the amount
+        'currency': 'ETH',                  // string, unified currency code, 'ETH', 'USDT'...
+    },
+    'info': { ... },                        // raw ledger entry as is from the exchange
+}
+```
+
+### Notes on Ledger Structure
+
+#### Reference Accounts
+
+The `referenceId` field
+
+#### Types of Ledger Entries
+
+The type of the ledger entry is the type of the operation associated with it. If the amount comes due to a sell order, then it is associated with a corresponding trade type ledger entry, and the referenceId will contain associated trade id (if the exchange in question provides it). If the amount comes out due to a withdrawal, then is is associated with a corresponding transaction.
+
+- `trade`
+- `transaction`
+- `fee`
+- `rebate`
+- `cashback`
+- `referral`
+- `transfer`
+- `whatever`
+- ...
 
 ## Overriding The Nonce
 
