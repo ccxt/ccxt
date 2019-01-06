@@ -30,6 +30,7 @@ class quadrigacx (Exchange):
                 'fetchTickers': True,
                 'fetchOrder': True,
                 'fetchMyTrades': True,
+                'fetchTransactions': True,
                 'CORS': True,
                 'withdraw': True,
             },
@@ -119,6 +120,70 @@ class quadrigacx (Exchange):
         response = await self.privatePostUserTransactions(self.extend(request, params))
         trades = self.filter_by(response, 'type', 2)
         return self.parse_trades(trades, market, since, limit)
+
+    async def fetch_transactions(self, symbol=None, since=None, limit=None, params={}):
+        market = None
+        request = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            request['book'] = market['id']
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.privatePostUserTransactions(self.extend(request, params))
+        user_transactions = self.filter_by_array(response, 'type', [0, 1], False)
+        # return user_transactions
+        return self.parseTransactions(user_transactions, market, since, limit)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        #     {
+        #         "btc":"0.99985260",
+        #         "method":"Bitcoin",
+        #         "fee":"0.00000000",
+        #         "type":0,
+        #         "datetime":"2018-10-08 05:26:23"
+        #     }
+        #
+        #     {
+        #         "btc":"-0.50000000",
+        #         "method":"Bitcoin",
+        #         "fee":"0.00000000",
+        #         "type":1,
+        #         "datetime":"2018-08-27 13:50:10"
+        #     }
+        #
+        code = None
+        amount = None
+        omitted = self.omit(transaction, ['datetime', 'type', 'method', 'fee'])
+        keys = list(omitted.keys())
+        for i in range(0, len(keys)):
+            if keys[i] in self.currencies_by_id:
+                code = keys[i]
+        if code is not None:
+            amount = self.safe_string(transaction, code)
+        timestamp = self.parse8601(self.safe_string(transaction, 'datetime'))
+        status = 'ok'
+        fee = self.safe_float(transaction, 'fee')
+        type = self.safe_integer(transaction, 'type')
+        type = 'withdrawal' if (type == 1) else 'deposit'
+        return {
+            'info': transaction,
+            'id': None,
+            'txid': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'address': None,
+            'tag': None,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': None,
+            'fee': {
+                'currency': code,
+                'cost': fee,
+            },
+        }
 
     async def fetch_order(self, id, symbol=None, params={}):
         request = {

@@ -260,7 +260,7 @@ class poloniex (Exchange):
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
-                'active': True,
+                'active': market['isFrozen'] != '1',
                 'precision': precision,
                 'limits': {
                     'amount': {

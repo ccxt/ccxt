@@ -81,26 +81,22 @@ declare module 'ccxt' {
     }
 
     export interface Order {
-        id: string,
-        datetime: string,
-        timestamp: number,
-        lastTradeTimestamp: number,
-        status: 'open' | 'closed' | 'canceled',
-        symbol: string,
-        type: 'market' | 'limit',
-        side: 'buy' | 'sell',
-        price: number,
-        amount: number,
-        filled: number,
-        remaining: number,
-        cost: number,
-        trades: Trade[],
-        fee: {
-          cost: number;
-          currency: number;
-          rate?: number;
-        };
-        info: {},
+        id: string;
+        datetime: string;
+        timestamp: number;
+        lastTradeTimestamp: number;
+        status: 'open' | 'closed' | 'canceled';
+        symbol: string;
+        type: 'market' | 'limit';
+        side: 'buy' | 'sell';
+        price: number;
+        amount: number;
+        filled: number;
+        remaining: number;
+        cost: number;
+        trades: Trade[];
+        fee: Fee;
+        info: {};
     }
 
     export interface OrderBook {
@@ -124,15 +120,11 @@ declare module 'ccxt' {
         symbol: string;                  // symbol in CCXT format
         takerOrMaker: 'taker' | 'maker'; // string, 'taker' or 'maker'
         cost: number;                    // total cost (including fees), `price * amount`
-        fee: {                           // provided by exchange or calculated by ccxt
-          cost: number;                  // float
-          currency: number;              // usually base currency for buys, quote currency for sells
-          rate?: number;                 // the fee rate (if available)
-        };
+        fee: Fee;
     }
 
     export interface Ticker {
-        symbol: string,
+        symbol: string;
         info: object;
         timestamp: number;
         datetime: string;
@@ -166,10 +158,7 @@ declare module 'ccxt' {
         currency: string;
         status: "pending" | "ok";
         updated: number;
-        fee: {
-          cost: number;
-          rate: number;
-        };
+        fee: Fee;
     }
 
     export interface Tickers {
@@ -183,9 +172,9 @@ declare module 'ccxt' {
     }
 
     export interface Balance {
-        free: number,
-        used: number,
-        total: number
+        free: number;
+        used: number;
+        total: number;
     }
 
     export interface PartialBalances {
@@ -198,10 +187,17 @@ declare module 'ccxt' {
     }
 
     export interface DepositAddress {
-        currency: string,
-        address: string,
-        status: string,
-        info: any,
+        currency: string;
+        address: string;
+        status: string;
+        info: any;
+    }
+
+    export interface Fee {
+        type: 'taker' | 'maker';
+        currency: string;
+        rate: number;
+        cost: number;
     }
 
     // timestamp, open, high, low, close, volume
