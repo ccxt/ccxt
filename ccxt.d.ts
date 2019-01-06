@@ -81,22 +81,22 @@ declare module 'ccxt' {
     }
 
     export interface Order {
-        id: string,
-        datetime: string,
-        timestamp: number,
-        lastTradeTimestamp: number,
-        status: 'open' | 'closed' | 'canceled',
-        symbol: string,
-        type: 'market' | 'limit',
-        side: 'buy' | 'sell',
-        price: number,
-        amount: number,
-        filled: number,
-        remaining: number,
-        cost: number,
-        trades: Trade[],
-        fee: Fee,
-        info: {},
+        id: string;
+        datetime: string;
+        timestamp: number;
+        lastTradeTimestamp: number;
+        status: 'open' | 'closed' | 'canceled';
+        symbol: string;
+        type: 'market' | 'limit';
+        side: 'buy' | 'sell';
+        price: number;
+        amount: number;
+        filled: number;
+        remaining: number;
+        cost: number;
+        trades: Trade[];
+        fee: Fee;
+        info: {};
     }
 
     export interface OrderBook {
@@ -124,7 +124,7 @@ declare module 'ccxt' {
     }
 
     export interface Ticker {
-        symbol: string,
+        symbol: string;
         info: object;
         timestamp: number;
         datetime: string;
@@ -172,9 +172,9 @@ declare module 'ccxt' {
     }
 
     export interface Balance {
-        free: number,
-        used: number,
-        total: number
+        free: number;
+        used: number;
+        total: number;
     }
 
     export interface PartialBalances {
@@ -187,17 +187,17 @@ declare module 'ccxt' {
     }
 
     export interface DepositAddress {
-        currency: string,
-        address: string,
-        status: string,
-        info: any,
+        currency: string;
+        address: string;
+        status: string;
+        info: any;
     }
 
     export interface Fee {
-        type: 'taker' | 'maker',
-        currency: string,
-        rate: number,
-        cost: number,
+        type: 'taker' | 'maker';
+        currency: string;
+        rate: number;
+        cost: number;
     }
 
     // timestamp, open, high, low, close, volume
