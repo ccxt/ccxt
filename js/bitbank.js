@@ -182,7 +182,6 @@ module.exports = class bitbank extends Exchange {
         let fee = undefined;
         if ('fee_amount_quote' in trade) {
             fee = {
-                'type': takerOrMaker,
                 'currency': market['quote'],
                 'cost': this.safeFloat (trade, 'fee_amount_quote'),
             };
@@ -195,12 +194,12 @@ module.exports = class bitbank extends Exchange {
             'order': this.safeString (trade, 'order_id'),
             'type': this.safeString (trade, 'type'),
             'side': trade['side'],
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
             'fee': fee,
             'info': trade,
-            'takerOrMaker': takerOrMaker,
         };
     }
 
