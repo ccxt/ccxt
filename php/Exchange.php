@@ -2358,7 +2358,7 @@ class Exchange {
     }
 
     public static function totp ($key) {
-        $otp = TOTP::create (Base32::encode ($key));
+        $otp = TOTP::create (Base32::encode (str_replace ($key, ' ', '')));
         return $otp->now ();
     }
 }
