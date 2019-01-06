@@ -1693,7 +1693,7 @@ class Exchange(object):
             return base64.b32decode(padded)  # throws an error if the key is invalid
 
         epoch = int(time.time()) // 30
-        hmac_res = Exchange.hmac(dec_to_bytes(epoch).rjust(8, b'\x00'), base32_to_bytes(key), hashlib.sha1, 'hex')
+        hmac_res = Exchange.hmac(dec_to_bytes(epoch).rjust(8, b'\x00'), base32_to_bytes(key.replace(' ', '')), hashlib.sha1, 'hex')
         offset = hex_to_dec(hmac_res[-1]) * 2
         otp = str(hex_to_dec(hmac_res[offset: offset + 8]) & 0x7fffffff)
         return otp[-6:]
