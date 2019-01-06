@@ -58,6 +58,7 @@ const totp = (secret) => {
     }
 
     const getOTP = (secret) => {
+        secret = secret.replace (' ', '') // support 2fa-secrets with spaces like "4TDV WOGO" → "4TDVWOGO"
         let epoch = Math.round (new Date ().getTime () / 1000.0)
         let time = leftpad (dec2hex (Math.floor (epoch / 30)), '0000000000000000')
         let hmacRes = hmac (CryptoJS.enc.Hex.parse (time), CryptoJS.enc.Hex.parse (base32tohex (secret)), 'sha1', 'hex')
@@ -66,6 +67,7 @@ const totp = (secret) => {
         otp = (otp).substr (otp.length - 6, 6)
         return otp
     }
+    
     return getOTP (secret)
 }
 
