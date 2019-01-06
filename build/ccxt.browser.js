@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.104'
+const version = '1.18.105'
 
 Exchange.ccxtVersion = version
 
@@ -54777,7 +54777,7 @@ module.exports = class poloniex extends Exchange {
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
-                'active': true,
+                'active': market['isFrozen'] !== '1',
                 'precision': precision,
                 'limits': {
                     'amount': {
