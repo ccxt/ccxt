@@ -173,7 +173,7 @@ module.exports = class bitbank extends Exchange {
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'amount');
         let symbol = market['symbol'];
-        let cost = this.costToPrecision (symbol, price * amount);
+        let cost = parseFloat (this.costToPrecision (symbol, price * amount));
         let id = this.safeString (trade, 'transaction_id');
         if (!id) {
             id = this.safeString (trade, 'trade_id');
