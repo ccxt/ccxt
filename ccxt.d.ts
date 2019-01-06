@@ -95,11 +95,7 @@ declare module 'ccxt' {
         remaining: number,
         cost: number,
         trades: Trade[],
-        fee: {
-          cost: number;
-          currency: number;
-          rate?: number;
-        };
+        fee: Fee,
         info: {},
     }
 
@@ -124,11 +120,7 @@ declare module 'ccxt' {
         symbol: string;                  // symbol in CCXT format
         takerOrMaker: 'taker' | 'maker'; // string, 'taker' or 'maker'
         cost: number;                    // total cost (including fees), `price * amount`
-        fee: {                           // provided by exchange or calculated by ccxt
-          cost: number;                  // float
-          currency: number;              // usually base currency for buys, quote currency for sells
-          rate?: number;                 // the fee rate (if available)
-        };
+        fee: Fee;
     }
 
     export interface Ticker {
@@ -166,10 +158,7 @@ declare module 'ccxt' {
         currency: string;
         status: "pending" | "ok";
         updated: number;
-        fee: {
-          cost: number;
-          rate: number;
-        };
+        fee: Fee;
     }
 
     export interface Tickers {
@@ -202,6 +191,13 @@ declare module 'ccxt' {
         address: string,
         status: string,
         info: any,
+    }
+
+    export interface Fee {
+        type: 'taker' | 'maker',
+        currency: string,
+        rate: number,
+        cost: number,
     }
 
     // timestamp, open, high, low, close, volume
