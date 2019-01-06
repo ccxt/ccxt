@@ -2351,18 +2351,14 @@ class Exchange {
 
     public function oath () {
         if ($this->twofa) {
-            try {
-                return $this->totp ($this->twofa);
-            } catch (\Exception $e) {
-                echo $e;
-            }
+            return $this->totp ($this->twofa);
         } else {
-            echo 'you must set $this->twofa in order for oath to work';
+            throw new ExchangeError ($this->id . ' requires a non-empty value in $this->twofa property');
         }
     }
 
     public static function totp ($key) {
-        $otp = TOTP::create(Base32::encode($key));
-        return $otp->now();
+        $otp = TOTP::create (Base32::encode ($key));
+        return $otp->now ();
     }
 }
