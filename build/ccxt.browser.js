@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.105'
+const version = '1.18.106'
 
 Exchange.ccxtVersion = version
 
@@ -46497,7 +46497,7 @@ module.exports = class kraken extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response) {
         if (code === 520) {
-            throw new ExchangeNotAvailable (this.id + ' ' + body);
+            throw new ExchangeNotAvailable (this.id + ' ' + code.toString () + ' ' + reason);
         }
         if (body.indexOf ('Invalid order') >= 0)
             throw new InvalidOrder (this.id + ' ' + body);

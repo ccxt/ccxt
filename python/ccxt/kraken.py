@@ -1105,7 +1105,7 @@ class kraken (Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response):
         if code == 520:
-            raise ExchangeNotAvailable(self.id + ' ' + body)
+            raise ExchangeNotAvailable(self.id + ' ' + str(code) + ' ' + reason)
         if body.find('Invalid order') >= 0:
             raise InvalidOrder(self.id + ' ' + body)
         if body.find('Invalid nonce') >= 0:
