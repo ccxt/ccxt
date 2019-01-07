@@ -949,7 +949,7 @@ class Exchange {
         throw new NotSupported ($this->id . ' camelcase() not implemented yet');
     }
 
-    public function hash ($request, $type = 'md5', $digest = 'hex') {
+    public static function hash ($request, $type = 'md5', $digest = 'hex') {
         $base64 = ($digest === 'base64');
         $binary = ($digest === 'binary');
         $hash = hash ($type, $request, ($binary || $base64) ? true : false);
@@ -958,7 +958,7 @@ class Exchange {
         return $hash;
     }
 
-    public function hmac ($request, $secret, $type = 'sha256', $digest = 'hex') {
+    public static function hmac ($request, $secret, $type = 'sha256', $digest = 'hex') {
         $base64 = ($digest === 'base64');
         $binary = ($digest === 'binary');
         $hmac = hash_hmac ($type, $request, $secret, ($binary || $base64) ? true : false);
@@ -2358,7 +2358,23 @@ class Exchange {
     }
 
     public static function totp ($key) {
-        $otp = TOTP::create (Base32::encode (str_replace ($key, ' ', '')));
-        return $otp->now ();
+        $noSpaceKey = str_replace (' ', '', $key);
+        $encodedKey = $noSpaceKey;
+        $epoch = floor (time() / 30);
+        $encodedEpoch = pack ('J', $epoch);
+        echo $epoch;
+        echo $encodedKey . "\n";
+        echo $encodedEpoch . "\n";
+        $hmacResult = static::hmac($encodedEpoch, $key,"sha256", "hex");
+
+        $hmac = [];
+        foreach (str_split($hmacResult, 2) as $hex) {
+            $hmac[] = hexdec($hex);
+        }
+        $offset = $hmac[count($hmac) - 1] & 0xF;
+        $code = ($hmac[$offset + 0] & 0x7F) << 24 | ($hmac[$offset + 1] & 0xFF) << 16 | ($hmac[$offset + 2] & 0xFF) << 8 | ($hmac[$offset + 3] & 0xFF);
+        $otp = $code % pow(10, 6);
+
+        return str_pad((string) $otp, 6, '0', STR_PAD_LEFT);
     }
 }
