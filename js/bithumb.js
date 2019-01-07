@@ -224,7 +224,8 @@ module.exports = class bithumb extends Exchange {
                 symbol = market['symbol'];
             }
             let ticker = tickers[id];
-            if (!Array.isArray (ticker)) {
+            let isArray = Array.isArray (ticker);
+            if (!isArray) {
                 ticker['date'] = timestamp;
                 result[symbol] = this.parseTicker (ticker, market);
             }
