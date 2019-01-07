@@ -33,8 +33,6 @@ namespace ccxt;
 use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
-use OTPHP\TOTP;
-use ParagonIE\ConstantTime\Base32;
 
 $version = '1.17.533';
 
@@ -2358,15 +2356,24 @@ class Exchange {
     }
 
     public static function totp ($key) {
+        function base32_decode($s){
+            static $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+            $tmp = '';
+            foreach (str_split($s) as $c) {
+                if (false === ($v = strpos($alphabet, $c))) {
+                    $v = 0;
+                }
+                $tmp .= sprintf('%05b', $v);
+            }
+            $args = array_map('bindec', str_split($tmp, 8));
+            array_unshift($args, 'C*');
+            return rtrim(call_user_func_array('pack', $args), "\0");
+        }
         $noSpaceKey = str_replace (' ', '', $key);
-        $encodedKey = $noSpaceKey;
+        $encodedKey = base32_decode($noSpaceKey);
         $epoch = floor (time() / 30);
         $encodedEpoch = pack ('J', $epoch);
-        echo $epoch;
-        echo $encodedKey . "\n";
-        echo $encodedEpoch . "\n";
-        $hmacResult = static::hmac($encodedEpoch, $key,"sha256", "hex");
-
+        $hmacResult = static::hmac($encodedEpoch, $encodedKey,"sha1", "hex");
         $hmac = [];
         foreach (str_split($hmacResult, 2) as $hex) {
             $hmac[] = hexdec($hex);
