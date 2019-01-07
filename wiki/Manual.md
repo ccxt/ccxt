@@ -576,7 +576,7 @@ Each market is an associative array (aka dictionary) with the following keys:
 - `symbol`. An uppercase string code representation of a particular trading pair or instrument. This is usually written as `BaseCurrency/QuoteCurrency` with a slash as in `BTC/USD`, `LTC/CNY` or `ETH/EUR`, etc. Symbols are used to reference markets within the ccxt library (explained below).
 - `base`. An uppercase string code of base fiat or crypto currency.
 - `quote`. An uppercase string code of quoted fiat or crypto currency.
-- `active`. A boolean indicating whether or not trading this market is currently possible.
+- `active`. A boolean indicating whether or not trading this market is currently possible. Often, when a market is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that market. The user should check if the market is active and [reload market cache periodically, as explained below](#market-cache-force-reload).
 - `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 - `precision`. The amounts of decimal digits accepted in order values by exchanges upon order placement for price, amount and cost.
 - `limits`. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price * amount).
