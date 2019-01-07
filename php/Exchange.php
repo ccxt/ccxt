@@ -2381,7 +2381,6 @@ class Exchange {
         $offset = $hmac[count($hmac) - 1] & 0xF;
         $code = ($hmac[$offset + 0] & 0x7F) << 24 | ($hmac[$offset + 1] & 0xFF) << 16 | ($hmac[$offset + 2] & 0xFF) << 8 | ($hmac[$offset + 3] & 0xFF);
         $otp = $code % pow(10, 6);
-
         return str_pad((string) $otp, 6, '0', STR_PAD_LEFT);
     }
 }
