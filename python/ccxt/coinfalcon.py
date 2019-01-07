@@ -141,11 +141,11 @@ class coinfalcon (Exchange):
         }
 
     def fetch_ticker(self, symbol, params={}):
-        self.load_markets()
         tickers = self.fetch_tickers(params)
         return tickers[symbol]
 
     def fetch_tickers(self, symbols=None, params={}):
+        self.load_markets()
         response = self.publicGetMarkets()
         tickers = response['data']
         result = {}
