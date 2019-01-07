@@ -296,7 +296,8 @@ module.exports = class itbit extends Exchange {
             let auth = [ method, url, body, nonce, timestamp ];
             let message = nonce + this.json (auth).replace ('\\/', '/');
             let hash = this.hash (this.encode (message), 'sha256', 'binary');
-            let binhash = this.binaryConcat (url, hash);
+            let binaryUrl = this.stringToBinary (this.encode (url));
+            let binhash = this.binaryConcat (binaryUrl, hash);
             let signature = this.hmac (binhash, this.encode (this.secret), 'sha512', 'base64');
             headers = {
                 'Authorization': this.apiKey + ':' + signature,
