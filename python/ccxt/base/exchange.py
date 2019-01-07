@@ -132,7 +132,7 @@ class Exchange(object):
     uid = ''
     privateKey = ''  # a "0x"-prefixed hexstring private key for a wallet
     walletAddress = ''  # the wallet address "0x"-prefixed hexstring
-    twofa = False
+    twofa = None
     marketsById = None
     markets_by_id = None
     currencies_by_id = None
@@ -1675,3 +1675,32 @@ class Exchange(object):
         message_hash = self.hashMessage(message)
         signature = self.signHash(message_hash[-64:], privateKey[-64:])
         return signature
+
+    def oath(self):
+        if self.twofa is not None:
+            return self.totp(self.twofa)
+        else:
+            raise ExchangeError(self.id + ' set .twofa to use this feature')
+
+    @staticmethod
+    def totp(key):
+        def dec_to_bytes(n):
+            if n > 0:
+                return dec_to_bytes(n // 256) + bytes([n % 256])
+            else:
+                return b''
+
+        def hex_to_dec(n):
+            return int(n, base=16)
+
+        def base32_to_bytes(n):
+            missing_padding = len(n) % 8
+            padding = 8 - missing_padding if missing_padding > 0 else 0
+            padded = n.upper() + ('=' * padding)
+            return base64.b32decode(padded)  # throws an error if the key is invalid
+
+        epoch = int(time.time()) // 30
+        hmac_res = Exchange.hmac(dec_to_bytes(epoch).rjust(8, b'\x00'), base32_to_bytes(key.replace(' ', '')), hashlib.sha1, 'hex')
+        offset = hex_to_dec(hmac_res[-1]) * 2
+        otp = str(hex_to_dec(hmac_res[offset: offset + 8]) & 0x7fffffff)
+        return otp[-6:]
