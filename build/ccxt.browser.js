@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.110'
+const version = '1.18.114'
 
 Exchange.ccxtVersion = version
 
@@ -1655,7 +1655,7 @@ module.exports = class Exchange {
         this.debug         = false
         this.journal       = 'debug.json'
         this.userAgent     = undefined
-        this.twofa         = false // two-factor authentication (2FA)
+        this.twofa         = undefined // two-factor authentication (2FA)
 
         this.apiKey        = undefined
         this.secret        = undefined
@@ -2849,6 +2849,14 @@ module.exports = class Exchange {
         // an alternative to signMessage using ethUtil (ethereumjs-util) instead of web3
         return this.signHash (this.hashMessage (message), privateKey.slice (-64))
     }
+
+    oath (key) {
+        if (typeof this.twofa !== 'undefined') {
+            return this.totp (key)
+        } else {
+            throw new ExchangeError (this.id + ' this.twofa has not been set')
+        }
+    }
 }
 
 }).call(this,require("buffer").Buffer)
@@ -2996,7 +3004,7 @@ module.exports = unCamelCasePropertyNames (Object.assign ({}
 /*  ------------------------------------------------------------------------ */
 
 },{"./functions/crypto":12,"./functions/encode":13,"./functions/generic":14,"./functions/misc":15,"./functions/number":16,"./functions/platform":17,"./functions/string":18,"./functions/throttle":19,"./functions/time":20,"./functions/type":21}],12:[function(require,module,exports){
-"use strict";
+'use strict'
 
 /*  ------------------------------------------------------------------------ */
 
@@ -3034,11 +3042,48 @@ const jwt = function JSON_web_token (request, secret, alg = 'HS256', hash = 'sha
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports = {
+const totp = (secret) => {
 
+    const dec2hex = s => ((s < 15.5 ? '0' : '') + Math.round (s).toString (16))
+        , hex2dec = s => parseInt (s, 16)
+        , leftpad = (s, p) => (p + s).slice (-p.length) // both s and p are short strings
+
+    const base32tohex = (base32) => {
+        let base32chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
+        let bits = ''
+        let hex = ''
+        for (let i = 0; i < base32.length; i++) {
+            let val = base32chars.indexOf (base32.charAt (i).toUpperCase ())
+            bits += leftpad (val.toString (2), '00000')
+        }
+        for (let i = 0; i + 4 <= bits.length; i += 4) {
+            let chunk = bits.substr (i, 4)
+            hex = hex + parseInt (chunk, 2).toString (16)
+        }
+        return hex
+    }
+
+    const getOTP = (secret) => {
+        secret = secret.replace (' ', '') // support 2fa-secrets with spaces like "4TDV WOGO" → "4TDVWOGO"
+        let epoch = Math.round (new Date ().getTime () / 1000.0)
+        let time = leftpad (dec2hex (Math.floor (epoch / 30)), '0000000000000000')
+        let hmacRes = hmac (CryptoJS.enc.Hex.parse (time), CryptoJS.enc.Hex.parse (base32tohex (secret)), 'sha1', 'hex')
+        let offset = hex2dec (hmacRes.substring (hmacRes.length - 1))
+        let otp = (hex2dec (hmacRes.substr (offset * 2, 8)) & hex2dec ('7fffffff')) + ''
+        otp = (otp).substr (otp.length - 6, 6)
+        return otp
+    }
+    
+    return getOTP (secret)
+}
+
+/*  ------------------------------------------------------------------------ */
+
+module.exports = {
     hash,
     hmac,
-    jwt
+    jwt,
+    totp,
 }
 
 /*  ------------------------------------------------------------------------ */
@@ -11251,7 +11296,8 @@ module.exports = class bithumb extends Exchange {
                 symbol = market['symbol'];
             }
             let ticker = tickers[id];
-            if (!Array.isArray (ticker)) {
+            let isArray = Array.isArray (ticker);
+            if (!isArray) {
                 ticker['date'] = timestamp;
                 result[symbol] = this.parseTicker (ticker, market);
             }
@@ -38602,7 +38648,8 @@ module.exports = class gdax extends Exchange {
             if ((base === 'ETH') || (base === 'LTC')) {
                 taker = 0.003;
             }
-            let active = market['status'] === 'online';
+            const accessible = this.safeValue (market, 'accessible');
+            const active = (market['status'] === 'online') && accessible;
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -44688,7 +44735,8 @@ module.exports = class itbit extends Exchange {
             let auth = [ method, url, body, nonce, timestamp ];
             let message = nonce + this.json (auth).replace ('\\/', '/');
             let hash = this.hash (this.encode (message), 'sha256', 'binary');
-            let binhash = this.binaryConcat (url, hash);
+            let binaryUrl = this.stringToBinary (this.encode (url));
+            let binhash = this.binaryConcat (binaryUrl, hash);
             let signature = this.hmac (binhash, this.encode (this.secret), 'sha512', 'base64');
             headers = {
                 'Authorization': this.apiKey + ':' + signature,

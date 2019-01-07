@@ -225,7 +225,8 @@ class bithumb extends Exchange {
                 $symbol = $market['symbol'];
             }
             $ticker = $tickers[$id];
-            if (!gettype ($ticker) === 'array' && count (array_filter (array_keys ($ticker), 'is_string')) == 0) {
+            $isArray = gettype ($ticker) === 'array' && count (array_filter (array_keys ($ticker), 'is_string')) == 0;
+            if (!$isArray) {
                 $ticker['date'] = $timestamp;
                 $result[$symbol] = $this->parse_ticker($ticker, $market);
             }

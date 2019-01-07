@@ -226,7 +226,8 @@ class bithumb (Exchange):
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
             ticker = tickers[id]
-            if not isinstance(ticker, list):
+            isArray = isinstance(ticker, list)
+            if not isArray:
                 ticker['date'] = timestamp
                 result[symbol] = self.parse_ticker(ticker, market)
         return result
