@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.111'
+const version = '1.18.112'
 
 Exchange.ccxtVersion = version
 
@@ -11296,7 +11296,8 @@ module.exports = class bithumb extends Exchange {
                 symbol = market['symbol'];
             }
             let ticker = tickers[id];
-            if (!Array.isArray (ticker)) {
+            let isArray = Array.isArray (ticker);
+            if (!isArray) {
                 ticker['date'] = timestamp;
                 result[symbol] = this.parseTicker (ticker, market);
             }
