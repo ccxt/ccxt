@@ -508,7 +508,7 @@ class livecoin extends Exchange {
             $order = $rawOrders[$i];
             $result[] = $this->parse_order($order, $market);
         }
-        return $result;
+        return $this->sort_by($result, 'timestamp');
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
