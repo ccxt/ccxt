@@ -502,8 +502,10 @@ module.exports = class livecoin extends Exchange {
         let response = await this.privateGetExchangeClientOrders (this.extend (request, params));
         let result = [];
         let rawOrders = [];
-        if (response['data'])
+        if (response['data']) {
             rawOrders = response['data'];
+            rawOrders = rawOrders.reverse();
+        }
         for (let i = 0; i < rawOrders.length; i++) {
             let order = rawOrders[i];
             result.push (this.parseOrder (order, market));
