@@ -56,6 +56,7 @@ import time
 import uuid
 import zlib
 from decimal import Decimal
+import codecs
 
 # -----------------------------------------------------------------------------
 
@@ -1622,8 +1623,67 @@ class Exchange(object):
         ]
         return self.web3.soliditySha3(types, unpacked).hex()
 
+    def getZeroExOrderHashV2(self, order):
+        # https://github.com/0xProject/0x-monorepo/blob/development/python-packages/order_utils/src/zero_ex/order_utils/__init__.py
+        def pad_20_bytes_to_32(twenty_bytes):
+            return bytes(12) + twenty_bytes
+
+        def int_to_32_big_endian_bytes(i):
+            return i.to_bytes(32, byteorder="big")
+
+        def remove_0x_prefix(value):
+            if value[:2] == '0x':
+                return value[2:]
+            return value
+
+        def to_bytes(value):
+            if not isinstance(value, str):
+                raise TypeError("Value must be an instance of str")
+            if len(value) % 2:
+                value = "0x0" + remove_0x_prefix(value)
+            return codecs.decode(remove_0x_prefix(value), "hex")
+
+        domain_struct_header = b"\x91\xab=\x17\xe3\xa5\n\x9d\x89\xe6?\xd3\x0b\x92\xbe\x7fS6\xb0;({\xb9Fxz\x83\xa9\xd6*'f\xf0\xf2F\x18\xf4\xc4\xbe\x1eb\xe0&\xfb\x03\x9a \xef\x96\xf4IR\x94\x81}\x10'\xff\xaam\x1fp\xe6\x1e\xad|[\xef\x02x\x16\xa8\x00\xda\x176DO\xb5\x8a\x80~\xf4\xc9`;xHg?~:h\xeb\x14\xa5"
+        order_schema_hash = b'w\x05\x01\xf8\x8a&\xed\xe5\xc0J \xef\x87yi\xe9a\xeb\x11\xfc\x13\xb7\x8a\xafAKc=\xa0\xd4\xf8o'
+        header = b"\x19\x01"
+
+        domain_struct_hash = self.web3.sha3(
+            domain_struct_header +
+            pad_20_bytes_to_32(to_bytes(order["exchangeAddress"]))
+        )
+
+        order_struct_hash = self.web3.sha3(
+            order_schema_hash +
+            pad_20_bytes_to_32(to_bytes(order["makerAddress"])) +
+            pad_20_bytes_to_32(to_bytes(order["takerAddress"])) +
+            pad_20_bytes_to_32(to_bytes(order["feeRecipientAddress"])) +
+            pad_20_bytes_to_32(to_bytes(order["senderAddress"])) +
+            int_to_32_big_endian_bytes(int(order["makerAssetAmount"])) +
+            int_to_32_big_endian_bytes(int(order["takerAssetAmount"])) +
+            int_to_32_big_endian_bytes(int(order["makerFee"])) +
+            int_to_32_big_endian_bytes(int(order["takerFee"])) +
+            int_to_32_big_endian_bytes(int(order["expirationTimeSeconds"])) +
+            int_to_32_big_endian_bytes(int(order["salt"])) +
+            self.web3.sha3(to_bytes(order["makerAssetData"])) +
+            self.web3.sha3(to_bytes(order["takerAssetData"]))
+        )
+
+        return self.web3.sha3(
+            header +
+            domain_struct_hash +
+            order_struct_hash
+        ).hex()
+
     def signZeroExOrder(self, order, privateKey):
         orderHash = self.getZeroExOrderHash(order)
+        signature = self.signMessage(orderHash[-64:], privateKey)
+        return self.extend(order, {
+            'orderHash': orderHash,
+            'ecSignature': signature,  # todo fix v if needed
+        })
+
+    def signZeroExOrderV2(self, order, privateKey):
+        orderHash = self.getZeroExOrderHashV2(order)
         signature = self.signMessage(orderHash[-64:], privateKey)
         return self.extend(order, {
             'orderHash': orderHash,
