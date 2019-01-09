@@ -1210,7 +1210,7 @@ class upbit extends Exchange {
         );
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market_id($symbol);
+            $market = $this->market ($symbol);
             $request['market'] = $market['id'];
         }
         $response = $this->privateGetOrders (array_merge ($request, $params));

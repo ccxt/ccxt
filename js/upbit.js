@@ -1209,7 +1209,7 @@ module.exports = class upbit extends Exchange {
         };
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.marketId (symbol);
+            market = this.market (symbol);
             request['market'] = market['id'];
         }
         const response = await this.privateGetOrders (this.extend (request, params));
