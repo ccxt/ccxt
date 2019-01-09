@@ -1149,7 +1149,7 @@ class upbit (Exchange):
         }
         market = None
         if symbol is not None:
-            market = self.market_id(symbol)
+            market = self.market(symbol)
             request['market'] = market['id']
         response = self.privateGetOrders(self.extend(request, params))
         #
