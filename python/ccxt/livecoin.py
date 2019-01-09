@@ -495,7 +495,7 @@ class livecoin (Exchange):
         for i in range(0, len(rawOrders)):
             order = rawOrders[i]
             result.append(self.parse_order(order, market))
-        return result
+        return self.sort_by(result, 'timestamp')
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         result = self.fetch_orders(symbol, since, limit, self.extend({
