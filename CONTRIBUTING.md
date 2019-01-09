@@ -85,6 +85,7 @@ The following is a set of rules for contributing to the ccxt library codebase.
   - iconv
   - mbstring
   - PCRE
+  - bcmath (php<7.1)
 - [Pandoc](https://pandoc.org/installing.html) 1.19+
 
 ### What You Need To Know
