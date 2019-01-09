@@ -1514,7 +1514,7 @@ module.exports = class Exchange {
         const signature = this.signMessage (orderHash, privateKey);
         return this.extend (order, {
             'orderHash': orderHash,
-            'ecSignature': signature, // todo fix v if needed
+            'signature': signature, // todo fix v if needed
         })
     }
 

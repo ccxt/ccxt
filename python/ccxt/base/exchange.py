@@ -1622,6 +1622,11 @@ class Exchange(object):
         ]
         return self.web3.soliditySha3(types, unpacked).hex()
 
+    def remove_0x_prefix(self, value):
+        if value[:2] == '0x':
+            return value[2:]
+        return value
+
     def getZeroExOrderHashV2(self, order):
         # https://github.com/0xProject/0x-monorepo/blob/development/python-packages/order_utils/src/zero_ex/order_utils/__init__.py
         def pad_20_bytes_to_32(twenty_bytes):
@@ -1630,17 +1635,12 @@ class Exchange(object):
         def int_to_32_big_endian_bytes(i):
             return i.to_bytes(32, byteorder="big")
 
-        def remove_0x_prefix(value):
-            if value[:2] == '0x':
-                return value[2:]
-            return value
-
         def to_bytes(value):
             if not isinstance(value, str):
                 raise TypeError("Value must be an instance of str")
             if len(value) % 2:
-                value = "0x0" + remove_0x_prefix(value)
-            return base64.b16decode(remove_0x_prefix(value), casefold=True)
+                value = "0x0" + self.remove_0x_prefix(value)
+            return base64.b16decode(self.remove_0x_prefix(value), casefold=True)
 
         domain_struct_header = b"\x91\xab=\x17\xe3\xa5\n\x9d\x89\xe6?\xd3\x0b\x92\xbe\x7fS6\xb0;({\xb9Fxz\x83\xa9\xd6*'f\xf0\xf2F\x18\xf4\xc4\xbe\x1eb\xe0&\xfb\x03\x9a \xef\x96\xf4IR\x94\x81}\x10'\xff\xaam\x1fp\xe6\x1e\xad|[\xef\x02x\x16\xa8\x00\xda\x176DO\xb5\x8a\x80~\xf4\xc9`;xHg?~:h\xeb\x14\xa5"
         order_schema_hash = b'w\x05\x01\xf8\x8a&\xed\xe5\xc0J \xef\x87yi\xe9a\xeb\x11\xfc\x13\xb7\x8a\xafAKc=\xa0\xd4\xf8o'
@@ -1687,8 +1687,16 @@ class Exchange(object):
         signature = self.signMessage(orderHash[-64:], privateKey)
         return self.extend(order, {
             'orderHash': orderHash,
-            'ecSignature': signature,  # todo fix v if needed
+            'signature': self._convert_ec_signature_to_vrs_hex(signature),
         })
+
+    def _convert_ec_signature_to_vrs_hex(self, signature):
+        return (
+            "0x" +
+            self.remove_0x_prefix(hex(signature["v"])) +
+            self.remove_0x_prefix(signature["r"]) +
+            self.remove_0x_prefix(signature["s"])
+        )
 
     def hashMessage(self, message):
         message_bytes = bytes.fromhex(message)

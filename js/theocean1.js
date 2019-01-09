@@ -62,6 +62,7 @@ module.exports = class theocean1 extends Exchange {
                         'order/unsigned/market',
                     ],
                     'post': [
+                        'order',
                         'limit_order/reserve',
                         'limit_order/place',
                         'market_order/reserve',
@@ -1446,7 +1447,6 @@ module.exports = class theocean1 extends Exchange {
     }
 
     async fetchOrderToSign (symbol, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
         if (side !== 'buy' && side !== 'sell') {
             throw new ExchangeError (side + ' is not valid side param. Use \'buy\' or \'sell\'');
         }
@@ -1467,6 +1467,14 @@ module.exports = class theocean1 extends Exchange {
             method = 'privateGetOrderUnsignedMarket';
         }
         let response = await this[method] (this.extend (request, params));
+        return response;
+    }
+
+    async postSignedOrder (signedOrder, requestParams, params = {}) {
+        let request = requestParams;
+        request['signedZeroExOrder'] = signedOrder;
+        request['orderLifecycle'] = 'timeInForce'; // TODO change in API
+        let response = await this.privatePostOrder (this.extend (request, params));
         return response;
     }
 
