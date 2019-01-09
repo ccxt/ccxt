@@ -935,6 +935,10 @@ module.exports = class exmo extends Exchange {
                 feeCost = 0;
             }
             if (feeCost !== undefined) {
+                // withdrawal amount includes the fee
+                if (type === 'withdrawal') {
+                    amount = amount - feeCost;
+                }
                 fee = {
                     'cost': feeCost,
                     'currency': code,
