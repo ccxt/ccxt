@@ -1687,15 +1687,16 @@ class Exchange(object):
         signature = self.signMessage(orderHash[-64:], privateKey)
         return self.extend(order, {
             'orderHash': orderHash,
-            'signature': self._convert_ec_signature_to_vrs_hex(signature),
+            'signature': self._convertEcSignatureToVrsHex(signature),
         })
 
-    def _convert_ec_signature_to_vrs_hex(self, signature):
+    def _convertEcSignatureToVrsHex(self, signature):
         return (
             "0x" +
-            self.remove_0x_prefix(hex(signature["v"])) +
+            hex(signature["v"])[2:] +
             self.remove_0x_prefix(signature["r"]) +
-            self.remove_0x_prefix(signature["s"])
+            self.remove_0x_prefix(signature["s"]) +
+            "03"
         )
 
     def hashMessage(self, message):

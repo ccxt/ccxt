@@ -1473,7 +1473,6 @@ module.exports = class theocean1 extends Exchange {
     async postSignedOrder (signedOrder, requestParams, params = {}) {
         let request = requestParams;
         request['signedZeroExOrder'] = signedOrder;
-        request['orderLifecycle'] = 'timeInForce'; // TODO change in API
         let response = await this.privatePostOrder (this.extend (request, params));
         return response;
     }
