@@ -386,6 +386,7 @@ class Exchange(object):
         return self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        """Exchange.request is the entry point for all generated methods"""
         return self.fetch2(path, api, method, params, headers, body)
 
     @staticmethod
