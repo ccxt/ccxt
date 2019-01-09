@@ -862,6 +862,9 @@ class exmo (Exchange):
             if provider == 'cashback':
                 feeCost = 0
             if feeCost is not None:
+                # withdrawal amount includes the fee
+                if type == 'withdrawal':
+                    amount = amount - feeCost
                 fee = {
                     'cost': feeCost,
                     'currency': code,

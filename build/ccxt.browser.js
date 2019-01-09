@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.116'
+const version = '1.18.117'
 
 Exchange.ccxtVersion = version
 
@@ -35343,6 +35343,10 @@ module.exports = class exmo extends Exchange {
                 feeCost = 0;
             }
             if (feeCost !== undefined) {
+                // withdrawal amount includes the fee
+                if (type === 'withdrawal') {
+                    amount = amount - feeCost;
+                }
                 fee = {
                     'cost': feeCost,
                     'currency': code,
