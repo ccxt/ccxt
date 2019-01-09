@@ -936,6 +936,10 @@ class exmo extends Exchange {
                 $feeCost = 0;
             }
             if ($feeCost !== null) {
+                // withdrawal $amount includes the $fee
+                if ($type === 'withdrawal') {
+                    $amount = $amount - $feeCost;
+                }
                 $fee = array (
                     'cost' => $feeCost,
                     'currency' => $code,
