@@ -51082,7 +51082,7 @@ module.exports = class livecoin extends Exchange {
             let order = rawOrders[i];
             result.push (this.parseOrder (order, market));
         }
-        return result;
+        return this.sortBy (result, 'timestamp');;
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
