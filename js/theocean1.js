@@ -481,19 +481,9 @@ module.exports = class theocean1 extends Exchange {
         //         timestamp: "1532261686"                                                          }
         //
         let timestamp = this.safeInteger (trade, 'lastUpdated');
-        if (timestamp === undefined) {
-            timestamp = this.safeInteger (trade, 'timestamp');
-        }
-        if (timestamp !== undefined) {
-            // their timestamps are in seconds, mostly
-            timestamp = timestamp * 1000;
-        }
         let price = this.safeFloat (trade, 'price');
-        let orderId = this.safeString (trade, 'order');
         let id = this.safeString (trade, 'id');
-        if (id === undefined) {
-            id = this.safeString2 (trade, 'transactionHash', 'txHash');
-        }
+        let side = this.safeString (trade, 'side');
         let symbol = undefined;
         let base = undefined;
         if (market !== undefined) {
@@ -503,27 +493,23 @@ module.exports = class theocean1 extends Exchange {
         let baseDecimals = this.safeInteger (this.options['decimals'], base, 18);
         let amount = this.fromWei (this.safeString (trade, 'amount'), 'ether', baseDecimals);
         let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = amount * price;
-            }
+        if (amount !== undefined && price !== undefined) {
+            cost = amount * price;
         }
         let takerOrMaker = 'taker';
-        let fee = undefined;
-        // let fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
         return {
             'id': id,
-            'order': orderId,
+            'order': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': undefined,
-            'side': undefined,
+            'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': fee,
+            'fee': undefined,
             'info': trade,
         };
     }
@@ -658,7 +644,6 @@ module.exports = class theocean1 extends Exchange {
         let side = this.safeString (order, 'side');
         let type = this.safeString (order, 'type'); // injected from outside
         let timestamp = this.safeInteger (order, 'creationTimestamp');
-        timestamp = (timestamp !== undefined) ? timestamp * 1000 : timestamp;
         let symbol = undefined;
         let baseId = this.safeString (order, 'baseTokenAddress');
         let quoteId = this.safeString (order, 'quoteTokenAddress');
