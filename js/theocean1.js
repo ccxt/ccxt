@@ -14,7 +14,6 @@ module.exports = class theocean1 extends Exchange {
             'version': 'v1',
             'certified': true,
             'requiresWeb3': true,
-            // add GET https://api.staging.theocean.trade/api/v0/candlesticks/intervals to fetchMarkets
             'timeframes': {
                 '5m': '300',
                 '15m': '900',
@@ -58,7 +57,6 @@ module.exports = class theocean1 extends Exchange {
                         'balance',
                         'available_balance',
                         'order_history',
-                        'order/{orderHash}',
                         'order/unsigned',
                         'order/unsigned/market',
                     ],
@@ -73,17 +71,12 @@ module.exports = class theocean1 extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    // "Schema validation failed for 'query'": ExchangeError, // { "message": "Schema validation failed for 'query'", "errors": ... }
-                    // "Logic validation failed for 'query'": ExchangeError, // { "message": "Logic validation failed for 'query'", "errors": ... }
-                    // "Schema validation failed for 'body'": ExchangeError, // { "message": "Schema validation failed for 'body'", "errors": ... }
-                    // "Logic validation failed for 'body'": ExchangeError, // { "message": "Logic validation failed for 'body'", "errors": ... }
                     'Order not found': OrderNotFound, // {"message":"Order not found","errors":...}
                 },
                 'broad': {
                     "Price can't exceed 8 digits in precision.": InvalidOrder, // {"message":"Price can't exceed 8 digits in precision.","type":"paramPrice"}
                     'Order cannot be canceled': InvalidOrder, // {"message":"Order cannot be canceled","type":"General error"}
                     'Greater than available wallet balance.': InsufficientFunds,
-                    'Orderbook exhausted for intent': OrderNotFillable, // {"message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g"}
                     'Fillable amount under minimum': InvalidOrder, // {"message":"Fillable amount under minimum WETH trade size.","type":"paramQuoteTokenAmount"}
                     'Fillable amount over maximum': InvalidOrder, // {"message":"Fillable amount over maximum TUSD trade size.","type":"paramQuoteTokenAmount"}
                     "Schema validation failed for 'params'": BadRequest, // // {"message":"Schema validation failed for 'params'"}
@@ -95,24 +88,6 @@ module.exports = class theocean1 extends Exchange {
                 'fetchOrderMethod': 'fetch_order_from_history',
             },
         });
-    }
-
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        let market = this.markets[symbol];
-        let key = 'quote';
-        let rate = market[takerOrMaker];
-        let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
-        if (side === 'sell') {
-            cost *= price;
-        } else {
-            key = 'base';
-        }
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': cost,
-        };
     }
 
     async fetchMarkets (params = {}) {
