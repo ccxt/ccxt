@@ -1,6 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
+const { ROUND, DECIMAL_PLACES } = require ('./base/functions/number');
 const { ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 module.exports = class rightbtc extends Exchange {
@@ -424,12 +425,12 @@ module.exports = class rightbtc extends Exchange {
         let market = this.market (symbol);
         let order = {
             'trading_pair': market['id'],
-            // We need to add an epsilon here, since e.g.
+            // We need to use decimalToPrecision here, since
             //   0.036*1e8 === 3599999.9999999995
-            // which is 3599999 after parseInt
-            // which gets rejected by rightBtc because it's too precise
-            'quantity': parseInt (amount * 1e8 + 1e-8),
-            'limit': parseInt (price * 1e8 + 1e-8),
+            // which would get truncated to 3599999 after parseInt
+            // which would then be rejected by rightBtc because it's too precise
+            'quantity': this.decimalToPrecision (amount * 1e8, ROUND, 0, DECIMAL_PLACES),
+            'limit': this.decimalToPrecision (price * 1e8, ROUND, 0, DECIMAL_PLACES),
             'type': type.toUpperCase (),
             'side': side.toUpperCase (),
         };
