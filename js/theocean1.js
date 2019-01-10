@@ -649,23 +649,6 @@ module.exports = class theocean1 extends Exchange {
         return response;
     }
 
-    parseOrderStatus (status) {
-        let statuses = {
-            'placed': 'open',
-            'reserved': 'open',
-            'filled': 'closed',
-            'settled': 'closed',
-            'confirmed': 'closed',
-            'returned': 'open',
-            'canceled': 'canceled',
-            'pruned': 'failed',
-        };
-        if (status in statuses) {
-            return statuses[status];
-        }
-        return status;
-    }
-
     parseOrder (order, market = undefined) {
         let zeroExOrder = this.safeValue (order, 'zeroExOrder');
         let id = this.safeString (order, 'orderHash');

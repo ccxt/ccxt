@@ -28,5 +28,10 @@ order_book = ocean.fetch_order_book('REP/ZRX')
 print('REP/ZRX orderbook: ', order_book)
 
 # placing order
-result = ocean.create_order('REP/ZRX', 'limit', 'sell', '0.5', '30')
-print('result of placing order: ', result)
+place_result = ocean.create_order('REP/ZRX', 'limit', 'sell', '0.5', '30')
+print('result of placing order: ', place_result)
+
+# cancel order
+if place_result['remaining'] > 0:
+    cancel_result = ocean.cancel_order(place_result['id'])
+    print('cancel result: ', cancel_result)
