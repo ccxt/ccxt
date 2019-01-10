@@ -29,9 +29,14 @@ print('REP/ZRX orderbook: ', order_book)
 
 # placing order
 place_result = ocean.create_order('REP/ZRX', 'limit', 'sell', '0.5', '30')
+id = place_result['id']
 print('result of placing order: ', place_result)
 
 # cancel order
 if place_result['remaining'] > 0:
-    cancel_result = ocean.cancel_order(place_result['id'])
+    cancel_result = ocean.cancel_order(id)
     print('cancel result: ', cancel_result)
+
+# cancel all open user orders
+cancel_all_orders_result = ocean.cancel_all_orders()
+print('cancel all orders result: ', cancel_all_orders_result)

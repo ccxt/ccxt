@@ -25,12 +25,17 @@ const ccxt = require ('../../ccxt.js')
 
     // placing order
     const placeResult = await ocean.createOrder('REP/ZRX', 'limit', 'sell', '0.5', '30');
+    const id = placeResult['id'];
     console.log('result of placing order: ', placeResult);
 
     // cancel order
     if (placeResult['remaining'] > 0) {
-        const cancelResult = await ocean.cancelOrder(placeResult['id']);
+        const cancelResult = await ocean.cancelOrder(id);
         console.log('cancel result: ', cancelResult);
     }
+
+    // cancel all open user orders
+    const cancelAllOrderssResult = await ocean.cancelAllOrders();
+    console.log('cancel all orders result: ', cancelAllOrderssResult);
     process.exit ();
 }) ()

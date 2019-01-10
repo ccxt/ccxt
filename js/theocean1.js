@@ -67,7 +67,7 @@ module.exports = class theocean1 extends Exchange {
                     ],
                     'delete': [
                         'order/{orderHash}',
-                        'orders',
+                        'order',
                     ],
                 },
             },
@@ -636,8 +636,8 @@ module.exports = class theocean1 extends Exchange {
         });
     }
 
-    async cancelAllOrders (symbols = undefined, params = {}) {
-        const response = await this.privateDeleteOrders (params);
+    async cancelAllOrders (params = {}) {
+        const response = await this.privateDeleteOrder (params);
         //
         //     [{
         //       "canceledOrder": {
