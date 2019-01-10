@@ -1687,13 +1687,17 @@ class Exchange(object):
         signature = self.signMessage(orderHash[-64:], privateKey)
         return self.extend(order, {
             'orderHash': orderHash,
-            'signature': self._convertEcSignatureToVrsHex(signature),
+            'signature': self._convertECSignatureToSignatureHex(signature),
         })
 
-    def _convertEcSignatureToVrsHex(self, signature):
+    def _convertECSignatureToSignatureHex(self, signature):
+        # https://github.com/0xProject/0x-monorepo/blob/development/packages/order-utils/src/signature_utils.ts
+        v = signature["v"]
+        if v != 27 and v != 28:
+            v = v + 27
         return (
             "0x" +
-            hex(signature["v"])[2:] +
+            self.remove_0x_prefix(hex(v)) +
             self.remove_0x_prefix(signature["r"]) +
             self.remove_0x_prefix(signature["s"]) +
             "03"
