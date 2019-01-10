@@ -563,46 +563,14 @@ module.exports = class theocean1 extends Exchange {
             throw new InvalidAddress (errorMessage);
         }
         let orderParams = await this.fetchOrderParamsToSign (symbol, type, side, amount, price, params);
-        let signedOrder = await this.signZeroExOrderV2 (orderParams['unsignedZeroExOrder'], this.privateKey);
-        let result = await this.postSignedOrder (signedOrder, orderParams, params);
-        return result;
-    //     let matchingOrder = this.safeValue (placeResponse, 'matchingOrder');
-    //     let targetOrder = this.safeValue (placeResponse, 'targetOrder');
-    //     const orderParams = {
-    //         'timestamp': timestamp,
-    //         'datetime': this.iso8601 (timestamp),
-    //         'price': price,
-    //         'side': side,
-    //         'filled': 0,
-    //         'status': 'open',
-    //     };
-    //     let taker = undefined;
-    //     let maker = undefined;
-    //     if (matchingOrder !== undefined) {
-    //         matchingOrder = this.extend (signedMatchingOrder, matchingOrder);
-    //         taker = this.parseOrder (matchingOrder, market);
-    //         taker = this.extend (taker, {
-    //             'type': 'market',
-    //             'remaining': taker['amount'],
-    //         }, orderParams);
-    //         if (isTaker)
-    //             return taker;
-    //     }
-    //     if (targetOrder !== undefined) {
-    //         targetOrder = this.extend (signedTargetOrder, targetOrder);
-    //         maker = this.parseOrder (targetOrder, market);
-    //         maker = this.extend (maker, {
-    //             'type': 'limit',
-    //             'remaining': maker['amount'],
-    //         }, orderParams);
-    //         if (isMaker)
-    //             return maker;
-    //     }
-    //     return {
-    //         'info': this.extend (reserveResponse, placeRequest, placeResponse),
-    //         'maker': maker,
-    //         'taker': taker,
-    //     };
+        let unsignedOrder = orderParams['unsignedZeroExOrder'];
+        if (unsignedOrder === undefined) {
+            throw new OrderNotFillable (this.id + ' ' + type + ' order to ' + side + ' ' + symbol + ' is not fillable at the moment');
+        }
+        let signedOrder = await this.signZeroExOrderV2 (unsignedOrder, this.privateKey);
+        await this.postSignedOrder (signedOrder, orderParams, params);
+        let market = this.market (symbol);
+        return this.parseOrder (signedOrder, market);
     }
 
     async fetchOrderParamsToSign (symbol, type, side, amount, price = undefined, params = {}) {
@@ -626,11 +594,13 @@ module.exports = class theocean1 extends Exchange {
             'amount': this.toWei (this.amountToPrecision (symbol, amount), 'ether', baseDecimals), // Base token amount in wei
         };
         let method = undefined;
-        if (price !== undefined) {
+        if (type === 'limit') {
             method = 'privateGetOrderUnsigned';
             request['price'] = this.priceToPrecision (symbol, price);
-        } else {
+        } else if (type === 'market') {
             method = 'privateGetOrderUnsignedMarket';
+        } else {
+            throw new ExchangeError ('Unsupported order type: ' + type);
         }
         let response = await this[method] (this.extend (request, params));
         return response;
