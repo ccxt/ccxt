@@ -203,7 +203,6 @@ module.exports = class theocean1 extends Exchange {
             this.safeFloat (ohlcv, 'low'),
             this.safeFloat (ohlcv, 'close'),
             this.fromWei (this.safeString (ohlcv, 'baseVolume'), 'ether', baseDecimals),
-            // this.safeString (ohlcv, 'quoteVolume'),
         ];
     }
 
@@ -214,12 +213,12 @@ module.exports = class theocean1 extends Exchange {
             'baseTokenAddress': market['baseId'],
             'quoteTokenAddress': market['quoteId'],
             'interval': this.timeframes[timeframe],
-            // 'endTime': endTime, // (optional) Snapshot end time
         };
         if (since === undefined) {
             throw new ExchangeError (this.id + ' fetchOHLCV requires a since argument');
         }
-        request['startTime'] = parseInt (since / 1000);
+        since = parseInt (since);
+        request['startTime'] = since;
         let response = await this.publicGetCandlesticks (this.extend (request, params));
         //
         //   [
