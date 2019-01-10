@@ -24,9 +24,7 @@ const ccxt = require ('../../ccxt.js')
     console.log('REP/ZRX orderbook: ', orderBook);
 
     // placing order
-    const response = await ocean.fetchOrderToSign('REP/ZRX', 'sell', '0.5', '30');
-    const signedOrder = await ocean.signZeroExOrderV2(response['unsignedZeroExOrder'], privateKey);
-    const result = await ocean.postSignedOrder(signedOrder, response);
+    const result = await ocean.createOrder('REP/ZRX', 'limit', 'sell', '0.5', '30');
     console.log('result of placing order: ', result);
     process.exit ();
 }) ()

@@ -28,8 +28,5 @@ order_book = ocean.fetch_order_book('REP/ZRX')
 print('REP/ZRX orderbook: ', order_book)
 
 # placing order
-response = ocean.fetch_order_to_sign('REP/ZRX', 'sell', '0.5', '30')
-unsigned_order = response['unsignedZeroExOrder']
-signed_order = ocean.signZeroExOrderV2(unsigned_order, privateKey)
-result = ocean.post_signed_order(signed_order, response)
+result = ocean.create_order('REP/ZRX', 'limit', 'sell', '0.5', '30')
 print('result of placing order: ', result)
