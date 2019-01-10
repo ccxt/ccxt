@@ -1447,6 +1447,7 @@ module.exports = class theocean1 extends Exchange {
     }
 
     async fetchOrderToSign (symbol, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
         if (side !== 'buy' && side !== 'sell') {
             throw new ExchangeError (side + ' is not valid side param. Use \'buy\' or \'sell\'');
         }
