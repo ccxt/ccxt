@@ -49,6 +49,7 @@ module.exports = class theocean1 extends Exchange {
                         'candlesticks/intervals',
                         'trade_history',
                         'order_book',
+                        'order/{orderHash}',
                         'version',
                     ],
                 },
@@ -56,17 +57,13 @@ module.exports = class theocean1 extends Exchange {
                     'get': [
                         'balance',
                         'available_balance',
-                        'user_history',
+                        'order_history',
                         'order/{orderHash}',
                         'order/unsigned',
                         'order/unsigned/market',
                     ],
                     'post': [
                         'order',
-                        'limit_order/reserve',
-                        'limit_order/place',
-                        'market_order/reserve',
-                        'market_order/place',
                     ],
                     'delete': [
                         'order/{orderHash}',
@@ -568,9 +565,11 @@ module.exports = class theocean1 extends Exchange {
             throw new OrderNotFillable (this.id + ' ' + type + ' order to ' + side + ' ' + symbol + ' is not fillable at the moment');
         }
         let signedOrder = await this.signZeroExOrderV2 (unsignedOrder, this.privateKey);
+        let id = this.safeString (signedOrder, 'orderHash');
         await this.postSignedOrder (signedOrder, orderParams, params);
-        let market = this.market (symbol);
-        return this.parseOrder (signedOrder, market);
+        let order = await this.fetchOrder (id);
+        order['type'] = type;
+        return order;
     }
 
     async fetchOrderParamsToSign (symbol, type, side, amount, price = undefined, params = {}) {
@@ -668,79 +667,6 @@ module.exports = class theocean1 extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        //
-        // fetchOrder, fetchOrderBook
-        //
-        //     {
-        //       "baseTokenAddress": "0x7cc7fdd065cfa9c7f4f6a3c1bfc6dfcb1a3177aa",
-        //       "quoteTokenAddress": "0x17f15936ef3a2da5593033f84487cbe9e268f02f",
-        //       "side": "buy",
-        //       "amount": "10000000000000000000",
-        //       "price": "1.000",
-        //       "created": "1512929327792",
-        //       "expires": "1512929897118",
-        //       "zeroExOrder": {
-        //         "exchangeContractAddress": "0x516bdc037df84d70672b2d140835833d3623e451",
-        //         "maker": "0x006dc83e5b21854d4afc44c9b92a91e0349dda13",
-        //         "taker": "0x00ba938cc0df182c25108d7bf2ee3d37bce07513",
-        //         "makerTokenAddress": "0x7cc7fdd065cfa9c7f4f6a3c1bfc6dfcb1a3177aa",
-        //         "takerTokenAddress": "0x17f15936ef3a2da5593033f84487cbe9e268f02f",
-        //         "feeRecipient": "0x88a64b5e882e5ad851bea5e7a3c8ba7c523fecbe",
-        //         "makerTokenAmount": "10000000000000000000",
-        //         "takerTokenAmount": "10000000000000000000",
-        //         "makerFee": "0",
-        //         "takerFee": "0",
-        //         "expirationUnixTimestampSec": "525600",
-        //         "salt": "37800593840622773016017857006417214310534675667008850948421364357744823963318",
-        //         "orderHash": "0x94629386298dee69ae63cd3e414336ae153b3f02cffb9ffc53ad71e166615618",
-        //         "ecSignature": {
-        //           "v": 28,
-        //           "r": "0x5307b6a69e7cba8583e1de39efb93a9ae1afc11849e79d99f462e49c18c4d6e4",
-        //           "s": "0x5950e82364227ccca95c70b47375e8911a2039d3040ba0684329634ebdced160"
-        //         }
-        //       }
-        //     }
-        //
-        // fetchOrders
-        //
-        //     {              orderHash:   "0xe815dc92933b68e7fc2b7102b8407ba7afb384e4080ac8d28ed42482933c5cf5",
-        //             baseTokenAddress:   "0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570",
-        //            quoteTokenAddress:   "0xd0a1e359811322d97991e03f863a0c30c2cf029c",
-        //                         side:   "buy",
-        //                        price:   "0.0271",
-        //                   openAmount:   "0",
-        //               reservedAmount:   "0",
-        //                 filledAmount:   "0",
-        //                settledAmount:   "0",
-        //              confirmedAmount:   "1000000000000000000",
-        //                 failedAmount:   "0",
-        //                   deadAmount:   "0",
-        //                 prunedAmount:   "0",
-        //                    feeAmount:   "125622971824540759",
-        //                    feeOption:   "feeInNative",
-        //                     parentID:   "MARKET_INTENT:90jjw2s7gj90jjw2s7gkjjw2s7gl",
-        //       siblingTargetOrderHash:    null,
-        //                     timeline: [ {      action: "filled",
-        //                                        amount: "1000000000000000000",
-        //                                      intentID: "MARKET_INTENT:90jjw2s7gj90jjw2s7gkjjw2s7gl",
-        //                                        txHash:  null,
-        //                                   blockNumber: "0",
-        //                                     timestamp: "1532217579"                                  },
-        //                                 {      action: "settled",
-        //                                        amount: "1000000000000000000",
-        //                                      intentID: "MARKET_INTENT:90jjw2s7gj90jjw2s7gkjjw2s7gl",
-        //                                        txHash: "0x043488fdc3f995bf9e632a32424441ed126de90f8cb340a1ff006c2a74ca8336",
-        //                                   blockNumber: "8094822",
-        //                                     timestamp: "1532261671"                                                          },
-        //                                 {      action: "confirmed",
-        //                                        amount: "1000000000000000000",
-        //                                      intentID: "MARKET_INTENT:90jjw2s7gj90jjw2s7gkjjw2s7gl",
-        //                                        txHash: "0x043488fdc3f995bf9e632a32424441ed126de90f8cb340a1ff006c2a74ca8336",
-        //                                   blockNumber: "8094822",
-        //                                     timestamp: "1532261686"                                                          }  ] }
-        //
-        //
-        //
         let zeroExOrder = this.safeValue (order, 'zeroExOrder');
         let id = this.safeString (order, 'orderHash');
         if ((id === undefined) && (zeroExOrder !== undefined)) {
@@ -748,7 +674,7 @@ module.exports = class theocean1 extends Exchange {
         }
         let side = this.safeString (order, 'side');
         let type = this.safeString (order, 'type'); // injected from outside
-        let timestamp = this.safeInteger (order, 'created');
+        let timestamp = this.safeInteger (order, 'creationTimestamp');
         timestamp = (timestamp !== undefined) ? timestamp * 1000 : timestamp;
         let symbol = undefined;
         let baseId = this.safeString (order, 'baseTokenAddress');
@@ -765,18 +691,13 @@ module.exports = class theocean1 extends Exchange {
         }
         let baseDecimals = this.safeInteger (this.options['decimals'], base, 18);
         let price = this.safeFloat (order, 'price');
-        let openAmount = this.fromWei (this.safeString (order, 'openAmount'), 'ether', baseDecimals);
-        let reservedAmount = this.fromWei (this.safeString (order, 'reservedAmount'), 'ether', baseDecimals);
         let filledAmount = this.fromWei (this.safeString (order, 'filledAmount'), 'ether', baseDecimals);
         let settledAmount = this.fromWei (this.safeString (order, 'settledAmount'), 'ether', baseDecimals);
         let confirmedAmount = this.fromWei (this.safeString (order, 'confirmedAmount'), 'ether', baseDecimals);
         let failedAmount = this.fromWei (this.safeString (order, 'failedAmount'), 'ether', baseDecimals);
         let deadAmount = this.fromWei (this.safeString (order, 'deadAmount'), 'ether', baseDecimals);
         let prunedAmount = this.fromWei (this.safeString (order, 'prunedAmount'), 'ether', baseDecimals);
-        let amount = this.fromWei (this.safeString (order, 'amount'), 'ether', baseDecimals);
-        if (amount === undefined) {
-            amount = this.sum (openAmount, reservedAmount, filledAmount, settledAmount, confirmedAmount, failedAmount, deadAmount, prunedAmount);
-        }
+        let amount = this.fromWei (this.safeString (order, 'initialAmount'), 'ether', baseDecimals);
         let filled = this.sum (filledAmount, settledAmount, confirmedAmount);
         let remaining = undefined;
         let lastTradeTimestamp = undefined;
@@ -786,31 +707,13 @@ module.exports = class theocean1 extends Exchange {
         if (timeline !== undefined) {
             let numEvents = timeline.length;
             if (numEvents > 0) {
-                // status = this.parseOrderStatus (this.safeString (timeline[numEvents - 1], 'action'));
                 let timelineEventsGroupedByAction = this.groupBy (timeline, 'action');
                 if ('error' in timelineEventsGroupedByAction) {
                     status = 'failed';
                 }
-                if ('placed' in timelineEventsGroupedByAction) {
-                    let placeEvents = this.safeValue (timelineEventsGroupedByAction, 'placed');
-                    if (amount === undefined) {
-                        amount = this.fromWei (this.safeString (placeEvents[0], 'amount'), 'ether', baseDecimals);
-                    }
-                    timestamp = this.safeInteger (placeEvents[0], 'timestamp');
-                    timestamp = (timestamp !== undefined) ? timestamp * 1000 : timestamp;
-                } else {
-                    if ('filled' in timelineEventsGroupedByAction) {
-                        timestamp = this.safeInteger (timelineEventsGroupedByAction['filled'][0], 'timestamp');
-                        timestamp = (timestamp !== undefined) ? timestamp * 1000 : timestamp;
-                    }
-                }
                 if ('filled' in timelineEventsGroupedByAction) {
                     let fillEvents = this.safeValue (timelineEventsGroupedByAction, 'filled');
                     let numFillEvents = fillEvents.length;
-                    if (timestamp === undefined) {
-                        timestamp = this.safeInteger (fillEvents[0], 'timestamp');
-                        timestamp = (timestamp !== undefined) ? timestamp * 1000 : timestamp;
-                    }
                     lastTradeTimestamp = this.safeInteger (fillEvents[numFillEvents - 1], 'timestamp');
                     lastTradeTimestamp = (lastTradeTimestamp !== undefined) ? lastTradeTimestamp * 1000 : lastTradeTimestamp;
                     trades = [];
@@ -984,7 +887,7 @@ module.exports = class theocean1 extends Exchange {
             // request['start'] = 0; // the number of orders to offset from the end
             request['limit'] = limit;
         }
-        let response = await this.privateGetUserHistory (this.extend (request, params));
+        let response = await this.privateGetOrderHistory (this.extend (request, params));
         //
         //     [
         //       {
