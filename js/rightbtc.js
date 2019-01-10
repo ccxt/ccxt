@@ -424,12 +424,12 @@ module.exports = class rightbtc extends Exchange {
         let market = this.market (symbol);
         let order = {
             'trading_pair': market['id'],
-            // We need to round here, because e.g.
+            // We need to add an epsilon here, since e.g.
             //   0.036*1e8 === 3599999.9999999995
             // which is 3599999 after parseInt
             // which gets rejected by rightBtc because it's too precise
-            'quantity': parseInt (Math.round (amount * 1e8)),
-            'limit': parseInt (Math.round (price * 1e8)),
+            'quantity': parseInt (amount * 1e8 + 1e-8),
+            'limit': parseInt (price * 1e8 + 1e-8),
             'type': type.toUpperCase (),
             'side': side.toUpperCase (),
         };
