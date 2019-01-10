@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ROUND, DECIMAL_PLACES } = require ('./base/functions/number');
+const { ROUND, TRUNCATE } = require ('./base/functions/number');
 const { ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 module.exports = class rightbtc extends Exchange {
@@ -429,8 +429,8 @@ module.exports = class rightbtc extends Exchange {
             //   0.036*1e8 === 3599999.9999999995
             // which would get truncated to 3599999 after parseInt
             // which would then be rejected by rightBtc because it's too precise
-            'quantity': parseInt (this.decimalToPrecision (amount * 1e8, ROUND, 0, DECIMAL_PLACES)),
-            'limit': parseInt (this.decimalToPrecision (price * 1e8, ROUND, 0, DECIMAL_PLACES)),
+            'quantity': parseInt (this.decimalToPrecision (amount * 1e8, TRUNCATE, 0, this.precisionMode)),
+            'limit': parseInt (this.decimalToPrecision (price * 1e8, ROUND, 0, this.precisionMode)),
             'type': type.toUpperCase (),
             'side': side.toUpperCase (),
         };
