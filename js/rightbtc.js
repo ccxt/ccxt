@@ -429,8 +429,8 @@ module.exports = class rightbtc extends Exchange {
             //   0.036*1e8 === 3599999.9999999995
             // which would get truncated to 3599999 after parseInt
             // which would then be rejected by rightBtc because it's too precise
-            'quantity': this.decimalToPrecision (amount * 1e8, ROUND, 0, DECIMAL_PLACES),
-            'limit': this.decimalToPrecision (price * 1e8, ROUND, 0, DECIMAL_PLACES),
+            'quantity': parseInt (this.decimalToPrecision (amount * 1e8, ROUND, 0, DECIMAL_PLACES)),
+            'limit': parseInt (this.decimalToPrecision (price * 1e8, ROUND, 0, DECIMAL_PLACES)),
             'type': type.toUpperCase (),
             'side': side.toUpperCase (),
         };
