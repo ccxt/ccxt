@@ -37,5 +37,6 @@ const ccxt = require ('../../ccxt.js')
     // cancel all open user orders
     const cancelAllOrderssResult = await ocean.cancelAllOrders();
     console.log('cancel all orders result: ', cancelAllOrderssResult);
+
     process.exit ();
 }) ()

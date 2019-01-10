@@ -797,15 +797,7 @@ module.exports = class theocean1 extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
-            // openAmount (optional) Return orders with an openAmount greater than or equal to this value
-            // reservedAmount (optional) Return orders with a reservedAmount greater than or equal to this value
-            // filledAmount (optional) Return orders with a filledAmount greater than or equal to this value
-            // confirmedAmount (optional) Return orders with a confirmedAmount greater than or equal to this value
-            // deadAmount (optional) Return orders with a deadAmount greater than or equal to this value
-            // baseTokenAddress (optional) Return orders with a baseTokenAddress equal to this value
-            // quoteTokenAddress (optional) Return orders with a quoteTokenAddress equal to this value
-        };
+        let request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -813,7 +805,6 @@ module.exports = class theocean1 extends Exchange {
             request['quoteTokenAddress'] = market['quoteId'];
         }
         if (limit !== undefined) {
-            // request['start'] = 0; // the number of orders to offset from the end
             request['limit'] = limit;
         }
         let response = await this.privateGetOrderHistory (this.extend (request, params));
