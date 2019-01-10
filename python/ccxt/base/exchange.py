@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.118'
+__version__ = '1.18.119'
 
 # -----------------------------------------------------------------------------
 
@@ -31,6 +31,7 @@ __all__ = [
 # -----------------------------------------------------------------------------
 
 # Python 2 & 3
+import types
 import logging
 import base64
 import calendar
@@ -286,11 +287,16 @@ class Exchange(object):
             self.set_markets(self.markets)
 
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
+        cls = type(self)
         for name in dir(self):
-            if name[0] != '_'and name[-1] != '_' and '_' in name:
+            if name[0] != '_' and name[-1] != '_' and '_' in name:
                 parts = name.split('_')
                 camelcase = parts[0] + ''.join(self.capitalize(i) for i in parts[1:])
-                setattr(self, camelcase, getattr(self, name))
+                attr = getattr(self, name)
+                if isinstance(attr, types.MethodType):
+                    setattr(cls, camelcase, getattr(cls, name))
+                else:
+                    setattr(self, camelcase, attr)
 
         self.tokenBucket = self.extend({
             'refillRate': 1.0 / self.rateLimit,
@@ -313,8 +319,10 @@ class Exchange(object):
     def describe(self):
         return {}
 
-    def define_rest_api(self, api, method_name, options={}):
+    @classmethod
+    def define_rest_api(cls, api, method_name, options={}):
         delimiters = re.compile('[^a-zA-Z0-9]')
+        entry = getattr(cls, method_name)  # returns a function (instead of a bound method)
         for api_type, methods in api.items():
             for http_method, urls in methods.items():
                 for url in urls:
@@ -337,9 +345,24 @@ class Exchange(object):
                         if 'underscore' in options['suffixes']:
                             underscore += options['suffixes']['underscore']
 
-                    partial = functools.partial(getattr(self, method_name), url, api_type, uppercase_method)
-                    setattr(self, camelcase, partial)
-                    setattr(self, underscore, partial)
+                    def partialer():
+                        outer_kwargs = {'path': url, 'api': api_type, 'method': uppercase_method}
+
+                        @functools.wraps(entry)
+                        def inner(_self, params=None):
+                            """
+                            Inner is called when a generated method (publicGetX) is called.
+                            _self is a reference to self created by function.__get__(exchange, type(exchange))
+                            https://en.wikipedia.org/wiki/Closure_(computer_programming) equivalent to functools.partial
+                            """
+                            inner_kwargs = dict(outer_kwargs)  # avoid mutation
+                            if params is not None:
+                                inner_kwargs['params'] = params
+                            return entry(_self, **inner_kwargs)
+                        return inner
+                    to_bind = partialer()
+                    setattr(cls, camelcase, to_bind)
+                    setattr(cls, underscore, to_bind)
 
     def raise_error(self, exception_type, url=None, method=None, error=None, details=None):
         if error:
@@ -363,6 +386,7 @@ class Exchange(object):
         return self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        """Exchange.request is the entry point for all generated methods"""
         return self.fetch2(path, api, method, params, headers, body)
 
     @staticmethod
