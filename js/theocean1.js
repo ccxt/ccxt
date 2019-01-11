@@ -94,23 +94,23 @@ module.exports = class theocean1 extends Exchange {
         let markets = await this.publicGetTokenPairs ();
         //
         //     [
-        //       {
-        //         "baseToken": {
-        //           "address": "0xa8e9fa8f91e5ae138c74648c9c304f1c75003a8d",
-        //           "symbol": "ZRX",
-        //           "decimals": "18",
-        //           "minAmount": "1000000000000000000",
-        //           "maxAmount": "100000000000000000000000",
-        //           "precision": "18"
-        //         },
-        //         "quoteToken": {
-        //           "address": "0xc00fd9820cd2898cc4c054b7bf142de637ad129a",
-        //           "symbol": "WETH",
-        //           "decimals": "18",
-        //           "minAmount": "5000000000000000",
-        //           "maxAmount": "100000000000000000000",
-        //           "precision": "18"
-        //         }
+        //       "baseToken": {
+        //         "symbol": "ZRX",
+        //         "address": "0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570",
+        //         "name": "0x Protocol Token",
+        //         "decimals": "18",
+        //         "minAmount": "10000000000000000000",
+        //         "maxAmount": "10000000000000000000000",
+        //         "precision": "-8"
+        //       },
+        //       "quoteToken": {
+        //         "symbol": "ETH",
+        //         "address": "0xd0a1e359811322d97991e03f863a0c30c2cf029c",
+        //         "name": "Ether Token",
+        //         "decimals": "18",
+        //         "minAmount": "20000000000000000",
+        //         "maxAmount": "20000000000000000000",
+        //         "precision": "-8"
         //       }
         //     ]
         //
@@ -308,21 +308,19 @@ module.exports = class theocean1 extends Exchange {
         //
         //     {
         //       "bids": [
-        //         {
-        //           "orderHash": "0x94629386298dee69ae63cd3e414336ae153b3f02cffb9ffc53ad71e166615618",
-        //           "price": "0.00050915",
-        //           "availableAmount": "100000000000000000000",
-        //           "creationTimestamp": "1512929327792",
-        //           "expirationTimestampInSec": "1534449466"
+        //         { orderHash: '0xe2b7f80198edb561cc66cd85cb8e5f420073cf1e5143193d8add8774bd8236c4',
+        //           price: '30',
+        //           availableAmount: '500000000000000000',
+        //           creationTimestamp: '1547193525',
+        //           expirationTimestampInSec: '1549789124'
         //         }
         //       ],
         //       "asks": [
-        //         {
-        //           "orderHash": "0x94629386298dee69ae63cd3e414336ae153b3f02cffb9ffc53ad71e166615618",
-        //           "price": "0.00054134",
-        //           "availableAmount": "100000000000000000000",
-        //           "creationTimestamp": "1512929323784",
-        //           "expirationTimestampInSec": "1534449466"
+        //         { orderHash: '0xe2b7f80198edb561cc66cd85cb8e5f420073cf1e5143193d8add8774bd8236c4',
+        //           price: '30',
+        //           availableAmount: '500000000000000000',
+        //           creationTimestamp: '1547193525',
+        //           expirationTimestampInSec: '1549789124'
         //         }
         //       ]
         //     }
@@ -749,37 +747,34 @@ module.exports = class theocean1 extends Exchange {
             'orderHash': id,
         };
         let response = await this.publicGetOrderOrderHash (this.extend (request, params));
-        //
-        //     {
-        //       "baseTokenAddress": "0x7cc7fdd065cfa9c7f4f6a3c1bfc6dfcb1a3177aa",
-        //       "quoteTokenAddress": "0x17f15936ef3a2da5593033f84487cbe9e268f02f",
-        //       "side": "buy",
-        //       "amount": "10000000000000000000",
-        //       "price": "1.000",
-        //       "created": "1512929327792",
-        //       "expires": "1512929897118",
-        //       "zeroExOrder": {
-        //         "exchangeContractAddress": "0x516bdc037df84d70672b2d140835833d3623e451",
-        //         "maker": "0x006dc83e5b21854d4afc44c9b92a91e0349dda13",
-        //         "taker": "0x00ba938cc0df182c25108d7bf2ee3d37bce07513",
-        //         "makerTokenAddress": "0x7cc7fdd065cfa9c7f4f6a3c1bfc6dfcb1a3177aa",
-        //         "takerTokenAddress": "0x17f15936ef3a2da5593033f84487cbe9e268f02f",
-        //         "feeRecipient": "0x88a64b5e882e5ad851bea5e7a3c8ba7c523fecbe",
-        //         "makerTokenAmount": "10000000000000000000",
-        //         "takerTokenAmount": "10000000000000000000",
-        //         "makerFee": "0",
-        //         "takerFee": "0",
-        //         "expirationUnixTimestampSec": "525600",
-        //         "salt": "37800593840622773016017857006417214310534675667008850948421364357744823963318",
-        //         "orderHash": "0x94629386298dee69ae63cd3e414336ae153b3f02cffb9ffc53ad71e166615618",
-        //         "ecSignature": {
-        //           "v": 28,
-        //           "r": "0x5307b6a69e7cba8583e1de39efb93a9ae1afc11849e79d99f462e49c18c4d6e4",
-        //           "s": "0x5950e82364227ccca95c70b47375e8911a2039d3040ba0684329634ebdced160"
-        //         }
-        //       }
-        //     }
-        //
+        //  {
+        //   baseTokenAddress: '0xb18845c260f680d5b9d84649638813e342e4f8c9',
+        //   quoteTokenAddress: '0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570',
+        //   side: 'sell',
+        //   price: '30',
+        //   feeTokenAddress: '0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570',
+        //   amount: '500000000000000000',
+        //   created: '1547194003',
+        //   expires: '1549786003',
+        //   zeroExOrder: {
+        //     salt: '71810414258284992779348693906799008280152689028521273772736250669496045815907',
+        //     maker: '0xfa1a3371bcbfcf3deaa8a6f67784bfbe5b886d7f',
+        //     taker: '0x77b18613579d49f252bd237ef113884eb37a7090',
+        //     makerFee: '0',
+        //     takerFee: '0',
+        //     orderHash: '0x368540323af55868dd9ce6ac248e6a91d9b7595252ca061c4ada7612b09af1cf',
+        //     feeRecipient: '0x88a64b5e882e5ad851bea5e7a3c8ba7c523fecbe',
+        //     makerTokenAmount: '500000000000000000',
+        //     takerTokenAmount: '14845250714350000000',
+        //     makerTokenAddress: '0xb18845c260f680d5b9d84649638813e342e4f8c9',
+        //     takerTokenAddress: '0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570',
+        //     exchangeContractAddress: '0x35dd2932454449b14cee11a94d3674a936d5d7b2',
+        //     expirationUnixTimestampSec: '1549789602'
+        //   },
+        //   feeAmount: '154749285650000000',
+        //   feeOption: 'feeInNative',
+        //   cancelAfter: '1549786003'
+        //  }
         return this.parseOrder (response);
     }
 
