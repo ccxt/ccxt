@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.119'
+__version__ = '1.18.120'
 
 # -----------------------------------------------------------------------------
 
@@ -153,6 +153,7 @@ class Exchange(object):
         '521': ExchangeNotAvailable,
         '522': ExchangeNotAvailable,
         '525': ExchangeNotAvailable,
+        '526': ExchangeNotAvailable,
         '400': ExchangeNotAvailable,
         '403': ExchangeNotAvailable,
         '405': ExchangeNotAvailable,
