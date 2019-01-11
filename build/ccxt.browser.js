@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.119'
+const version = '1.18.120'
 
 Exchange.ccxtVersion = version
 
@@ -1530,6 +1530,7 @@ module.exports = class Exchange {
                 '521': ExchangeNotAvailable,
                 '522': ExchangeNotAvailable,
                 '525': ExchangeNotAvailable,
+                '526': ExchangeNotAvailable,
                 '400': ExchangeNotAvailable,
                 '403': ExchangeNotAvailable,
                 '405': ExchangeNotAvailable,
@@ -56431,6 +56432,7 @@ module.exports = class quoinex extends liquid {
 'use strict';
 
 const Exchange = require ('./base/Exchange');
+const { ROUND } = require ('./base/functions/number');
 const { ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 module.exports = class rightbtc extends Exchange {
@@ -56854,8 +56856,12 @@ module.exports = class rightbtc extends Exchange {
         let market = this.market (symbol);
         let order = {
             'trading_pair': market['id'],
-            'quantity': parseInt (amount * 1e8),
-            'limit': parseInt (price * 1e8),
+            // We need to use decimalToPrecision here, since
+            //   0.036*1e8 === 3599999.9999999995
+            // which would get truncated to 3599999 after parseInt
+            // which would then be rejected by rightBtc because it's too precise
+            'quantity': parseInt (this.decimalToPrecision (amount * 1e8, ROUND, 0, this.precisionMode)),
+            'limit': parseInt (this.decimalToPrecision (price * 1e8, ROUND, 0, this.precisionMode)),
             'type': type.toUpperCase (),
             'side': side.toUpperCase (),
         };
@@ -57198,7 +57204,7 @@ module.exports = class rightbtc extends Exchange {
     }
 };
 
-},{"./base/Exchange":8,"./base/errors":10}],132:[function(require,module,exports){
+},{"./base/Exchange":8,"./base/errors":10,"./base/functions/number":16}],132:[function(require,module,exports){
 'use strict';
 
 //  ---------------------------------------------------------------------------

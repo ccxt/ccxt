@@ -429,8 +429,11 @@ class rightbtc extends Exchange {
         $market = $this->market ($symbol);
         $order = array (
             'trading_pair' => $market['id'],
-            'quantity' => intval ($amount * 1e8),
-            'limit' => intval ($price * 1e8),
+            // We need to use decimalToPrecision here, since
+            //   0.036*1e8 === 3599999.9999999995
+            // which would get truncated to 3599999 after intval             // which would then be rejected by rightBtc because it's too precise
+            'quantity' => intval ($this->decimal_to_precision($amount * 1e8, ROUND, 0, $this->precisionMode)),
+            'limit' => intval ($this->decimal_to_precision($price * 1e8, ROUND, 0, $this->precisionMode)),
             'type' => strtoupper ($type),
             'side' => strtoupper ($side),
         );
