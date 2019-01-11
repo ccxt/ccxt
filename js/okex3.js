@@ -1205,7 +1205,7 @@ module.exports = class okex3 extends Exchange {
 
     getPathAuthenticationType (path) {
         const paths = {
-            'currencies': 'public',
+            'currencies': 'private',
             'instruments': 'public',
             'rate': 'public',
             'constituents/{ett}': 'public',
