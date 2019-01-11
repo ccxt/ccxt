@@ -18,6 +18,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.decimal_to_precision import ROUND
 
 
 class rightbtc (Exchange):
@@ -417,8 +418,11 @@ class rightbtc (Exchange):
         market = self.market(symbol)
         order = {
             'trading_pair': market['id'],
-            'quantity': int(amount * 1e8),
-            'limit': int(price * 1e8),
+            # We need to use decimalToPrecision here, since
+            #   0.036*1e8 == 3599999.9999999995
+            # which would get truncated to 3599999 after int// which would then be rejected by rightBtc because it's too precise
+            'quantity': int(self.decimal_to_precision(amount * 1e8, ROUND, 0, self.precisionMode)),
+            'limit': int(self.decimal_to_precision(price * 1e8, ROUND, 0, self.precisionMode)),
             'type': type.upper(),
             'side': side.upper(),
         }
