@@ -13,7 +13,7 @@ install:
   - cinst -y curl
   - SET PATH=C:\Program Files\curl;%PATH%
   - ps: Set-Service wuauserv -StartupType Manual
-  - cinst -y php --allow-empty-checksums
+  - cinst -y php --version=7.3.0 --allow-empty-checksums
   - cd c:\tools\php73
   - copy php.ini-production php.ini
   - echo date.timezone="UTC" >> php.ini
