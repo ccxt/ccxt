@@ -994,11 +994,10 @@ class poloniex (Exchange):
         amount = self.safe_float(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
         feeCost = self.safe_float(transaction, 'fee')
-        if type == 'deposit':
-            if feeCost is None:
-                # according to https://poloniex.com/fees/
-                feeCost = 0  # FIXME: remove hardcoded value that may change any time
-        else:
+        if feeCost is None:
+            # according to https://poloniex.com/fees/
+            feeCost = 0  # FIXME: remove hardcoded value that may change any time
+        if type == 'withdrawal':
             # poloniex withdrawal amount includes the fee
             amount = amount - feeCost
         return {
