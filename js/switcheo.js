@@ -30,7 +30,7 @@ module.exports = class switcheo extends Exchange {
                 'fetchContractHash': true,
                 'fetchCurrencies': false,
                 'fetchDepositAddress': false,
-                'fetchMarkets': false,
+                'fetchMarkets': true,
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
                 'fetchOpenOrders': false,
@@ -97,6 +97,49 @@ module.exports = class switcheo extends Exchange {
     async fetchContractHash () {
         let response = await this.publicGetExchangeContracts ();
         return response;
+    }
+
+    async fetchMarkets (params = {}) {
+        let markets = await this.publicGetExchangePairs (this.extend ({
+            'show_details': 1,
+        }, params));
+        let tokens = await this.publicGetExchangeTokens (this.extend ({
+            'show_listing_details': 1,
+            'show_inactive': 1,
+        }, params));
+        let result = [];
+        for (let p = 0; p < markets.length; p++) {
+            let market = markets[p];
+            let id = market['name'];
+            let base = market['name'].split ('_')[1];
+            let quote = market['name'].split ('_')[0];
+            let symbol = base + '/' + quote;
+            let active = (tokens[base]['trading_active'] && tokens[quote]['trading_active']);
+            let precision = {
+                'amount': market['precision'],
+                'cost': market['precision'],
+                'price': market['precision'],
+            };
+            let limits = {
+                'amount': {
+                    'min': tokens[quote]['minimum_quantity'],
+                },
+                'cost': {
+                    'min': tokens[base]['minimum_quantity'],
+                },
+            };
+            result.push (this.extend ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'active': active,
+                'precision': precision,
+                'limits': limits,
+                'info': market,
+            }));
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
