@@ -37,6 +37,7 @@ module.exports = class switcheo extends Exchange {
                 'fetchOrder': false,
                 'fetchOrderBook': false,
                 'fetchOrders': false,
+                'fetchPairs': true,
                 'fetchTicker': false,
                 'fetchTickers': false,
                 'fetchTime': true,
@@ -140,6 +141,23 @@ module.exports = class switcheo extends Exchange {
             }));
         }
         return result;
+    }
+
+    async fetchPairs () {
+        let pairs = await this.publicGetExchangePairs ();
+        //
+        //     [
+        //       {
+        //         "name": "GAS_NEO",
+        //         "precision": 3
+        //       },{
+        //         "name": "SWTH_NEO",
+        //         "precision": 6
+        //       }
+        //     ]
+        //
+        // let result = [];
+        return pairs;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
