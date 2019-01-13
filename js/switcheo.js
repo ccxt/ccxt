@@ -97,7 +97,30 @@ module.exports = class switcheo extends Exchange {
 
     async fetchContractHash () {
         let response = await this.publicGetExchangeContracts ();
-        return response;
+        return this.parseCurrentContract (response);
+    }
+
+    parseCurrentContract (contracts) {
+        let i = 0;
+        let j = 0;
+        let switcheoContracts = JSON.parse (contracts);
+        let current_contract = {};
+        let switcheoBlockchains = Object.keys (switcheoContracts);
+        for (i = 0; i < switcheoBlockchains.length; i++) {
+            let maxVersionNumber = 0;
+            let maxVersionKey = '';
+            let key = switcheoBlockchains[i];
+            let contractVersion = Object.keys (switcheoContracts[key]);
+            for (j = 0; j < contractVersion.length; j++) {
+                let versionNumber = parseFloat (contractVersion[j].slice (1).replace ('_', '.'));
+                if (versionNumber > maxVersionNumber) {
+                    maxVersionNumber = versionNumber;
+                    maxVersionKey = contractVersion[j];
+                }
+            }
+            current_contract[key] = switcheoContracts[key][maxVersionKey];
+        }
+        return current_contract;
     }
 
     async fetchMarkets (params = {}) {
