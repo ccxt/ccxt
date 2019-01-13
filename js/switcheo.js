@@ -39,7 +39,7 @@ module.exports = class switcheo extends Exchange {
                 'fetchOrders': false,
                 'fetchTicker': false,
                 'fetchTickers': false,
-                'fetchTime': false,
+                'fetchTime': true,
                 'fetchBidsAsks': false,
                 'fetchTrades': false,
                 'withdraw': false,
@@ -87,5 +87,21 @@ module.exports = class switcheo extends Exchange {
                 'internal_server_error': ExchangeError, // 500 Internal server error
             },
         });
+    }
+
+    async fetchTime () {
+        let response = await this.publicGetExchangeTimestamp ();
+        return response['timestamp'];
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let request = '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (method === 'GET') {
+            if (Object.keys (query).length)
+                request += '?' + this.urlencode (query);
+        }
+        let url = this.urls['api'] + '/' + this.version + request;
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
