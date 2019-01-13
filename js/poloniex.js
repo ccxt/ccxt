@@ -1078,8 +1078,10 @@ module.exports = class poloniex extends Exchange {
                 feeCost = 0; // FIXME: remove hardcoded value that may change any time
             }
         } else {
-            // poloniex withdrawal amount includes the fee
-            amount = amount - feeCost;
+            if (feeCost !== undefined) {
+                // poloniex withdrawal amount includes the fee
+                amount = amount - feeCost;
+            }
         }
         return {
             'info': transaction,
