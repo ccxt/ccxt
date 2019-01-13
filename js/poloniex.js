@@ -1072,16 +1072,13 @@ module.exports = class poloniex extends Exchange {
         let amount = this.safeFloat (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
         let feeCost = this.safeFloat (transaction, 'fee');
-        if (type === 'deposit') {
-            if (feeCost === undefined) {
-                // according to https://poloniex.com/fees/
-                feeCost = 0; // FIXME: remove hardcoded value that may change any time
-            }
-        } else {
-            if (feeCost !== undefined) {
-                // poloniex withdrawal amount includes the fee
-                amount = amount - feeCost;
-            }
+        if (feeCost === undefined) {
+            // according to https://poloniex.com/fees/
+            feeCost = 0; // FIXME: remove hardcoded value that may change any time
+        }
+        if (type === 'withdrawal') {
+            // poloniex withdrawal amount includes the fee
+            amount = amount - feeCost;
         }
         return {
             'info': transaction,
