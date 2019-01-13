@@ -94,6 +94,11 @@ module.exports = class switcheo extends Exchange {
         return response['timestamp'];
     }
 
+    async fetchContractHash () {
+        let response = await this.publicGetExchangeContracts ();
+        return response;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
