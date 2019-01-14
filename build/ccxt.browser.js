@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.127'
+const version = '1.18.128'
 
 Exchange.ccxtVersion = version
 
@@ -33857,10 +33857,12 @@ module.exports = class deribit extends Exchange {
             let hash = this.hash (this.encode (auth), 'sha256', 'base64');
             let signature = this.apiKey + '.' + nonce + '.' + this.decode (hash);
             headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
                 'x-deribit-sig': signature,
             };
-            body = this.urlencode (params);
+            if (method !== 'GET') {
+                headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                body = this.urlencode (params);
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
