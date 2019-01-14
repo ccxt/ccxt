@@ -17,7 +17,7 @@ module.exports = class switcheo extends Exchange {
             'version': 'v2',
             'userAgent': this.userAgents['chrome'],
             'certified': false,
-            'parseJsonResponse': true,
+            'parseJsonResponse': false,
             'requiresWeb3': true,
             'has': {
                 'CORS': false,
@@ -87,6 +87,9 @@ module.exports = class switcheo extends Exchange {
                 'rate_limit_exceeded': DDoSProtection, // 429 Rate limit exceeded
                 'internal_server_error': ExchangeError, // 500 Internal server error
             },
+            'options': {
+                'contract': '',
+            },
         });
     }
 
@@ -95,15 +98,10 @@ module.exports = class switcheo extends Exchange {
         return response['timestamp'];
     }
 
-    async fetchContractHash () {
-        let response = await this.publicGetExchangeContracts ();
-        return this.parseCurrentContract (response);
-    }
-
     parseCurrentContract (contracts) {
         let i = 0;
         let j = 0;
-        let switcheoContracts = JSON.parse (contracts);
+        let switcheoContracts = contracts;
         let current_contract = {};
         let switcheoBlockchains = Object.keys (switcheoContracts);
         for (i = 0; i < switcheoBlockchains.length; i++) {
@@ -120,7 +118,17 @@ module.exports = class switcheo extends Exchange {
             }
             current_contract[key] = switcheoContracts[key][maxVersionKey];
         }
+        current_contract['GAS'] = current_contract['NEO'];
+        current_contract['SWTH'] = current_contract['NEO'];
+        current_contract['SDUSD'] = current_contract['NEO'];
+        current_contract['PAX'] = current_contract['ETH'];
+        current_contract['DAI'] = current_contract['ETH'];
         return current_contract;
+    }
+
+    async fetchContractHash () {
+        let response = await this.publicGetExchangeContracts ();
+        return this.parseCurrentContract (response);
     }
 
     async fetchMarkets (params = {}) {
@@ -131,6 +139,7 @@ module.exports = class switcheo extends Exchange {
             'show_listing_details': 1,
             'show_inactive': 1,
         }, params));
+        let contracts = await this.fetchContractHash ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
@@ -139,6 +148,7 @@ module.exports = class switcheo extends Exchange {
             let quote = market['name'].split ('_')[1];
             let symbol = base + '/' + quote;
             let active = (tokens[base]['trading_active'] && tokens[quote]['trading_active']);
+            this.options['contract'] = contracts[quote];
             let precision = {
                 'amount': market['precision'],
                 'cost': market['precision'],
@@ -181,6 +191,20 @@ module.exports = class switcheo extends Exchange {
         //
         // let result = [];
         return pairs;
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'pair': market['id'],
+            'contract': this.options['contract'],
+        };
+        if (limit !== undefined) {
+            request['depth'] = limit;
+        }
+        let response = await this.publicGetOffersBook (this.extend (request, params));
+        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'quantity');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
