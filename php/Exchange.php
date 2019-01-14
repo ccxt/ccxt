@@ -1214,7 +1214,7 @@ class Exchange {
                         'rate-limiting in effect',
                     )) . ')';
                 }
-                $this->raise_error ($error_class, $url, $method, $http_status_code, $result, $details);
+                $this->raise_error ($error_class, $url, $method, $http_status_code, $result, isset ($details) ? $details : null);
             } else {
                 $this->raise_error ($error_class, $url, $method, $http_status_code, $result);
             }
