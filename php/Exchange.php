@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.120';
+$version = '1.18.125';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.120';
+    const VERSION = '1.18.125';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -1214,7 +1214,7 @@ class Exchange {
                         'rate-limiting in effect',
                     )) . ')';
                 }
-                $this->raise_error ($error_class, $url, $method, $http_status_code, $result, $details);
+                $this->raise_error ($error_class, $url, $method, $http_status_code, $result, isset ($details) ? $details : null);
             } else {
                 $this->raise_error ($error_class, $url, $method, $http_status_code, $result);
             }

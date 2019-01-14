@@ -1073,12 +1073,11 @@ class poloniex extends Exchange {
         $amount = $this->safe_float($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
         $feeCost = $this->safe_float($transaction, 'fee');
-        if ($type === 'deposit') {
-            if ($feeCost === null) {
-                // according to https://poloniex.com/fees/
-                $feeCost = 0; // FIXME => remove hardcoded value that may change any time
-            }
-        } else {
+        if ($feeCost === null) {
+            // according to https://poloniex.com/fees/
+            $feeCost = 0; // FIXME => remove hardcoded value that may change any time
+        }
+        if ($type === 'withdrawal') {
             // poloniex withdrawal $amount includes the fee
             $amount = $amount - $feeCost;
         }

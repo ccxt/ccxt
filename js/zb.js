@@ -23,6 +23,7 @@ module.exports = class zb extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchOHLCV': true,
+                'fetchTickers': true,
                 'withdraw': true,
             },
             'timeframes': {
