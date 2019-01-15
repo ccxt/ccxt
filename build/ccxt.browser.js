@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.129'
+const version = '1.18.130'
 
 Exchange.ccxtVersion = version
 
@@ -46399,8 +46399,14 @@ module.exports = class kraken extends Exchange {
     }
 
     parseTransactionStatus (status) {
+        // IFEX transaction states
         const statuses = {
+            'Initial': 'pending',
+            'Pending': 'pending',
             'Success': 'ok',
+            'Settled': 'ok',
+            'Failure': 'failed',
+            'Partial': 'ok',
         };
         return this.safeString (statuses, status, status);
     }

@@ -936,8 +936,14 @@ class kraken extends Exchange {
     }
 
     public function parse_transaction_status ($status) {
+        // IFEX transaction states
         $statuses = array (
+            'Initial' => 'pending',
+            'Pending' => 'pending',
             'Success' => 'ok',
+            'Settled' => 'ok',
+            'Failure' => 'failed',
+            'Partial' => 'ok',
         );
         return $this->safe_string($statuses, $status, $status);
     }

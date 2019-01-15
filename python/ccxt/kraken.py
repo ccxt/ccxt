@@ -888,8 +888,14 @@ class kraken (Exchange):
         return response['result']
 
     def parse_transaction_status(self, status):
+        # IFEX transaction states
         statuses = {
+            'Initial': 'pending',
+            'Pending': 'pending',
             'Success': 'ok',
+            'Settled': 'ok',
+            'Failure': 'failed',
+            'Partial': 'ok',
         }
         return self.safe_string(statuses, status, status)
 
