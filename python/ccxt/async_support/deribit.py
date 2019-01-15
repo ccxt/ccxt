@@ -390,8 +390,9 @@ class deribit (Exchange):
             hash = self.hash(self.encode(auth), 'sha256', 'base64')
             signature = self.apiKey + '.' + nonce + '.' + self.decode(hash)
             headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
                 'x-deribit-sig': signature,
             }
-            body = self.urlencode(params)
+            if method != 'GET':
+                headers['Content-Type'] = 'application/x-www-form-urlencoded'
+                body = self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
