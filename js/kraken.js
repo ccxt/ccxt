@@ -943,6 +943,7 @@ module.exports = class kraken extends Exchange {
             'Success': 'ok',
             'Settled': 'ok',
             'Failure': 'failed',
+            'Partial': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
