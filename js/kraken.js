@@ -936,8 +936,13 @@ module.exports = class kraken extends Exchange {
     }
 
     parseTransactionStatus (status) {
+        // IFEX transaction states
         const statuses = {
+            'Initial': 'pending',
+            'Pending': 'pending',
             'Success': 'ok',
+            'Settled': 'ok',
+            'Failure': 'failed',
         };
         return this.safeString (statuses, status, status);
     }
