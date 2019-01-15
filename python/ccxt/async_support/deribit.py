@@ -30,7 +30,7 @@ class deribit (Exchange):
             },
             'timeframes': {},
             'urls': {
-                # 'test': 'https://test.deribit.com',
+                'test': 'https://test.deribit.com',
                 'logo': 'https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg',
                 'api': 'https://www.deribit.com',
                 'www': 'https://www.deribit.com',
