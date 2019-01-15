@@ -994,7 +994,12 @@ module.exports = class kraken extends Exchange {
         const amount = this.safeFloat (transaction, 'amount');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const type = this.safeString (transaction, 'type'); // injected from the outside
-        const feeCost = this.safeFloat (transaction, 'fee');
+        let feeCost = this.safeFloat (transaction, 'fee');
+        if (feeCost === undefined) {
+            if (type === 'deposit') {
+                feeCost = 0;
+            }
+        }
         return {
             'info': transaction,
             'id': id,

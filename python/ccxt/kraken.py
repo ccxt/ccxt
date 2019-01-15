@@ -944,6 +944,9 @@ class kraken (Exchange):
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         type = self.safe_string(transaction, 'type')  # injected from the outside
         feeCost = self.safe_float(transaction, 'fee')
+        if feeCost is None:
+            if type == 'deposit':
+                feeCost = 0
         return {
             'info': transaction,
             'id': id,
