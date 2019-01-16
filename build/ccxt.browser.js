@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.131'
+const version = '1.18.132'
 
 Exchange.ccxtVersion = version
 
@@ -23597,6 +23597,7 @@ module.exports = class coinbase extends Exchange {
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
                 'fetchOrderBook': false,
+                'fetchL2OrderBook': false,
                 'fetchOrders': false,
                 'fetchTicker': true,
                 'fetchTickers': false,

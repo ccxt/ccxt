@@ -46,6 +46,7 @@ class coinbase (Exchange):
                 'fetchOpenOrders': False,
                 'fetchOrder': False,
                 'fetchOrderBook': False,
+                'fetchL2OrderBook': False,
                 'fetchOrders': False,
                 'fetchTicker': True,
                 'fetchTickers': False,
