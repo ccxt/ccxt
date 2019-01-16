@@ -225,7 +225,7 @@ module.exports = class uex extends Exchange {
                     'max': undefined,
                 },
             }, defaultLimits);
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -236,7 +236,7 @@ module.exports = class uex extends Exchange {
                 'info': market,
                 'precision': precision,
                 'limits': limits,
-            });
+            };
         }
         return result;
     }
