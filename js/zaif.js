@@ -110,7 +110,7 @@ module.exports = class zaif extends Exchange {
 
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetCurrencyPairsAll ();
-        let result = [];
+        let result = {};
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
             let id = market['currency_pair'];
@@ -120,7 +120,7 @@ module.exports = class zaif extends Exchange {
                 'amount': -Math.log10 (market['item_unit_step']),
                 'price': market['aux_unit_point'],
             };
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -142,7 +142,7 @@ module.exports = class zaif extends Exchange {
                     },
                 },
                 'info': market,
-            });
+            };
         }
         return result;
     }

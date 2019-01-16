@@ -138,7 +138,7 @@ module.exports = class rightbtc extends Exchange {
         // let zh = await this.publicGetGetAssetsTradingPairsZh ();
         let markets = this.extend (response['status']['message']);
         let marketIds = Object.keys (markets);
-        let result = [];
+        let result = {};
         for (let i = 0; i < marketIds.length; i++) {
             let id = marketIds[i];
             let market = markets[id];
@@ -151,7 +151,7 @@ module.exports = class rightbtc extends Exchange {
                 'amount': parseInt (market['bid_asset_decimals']),
                 'price': parseInt (market['ask_asset_decimals']),
             };
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -175,7 +175,7 @@ module.exports = class rightbtc extends Exchange {
                     },
                 },
                 'info': market,
-            });
+            };
         }
         return result;
     }

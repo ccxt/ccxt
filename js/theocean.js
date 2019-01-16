@@ -138,7 +138,7 @@ module.exports = class theocean extends Exchange {
         //       }
         //     ]
         //
-        let result = [];
+        let result = {};
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let baseToken = market['baseToken'];
@@ -177,7 +177,7 @@ module.exports = class theocean extends Exchange {
                 'cost': costLimits,
             };
             let active = true;
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -188,7 +188,7 @@ module.exports = class theocean extends Exchange {
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-            });
+            };
         }
         return result;
     }

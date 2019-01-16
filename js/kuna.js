@@ -61,7 +61,7 @@ module.exports = class kuna extends acx {
         const pricePrecisions = {
             'UAH': 0,
         };
-        let markets = [];
+        let result = {};
         let tickers = await this.publicGetTickers ();
         let ids = Object.keys (tickers);
         for (let i = 0; i < ids.length; i++) {
@@ -79,7 +79,7 @@ module.exports = class kuna extends acx {
                         'amount': 6,
                         'price': this.safeInteger (pricePrecisions, quote, 6),
                     };
-                    markets.push ({
+                    result[symbol] = {
                         'id': id,
                         'symbol': symbol,
                         'base': base,
@@ -101,12 +101,12 @@ module.exports = class kuna extends acx {
                                 'max': undefined,
                             },
                         },
-                    });
+                    };
                     break;
                 }
             }
         }
-        return markets;
+        return result;
     }
 
     async fetchL3OrderBook (symbol, limit = undefined, params = {}) {

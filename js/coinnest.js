@@ -113,13 +113,13 @@ module.exports = class coinnest extends Exchange {
             'spc',
             'put',
         ];
-        let result = [];
+        let result = {};
         for (let i = 0; i < coins.length; i++) {
             let baseId = coins[i];
             let id = baseId + '/' + quoteId;
             let base = this.commonCurrencyCode (baseId.toUpperCase ());
             let symbol = base + '/' + quote;
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -128,7 +128,7 @@ module.exports = class coinnest extends Exchange {
                 'quoteId': quoteId,
                 'active': true,
                 'info': undefined,
-            });
+            };
         }
         return result;
     }

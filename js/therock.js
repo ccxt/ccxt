@@ -128,7 +128,7 @@ module.exports = class therock extends Exchange {
         //                                leverages: []                            } ] }
         //
         let markets = this.safeValue (response, 'funds');
-        let result = [];
+        let result = {};
         if (markets === undefined) {
             throw new ExchangeError (this.id + ' fetchMarkets got an unexpected response');
         } else {
@@ -145,7 +145,7 @@ module.exports = class therock extends Exchange {
                 let taker = Math.max (buy_fee, sell_fee);
                 taker = taker / 100;
                 let maker = taker;
-                result.push ({
+                result[symbol] = {
                     'id': id,
                     'symbol': symbol,
                     'base': base,
@@ -174,7 +174,7 @@ module.exports = class therock extends Exchange {
                             'max': undefined,
                         },
                     },
-                });
+                };
             }
         }
         return result;

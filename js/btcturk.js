@@ -60,7 +60,7 @@ module.exports = class btcturk extends Exchange {
 
     async fetchMarkets (params = {}) {
         let response = await this.publicGetTicker ();
-        let result = [];
+        let result = {};
         for (let i = 0; i < response.length; i++) {
             let market = response[i];
             let id = market['pair'];
@@ -76,7 +76,7 @@ module.exports = class btcturk extends Exchange {
                 'price': 8,
             };
             let active = true;
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -100,7 +100,7 @@ module.exports = class btcturk extends Exchange {
                         'max': undefined,
                     },
                 },
-            });
+            };
         }
         return result;
     }

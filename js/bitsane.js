@@ -130,7 +130,7 @@ module.exports = class bitsane extends Exchange {
 
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetAssetsPairs ();
-        let result = [];
+        let result = {};
         let marketIds = Object.keys (markets);
         for (let i = 0; i < marketIds.length; i++) {
             let id = marketIds[i];
@@ -149,7 +149,7 @@ module.exports = class bitsane extends Exchange {
                 'amount': parseInt (market['precision']),
                 'price': 8,
             };
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -173,7 +173,7 @@ module.exports = class bitsane extends Exchange {
                     },
                 },
                 'info': id,
-            });
+            };
         }
         return result;
     }

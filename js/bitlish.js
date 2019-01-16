@@ -124,7 +124,7 @@ module.exports = class bitlish extends Exchange {
 
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetPairs ();
-        let result = [];
+        let result = {};
         let keys = Object.keys (markets);
         for (let p = 0; p < keys.length; p++) {
             let market = markets[keys[p]];
@@ -134,13 +134,13 @@ module.exports = class bitlish extends Exchange {
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             symbol = base + '/' + quote;
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
-            });
+            };
         }
         return result;
     }

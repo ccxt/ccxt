@@ -135,7 +135,7 @@ module.exports = class braziliex extends Exchange {
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetTicker ();
         let ids = Object.keys (markets);
-        let result = [];
+        let result = {};
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let market = markets[id];
@@ -150,7 +150,7 @@ module.exports = class braziliex extends Exchange {
                 'amount': 8,
                 'price': 8,
             };
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol.toUpperCase (),
                 'base': base,
@@ -174,7 +174,7 @@ module.exports = class braziliex extends Exchange {
                     },
                 },
                 'info': market,
-            });
+            };
         }
         return result;
     }

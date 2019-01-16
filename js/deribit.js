@@ -85,7 +85,7 @@ module.exports = class deribit extends Exchange {
     async fetchMarkets (params = {}) {
         let marketsResponse = await this.publicGetGetinstruments ();
         let markets = marketsResponse['result'];
-        let result = [];
+        let result = {};
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
             let id = market['instrumentName'];
@@ -93,9 +93,10 @@ module.exports = class deribit extends Exchange {
             let quote = market['currency'];
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
-            result.push ({
+            let symbol = base + '/' + quote;
+            result[symbol] = {
                 'id': id,
-                'symbol': id,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'active': market['isActive'],
@@ -116,7 +117,7 @@ module.exports = class deribit extends Exchange {
                 'future': market['kind'] === 'future',
                 'option': market['kind'] === 'option',
                 'info': market,
-            });
+            };
         }
         return result;
     }

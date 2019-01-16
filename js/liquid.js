@@ -198,7 +198,7 @@ module.exports = class liquid extends Exchange {
         //
         let currencies = await this.fetchCurrencies ();
         let currenciesByCode = this.indexBy (currencies, 'code');
-        let result = [];
+        let result = {};
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let id = market['id'].toString ();
@@ -246,7 +246,7 @@ module.exports = class liquid extends Exchange {
                     'max': undefined,
                 },
             };
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -259,7 +259,7 @@ module.exports = class liquid extends Exchange {
                 'precision': precision,
                 'active': active,
                 'info': market,
-            });
+            };
         }
         return result;
     }

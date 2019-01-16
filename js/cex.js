@@ -124,13 +124,13 @@ module.exports = class cex extends Exchange {
 
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetCurrencyLimits ();
-        let result = [];
+        let result = {};
         for (let p = 0; p < markets['data']['pairs'].length; p++) {
             let market = markets['data']['pairs'][p];
             let id = market['symbol1'] + '/' + market['symbol2'];
             let symbol = id;
             let [ base, quote ] = symbol.split ('/');
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'info': market,
                 'symbol': symbol,
@@ -154,7 +154,7 @@ module.exports = class cex extends Exchange {
                         'max': undefined,
                     },
                 },
-            });
+            };
         }
         return result;
     }

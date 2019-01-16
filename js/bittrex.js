@@ -185,7 +185,7 @@ module.exports = class bittrex extends Exchange {
         // https://github.com/ccxt/ccxt/commit/866370ba6c9cabaf5995d992c15a82e38b8ca291
         // https://github.com/ccxt/ccxt/pull/4304
         const response = await this.publicGetMarkets ();
-        const result = [];
+        const result = {};
         const markets = this.safeValue (response, 'result');
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -207,7 +207,7 @@ module.exports = class bittrex extends Exchange {
             if ((active !== 'false') || active) {
                 active = true;
             }
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -227,7 +227,7 @@ module.exports = class bittrex extends Exchange {
                         'max': undefined,
                     },
                 },
-            });
+            };
         }
         return result;
     }

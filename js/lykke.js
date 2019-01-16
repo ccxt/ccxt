@@ -159,7 +159,7 @@ module.exports = class lykke extends Exchange {
         //                 MinVolume:  0.4,
         //         MinInvertedVolume:  0.001                                  } ]
         //
-        let result = [];
+        let result = {};
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let id = market['Id'];
@@ -172,7 +172,7 @@ module.exports = class lykke extends Exchange {
                 'amount': market['Accuracy'],
                 'price': market['InvertedAccuracy'],
             };
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -194,7 +194,7 @@ module.exports = class lykke extends Exchange {
                         'max': undefined,
                     },
                 },
-            });
+            };
         }
         return result;
     }

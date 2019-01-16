@@ -103,7 +103,7 @@ module.exports = class bigone extends Exchange {
     async fetchMarkets (params = {}) {
         let response = await this.publicGetMarkets ();
         let markets = response['data'];
-        let result = [];
+        let result = {};
         this.options['marketsByUuid'] = {};
         for (let i = 0; i < markets.length; i++) {
             //
@@ -156,7 +156,7 @@ module.exports = class bigone extends Exchange {
                 'info': market,
             };
             this.options['marketsByUuid'][uuid] = entry;
-            result.push (entry);
+            result[symbol] = entry;
         }
         return result;
     }

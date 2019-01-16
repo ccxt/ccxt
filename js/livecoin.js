@@ -126,7 +126,7 @@ module.exports = class livecoin extends Exchange {
         let markets = await this.publicGetExchangeTicker ();
         let restrictions = await this.publicGetExchangeRestrictions ();
         let restrictionsById = this.indexBy (restrictions['restrictions'], 'currencyPair');
-        let result = [];
+        let result = {};
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
             let id = market['symbol'];
@@ -154,7 +154,7 @@ module.exports = class livecoin extends Exchange {
                 'min': Math.pow (10, -precision['price']),
                 'max': Math.pow (10, precision['price']),
             };
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -165,7 +165,7 @@ module.exports = class livecoin extends Exchange {
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-            });
+            };
         }
         return result;
     }

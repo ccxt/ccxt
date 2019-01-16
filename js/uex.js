@@ -193,7 +193,7 @@ module.exports = class uex extends Exchange {
         //                        base_coin: "eth",
         //                  price_precision:  6        }]}
         //
-        let result = [];
+        let result = {};
         let markets = response['data'];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];

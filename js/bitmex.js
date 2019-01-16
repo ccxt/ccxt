@@ -151,7 +151,7 @@ module.exports = class bitmex extends Exchange {
 
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetInstrumentActiveAndIndices ();
-        let result = [];
+        let result = {};
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
             let active = (market['state'] !== 'Unlisted');
@@ -184,7 +184,7 @@ module.exports = class bitmex extends Exchange {
                 precision['amount'] = this.precisionFromString (this.truncate_to_string (market['lotSize'], 16));
             if (market['tickSize'])
                 precision['price'] = this.precisionFromString (this.truncate_to_string (market['tickSize'], 16));
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -211,7 +211,7 @@ module.exports = class bitmex extends Exchange {
                 'future': future,
                 'prediction': prediction,
                 'info': market,
-            });
+            };
         }
         return result;
     }

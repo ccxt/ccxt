@@ -85,7 +85,7 @@ module.exports = class bithumb extends Exchange {
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetTickerAll ();
         let currencies = Object.keys (markets['data']);
-        let result = [];
+        let result = {};
         for (let i = 0; i < currencies.length; i++) {
             let id = currencies[i];
             if (id !== 'date') {
@@ -100,7 +100,7 @@ module.exports = class bithumb extends Exchange {
                         active = false;
                     }
                 }
-                result.push ({
+                result[symbol] = {
                     'id': id,
                     'symbol': symbol,
                     'base': base,
@@ -125,7 +125,7 @@ module.exports = class bithumb extends Exchange {
                             'max': undefined,
                         },
                     },
-                });
+                };
             }
         }
         return result;

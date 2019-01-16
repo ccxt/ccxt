@@ -225,7 +225,7 @@ module.exports = class huobipro extends Exchange {
         let numMarkets = markets.length;
         if (numMarkets < 1)
             throw new ExchangeError (this.id + ' publicGetCommonSymbols returned empty response: ' + this.json (markets));
-        let result = [];
+        let result = {};
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let baseId = market['base-currency'];
@@ -242,7 +242,7 @@ module.exports = class huobipro extends Exchange {
             };
             let maker = (base === 'OMG') ? 0 : 0.2 / 100;
             let taker = (base === 'OMG') ? 0 : 0.2 / 100;
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -268,7 +268,7 @@ module.exports = class huobipro extends Exchange {
                     },
                 },
                 'info': market,
-            });
+            };
         }
         return result;
     }

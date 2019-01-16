@@ -504,7 +504,7 @@ module.exports = class hitbtc extends Exchange {
 
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetSymbols ();
-        let result = [];
+        let result = {};
         for (let p = 0; p < markets['symbols'].length; p++) {
             let market = markets['symbols'][p];
             let id = market['symbol'];
@@ -515,7 +515,7 @@ module.exports = class hitbtc extends Exchange {
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
-            result.push ({
+            result[symbol] = {
                 'info': market,
                 'id': id,
                 'symbol': symbol,
@@ -546,7 +546,7 @@ module.exports = class hitbtc extends Exchange {
                         'max': undefined,
                     },
                 },
-            });
+            };
         }
         return result;
     }

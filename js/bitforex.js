@@ -218,7 +218,7 @@ module.exports = class bitforex extends Exchange {
     async fetchMarkets (params = {}) {
         let response = await this.publicGetApiV1MarketSymbols ();
         let data = response['data'];
-        let result = [];
+        let result = {};
         for (let i = 0; i < data.length; i++) {
             let market = data[i];
             let id = market['symbol'];
@@ -249,7 +249,7 @@ module.exports = class bitforex extends Exchange {
                     'max': undefined,
                 },
             };
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -260,7 +260,7 @@ module.exports = class bitforex extends Exchange {
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-            });
+            };
         }
         return result;
     }

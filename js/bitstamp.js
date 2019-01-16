@@ -163,7 +163,7 @@ module.exports = class bitstamp extends Exchange {
 
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetTradingPairsInfo ();
-        let result = [];
+        let result = {};
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let symbol = market['name'];
@@ -180,7 +180,7 @@ module.exports = class bitstamp extends Exchange {
             let cost = parts[0];
             // let [ cost, currency ] = market['minimum_order'].split (' ');
             let active = (market['trading'] === 'Enabled');
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -205,7 +205,7 @@ module.exports = class bitstamp extends Exchange {
                         'max': undefined,
                     },
                 },
-            });
+            };
         }
         return result;
     }

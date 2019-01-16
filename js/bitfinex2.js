@@ -181,7 +181,7 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async fetchMarkets (params = {}) {
         let markets = await this.v1GetSymbolsDetails ();
-        let result = [];
+        let result = {};
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
             let id = market['pair'].toUpperCase ();
@@ -211,7 +211,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'min': limits['amount']['min'] * limits['price']['min'],
                 'max': undefined,
             };
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -222,7 +222,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-            });
+            };
         }
         return result;
     }

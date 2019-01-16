@@ -152,7 +152,7 @@ module.exports = class buda extends Exchange {
         let markets = marketsResponse['markets'];
         let currenciesResponse = await this.publicGetCurrencies ();
         let currencies = currenciesResponse['currencies'];
-        let result = [];
+        let result = {};
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let id = market['id'];
@@ -181,7 +181,7 @@ module.exports = class buda extends Exchange {
                 'min': limits['amount']['min'] * limits['price']['min'],
                 'max': undefined,
             };
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -192,7 +192,7 @@ module.exports = class buda extends Exchange {
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-            });
+            };
         }
         return result;
     }

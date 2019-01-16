@@ -150,7 +150,7 @@ module.exports = class gdax extends Exchange {
 
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetProducts ();
-        let result = [];
+        let result = {};
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
             let id = market['id'];
@@ -174,7 +174,7 @@ module.exports = class gdax extends Exchange {
                 accessible = this.safeValue (market, 'accessible');
             }
             const active = (market['status'] === 'online') && accessible;
-            result.push (this.extend (this.fees['trading'], {
+            result[symbol] = this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -194,7 +194,7 @@ module.exports = class gdax extends Exchange {
                 'taker': taker,
                 'active': active,
                 'info': market,
-            }));
+            });
         }
         return result;
     }

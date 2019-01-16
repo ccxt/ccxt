@@ -59,7 +59,7 @@ module.exports = class vaultoro extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let result = [];
+        let result = {};
         let markets = await this.publicGetMarkets ();
         let market = markets['data'];
         let baseId = market['MarketCurrency'];
@@ -68,7 +68,7 @@ module.exports = class vaultoro extends Exchange {
         let quote = this.commonCurrencyCode (quoteId);
         let symbol = base + '/' + quote;
         let id = market['MarketName'];
-        result.push ({
+        result[symbol] = {
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -76,7 +76,7 @@ module.exports = class vaultoro extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
             'info': market,
-        });
+        };
         return result;
     }
 

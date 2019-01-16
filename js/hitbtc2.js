@@ -554,7 +554,7 @@ module.exports = class hitbtc2 extends hitbtc {
 
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetSymbol ();
-        let result = [];
+        let result = {};
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let id = market['id'];
@@ -573,7 +573,7 @@ module.exports = class hitbtc2 extends hitbtc {
             };
             let taker = this.safeFloat (market, 'takeLiquidityRate');
             let maker = this.safeFloat (market, 'provideLiquidityRate');
-            result.push (this.extend (this.fees['trading'], {
+            result[symbol] = this.extend (this.fees['trading'], {
                 'info': market,
                 'id': id,
                 'symbol': symbol,
@@ -599,7 +599,7 @@ module.exports = class hitbtc2 extends hitbtc {
                         'max': undefined,
                     },
                 },
-            }));
+            });
         }
         return result;
     }

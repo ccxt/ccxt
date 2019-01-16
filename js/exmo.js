@@ -330,13 +330,13 @@ module.exports = class exmo extends Exchange {
         let fees = await this.fetchTradingFees ();
         let markets = await this.publicGetPairSettings ();
         let keys = Object.keys (markets);
-        let result = [];
+        let result = {};
         for (let p = 0; p < keys.length; p++) {
             let id = keys[p];
             let market = markets[id];
             let symbol = id.replace ('_', '/');
             let [ base, quote ] = symbol.split ('/');
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -363,7 +363,7 @@ module.exports = class exmo extends Exchange {
                     'price': 8,
                 },
                 'info': market,
-            });
+            };
         }
         return result;
     }

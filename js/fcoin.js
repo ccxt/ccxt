@@ -130,7 +130,7 @@ module.exports = class fcoin extends Exchange {
 
     async fetchMarkets (params = {}) {
         let response = await this.publicGetSymbols ();
-        let result = [];
+        let result = {};
         let markets = response['data'];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
@@ -155,7 +155,7 @@ module.exports = class fcoin extends Exchange {
             if (symbol in this.options['limits']) {
                 limits = this.extend (this.options['limits'][symbol], limits);
             }
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -166,7 +166,7 @@ module.exports = class fcoin extends Exchange {
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-            });
+            };
         }
         return result;
     }

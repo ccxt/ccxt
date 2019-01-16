@@ -89,7 +89,7 @@ module.exports = class btcchina extends Exchange {
         let markets = await this.publicGetTicker ({
             'market': 'all',
         });
-        let result = [];
+        let result = {};
         let keys = Object.keys (markets);
         for (let p = 0; p < keys.length; p++) {
             let key = keys[p];
@@ -101,13 +101,13 @@ module.exports = class btcchina extends Exchange {
             base = base.toUpperCase ();
             quote = quote.toUpperCase ();
             let symbol = base + '/' + quote;
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
-            });
+            };
         }
         return result;
     }

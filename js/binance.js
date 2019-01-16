@@ -378,7 +378,7 @@ module.exports = class binance extends Exchange {
             if ('MIN_NOTIONAL' in filters) {
                 entry['limits']['cost']['min'] = parseFloat (filters['MIN_NOTIONAL']['minNotional']);
             }
-            result.push (entry);
+            result[symbol] = entry;
         }
         return result;
     }

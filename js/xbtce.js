@@ -106,7 +106,7 @@ module.exports = class xbtce extends Exchange {
 
     async fetchMarkets (params = {}) {
         let markets = await this.privateGetSymbol ();
-        let result = [];
+        let result = {};
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
             let id = market['Symbol'];
@@ -116,13 +116,13 @@ module.exports = class xbtce extends Exchange {
                 base = 'DASH';
             let symbol = base + '/' + quote;
             symbol = market['IsTradeAllowed'] ? symbol : id;
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
-            });
+            };
         }
         return result;
     }

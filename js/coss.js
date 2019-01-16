@@ -150,7 +150,7 @@ module.exports = class coss extends Exchange {
         //                             price_limit_decimal:  3,
         //                                   allow_trading:  true       }     ]               }
         //
-        const result = [];
+        const result = {};
         const markets = this.safeValue (response, 'symbols', []);
         const baseCurrencies = this.safeValue (response, 'base_currencies', []);
         const baseCurrenciesByIds = this.indexBy (baseCurrencies, 'currency_code');
@@ -173,7 +173,7 @@ module.exports = class coss extends Exchange {
             const currency = this.safeValue (currenciesByIds, baseId, {});
             const defaultMinAmount = Math.pow (10, -precision['amount']);
             const minAmount = this.safeFloat (currency, 'minimum_order_amount', defaultMinAmount);
-            result.push ({
+            result[symbol] = {
                 'symbol': symbol,
                 'id': marketId,
                 'baseId': baseId,
@@ -197,7 +197,7 @@ module.exports = class coss extends Exchange {
                     },
                 },
                 'info': market,
-            });
+            };
         }
         return result;
     }

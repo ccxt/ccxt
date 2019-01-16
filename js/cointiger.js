@@ -147,7 +147,7 @@ module.exports = class cointiger extends huobipro {
         //     }
         //
         const keys = Object.keys (response['data']);
-        const result = [];
+        const result = {};
         for (let i = 0; i < keys.length; i++) {
             let key = keys[i];
             let partition = response['data'][key];
@@ -167,7 +167,7 @@ module.exports = class cointiger extends huobipro {
                     'price': market['pricePrecision'],
                 };
                 let active = true;
-                let entry = {
+                result[symbol] = {
                     'id': id,
                     'uppercaseId': uppercaseId,
                     'symbol': symbol,
@@ -193,7 +193,6 @@ module.exports = class cointiger extends huobipro {
                         },
                     },
                 };
-                result.push (entry);
             }
         }
         this.options['marketsByUppercaseId'] = this.indexBy (result, 'uppercaseId');

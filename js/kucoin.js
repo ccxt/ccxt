@@ -525,7 +525,7 @@ module.exports = class kucoin extends Exchange {
         if (this.options['adjustForTimeDifference'])
             await this.loadTimeDifference ();
         let markets = response['data'];
-        let result = [];
+        let result = {};
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let id = market['symbol'];
@@ -541,7 +541,7 @@ module.exports = class kucoin extends Exchange {
             let defaultMinAmount = Math.pow (10, -precision['amount']);
             let minAmount = this.safeFloat (this.options['limits']['amount']['min'], base, defaultMinAmount);
             let active = market['trading'];
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -563,7 +563,7 @@ module.exports = class kucoin extends Exchange {
                         'max': undefined,
                     },
                 },
-            });
+            };
         }
         return result;
     }

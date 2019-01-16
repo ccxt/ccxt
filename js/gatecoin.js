@@ -209,7 +209,7 @@ module.exports = class gatecoin extends Exchange {
     async fetchMarkets (params = {}) {
         let response = await this.publicGetReferenceCurrencyPairs ();
         let markets = response['currencyPairs'];
-        let result = [];
+        let result = {};
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let id = market['tradingCode'];
@@ -236,7 +236,7 @@ module.exports = class gatecoin extends Exchange {
                     'max': undefined,
                 },
             };
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -247,7 +247,7 @@ module.exports = class gatecoin extends Exchange {
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-            });
+            };
         }
         return result;
     }

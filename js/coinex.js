@@ -123,7 +123,7 @@ module.exports = class coinex extends Exchange {
     async fetchMarkets (params = {}) {
         let response = await this.webGetResMarket ();
         let markets = response['data']['market_info'];
-        let result = [];
+        let result = {};
         let keys = Object.keys (markets);
         for (let i = 0; i < keys.length; i++) {
             let key = keys[i];
@@ -140,7 +140,7 @@ module.exports = class coinex extends Exchange {
             };
             let numMergeLevels = market['merge'].length;
             let active = (market['status'] === 'pass');
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -162,7 +162,7 @@ module.exports = class coinex extends Exchange {
                         'max': undefined,
                     },
                 },
-            });
+            };
         }
         return result;
     }

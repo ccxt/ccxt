@@ -230,7 +230,7 @@ module.exports = class bitz extends Exchange {
         //
         let markets = response['data'];
         let ids = Object.keys (markets);
-        let result = [];
+        let result = {};
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let market = markets[id];
@@ -246,7 +246,7 @@ module.exports = class bitz extends Exchange {
                 'amount': this.safeInteger (market, 'numberFloat'),
                 'price': this.safeInteger (market, 'priceFloat'),
             };
-            result.push ({
+            result[symbol] = {
                 'info': market,
                 'id': id,
                 'numericId': numericId,
@@ -271,7 +271,7 @@ module.exports = class bitz extends Exchange {
                         'max': undefined,
                     },
                 },
-            });
+            };
         }
         return result;
     }

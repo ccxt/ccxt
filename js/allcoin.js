@@ -58,7 +58,7 @@ module.exports = class allcoin extends okcoinusd {
     }
 
     async fetchMarkets (params = {}) {
-        let result = [];
+        let result = {};
         let response = await this.webGetHomeMarketOverViewDetail ();
         let coins = response['marketCoins'];
         for (let j = 0; j < coins.length; j++) {
@@ -72,7 +72,7 @@ module.exports = class allcoin extends okcoinusd {
                 let id = baseId + '_' + quoteId;
                 let symbol = base + '/' + quote;
                 let active = market['TradeEnabled'] && market['BuyEnabled'] && market['SellEnabled'];
-                result.push ({
+                result[symbol] = {
                     'id': id,
                     'symbol': symbol,
                     'base': base,
@@ -104,7 +104,7 @@ module.exports = class allcoin extends okcoinusd {
                         },
                     },
                     'info': market,
-                });
+                };
             }
         }
         return result;

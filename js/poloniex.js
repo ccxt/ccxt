@@ -230,7 +230,7 @@ module.exports = class poloniex extends Exchange {
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetReturnTicker ();
         let keys = Object.keys (markets);
-        let result = [];
+        let result = {};
         for (let p = 0; p < keys.length; p++) {
             let id = keys[p];
             let market = markets[id];
@@ -243,7 +243,7 @@ module.exports = class poloniex extends Exchange {
                 'amount': 6,
                 'price': 8,
             };
-            result.push (this.extend (this.fees['trading'], {
+            result[symbol] = this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'baseId': baseId,
@@ -267,7 +267,7 @@ module.exports = class poloniex extends Exchange {
                     },
                 },
                 'info': market,
-            }));
+            });
         }
         return result;
     }

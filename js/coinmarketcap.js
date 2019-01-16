@@ -139,7 +139,7 @@ module.exports = class coinmarketcap extends Exchange {
         let markets = await this.publicGetTicker ({
             'limit': 0,
         });
-        let result = [];
+        let result = {};
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
             let currencies = this.currencyCodes;
@@ -150,7 +150,7 @@ module.exports = class coinmarketcap extends Exchange {
                 let base = this.currencyCode (market['symbol'], market['name']);
                 let symbol = base + '/' + quote;
                 let id = baseId + '/' + quoteId;
-                result.push ({
+                result[symbol] = {
                     'id': id,
                     'symbol': symbol,
                     'base': base,
@@ -158,7 +158,7 @@ module.exports = class coinmarketcap extends Exchange {
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'info': market,
-                });
+                };
             }
         }
         return result;

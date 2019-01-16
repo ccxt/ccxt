@@ -75,7 +75,7 @@ module.exports = class independentreserve extends Exchange {
     async fetchMarkets (params = {}) {
         let baseCurrencies = await this.publicGetGetValidPrimaryCurrencyCodes ();
         let quoteCurrencies = await this.publicGetGetValidSecondaryCurrencyCodes ();
-        let result = [];
+        let result = {};
         for (let i = 0; i < baseCurrencies.length; i++) {
             let baseId = baseCurrencies[i];
             let baseIdUppercase = baseId.toUpperCase ();
@@ -86,7 +86,7 @@ module.exports = class independentreserve extends Exchange {
                 let quote = this.commonCurrencyCode (quoteIdUppercase);
                 let id = baseId + '/' + quoteId;
                 let symbol = base + '/' + quote;
-                result.push ({
+                result[symbol] = {
                     'id': id,
                     'symbol': symbol,
                     'base': base,
@@ -94,7 +94,7 @@ module.exports = class independentreserve extends Exchange {
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'info': id,
-                });
+                };
             }
         }
         return result;

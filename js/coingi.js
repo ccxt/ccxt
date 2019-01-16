@@ -93,7 +93,7 @@ module.exports = class coingi extends Exchange {
         let response = await this.wwwGet ();
         let parts = response.split ('do=currencyPairSelector-selectCurrencyPair" class="active">');
         let currencyParts = parts[1].split ('<div class="currency-pair-label">');
-        let result = [];
+        let result = {};
         for (let i = 1; i < currencyParts.length; i++) {
             let currencyPart = currencyParts[i];
             let idParts = currencyPart.split ('</div>');
@@ -106,7 +106,7 @@ module.exports = class coingi extends Exchange {
                 'amount': 8,
                 'price': 8,
             };
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -128,7 +128,7 @@ module.exports = class coingi extends Exchange {
                         'max': undefined,
                     },
                 },
-            });
+            };
         }
         return result;
     }

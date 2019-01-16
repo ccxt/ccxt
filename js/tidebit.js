@@ -139,7 +139,7 @@ module.exports = class tidebit extends Exchange {
 
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetMarkets ();
-        let result = [];
+        let result = {};
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
             let id = market['id'];
@@ -147,7 +147,7 @@ module.exports = class tidebit extends Exchange {
             let [ baseId, quoteId ] = symbol.split ('/');
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -155,7 +155,7 @@ module.exports = class tidebit extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
-            });
+            };
         }
         return result;
     }

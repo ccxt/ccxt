@@ -101,7 +101,7 @@ module.exports = class acx extends Exchange {
 
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetMarkets ();
-        let result = [];
+        let result = {};
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
             let id = market['id'];
@@ -122,7 +122,7 @@ module.exports = class acx extends Exchange {
                 'amount': 8,
                 'price': 8,
             };
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -131,7 +131,7 @@ module.exports = class acx extends Exchange {
                 'quoteId': quoteId,
                 'precision': precision,
                 'info': market,
-            });
+            };
         }
         return result;
     }

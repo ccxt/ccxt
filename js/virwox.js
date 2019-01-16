@@ -84,20 +84,20 @@ module.exports = class virwox extends Exchange {
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetGetInstruments ();
         let keys = Object.keys (markets['result']);
-        let result = [];
+        let result = {};
         for (let p = 0; p < keys.length; p++) {
             let market = markets['result'][keys[p]];
             let id = market['instrumentID'];
             let symbol = market['symbol'];
             let base = market['longCurrency'];
             let quote = market['shortCurrency'];
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
-            });
+            };
         }
         return result;
     }

@@ -78,7 +78,7 @@ module.exports = class bxinth extends Exchange {
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetPairing ();
         let keys = Object.keys (markets);
-        let result = [];
+        let result = {};
         for (let p = 0; p < keys.length; p++) {
             let market = markets[keys[p]];
             let id = market['pairing_id'].toString ();
@@ -88,7 +88,7 @@ module.exports = class bxinth extends Exchange {
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -97,7 +97,7 @@ module.exports = class bxinth extends Exchange {
                 'quoteId': quoteId,
                 'active': active,
                 'info': market,
-            });
+            };
         }
         return result;
     }

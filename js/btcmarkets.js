@@ -87,7 +87,7 @@ module.exports = class btcmarkets extends Exchange {
 
     async fetchMarkets (params = {}) {
         let response = await this.publicGetV2MarketActive ();
-        let result = [];
+        let result = {};
         let markets = response['markets'];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
@@ -127,7 +127,7 @@ module.exports = class btcmarkets extends Exchange {
                     'max': undefined,
                 },
             };
-            result.push ({
+            result[symbol] = {
                 'info': market,
                 'id': id,
                 'symbol': symbol,
@@ -139,7 +139,7 @@ module.exports = class btcmarkets extends Exchange {
                 'taker': fee,
                 'limits': limits,
                 'precision': precision,
-            });
+            };
         }
         return result;
     }

@@ -287,7 +287,7 @@ module.exports = class bcex extends Exchange {
 
     async fetchMarkets (params = {}) {
         let response = await this.publicGetApiMarketGetPriceList ();
-        let result = [];
+        let result = {};
         let keys = Object.keys (response);
         for (let i = 0; i < keys.length; i++) {
             let currentMarketId = keys[i];
@@ -304,7 +304,7 @@ module.exports = class bcex extends Exchange {
                 let symbol = base + '/' + quote;
                 let active = true;
                 let defaults = this.safeValue (this.options['limits'], symbol, {});
-                result.push (this.extend ({
+                result[symbol] = this.extend ({
                     'id': id,
                     'symbol': symbol,
                     'base': base,
@@ -333,7 +333,7 @@ module.exports = class bcex extends Exchange {
                         },
                     },
                     'info': market,
-                }, defaults));
+                }, defaults);
             }
         }
         return result;

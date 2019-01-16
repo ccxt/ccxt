@@ -347,7 +347,7 @@ module.exports = class upbit extends Exchange {
         //          korean_name: "비트코인에스브이",
         //         english_name: "Bitcoin SV" } ]
         //
-        const result = [];
+        const result = {};
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString (market, 'market');
@@ -362,7 +362,7 @@ module.exports = class upbit extends Exchange {
             const active = true;
             const makerFee = this.safeFloat (this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['maker']);
             const takerFee = this.safeFloat (this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['taker']);
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -388,7 +388,7 @@ module.exports = class upbit extends Exchange {
                         'max': undefined,
                     },
                 },
-            });
+            };
         }
         return result;
     }

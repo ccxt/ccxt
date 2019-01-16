@@ -91,7 +91,7 @@ module.exports = class bitso extends Exchange {
 
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetAvailableBooks ();
-        let result = [];
+        let result = {};
         for (let i = 0; i < markets['payload'].length; i++) {
             let market = markets['payload'][i];
             let id = market['book'];
@@ -115,7 +115,7 @@ module.exports = class bitso extends Exchange {
                 'amount': this.precisionFromString (market['minimum_amount']),
                 'price': this.precisionFromString (market['minimum_price']),
             };
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -123,7 +123,7 @@ module.exports = class bitso extends Exchange {
                 'info': market,
                 'limits': limits,
                 'precision': precision,
-            });
+            };
         }
         return result;
     }

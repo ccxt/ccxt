@@ -111,7 +111,7 @@ module.exports = class kkex extends Exchange {
             let keys = Object.keys (tickers[k]);
             markets.push (keys[0]);
         }
-        let result = [];
+        let result = {};
         for (let i = 0; i < markets.length; i++) {
             let id = markets[i];
             let market = markets[i];
@@ -151,7 +151,7 @@ module.exports = class kkex extends Exchange {
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -162,7 +162,7 @@ module.exports = class kkex extends Exchange {
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-            });
+            };
         }
         return result;
     }

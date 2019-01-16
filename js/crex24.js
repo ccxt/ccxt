@@ -159,7 +159,7 @@ module.exports = class crex24 extends Exchange {
         //         supportedOrderTypes: ["limit"],
         //                       state:   "active"   }        ]
         //
-        let result = [];
+        let result = {};
         for (let i = 0; i < response.length; i++) {
             let market = response[i];
             let id = market['symbol'];
@@ -173,7 +173,7 @@ module.exports = class crex24 extends Exchange {
                 'price': this.precisionFromString (this.truncate_to_string (market['minPrice'], 8)),
             };
             let active = (market['state'] === 'active');
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -197,7 +197,7 @@ module.exports = class crex24 extends Exchange {
                         'max': undefined,
                     },
                 },
-            });
+            };
         }
         return result;
     }

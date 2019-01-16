@@ -240,7 +240,7 @@ module.exports = class cobinhood extends Exchange {
     async fetchMarkets (params = {}) {
         let response = await this.publicGetMarketTradingPairs ();
         let markets = response['result']['trading_pairs'];
-        let result = [];
+        let result = {};
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let id = market['id'];
@@ -253,7 +253,7 @@ module.exports = class cobinhood extends Exchange {
                 'price': this.precisionFromString (market['quote_increment']),
             };
             let active = this.safeValue (market, 'is_active', true);
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -277,7 +277,7 @@ module.exports = class cobinhood extends Exchange {
                     },
                 },
                 'info': market,
-            });
+            };
         }
         return result;
     }

@@ -329,7 +329,7 @@ module.exports = class okcoinusd extends Exchange {
     async fetchMarkets (params = {}) {
         let response = await this.webGetSpotMarketsProducts ();
         let markets = response['data'];
-        let result = [];
+        let result = {};
         for (let i = 0; i < markets.length; i++) {
             let id = markets[i]['symbol'];
             let [ baseId, quoteId ] = id.split ('_');
@@ -377,13 +377,13 @@ module.exports = class okcoinusd extends Exchange {
                     },
                 },
             });
-            result.push (market);
+            result[symbol] = market;
             if ((this.has['futures']) && (market['base'] in this.options['futures'])) {
                 let fiats = this.options['fiats'];
                 for (let j = 0; j < fiats.length; j++) {
                     const fiat = fiats[j];
                     const lowercaseFiat = fiat.toLowerCase ();
-                    result.push (this.extend (market, {
+                    result[symbol] = this.extend (market, {
                         'quote': fiat,
                         'symbol': market['base'] + '/' + fiat,
                         'id': market['base'].toLowerCase () + '_' + lowercaseFiat,
@@ -391,7 +391,7 @@ module.exports = class okcoinusd extends Exchange {
                         'type': 'future',
                         'spot': false,
                         'future': true,
-                    }));
+                    });
                 }
             }
         }

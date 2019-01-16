@@ -84,7 +84,7 @@ module.exports = class luno extends Exchange {
 
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetTickers ();
-        let result = [];
+        let result = {};
         for (let p = 0; p < markets['tickers'].length; p++) {
             let market = markets['tickers'][p];
             let id = market['pair'];
@@ -93,13 +93,13 @@ module.exports = class luno extends Exchange {
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
-            });
+            };
         }
         return result;
     }

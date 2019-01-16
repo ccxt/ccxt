@@ -251,7 +251,7 @@ module.exports = class kraken extends Exchange {
         let markets = await this.publicGetAssetPairs ();
         let limits = await this.fetchMinOrderAmounts ();
         let keys = Object.keys (markets['result']);
-        let result = [];
+        let result = {};
         for (let i = 0; i < keys.length; i++) {
             let id = keys[i];
             let market = markets['result'][id];
@@ -284,7 +284,7 @@ module.exports = class kraken extends Exchange {
             let minAmount = Math.pow (10, -precision['amount']);
             if (base in limits)
                 minAmount = limits[base];
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -312,7 +312,7 @@ module.exports = class kraken extends Exchange {
                         'max': undefined,
                     },
                 },
-            });
+            };
         }
         result = this.appendInactiveMarkets (result);
         this.marketsByAltname = this.indexBy (result, 'altname');

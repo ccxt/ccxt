@@ -107,7 +107,7 @@ module.exports = class btcalpha extends Exchange {
 
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetPairs ();
-        let result = [];
+        let result = {};
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let id = market['name'];
@@ -118,7 +118,7 @@ module.exports = class btcalpha extends Exchange {
                 'amount': 8,
                 'price': parseInt (market['price_precision']),
             };
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -140,7 +140,7 @@ module.exports = class btcalpha extends Exchange {
                     },
                 },
                 'info': market,
-            });
+            };
         }
         return result;
     }

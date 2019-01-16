@@ -30,7 +30,7 @@ module.exports = class jubi extends btcbox {
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetAllticker ();
         let keys = Object.keys (markets);
-        let result = [];
+        let result = {};
         for (let p = 0; p < keys.length; p++) {
             let id = keys[p];
             let base = id.toUpperCase ();
@@ -38,13 +38,13 @@ module.exports = class jubi extends btcbox {
             let symbol = base + '/' + quote;
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': id,
-            });
+            };
         }
         return result;
     }

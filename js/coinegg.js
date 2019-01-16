@@ -152,7 +152,7 @@ module.exports = class coinegg extends Exchange {
 
     async fetchMarkets (params = {}) {
         let quoteIds = this.options['quoteIds'];
-        let result = [];
+        let result = {};
         for (let b = 0; b < quoteIds.length; b++) {
             let quoteId = quoteIds[b];
             let bases = await this.webGetQuoteAllcoin ({
@@ -177,7 +177,7 @@ module.exports = class coinegg extends Exchange {
                     'amount': 8,
                     'price': 8,
                 };
-                result.push ({
+                result[symbol] = {
                     'id': id,
                     'symbol': symbol,
                     'base': base,
@@ -201,7 +201,7 @@ module.exports = class coinegg extends Exchange {
                         },
                     },
                     'info': market,
-                });
+                };
             }
         }
         return result;

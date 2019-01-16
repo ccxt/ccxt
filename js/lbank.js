@@ -108,7 +108,7 @@ module.exports = class lbank extends Exchange {
 
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetAccuracy ();
-        let result = [];
+        let result = {};
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let id = market['symbol'];
@@ -131,7 +131,7 @@ module.exports = class lbank extends Exchange {
                 'amount': this.safeInteger (market, 'quantityAccuracy'),
                 'price': this.safeInteger (market, 'priceAccuracy'),
             };
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -155,7 +155,7 @@ module.exports = class lbank extends Exchange {
                     },
                 },
                 'info': id,
-            });
+            };
         }
         return result;
     }

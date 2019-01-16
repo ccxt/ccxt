@@ -67,7 +67,7 @@ module.exports = class coinfalcon extends Exchange {
     async fetchMarkets (params = {}) {
         let response = await this.publicGetMarkets ();
         let markets = response['data'];
-        let result = [];
+        let result = {};
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let [ baseId, quoteId ] = market['name'].split ('-');
@@ -78,7 +78,7 @@ module.exports = class coinfalcon extends Exchange {
                 'amount': this.safeInteger (market, 'size_precision'),
                 'price': this.safeInteger (market, 'price_precision'),
             };
-            result.push ({
+            result[symbol] = {
                 'id': market['name'],
                 'symbol': symbol,
                 'base': base,
@@ -102,7 +102,7 @@ module.exports = class coinfalcon extends Exchange {
                     },
                 },
                 'info': market,
-            });
+            };
         }
         return result;
     }

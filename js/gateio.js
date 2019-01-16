@@ -134,7 +134,7 @@ module.exports = class gateio extends Exchange {
         let markets = this.safeValue (response, 'pairs');
         if (!markets)
             throw new ExchangeError (this.id + ' fetchMarkets got an unrecognized response');
-        let result = [];
+        let result = {};
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let keys = Object.keys (market);
@@ -170,7 +170,7 @@ module.exports = class gateio extends Exchange {
                 'cost': costLimits,
             };
             let active = true;
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -183,7 +183,7 @@ module.exports = class gateio extends Exchange {
                 'taker': details['fee'] / 100,
                 'precision': precision,
                 'limits': limits,
-            });
+            };
         }
         return result;
     }

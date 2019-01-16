@@ -94,7 +94,7 @@ module.exports = class exx extends Exchange {
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetMarkets ();
         let ids = Object.keys (markets);
-        let result = [];
+        let result = {};
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let market = markets[id];
@@ -109,7 +109,7 @@ module.exports = class exx extends Exchange {
                 'amount': parseInt (market['amountScale']),
                 'price': parseInt (market['priceScale']),
             };
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -133,7 +133,7 @@ module.exports = class exx extends Exchange {
                     },
                 },
                 'info': market,
-            });
+            };
         }
         return result;
     }

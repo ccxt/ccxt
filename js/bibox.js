@@ -109,7 +109,7 @@ module.exports = class bibox extends Exchange {
             'cmd': 'marketAll',
         }, params));
         let markets = response['result'];
-        let result = [];
+        let result = {};
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let baseId = market['coin_symbol'];
@@ -122,7 +122,7 @@ module.exports = class bibox extends Exchange {
                 'amount': 4,
                 'price': 8,
             };
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -142,7 +142,7 @@ module.exports = class bibox extends Exchange {
                         'max': undefined,
                     },
                 },
-            });
+            };
         }
         return result;
     }

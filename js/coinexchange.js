@@ -607,7 +607,7 @@ module.exports = class coinexchange extends Exchange {
     async fetchMarkets (params = {}) {
         let response = await this.publicGetGetmarkets ();
         let markets = response['result'];
-        let result = [];
+        let result = {};
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let id = market['MarketID'];
@@ -617,7 +617,7 @@ module.exports = class coinexchange extends Exchange {
                 let base = this.commonCurrencyCode (baseId);
                 let quote = this.commonCurrencyCode (quoteId);
                 let symbol = base + '/' + quote;
-                result.push ({
+                result[symbol] = {
                     'id': id,
                     'symbol': symbol,
                     'base': base,
@@ -626,7 +626,7 @@ module.exports = class coinexchange extends Exchange {
                     'quoteId': quoteId,
                     'active': market['Active'],
                     'info': market,
-                });
+                };
             }
         }
         return result;

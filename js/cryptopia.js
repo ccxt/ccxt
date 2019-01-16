@@ -132,7 +132,7 @@ module.exports = class cryptopia extends Exchange {
 
     async fetchMarkets (params = {}) {
         let response = await this.publicGetGetTradePairs ();
-        let result = [];
+        let result = {};
         let markets = response['Data'];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
@@ -166,7 +166,7 @@ module.exports = class cryptopia extends Exchange {
                 },
             };
             let active = market['Status'] === 'OK';
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'numericId': numericId,
@@ -181,7 +181,7 @@ module.exports = class cryptopia extends Exchange {
                 'precision': precision,
                 'limits': limits,
                 'label': label,
-            });
+            };
         }
         this.options['marketsByLabel'] = this.indexBy (result, 'label');
         return result;

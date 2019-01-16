@@ -60,7 +60,7 @@ module.exports = class lakebtc extends Exchange {
 
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetTicker ();
-        let result = [];
+        let result = {};
         let keys = Object.keys (markets);
         for (let k = 0; k < keys.length; k++) {
             let id = keys[k];
@@ -70,7 +70,7 @@ module.exports = class lakebtc extends Exchange {
             let base = baseId.toUpperCase ();
             let quote = quoteId.toUpperCase ();
             let symbol = base + '/' + quote;
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -78,7 +78,7 @@ module.exports = class lakebtc extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
-            });
+            };
         }
         return result;
     }

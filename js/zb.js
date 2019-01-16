@@ -168,7 +168,7 @@ module.exports = class zb extends Exchange {
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetMarkets ();
         let keys = Object.keys (markets);
-        let result = [];
+        let result = {};
         for (let i = 0; i < keys.length; i++) {
             let id = keys[i];
             let market = markets[id];
@@ -180,7 +180,7 @@ module.exports = class zb extends Exchange {
                 'amount': market['amountScale'],
                 'price': market['priceScale'],
             };
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'baseId': baseId,
@@ -204,7 +204,7 @@ module.exports = class zb extends Exchange {
                     },
                 },
                 'info': market,
-            });
+            };
         }
         return result;
     }

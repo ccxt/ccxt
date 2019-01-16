@@ -92,7 +92,7 @@ module.exports = class dsx extends liqui {
         let response = await this.publicGetInfo ();
         let markets = response['pairs'];
         let keys = Object.keys (markets);
-        let result = [];
+        let result = {};
         for (let i = 0; i < keys.length; i++) {
             let id = keys[i];
             let market = markets[id];
@@ -123,7 +123,7 @@ module.exports = class dsx extends liqui {
             };
             let hidden = this.safeInteger (market, 'hidden');
             let active = (hidden === 0);
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -135,7 +135,7 @@ module.exports = class dsx extends liqui {
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-            });
+            };
         }
         return result;
     }

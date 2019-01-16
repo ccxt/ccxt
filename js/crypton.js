@@ -72,7 +72,7 @@ module.exports = class crypton extends Exchange {
     async fetchMarkets (params = {}) {
         let response = await this.publicGetMarkets ();
         let markets = response['result'];
-        let result = [];
+        let result = {};
         let keys = Object.keys (markets);
         for (let i = 0; i < keys.length; i++) {
             let id = keys[i];
@@ -87,7 +87,7 @@ module.exports = class crypton extends Exchange {
                 'price': this.precisionFromString (this.safeString (market, 'priceStep')),
             };
             let active = market['enabled'];
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -111,7 +111,7 @@ module.exports = class crypton extends Exchange {
                         'max': undefined,
                     },
                 },
-            });
+            };
         }
         return result;
     }
