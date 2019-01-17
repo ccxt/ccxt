@@ -143,7 +143,7 @@ let values = Object.values (exchanges).map (exchange => {
     if (matches)
         version = matches[1];
     return {
-        '': '![' + exchange.id + '](' + logo + ')',
+        '': '[![' + exchange.id + '](' + logo + ')](' + url + ')',
         'id': exchange.id,
         'name': '[' + exchange.name + '](' + url + ')',
         'certified': exchange.certified ? ccxtCertifiedBadge : '',
