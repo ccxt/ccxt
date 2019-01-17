@@ -142,15 +142,16 @@ let values = Object.values (exchanges).map (exchange => {
     let matches = version.match (/[^0-9]*([0-9].*)/)
     if (matches)
         version = matches[1];
-    return {
-        '': '[![' + exchange.id + '](' + logo + ')](' + url + ')',
+    let result = {}
+    result['&nbsp;'.repeat (20)] = '[![' + exchange.id + '](' + logo + ')](' + url + ')'
+    return exchange.extend (result, {
         'id': exchange.id,
         'name': '[' + exchange.name + '](' + url + ')',
         'certified': exchange.certified ? ccxtCertifiedBadge : '',
         'ver': version,
         'doc': '[API](' + doc + ')',
         'countries': countries,
-    }
+    })
 })
 
 let numExchanges = Object.keys (exchanges).length
