@@ -383,10 +383,11 @@ module.exports = class okcoinusd extends Exchange {
                 for (let j = 0; j < fiats.length; j++) {
                     const fiat = fiats[j];
                     const lowercaseFiat = fiat.toLowerCase ();
-                    result[symbol] = this.extend (market, {
+                    const fiatSymbol = market['base'] + '/' + fiat;
+                    result[fiatSymbol] = this.extend (market, {
                         'quote': fiat,
-                        'symbol': market['base'] + '/' + fiat,
-                        'id': market['base'].toLowerCase () + '_' + lowercaseFiat,
+                        'symbol': fiatSymbol,
+                        'id': market['baseId'] + '_' + lowercaseFiat,
                         'quoteId': lowercaseFiat,
                         'type': 'future',
                         'spot': false,
