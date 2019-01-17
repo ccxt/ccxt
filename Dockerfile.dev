@@ -4,10 +4,11 @@ ENV NODE_OPTIONS=--max-old-space-size=3072
 
 RUN apt-get update && apt-get install -y pandoc python-pip python3-pip php
 RUN pip install tox requests
-RUN pip3 install requests aiohttp web3
-RUN npm install web3 ethereumjs-util ethereumjs-abi bignumber.js --no-save
+RUN pip3 install requests aiohttp
 RUN apt-get install -y php-curl php-iconv php-mbstring php-bcmath
 
 RUN mkdir -p /app
 WORKDIR /app
 ADD . /app
+
+RUN npm install 
