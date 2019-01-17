@@ -507,7 +507,7 @@ Support this project by becoming a supporter. Your avatar will show up here with
 
 Thank you to all our backers! [[Become a backer](https://opencollective.com/ccxt#backer)]
 
-<a href="https://opencollective.com/ccxt#backers" target="_blank"><img src="https://opencollective.com/ccxt/backers.svg?width=890"></a>
+<a href="https://opencollective.com/ccxt#backers" target="_blank"><img src="https://opencollective.com/ccxt/tiers/backer.svg?width=890"></a>
 
 ### Crypto
 
