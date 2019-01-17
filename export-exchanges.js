@@ -212,7 +212,8 @@ Object.keys (countries).forEach (code => {
         }
         if (shouldInclude) {
             let entry = {}
-            entry['logo' + '&nbsp;'.repeat (padding - 'logo'.length * 2)] = '[![' + exchange.id + '](' + logo + ')](' + url + ')'
+            let spaces = '&nbsp;'.repeat (Math.floor ((padding - 'logo'.length * 2) / 2))
+            entry[spaces + 'logo' + spaces] = '[![' + exchange.id + '](' + logo + ')](' + url + ')'
             result.push (Object.assign (entry, {
                 'country / region': country,
                 'id': exchange.id,
