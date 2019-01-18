@@ -190,12 +190,17 @@ module.exports = class btcbox extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        if (!symbol) {
+            symbol = 'BTC/JPY';
+        }
+        const market = this.market (symbol);
         return await this.privatePostTradeCancel (this.extend ({
             'id': id,
+            'coin': market['baseId'],
         }, params));
     }
 
-    parseOrder (order) {
+    parseOrder (order, market) {
         // {"id":11,"datetime":"2014-10-21 10:47:20","type":"sell","price":42000,"amount_original":1.2,"amount_outstanding":1.2,"status":"closed","trades":[]}
         const id = this.safeString (order, 'id');
         const timestamp = this.parse8601 (order['datetime'] + '+09:00'); // Tokyo time
@@ -218,9 +223,9 @@ module.exports = class btcbox extends Exchange {
             'cancelled': 'canceled',
             'closed': 'closed', // never encountered, seems to be bug in the doc
         };
-        let status = undefined;
-        if (order['status'] in statuses)
-            status = statuses[order['status']];
+        let status = this.safeValue (order, 'status');
+        if (status in statuses)
+            status = statuses[status];
         // fetchOrders do not return status, use heuristic
         if (status === undefined)
             if (remaining !== undefined && remaining === 0)
@@ -237,7 +242,7 @@ module.exports = class btcbox extends Exchange {
             'side': order['type'],
             'type': undefined,
             'status': status,
-            'symbol': 'BTC/JPY',
+            'symbol': market['symbol'],
             'price': price,
             'cost': cost,
             'trades': trades,
@@ -246,29 +251,47 @@ module.exports = class btcbox extends Exchange {
         };
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol = 'BTC/JPY', params = {}) {
         await this.loadMarkets ();
+        if (!symbol) {
+            symbol = 'BTC/JPY';
+        }
+        const market = this.market (symbol);
         let response = await this.privatePostTradeView (this.extend ({
             'id': id,
         }, params));
-        return this.parseOrder (response);
+        return this.parseOrder (response, market);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol = 'BTC/JPY', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        if (!symbol) {
+            symbol = 'BTC/JPY';
+        }
+        const market = this.market (symbol);
         let response = await this.privatePostTradeList (this.extend ({
             'type': 'all', // 'open' or 'all'
+            'coin': market['baseId'],
         }, params));
         // status (open/closed/canceled) is undefined
-        return this.parseOrders (response);
+        return this.parseOrders (response, market);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = 'BTC/JPY', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        if (!symbol) {
+            symbol = 'BTC/JPY';
+        }
+        const market = this.market (symbol);
         let response = await this.privatePostTradeList (this.extend ({
             'type': 'open', // 'open' or 'all'
+            'coin': market['baseId'],
         }, params));
-        const orders = this.parseOrders (response);
+        let orders = this.toArray (response);
+        for (let i = 0; i < orders.length; i++) {
+            orders[i]['symbol'] = symbol;
+        }
+        orders = this.parseOrders (response, market);
         // btcbox does not return status, but we know it's 'open' as we queried for open orders
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
