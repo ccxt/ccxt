@@ -155,7 +155,7 @@ module.exports = class coincheck extends Exchange {
         let filled = undefined;
         let cost = undefined;
         if (remaining !== undefined) {
-            if (amount !== undefined) {        
+            if (amount !== undefined) {
                 filled = Math.max (amount - remaining, 0);
                 if (price !== undefined) {
                     cost = filled * price;
