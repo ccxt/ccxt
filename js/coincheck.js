@@ -16,6 +16,7 @@ module.exports = class coincheck extends Exchange {
             'rateLimit': 1500,
             'has': {
                 'CORS': false,
+                'fetchOpenOrders': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg',
@@ -112,6 +113,43 @@ module.exports = class coincheck extends Exchange {
             result[currency] = account;
         }
         return this.parseBalance (result);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // Only btc_jpy is meaningful
+        let orders = await this.privateGetExchangeOrdersOpens ();
+        orders = orders['orders'];
+        return this.parseOrders (orders, undefined, since, limit);
+    }
+
+    parseOrder (order, market = undefined) {
+        // { "id": 202835, "order_type": "buy", "rate": 26890, "pair": "btc_jpy", "pending_amount": "0.5527", "pending_market_buy_amount": null, "stop_loss_rate": null, "created_at": "2015-01-10T05:55:38.000Z" }
+        const id = this.safeString (order, 'id');
+        const timestamp = this.parse8601 (order['created_at'] + '+09:00'); // Tokyo time
+        const amount = this.safeFloat (order, 'pending_amount');
+        const remaining = this.safeFloat (order, 'pending_amount');
+        let filled = undefined;
+        const price = this.safeFloat (order, 'rate');
+        let cost = undefined;
+        // status is set by fetchOrder method only
+        const status = 'open';
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'amount': amount,
+            'remaining': remaining,
+            'filled': filled,
+            'side': order['order_type'],
+            'type': undefined,
+            'status': status,
+            'symbol': 'BTC/JPY',
+            'price': price,
+            'cost': cost,
+            'fee': undefined,
+            'info': order,
+        };
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
