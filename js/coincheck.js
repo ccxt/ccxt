@@ -122,11 +122,18 @@ module.exports = class coincheck extends Exchange {
             market = this.market (symbol);
         }
         const response = await this.privateGetExchangeOrdersOpens (params);
-        const orders = this.safeValue (response, 'orders', []);
-        return this.parseOrders (orders, market, since, limit);
+        const rawOrders = this.safeValue (response, 'orders', []);
+        const parsedOrders = this.parseOrders (rawOrders, market, since, limit);
+        const result = [];
+        for (let i = 0; i < parsedOrders.length; i++) {
+            result.push (this.extend (parsedOrders[i], { 'status': 'open' }));
+        }
+        return result;
     }
 
     parseOrder (order, market = undefined) {
+        //
+        // fetchOpenOrders
         //
         //     {                        id:  202835,
         //                      order_type: "buy",
@@ -136,6 +143,8 @@ module.exports = class coincheck extends Exchange {
         //       pending_market_buy_amount:  null,
         //                  stop_loss_rate:  null,
         //                      created_at: "2015-01-10T05:55:38.000Z" }
+        //
+        // todo: add formats for fetchOrder, fetchClosedOrders here
         //
         const id = this.safeString (order, 'id');
         const side = this.safeString (order, 'order_type');
@@ -153,8 +162,7 @@ module.exports = class coincheck extends Exchange {
                 }
             }
         }
-        // status is set by fetchOrder method only
-        const status = 'open';
+        const status = undefined;
         const marketId = this.safeString (order, 'pair');
         let symbol = undefined;
         if (marketId !== undefined) {
