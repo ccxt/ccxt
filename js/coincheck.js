@@ -122,7 +122,7 @@ module.exports = class coincheck extends Exchange {
             market = this.market (symbol);
         }
         const response = await this.privateGetExchangeOrdersOpens (params);
-        const orders = this.safeValue (orders, 'orders', []);
+        const orders = this.safeValue (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
