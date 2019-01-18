@@ -168,6 +168,7 @@ module.exports = class coincheck extends Exchange {
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
             } else {
                 const [ baseId, quoteId ] = marketId.split ('_');
                 const base = this.commonCurrencyCode (baseId);
