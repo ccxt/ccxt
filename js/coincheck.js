@@ -116,10 +116,14 @@ module.exports = class coincheck extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // Only btc_jpy is meaningful
-        let orders = await this.privateGetExchangeOrdersOpens ();
-        orders = orders['orders'];
-        return this.parseOrders (orders, undefined, since, limit);
+        // Only BTC/JPY is meaningful
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const response = await this.privateGetExchangeOrdersOpens (params);
+        const orders = this.safeValue (orders, 'orders', []);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     parseOrder (order, market = undefined) {
