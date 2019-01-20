@@ -1306,7 +1306,7 @@ module.exports = class Exchange {
 
     // ------------------------------------------------------------------------
     // web3 / 0x methods
-    
+
     static hasWeb3 () {
         return Web3 && ethUtil && ethAbi && BigNumber
     }
