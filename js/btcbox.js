@@ -199,21 +199,25 @@ module.exports = class btcbox extends Exchange {
         return await this.privatePostTradeCancel (this.addCoinToParams (newParams, market));
     }
 
-    parseOrder (order, market) {
+    parseOrder (order, market = undefined) {
         // {"id":11,"datetime":"2014-10-21 10:47:20","type":"sell","price":42000,"amount_original":1.2,"amount_outstanding":1.2,"status":"closed","trades":[]}
         const id = this.safeString (order, 'id');
         const timestamp = this.parse8601 (order['datetime'] + '+09:00'); // Tokyo time
         const amount = this.safeFloat (order, 'amount_original');
         const remaining = this.safeFloat (order, 'amount_outstanding');
         let filled = undefined;
-        if (amount !== undefined)
-            if (remaining !== undefined)
+        if (amount !== undefined) {
+            if (remaining !== undefined) {
                 filled = amount - remaining;
+            }
+        }
         const price = this.safeFloat (order, 'price');
         let cost = undefined;
-        if (price !== undefined)
-            if (filled !== undefined)
+        if (price !== undefined) {
+            if (filled !== undefined) {
                 cost = filled * price;
+            }
+        }
         // status is set by fetchOrder method only
         const statuses = {
             // TODO: complete list
