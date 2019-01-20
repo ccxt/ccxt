@@ -1001,7 +1001,7 @@ module.exports = class huobipro extends Exchange {
         currency = this.currency (code);
         request['currency'] = currency['id'];
         request['type'] = 'deposit';
-        request['from'] = 0; // From 'id' ... if you want to get results after a particular Transaction id, pass the id in params.from
+        request['from'] = 0; // From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
         request['size'] = limit; // Maximum transfers that can be fetched is 100
         let response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
         // return response
