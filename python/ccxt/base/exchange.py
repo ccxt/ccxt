@@ -1497,7 +1497,8 @@ class Exchange(object):
     # -------------------------------------------------------------------------
     # web3 / 0x methods
 
-    static def has_web3():
+    @staticmethod
+    def has_web3():
         return Web3 is not None
 
     def check_required_dependencies(self):
