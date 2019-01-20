@@ -2219,9 +2219,16 @@ class Exchange {
     // ------------------------------------------------------------------------
     // web3 / 0x methods
 
-    public function check_required_dependencies () {
+    public static function has_web3 () {
         // PHP version of this function does nothing, as most of its
         // dependencies are very lighweight and don't eat a lot
+        return true;
+    }
+
+    public function check_required_dependencies () {
+        if (!static::has_web3 ()) {
+            throw new ExchangeError ($this->id . ' requires web3 dependencies');
+        }
     }
 
     public function eth_decimals ($unit = 'ether') {
@@ -2280,7 +2287,7 @@ class Exchange {
 
     public function fromWei ($amount, $unit = 'ether', $decimals = 18) {
         if (!isset (Exchange::$eth_units[$unit])) {
-            throw new \UnexpectedValueException ("Uknown unit '" . $unit . "', supported units: " . implode (', ', array_keys (Exchange::$eth_units)));
+            throw new \UnexpectedValueException ("Unknown unit '" . $unit . "', supported units: " . implode (', ', array_keys (Exchange::$eth_units)));
         }
         $denominator = substr_count (Exchange::$eth_units[$unit], 0) + strlen ($amount) - strpos ($amount, '.') - 1;
         return (float) (($unit === 'wei') ? $amount : bcdiv ($amount, Exchange::$eth_units[$unit], $denominator));
