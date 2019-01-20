@@ -1496,9 +1496,12 @@ class Exchange(object):
 
     # -------------------------------------------------------------------------
     # web3 / 0x methods
+    
+    static def has_web3():
+        return Web3 is not None
 
     def check_required_dependencies(self):
-        if Web3 is None:
+        if not Exchange.has_web3():
             raise NotSupported("Web3 functionality requires Python3 and web3 package installed: https://github.com/ethereum/web3.py")
 
     def eth_decimals(self, unit='ether'):
