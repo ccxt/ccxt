@@ -7,7 +7,6 @@ install:
   - npm install --global npm@latest
   - set PATH=%APPDATA%\npm;%PATH%
   - npm install
-  - npm install ethereumjs-abi
   - pip install tox
   - pip install requests
   - cinst -y curl
