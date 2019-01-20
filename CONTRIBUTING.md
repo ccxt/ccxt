@@ -88,6 +88,11 @@ The following is a set of rules for contributing to the ccxt library codebase.
   - bcmath (php<7.1)
 - [Pandoc](https://pandoc.org/installing.html) 1.19+
 
+Alternatively, you can use `docker` and `docker-compose` to install all dependencies in isolated environment:
+```
+  docker-compose run ccxt bash
+```
+
 ### What You Need To Know
 
 #### Repository Structure
