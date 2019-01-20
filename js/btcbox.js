@@ -190,14 +190,13 @@ module.exports = class btcbox extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        if (!symbol) {
-            symbol = 'BTC/JPY';
-        }
-        const market = this.market (symbol);
-        return await this.privatePostTradeCancel (this.extend ({
+        let market = undefined;
+        let newParams = this.extend ({
             'id': id,
-            'coin': market['baseId'],
-        }, params));
+        }, params);
+        if (symbol !== undefined)
+            market = this.market (symbol);
+        return await this.privatePostTradeCancel (this.addCoinToParams (newParams, market));
     }
 
     parseOrder (order, market) {
@@ -231,6 +230,9 @@ module.exports = class btcbox extends Exchange {
             if (remaining !== undefined && remaining === 0)
                 status = 'closed';
         let trades = undefined; // todo: this.parseTrades (order['trades']);
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
             'id': id,
             'timestamp': timestamp,
@@ -242,7 +244,7 @@ module.exports = class btcbox extends Exchange {
             'side': order['type'],
             'type': undefined,
             'status': status,
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'price': price,
             'cost': cost,
             'trades': trades,
@@ -251,42 +253,49 @@ module.exports = class btcbox extends Exchange {
         };
     }
 
-    async fetchOrder (id, symbol = 'BTC/JPY', params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        if (!symbol) {
-            symbol = 'BTC/JPY';
-        }
-        const market = this.market (symbol);
-        let response = await this.privatePostTradeView (this.extend ({
+        let market = undefined;
+        let newParams = this.extend ({
             'id': id,
-        }, params));
+        }, params);
+        if (symbol !== undefined)
+            market = this.market (symbol);
+        let response = await this.privatePostTradeView (this.addCoinToParams (newParams, market));
         return this.parseOrder (response, market);
     }
 
-    async fetchOrders (symbol = 'BTC/JPY', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        if (!symbol) {
-            symbol = 'BTC/JPY';
+    addCoinToParams (params, market) {
+        if (market !== undefined) {
+            return this.extend ({
+                'coin': market['baseId'],
+            }, params);
         }
-        const market = this.market (symbol);
-        let response = await this.privatePostTradeList (this.extend ({
+        return params;
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        let newParams = this.extend ({
             'type': 'all', // 'open' or 'all'
-            'coin': market['baseId'],
-        }, params));
+        }, params);
+        if (symbol !== undefined)
+            market = this.market (symbol);
+        let response = await this.privatePostTradeList (this.addCoinToParams (newParams, market));
         // status (open/closed/canceled) is undefined
         return this.parseOrders (response, market);
     }
 
-    async fetchOpenOrders (symbol = 'BTC/JPY', since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (!symbol) {
-            symbol = 'BTC/JPY';
-        }
-        const market = this.market (symbol);
-        let response = await this.privatePostTradeList (this.extend ({
+        let market = undefined;
+        let newParams = this.extend ({
             'type': 'open', // 'open' or 'all'
-            'coin': market['baseId'],
-        }, params));
+        }, params);
+        if (symbol !== undefined)
+            market = this.market (symbol);
+        let response = await this.privatePostTradeList (this.addCoinToParams (newParams, market));
         let orders = this.toArray (response);
         for (let i = 0; i < orders.length; i++) {
             orders[i]['symbol'] = symbol;
