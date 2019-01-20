@@ -146,8 +146,8 @@ module.exports = class acx extends Exchange {
             let currency = balance['currency'];
             let uppercase = currency.toUpperCase ();
             let account = {
-                'free': parseFloat (balance['balance']),
-                'used': parseFloat (balance['locked']),
+                'free': this.safeFloat (balance, 'balance'),
+                'used': this.safeFloat (balance, 'locked'),
                 'total': 0.0,
             };
             account['total'] = this.sum (account['free'], account['used']);
