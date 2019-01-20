@@ -245,8 +245,8 @@ exchangesByCountries = exchangesByCountries.sort ((a, b) => {
 })
 
 lines = makeTable (exchangesByCountries)
-let result = "# Exchanges By Country\n\nThe ccxt library currently supports the following cryptocurrency exchange markets and trading APIs:\n\n" + lines + "\n\n"
-let filename = wikiPath + '/Exchange-Markets-By-Country.md'
+const result = "# Exchanges By Country\n\nThe ccxt library currently supports the following cryptocurrency exchange markets and trading APIs:\n\n" + lines + "\n\n"
+const filename = wikiPath + '/Exchange-Markets-By-Country.md'
 fs.truncateSync (filename)
 fs.writeFileSync (filename, result)
 
