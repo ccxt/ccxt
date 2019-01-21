@@ -66,7 +66,7 @@ module.exports = class walutomat extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    fetchMarkets () {
         let currencies = ['EUR', 'GBP', 'USD', 'CHF', 'PLN'];
         let markets = [];
         for (let base = 0; base < currencies.length - 1; base++) {
@@ -239,7 +239,7 @@ module.exports = class walutomat extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body) {
+    handleErrors (httpCode, reason, url, method, headers, body, response) {
         if (typeof body !== 'string')
             return; // fallback to default error handler
         if (body.length < 2)
@@ -247,7 +247,6 @@ module.exports = class walutomat extends Exchange {
         // code 401 and plain body 'Authentication failed' (with single quotes)
         // this error is sent if you do not submit a proper Content-Type
         if ((body[0] === '{') || (body[0] === '[')) {
-            let response = JSON.parse (body);
             let errors = this.safeValue (response, 'errors', []);
             if (errors.length > 0) {
                 let feedback = this.id + ' ' + this.json (response);
