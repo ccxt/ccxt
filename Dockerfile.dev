@@ -1,14 +1,15 @@
-FROM node:latest
+FROM ubuntu:16.04
 
-ENV NODE_OPTIONS=--max-old-space-size=3072
-
-RUN apt-get update && apt-get install -y pandoc python-pip python3-pip php
-RUN pip install tox requests
-RUN pip3 install requests aiohttp
+RUN apt-get update
+RUN apt-get install -y pandoc
+RUN apt-get install -y nodejs npm
 RUN apt-get install -y php-curl php-iconv php-mbstring php-bcmath
+RUN apt-get install -y python3 python3-pip
+RUN pip3 install setuptools
 
 RUN mkdir -p /app
 WORKDIR /app
 ADD . /app
 
-RUN npm install 
+RUN cd python && python3 setup.py install && cd ..
+RUN npm install
