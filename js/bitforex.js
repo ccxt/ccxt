@@ -424,7 +424,11 @@ module.exports = class bitforex extends Exchange {
         let remaining = amount - filled;
         let status = this.parseOrderStatus (this.safeString (order, 'orderState'));
         let cost = filled * price;
-        let fee = this.safeFloat (order, 'tradeFee');
+        let fee = {
+            'cost': this.safeFloat (order, 'tradeFee'),
+            'currency': market[side === 'buy' ? 'base' : 'quote']
+        }
+
         let result = {
             'info': order,
             'id': id,
@@ -441,7 +445,7 @@ module.exports = class bitforex extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': fee,
+            'fee': fee
         };
         return result;
     }
