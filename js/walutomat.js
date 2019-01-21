@@ -6,9 +6,8 @@ const Exchange = require ('./base/Exchange');
 const { AuthenticationError, InsufficientFunds, ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
-
+// TODO: Change API endpoints to v2.0.0 version
 module.exports = class walutomat extends Exchange {
-    // TODO: Change API endpoints to v2.0.0 version
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'walutomat',
@@ -106,14 +105,21 @@ module.exports = class walutomat extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let symbolObject = { 'currencyPair': this.formatSymbol (symbol) };
         let response = await this.publicGetMarketFxBestOffers (this.extend (symbolObject, params));
-        let format = ({ price, volume }) => [+price, +volume];
-        return {
-            'bids': response.result.bids.map (format),
-            'asks': response.result.asks.map (format),
+        let apiResult = this.safeValue (response, 'result');
+        let bids = this.safeValue (apiResult, 'bids', []);
+        let asks = this.safeValue (apiResult, 'asks', []);
+        let result = {
+            'bids': [],
+            'asks': [],
             'timestamp': undefined,
             'datetime': undefined,
             'nonce': undefined,
         };
+        for (let i = 0; i < 10; i++) {
+            result.bids.push (this.formatOrderBook (bids[i]));
+            result.asks.push (this.formatOrderBook (asks[i]));
+        }
+        return result;
     }
 
     // TODO: Change fetchTrades to the newest API
@@ -183,6 +189,10 @@ module.exports = class walutomat extends Exchange {
         return await this.fetchOrders (symbol, since, limit, params);
     }
 
+    formatOrderBook (orderBookEntry) {
+        return [this.safeFloat (orderBookEntry, 'price'), this.safeFloat (orderBookEntry, 'volume')];
+    }
+
     formatSymbol (symbol) {
         return symbol.replace ('/', '');
     }
@@ -238,8 +248,8 @@ module.exports = class walutomat extends Exchange {
         // this error is sent if you do not submit a proper Content-Type
         if ((body[0] === '{') || (body[0] === '[')) {
             let response = JSON.parse (body);
-            let errors = response.errors;
-            if (typeof errors === 'object' && errors.length > 0) {
+            let errors = this.safeValue (response, 'errors', []);
+            if (errors.length > 0) {
                 let feedback = this.id + ' ' + this.json (response);
                 let exceptions = this.exceptions;
                 for (let i = 0; i < errors.length; i++) {
