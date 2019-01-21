@@ -188,7 +188,7 @@ module.exports = class walutomat extends Exchange {
     }
 
     parseSymbol (symbol) {
-        return `${symbol.slice (0, 3) }/${symbol.slice (3)}`;
+        return `${symbol.slice (0, 3)}/${symbol.slice (3)}`;
     }
 
     // TODO: Probably needs changes, need to verify with the API
