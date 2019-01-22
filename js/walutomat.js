@@ -144,9 +144,9 @@ module.exports = class walutomat extends Exchange {
         let pair = this.formatSymbol (symbol);
         let currencies = symbol.split ('/');
         let body = {
-            submitId,
-            pair,
-            price,
+            'submitId': submitId,
+            'pair': pair,
+            'price': price,
             'buySell': side.toUpperCase (),
             'volumeCurrency': currencies[0],
             'otherCurrency': currencies[1],
