@@ -66,10 +66,11 @@ module.exports = class walutomat extends Exchange {
         });
     }
 
-    fetchMarkets () {
+    fetchMarkets (params = {}) {
         let currencies = ['EUR', 'GBP', 'USD', 'CHF', 'PLN'];
         let markets = [];
-        for (let base = 0; base < currencies.length - 1; base++) {
+        let len = currencies.length;
+        for (let base = 0; base < len - 1; base++) {
             let newIndex = base + 1;
             for (let quote = newIndex; quote < currencies.length; quote++) {
                 markets.push ({
@@ -143,7 +144,7 @@ module.exports = class walutomat extends Exchange {
         };
         let response = await this.privateGetAccountHistory (this.extend (request, params));
         let result = [];
-        for (let i = 0; i < response; i++) {
+        for (let i = 0; i < response.length; i++) {
             result.push ({
                 'id': this.safeInteger (response, 'id'),
             });
@@ -231,9 +232,13 @@ module.exports = class walutomat extends Exchange {
         return status;
     }
 
+    makeUri (path, params) {
+        return '/api/' + this.version + '/' + this.url (path, params);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.url (path, params);
-        let uri = '/api/' + this.version + '/' + this.url (path, params);
+        let uri = this.makeUri (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
             this.checkRequiredCredentials ();
