@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, InsufficientFunds, ExchangeError } = require ('./base/errors');
+const { AuthenticationError, BadRequest, ExchangeError, ExchangeNotAvailable, InsufficientFunds, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -138,7 +138,6 @@ module.exports = class walutomat extends Exchange {
         return result;
     }
 
-    // TODO: Change createOrder to the newest API
     async createOrder (symbol, type, side, amount, price, { submitId }) {
         let pair = this.formatSymbol (symbol);
         let currencies = symbol.split ('/');
@@ -154,7 +153,6 @@ module.exports = class walutomat extends Exchange {
         return await this.privatePostMarketOrders (this.extend (body));
     }
 
-    // TODO: Change cancelOrder to the newest API
     async cancelOrder (id, symbol = undefined, params = {}) {
         let request = {
             'orderId': id,
@@ -162,31 +160,35 @@ module.exports = class walutomat extends Exchange {
         return await this.privatePostMarketOrdersCloseOrderId (this.extend (request, params));
     }
 
-    // TODO: Change fetchOrders to the newest API
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // TODO: Would be nice to get parametrized API response
         let orders = await this.privateGetMarketOrders ();
-        return orders.map (order => ({
-            'info': order,
-            'id': order.orderId,
-            'symbol': this.parseSymbol (order.market),
-            'timestamp': order.submitTs,
-            'datetime': order.submitTs,
-            'lastTradeTimestamp': order.updateTs,
-            'type': 'limit',
-            'side': order.buySell.toLowerCase (),
-            'price': +order.price,
-            'cost': order.feeAmountMax,
-            'amount': +order.volume,
-            'remaining': undefined,
-            'filled': undefined,
-            'status': this.parseOrderStatus (order.status),
-            'fee': undefined,
-            'trades': undefined,
-        }));
+        let result = [];
+        for (let i = 0; i < orders.length; i++) {
+            result.push ({
+                'info': orders[i],
+                'id': this.safeString (orders[i], 'orderId'),
+                'symbol': this.parseSymbol (this.safeString (orders[i], 'market')),
+                'timestamp': +new Date (this.safeString (orders[i], 'submitTs')),
+                'datetime': this.safeString (orders[i], 'submitTs'),
+                'lastTradeTimestamp': +new Date (this.safeString (orders[i], 'updateTs')),
+                'type': 'limit',
+                'side': this.safeString (orders[i], 'buySell').toLowerCase (),
+                'price': this.safeFloat (orders[i], 'price'),
+                'cost': this.safeFloat (orders[i], 'feeAmountMax'),
+                'amount': this.safeFloat (orders[i], 'volume'),
+                'remaining': undefined,
+                'filled': undefined,
+                'status': this.parseOrderStatus (this.safeString (orders[i], 'status')),
+                'fee': undefined,
+                'trades': undefined,
+            });
+        }
+        return result;
     }
 
-    // TODO: Update after changing fetchOrders
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // TODO: Would be nice to have fetchOrders parametrized to get closed offers
         return await this.fetchOrders (symbol, since, limit, params);
     }
 
@@ -202,7 +204,6 @@ module.exports = class walutomat extends Exchange {
         return symbol.replace ('_', '/');
     }
 
-    // TODO: Probably needs changes, need to verify with the API
     parseOrderStatus (status) {
         let statuses = {
             'MARKET_REQUESTED': 'open',
@@ -216,7 +217,6 @@ module.exports = class walutomat extends Exchange {
         return status;
     }
 
-    // TODO: Check if signing hasn't changed when API version went to v2.0.0
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.url (path, params);
         let uri = '/api/' + this.version + '/' + this.url (path, params);
@@ -245,20 +245,33 @@ module.exports = class walutomat extends Exchange {
             return; // fallback to default error handler
         if (body.length < 2)
             return; // fallback to default error handler
-        // code 401 and plain body 'Authentication failed' (with single quotes)
-        // this error is sent if you do not submit a proper Content-Type
         if ((body[0] === '{') || (body[0] === '[')) {
-            let errors = this.safeValue (response, 'errors', []);
-            if (errors.length > 0) {
-                let feedback = this.id + ' ' + this.json (response);
+            let errorMessage = this.safeString (response, 'message');
+            let errors = this.safeValue (response, 'errors', {});
+            if (errorMessage) {
                 let exceptions = this.exceptions;
-                for (let i = 0; i < errors.length; i++) {
-                    if (errors[i].key in exceptions) {
-                        throw new exceptions[errors[i].key] (feedback);
-                    } else {
-                        throw new ExchangeError (feedback);
-                    }
+                let feedback = this.json (errors);
+                if (errorMessage in exceptions) {
+                    throw new exceptions[errorMessage] (feedback);
+                } else {
+                    throw new ExchangeError (feedback);
                 }
+            }
+        }
+        if (httpCode !== 200) {
+            let feedback = this.json (response);
+            switch (httpCode) {
+            case 400:
+                throw new BadRequest (feedback);
+            case 401:
+            case 403:
+                throw new AuthenticationError (feedback);
+            case 404:
+                throw new NotSupported (feedback);
+            case 500:
+                throw new ExchangeNotAvailable (feedback);
+            default:
+                throw new ExchangeError (feedback);
             }
         }
     }
