@@ -275,15 +275,4 @@ module.exports = class walutomat extends Exchange {
             }
         }
     }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (typeof response !== 'object') {
-            throw new ExchangeError (this.id + ' returned a non-json response: ' + response.toString ());
-        }
-        if ((response[0] === '{' || response[0] === '[')) {
-            return JSON.parse (response);
-        }
-        return response;
-    }
 };
