@@ -180,7 +180,8 @@ replaceInFile ('README.md', allExchangesRegex, howMany)
 replaceInFile (wikiPath + '/Manual.md', allExchangesRegex, howMany)
 replaceInFile (wikiPath + '/Exchange-Markets.md', allExchangesRegex, howMany)
 
-let certified = values.filter ((x) => x.certified !== '' )
+let certifiedFieldIndex = tableHeadings.indexOf ('certified')
+let certified = values.filter ((x) => x[certifiedFieldIndex] !== '' )
 let allCertifiedRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
 let certifiedTable = makeTable (certified)
 let certifiedTableReplacement = '$1' + certifiedTable + "\n"
