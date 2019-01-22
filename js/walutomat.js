@@ -93,6 +93,7 @@ module.exports = class walutomat extends Exchange {
                             'max': 1000000,
                         },
                     },
+                    'info': currencies[base] + ' - ' + currencies[quote] + ' exchange',
                 });
             }
         }
