@@ -81,6 +81,17 @@ module.exports = class walutomat extends Exchange {
                     'precision': {
                         'amount': 2,
                         'price': 4,
+                        'cost': 4,
+                    },
+                    'limits': {
+                        'amount': {
+                            'min': 0.1,
+                            'max': 1000000,
+                        },
+                        'price': {
+                            'min': 0.1,
+                            'max': 1000000,
+                        },
                     },
                 });
             }
