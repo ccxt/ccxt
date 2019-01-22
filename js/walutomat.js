@@ -69,13 +69,13 @@ module.exports = class walutomat extends Exchange {
     fetchMarkets (params = {}) {
         let currencies = ['EUR', 'GBP', 'USD', 'CHF', 'PLN'];
         let markets = [];
-        let len = currencies.length;
-        for (let base = 0; base < len - 1; base++) {
+        let currenciesLength = currencies.length;
+        for (let base = 0; base < currenciesLength - 1; base++) {
             let newIndex = base + 1;
             for (let quote = newIndex; quote < currencies.length; quote++) {
                 markets.push ({
                     'id': currencies[base] + '_' + currencies[quote],
-                    'symbol': currencies[base] + currencies[quote],
+                    'symbol': currencies[base] + '/' + currencies[quote],
                     'base': currencies[base],
                     'quote': currencies[quote],
                     'active': true,
