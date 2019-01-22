@@ -190,19 +190,26 @@ module.exports = class btcbox extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
-        let newParams = this.extend ({
+        const request = {
             'id': id,
-        }, params);
-        if (symbol !== undefined)
-            market = this.market (symbol);
-        return await this.privatePostTradeCancel (this.addCoinToParams (newParams, market));
+        };
+        const response = await this.privatePostTradeCancel (this.extend (request, params));
+        //
+        //     {"result":true, "id":"11"}
+        //
+        return this.parseOrder (response);
     }
 
     parseOrder (order, market = undefined) {
+        //
         // {"id":11,"datetime":"2014-10-21 10:47:20","type":"sell","price":42000,"amount_original":1.2,"amount_outstanding":1.2,"status":"closed","trades":[]}
+        //
         const id = this.safeString (order, 'id');
-        const timestamp = this.parse8601 (order['datetime'] + '+09:00'); // Tokyo time
+        const datetimeString = this.safeString (order, 'datetime');
+        let timestamp = undefined;
+        if (datetimeString !== undefined) {
+            timestamp = this.parse8601 (order['datetime'] + '+09:00'); // Tokyo time
+        }
         const amount = this.safeFloat (order, 'amount_original');
         const remaining = this.safeFloat (order, 'amount_outstanding');
         let filled = undefined;
@@ -237,6 +244,7 @@ module.exports = class btcbox extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        const side = this.safeString (order, 'type');
         return {
             'id': id,
             'timestamp': timestamp,
@@ -245,7 +253,7 @@ module.exports = class btcbox extends Exchange {
             'amount': amount,
             'remaining': remaining,
             'filled': filled,
-            'side': order['type'],
+            'side': side,
             'type': undefined,
             'status': status,
             'symbol': symbol,
