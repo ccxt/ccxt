@@ -278,13 +278,16 @@ module.exports = class btcbox extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
-        let newParams = this.extend ({
+        // a special case for btcbox – default symbol is BTC/JPY
+        if (symbol === undefined) {
+            symbol = 'BTC/JPY';
+        }
+        const market = this.market (symbol);
+        const request = this.extend ({
             'id': id,
+            'coin': market['baseId'],
         }, params);
-        if (symbol !== undefined)
-            market = this.market (symbol);
-        let response = await this.privatePostTradeView (this.addCoinToParams (newParams, market));
+        const response = await this.privatePostTradeView (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
