@@ -6,7 +6,7 @@ const Exchange = require ('./base/Exchange');
 const { AuthenticationError, InsufficientFunds, ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
-// TODO: Change API endpoints to v2.0.0 version
+
 module.exports = class walutomat extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -14,7 +14,7 @@ module.exports = class walutomat extends Exchange {
             'name': 'Walutomat',
             'countries': ['PL'],
             'rateLimit': 1000,
-            'version': 'v2.0.0',
+            'version': 'v1',
             'has': {
                 'fetchMarkets': true,
                 'fetchBalance': true,
@@ -30,7 +30,7 @@ module.exports = class walutomat extends Exchange {
                 'api': 'https://api.walutomat.pl/api',
                 'www': 'https://www.walutomat.pl',
                 'doc': [
-                    'https://api.walutomat.pl/v2.0.0',
+                    'https://api.walutomat.pl/',
                 ],
             },
             'requiredCredentials': {
@@ -40,7 +40,7 @@ module.exports = class walutomat extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'market_fx/best_offers',
+                        'public/market/orderbook/{symbol}',
                     ],
                 },
                 'private': {
@@ -87,27 +87,25 @@ module.exports = class walutomat extends Exchange {
         return markets;
     }
 
-    // TODO: Change fetchBalance to newest API
     async fetchBalance (params = {}) {
         let balances = await this.privateGetAccountBalances ();
         let result = {};
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
-            result[balance.currency] = {
-                'free': balance.balanceAvailable,
-                'used': balance.balanceReserved,
-                'total': balance.balanceAll,
+            result[this.safeString (balance, 'currency')] = {
+                'free': this.safeFloat (balance, 'balanceAvailable'),
+                'used': this.safeFloat (balance, 'balanceReserved'),
+                'total': this.safeFloat (balance, 'balanceAll'),
             };
         }
         return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        let symbolObject = { 'currencyPair': this.formatSymbol (symbol) };
-        let response = await this.publicGetMarketFxBestOffers (this.extend (symbolObject, params));
-        let apiResult = this.safeValue (response, 'result');
-        let bids = this.safeValue (apiResult, 'bids', []);
-        let asks = this.safeValue (apiResult, 'asks', []);
+        let symbolObject = { 'symbol': this.formatSymbol (symbol) };
+        let response = await this.publicGetPublicMarketOrderbookSymbol (this.extend (symbolObject, params));
+        let bids = this.safeValue (response, 'bids', []);
+        let asks = this.safeValue (response, 'asks', []);
         let result = {
             'bids': [],
             'asks': [],
@@ -190,15 +188,15 @@ module.exports = class walutomat extends Exchange {
     }
 
     formatOrderBook (orderBookEntry) {
-        return [this.safeFloat (orderBookEntry, 'price'), this.safeFloat (orderBookEntry, 'volume')];
+        return [this.safeFloat (orderBookEntry, 'price'), this.safeFloat (orderBookEntry, 'baseVolume')];
     }
 
     formatSymbol (symbol) {
-        return symbol.replace ('/', '');
+        return symbol.replace ('/', '_');
     }
 
     parseSymbol (symbol) {
-        return `${symbol.slice (0, 3)}/${symbol.slice (3)}`;
+        return symbol.replace ('_', '/');
     }
 
     // TODO: Probably needs changes, need to verify with the API
