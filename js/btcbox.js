@@ -179,7 +179,7 @@ module.exports = class btcbox extends Exchange {
             'type': side,
             'coin': market['baseId'],
         };
-        let response = await this.privatePostTradeAdd (this.extend (request, params));
+        const response = await this.privatePostTradeAdd (this.extend (request, params));
         //
         //     {
         //         "result":true,
@@ -204,6 +204,18 @@ module.exports = class btcbox extends Exchange {
         //     {"result":true, "id":"11"}
         //
         return this.parseOrder (response, market);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            // TODO: complete list
+            'part': 'open', // partially or not at all executed
+            'all': 'closed', // fully executed
+            'cancelled': 'canceled',
+            'closed': 'closed', // never encountered, seems to be bug in the doc
+            'no': 'closed', // not clarified in the docs...
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
@@ -232,24 +244,16 @@ module.exports = class btcbox extends Exchange {
             }
         }
         // status is set by fetchOrder method only
-        const statuses = {
-            // TODO: complete list
-            'part': 'open', // partially or not at all executed
-            'all': 'closed', // fully executed
-            'cancelled': 'canceled',
-            'closed': 'closed', // never encountered, seems to be bug in the doc
-        };
-        let status = this.safeValue (order, 'status');
-        if (status in statuses)
-            status = statuses[status];
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         // fetchOrders do not return status, use heuristic
         if (status === undefined)
             if (remaining !== undefined && remaining === 0)
                 status = 'closed';
         let trades = undefined; // todo: this.parseTrades (order['trades']);
         let symbol = undefined;
-        if (market)
+        if (market !== undefined) {
             symbol = market['symbol'];
+        }
         const side = this.safeString (order, 'type');
         return {
             'id': id,
