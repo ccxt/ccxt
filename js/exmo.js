@@ -622,10 +622,11 @@ module.exports = class exmo extends Exchange {
         let market = undefined;
         if (symbol !== undefined)
             market = this.market (symbol);
-        let response = await this.privatePostOrderTrades (this.extend ({
+        const response = await this.privatePostOrderTrades (this.extend ({
             'order_id': id.toString (),
         }, params));
-        return this.parseTrades (response, market, since, limit);
+        const trades = this.safeValue (response, 'trades');
+        return this.parseTrades (trades, market, since, limit);
     }
 
     updateCachedOrders (openOrders, symbol) {
