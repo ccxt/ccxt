@@ -262,17 +262,15 @@ module.exports = class walutomat extends Exchange {
         }
         if (httpCode !== 200) {
             let feedback = this.json (response);
-            switch (httpCode) {
-            case 400:
+            if (httpCode === 400) {
                 throw new BadRequest (feedback);
-            case 401:
-            case 403:
+            } else if (httpCode === 401 || httpCode === 403) {
                 throw new AuthenticationError (feedback);
-            case 404:
+            } else if (httpCode === 404) {
                 throw new NotSupported (feedback);
-            case 500:
+            } else if (httpCode === 500) {
                 throw new ExchangeNotAvailable (feedback);
-            default:
+            } else {
                 throw new ExchangeError (feedback);
             }
         }
