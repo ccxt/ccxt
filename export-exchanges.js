@@ -20,9 +20,11 @@ let gitWikiPath = 'ccxt.wiki'
 let ccxtCertifiedBadge = '[![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification)'
 let spacing = '&nbsp;'.repeat (7)
 let logoHeading = spacing + 'logo' + spacing
+let tableHeadings = [logoHeading, 'id', 'name', 'certified', 'ver', 'doc']
+let exchangesByCountryHeading = Array.from (tableHeadings)
+exchangesByCountryHeading.splice (1, 0, 'country / region')
 
 if (!fs.existsSync (gitWikiPath)) {
-
     log.bright.cyan ('Checking out ccxt.wiki...')
     execSync ('git clone https://github.com/ccxt/ccxt.wiki.git')
 }
@@ -141,17 +143,20 @@ let values = Object.values (exchanges).map (exchange => {
     let matches = version.match (/[^0-9]*([0-9].*)/)
     if (matches)
         version = matches[1];
-    let result = {
-        'id': exchange.id,
-        'name': '[' + exchange.name + '](' + url + ')',
-        'certified': exchange.certified ? ccxtCertifiedBadge : '',
-        'ver': version,
-        'doc': '[API](' + doc + ')',
-        'countries': countries,
-    }
-    result[logoHeading] = '[![' + exchange.id + '](' + logo + ')](' + url + ')'
-    return result
+    return [
+        '[![' + exchange.id + '](' + logo + ')](' + url + ')',
+        exchange.id,
+        '[' + exchange.name + '](' + url + ')',
+        exchange.certified ? ccxtCertifiedBadge : '',
+        version,
+        '[API](' + doc + ')',
+        countries,
+    ]
 })
+
+
+values.splice (0, 0, tableHeadings)
+
 
 let makeTable = (jsonArray) => {
     let table = asTable.configure ({ 'delimiter': ' | ' }) (jsonArray)
@@ -205,24 +210,25 @@ Object.keys (countries).forEach (code => {
                 shouldInclude = true
         }
         if (shouldInclude) {
-            let entry = {
-                'country / region': country,
-                'id': exchange.id,
-                'name': '[' + exchange.name + '](' + url + ')',
-                'certified': exchange.certified ? ccxtCertifiedBadge : '',
-                'ver': version,
-                'doc': ' [API](' + doc + ') ',
-            }
-            entry[logoHeading] = '[![' + exchange.id + '](' + logo + ')](' + url + ')'
+            let entry = [
+                '[![' + exchange.id + '](' + logo + ')](' + url + ')',
+                country,
+                exchange.id,
+                '[' + exchange.name + '](' + url + ')',
+                exchange.certified ? ccxtCertifiedBadge : '',
+                version,
+                '[API](' + doc + ')',
+            ]
             result.push (entry)
         }
     })
     exchangesByCountries = exchangesByCountries.concat (result)
 });
 
+let countryKeyIndex = exchangesByCountryHeading.indexOf ('country / region')
 exchangesByCountries = exchangesByCountries.sort ((a, b) => {
-    let countryA = a['country / region'].toLowerCase ()
-    let countryB = b['country / region'].toLowerCase ()
+    let countryA = a[countryKeyIndex].toLowerCase ()
+    let countryB = b[countryKeyIndex].toLowerCase ()
     if (countryA > countryB) {
         return 1
     } else if (countryA < countryB) {
@@ -237,6 +243,7 @@ exchangesByCountries = exchangesByCountries.sort ((a, b) => {
     }
 })
 
+exchangesByCountries.splice (0, 0, exchangesByCountryHeading)
 let lines = makeTable (exchangesByCountries)
 let result = "# Exchanges By Country\n\nThe ccxt library currently supports the following cryptocurrency exchange markets and trading APIs:\n\n" + lines + "\n\n"
 let filename = wikiPath + '/Exchange-Markets-By-Country.md'
