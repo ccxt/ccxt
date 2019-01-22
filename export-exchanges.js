@@ -18,7 +18,8 @@ let verbose = false
 let wikiPath = 'wiki'
 let gitWikiPath = 'ccxt.wiki'
 let ccxtCertifiedBadge = '[![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification)'
-let padding = 22
+let spacing = '&nbsp;'.repeat (7)
+let logoHeading = spacing + 'logo' + spacing
 
 if (!fs.existsSync (gitWikiPath)) {
 
@@ -29,9 +30,9 @@ if (!fs.existsSync (gitWikiPath)) {
 // ---------------------------------------------------------------------------
 
 function replaceInFile (filename, regex, replacement) {
+    log.bright.cyan ('Exporting exchanges →', filename.yellow)
     let contents = fs.readFileSync (filename, 'utf8')
-    const parts = contents.split (regex)
-    const newContents = parts[0] + replacement + parts[1]
+    const newContents = contents.replace (regex, replacement)
     fs.truncateSync (filename)
     fs.writeFileSync (filename, newContents)
 }
@@ -95,10 +96,7 @@ try {
         },
 
     ].forEach (({ file, regex, replacement }) => {
-
-        log.bright.cyan ('Exporting exchanges →', file.yellow)
         replaceInFile (file, regex, replacement)
-
     })
 
     exchanges = {}
@@ -143,16 +141,16 @@ let values = Object.values (exchanges).map (exchange => {
     let matches = version.match (/[^0-9]*([0-9].*)/)
     if (matches)
         version = matches[1];
-    let result = {}
-    result['&nbsp;'.repeat (padding)] = '[![' + exchange.id + '](' + logo + ')](' + url + ')'
-    return Object.assign (result, {
+    let result = {
         'id': exchange.id,
         'name': '[' + exchange.name + '](' + url + ')',
         'certified': exchange.certified ? ccxtCertifiedBadge : '',
         'ver': version,
         'doc': '[API](' + doc + ')',
         'countries': countries,
-    })
+    }
+    result[logoHeading] = '[![' + exchange.id + '](' + logo + ')](' + url + ')'
+    return result
 })
 
 let makeTable = (jsonArray) => {
@@ -166,27 +164,23 @@ let makeTable = (jsonArray) => {
     return lines.map (line => '|' + line + '|').join ("\n")
 }
 
-let lines = makeTable (values)
-let changeInFile = (filename, prefix = '') => {
-    log.bright ('Exporting exchanges to'.cyan, filename.yellow, '...')
-    let oldContent = fs.readFileSync (filename, 'utf8')
-    let numExchanges = Object.keys (exchanges).length
-    let beginning = prefix + "The ccxt library currently supports the following "
-    let ending = " cryptocurrency exchange markets and trading APIs:\n\n"
-    let regex = new RegExp ("[^\n]+[\n]{2}\\|[^#]+\\|([\n][\n]|[\n]$|$)", 'm')
-    let totalString = beginning + numExchanges + ending
-    let replacement = totalString + lines + "$1"
-    let newContent = oldContent.replace(/[\r]/, '').replace (regex, replacement)
-    fs.truncateSync (filename)
-    fs.writeFileSync (filename, newContent)
-}
+let exchangesTable = makeTable (values)
+let numExchanges = Object.keys (exchanges).length
+let beginning = "The ccxt library currently supports the following "
+let ending = " cryptocurrency exchange markets and trading APIs:\n\n"
+let totalString = beginning + numExchanges + ending
+let howMany = totalString + exchangesTable + "$1"
+let allExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\|[^#]+\\|([\n][\n]|[\n]$|$)", 'm')
+replaceInFile ('README.md', allExchangesRegex, howMany)
+replaceInFile (wikiPath + '/Manual.md', allExchangesRegex, howMany)
+replaceInFile (wikiPath + '/Exchange-Markets.md', allExchangesRegex, howMany)
 
-changeInFile ('README.md')
-changeInFile (wikiPath + '/Manual.md')
-changeInFile (wikiPath + '/Exchange-Markets.md')//, "# Supported Exchanges\n\n")
+let certified = values.filter ((x) => x.certified !== '' )
+let allCertifiedRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
+let certifiedTable = makeTable (certified)
+let certifiedTableReplacement = '$1' + certifiedTable + "\n"
+replaceInFile ('README.md', allCertifiedRegex, certifiedTableReplacement)
 
-// console.log (typeof countries)
-// console.log (countries)
 
 let exchangesByCountries = []
 Object.keys (countries).forEach (code => {
@@ -211,17 +205,16 @@ Object.keys (countries).forEach (code => {
                 shouldInclude = true
         }
         if (shouldInclude) {
-            let entry = {}
-            let spaces = '&nbsp;'.repeat (Math.floor ((padding - 'logo'.length * 2) / 2))
-            entry[spaces + 'logo' + spaces] = '[![' + exchange.id + '](' + logo + ')](' + url + ')'
-            result.push (Object.assign (entry, {
+            let entry = {
                 'country / region': country,
                 'id': exchange.id,
                 'name': '[' + exchange.name + '](' + url + ')',
                 'certified': exchange.certified ? ccxtCertifiedBadge : '',
                 'ver': version,
                 'doc': ' [API](' + doc + ') ',
-            }))
+            }
+            entry[logoHeading] = '[![' + exchange.id + '](' + logo + ')](' + url + ')'
+            result.push (entry)
         }
     })
     exchangesByCountries = exchangesByCountries.concat (result)
@@ -244,7 +237,7 @@ exchangesByCountries = exchangesByCountries.sort ((a, b) => {
     }
 })
 
-lines = makeTable (exchangesByCountries)
+let lines = makeTable (exchangesByCountries)
 let result = "# Exchanges By Country\n\nThe ccxt library currently supports the following cryptocurrency exchange markets and trading APIs:\n\n" + lines + "\n\n"
 let filename = wikiPath + '/Exchange-Markets-By-Country.md'
 fs.truncateSync (filename)
