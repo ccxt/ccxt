@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.142'
+const version = '1.18.143'
 
 Exchange.ccxtVersion = version
 
@@ -11014,7 +11014,12 @@ module.exports = class bitforex extends Exchange {
         let remaining = amount - filled;
         let status = this.parseOrderStatus (this.safeString (order, 'orderState'));
         let cost = filled * price;
-        let fee = this.safeFloat (order, 'tradeFee');
+        const feeSide = (side === 'buy') ? 'base' : 'quote';
+        const feeCurrency = market[feeSide];
+        let fee = {
+            'cost': this.safeFloat (order, 'tradeFee'),
+            'currency': feeCurrency,
+        };
         let result = {
             'info': order,
             'id': id,

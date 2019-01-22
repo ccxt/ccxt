@@ -418,7 +418,12 @@ class bitforex (Exchange):
         remaining = amount - filled
         status = self.parse_order_status(self.safe_string(order, 'orderState'))
         cost = filled * price
-        fee = self.safe_float(order, 'tradeFee')
+        feeSide = 'base' if (side == 'buy') else 'quote'
+        feeCurrency = market[feeSide]
+        fee = {
+            'cost': self.safe_float(order, 'tradeFee'),
+            'currency': feeCurrency,
+        }
         result = {
             'info': order,
             'id': id,
