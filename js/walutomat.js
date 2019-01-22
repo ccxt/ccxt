@@ -152,7 +152,7 @@ module.exports = class walutomat extends Exchange {
         return result;
     }
 
-    async createOrder (symbol, type, side, amount, price, params) {
+    async createOrder (symbol, type, side, amount, price = null, params = {}) {
         let submitId = params.submitId;
         let pair = this.formatSymbol (symbol);
         let currencies = symbol.split ('/');
