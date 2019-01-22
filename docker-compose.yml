@@ -1,0 +1,14 @@
+version: '2.1'
+services:
+  ccxt:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: bash
+    environment:
+      - WALLET_ADDRESS=$WALLET_ADDRESS
+      - PRIVATE_KEY=$PRIVATE_KEY
+      - API_KEY=$API_KEY
+      - SECRET=$SECRET
+    volumes:
+      - .:/app
