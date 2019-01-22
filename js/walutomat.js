@@ -120,7 +120,6 @@ module.exports = class walutomat extends Exchange {
         return result;
     }
 
-    // TODO: Change fetchTrades to the newest API
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let request = {
             'operationType': 'MARKET_FX',
@@ -129,10 +128,14 @@ module.exports = class walutomat extends Exchange {
             'volume': limit,
             'sortOrder': params.sortOrder || 'DESC',
         };
-        let result = await this.privateGetAccountHistory (this.extend (request, params));
-        return result.map (trade => ({
-            'id': trade.id,
-        }));
+        let response = await this.privateGetAccountHistory (this.extend (request, params));
+        let result = [];
+        for (let i = 0; i < response; i++) {
+            result.push ({
+                'id': this.safeInteger (response, 'id'),
+            });
+        }
+        return result;
     }
 
     // TODO: Change createOrder to the newest API
