@@ -191,14 +191,15 @@ module.exports = class btcbox extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        // a special case for btcbox – default symbol is BTC/JPY
+        if (symbol === undefined) {
+            symbol = 'BTC/JPY';
+        }
+        const market = this.market (symbol);
         const request = {
             'id': id,
+            'coin': market['baseId'],
         };
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['coin'] = market['baseId'];
-        }
         const response = await this.privatePostTradeCancel (this.extend (request, params));
         //
         //     {"result":true, "id":"11"}
