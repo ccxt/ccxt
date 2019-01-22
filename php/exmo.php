@@ -626,7 +626,8 @@ class exmo extends Exchange {
         $response = $this->privatePostOrderTrades (array_merge (array (
             'order_id' => (string) $id,
         ), $params));
-        return $this->parse_trades($response, $market, $since, $limit);
+        $trades = $this->safe_value($response, 'trades');
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function update_cached_orders ($openOrders, $symbol) {

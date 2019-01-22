@@ -597,7 +597,8 @@ class exmo (Exchange):
         response = await self.privatePostOrderTrades(self.extend({
             'order_id': str(id),
         }, params))
-        return self.parse_trades(response, market, since, limit)
+        trades = self.safe_value(response, 'trades')
+        return self.parse_trades(trades, market, since, limit)
 
     def update_cached_orders(self, openOrders, symbol):
         # update local cache with open orders

@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.143'
+const version = '1.18.144'
 
 Exchange.ccxtVersion = version
 
@@ -17933,16 +17933,16 @@ module.exports = class braziliex extends Exchange {
                 'funding': {
                     'withdraw': {
                         'active': canWithdraw,
-                        'fee': currency['txWithdrawalFee'],
+                        'fee': this.safeFloat (currency, 'txWithdrawalFee'),
                     },
                     'deposit': {
                         'active': canDeposit,
-                        'fee': currency['txDepositFee'],
+                        'fee': this.safeFloat (currency, 'txDepositFee'),
                     },
                 },
                 'limits': {
                     'amount': {
-                        'min': currency['minAmountTrade'],
+                        'min': this.safeFloat (currency, 'minAmountTrade'),
                         'max': Math.pow (10, precision),
                     },
                     'price': {
@@ -17954,11 +17954,11 @@ module.exports = class braziliex extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': currency['MinWithdrawal'],
+                        'min': this.safeFloat (currency, 'MinWithdrawal'),
                         'max': Math.pow (10, precision),
                     },
                     'deposit': {
-                        'min': currency['minDeposit'],
+                        'min': this.safeFloat (currency, 'minDeposit'),
                         'max': undefined,
                     },
                 },
@@ -35202,10 +35202,11 @@ module.exports = class exmo extends Exchange {
         let market = undefined;
         if (symbol !== undefined)
             market = this.market (symbol);
-        let response = await this.privatePostOrderTrades (this.extend ({
+        const response = await this.privatePostOrderTrades (this.extend ({
             'order_id': id.toString (),
         }, params));
-        return this.parseTrades (response, market, since, limit);
+        const trades = this.safeValue (response, 'trades');
+        return this.parseTrades (trades, market, since, limit);
     }
 
     updateCachedOrders (openOrders, symbol) {

@@ -100,16 +100,16 @@ class braziliex (Exchange):
                 'funding': {
                     'withdraw': {
                         'active': canWithdraw,
-                        'fee': currency['txWithdrawalFee'],
+                        'fee': self.safe_float(currency, 'txWithdrawalFee'),
                     },
                     'deposit': {
                         'active': canDeposit,
-                        'fee': currency['txDepositFee'],
+                        'fee': self.safe_float(currency, 'txDepositFee'),
                     },
                 },
                 'limits': {
                     'amount': {
-                        'min': currency['minAmountTrade'],
+                        'min': self.safe_float(currency, 'minAmountTrade'),
                         'max': math.pow(10, precision),
                     },
                     'price': {
@@ -121,11 +121,11 @@ class braziliex (Exchange):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': currency['MinWithdrawal'],
+                        'min': self.safe_float(currency, 'MinWithdrawal'),
                         'max': math.pow(10, precision),
                     },
                     'deposit': {
-                        'min': currency['minDeposit'],
+                        'min': self.safe_float(currency, 'minDeposit'),
                         'max': None,
                     },
                 },

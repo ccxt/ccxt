@@ -98,16 +98,16 @@ class braziliex extends Exchange {
                 'funding' => array (
                     'withdraw' => array (
                         'active' => $canWithdraw,
-                        'fee' => $currency['txWithdrawalFee'],
+                        'fee' => $this->safe_float($currency, 'txWithdrawalFee'),
                     ),
                     'deposit' => array (
                         'active' => $canDeposit,
-                        'fee' => $currency['txDepositFee'],
+                        'fee' => $this->safe_float($currency, 'txDepositFee'),
                     ),
                 ),
                 'limits' => array (
                     'amount' => array (
-                        'min' => $currency['minAmountTrade'],
+                        'min' => $this->safe_float($currency, 'minAmountTrade'),
                         'max' => pow (10, $precision),
                     ),
                     'price' => array (
@@ -119,11 +119,11 @@ class braziliex extends Exchange {
                         'max' => null,
                     ),
                     'withdraw' => array (
-                        'min' => $currency['MinWithdrawal'],
+                        'min' => $this->safe_float($currency, 'MinWithdrawal'),
                         'max' => pow (10, $precision),
                     ),
                     'deposit' => array (
-                        'min' => $currency['minDeposit'],
+                        'min' => $this->safe_float($currency, 'minDeposit'),
                         'max' => null,
                     ),
                 ),
