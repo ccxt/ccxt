@@ -158,7 +158,7 @@ let values = Object.values (exchanges).map (exchange => {
 values.splice (0, 0, tableHeadings)
 
 
-let makeTable = (jsonArray) => {
+function makeTable (jsonArray) {
     let table = asTable.configure ({ 'delimiter': ' | ' }) (jsonArray)
     let lines = table.split ("\n")
     lines[1] = lines[0].replace (/[^\|]/g, '-')
