@@ -73,8 +73,8 @@ module.exports = class walutomat extends Exchange {
             let newIndex = base + 1;
             for (let quote = newIndex; quote < currencies.length; quote++) {
                 markets.push ({
-                    'id': `${currencies[base]}_${currencies[quote]}`,
-                    'symbol': `${currencies[base]}${currencies[quote]}`,
+                    'id': currencies[base] + '_' + currencies[quote],
+                    'symbol': currencies[base] + currencies[quote],
                     'base': currencies[base],
                     'quote': currencies[quote],
                     'active': true,
@@ -139,7 +139,8 @@ module.exports = class walutomat extends Exchange {
         return result;
     }
 
-    async createOrder (symbol, type, side, amount, price, { submitId }) {
+    async createOrder (symbol, type, side, amount, price, params) {
+        let submitId = params.submitId;
         let pair = this.formatSymbol (symbol);
         let currencies = symbol.split ('/');
         let body = {
