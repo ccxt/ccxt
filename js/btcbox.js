@@ -172,20 +172,21 @@ module.exports = class btcbox extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'amount': amount,
             'price': price,
             'type': side,
+            'coin': market['baseId'],
         };
-        let numSymbols = this.symbols.length;
-        if (numSymbols > 1)
-            request['coin'] = market['baseId'];
         let response = await this.privatePostTradeAdd (this.extend (request, params));
-        return {
-            'info': response,
-            'id': response['id'],
-        };
+        //
+        //     {
+        //         "result":true,
+        //         "id":"11"
+        //     }
+        //
+        return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -193,11 +194,16 @@ module.exports = class btcbox extends Exchange {
         const request = {
             'id': id,
         };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['coin'] = market['baseId'];
+        }
         const response = await this.privatePostTradeCancel (this.extend (request, params));
         //
         //     {"result":true, "id":"11"}
         //
-        return this.parseOrder (response);
+        return this.parseOrder (response, market);
     }
 
     parseOrder (order, market = undefined) {
