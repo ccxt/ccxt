@@ -108,7 +108,7 @@ module.exports = class walutomat extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let symbolObject = { 'symbol': this.formatSymbol (symbol) };
         let response = await this.publicGetPublicMarketOrderbookSymbol (this.extend (symbolObject, params));
-        return this.parseOrderBook (response, 'bids', 'asks', 'price', 'baseVolume');
+        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'baseVolume');
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
