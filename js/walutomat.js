@@ -117,8 +117,12 @@ module.exports = class walutomat extends Exchange {
             'currencies': symbol,
             'continueFrom': since,
             'volume': limit,
-            'sortOrder': params['sortOrder'] || 'DESC',
+            'sortOrder': 'DESC',
         };
+        let sortOrder = this.safeString (params, 'sortOrder', '');
+        if (sortOrder.length > 0) {
+            request['sortOrder'] = sortOrder;
+        }
         let response = await this.privateGetAccountHistory (this.extend (request, params));
         let result = [];
         for (let i = 0; i < response.length; i++) {
