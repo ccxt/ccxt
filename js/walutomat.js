@@ -106,7 +106,8 @@ module.exports = class walutomat extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        let symbolObject = { 'symbol': this.formatSymbol (symbol) };
+        await this.loadMarkets ();
+        let symbolObject = { 'symbol': this.marketId (symbol) };
         let response = await this.publicGetPublicMarketOrderbookSymbol (this.extend (symbolObject, params));
         return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'baseVolume');
     }
@@ -114,7 +115,7 @@ module.exports = class walutomat extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let request = {
             'operationType': 'MARKET_FX',
-            'currencies': symbol,
+            'currencies': this.marketId (symbol),
             'continueFrom': since,
             'volume': limit,
             'sortOrder': 'DESC',
@@ -130,11 +131,11 @@ module.exports = class walutomat extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        let submitId = params.submitId;
-        let pair = this.formatSymbol (symbol);
-        let currencies = symbol.split ('/');
+        await this.loadMarkets ();
+        let pair = this.marketId (symbol);
+        let currencies = pair.split ('_');
         let body = {
-            'submitId': submitId,
+            'submitId': this.uuid (),
             'pair': pair,
             'price': price,
             'buySell': side.toUpperCase (),
@@ -142,7 +143,7 @@ module.exports = class walutomat extends Exchange {
             'otherCurrency': currencies[1],
             'volume': amount,
         };
-        return await this.privatePostMarketOrders (this.extend (body));
+        return await this.privatePostMarketOrders (this.extend (body, params));
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -160,7 +161,7 @@ module.exports = class walutomat extends Exchange {
             result.push ({
                 'info': orders[i],
                 'id': this.safeString (orders[i], 'orderId'),
-                'symbol': this.parseSymbol (this.safeString (orders[i], 'market')),
+                'symbol': this.findSymbol (this.safeString (orders[i], 'market')),
                 'timestamp': undefined,
                 'datetime': this.safeString (orders[i], 'submitTs'),
                 'lastTradeTimestamp': undefined,
@@ -233,6 +234,7 @@ module.exports = class walutomat extends Exchange {
                 'Content-Type': 'application/json',
             };
         }
+        console.log (url);
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
