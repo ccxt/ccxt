@@ -113,6 +113,7 @@ module.exports = class walutomat extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let request = {
             'operationType': 'MARKET_FX',
             'currencies': this.marketId (symbol),
@@ -155,6 +156,7 @@ module.exports = class walutomat extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         // TODO: Would be nice to get parametrized API response
+        await this.loadMarkets ();
         let orders = await this.privateGetMarketOrders ();
         let result = [];
         for (let i = 0; i < orders.length; i++) {
