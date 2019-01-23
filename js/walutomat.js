@@ -189,14 +189,6 @@ module.exports = class walutomat extends Exchange {
         return [this.safeFloat (orderBookEntry, 'price'), this.safeFloat (orderBookEntry, 'baseVolume')];
     }
 
-    formatSymbol (symbol) {
-        return symbol.replace ('/', '_');
-    }
-
-    parseSymbol (symbol) {
-        return symbol.replace ('_', '/');
-    }
-
     parseOrderStatus (status) {
         let statuses = {
             'MARKET_REQUESTED': 'open',
@@ -234,7 +226,6 @@ module.exports = class walutomat extends Exchange {
                 'Content-Type': 'application/json',
             };
         }
-        console.log (url);
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
