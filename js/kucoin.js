@@ -2,15 +2,16 @@
 
 // ---------------------------------------------------------------------------
 
-const kucoin = require ('./kucoin.js');
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
-// ---------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 
-module.exports = class kucoin2 extends kucoin {
+module.exports = class kucoin extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'kucoin2',
-            'name': 'KuCoin 2',
+            'name': 'KuCoin',
             'country': ['HK'],
             'rateLimit': 1000,
             'version': 'v1',
@@ -80,6 +81,10 @@ module.exports = class kucoin2 extends kucoin {
         });
     }
 
+    nonce () {
+        return this.milliseconds ();
+    }
+
     async loadTimeDifference () {
         const response = await this.publicGetTimestamp ();
         const after = this.milliseconds ();
@@ -89,7 +94,105 @@ module.exports = class kucoin2 extends kucoin {
     }
 
     async fetchMarkets (params = {}) {
-        return this.publicGetTimestamp ();
+        const response = await this.publicGetSymbols (params);
+        const responseData = response['data'];
+        let result = {};
+        for (let i = 0; i < responseData.length; i++) {
+            const entry = responseData[i];
+            const id = entry['name'];
+            const baseId = entry['baseCurrency'];
+            const quoteId = entry['quoteCurrency'];
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const active = entry['enableTrading'];
+            const baseMax = this.safeFloat (entry, 'baseMaxSize');
+            const baseMin = this.safeFloat (entry, 'baseMinSize');
+            const quoteMax = this.safeFloat (entry, 'quoteMaxSize');
+            const quoteMin = this.safeFloat (entry, 'quoteMinSize');
+            const priceIncrement = this.safeFloat (entry, 'priceIncrement');
+            const precision = {
+                'amount': -Math.log10 (this.safeFloat (entry, 'quoteIncrement')),
+                'price': -Math.log10 (priceIncrement),
+            };
+            const limits = {
+                'amount': {
+                    'min': quoteMin,
+                    'max': quoteMax,
+                },
+                'price': {
+                    'min': Math.max (baseMin / quoteMax, priceIncrement),
+                    'max': baseMax / quoteMin,
+                },
+            };
+            result[symbol] = {
+                'id': id,
+                'symbol': symbol,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'base': base,
+                'quote': quote,
+                'active': active,
+                'precision': precision,
+                'limits': limits,
+                'info': entry,
+            };
+        }
+        // { id: 'KCS-BTC',
+        //   symbol: 'KCS/BTC',
+        //   baseId: 'KCS',
+        //   quoteId: 'BTC',
+        //   base: 'KCS',
+        //   quote: 'BTC',
+        //   active: true,
+        //   precision: { amount: 6, price: 8 },
+        //   limits:
+        //    { amount: { min: 0.00001, max: 9999999 },
+        //      price: { min: 1e-8, max: 999999899999.9999 } },
+        //   info:
+        //    { quoteCurrency: 'BTC',
+        //      symbol: 'KCS-BTC',
+        //      quoteMaxSize: '9999999',
+        //      quoteIncrement: '0.000001',
+        //      baseMinSize: '0.01',
+        //      quoteMinSize: '0.00001',
+        //      enableTrading: true,
+        //      priceIncrement: '0.00000001',
+        //      name: 'KCS-BTC',
+        //      baseIncrement: '0.01',
+        //      baseMaxSize: '9999999',
+        //      baseCurrency: 'KCS' } }
+        return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetCurrencies (params);
+        const responseData = response['data'];
+        let result = {};
+        for (let i = 0; i < responseData.length; i++) {
+            const entry = responseData[i];
+            const id = this.safeString (entry, 'name');
+            const name = entry['fullName'];
+            const code = this.commonCurrencyCode (id);
+            const precision = this.safeInteger (entry, 'precision');
+            result[code] = {
+                'id': id,
+                'name': name,
+                'code': code,
+                'precision': precision,
+                'info': entry,
+            };
+        }
+        // {   id: 'KCS',
+        //     name: 'KCS shares',
+        //     code: 'KCS',
+        //     precision: 10,
+        //     info: {
+        //         precision: 10,
+        //         name: 'KCS',
+        //         fullName: 'KCS shares',
+        //         currency: 'KCS' } }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
