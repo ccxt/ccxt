@@ -657,7 +657,6 @@ class Exchange(BaseExchange, EventEmitter):
         if (not websocket_conx_info['ready']):
             wait4ready_event = self.safe_string(self.wsconf['conx-tpls'][conx_tpl], 'wait4readyEvent')
             if (wait4ready_event is not None):
-                await websocket_connection.connect()
                 future = asyncio.Future()
 
                 @self.once(wait4ready_event)
@@ -670,6 +669,7 @@ class Exchange(BaseExchange, EventEmitter):
 
                 self.timeout_future(future, 'websocket_connect')
                 # self.asyncio_loop.run_until_complete(future)
+                await websocket_connection.connect()
                 await future
             else:
                 await websocket_connection.connect()

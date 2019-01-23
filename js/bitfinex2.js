@@ -167,6 +167,7 @@ module.exports = class bitfinex2 extends bitfinex {
                     'default': {
                         'type': 'ws',
                         'baseurl': 'wss://api.bitfinex.com/ws/2',
+                        'wait4readyEvent': 'statusok',
                     },
                 },
                 'methodmap': {
@@ -530,6 +531,8 @@ module.exports = class bitfinex2 extends bitfinex {
                 this._websocketHandleUnsubscription (contextId, msg);
             } else if (event === 'error') {
                 this._websocketHandleError (contextId, msg);
+            } else if (event === 'info') {
+                this._websocketHandleInfoVersion (contextId, msg);
             }
         } else {
             // channel data
@@ -553,6 +556,17 @@ module.exports = class bitfinex2 extends bitfinex {
         }
     }
 
+    _websocketHandleInfoVersion (contextId, data) {
+        let version = this.safeInteger (data, 'version');
+        if (typeof version !== 'undefined') {
+            this.websocketSendJson ({ 
+                'event': 'conf', 
+                'flags': 32768
+            });
+            this.emit ('statusok', true);
+        }
+    }
+
     _websocketHandleError (contextId, msg) {
         let channel = this.safeString (msg, 'channel');
         let errorMsg = this.safeString (msg, 'msg');
@@ -569,14 +583,21 @@ module.exports = class bitfinex2 extends bitfinex {
     _websocketHandleOrderBook (contextId, symbol, msg) {
         let data = msg[1];
         let firstElement = data[0];
+        let timestamp = undefined;
+        let dt = undefined;
+        let length = msg.length;
+        if (length > 2) {
+            timestamp = msg[2];
+            dt = this.iso8601 (timestamp);
+        }
         let symbolData = this._contextGetSymbolData (contextId, 'ob', symbol);
         if (Array.isArray (firstElement)) {
             // snapshot
             symbolData['ob'] = {
                 'bids': [],
                 'asks': [],
-                'timestamp': undefined,
-                'datetime': undefined,
+                'timestamp': timestamp,
+                'datetime': dt,
                 'nonce': undefined,
             };
             for (let i = 0; i < data.length; i++) {
@@ -624,6 +645,8 @@ module.exports = class bitfinex2 extends bitfinex {
                 // update
                 this.updateBidAsk ([price, amount], symbolData['ob'][side], isBid);
             }
+            symbolData['ob']['timestamp'] = timestamp;
+            symbolData['ob']['datetime'] = dt;
         }
         this.emit ('ob', symbol, this._cloneOrderBook (symbolData['ob'], symbolData['limit']));
         this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
