@@ -300,7 +300,7 @@ module.exports = class btcbox extends Exchange {
         return params;
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersByType (type, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         // a special case for btcbox – default symbol is BTC/JPY
         if (symbol === undefined) {
@@ -312,30 +312,23 @@ module.exports = class btcbox extends Exchange {
             'coin': market['baseId'],
         };
         const response = await this.privatePostTradeList (this.extend (request, params));
+        const orders = this.parseOrders (response, market, since, limit);
         // status (open/closed/canceled) is undefined
-        return this.parseOrders (response, market, since, limit);
+        // btcbox does not return status, but we know it's 'open' as we queried for open orders
+        if (type === 'open') {
+            for (let i = 0; i < orders.length; i++) {
+                orders[i]['status'] = 'open';
+            }
+        }
+        return orders;
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByType ('all', symbol, since, limit, params);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        let newParams = this.extend ({
-            'type': 'open', // 'open' or 'all'
-        }, params);
-        if (symbol !== undefined)
-            market = this.market (symbol);
-        let response = await this.privatePostTradeList (this.addCoinToParams (newParams, market));
-        let orders = this.toArray (response);
-        for (let i = 0; i < orders.length; i++) {
-            orders[i]['symbol'] = symbol;
-        }
-        orders = this.parseOrders (response, market);
-        // btcbox does not return status, but we know it's 'open' as we queried for open orders
-        for (let i = 0; i < orders.length; i++) {
-            const order = orders[i];
-            order['status'] = 'open';
-        }
-        return orders;
+        return await this.fetchOrdersByType ('open', symbol, since, limit, params);
     }
 
     nonce () {
