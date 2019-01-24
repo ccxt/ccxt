@@ -1141,7 +1141,7 @@ module.exports = class bittrex extends Exchange {
                     let price = this.safeFloat (bids[i], 'R');
                     let amount = this.safeFloat (bids[i], 'Q');
                     // 0 = ADD, 1 = REMOVE, 2 = UPDATE
-                    if (elemType === 0) {
+                    if (elemType === 1) {
                         this.updateBidAsk ([price, 0], symbolData['ob']['bids'], true);
                     } else {
                         this.updateBidAsk ([price, amount], symbolData['ob']['bids'], true);
@@ -1154,7 +1154,7 @@ module.exports = class bittrex extends Exchange {
                     let price = this.safeFloat (asks[i], 'R');
                     let amount = this.safeFloat (asks[i], 'Q');
                     // 0 = ADD, 1 = REMOVE, 2 = UPDATE
-                    if (elemType === 0) {
+                    if (elemType === 1) {
                         this.updateBidAsk ([price, 0], symbolData['ob']['asks'], false);
                     } else {
                         this.updateBidAsk ([price, amount], symbolData['ob']['asks'], false);
