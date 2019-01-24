@@ -332,7 +332,6 @@ class Exchange(object):
                 self.urls['api'] = self.urls['api_bak']
                 del self.urls['api_bak']
 
-
     @classmethod
     def define_rest_api(cls, api, method_name, options={}):
         delimiters = re.compile('[^a-zA-Z0-9]')
