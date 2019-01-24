@@ -118,7 +118,7 @@ class bibox extends Exchange {
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $id = $base . '_' . $quote;
+            $id = $baseId . '_' . $quoteId;
             $precision = array (
                 'amount' => 4,
                 'price' => 8,
