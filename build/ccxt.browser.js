@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.145'
+const version = '1.18.146'
 
 Exchange.ccxtVersion = version
 
@@ -46790,7 +46790,7 @@ module.exports = class kucoin extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'kucoin',
             'name': 'Kucoin',
-            'countries': [ 'HK' ], // Hong Kong
+            'countries': [ 'SC' ], // Republic of Seychelles
             'version': 'v1',
             'rateLimit': 2000,
             'userAgent': this.userAgents['chrome'],
@@ -48185,7 +48185,7 @@ module.exports = class kucoin extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    throwExceptionOnError (response) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         //
         // API endpoints return the following formats
         //     { success: false, code: "ERROR", msg: "Min price:100.0" }
@@ -48201,15 +48201,15 @@ module.exports = class kucoin extends Exchange {
         if (response['success'] === true)
             return; // not an error
         if (!('code' in response) || !('msg' in response))
-            throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
-        const code = this.safeString (response, 'code');
+            throw new ExchangeError (this.id + ': malformed response: ' + body);
+        const responseCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
-        const feedback = this.id + ' ' + this.json (response);
-        if (code === 'UNAUTH') {
+        const feedback = this.id + ' ' + body;
+        if (responseCode === 'UNAUTH') {
             if (message === 'Invalid nonce')
                 throw new InvalidNonce (feedback);
             throw new AuthenticationError (feedback);
-        } else if (code === 'ERROR') {
+        } else if (responseCode === 'ERROR') {
             if (message.indexOf ('The precision of amount') >= 0)
                 throw new InvalidOrder (feedback); // amount violates precision.amount
             if (message.indexOf ('Min amount each order') >= 0)
@@ -48220,21 +48220,11 @@ module.exports = class kucoin extends Exchange {
                 throw new InvalidOrder (feedback); // price > limits.price.max
             if (message.indexOf ('The precision of price') >= 0)
                 throw new InvalidOrder (feedback); // price violates precision.price
-        } else if (code === 'NO_BALANCE') {
+        } else if (responseCode === 'NO_BALANCE') {
             if (message.indexOf ('Insufficient balance') >= 0)
                 throw new InsufficientFunds (feedback);
         }
-        throw new ExchangeError (this.id + ': unknown response: ' + this.json (response));
-    }
-
-    handleErrors (code, reason, url, method, headers, body, response) {
-        if (response !== undefined) {
-            // JS callchain parses body beforehand
-            this.throwExceptionOnError (response);
-        } else if (body && (body[0] === '{')) {
-            // Python/PHP callchains don't have json available at this step
-            this.throwExceptionOnError (JSON.parse (body));
-        }
+        throw new ExchangeError (this.id + ': unknown response: ' + body);
     }
 };
 
