@@ -14,7 +14,7 @@ class southxchange (Exchange):
         return self.deep_extend(super(southxchange, self).describe(), {
             'id': 'southxchange',
             'name': 'SouthXchange',
-            'countries': 'AR',  # Argentina
+            'countries': ['AR'],  # Argentina
             'rateLimit': 1000,
             'has': {
                 'CORS': True,
@@ -61,10 +61,11 @@ class southxchange (Exchange):
             },
             'commonCurrencies': {
                 'SMT': 'SmartNode',
+                'MTC': 'Marinecoin',
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetMarkets()
         result = []
         for p in range(0, len(markets)):
@@ -276,14 +277,15 @@ class southxchange (Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         }
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
+        self.load_markets()
+        currency = self.currency(code)
         request = {
-            'currency': currency,
+            'currency': currency['id'],
             'address': address,
             'amount': amount,
         }

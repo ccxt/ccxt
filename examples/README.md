@@ -45,15 +45,29 @@ php -f path/to/example.php # substitute for actual filename here
 
 [Projects based on ccxt](https://github.com/ccxt/ccxt/network/dependents) – A list of hundreds of ccxt-based projects by developers from all over the world!
 
+[Playing with CCXT in Google Colab](https://medium.com/@ccxt/playing-with-ccxt-in-google-colab-23522ac8a6cb) – An article on how useful Colab can be for quick prototyping and testing your trading ideas with CCXT.
+
+[The Evolution of CCXT](https://www.youtube.com/watch?v=O5HrvSLeo90) – An awesome Gource visualization video on YouTube! )
+
 [CC Power Analytics Part 1: How to get the data of the exchanges](https://www.linkedin.com/pulse/part-1-cc-power-analytics-how-get-data-exchanges-steve-rein/) – The first part of a series of articles on cryptocurrency analytics.
 
 [Looking for arbitrage opportunies with ccxt](https://steemit.com/steemdev/@codewithcheese/looking-for-arbitrage-opportunies-with-javascript-library-cctx-supporting-70-exchanges) – An article @steemit on getting arbitrage started with ccxt for crypto-arbitrage.
 
 [A n00bs Guide To Deep Cryptocurrency Trading](https://medium.com/@LeonFedden/deep-cryptocurrency-trading-1e64af6d280a) – An article @ Medium on deep neural trading using ccxt for backend tasks.
 
+[A Video Crash-Course On Using CCXT](https://www.youtube.com/playlist?list=PLIFBTFgFpoJ-xGRz3v_2nF7f9HKZrfSpj) – A series of awesome video tutorials on getting started with CCXT!
+
 [Let’s write a cryptocurrency bot](https://medium.com/@joeldg/an-advanced-tutorial-a-new-crypto-currency-trading-bot-boilerplate-framework-e777733607ae) – A multi-part advanced tutorial on a new cryptocurrency trading framework also integrating ccxt.
 
+[Download Cryptocurrency Data with CCXT](https://backtest-rookies.com/2018/03/08/download-cryptocurrency-data-with-ccxt/) – A sample script to download historical data from exchanges with a video overview: [Easy Python script to download crypto currency market data with CCXT package](https://www.youtube.com/watch?v=PTGkJsrF7kQ).
+
+[Experiments : Creating a Crypto Twitter Bot to Announce Newly Listed CryptoCoins](https://medium.com/@kennychuaio/experiments-creating-a-crypto-twitter-bot-to-announce-newly-listed-cryptocoins-9cd23930f5cb) – An article on how to integrate with CCXT and Twitter to get new currencies from exchanges automatically.
+
 [How to make your own trading bot](https://codeburst.io/how-to-make-your-own-trading-bot-83b5c6e35036) – A tutorial on algortrading in Python.
+
+[Writing crypto trading bot in Python with Telegram and ccxt](https://medium.com/@maxAvdyushkin/writing-crypto-trading-bot-in-python-with-telegram-and-ccxt-80632a00c637) – A tutorial on programming a Telegram bot in Python with CCXT
+
+[Data science is eating the world — Here’s how you can start exploring it](https://medium.com/covee-network/data-science-is-eating-the-world-heres-how-you-can-start-exploring-it-37501414af15) – An article on collecting and analyzing financial big data.
 
 [Chasing fake volume: a crypto-plague](https://medium.com/@sylvainartplayribes/chasing-fake-volume-a-crypto-plague-ea1a3c1e0b5e) – An article @ Medium on trading volumes analysis.
 
@@ -81,6 +95,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [Python 3 / BitMEX の BOT を作ろう CCXT + BOT サンプルコード 〈基礎編〉](https://note.mu/mman/n/n5a9083864335) – A sample of basic BitMEX bot with CCXT in Python 3.
 
+[ccxtがbtcfxbot界隈でちょっと話題になっていたので使ってみた](http://cryptojapan.ml/entry/2018/03/01/151752) – Trying CCXT for a basic bot.
+
 [python異步加協程獲取比特幣市場信息](https://hk.saowen.com/a/18a648f24d6e7f54981e9db4411b56730a35dd2b3b27519083543bcd6198cd27) – An article in Chinese on using CCXT with Python.
 
 [数字货币量化交易1 【群友 Shadow 自制】ccxt 的python版本安装及使用入门](https://www.bilibili.com/video/av21795165) – Trading Digital Currencies 1: Installing and using the Python version of ccxt (video in Chinese)
@@ -89,6 +105,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [数字货币量化交易3 ccxt Custom API命令详解及node版本使用演示](https://www.bilibili.com/video/av21842988)
 – Trading Digital Currencies 3: Details on using custom exchange-specific [implicit methods](https://github.com/ccxt/ccxt/wiki/Manual#implicit-api-methods) in ccxt (video in Chinese)
+
+[Algorithmic Trading - Aula 4](https://www.youtube.com/watch?v=BkKebXrhMGY) – A video introduction to algorithmic trading with CCXT from Curso Algo Trading in Portuguese language.
 
 [Лучшая криптотрейдинг библиотека?](http://medium.com/@vladthelittleone/лучшая-криптотрейдинг-библиотека-67e308f96c1f) – An article in Russian on setting up CCXT to connect and trade with crypto exchanges.
 

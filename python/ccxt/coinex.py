@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -18,7 +19,7 @@ class coinex (Exchange):
             'id': 'coinex',
             'name': 'CoinEx',
             'version': 'v1',
-            'countries': 'CN',
+            'countries': ['CN'],
             'rateLimit': 1000,
             'has': {
                 'fetchTickers': True,
@@ -27,6 +28,7 @@ class coinex (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchMyTrades': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1min',
@@ -53,6 +55,7 @@ class coinex (Exchange):
                 'www': 'https://www.coinex.com',
                 'doc': 'https://github.com/coinexcom/coinex_exchange_api/wiki',
                 'fees': 'https://www.coinex.com/fees',
+                'referral': 'https://www.coinex.com/account/signup?refer_code=yw5fz',
             },
             'api': {
                 'web': {
@@ -72,7 +75,8 @@ class coinex (Exchange):
                 },
                 'private': {
                     'get': [
-                        'balance',
+                        'balance/coin/withdraw',
+                        'balance/info',
                         'order',
                         'order/pending',
                         'order/finished',
@@ -80,10 +84,12 @@ class coinex (Exchange):
                         'order/user/deals',
                     ],
                     'post': [
+                        'balance/coin/withdraw',
                         'order/limit',
                         'order/market',
                     ],
                     'delete': [
+                        'balance/coin/withdraw',
                         'order/pending',
                     ],
                 },
@@ -114,9 +120,12 @@ class coinex (Exchange):
                 'amount': 8,
                 'price': 8,
             },
+            'options': {
+                'createMarketBuyOrderRequiresPrice': True,
+            },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.webGetResMarket()
         markets = response['data']['market_info']
         result = []
@@ -135,6 +144,7 @@ class coinex (Exchange):
                 'price': market['buy_asset_type_places'],
             }
             numMergeLevels = len(market['merge'])
+            active = (market['status'] == 'pass')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -142,7 +152,7 @@ class coinex (Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': True,
+                'active': active,
                 'taker': self.safe_float(market, 'taker_fee_rate'),
                 'maker': self.safe_float(market, 'maker_fee_rate'),
                 'info': market,
@@ -215,31 +225,51 @@ class coinex (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=20, params={}):
         self.load_markets()
-        response = self.publicGetMarketDepth(self.extend({
+        if limit is None:
+            limit = 20  # default
+        request = {
             'market': self.market_id(symbol),
             'merge': '0.00000001',
-        }, params))
+            'limit': str(limit),
+        }
+        response = self.publicGetMarketDepth(self.extend(request, params))
         return self.parse_order_book(response['data'])
 
     def parse_trade(self, trade, market=None):
+        # self method parses both public and private trades
         timestamp = self.safe_integer(trade, 'create_time')
-        tradeId = self.safe_string(trade, 'id')
-        orderId = self.safe_string(trade, 'id')
-        if not timestamp:
-            timestamp = trade['date']
-            orderId = None
+        if timestamp is None:
+            timestamp = self.safe_integer(trade, 'date_ms')
         else:
-            tradeId = None
-        timestamp *= 1000
+            timestamp = timestamp * 1000
+        tradeId = self.safe_string(trade, 'id')
+        orderId = self.safe_string(trade, 'order_id')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
-        symbol = market['symbol']
+        marketId = self.safe_string(trade, 'market')
+        market = self.safe_value(self.markets_by_id, marketId, market)
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         cost = self.safe_float(trade, 'deal_money')
         if not cost:
             cost = float(self.cost_to_precision(symbol, price * amount))
-        fee = self.safe_float(trade, 'fee')
+        fee = None
+        feeCost = self.safe_float(trade, 'fee')
+        if feeCost is not None:
+            feeCurrencyId = self.safe_string(trade, 'fee_asset')
+            feeCurrency = self.safe_value(self.currencies_by_id, feeCurrencyId)
+            feeCurrencyCode = None
+            if feeCurrency is not None:
+                feeCurrencyCode = feeCurrency['code']
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            }
+        takerOrMaker = self.safe_string(trade, 'role')
+        side = self.safe_string(trade, 'type')
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -247,8 +277,9 @@ class coinex (Exchange):
             'symbol': symbol,
             'id': tradeId,
             'order': orderId,
-            'type': 'limit',
-            'side': trade['type'],
+            'type': None,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -265,7 +296,7 @@ class coinex (Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
         return [
-            ohlcv[0],
+            ohlcv[0] * 1000,
             float(ohlcv[1]),
             float(ohlcv[3]),
             float(ohlcv[4]),
@@ -284,7 +315,27 @@ class coinex (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privateGetBalance(params)
+        response = self.privateGetBalanceInfo(params)
+        #
+        #     {
+        #       "code": 0,
+        #       "data": {
+        #         "BCH": {                    # BCH account
+        #           "available": "13.60109",   # Available BCH
+        #           "frozen": "0.00000"        # Frozen BCH
+        #         },
+        #         "BTC": {                    # BTC account
+        #           "available": "32590.16",   # Available BTC
+        #           "frozen": "7000.00"        # Frozen BTC
+        #         },
+        #         "ETH": {                    # ETH account
+        #           "available": "5.06000",    # Available ETH
+        #           "frozen": "0.00000"        # Frozen ETH
+        #         }
+        #       },
+        #       "message": "Ok"
+        #     }
+        #
         result = {'info': response}
         balances = response['data']
         currencies = list(balances.keys())
@@ -301,22 +352,64 @@ class coinex (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
+    def parse_order_status(self, status):
+        statuses = {
+            'not_deal': 'open',
+            'part_deal': 'open',
+            'done': 'closed',
+            'cancel': 'canceled',
+        }
+        if status in statuses:
+            return statuses[status]
+        return status
+
     def parse_order(self, order, market=None):
-        # TODO: check if it's actually milliseconds, since examples were in seconds
+        #
+        # fetchOrder
+        #
+        #     {
+        #         "amount": "0.1",
+        #         "asset_fee": "0.22736197736197736197",
+        #         "avg_price": "196.85000000000000000000",
+        #         "create_time": 1537270135,
+        #         "deal_amount": "0.1",
+        #         "deal_fee": "0",
+        #         "deal_money": "19.685",
+        #         "fee_asset": "CET",
+        #         "fee_discount": "0.5",
+        #         "id": 1788259447,
+        #         "left": "0",
+        #         "maker_fee_rate": "0",
+        #         "market": "ETHUSDT",
+        #         "order_type": "limit",
+        #         "price": "170.00000000",
+        #         "status": "done",
+        #         "taker_fee_rate": "0.0005",
+        #         "type": "sell",
+        #     }
+        #
         timestamp = self.safe_integer(order, 'create_time') * 1000
         price = self.safe_float(order, 'price')
         cost = self.safe_float(order, 'deal_money')
         amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'deal_amount')
-        symbol = market['symbol']
-        remaining = self.amount_to_precision(symbol, amount - filled)
-        status = order['status']
-        if status == 'done':
-            status = 'closed'
-        else:
-            # not_deal
-            # part_deal
-            status = 'open'
+        average = self.safe_float(order, 'avg_price')
+        symbol = None
+        marketId = self.safe_string(order, 'market')
+        market = self.safe_value(self.markets_by_id, marketId)
+        feeCurrency = None
+        feeCurrencyId = self.safe_string(order, 'fee_asset')
+        currency = self.safe_value(self.currencies_by_id, feeCurrencyId)
+        if currency is not None:
+            feeCurrency = currency['code']
+        if market is not None:
+            symbol = market['symbol']
+            if feeCurrency is None:
+                feeCurrency = market['quote']
+        remaining = self.safe_float(order, 'left')
+        status = self.parse_order_status(self.safe_string(order, 'status'))
+        type = self.safe_string(order, 'order_type')
+        side = self.safe_string(order, 'type')
         return {
             'id': self.safe_string(order, 'id'),
             'datetime': self.iso8601(timestamp),
@@ -324,33 +417,43 @@ class coinex (Exchange):
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
-            'type': order['order_type'],
-            'side': order['type'],
+            'type': type,
+            'side': side,
             'price': price,
             'cost': cost,
+            'average': average,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
             'trades': None,
             'fee': {
-                'currency': market['quote'],
+                'currency': feeCurrency,
                 'cost': self.safe_float(order, 'deal_fee'),
             },
             'info': order,
         }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        amount = float(amount)  # self line is deprecated
+        if type == 'market':
+            # for market buy it requires the amount of quote currency to spend
+            if side == 'buy':
+                if self.options['createMarketBuyOrderRequiresPrice']:
+                    if price is None:
+                        raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
+                    else:
+                        price = float(price)  # self line is deprecated
+                        amount = amount * price
         self.load_markets()
         method = 'privatePostOrder' + self.capitalize(type)
         market = self.market(symbol)
-        amount = float(amount)
         request = {
             'market': market['id'],
             'amount': self.amount_to_precision(symbol, amount),
             'type': side,
         }
         if type == 'limit':
-            price = float(price)
+            price = float(price)  # self line is deprecated
             request['price'] = self.price_to_precision(symbol, price)
         response = getattr(self, method)(self.extend(request, params))
         order = self.parse_order(response['data'], market)
@@ -368,45 +471,95 @@ class coinex (Exchange):
         return self.parse_order(response['data'], market)
 
     def fetch_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         response = self.privateGetOrder(self.extend({
             'id': id,
             'market': market['id'],
         }, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "amount": "0.1",
+        #             "asset_fee": "0.22736197736197736197",
+        #             "avg_price": "196.85000000000000000000",
+        #             "create_time": 1537270135,
+        #             "deal_amount": "0.1",
+        #             "deal_fee": "0",
+        #             "deal_money": "19.685",
+        #             "fee_asset": "CET",
+        #             "fee_discount": "0.5",
+        #             "id": 1788259447,
+        #             "left": "0",
+        #             "maker_fee_rate": "0",
+        #             "market": "ETHUSDT",
+        #             "order_type": "limit",
+        #             "price": "170.00000000",
+        #             "status": "done",
+        #             "taker_fee_rate": "0.0005",
+        #             "type": "sell",
+        #         },
+        #         "message": "Ok"
+        #     }
+        #
         return self.parse_order(response['data'], market)
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        market = self.market(symbol)
+        if limit is None:
+            limit = 100
         request = {
-            'market': market['id'],
+            'page': 1,
+            'limit': limit,
         }
-        if limit:
-            request['limit'] = limit
-        response = self.privateGetOrderPending(self.extend(request, params))
-        return self.parse_orders(response['data']['data'], market)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['market'] = market['id']
+        method = 'privateGetOrder' + self.capitalize(status)
+        response = getattr(self, method)(self.extend(request, params))
+        return self.parse_orders(response['data']['data'], market, since, limit)
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders_by_status('pending', symbol, since, limit, params)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'market': market['id'],
-        }
-        if limit:
-            request['limit'] = limit
-        response = self.privateGetOrderFinished(self.extend(request, params))
-        return self.parse_orders(response['data']['data'], market)
+        return self.fetch_orders_by_status('finished', symbol, since, limit, params)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        market = self.market(symbol)
-        response = self.privateGetOrderUserDeals(self.extend({
-            'market': market['id'],
+        if limit is None:
+            limit = 100
+        request = {
             'page': 1,
-            'limit': 100,
-        }, params))
+            'limit': limit,
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['market'] = market['id']
+        response = self.privateGetOrderUserDeals(self.extend(request, params))
         return self.parse_trades(response['data']['data'], market, since, limit)
+
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
+        self.load_markets()
+        currency = self.currency(code)
+        if tag:
+            address = address + ':' + tag
+        request = {
+            'coin_type': currency['id'],
+            'coin_address': address,
+            'actual_amount': float(amount),
+        }
+        response = self.privatePostBalanceCoinWithdraw(self.extend(request, params))
+        return {
+            'info': response,
+            'id': self.safe_string(response, 'coin_withdraw_id'),
+        }
 
     def nonce(self):
         return self.milliseconds()

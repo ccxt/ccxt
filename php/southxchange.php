@@ -13,7 +13,7 @@ class southxchange extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'southxchange',
             'name' => 'SouthXchange',
-            'countries' => 'AR', // Argentina
+            'countries' => array ( 'AR' ), // Argentina
             'rateLimit' => 1000,
             'has' => array (
                 'CORS' => true,
@@ -60,11 +60,12 @@ class southxchange extends Exchange {
             ),
             'commonCurrencies' => array (
                 'SMT' => 'SmartNode',
+                'MTC' => 'Marinecoin',
             ),
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetMarkets ();
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
@@ -293,20 +294,22 @@ class southxchange extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'status' => 'ok',
             'info' => $response,
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
+        $this->load_markets();
+        $currency = $this->currency ($code);
         $request = array (
-            'currency' => $currency,
+            'currency' => $currency['id'],
             'address' => $address,
             'amount' => $amount,
         );
-        if ($tag !== null)
+        if ($tag !== null) {
             $request['address'] = $address . '|' . $tag;
+        }
         $response = $this->privatePostWithdraw (array_merge ($request, $params));
         return array (
             'info' => $response,

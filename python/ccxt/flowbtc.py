@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.decimal_to_precision import ROUND
 
 
 class flowbtc (Exchange):
@@ -14,7 +13,7 @@ class flowbtc (Exchange):
         return self.deep_extend(super(flowbtc, self).describe(), {
             'id': 'flowbtc',
             'name': 'flowBTC',
-            'countries': 'BR',  # Brazil
+            'countries': ['BR'],  # Brazil
             'version': 'v1',
             'rateLimit': 1000,
             'has': {
@@ -24,7 +23,7 @@ class flowbtc (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg',
                 'api': 'https://api.flowbtc.com:8405/ajax',
                 'www': 'https://trader.flowbtc.com',
-                'doc': 'http://www.flowbtc.com.br/api/',
+                'doc': 'https://www.flowbtc.com.br/api.html',
             },
             'requiredCredentials': {
                 'apiKey': True,
@@ -70,7 +69,7 @@ class flowbtc (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicPostGetProductPairs()
         markets = response['productPairs']
         result = {}
@@ -188,9 +187,6 @@ class flowbtc (Exchange):
             'startIndex': -1,
         }, params))
         return self.parse_trades(response['trades'], market, since, limit)
-
-    def price_to_precision(self, symbol, price):
-        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

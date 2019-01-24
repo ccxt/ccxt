@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.liqui import liqui
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
@@ -17,7 +16,7 @@ class wex (liqui):
         return self.deep_extend(super(wex, self).describe(), {
             'id': 'wex',
             'name': 'WEX',
-            'countries': 'NZ',  # New Zealand
+            'countries': ['NZ'],  # New Zealand
             'version': '3',
             'has': {
                 'CORS': False,
@@ -27,15 +26,15 @@ class wex (liqui):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg',
                 'api': {
-                    'public': 'https://wex.nz/api',
-                    'private': 'https://wex.nz/tapi',
+                    'public': 'https://wex1.in/api',
+                    'private': 'https://wex1.in/tapi',
                 },
-                'www': 'https://wex.nz',
+                'www': 'https://wex1.in',
                 'doc': [
-                    'https://wex.nz/api/3/docs',
-                    'https://wex.nz/tapi/docs',
+                    'https://wex1.in/api/3/docs',
+                    'https://wex1.in/tapi/docs',
                 ],
-                'fees': 'https://wex.nz/fees',
+                'fees': 'https://wex1.in/fees',
             },
             'api': {
                 'public': {
@@ -130,16 +129,14 @@ class wex (liqui):
             'currency': code,
             'address': response['return']['address'],
             'tag': None,
-            'status': 'ok',
             'info': response,
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if code == 200:
             if body[0] != '{':
                 # response is not JSON -> resort to default error handler
                 return
-            response = json.loads(body)
             if 'success' in response:
                 if not response['success']:
                     error = self.safe_string(response, 'error')

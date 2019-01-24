@@ -26,16 +26,25 @@ __all__ = [
     'NotSupported',
     'AuthenticationError',
     'PermissionDenied',
+    'AccountSuspended',
     'InsufficientFunds',
     'InvalidOrder',
     'OrderNotFound',
     'OrderNotCached',
+    'DuplicateOrderId',
     'NetworkError',
     'DDoSProtection',
     'RequestTimeout',
     'ExchangeNotAvailable',
     'InvalidNonce',
-    'InvalidAddress'
+    'InvalidAddress',
+    'AddressPending',
+    'ArgumentsRequired',
+    'BadRequest',
+    'BadResponse',
+    'NullResponse',
+    'OrderNotFillable',
+    'OrderImmediatelyFillable',
 ]
 
 # -----------------------------------------------------------------------------
@@ -56,6 +65,26 @@ class NotSupported(ExchangeError):
     pass
 
 
+class ArgumentsRequired(ExchangeError):
+    """A generic exception raised by unified methods when required arguments are missing."""
+    pass
+
+
+class BadRequest(ExchangeError):
+    """A generic exception raised by the exchange if all or some of required parameters are invalid or missing in URL query or in request body"""
+    pass
+
+
+class BadResponse(ExchangeError):
+    """Raised if the endpoint returns a bad response from the exchange API"""
+    pass
+
+
+class NullResponse(BadResponse):
+    """Raised if the endpoint returns a null response from the exchange API"""
+    pass
+
+
 class AuthenticationError(ExchangeError):
     """Raised when API credentials are required but missing or wrong"""
     pass
@@ -63,6 +92,11 @@ class AuthenticationError(ExchangeError):
 
 class PermissionDenied(AuthenticationError):
     """Raised when API credentials are required but missing or wrong"""
+    pass
+
+
+class AccountSuspended(AuthenticationError):
+    """Raised when user account has been suspended or deactivated by the exchange"""
     pass
 
 
@@ -81,6 +115,11 @@ class InvalidAddress(ExchangeError):
     pass
 
 
+class AddressPending(InvalidAddress):
+    """Raised when the address requested is pending (not ready yet, retry again later)"""
+    pass
+
+
 class OrderNotFound(InvalidOrder):
     """Raised when you are trying to fetch or cancel a non-existent order"""
     pass
@@ -91,8 +130,23 @@ class OrderNotCached(InvalidOrder):
     pass
 
 
+class DuplicateOrderId(InvalidOrder):
+    """Raised when the order id set by client is not unique"""
+    pass
+
+
 class CancelPending(InvalidOrder):
     """Raised when an order that is already pending cancel is being canceled again"""
+    pass
+
+
+class OrderNotFillable(InvalidOrder):
+    """Raised when an order placed as a market order or a taker order is not fillable upon request"""
+    pass
+
+
+class OrderImmediatelyFillable(InvalidOrder):
+    """Raised when an order placed as maker order is fillable immediately as a taker upon request"""
     pass
 
 

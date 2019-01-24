@@ -90,16 +90,8 @@ class coingi extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
-        $response = null;
-        try {
-            $this->parseJsonResponse = false;
-            $response = $this->wwwGet ();
-            $this->parseJsonResponse = true;
-        } catch (Exception $e) {
-            $this->parseJsonResponse = true;
-            throw $e;
-        }
+    public function fetch_markets ($params = array ()) {
+        $response = $this->wwwGet ();
         $parts = explode ('do=currencyPairSelector-selectCurrencyPair" class="active">', $response);
         $currencyParts = explode ('<div class="currency-pair-label">', $parts[1]);
         $result = array ();
@@ -115,19 +107,17 @@ class coingi extends Exchange {
                 'amount' => 8,
                 'price' => 8,
             );
-            $lot = pow (10, -$precision['amount']);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'info' => $id,
-                'lot' => $lot,
                 'active' => true,
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $lot,
+                        'min' => pow (10, -$precision['amount']),
                         'max' => pow (10, $precision['amount']),
                     ),
                     'price' => array (
@@ -312,7 +302,7 @@ class coingi extends Exchange {
 
     public function request ($path, $api = 'current', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (gettype ($response) != 'string') {
+        if (gettype ($response) !== 'string') {
             if (is_array ($response) && array_key_exists ('errors', $response))
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         }

@@ -6,8 +6,8 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import NotSupported
 
 
 class coinspot (Exchange):
@@ -16,7 +16,7 @@ class coinspot (Exchange):
         return self.deep_extend(super(coinspot, self).describe(), {
             'id': 'coinspot',
             'name': 'CoinSpot',
-            'countries': 'AU',  # Australia
+            'countries': ['AU'],  # Australia
             'rateLimit': 1000,
             'has': {
                 'CORS': False,

@@ -4,10 +4,18 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class exx (Exchange):
@@ -16,8 +24,9 @@ class exx (Exchange):
         return self.deep_extend(super(exx, self).describe(), {
             'id': 'exx',
             'name': 'EXX',
-            'countries': 'CN',
+            'countries': ['CN'],
             'rateLimit': 1000 / 10,
+            'userAgent': self.userAgents['chrome'],
             'has': {
                 'fetchOrder': True,
                 'fetchTickers': True,
@@ -32,6 +41,7 @@ class exx (Exchange):
                 'www': 'https://www.exx.com/',
                 'doc': 'https://www.exx.com/help/restApi',
                 'fees': 'https://www.exx.com/help/rate',
+                'referral': 'https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f',
             },
             'api': {
                 'public': {
@@ -84,9 +94,15 @@ class exx (Exchange):
                     },
                 },
             },
+            'commonCurrencies': {
+                'TV': 'TIV',  # Ti-Value
+            },
+            'exceptions': {
+                '103': AuthenticationError,
+            },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetMarkets()
         ids = list(markets.keys())
         result = []
@@ -104,7 +120,6 @@ class exx (Exchange):
                 'amount': int(market['amountScale']),
                 'price': int(market['priceScale']),
             }
-            lot = math.pow(10, -precision['amount'])
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -113,11 +128,10 @@ class exx (Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'lot': lot,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': math.pow(10, -precision['amount']),
                         'max': math.pow(10, precision['amount']),
                     },
                     'price': {
@@ -249,7 +263,7 @@ class exx (Exchange):
         cost = self.safe_float(order, 'trade_money')
         amount = self.safe_float(order, 'total_amount')
         filled = self.safe_float(order, 'trade_amount', 0.0)
-        remaining = self.amount_to_precision(symbol, amount - filled)
+        remaining = float(self.amount_to_precision(symbol, amount - filled))
         status = self.safe_integer(order, 'status')
         if status == 1:
             status = 'canceled'
@@ -268,7 +282,7 @@ class exx (Exchange):
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
-            'status': 'open',
+            'status': status,
             'symbol': symbol,
             'type': 'limit',
             'side': order['type'],
@@ -324,9 +338,11 @@ class exx (Exchange):
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        orders = self.privateGetOpenOrders(self.extend({
+        orders = self.privateGetGetOpenOrders(self.extend({
             'currency': market['id'],
         }, params))
+        if not isinstance(orders, list):
+            return []
         return self.parse_orders(orders, market, since, limit)
 
     def nonce(self):
@@ -343,16 +359,42 @@ class exx (Exchange):
                 'accesskey': self.apiKey,
                 'nonce': self.nonce(),
             }, params)))
-            signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha512)
-            url += '?' + query + '&signature=' + signature
+            signed = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha512)
+            url += '?' + query + '&signature=' + signed
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        code = self.safe_integer(response, 'code')
-        message = self.safe_string(response, 'message')
-        if code and code != 100 and message:
-            if code == 103:
-                raise AuthenticationError(message)
-            raise ExchangeError(message)
-        return response
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+        if not isinstance(body, basestring):
+            return  # fallback to default error handler
+        if len(body) < 2:
+            return  # fallback to default error handler
+        if (body[0] == '{') or (body[0] == '['):
+            #
+            #  {"result":false,"message":"服务端忙碌"}
+            #  ... and other formats
+            #
+            code = self.safe_string(response, 'code')
+            message = self.safe_string(response, 'message')
+            feedback = self.id + ' ' + self.json(response)
+            if code == '100':
+                return
+            if code is not None:
+                exceptions = self.exceptions
+                if code in exceptions:
+                    raise exceptions[code](feedback)
+                elif code == '308':
+                    # self is returned by the exchange when there are no open orders
+                    # {"code":308,"message":"Not Found Transaction Record"}
+                    return
+                else:
+                    raise ExchangeError(feedback)
+            result = self.safe_value(response, 'result')
+            if result is not None:
+                if not result:
+                    if message == u'服务端忙碌':
+                        raise ExchangeNotAvailable(feedback)
+                    else:
+                        raise ExchangeError(feedback)

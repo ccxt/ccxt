@@ -12,11 +12,10 @@ module.exports = class xbtce extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'xbtce',
             'name': 'xBTCe',
-            'countries': 'RU',
+            'countries': [ 'RU' ],
             'rateLimit': 2000, // responses are cached every 2 seconds
             'version': 'v1',
             'has': {
-                'publicAPI': false,
                 'CORS': false,
                 'fetchTickers': true,
                 'createMarketOrder': false,
@@ -105,7 +104,7 @@ module.exports = class xbtce extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.privateGetSymbol ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
@@ -266,9 +265,9 @@ module.exports = class xbtce extends Exchange {
         //     let periodicity = minutes.toString ();
         //     await this.loadMarkets ();
         //     let market = this.market (symbol);
-        //     if (!since)
+        //     if (since === undefined)
         //         since = this.seconds () - 86400 * 7; // last day by defulat
-        //     if (!limit)
+        //     if (limit === undefined)
         //         limit = 1000; // default
         //     let response = await this.privateGetQuotehistorySymbolPeriodicityBarsBid (this.extend ({
         //         'symbol': market['id'],

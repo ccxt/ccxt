@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InvalidAddress } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InvalidAddress, InsufficientFunds, OrderNotFound, InvalidOrder, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -13,7 +13,7 @@ module.exports = class gatecoin extends Exchange {
             'id': 'gatecoin',
             'name': 'Gatecoin',
             'rateLimit': 2000,
-            'countries': 'HK', // Hong Kong
+            'countries': [ 'HK' ], // Hong Kong
             'comment': 'a regulated/licensed exchange',
             'has': {
                 'CORS': false,
@@ -196,10 +196,17 @@ module.exports = class gatecoin extends Exchange {
                 'TRA': 'TRAC',
                 'WGS': 'WINGS',
             },
+            'exceptions': {
+                '1005': InsufficientFunds,
+                '1008': OrderNotFound,
+                '1057': InvalidOrder,
+                '1044': OrderNotFound, // already canceled,
+                '1054': OrderNotFound, // already executed
+            },
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetReferenceCurrencyPairs ();
         let markets = response['currencyPairs'];
         let result = [];
@@ -294,7 +301,9 @@ module.exports = class gatecoin extends Exchange {
             symbol = market['symbol'];
         let baseVolume = this.safeFloat (ticker, 'volume');
         let vwap = this.safeFloat (ticker, 'vwap');
-        let quoteVolume = baseVolume * vwap;
+        let quoteVolume = undefined;
+        if (baseVolume !== undefined && vwap !== undefined)
+            quoteVolume = baseVolume * vwap;
         let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -354,23 +363,23 @@ module.exports = class gatecoin extends Exchange {
             orderId = this.safeString (trade, orderIdField);
         }
         let timestamp = parseInt (trade['transactionTime']) * 1000;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = this.safeString (trade, 'currencyPair');
-            if (typeof marketId !== 'undefined')
+            if (marketId !== undefined)
                 market = this.findMarket (marketId);
         }
         let fee = undefined;
         let feeCost = this.safeFloat (trade, 'feeAmount');
-        let price = trade['price'];
-        let amount = trade['quantity'];
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'quantity');
         let cost = price * amount;
         let feeCurrency = undefined;
         let symbol = undefined;
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
             feeCurrency = market['quote'];
         }
-        if (typeof feeCost !== 'undefined') {
+        if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -408,7 +417,7 @@ module.exports = class gatecoin extends Exchange {
             ohlcv['open'],
             ohlcv['high'],
             ohlcv['low'],
-            undefined,
+            ohlcv['last'],
             ohlcv['volume'],
         ];
     }
@@ -420,7 +429,7 @@ module.exports = class gatecoin extends Exchange {
             'CurrencyPair': market['id'],
             'Timeframe': this.timeframes[timeframe],
         };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['Count'] = limit;
         request = this.extend (request, params);
         let response = await this.publicGetPublicTickerHistoryCurrencyPairTimeframe (request);
@@ -444,19 +453,26 @@ module.exports = class gatecoin extends Exchange {
                 throw new AuthenticationError (this.id + ' two-factor authentication requires a missing ValidationCode parameter');
         }
         let response = await this.privatePostTradeOrders (this.extend (order, params));
+        // At this point response['responseStatus']['message'] has been verified in handleErrors ()
+        // to be == 'OK', so we assume the order has indeed been opened
         return {
             'info': response,
-            'id': response['clOrderId'],
+            'status': 'open',
+            'id': this.safeString (response, 'clOrderId'), // response['clOrderId'],
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privateDeleteTradeOrdersOrderID ({ 'OrderID': id });
+        const response = await this.privateDeleteTradeOrdersOrderID ({ 'OrderID': id });
+        return response;
     }
 
     parseOrderStatus (status) {
         const statuses = {
+            '1': 'open', // New
+            '2': 'open', // Filling
+            '4': 'canceled',
             '6': 'closed',
         };
         if (status in statuses)
@@ -468,12 +484,12 @@ module.exports = class gatecoin extends Exchange {
         let side = (order['side'] === 0) ? 'buy' : 'sell';
         let type = (order['type'] === 0) ? 'limit' : 'market';
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = this.safeString (order, 'code');
             if (marketId in this.markets_by_id)
                 market = this.markets_by_id[marketId];
         }
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         let timestamp = parseInt (order['date']) * 1000;
         let amount = order['initialQuantity'];
@@ -493,39 +509,39 @@ module.exports = class gatecoin extends Exchange {
             let feeCost = undefined;
             let feeCurrency = undefined;
             let feeRate = undefined;
-            if (typeof transactions !== 'undefined') {
+            if (transactions !== undefined) {
                 if (Array.isArray (transactions)) {
                     for (let i = 0; i < transactions.length; i++) {
                         let trade = this.parseTrade (transactions[i]);
-                        if (typeof tradesFilled === 'undefined')
+                        if (tradesFilled === undefined)
                             tradesFilled = 0.0;
-                        if (typeof tradesCost === 'undefined')
+                        if (tradesCost === undefined)
                             tradesCost = 0.0;
                         tradesFilled += trade['amount'];
                         tradesCost += trade['amount'] * trade['price'];
                         if ('fee' in trade) {
-                            if (typeof trade['fee']['cost'] !== 'undefined') {
-                                if (typeof feeCost === 'undefined')
+                            if (trade['fee']['cost'] !== undefined) {
+                                if (feeCost === undefined)
                                     feeCost = 0.0;
                                 feeCost += trade['fee']['cost'];
                             }
                             feeCurrency = trade['fee']['currency'];
-                            if (typeof trade['fee']['rate'] !== 'undefined') {
-                                if (typeof feeRate === 'undefined')
+                            if (trade['fee']['rate'] !== undefined) {
+                                if (feeRate === undefined)
                                     feeRate = 0.0;
                                 feeRate += trade['fee']['rate'];
                             }
                         }
                         trades.push (trade);
                     }
-                    if ((typeof tradesFilled !== 'undefined') && (tradesFilled > 0))
+                    if ((tradesFilled !== undefined) && (tradesFilled > 0))
                         price = tradesCost / tradesFilled;
-                    if (typeof feeRate !== 'undefined') {
+                    if (feeRate !== undefined) {
                         let numTrades = trades.length;
                         if (numTrades > 0)
                             feeRate = feeRate / numTrades;
                     }
-                    if (typeof feeCost !== 'undefined') {
+                    if (feeCost !== undefined) {
                         fee = {
                             'cost': feeCost,
                             'currency': feeCurrency,
@@ -560,7 +576,7 @@ module.exports = class gatecoin extends Exchange {
         await this.loadMarkets ();
         let response = await this.privateGetTradeOrders ();
         let orders = this.parseOrders (response['orders'], undefined, since, limit);
-        if (typeof symbol !== 'undefined')
+        if (symbol !== undefined)
             return this.filterBySymbol (orders, symbol);
         return orders;
     }
@@ -590,15 +606,6 @@ module.exports = class gatecoin extends Exchange {
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('responseStatus' in response)
-            if ('message' in response['responseStatus'])
-                if (response['responseStatus']['message'] === 'OK')
-                    return response;
-        throw new ExchangeError (this.id + ' ' + this.json (response));
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -633,7 +640,7 @@ module.exports = class gatecoin extends Exchange {
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': undefined,
             'info': response,
         };
     }
@@ -650,8 +657,48 @@ module.exports = class gatecoin extends Exchange {
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': undefined,
             'info': response,
         };
+    }
+
+    async createUserWallet (code, address, name, password, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let request = {
+            'DigiCurrency': currency['id'],
+            'AddressName': name,
+            'Address': address,
+            'Password': password,
+        };
+        // not unified yet
+        return await this.privatePostElectronicWalletUserWalletsDigiCurrency (this.extend (request, params));
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response) {
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if (body.indexOf ('You are not authorized') >= 0) {
+            throw new PermissionDenied (body);
+        }
+        if (body[0] === '{') {
+            if ('responseStatus' in response) {
+                let errorCode = this.safeString (response['responseStatus'], 'errorCode');
+                let message = this.safeString (response['responseStatus'], 'message');
+                const feedback = this.id + ' ' + body;
+                if (errorCode !== undefined) {
+                    const exceptions = this.exceptions;
+                    if (errorCode in exceptions) {
+                        throw new exceptions[errorCode] (feedback);
+                    }
+                    throw new ExchangeError (feedback);
+                // Sometimes there isn't 'errorCode' but 'message' is present and is not 'OK'
+                } else if (message !== undefined && message !== 'OK') {
+                    throw new ExchangeError (feedback);
+                }
+            }
+        }
     }
 };

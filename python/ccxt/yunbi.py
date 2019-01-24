@@ -12,7 +12,7 @@ class yunbi (acx):
         return self.deep_extend(super(yunbi, self).describe(), {
             'id': 'yunbi',
             'name': 'YUNBI',
-            'countries': 'CN',
+            'countries': ['CN'],
             'rateLimit': 1000,
             'version': 'v2',
             'has': {

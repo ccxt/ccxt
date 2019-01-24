@@ -25,15 +25,18 @@ module.exports = class okex extends okcoinusd {
                     'private': 'https://www.okex.com/api',
                 },
                 'www': 'https://www.okex.com',
-                'doc': 'https://www.okex.com/rest_getStarted.html',
-                'fees': 'https://www.okex.com/fees.html',
+                'doc': 'https://github.com/okcoin-okex/API-docs-OKEx.com',
+                'fees': 'https://www.okex.com/pages/products/fees.html',
             },
             'commonCurrencies': {
                 'FAIR': 'FairGame',
-                'HMC': 'Hi Mutual Society',
+                'HOT': 'Hydro Protocol',
+                'HSR': 'HC',
                 'MAG': 'Maggie',
-                'NANO': 'XRB',
                 'YOYO': 'YOYOW',
+            },
+            'options': {
+                'fetchTickersMethod': 'fetch_tickers_from_api',
             },
         });
     }
@@ -56,8 +59,8 @@ module.exports = class okex extends okcoinusd {
         };
     }
 
-    async fetchMarkets () {
-        let markets = await super.fetchMarkets ();
+    async fetchMarkets (params = {}) {
+        let markets = await super.fetchMarkets (params);
         // TODO: they have a new fee schedule as of Feb 7
         // the new fees are progressive and depend on 30-day traded volume
         // the following is the worst case
@@ -73,7 +76,7 @@ module.exports = class okex extends okcoinusd {
         return markets;
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickersFromApi (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
         let response = await this.publicGetTickers (this.extend (request, params));
@@ -82,16 +85,30 @@ module.exports = class okex extends okcoinusd {
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];
-            let market = undefined;
-            if ('symbol' in ticker) {
-                let marketId = ticker['symbol'];
-                if (marketId in this.markets_by_id)
-                    market = this.markets_by_id[marketId];
-            }
-            ticker = this.parseTicker (this.extend (tickers[i], { 'timestamp': timestamp }), market);
+            ticker = this.parseTicker (this.extend (tickers[i], { 'timestamp': timestamp }));
             let symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
         return result;
+    }
+
+    async fetchTickersFromWeb (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {};
+        let response = await this.webGetSpotMarketsTickers (this.extend (request, params));
+        let tickers = response['data'];
+        let result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            let ticker = this.parseTicker (tickers[i]);
+            let symbol = ticker['symbol'];
+            result[symbol] = ticker;
+        }
+        return result;
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        let method = this.options['fetchTickersMethod'];
+        let response = await this[method] (symbols, params);
+        return response;
     }
 };

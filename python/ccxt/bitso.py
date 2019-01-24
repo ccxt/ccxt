@@ -11,9 +11,9 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
 
 
@@ -23,7 +23,7 @@ class bitso (Exchange):
         return self.deep_extend(super(bitso, self).describe(), {
             'id': 'bitso',
             'name': 'Bitso',
-            'countries': 'MX',  # Mexico
+            'countries': ['MX'],  # Mexico
             'rateLimit': 2000,  # 30 requests per minute
             'version': 'v3',
             'has': {
@@ -37,6 +37,7 @@ class bitso (Exchange):
                 'www': 'https://bitso.com',
                 'doc': 'https://bitso.com/api_info',
                 'fees': 'https://bitso.com/fees?l=es',
+                'referral': 'https://bitso.com/?ref=itej',
             },
             'api': {
                 'public': {
@@ -74,11 +75,17 @@ class bitso (Exchange):
                         'bitcoin_withdrawal',
                         'debit_card_withdrawal',
                         'ether_withdrawal',
+                        'ripple_withdrawal',
+                        'bcash_withdrawal',
+                        'litecoin_withdrawal',
                         'orders',
                         'phone_number',
                         'phone_verification',
                         'phone_withdrawal',
                         'spei_withdrawal',
+                        'ripple_withdrawal',
+                        'bcash_withdrawal',
+                        'litecoin_withdrawal',
                     ],
                     'delete': [
                         'orders/{oid}',
@@ -92,7 +99,7 @@ class bitso (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetAvailableBooks()
         result = []
         for i in range(0, len(markets['payload'])):
@@ -118,14 +125,12 @@ class bitso (Exchange):
                 'amount': self.precision_from_string(market['minimum_amount']),
                 'price': self.precision_from_string(market['minimum_price']),
             }
-            lot = limits['amount']['min']
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
-                'lot': lot,
                 'limits': limits,
                 'precision': precision,
             })
@@ -165,7 +170,9 @@ class bitso (Exchange):
         timestamp = self.parse8601(ticker['created_at'])
         vwap = self.safe_float(ticker, 'vwap')
         baseVolume = self.safe_float(ticker, 'volume')
-        quoteVolume = baseVolume * vwap
+        quoteVolume = None
+        if baseVolume is not None and vwap is not None:
+            quoteVolume = baseVolume * vwap
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -294,14 +301,15 @@ class bitso (Exchange):
     def parse_order_status(self, status):
         statuses = {
             'partial-fill': 'open',  # self is a common substitution in ccxt
+            'completed': 'closed',
         }
         if status in statuses:
-            return statuses['status']
+            return statuses[status]
         return status
 
     def parse_order(self, order, market=None):
         side = order['side']
-        status = self.parse_order_status(order['status'])
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         symbol = None
         if market is None:
             marketId = order['book']
@@ -359,6 +367,71 @@ class bitso (Exchange):
         orders = self.parse_orders(response['payload'], market, since, limit)
         return orders
 
+    def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        response = self.privateGetOrdersOid({
+            'oid': id,
+        })
+        numOrders = len(response['payload'])
+        if not isinstance(response['payload'], list) or (numOrders != 1):
+            raise OrderNotFound(self.id + ': The order ' + id + ' not found.')
+        return self.parse_order(response['payload'][0], market)
+
+    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        response = self.privateGetOrderTradesOid({
+            'oid': id,
+        })
+        return self.parse_trades(response['payload'], market)
+
+    def fetch_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'fund_currency': currency['id'],
+        }
+        response = self.privateGetFundingDestination(self.extend(request, params))
+        address = self.safe_string(response['payload'], 'account_identifier')
+        tag = None
+        if code == 'XRP':
+            parts = address.split('?dt=')
+            address = parts[0]
+            tag = parts[1]
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        }
+
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
+        self.load_markets()
+        methods = {
+            'BTC': 'Bitcoin',
+            'ETH': 'Ether',
+            'XRP': 'Ripple',
+            'BCH': 'Bcash',
+            'LTC': 'Litecoin',
+        }
+        method = methods[code] if (code in list(methods.keys())) else None
+        if method is None:
+            raise ExchangeError(self.id + ' not valid withdraw coin: ' + code)
+        request = {
+            'amount': amount,
+            'address': address,
+            'destination_tag': tag,
+        }
+        classMethod = 'privatePost' + method + 'Withdrawal'
+        response = getattr(self, classMethod)(self.extend(request, params))
+        return {
+            'info': response,
+            'id': self.safe_string(response['payload'], 'wid'),
+        }
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -382,13 +455,12 @@ class bitso (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if len(body) < 2:
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
             if 'success' in response:
                 #
                 #     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}

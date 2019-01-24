@@ -3,7 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError } = require ('./base/errors');
+const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -12,8 +13,9 @@ module.exports = class binance extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'binance',
             'name': 'Binance',
-            'countries': 'JP', // Japan
+            'countries': [ 'JP' ], // Japan
             'rateLimit': 500,
+            'certified': true,
             // new metainfo interface
             'has': {
                 'fetchDepositAddress': true,
@@ -28,6 +30,9 @@ module.exports = class binance extends Exchange {
                 'fetchClosedOrders': true,
                 'withdraw': true,
                 'fetchFundingFees': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
+                'fetchTransactions': false,
             },
             'timeframes': {
                 '1m': '1m',
@@ -57,16 +62,15 @@ module.exports = class binance extends Exchange {
                     'v1': 'https://api.binance.com/api/v1',
                 },
                 'www': 'https://www.binance.com',
+                'referral': 'https://www.binance.com/?ref=10205187',
                 'doc': 'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
-                'fees': [
-                    'https://binance.zendesk.com/hc/en-us/articles/115000429332',
-                    'https://support.binance.com/hc/en-us/articles/115000583311',
-                ],
+                'fees': 'https://www.binance.com/en/fee/schedule',
             },
             'api': {
                 'web': {
                     'get': [
                         'exchange/public/product',
+                        'assetWithdraw/getAllAsset.html',
                     ],
                 },
                 'wapi': {
@@ -79,7 +83,9 @@ module.exports = class binance extends Exchange {
                         'depositAddress',
                         'accountStatus',
                         'systemStatus',
-                        'withdrawFee',
+                        'userAssetDribbletLog',
+                        'tradeFee',
+                        'assetDetail',
                     ],
                 },
                 'v3': {
@@ -90,7 +96,6 @@ module.exports = class binance extends Exchange {
                 },
                 'public': {
                     'get': [
-                        'exchangeInfo',
                         'ping',
                         'time',
                         'depth',
@@ -252,23 +257,35 @@ module.exports = class binance extends Exchange {
             'commonCurrencies': {
                 'YOYO': 'YOYOW',
                 'BCC': 'BCH',
-                'NANO': 'XRB',
             },
             // exchange-specific options
             'options': {
+                'fetchTickersMethod': 'publicGetTicker24hr',
+                'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                'defaultLimitOrderType': 'limit', // or 'limit_maker'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
                 'recvWindow': 5 * 1000, // 5 sec, binance default
                 'timeDifference': 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
+                'parseOrderToPrecision': false, // force amounts and costs in parseOrder to precision
+                'newOrderRespType': {
+                    'market': 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+                    'limit': 'RESULT', // we change it from 'ACK' by default to 'RESULT'
+                },
             },
             'exceptions': {
+                '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
                 '-1013': InvalidOrder, // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
                 '-1021': InvalidNonce, // 'your time is ahead of server'
+                '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
                 '-1100': InvalidOrder, // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
-                '-2010': InsufficientFunds, // createOrder -> 'Account has insufficient balance for requested action.'
+                '-1104': ExchangeError, // Not all sent parameters were read, read 8 parameters but was sent 9
+                '-1128': ExchangeError, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
+                '-2010': ExchangeError, // generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
                 '-2011': OrderNotFound, // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
                 '-2013': OrderNotFound, // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
+                '-2014': AuthenticationError, // { "code":-2014, "msg": "API-key format invalid." }
                 '-2015': AuthenticationError, // "Invalid API-key, IP, or permissions for action."
             },
         });
@@ -285,7 +302,7 @@ module.exports = class binance extends Exchange {
         return this.options['timeDifference'];
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetExchangeInfo ();
         if (this.options['adjustForTimeDifference'])
             await this.loadTimeDifference ();
@@ -310,8 +327,6 @@ module.exports = class binance extends Exchange {
                 'price': market['quotePrecision'],
             };
             let active = (market['status'] === 'TRADING');
-            // lot size is deprecated as of 2018.02.06
-            let lot = -1 * Math.log10 (precision['amount']);
             let entry = {
                 'id': id,
                 'symbol': symbol,
@@ -320,7 +335,6 @@ module.exports = class binance extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
-                'lot': lot, // lot size is deprecated as of 2018.02.06
                 'active': active,
                 'precision': precision,
                 'limits': {
@@ -329,27 +343,33 @@ module.exports = class binance extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
-                        'min': lot,
+                        'min': -1 * Math.log10 (precision['amount']),
                         'max': undefined,
                     },
                 },
             };
             if ('PRICE_FILTER' in filters) {
                 let filter = filters['PRICE_FILTER'];
+                // PRICE_FILTER reports zero values for minPrice and maxPrice
+                // since they updated filter types in November 2018
+                // https://github.com/ccxt/ccxt/issues/4286
+                // therefore limits['price']['min'] and limits['price']['max]
+                // don't have any meaningful value except undefined
+                //
+                //     entry['limits']['price'] = {
+                //         'min': this.safeFloat (filter, 'minPrice'),
+                //         'max': this.safeFloat (filter, 'maxPrice'),
+                //     };
+                //
                 entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
-                entry['limits']['price'] = {
-                    'min': this.safeFloat (filter, 'minPrice'),
-                    'max': this.safeFloat (filter, 'maxPrice'),
-                };
             }
             if ('LOT_SIZE' in filters) {
                 let filter = filters['LOT_SIZE'];
                 entry['precision']['amount'] = this.precisionFromString (filter['stepSize']);
-                entry['lot'] = this.safeFloat (filter, 'stepSize'); // lot size is deprecated as of 2018.02.06
                 entry['limits']['amount'] = {
                     'min': this.safeFloat (filter, 'minQty'),
                     'max': this.safeFloat (filter, 'maxQty'),
@@ -367,17 +387,20 @@ module.exports = class binance extends Exchange {
         let market = this.markets[symbol];
         let key = 'quote';
         let rate = market[takerOrMaker];
-        let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
+        let cost = amount * rate;
+        let precision = market['precision']['price'];
         if (side === 'sell') {
             cost *= price;
         } else {
             key = 'base';
+            precision = market['precision']['amount'];
         }
+        cost = this.decimalToPrecision (cost, ROUND, precision, this.precisionMode);
         return {
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (symbol, cost)),
+            'cost': parseFloat (cost),
         };
     }
 
@@ -408,7 +431,7 @@ module.exports = class binance extends Exchange {
         let request = {
             'symbol': market['id'],
         };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['limit'] = limit; // default = maximum = 100
         let response = await this.publicGetDepth (this.extend (request, params));
         let orderbook = this.parseOrderBook (response);
@@ -418,13 +441,12 @@ module.exports = class binance extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.safeInteger (ticker, 'closeTime');
-        let iso8601 = (typeof timestamp === 'undefined') ? undefined : this.iso8601 (timestamp);
         let symbol = this.findSymbol (this.safeString (ticker, 'symbol'), market);
         let last = this.safeFloat (ticker, 'lastPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'highPrice'),
             'low': this.safeFloat (ticker, 'lowPrice'),
             'bid': this.safeFloat (ticker, 'bidPrice'),
@@ -462,7 +484,7 @@ module.exports = class binance extends Exchange {
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    async fetchBidAsks (symbols = undefined, params = {}) {
+    async fetchBidsAsks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let rawTickers = await this.publicGetTickerBookTicker (params);
         return this.parseTickers (rawTickers, symbols);
@@ -470,7 +492,8 @@ module.exports = class binance extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let rawTickers = await this.publicGetTicker24hr (params);
+        let method = this.options['fetchTickersMethod'];
+        let rawTickers = await this[method] (params);
         return this.parseTickers (rawTickers, symbols);
     }
 
@@ -492,31 +515,34 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
             'interval': this.timeframes[timeframe],
         };
-        if (typeof since !== 'undefined')
+        if (since !== undefined) {
             request['startTime'] = since;
-        if (typeof limit !== 'undefined')
+        }
+        if (limit !== undefined) {
             request['limit'] = limit; // default == max == 500
+        }
         let response = await this.publicGetKlines (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
         let timestampField = ('T' in trade) ? 'T' : 'time';
-        let timestamp = trade[timestampField];
+        let timestamp = this.safeInteger (trade, timestampField);
         let priceField = ('p' in trade) ? 'p' : 'price';
-        let price = parseFloat (trade[priceField]);
+        let price = this.safeFloat (trade, priceField);
         let amountField = ('q' in trade) ? 'q' : 'qty';
-        let amount = parseFloat (trade[amountField]);
+        let amount = this.safeFloat (trade, amountField);
         let idField = ('a' in trade) ? 'a' : 'id';
-        let id = trade[idField].toString ();
+        let id = this.safeString (trade, idField);
         let side = undefined;
         let order = undefined;
         if ('orderId' in trade)
-            order = trade['orderId'].toString ();
+            order = this.safeString (trade, 'orderId');
         if ('m' in trade) {
             side = trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
         } else {
-            side = (trade['isBuyer']) ? 'buy' : 'sell'; // this is a true side
+            if ('isBuyer' in trade)
+                side = (trade['isBuyer']) ? 'buy' : 'sell'; // this is a true side
         }
         let fee = undefined;
         if ('commission' in trade) {
@@ -528,11 +554,19 @@ module.exports = class binance extends Exchange {
         let takerOrMaker = undefined;
         if ('isMaker' in trade)
             takerOrMaker = trade['isMaker'] ? 'maker' : 'taker';
+        let symbol = undefined;
+        if (market === undefined) {
+            let marketId = this.safeString (trade, 'symbol');
+            market = this.safeValue (this.markets_by_id, marketId);
+        }
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'id': id,
             'order': order,
             'type': undefined,
@@ -551,16 +585,25 @@ module.exports = class binance extends Exchange {
         let request = {
             'symbol': market['id'],
         };
-        if (typeof since !== 'undefined') {
+        if (since !== undefined) {
             request['startTime'] = since;
-            request['endTime'] = since + 3600000;
+            request['endTime'] = this.sum (since, 3600000);
         }
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['limit'] = limit;
         // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
         // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
         // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
-        // 'limit': 500,     // default = maximum = 500
+        // 'limit': 500,     // default = 500, maximum = 1000
+        //
+        // Caveats:
+        // - default limit (500) applies only if no other parameters set, trades up
+        //   to the maximum limit may be returned to satisfy other parameters
+        // - if both limit and time window is set and time window contains more
+        //   trades than the limit then the last trades from the window are returned
+        // - 'tradeId' accepted and returned by this method is "aggregate" trade id
+        //   which is different from actual trade id
+        // - setting both fromId and time window results in error
         let response = await this.publicGetAggTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -571,46 +614,89 @@ module.exports = class binance extends Exchange {
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
+            'PENDING_CANCEL': 'canceling', // currently unused
+            'REJECTED': 'rejected',
+            'EXPIRED': 'expired',
         };
-        return (status in statuses) ? statuses[status] : status.toLowerCase ();
+        return (status in statuses) ? statuses[status] : status;
     }
 
     parseOrder (order, market = undefined) {
-        let status = this.safeValue (order, 'status');
-        if (typeof status !== 'undefined')
-            status = this.parseOrderStatus (status);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = this.findSymbol (this.safeString (order, 'symbol'), market);
         let timestamp = undefined;
         if ('time' in order)
             timestamp = order['time'];
         else if ('transactTime' in order)
             timestamp = order['transactTime'];
-        let iso8601 = undefined;
-        if (typeof timestamp !== 'undefined')
-            iso8601 = this.iso8601 (timestamp);
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'origQty');
-        let filled = this.safeFloat (order, 'executedQty', 0.0);
+        let filled = this.safeFloat (order, 'executedQty');
         let remaining = undefined;
-        let cost = undefined;
-        if (typeof filled !== 'undefined') {
-            if (typeof amount !== 'undefined')
-                remaining = Math.max (amount - filled, 0.0);
-            if (typeof price !== 'undefined')
-                cost = price * filled;
+        let cost = this.safeFloat (order, 'cummulativeQuoteQty');
+        if (filled !== undefined) {
+            if (amount !== undefined) {
+                remaining = amount - filled;
+                if (this.options['parseOrderToPrecision']) {
+                    remaining = parseFloat (this.amountToPrecision (symbol, remaining));
+                }
+                remaining = Math.max (remaining, 0.0);
+            }
+            if (price !== undefined) {
+                if (cost === undefined) {
+                    cost = price * filled;
+                }
+            }
         }
         let id = this.safeString (order, 'orderId');
         let type = this.safeString (order, 'type');
-        if (typeof type !== 'undefined')
+        if (type !== undefined) {
             type = type.toLowerCase ();
+            if (type === 'market') {
+                if (price === 0.0) {
+                    if ((cost !== undefined) && (filled !== undefined)) {
+                        if ((cost > 0) && (filled > 0)) {
+                            price = cost / filled;
+                        }
+                    }
+                }
+            }
+        }
         let side = this.safeString (order, 'side');
-        if (typeof side !== 'undefined')
+        if (side !== undefined)
             side = side.toLowerCase ();
+        let fee = undefined;
+        let trades = undefined;
+        const fills = this.safeValue (order, 'fills');
+        if (fills !== undefined) {
+            trades = this.parseTrades (fills, market);
+            let numTrades = trades.length;
+            if (numTrades > 0) {
+                cost = trades[0]['cost'];
+                fee = {
+                    'cost': trades[0]['fee']['cost'],
+                    'currency': trades[0]['fee']['currency'],
+                };
+                for (let i = 1; i < trades.length; i++) {
+                    cost = this.sum (cost, trades[i]['cost']);
+                    fee['cost'] = this.sum (fee['cost'], trades[i]['fee']['cost']);
+                }
+            }
+        }
+        let average = undefined;
+        if (cost !== undefined) {
+            if (filled) {
+                average = cost / filled;
+            }
+            if (this.options['parseOrderToPrecision']) {
+                cost = parseFloat (this.costToPrecision (symbol, cost));
+            }
+        }
         let result = {
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
@@ -618,10 +704,12 @@ module.exports = class binance extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': undefined,
+            'fee': fee,
+            'trades': trades,
         };
         return result;
     }
@@ -636,32 +724,62 @@ module.exports = class binance extends Exchange {
             method += 'Test';
             params = this.omit (params, 'test');
         }
+        let uppercaseType = type.toUpperCase ();
+        const newOrderRespType = this.safeValue (this.options['newOrderRespType'], type, 'RESULT');
         let order = {
             'symbol': market['id'],
-            'quantity': this.amountToString (symbol, amount),
-            'type': type.toUpperCase (),
+            'quantity': this.amountToPrecision (symbol, amount),
+            'type': uppercaseType,
             'side': side.toUpperCase (),
+            'newOrderRespType': newOrderRespType, // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         };
-        if (type === 'limit') {
-            order = this.extend (order, {
-                'price': this.priceToPrecision (symbol, price),
-                'timeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-            });
+        let timeInForceIsRequired = false;
+        let priceIsRequired = false;
+        let stopPriceIsRequired = false;
+        if (uppercaseType === 'LIMIT') {
+            priceIsRequired = true;
+            timeInForceIsRequired = true;
+        } else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
+            stopPriceIsRequired = true;
+        } else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+            stopPriceIsRequired = true;
+            priceIsRequired = true;
+            timeInForceIsRequired = true;
+        } else if (uppercaseType === 'LIMIT_MAKER') {
+            priceIsRequired = true;
+        }
+        if (priceIsRequired) {
+            if (price === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder method requires a price argument for a ' + type + ' order');
+            }
+            order['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (timeInForceIsRequired) {
+            order['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+        }
+        if (stopPriceIsRequired) {
+            let stopPrice = this.safeFloat (params, 'stopPrice');
+            if (stopPrice === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder method requires a stopPrice extra param for a ' + type + ' order');
+            } else {
+                params = this.omit (params, 'stopPrice');
+                order['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            }
         }
         let response = await this[method] (this.extend (order, params));
-        return this.parseOrder (response);
+        return this.parseOrder (response, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOrder requires a symbol param');
+        if (symbol === undefined)
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let origClientOrderId = this.safeValue (params, 'origClientOrderId');
         let request = {
             'symbol': market['id'],
         };
-        if (typeof origClientOrderId !== 'undefined')
+        if (origClientOrderId !== undefined)
             request['origClientOrderId'] = origClientOrderId;
         else
             request['orderId'] = parseInt (id);
@@ -670,16 +788,42 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOrders requires a symbol param');
+        if (symbol === undefined)
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
         };
-        if (limit)
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
             request['limit'] = limit;
+        }
         let response = await this.privateGetAllOrders (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "symbol": "LTCBTC",
+        //             "orderId": 1,
+        //             "clientOrderId": "myOrder1",
+        //             "price": "0.1",
+        //             "origQty": "1.0",
+        //             "executedQty": "0.0",
+        //             "cummulativeQuoteQty": "0.0",
+        //             "status": "NEW",
+        //             "timeInForce": "GTC",
+        //             "type": "LIMIT",
+        //             "side": "BUY",
+        //             "stopPrice": "0.0",
+        //             "icebergQty": "0.0",
+        //             "time": 1499827319559,
+        //             "updateTime": 1499827319559,
+        //             "isWorking": true
+        //         }
+        //     ]
+        //
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -687,7 +831,7 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         let request = {};
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
@@ -706,8 +850,8 @@ module.exports = class binance extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
+        if (symbol === undefined)
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privateDeleteOrder (this.extend ({
@@ -715,21 +859,183 @@ module.exports = class binance extends Exchange {
             'orderId': parseInt (id),
             // 'origClientOrderId': id,
         }, params));
-        return response;
+        return this.parseOrder (response);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+        if (symbol === undefined)
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
         };
-        if (limit)
+        if (limit !== undefined)
             request['limit'] = limit;
         let response = await this.privateGetMyTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        let response = await this.wapiGetDepositHistory (this.extend (request, params));
+        //
+        //     {     success:    true,
+        //       depositList: [ { insertTime:  1517425007000,
+        //                            amount:  0.3,
+        //                           address: "0x0123456789abcdef",
+        //                        addressTag: "",
+        //                              txId: "0x0123456789abcdef",
+        //                             asset: "ETH",
+        //                            status:  1                                                                    } ] }
+        //
+        return this.parseTransactions (response['depositList'], currency, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        let response = await this.wapiGetWithdrawHistory (this.extend (request, params));
+        //
+        //     { withdrawList: [ {      amount:  14,
+        //                             address: "0x0123456789abcdef...",
+        //                         successTime:  1514489710000,
+        //                          addressTag: "",
+        //                                txId: "0x0123456789abcdef...",
+        //                                  id: "0123456789abcdef...",
+        //                               asset: "ETH",
+        //                           applyTime:  1514488724000,
+        //                              status:  6                       },
+        //                       {      amount:  7600,
+        //                             address: "0x0123456789abcdef...",
+        //                         successTime:  1515323226000,
+        //                          addressTag: "",
+        //                                txId: "0x0123456789abcdef...",
+        //                                  id: "0123456789abcdef...",
+        //                               asset: "ICN",
+        //                           applyTime:  1515322539000,
+        //                              status:  6                       }  ],
+        //            success:    true                                         }
+        //
+        return this.parseTransactions (response['withdrawList'], currency, since, limit);
+    }
+
+    parseTransactionStatusByType (status, type = undefined) {
+        if (type === undefined) {
+            return status;
+        }
+        let statuses = {
+            'deposit': {
+                '0': 'pending',
+                '1': 'ok',
+            },
+            'withdrawal': {
+                '0': 'pending', // Email Sent
+                '1': 'canceled', // Cancelled (different from 1 = ok in deposits)
+                '2': 'pending', // Awaiting Approval
+                '3': 'failed', // Rejected
+                '4': 'pending', // Processing
+                '5': 'failed', // Failure
+                '6': 'ok', // Completed
+            },
+        };
+        return (status in statuses[type]) ? statuses[type][status] : status;
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //      { insertTime:  1517425007000,
+        //            amount:  0.3,
+        //           address: "0x0123456789abcdef",
+        //        addressTag: "",
+        //              txId: "0x0123456789abcdef",
+        //             asset: "ETH",
+        //            status:  1                                                                    }
+        //
+        // fetchWithdrawals
+        //
+        //       {      amount:  14,
+        //             address: "0x0123456789abcdef...",
+        //         successTime:  1514489710000,
+        //          addressTag: "",
+        //                txId: "0x0123456789abcdef...",
+        //                  id: "0123456789abcdef...",
+        //               asset: "ETH",
+        //           applyTime:  1514488724000,
+        //              status:  6                       }
+        //
+        let id = this.safeString (transaction, 'id');
+        let address = this.safeString (transaction, 'address');
+        let tag = this.safeString (transaction, 'addressTag'); // set but unused
+        if (tag !== undefined) {
+            if (tag.length < 1) {
+                tag = undefined;
+            }
+        }
+        let txid = this.safeValue (transaction, 'txId');
+        let code = undefined;
+        let currencyId = this.safeString (transaction, 'asset');
+        if (currencyId in this.currencies_by_id) {
+            currency = this.currencies_by_id[currencyId];
+        } else {
+            code = this.commonCurrencyCode (currencyId);
+        }
+        if (currency !== undefined) {
+            code = currency['code'];
+        }
+        let timestamp = undefined;
+        let insertTime = this.safeInteger (transaction, 'insertTime');
+        let applyTime = this.safeInteger (transaction, 'applyTime');
+        let type = this.safeString (transaction, 'type');
+        if (type === undefined) {
+            if ((insertTime !== undefined) && (applyTime === undefined)) {
+                type = 'deposit';
+                timestamp = insertTime;
+            } else if ((insertTime === undefined) && (applyTime !== undefined)) {
+                type = 'withdrawal';
+                timestamp = applyTime;
+            }
+        }
+        let status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
+        let amount = this.safeFloat (transaction, 'amount');
+        const feeCost = undefined;
+        let fee = {
+            'cost': feeCost,
+            'currency': code,
+        };
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': address,
+            'tag': tag,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': undefined,
+            'fee': fee,
+        };
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -746,7 +1052,6 @@ module.exports = class binance extends Exchange {
                     'currency': code,
                     'address': this.checkAddress (address),
                     'tag': tag,
-                    'status': 'ok',
                     'info': response,
                 };
             }
@@ -754,26 +1059,39 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchFundingFees (codes = undefined, params = {}) {
-        //  by default it will try load withdrawal fees of all currencies (with separate requests)
-        //  however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
-        await this.loadMarkets ();
+        let response = await this.wapiGetAssetDetail ();
+        //
+        //     {
+        //         "success": true,
+        //         "assetDetail": {
+        //             "CTR": {
+        //                 "minWithdrawAmount": "70.00000000", //min withdraw amount
+        //                 "depositStatus": false,//deposit status
+        //                 "withdrawFee": 35, // withdraw fee
+        //                 "withdrawStatus": true, //withdraw status
+        //                 "depositTip": "Delisted, Deposit Suspended" //reason
+        //             },
+        //             "SKY": {
+        //                 "minWithdrawAmount": "0.02000000",
+        //                 "depositStatus": true,
+        //                 "withdrawFee": 0.01,
+        //                 "withdrawStatus": true
+        //             }
+        //         }
+        //     }
+        //
+        let detail = this.safeValue (response, 'assetDetail');
+        let ids = Object.keys (detail);
         let withdrawFees = {};
-        let info = {};
-        if (typeof codes === 'undefined')
-            codes = Object.keys (this.currencies);
-        for (let i = 0; i < codes.length; i++) {
-            let code = codes[i];
-            let currency = this.currency (code);
-            let response = await this.wapiGetWithdrawFee ({
-                'asset': currency['id'],
-            });
-            withdrawFees[code] = this.safeFloat (response, 'withdrawFee');
-            info[code] = response;
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let code = this.commonCurrencyCode (id);
+            withdrawFees[code] = this.safeFloat (detail[id], 'withdrawFee');
         }
         return {
             'withdraw': withdrawFees,
             'deposit': {},
-            'info': info,
+            'info': response,
         };
     }
 
@@ -820,7 +1138,7 @@ module.exports = class binance extends Exchange {
             headers = {
                 'X-MBX-APIKEY': this.apiKey,
             };
-            if ((method === 'GET') || (api === 'wapi')) {
+            if ((method === 'GET') || (method === 'DELETE') || (api === 'wapi')) {
                 url += '?' + query;
             } else {
                 body = query;
@@ -833,7 +1151,7 @@ module.exports = class binance extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if ((code === 418) || (code === 429))
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
@@ -843,27 +1161,33 @@ module.exports = class binance extends Exchange {
             if (body.indexOf ('Price * QTY is zero or less') >= 0)
                 throw new InvalidOrder (this.id + ' order cost = amount * price is zero or less ' + body);
             if (body.indexOf ('LOT_SIZE') >= 0)
-                throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size, use this.amountToLots (symbol, amount) ' + body);
+                throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size ' + body);
             if (body.indexOf ('PRICE_FILTER') >= 0)
-                throw new InvalidOrder (this.id + ' order price exceeds allowed price precision or invalid, use this.priceToPrecision (symbol, amount) ' + body);
+                throw new InvalidOrder (this.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) ' + body);
         }
         if (body.length > 0) {
             if (body[0] === '{') {
-                let response = JSON.parse (body);
                 // check success value for wapi endpoints
                 // response in format {'msg': 'The coin does not exist.', 'success': true/false}
                 let success = this.safeValue (response, 'success', true);
                 if (!success) {
-                    if ('msg' in response)
+                    let message = this.safeString (response, 'msg');
+                    let parsedMessage = undefined;
+                    if (message !== undefined) {
                         try {
-                            response = JSON.parse (response['msg']);
+                            parsedMessage = JSON.parse (message);
                         } catch (e) {
-                            response = {};
+                            // do nothing
+                            parsedMessage = undefined;
                         }
+                        if (parsedMessage !== undefined) {
+                            response = parsedMessage;
+                        }
+                    }
                 }
                 // checks against error codes
                 let error = this.safeString (response, 'code');
-                if (typeof error !== 'undefined') {
+                if (error !== undefined) {
                     const exceptions = this.exceptions;
                     if (error in exceptions) {
                         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
@@ -872,13 +1196,21 @@ module.exports = class binance extends Exchange {
                         if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
                             throw new DDoSProtection (this.id + ' temporary banned: ' + body);
                         }
+                        const message = this.safeString (response, 'msg');
+                        if (message === 'Order would trigger immediately.') {
+                            throw new InvalidOrder (this.id + ' ' + body);
+                        } else if (message === 'Account has insufficient balance for requested action.') {
+                            throw new InsufficientFunds (this.id + ' ' + body);
+                        } else if (message === 'Rest API trading is not enabled.') {
+                            throw new ExchangeNotAvailable (this.id + ' ' + body);
+                        }
                         throw new exceptions[error] (this.id + ' ' + body);
                     } else {
-                        throw new ExchangeError (this.id + ': unknown error code: ' + body + ' ' + error);
+                        throw new ExchangeError (this.id + ' ' + body);
                     }
                 }
                 if (!success) {
-                    throw new ExchangeError (this.id + ': success value false: ' + body);
+                    throw new ExchangeError (this.id + ' ' + body);
                 }
             }
         }

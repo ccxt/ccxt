@@ -13,7 +13,7 @@ class bitmex extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitmex',
             'name' => 'BitMEX',
-            'countries' => 'SC', // Seychelles
+            'countries' => array ( 'SC' ), // Seychelles
             'version' => 'v1',
             'userAgent' => null,
             'rateLimit' => 2000,
@@ -43,6 +43,7 @@ class bitmex extends Exchange {
                     'https://github.com/BitMEX/api-connectors/tree/master/official-http',
                 ),
                 'fees' => 'https://www.bitmex.com/app/fees',
+                'referral' => 'https://www.bitmex.com/register/rm3C16',
             ),
             'api' => array (
                 'public' => array (
@@ -130,24 +131,40 @@ class bitmex extends Exchange {
                     ),
                 ),
             ),
+            'exceptions' => array (
+                'exact' => array (
+                    'Invalid API Key.' => '\\ccxt\\AuthenticationError',
+                    'Access Denied' => '\\ccxt\\PermissionDenied',
+                    'Duplicate clOrdID' => '\\ccxt\\InvalidOrder',
+                    'Signature not valid' => '\\ccxt\\AuthenticationError',
+                ),
+                'broad' => array (
+                    'overloaded' => '\\ccxt\\ExchangeNotAvailable',
+                    'Account has insufficient Available Balance' => '\\ccxt\\InsufficientFunds',
+                ),
+            ),
+            'options' => array (
+                'api-expires' => null,
+                'fetchTickerQuotes' => false,
+            ),
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetInstrumentActiveAndIndices ();
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
             $market = $markets[$p];
             $active = ($market['state'] !== 'Unlisted');
             $id = $market['symbol'];
-            $base = $market['underlying'];
-            $quote = $market['quoteCurrency'];
+            $baseId = $market['underlying'];
+            $quoteId = $market['quoteCurrency'];
             $type = null;
             $future = false;
             $prediction = false;
-            $basequote = $base . $quote;
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $basequote = $baseId . $quoteId;
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $swap = ($id === $basequote);
             $symbol = $id;
             if ($swap) {
@@ -173,6 +190,8 @@ class bitmex extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'active' => $active,
                 'precision' => $precision,
                 'limits' => array (
@@ -303,9 +322,15 @@ class bitmex extends Exchange {
             'count' => 1,
             'reverse' => true,
         ), $params);
-        $quotes = $this->publicGetQuoteBucketed ($request);
-        $quotesLength = is_array ($quotes) ? count ($quotes) : 0;
-        $quote = $quotes[$quotesLength - 1];
+        $bid = null;
+        $ask = null;
+        if ($this->options['fetchTickerQuotes']) {
+            $quotes = $this->publicGetQuoteBucketed ($request);
+            $quotesLength = is_array ($quotes) ? count ($quotes) : 0;
+            $quote = $quotes[$quotesLength - 1];
+            $bid = $this->safe_float($quote, 'bidPrice');
+            $ask = $this->safe_float($quote, 'askPrice');
+        }
         $tickers = $this->publicGetTradeBucketed ($request);
         $ticker = $tickers[0];
         $timestamp = $this->milliseconds ();
@@ -318,9 +343,9 @@ class bitmex extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($quote, 'bidPrice'),
+            'bid' => $bid,
             'bidVolume' => null,
-            'ask' => $this->safe_float($quote, 'askPrice'),
+            'ask' => $ask,
             'askVolume' => null,
             'vwap' => $this->safe_float($ticker, 'vwap'),
             'open' => $open,
@@ -337,7 +362,7 @@ class bitmex extends Exchange {
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        $timestamp = $this->parse8601 ($ohlcv['timestamp']) - $this->parse_timeframe($timeframe) * 1000;
+        $timestamp = $this->parse8601 ($ohlcv['timestamp']);
         return [
             $timestamp,
             $ohlcv['open'],
@@ -372,8 +397,7 @@ class bitmex extends Exchange {
         // if $since is not set, they will return candles starting from 2017-01-01
         if ($since !== null) {
             $ymdhms = $this->ymdhms ($since);
-            $ymdhm = mb_substr ($ymdhms, 0, 16);
-            $request['startTime'] = $ymdhm; // starting date $filter for results
+            $request['startTime'] = $ymdhms; // starting date $filter for results
         }
         $response = $this->publicGetTradeBucketed (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
@@ -382,7 +406,7 @@ class bitmex extends Exchange {
     public function parse_trade ($trade, $market = null) {
         $timestamp = $this->parse8601 ($trade['timestamp']);
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             if (is_array ($trade) && array_key_exists ('symbol', $trade))
                 $market = $this->markets_by_id[$trade['symbol']];
         }
@@ -404,22 +428,26 @@ class bitmex extends Exchange {
 
     public function parse_order_status ($status) {
         $statuses = array (
-            'new' => 'open',
-            'partiallyfilled' => 'open',
-            'filled' => 'closed',
-            'canceled' => 'canceled',
-            'rejected' => 'rejected',
-            'expired' => 'expired',
+            'New' => 'open',
+            'PartiallyFilled' => 'open',
+            'Filled' => 'closed',
+            'DoneForDay' => 'open',
+            'Canceled' => 'canceled',
+            'PendingCancel' => 'open',
+            'PendingNew' => 'open',
+            'Rejected' => 'rejected',
+            'Expired' => 'expired',
+            'Stopped' => 'open',
+            'Untriggered' => 'open',
+            'Triggered' => 'open',
         );
-        return $this->safe_string($statuses, strtolower ($status));
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_order ($order, $market = null) {
-        $status = $this->safe_value($order, 'ordStatus');
-        if ($status !== null)
-            $status = $this->parse_order_status($status);
+        $status = $this->parse_order_status($this->safe_string($order, 'ordStatus'));
         $symbol = null;
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
         } else {
             $id = $order['symbol'];
@@ -428,21 +456,17 @@ class bitmex extends Exchange {
                 $symbol = $market['symbol'];
             }
         }
-        $datetime_value = null;
-        $timestamp = null;
-        $iso8601 = null;
-        if (is_array ($order) && array_key_exists ('timestamp', $order))
-            $datetime_value = $order['timestamp'];
-        else if (is_array ($order) && array_key_exists ('transactTime', $order))
-            $datetime_value = $order['transactTime'];
-        if ($datetime_value !== null) {
-            $timestamp = $this->parse8601 ($datetime_value);
-            $iso8601 = $this->iso8601 ($timestamp);
-        }
+        $timestamp = $this->parse8601 ($this->safe_string($order, 'timestamp'));
+        $lastTradeTimestamp = $this->parse8601 ($this->safe_string($order, 'transactTime'));
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'orderQty');
         $filled = $this->safe_float($order, 'cumQty', 0.0);
-        $remaining = max ($amount - $filled, 0.0);
+        $remaining = null;
+        if ($amount !== null) {
+            if ($filled !== null) {
+                $remaining = max ($amount - $filled, 0.0);
+            }
+        }
         $cost = null;
         if ($price !== null)
             if ($filled !== null)
@@ -451,8 +475,8 @@ class bitmex extends Exchange {
             'info' => $order,
             'id' => (string) $order['orderID'],
             'timestamp' => $timestamp,
-            'datetime' => $iso8601,
-            'lastTradeTimestamp' => null,
+            'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => strtolower ($order['ordType']),
             'side' => strtolower ($order['side']),
@@ -534,11 +558,13 @@ class bitmex extends Exchange {
         return false;
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        if ($currency !== 'BTC')
+        // $currency = $this->currency ($code);
+        if ($code !== 'BTC') {
             throw new ExchangeError ($this->id . ' supoprts BTC withdrawals only, other currencies coming soon...');
+        }
         $request = array (
             'currency' => 'XBt', // temporarily
             'amount' => $amount,
@@ -553,24 +579,28 @@ class bitmex extends Exchange {
         );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if ($code === 429)
             throw new DDoSProtection ($this->id . ' ' . $body);
         if ($code >= 400) {
             if ($body) {
                 if ($body[0] === '{') {
-                    $response = json_decode ($body, $as_associative_array = true);
-                    if (is_array ($response) && array_key_exists ('error', $response)) {
-                        if (is_array ($response['error']) && array_key_exists ('message', $response['error'])) {
-                            $message = $this->safe_value($response['error'], 'message');
-                            if ($message !== null) {
-                                if ($message === 'Invalid API Key.')
-                                    throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
-                            }
-                            // stub $code, need proper handling
-                            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-                        }
+                    $error = $this->safe_value($response, 'error', array ());
+                    $message = $this->safe_string($error, 'message');
+                    $feedback = $this->id . ' ' . $body;
+                    $exact = $this->exceptions['exact'];
+                    if (is_array ($exact) && array_key_exists ($message, $exact)) {
+                        throw new $exact[$message] ($feedback);
                     }
+                    $broad = $this->exceptions['broad'];
+                    $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
+                    if ($broadKey !== null) {
+                        throw new $broad[$broadKey] ($feedback);
+                    }
+                    if ($code === 400) {
+                        throw new BadRequest ($feedback);
+                    }
+                    throw new ExchangeError ($feedback); // unknown $message
                 }
             }
         }
@@ -588,20 +618,29 @@ class bitmex extends Exchange {
         $url = $this->urls['api'] . $query;
         if ($api === 'private') {
             $this->check_required_credentials();
+            $auth = $method . $query;
+            $expires = $this->safe_integer($this->options, 'api-expires');
             $nonce = (string) $this->nonce ();
-            $auth = $method . $query . $nonce;
+            $headers = array (
+                'Content-Type' => 'application/json',
+                'api-key' => $this->apiKey,
+            );
+            if ($expires !== null) {
+                $expires = $this->sum ($this->seconds (), $expires);
+                $expires = (string) $expires;
+                $auth .= $expires;
+                $headers['api-expires'] = $expires;
+            } else {
+                $auth .= $nonce;
+                $headers['api-nonce'] = $nonce;
+            }
             if ($method === 'POST' || $method === 'PUT') {
                 if ($params) {
                     $body = $this->json ($params);
                     $auth .= $body;
                 }
             }
-            $headers = array (
-                'Content-Type' => 'application/json',
-                'api-nonce' => $nonce,
-                'api-key' => $this->apiKey,
-                'api-signature' => $this->hmac ($this->encode ($auth), $this->encode ($this->secret)),
-            );
+            $headers['api-signature'] = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

@@ -13,8 +13,9 @@ class ice3x extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'ice3x',
             'name' => 'ICE3X',
-            'countries' => 'ZA', // South Africa
+            'countries' => array ( 'ZA' ), // South Africa
             'rateLimit' => 1000,
+            'version' => 'v1',
             'has' => array (
                 'fetchCurrencies' => true,
                 'fetchTickers' => true,
@@ -25,7 +26,7 @@ class ice3x extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/38012176-11616c32-3269-11e8-9f05-e65cf885bb15.jpg',
-                'api' => 'https://ice3x.com/api/v1',
+                'api' => 'https://ice3x.com/api',
                 'www' => array (
                     'https://ice3x.com',
                     'https://ice3x.co.za',
@@ -37,6 +38,7 @@ class ice3x extends Exchange {
                     'https://help.ice3.com/support/solutions/articles/11000008131-what-are-your-fiat-deposit-and-withdrawal-fees-',
                     'https://help.ice3.com/support/solutions/articles/11000033289-deposit-fees',
                 ),
+                'referral' => 'https://ice3x.com?ref=14341802',
             ),
             'api' => array (
                 'public' => array (
@@ -91,14 +93,15 @@ class ice3x extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
-            $id = $currency['currency_id'];
-            $code = $this->common_currency_code(strtoupper ($currency['iso']));
+            $id = $this->safe_string($currency, 'currency_id');
+            $code = $this->safe_string($currency, 'iso');
+            $code = strtoupper ($code);
+            $code = $this->common_currency_code($code);
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
                 'name' => $currency['name'],
                 'active' => true,
-                'status' => 'ok',
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
@@ -120,7 +123,7 @@ class ice3x extends Exchange {
         return $result;
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         if (!$this->currencies) {
             $this->currencies = $this->fetch_currencies();
         }
@@ -130,9 +133,9 @@ class ice3x extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
-            $id = $market['pair_id'];
-            $baseId = (string) $market['currency_id_from'];
-            $quoteId = (string) $market['currency_id_to'];
+            $id = $this->safe_string($market, 'pair_id');
+            $baseId = $this->safe_string($market, 'currency_id_from');
+            $quoteId = $this->safe_string($market, 'currency_id_to');
             $baseCurrency = $this->currencies_by_id[$baseId];
             $quoteCurrency = $this->currencies_by_id[$quoteId];
             $base = $this->common_currency_code($baseCurrency['code']);
@@ -146,7 +149,6 @@ class ice3x extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => true,
-                'lot' => null,
                 'info' => $market,
             );
         }
@@ -197,18 +199,31 @@ class ice3x extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($tickers); $i++) {
             $ticker = $tickers[$i];
-            $market = $this->marketsById[$ticker['pair_id']];
-            $symbol = $market['symbol'];
-            $result[$symbol] = $this->parse_ticker($ticker, $market);
+            $marketId = $this->safe_string($ticker, 'pair_id');
+            $market = $this->safe_value($this->marketsById, $marketId);
+            if ($market !== null) {
+                $symbol = $market['symbol'];
+                $result[$symbol] = $this->parse_ticker($ticker, $market);
+            }
         }
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->publicGetOrderbookInfo (array_merge (array (
+        $request = array (
             'pair_id' => $this->market_id($symbol),
-        ), $params));
+        );
+        if ($limit !== null) {
+            $type = $this->safe_string($params, 'type');
+            if (($type !== 'ask') && ($type !== 'bid')) {
+                // eslint-disable-next-line quotes
+                throw new ExchangeError ($this->id . " fetchOrderBook requires an exchange-specific extra 'type' param ('bid' or 'ask') when used with a $limit");
+            } else {
+                $request['items_per_page'] = $limit;
+            }
+        }
+        $response = $this->publicGetOrderbookInfo (array_merge ($request, $params));
         $orderbook = $response['response']['entities'];
         return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'amount');
     }
@@ -371,9 +386,9 @@ class ice3x extends Exchange {
         $request = array (
             'pair_id' => $market['id'],
         );
-        if ($limit)
+        if ($limit !== null)
             $request['items_per_page'] = $limit;
-        if ($since)
+        if ($since !== null)
             $request['date_from'] = intval ($since / 1000);
         $response = $this->privatePostTradeList (array_merge ($request, $params));
         $trades = $response['response']['entities'];
@@ -399,11 +414,10 @@ class ice3x extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $path;
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($api === 'public') {
-            $params = $this->urlencode ($params);
-            if (strlen ($params))
-                $url .= '?' . $params;
+            if ($params)
+                $url .= '?' . $this->urlencode ($params);
         } else {
             $this->check_required_credentials();
             $body = $this->urlencode (array_merge (array (

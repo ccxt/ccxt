@@ -13,7 +13,7 @@ class lakebtc extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'lakebtc',
             'name' => 'LakeBTC',
-            'countries' => 'US',
+            'countries' => array ( 'US' ),
             'version' => 'api_v2',
             'has' => array (
                 'CORS' => true,
@@ -59,7 +59,7 @@ class lakebtc extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetTicker ();
         $result = array ();
         $keys = is_array ($markets) ? array_keys ($markets) : array ();
@@ -214,7 +214,9 @@ class lakebtc extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostCancelOrder (array ( 'params' => $id ));
+        return $this->privatePostCancelOrder (array (
+            'params' => array ( $id ),
+        ));
     }
 
     public function nonce () {
@@ -230,21 +232,22 @@ class lakebtc extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
-            if ($params)
-                $params = implode (',', $params);
-            else
-                $params = '';
+            $queryParams = '';
+            if (is_array ($params) && array_key_exists ('params', $params)) {
+                $paramsList = $params['params'];
+                $queryParams = implode (',', $paramsList);
+            }
             $query = $this->urlencode (array (
                 'tonce' => $nonce,
                 'accesskey' => $this->apiKey,
                 'requestmethod' => strtolower ($method),
                 'id' => $nonce,
                 'method' => $path,
-                'params' => $params,
+                'params' => $queryParams,
             ));
             $body = $this->json (array (
                 'method' => $path,
-                'params' => $params,
+                'params' => $queryParams,
                 'id' => $nonce,
             ));
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha1');

@@ -13,7 +13,7 @@ class tidex (liqui):
         return self.deep_extend(super(tidex, self).describe(), {
             'id': 'tidex',
             'name': 'Tidex',
-            'countries': 'UK',
+            'countries': ['UK'],
             'rateLimit': 2000,
             'version': '3',
             'has': {
@@ -24,7 +24,7 @@ class tidex (liqui):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg',
                 'api': {
-                    'web': 'https://web.tidex.com/api',
+                    'web': 'https://gate.tidex.com/api',
                     'public': 'https://api.tidex.com/api/3',
                     'private': 'https://api.tidex.com/tapi',
                 },
@@ -72,9 +72,6 @@ class tidex (liqui):
             code = id.upper()
             code = self.common_currency_code(code)
             active = currency['visible'] is True
-            status = 'ok'
-            if not active:
-                status = 'disabled'
             canWithdraw = currency['withdrawEnable'] is True
             canDeposit = currency['depositEnable'] is True
             if not canWithdraw or not canDeposit:
@@ -84,7 +81,6 @@ class tidex (liqui):
                 'code': code,
                 'name': currency['name'],
                 'active': active,
-                'status': status,
                 'precision': precision,
                 'funding': {
                     'withdraw': {
@@ -135,7 +131,7 @@ class tidex (liqui):
                 'nonce': nonce,
                 'method': path,
             }, query))
-            signature = self.signBodyWithSecret(body)
+            signature = self.sign_body_with_secret(body)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': self.apiKey,

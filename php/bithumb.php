@@ -13,7 +13,7 @@ class bithumb extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bithumb',
             'name' => 'Bithumb',
-            'countries' => 'KR', // South Korea
+            'countries' => array ( 'KR' ), // South Korea
             'rateLimit' => 500,
             'has' => array (
                 'CORS' => true,
@@ -27,7 +27,7 @@ class bithumb extends Exchange {
                     'private' => 'https://api.bithumb.com',
                 ),
                 'www' => 'https://www.bithumb.com',
-                'doc' => 'https://www.bithumb.com/u1/US127',
+                'doc' => 'https://apidocs.bithumb.com',
             ),
             'api' => array (
                 'public' => array (
@@ -36,8 +36,8 @@ class bithumb extends Exchange {
                         'ticker/all',
                         'orderbook/{currency}',
                         'orderbook/all',
-                        'recent_transactions/{currency}',
-                        'recent_transactions/all',
+                        'transaction_history/{currency}',
+                        'transaction_history/all',
                     ),
                 ),
                 'private' => array (
@@ -65,10 +65,25 @@ class bithumb extends Exchange {
                     'taker' => 0.15 / 100,
                 ),
             ),
+            'exceptions' => array (
+                'Bad Request(SSL)' => '\\ccxt\\BadRequest',
+                'Bad Request(Bad Method)' => '\\ccxt\\BadRequest',
+                'Bad Request.(Auth Data)' => '\\ccxt\\AuthenticationError', // array ( "status" => "5100", "message" => "Bad Request.(Auth Data)" )
+                'Not Member' => '\\ccxt\\AuthenticationError',
+                'Invalid Apikey' => '\\ccxt\\AuthenticationError', // array ("status":"5300","message":"Invalid Apikey")
+                'Method Not Allowed.(Access IP)' => '\\ccxt\\PermissionDenied',
+                'Method Not Allowed.(BTC Adress)' => '\\ccxt\\InvalidAddress',
+                'Method Not Allowed.(Access)' => '\\ccxt\\PermissionDenied',
+                'Database Fail' => '\\ccxt\\ExchangeNotAvailable',
+                'Invalid Parameter' => '\\ccxt\\BadRequest',
+                '5600' => '\\ccxt\\ExchangeError',
+                'Unknown Error' => '\\ccxt\\ExchangeError',
+                'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions' => '\\ccxt\\ExchangeError', // array ("status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions")
+            ),
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetTickerAll ();
         $currencies = is_array ($markets['data']) ? array_keys ($markets['data']) : array ();
         $result = array ();
@@ -79,14 +94,20 @@ class bithumb extends Exchange {
                 $base = $id;
                 $quote = 'KRW';
                 $symbol = $id . '/' . $quote;
+                $active = true;
+                if (gettype ($market) === 'array' && count (array_filter (array_keys ($market), 'is_string')) == 0) {
+                    $numElements = is_array ($market) ? count ($market) : 0;
+                    if ($numElements === 0) {
+                        $active = false;
+                    }
+                }
                 $result[] = array (
                     'id' => $id,
                     'symbol' => $symbol,
                     'base' => $base,
                     'quote' => $quote,
                     'info' => $market,
-                    'lot' => null,
-                    'active' => true,
+                    'active' => $active,
                     'precision' => array (
                         'amount' => null,
                         'price' => null,
@@ -152,7 +173,16 @@ class bithumb extends Exchange {
             $symbol = $market['symbol'];
         $open = $this->safe_float($ticker, 'opening_price');
         $close = $this->safe_float($ticker, 'closing_price');
-        $change = $close - $open;
+        $change = null;
+        $percentage = null;
+        $average = null;
+        if (($close !== null) && ($open !== null)) {
+            $change = $close - $open;
+            if ($open > 0) {
+                $percentage = $change / $open * 100;
+            }
+            $average = $this->sum ($open, $close) / 2;
+        }
         $vwap = $this->safe_float($ticker, 'average_price');
         $baseVolume = $this->safe_float($ticker, 'volume_1day');
         return array (
@@ -171,8 +201,8 @@ class bithumb extends Exchange {
             'last' => $close,
             'previousClose' => null,
             'change' => $change,
-            'percentage' => $change / $open * 100,
-            'average' => $this->sum ($open, $close) / 2,
+            'percentage' => $percentage,
+            'average' => $average,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $baseVolume * $vwap,
             'info' => $ticker,
@@ -195,8 +225,11 @@ class bithumb extends Exchange {
                 $symbol = $market['symbol'];
             }
             $ticker = $tickers[$id];
-            $ticker['date'] = $timestamp;
-            $result[$symbol] = $this->parse_ticker($ticker, $market);
+            $isArray = gettype ($ticker) === 'array' && count (array_filter (array_keys ($ticker), 'is_string')) == 0;
+            if (!$isArray) {
+                $ticker['date'] = $timestamp;
+                $result[$symbol] = $this->parse_ticker($ticker, $market);
+            }
         }
         return $result;
     }
@@ -219,7 +252,7 @@ class bithumb extends Exchange {
         $timestamp -= 9 * 3600000; // they report UTC . 9 hours (is_array (Korean timezone) && array_key_exists (server, Korean timezone))
         $side = ($trade['type'] === 'ask') ? 'sell' : 'buy';
         return array (
-            'id' => null,
+            'id' => $this->safe_string($trade, 'cont_no'),
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -235,7 +268,7 @@ class bithumb extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetRecentTransactionsCurrency (array_merge (array (
+        $response = $this->publicGetTransactionHistoryCurrency (array_merge (array (
             'currency' => $market['base'],
             'count' => 100, // max = 100
         ), $params));
@@ -276,31 +309,36 @@ class bithumb extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        $side = (is_array ($params) && array_key_exists ('side', $params));
-        if (!$side)
+        $side_in_params = (is_array ($params) && array_key_exists ('side', $params));
+        if (!$side_in_params)
             throw new ExchangeError ($this->id . ' cancelOrder requires a $side parameter (sell or buy) and a $currency parameter');
-        $side = ($side === 'buy') ? 'purchase' : 'sales';
         $currency = (is_array ($params) && array_key_exists ('currency', $params));
         if (!$currency)
             throw new ExchangeError ($this->id . ' cancelOrder requires a $currency parameter');
+        $side = ($params['side'] === 'buy') ? 'bid' : 'ask';
         return $this->privatePostTradeCancel (array (
             'order_id' => $id,
-            'type' => $params['side'],
+            'type' => $side,
             'currency' => $params['currency'],
         ));
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
+        $this->load_markets();
+        $currency = $this->currency ($code);
         $request = array (
             'units' => $amount,
             'address' => $address,
-            'currency' => $currency,
+            'currency' => $currency['id'],
         );
         if ($currency === 'XRP' || $currency === 'XMR') {
-            $destination = (is_array ($params) && array_key_exists ('destination', $params));
-            if (!$destination)
-                throw new ExchangeError ($this->id . ' ' . $currency . ' withdraw requires an extra $destination param');
+            $destination = $this->safe_string($params, 'destination');
+            if (($tag === null) && ($destination === null)) {
+                throw new ExchangeError ($this->id . ' ' . $code . ' withdraw() requires a $tag argument or an extra $destination param');
+            } else if ($tag !== null) {
+                $request['destination'] = $tag;
+            }
         }
         $response = $this->privatePostTradeBtcWithdrawal (array_merge ($request, $params));
         return array (
@@ -326,7 +364,7 @@ class bithumb extends Exchange {
                 'endpoint' => $endpoint,
             ), $query));
             $nonce = (string) $this->nonce ();
-            $auth = $endpoint . '\0' . $body . '\0' . $nonce;
+            $auth = $endpoint . "\0" . $body . "\0" . $nonce; // eslint-disable-line quotes
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512');
             $signature64 = $this->decode (base64_encode ($this->encode ($signature)));
             $headers = array (
@@ -338,6 +376,35 @@ class bithumb extends Exchange {
             );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+        if (gettype ($body) !== 'string')
+            return; // fallback to default error handler
+        if (strlen ($body) < 2)
+            return; // fallback to default error handler
+        if (($body[0] === '{') || ($body[0] === '[')) {
+            if (is_array ($response) && array_key_exists ('status', $response)) {
+                //
+                //     array ("$status":"5100","$message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions")
+                //
+                $status = $this->safe_string($response, 'status');
+                $message = $this->safe_string($response, 'message');
+                if ($status !== null) {
+                    if ($status === '0000')
+                        return; // no error
+                    $feedback = $this->id . ' ' . $this->json ($response);
+                    $exceptions = $this->exceptions;
+                    if (is_array ($exceptions) && array_key_exists ($status, $exceptions)) {
+                        throw new $exceptions[$status] ($feedback);
+                    } else if (is_array ($exceptions) && array_key_exists ($message, $exceptions)) {
+                        throw new $exceptions[$message] ($feedback);
+                    } else {
+                        throw new ExchangeError ($feedback);
+                    }
+                }
+            }
+        }
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

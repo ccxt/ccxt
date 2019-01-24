@@ -15,7 +15,7 @@ class lakebtc (Exchange):
         return self.deep_extend(super(lakebtc, self).describe(), {
             'id': 'lakebtc',
             'name': 'LakeBTC',
-            'countries': 'US',
+            'countries': ['US'],
             'version': 'api_v2',
             'has': {
                 'CORS': True,
@@ -60,7 +60,7 @@ class lakebtc (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetTicker()
         result = []
         keys = list(markets.keys())
@@ -201,7 +201,9 @@ class lakebtc (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.privatePostCancelOrder({'params': id})
+        return self.privatePostCancelOrder({
+            'params': [id],
+        })
 
     def nonce(self):
         return self.microseconds()
@@ -215,21 +217,21 @@ class lakebtc (Exchange):
         else:
             self.check_required_credentials()
             nonce = self.nonce()
-            if params:
-                params = ','.join(params)
-            else:
-                params = ''
+            queryParams = ''
+            if 'params' in params:
+                paramsList = params['params']
+                queryParams = ','.join(paramsList)
             query = self.urlencode({
                 'tonce': nonce,
                 'accesskey': self.apiKey,
                 'requestmethod': method.lower(),
                 'id': nonce,
                 'method': path,
-                'params': params,
+                'params': queryParams,
             })
             body = self.json({
                 'method': path,
-                'params': params,
+                'params': queryParams,
                 'id': nonce,
             })
             signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha1)

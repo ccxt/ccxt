@@ -10,27 +10,39 @@ module.exports = subclass (
 
 /*  Derived class hierarchy     */
 
-    { 'BaseError':
-        { 'ExchangeError':
-            { 'NotSupported':               {}
-            , 'AuthenticationError':
-                { 'PermissionDenied':       {}
-                }
-            , 'InsufficientFunds':          {}
-            , 'InvalidAddress':             {}
-            , 'InvalidOrder':
-                { 'OrderNotFound':          {}
-                , 'OrderNotCached':         {}
-                , 'CancelPending':          {}
-                }
-            }
-        , 'NetworkError':
-            { 'DDoSProtection':         {}
-            , 'RequestTimeout':         {}
-            , 'ExchangeNotAvailable':   {}
-            , 'InvalidNonce':           {}
-            }
-        }
+    {
+        'BaseError':{
+            'ExchangeError': {
+                'AuthenticationError': {
+                    'PermissionDenied': {},
+                    'AccountSuspended': {},
+                },
+                'ArgumentsRequired': {},
+                'BadRequest': {},
+                'BadResponse': {
+                    'NullResponse': {},
+                },
+                'InsufficientFunds': {},
+                'InvalidAddress': {
+                    'AddressPending': {},
+                },
+                'InvalidOrder': {
+                    'OrderNotFound': {},
+                    'OrderNotCached': {},
+                    'CancelPending': {},
+                    'OrderImmediatelyFillable': {},
+                    'OrderNotFillable': {},
+                    'DuplicateOrderId': {},
+                },
+                'NotSupported': {},
+            },
+            'NetworkError': {
+                'DDoSProtection': {},
+                'ExchangeNotAvailable': {},
+                'InvalidNonce': {},
+                'RequestTimeout': {},
+            },
+        },
     }
 )
 

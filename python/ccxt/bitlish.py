@@ -122,7 +122,7 @@ class bitlish (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetPairs()
         result = []
         keys = list(markets.keys())
@@ -179,8 +179,18 @@ class bitlish (Exchange):
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            market = self.markets_by_id[id]
-            symbol = market['symbol']
+            market = self.safe_value(self.markets_by_id, id)
+            symbol = None
+            if market is not None:
+                symbol = market['symbol']
+            else:
+                baseId = id[0:3]
+                quoteId = id[3:6]
+                base = baseId.upper()
+                quote = quoteId.upper()
+                base = self.common_currency_code(base)
+                quote = self.common_currency_code(quote)
+                symbol = base + '/' + quote
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
         return result
@@ -294,10 +304,11 @@ class bitlish (Exchange):
         self.load_markets()
         return self.privatePostCancelTrade({'id': id})
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
-        if currency != 'BTC':
+        currency = self.currency(code)
+        if code != 'BTC':
             # they did not document other types...
             raise NotSupported(self.id + ' currently supports BTC withdrawals only, until they document other currencies...')
         response = self.privatePostWithdraw(self.extend({

@@ -13,7 +13,7 @@ class jubi extends btcbox {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'jubi',
             'name' => 'jubi.com',
-            'countries' => 'CN',
+            'countries' => array ( 'CN' ),
             'rateLimit' => 1500,
             'version' => 'v1',
             'has' => array (
@@ -29,7 +29,7 @@ class jubi extends btcbox {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetAllticker ();
         $keys = is_array ($markets) ? array_keys ($markets) : array ();
         $result = array ();

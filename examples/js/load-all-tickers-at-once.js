@@ -14,7 +14,7 @@ process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit 
 //-----------------------------------------------------------------------------
 
 let human_value = function (price) {
-    return typeof price === 'undefined' ? 'N/A' : price
+    return price === undefined ? 'N/A' : price
 }
 
 //-----------------------------------------------------------------------------

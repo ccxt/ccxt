@@ -13,7 +13,7 @@ class _1btcxe (Exchange):
         return self.deep_extend(super(_1btcxe, self).describe(), {
             'id': '_1btcxe',
             'name': '1BTCXE',
-            'countries': 'PA',  # Panama
+            'countries': ['PA'],  # Panama
             'comment': 'Crypto Capital API',
             'has': {
                 'CORS': True,
@@ -56,7 +56,7 @@ class _1btcxe (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         return [
             {'id': 'USD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD'},
             {'id': 'EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'},
@@ -154,7 +154,7 @@ class _1btcxe (Exchange):
             'currency': market['id'],
             'timeframe': self.timeframes[timeframe],
         }, params))
-        ohlcvs = self.omit(response['historical-prices'], 'request_currency')
+        ohlcvs = self.to_array(self.omit(response['historical-prices'], 'request_currency'))
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market):
@@ -174,10 +174,13 @@ class _1btcxe (Exchange):
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)
-        response = self.publicGetTransactions(self.extend({
+        request = {
             'currency': market['id'],
-        }, params))
-        trades = self.omit(response['transactions'], 'request_currency')
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = self.publicGetTransactions(self.extend(request, params))
+        trades = self.to_array(self.omit(response['transactions'], 'request_currency'))
         return self.parse_trades(trades, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -198,14 +201,16 @@ class _1btcxe (Exchange):
     def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostOrdersCancel({'id': id})
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
-        response = self.privatePostWithdrawalsNew(self.extend({
-            'currency': currency,
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
             'amount': float(amount),
             'address': address,
-        }, params))
+        }
+        response = self.privatePostWithdrawalsNew(self.extend(request, params))
         return {
             'info': response,
             'id': response['result']['uuid'],

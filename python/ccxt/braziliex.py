@@ -17,7 +17,7 @@ class braziliex (Exchange):
         return self.deep_extend(super(braziliex, self).describe(), {
             'id': 'braziliex',
             'name': 'Braziliex',
-            'countries': 'BR',
+            'countries': ['BR'],
             'rateLimit': 1000,
             'has': {
                 'fetchCurrencies': True,
@@ -32,6 +32,7 @@ class braziliex (Exchange):
                 'www': 'https://braziliex.com/',
                 'doc': 'https://braziliex.com/exchange/api.php',
                 'fees': 'https://braziliex.com/exchange/fees.php',
+                'referral': 'https://braziliex.com/?ref=5FE61AB6F6D67DA885BC98BA27223465',
             },
             'api': {
                 'public': {
@@ -56,6 +57,10 @@ class braziliex (Exchange):
                     ],
                 },
             },
+            'commonCurrencies': {
+                'EPC': 'Epacoin',
+                'ABC': 'Anti Bureaucracy Coin',
+            },
             'fees': {
                 'trading': {
                     'maker': 0.005,
@@ -79,11 +84,9 @@ class braziliex (Exchange):
             uppercase = id.upper()
             code = self.common_currency_code(uppercase)
             active = self.safe_integer(currency, 'active') == 1
-            status = 'ok'
             maintenance = self.safe_integer(currency, 'under_maintenance')
             if maintenance != 0:
                 active = False
-                status = 'maintenance'
             canWithdraw = self.safe_integer(currency, 'is_withdrawal_active') == 1
             canDeposit = self.safe_integer(currency, 'is_deposit_active') == 1
             if not canWithdraw or not canDeposit:
@@ -93,21 +96,20 @@ class braziliex (Exchange):
                 'code': code,
                 'name': currency['name'],
                 'active': active,
-                'status': status,
                 'precision': precision,
                 'funding': {
                     'withdraw': {
                         'active': canWithdraw,
-                        'fee': currency['txWithdrawalFee'],
+                        'fee': self.safe_float(currency, 'txWithdrawalFee'),
                     },
                     'deposit': {
                         'active': canDeposit,
-                        'fee': currency['txDepositFee'],
+                        'fee': self.safe_float(currency, 'txDepositFee'),
                     },
                 },
                 'limits': {
                     'amount': {
-                        'min': currency['minAmountTrade'],
+                        'min': self.safe_float(currency, 'minAmountTrade'),
                         'max': math.pow(10, precision),
                     },
                     'price': {
@@ -119,11 +121,11 @@ class braziliex (Exchange):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': currency['MinWithdrawal'],
+                        'min': self.safe_float(currency, 'MinWithdrawal'),
                         'max': math.pow(10, precision),
                     },
                     'deposit': {
-                        'min': currency['minDeposit'],
+                        'min': self.safe_float(currency, 'minDeposit'),
                         'max': None,
                     },
                 },
@@ -131,7 +133,7 @@ class braziliex (Exchange):
             }
         return result
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetTicker()
         ids = list(markets.keys())
         result = []
@@ -149,7 +151,6 @@ class braziliex (Exchange):
                 'amount': 8,
                 'price': 8,
             }
-            lot = math.pow(10, -precision['amount'])
             result.append({
                 'id': id,
                 'symbol': symbol.upper(),
@@ -158,11 +159,10 @@ class braziliex (Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'lot': lot,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': math.pow(10, -precision['amount']),
                         'max': math.pow(10, precision['amount']),
                     },
                     'price': {
@@ -296,7 +296,7 @@ class braziliex (Exchange):
 
     def parse_order(self, order, market=None):
         symbol = None
-        if not market:
+        if market is None:
             marketId = self.safe_string(order, 'market')
             if marketId:
                 if marketId in self.markets_by_id:
@@ -311,7 +311,7 @@ class braziliex (Exchange):
         amount = self.safe_float(order, 'amount')
         filledPercentage = self.safe_float(order, 'progress')
         filled = amount * filledPercentage
-        remaining = self.amount_to_precision(symbol, amount - filled)
+        remaining = float(self.amount_to_precision(symbol, amount - filled))
         info = order
         if 'info' in info:
             info = order['info']
@@ -408,7 +408,6 @@ class braziliex (Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         }
 

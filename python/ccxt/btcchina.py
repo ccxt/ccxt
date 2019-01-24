@@ -14,7 +14,7 @@ class btcchina (Exchange):
         return self.deep_extend(super(btcchina, self).describe(), {
             'id': 'btcchina',
             'name': 'BTCChina',
-            'countries': 'CN',
+            'countries': ['CN'],
             'rateLimit': 1500,
             'version': 'v1',
             'has': {
@@ -87,7 +87,7 @@ class btcchina (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetTicker({
             'market': 'all',
         })

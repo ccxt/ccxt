@@ -4,11 +4,22 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
+from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 
 
 class gatecoin (Exchange):
@@ -18,7 +29,7 @@ class gatecoin (Exchange):
             'id': 'gatecoin',
             'name': 'Gatecoin',
             'rateLimit': 2000,
-            'countries': 'HK',  # Hong Kong
+            'countries': ['HK'],  # Hong Kong
             'comment': 'a regulated/licensed exchange',
             'has': {
                 'CORS': False,
@@ -201,9 +212,16 @@ class gatecoin (Exchange):
                 'TRA': 'TRAC',
                 'WGS': 'WINGS',
             },
+            'exceptions': {
+                '1005': InsufficientFunds,
+                '1008': OrderNotFound,
+                '1057': InvalidOrder,
+                '1044': OrderNotFound,  # already canceled,
+                '1054': OrderNotFound,  # already executed
+            },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetReferenceCurrencyPairs()
         markets = response['currencyPairs']
         result = []
@@ -292,7 +310,9 @@ class gatecoin (Exchange):
             symbol = market['symbol']
         baseVolume = self.safe_float(ticker, 'volume')
         vwap = self.safe_float(ticker, 'vwap')
-        quoteVolume = baseVolume * vwap
+        quoteVolume = None
+        if baseVolume is not None and vwap is not None:
+            quoteVolume = baseVolume * vwap
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -353,8 +373,8 @@ class gatecoin (Exchange):
                 market = self.find_market(marketId)
         fee = None
         feeCost = self.safe_float(trade, 'feeAmount')
-        price = trade['price']
-        amount = trade['quantity']
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'quantity')
         cost = price * amount
         feeCurrency = None
         symbol = None
@@ -396,7 +416,7 @@ class gatecoin (Exchange):
             ohlcv['open'],
             ohlcv['high'],
             ohlcv['low'],
-            None,
+            ohlcv['last'],
             ohlcv['volume'],
         ]
 
@@ -429,17 +449,24 @@ class gatecoin (Exchange):
             else:
                 raise AuthenticationError(self.id + ' two-factor authentication requires a missing ValidationCode parameter')
         response = self.privatePostTradeOrders(self.extend(order, params))
+        # At self point response['responseStatus']['message'] has been verified in handleErrors()
+        # to be == 'OK', so we assume the order has indeed been opened
         return {
             'info': response,
-            'id': response['clOrderId'],
+            'status': 'open',
+            'id': self.safe_string(response, 'clOrderId'),  # response['clOrderId'],
         }
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.privateDeleteTradeOrdersOrderID({'OrderID': id})
+        response = self.privateDeleteTradeOrdersOrderID({'OrderID': id})
+        return response
 
     def parse_order_status(self, status):
         statuses = {
+            '1': 'open',  # New
+            '2': 'open',  # Filling
+            '4': 'canceled',
             '6': 'closed',
         }
         if status in statuses:
@@ -559,14 +586,6 @@ class gatecoin (Exchange):
                 body = self.json(self.extend({'nonce': nonce}, params))
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if 'responseStatus' in response:
-            if 'message' in response['responseStatus']:
-                if response['responseStatus']['message'] == 'OK':
-                    return response
-        raise ExchangeError(self.id + ' ' + self.json(response))
-
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
@@ -598,7 +617,7 @@ class gatecoin (Exchange):
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': None,
             'info': response,
         }
 
@@ -614,6 +633,39 @@ class gatecoin (Exchange):
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': None,
             'info': response,
         }
+
+    def create_user_wallet(self, code, address, name, password, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'DigiCurrency': currency['id'],
+            'AddressName': name,
+            'Address': address,
+            'Password': password,
+        }
+        # not unified yet
+        return self.privatePostElectronicWalletUserWalletsDigiCurrency(self.extend(request, params))
+
+    def handle_errors(self, code, reason, url, method, headers, body, response):
+        if not isinstance(body, basestring):
+            return  # fallback to default error handler
+        if len(body) < 2:
+            return  # fallback to default error handler
+        if body.find('You are not authorized') >= 0:
+            raise PermissionDenied(body)
+        if body[0] == '{':
+            if 'responseStatus' in response:
+                errorCode = self.safe_string(response['responseStatus'], 'errorCode')
+                message = self.safe_string(response['responseStatus'], 'message')
+                feedback = self.id + ' ' + body
+                if errorCode is not None:
+                    exceptions = self.exceptions
+                    if errorCode in exceptions:
+                        raise exceptions[errorCode](feedback)
+                    raise ExchangeError(feedback)
+                # Sometimes there isn't 'errorCode' but 'message' is present and is not 'OK'
+                elif message is not None and message != 'OK':
+                    raise ExchangeError(feedback)

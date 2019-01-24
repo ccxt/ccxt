@@ -5,12 +5,13 @@
 
 from ccxt.base.exchange import Exchange
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import DDoSProtection
 
 
 class okcoinusd (Exchange):
@@ -51,8 +52,12 @@ class okcoinusd (Exchange):
             'api': {
                 'web': {
                     'get': [
-                        'markets/currencies',
-                        'markets/products',
+                        'futures/pc/market/marketOverview',  # todo: merge in fetchMarkets
+                        'spot/markets/index-tickers',  # todo: add fetchTickers
+                        'spot/markets/currencies',
+                        'spot/markets/products',
+                        'spot/markets/tickers',
+                        'spot/user-level',
                     ],
                 },
                 'public': {
@@ -70,7 +75,7 @@ class okcoinusd (Exchange):
                         'kline',
                         'otcs',
                         'ticker',
-                        'tickers',
+                        'tickers',  # todo: add fetchTickers
                         'trades',
                     ],
                 },
@@ -85,6 +90,7 @@ class okcoinusd (Exchange):
                         'cancel_order',
                         'cancel_otc_order',
                         'cancel_withdraw',
+                        'funds_transfer',
                         'future_batch_trade',
                         'future_cancel',
                         'future_devolve',
@@ -109,6 +115,7 @@ class okcoinusd (Exchange):
                         'trade',
                         'trade_history',
                         'trade_otc_order',
+                        'wallet_info',
                         'withdraw',
                         'withdraw_info',
                         'unrepayments_info',
@@ -136,36 +143,200 @@ class okcoinusd (Exchange):
                 },
             },
             'exceptions': {
-                '1009': OrderNotFound,  # for spot markets, cancelling closed order
-                '1051': OrderNotFound,  # for spot markets, cancelling "just closed" order
-                '20015': OrderNotFound,  # for future markets
+                # see https://github.com/okcoin-okex/API-docs-OKEx.com/blob/master/API-For-Spot-EN/Error%20Code%20For%20Spot.md
+                '10000': ExchangeError,  # "Required field, can not be null"
+                '10001': DDoSProtection,  # "Request frequency too high to exceed the limit allowed"
+                '10005': AuthenticationError,  # "'SecretKey' does not exist"
+                '10006': AuthenticationError,  # "'Api_key' does not exist"
+                '10007': AuthenticationError,  # "Signature does not match"
+                '1002': InsufficientFunds,  # "The transaction amount exceed the balance"
+                '1003': InvalidOrder,  # "The transaction amount is less than the minimum requirement"
+                '1004': InvalidOrder,  # "The transaction amount is less than 0"
                 '1013': InvalidOrder,  # no contract type(PR-1101)
                 '1027': InvalidOrder,  # createLimitBuyOrder(symbol, 0, 0): Incorrect parameter may exceeded limits
-                '1002': InsufficientFunds,  # "The transaction amount exceed the balance"
                 '1050': InvalidOrder,  # returned when trying to cancel an order that was filled or canceled previously
-                '10000': ExchangeError,  # createLimitBuyOrder(symbol, None, None)
-                '10005': AuthenticationError,  # bad apiKey
+                '1217': InvalidOrder,  # "Order was sent at ±5% of the current market price. Please resend"
+                '10014': InvalidOrder,  # "Order price must be between 0 and 1,000,000"
+                '1009': OrderNotFound,  # for spot markets, cancelling closed order
+                '1019': OrderNotFound,  # order closed?("Undo order failed")
+                '1051': OrderNotFound,  # for spot markets, cancelling "just closed" order
+                '10009': OrderNotFound,  # for spot markets, "Order does not exist"
+                '20015': OrderNotFound,  # for future markets
                 '10008': ExchangeError,  # Illegal URL parameter
+                # todo: sort out below
+                # 10000 Required parameter is empty
+                # 10001 Request frequency too high to exceed the limit allowed
+                # 10002 Authentication failure
+                # 10002 System error
+                # 10003 This connection has requested other user data
+                # 10004 Request failed
+                # 10005 api_key or sign is invalid, 'SecretKey' does not exist
+                # 10006 'Api_key' does not exist
+                # 10007 Signature does not match
+                # 10008 Illegal parameter, Parameter erorr
+                # 10009 Order does not exist
+                # 10010 Insufficient funds
+                # 10011 Amount too low
+                # 10012 Only btc_usd ltc_usd supported
+                # 10013 Only support https request
+                # 10014 Order price must be between 0 and 1,000,000
+                # 10015 Order price differs from current market price too much / Channel subscription temporally not available
+                # 10016 Insufficient coins balance
+                # 10017 API authorization error / WebSocket authorization error
+                # 10018 borrow amount less than lower limit [usd:100,btc:0.1,ltc:1]
+                # 10019 loan agreement not checked
+                # 1002 The transaction amount exceed the balance
+                # 10020 rate cannot exceed 1%
+                # 10021 rate cannot less than 0.01%
+                # 10023 fail to get latest ticker
+                # 10024 balance not sufficient
+                # 10025 quota is full, cannot borrow temporarily
+                # 10026 Loan(including reserved loan) and margin cannot be withdrawn
+                # 10027 Cannot withdraw within 24 hrs of authentication information modification
+                # 10028 Withdrawal amount exceeds daily limit
+                # 10029 Account has unpaid loan, please cancel/pay off the loan before withdraw
+                # 1003 The transaction amount is less than the minimum requirement
+                # 10031 Deposits can only be withdrawn after 6 confirmations
+                # 10032 Please enabled phone/google authenticator
+                # 10033 Fee higher than maximum network transaction fee
+                # 10034 Fee lower than minimum network transaction fee
+                # 10035 Insufficient BTC/LTC
+                # 10036 Withdrawal amount too low
+                # 10037 Trade password not set
+                # 1004 The transaction amount is less than 0
+                # 10040 Withdrawal cancellation fails
+                # 10041 Withdrawal address not exsit or approved
+                # 10042 Admin password error
+                # 10043 Account equity error, withdrawal failure
+                # 10044 fail to cancel borrowing order
+                # 10047 self function is disabled for sub-account
+                # 10048 withdrawal information does not exist
+                # 10049 User can not have more than 50 unfilled small orders(amount<0.15BTC)
+                # 10050 can't cancel more than once
+                # 10051 order completed transaction
+                # 10052 not allowed to withdraw
+                # 10064 after a USD deposit, that portion of assets will not be withdrawable for the next 48 hours
+                # 1007 No trading market information
+                # 1008 No latest market information
+                # 1009 No order
+                # 1010 Different user of the cancelled order and the original order
+                # 10100 User account frozen
+                # 10101 order type is wrong
+                # 10102 incorrect ID
+                # 10103 the private otc order's key incorrect
+                # 10106 API key domain not matched
+                # 1011 No documented user
+                # 1013 No order type
+                # 1014 No login
+                # 1015 No market depth information
+                # 1017 Date error
+                # 1018 Order failed
+                # 1019 Undo order failed
+                # 10216 Non-available API / non-public API
+                # 1024 Currency does not exist
+                # 1025 No chart type
+                # 1026 No base currency quantity
+                # 1027 Incorrect parameter may exceeded limits
+                # 1028 Reserved decimal failed
+                # 1029 Preparing
+                # 1030 Account has margin and futures, transactions can not be processed
+                # 1031 Insufficient Transferring Balance
+                # 1032 Transferring Not Allowed
+                # 1035 Password incorrect
+                # 1036 Google Verification code Invalid
+                # 1037 Google Verification code incorrect
+                # 1038 Google Verification replicated
+                # 1039 Message Verification Input exceed the limit
+                # 1040 Message Verification invalid
+                # 1041 Message Verification incorrect
+                # 1042 Wrong Google Verification Input exceed the limit
+                # 1043 Login password cannot be same as the trading password
+                # 1044 Old password incorrect
+                # 1045 2nd Verification Needed
+                # 1046 Please input old password
+                # 1048 Account Blocked
+                # 1050 Orders have been withdrawn or withdrawn
+                # 1051 Order completed
+                # 1201 Account Deleted at 00: 00
+                # 1202 Account Not Exist
+                # 1203 Insufficient Balance
+                # 1204 Invalid currency
+                # 1205 Invalid Account
+                # 1206 Cash Withdrawal Blocked
+                # 1207 Transfer Not Support
+                # 1208 No designated account
+                # 1209 Invalid api
+                # 1216 Market order temporarily suspended. Please send limit order
+                # 1217 Order was sent at ±5% of the current market price. Please resend
+                # 1218 Place order failed. Please try again later
+                # 20001 User does not exist
+                # 20002 Account frozen
+                # 20003 Account frozen due to forced liquidation
+                # 20004 Contract account frozen
+                # 20005 User contract account does not exist
+                # 20006 Required field missing
+                # 20007 Illegal parameter
+                # 20008 Contract account balance is too low
+                # 20009 Contract status error
+                # 20010 Risk rate ratio does not exist
+                # 20011 Risk rate lower than 90%/80% before opening BTC position with 10x/20x leverage. or risk rate lower than 80%/60% before opening LTC position with 10x/20x leverage
+                # 20012 Risk rate lower than 90%/80% after opening BTC position with 10x/20x leverage. or risk rate lower than 80%/60% after opening LTC position with 10x/20x leverage
+                # 20013 Temporally no counter party price
+                # 20014 System error
+                # 20015 Order does not exist
+                # 20016 Close amount bigger than your open positions, liquidation quantity bigger than holding
+                # 20017 Not authorized/illegal operation/illegal order ID
+                # 20018 Order price cannot be more than 103-105% or less than 95-97% of the previous minute price
+                # 20019 IP restricted from accessing the resource
+                # 20020 Secret key does not exist
+                # 20021 Index information does not exist
+                # 20022 Wrong API interface(Cross margin mode shall call cross margin API, fixed margin mode shall call fixed margin API)
+                # 20023 Account in fixed-margin mode
+                # 20024 Signature does not match
+                # 20025 Leverage rate error
+                # 20026 API Permission Error
+                # 20027 no transaction record
+                # 20028 no such contract
+                # 20029 Amount is large than available funds
+                # 20030 Account still has debts
+                # 20038 Due to regulation, self function is not availavle in the country/region your currently reside in.
+                # 20049 Request frequency too high
+                # 20100 request time out
+                # 20101 the format of data is error
+                # 20102 invalid login
+                # 20103 event type error
+                # 20104 subscription type error
+                # 20107 JSON format error
+                # 20115 The quote is not match
+                # 20116 Param not match
+                # 21020 Contracts are being delivered, orders cannot be placed
+                # 21021 Contracts are being settled, contracts cannot be placed
             },
             'options': {
+                'marketBuyPrice': False,
+                'defaultContractType': 'this_week',  # next_week, quarter
                 'warnOnFetchOHLCVLimitArgument': True,
+                'fiats': ['USD', 'CNY'],
+                'futures': {
+                    'BCH': True,
+                    'BTC': True,
+                    'BTG': True,
+                    'EOS': True,
+                    'ETC': True,
+                    'ETH': True,
+                    'LTC': True,
+                    'NEO': True,
+                    'QTUM': True,
+                    'USDT': True,
+                    'XRP': True,
+                },
             },
         })
 
-    def fetch_markets(self):
-        response = self.webGetMarketsProducts()
+    def fetch_markets(self, params={}):
+        response = self.webGetSpotMarketsProducts()
         markets = response['data']
         result = []
-        futureMarkets = {
-            'BCH/USD': True,
-            'BTC/USD': True,
-            'ETC/USD': True,
-            'ETH/USD': True,
-            'LTC/USD': True,
-            'XRP/USD': True,
-            'EOS/USD': True,
-            'BTG/USD': True,
-        }
         for i in range(0, len(markets)):
             id = markets[i]['symbol']
             baseId, quoteId = id.split('_')
@@ -178,10 +349,11 @@ class okcoinusd (Exchange):
                 'amount': markets[i]['maxSizeDigit'],
                 'price': markets[i]['maxPriceDigit'],
             }
-            lot = math.pow(10, -precision['amount'])
             minAmount = markets[i]['minTradeSize']
             minPrice = math.pow(10, -precision['price'])
             active = (markets[i]['online'] != 0)
+            baseNumericId = markets[i]['baseCurrency']
+            quoteNumericId = markets[i]['quoteCurrency']
             market = self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -189,11 +361,12 @@ class okcoinusd (Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'baseNumericId': baseNumericId,
+                'quoteNumericId': quoteNumericId,
                 'info': markets[i],
                 'type': 'spot',
                 'spot': True,
                 'future': False,
-                'lot': lot,
                 'active': active,
                 'precision': precision,
                 'limits': {
@@ -212,18 +385,20 @@ class okcoinusd (Exchange):
                 },
             })
             result.append(market)
-            futureQuote = 'USD' if (market['quote'] == 'USDT') else market['quote']
-            futureSymbol = market['base'] + '/' + futureQuote
-            if (self.has['futures']) and(futureSymbol in list(futureMarkets.keys())):
-                result.append(self.extend(market, {
-                    'quote': 'USD',
-                    'symbol': market['base'] + '/USD',
-                    'id': market['id'].replace('usdt', 'usd'),
-                    'quoteId': market['quoteId'].replace('usdt', 'usd'),
-                    'type': 'future',
-                    'spot': False,
-                    'future': True,
-                }))
+            if (self.has['futures']) and(market['base'] in list(self.options['futures'].keys())):
+                fiats = self.options['fiats']
+                for j in range(0, len(fiats)):
+                    fiat = fiats[j]
+                    lowercaseFiat = fiat.lower()
+                    result.append(self.extend(market, {
+                        'quote': fiat,
+                        'symbol': market['base'] + '/' + fiat,
+                        'id': market['base'].lower() + '_' + lowercaseFiat,
+                        'quoteId': lowercaseFiat,
+                        'type': 'future',
+                        'spot': False,
+                        'future': True,
+                    }))
         return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):
@@ -237,22 +412,54 @@ class okcoinusd (Exchange):
             request['size'] = limit
         if market['future']:
             method += 'Future'
-            request['contract_type'] = 'this_week'  # next_week, quarter
+            request['contract_type'] = self.options['defaultContractType']  # self_week, next_week, quarter
         method += 'Depth'
         orderbook = getattr(self, method)(self.extend(request, params))
         return self.parse_order_book(orderbook)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = ticker['timestamp']
+        #
+        #     {             buy:   "48.777300",
+        #                 change:   "-1.244500",
+        #       changePercentage:   "-2.47%",
+        #                  close:   "49.064000",
+        #            createdDate:    1531704852254,
+        #             currencyId:    527,
+        #                dayHigh:   "51.012500",
+        #                 dayLow:   "48.124200",
+        #                   high:   "51.012500",
+        #                inflows:   "0",
+        #                   last:   "49.064000",
+        #                    low:   "48.124200",
+        #             marketFrom:    627,
+        #                   name: {},
+        #                   open:   "50.308500",
+        #               outflows:   "0",
+        #              productId:    527,
+        #                   sell:   "49.064000",
+        #                 symbol:   "zec_okb",
+        #                 volume:   "1049.092535"   }
+        #
+        timestamp = self.safe_integer_2(ticker, 'timestamp', 'createdDate')
         symbol = None
-        if not market:
+        if market is None:
             if 'symbol' in ticker:
                 marketId = ticker['symbol']
                 if marketId in self.markets_by_id:
                     market = self.markets_by_id[marketId]
-        if market:
+                else:
+                    baseId, quoteId = ticker['symbol'].split('_')
+                    base = baseId.upper()
+                    quote = quoteId.upper()
+                    base = self.common_currency_code(base)
+                    quote = self.common_currency_code(quote)
+                    symbol = base + '/' + quote
+        if market is not None:
             symbol = market['symbol']
         last = self.safe_float(ticker, 'last')
+        open = self.safe_float(ticker, 'open')
+        change = self.safe_float(ticker, 'change')
+        percentage = self.safe_float(ticker, 'changePercentage')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -264,14 +471,14 @@ class okcoinusd (Exchange):
             'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
-            'open': None,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': None,
-            'percentage': None,
+            'change': change,
+            'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'vol'),
+            'baseVolume': self.safe_float_2(ticker, 'vol', 'volume'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -285,7 +492,7 @@ class okcoinusd (Exchange):
         }
         if market['future']:
             method += 'Future'
-            request['contract_type'] = 'this_week'  # next_week, quarter
+            request['contract_type'] = self.options['defaultContractType']  # self_week, next_week, quarter
         method += 'Ticker'
         response = getattr(self, method)(self.extend(request, params))
         ticker = self.safe_value(response, 'ticker')
@@ -323,10 +530,24 @@ class okcoinusd (Exchange):
         }
         if market['future']:
             method += 'Future'
-            request['contract_type'] = 'this_week'  # next_week, quarter
+            request['contract_type'] = self.options['defaultContractType']  # self_week, next_week, quarter
         method += 'Trades'
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        numElements = len(ohlcv)
+        volumeIndex = 6 if (numElements > 6) else 5
+        return [
+            ohlcv[0],  # timestamp
+            float(ohlcv[1]),  # Open
+            float(ohlcv[2]),  # High
+            float(ohlcv[3]),  # Low
+            float(ohlcv[4]),  # Close
+            # float(ohlcv[5]),  # quote volume
+            # float(ohlcv[6]),  # base volume
+            float(ohlcv[volumeIndex]),  # okex will return base volume in the 7th element for future markets
+        ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
@@ -338,7 +559,7 @@ class okcoinusd (Exchange):
         }
         if market['future']:
             method += 'Future'
-            request['contract_type'] = 'this_week'  # next_week, quarter
+            request['contract_type'] = self.options['defaultContractType']  # self_week, next_week, quarter
         method += 'Kline'
         if limit is not None:
             if self.options['warnOnFetchOHLCVLimitArgument']:
@@ -353,16 +574,27 @@ class okcoinusd (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privatePostUserinfo()
+        response = self.privatePostUserinfo(params)
         balances = response['info']['funds']
         result = {'info': response}
-        ids = list(self.currencies_by_id.keys())
+        ids = list(balances['free'].keys())
+        usedField = 'freezed'
+        # wtf, okex?
+        # https://github.com/okcoin-okex/API-docs-OKEx.com/commit/01cf9dd57b1f984a8737ef76a037d4d3795d2ac7
+        if not(usedField in list(balances.keys())):
+            usedField = 'holds'
+        usedKeys = list(balances[usedField].keys())
+        ids = self.array_concat(ids, usedKeys)
         for i in range(0, len(ids)):
             id = ids[i]
-            code = self.currencies_by_id[id]['code']
+            code = id.upper()
+            if id in self.currencies_by_id:
+                code = self.currencies_by_id[id]['code']
+            else:
+                code = self.common_currency_code(code)
             account = self.account()
             account['free'] = self.safe_float(balances['free'], id, 0.0)
-            account['used'] = self.safe_float(balances['freezed'], id, 0.0)
+            account['used'] = self.safe_float(balances[usedField], id, 0.0)
             account['total'] = self.sum(account['free'], account['used'])
             result[code] = account
         return self.parse_balance(result)
@@ -378,7 +610,7 @@ class okcoinusd (Exchange):
         if market['future']:
             method += 'Future'
             order = self.extend(order, {
-                'contract_type': 'this_week',  # next_week, quarter
+                'contract_type': self.options['defaultContractType'],  # self_week, next_week, quarter
                 'match_price': 0,  # match best counter party price? 0 or 1, ignores price if 1
                 'lever_rate': 10,  # leverage rate value: 10 or 20(10 by default)
                 'price': price,
@@ -391,9 +623,16 @@ class okcoinusd (Exchange):
             else:
                 order['type'] += '_market'
                 if side == 'buy':
-                    order['price'] = self.safe_float(params, 'cost')
-                    if not order['price']:
-                        raise ExchangeError(self.id + ' market buy orders require an additional cost parameter, cost = price * amount')
+                    if self.options['marketBuyPrice']:
+                        if price is None:
+                            # eslint-disable-next-line quotes
+                            raise ExchangeError(self.id + " market buy orders require a price argument(the amount you want to spend or the cost of the order) when self.options['marketBuyPrice'] is True.")
+                        order['price'] = price
+                    else:
+                        order['price'] = self.safe_float(params, 'cost')
+                        if not order['price']:
+                            # eslint-disable-next-line quotes
+                            raise ExchangeError(self.id + " market buy orders require an additional cost parameter, cost = price * amount. If you want to pass the cost of the market order(the amount you want to spend) in the price argument(the default " + self.id + " behaviour), set self.options['marketBuyPrice'] = True. It will effectively suppress self warning exception as well.")
                 else:
                     order['amount'] = amount
         params = self.omit(params, 'cost')
@@ -420,8 +659,8 @@ class okcoinusd (Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
-        if not symbol:
-            raise ExchangeError(self.id + ' cancelOrder() requires a symbol argument')
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -431,26 +670,22 @@ class okcoinusd (Exchange):
         method = 'privatePost'
         if market['future']:
             method += 'FutureCancel'
-            request['contract_type'] = 'this_week'  # next_week, quarter
+            request['contract_type'] = self.options['defaultContractType']  # self_week, next_week, quarter
         else:
             method += 'CancelOrder'
         response = getattr(self, method)(self.extend(request, params))
         return response
 
     def parse_order_status(self, status):
-        if status == -1:
-            return 'canceled'
-        if status == 0:
-            return 'open'
-        if status == 1:
-            return 'open'
-        if status == 2:
-            return 'closed'
-        if status == 3:
-            return 'open'
-        if status == 4:
-            return 'canceled'
-        return status
+        statuses = {
+            '-1': 'canceled',
+            '0': 'open',
+            '1': 'open',
+            '2': 'closed',
+            '3': 'open',
+            '4': 'canceled',
+        }
+        return self.safe_value(statuses, status, status)
 
     def parse_order_side(self, side):
         if side == 1:
@@ -480,21 +715,24 @@ class okcoinusd (Exchange):
                 side = self.parse_order_side(order['type'])
                 if ('contract_name' in list(order.keys())) or ('lever_rate' in list(order.keys())):
                     type = 'margin'
-        status = self.parse_order_status(order['status'])
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         symbol = None
-        if not market:
-            if 'symbol' in order:
-                if order['symbol'] in self.markets_by_id:
-                    market = self.markets_by_id[order['symbol']]
+        if market is None:
+            marketId = self.safe_string(order, 'symbol')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
         if market:
             symbol = market['symbol']
         timestamp = None
         createDateField = self.get_create_date_field()
         if createDateField in order:
             timestamp = order[createDateField]
-        amount = order['amount']
-        filled = order['deal_amount']
-        remaining = amount - filled
+        amount = self.safe_float(order, 'amount')
+        filled = self.safe_float(order, 'deal_amount')
+        amount = max(amount, filled)
+        remaining = max(0, amount - filled)
+        if type == 'market':
+            remaining = 0
         average = self.safe_float(order, 'avg_price')
         # https://github.com/ccxt/ccxt/issues/2452
         average = self.safe_float(order, 'price_avg', average)
@@ -530,7 +768,7 @@ class okcoinusd (Exchange):
         return 'orders'
 
     def fetch_order(self, id, symbol=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' fetchOrder requires a symbol parameter')
         self.load_markets()
         market = self.market(symbol)
@@ -544,7 +782,7 @@ class okcoinusd (Exchange):
         }
         if market['future']:
             method += 'Future'
-            request['contract_type'] = 'this_week'  # next_week, quarter
+            request['contract_type'] = self.options['defaultContractType']  # self_week, next_week, quarter
         method += 'OrderInfo'
         response = getattr(self, method)(self.extend(request, params))
         ordersField = self.get_orders_field()
@@ -554,7 +792,7 @@ class okcoinusd (Exchange):
         raise OrderNotFound(self.id + ' order ' + id + ' not found')
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' fetchOrders requires a symbol parameter')
         self.load_markets()
         market = self.market(symbol)
@@ -565,7 +803,7 @@ class okcoinusd (Exchange):
         order_id_in_params = ('order_id' in list(params.keys()))
         if market['future']:
             method += 'FutureOrdersInfo'
-            request['contract_type'] = 'this_week'  # next_week, quarter
+            request['contract_type'] = self.options['defaultContractType']  # self_week, next_week, quarter
             if not order_id_in_params:
                 raise ExchangeError(self.id + ' fetchOrders() requires order_id param for futures market ' + symbol + '(a string of one or more order ids, comma-separated)')
         else:
@@ -616,6 +854,8 @@ class okcoinusd (Exchange):
         #     raise ExchangeError(self.id + ' withdraw() requires amount > 0.01')
         # for some reason they require to supply a pair of currencies for withdrawing one currency
         currencyId = currency['id'] + '_usd'
+        if tag:
+            address = address + ':' + tag
         request = {
             'symbol': currencyId,
             'withdraw_address': address,
@@ -649,7 +889,9 @@ class okcoinusd (Exchange):
         url = '/'
         if api != 'web':
             url += self.version + '/'
-        url += path + self.extension
+        url += path
+        if api != 'web':
+            url += self.extension
         if api == 'private':
             self.check_required_credentials()
             query = self.keysort(self.extend({
@@ -666,11 +908,10 @@ class okcoinusd (Exchange):
         url = self.urls['api'][api] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if len(body) < 2:
             return  # fallback to default error handler
         if body[0] == '{':
-            response = json.loads(body)
             if 'error_code' in response:
                 error = self.safe_string(response, 'error_code')
                 message = self.id + ' ' + self.json(response)

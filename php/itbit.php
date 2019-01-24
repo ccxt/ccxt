@@ -13,7 +13,7 @@ class itbit extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'itbit',
             'name' => 'itBit',
-            'countries' => 'US',
+            'countries' => array ( 'US' ),
             'rateLimit' => 2000,
             'version' => 'v1',
             'has' => array (
@@ -85,10 +85,10 @@ class itbit extends Exchange {
         $ticker = $this->publicGetMarketsSymbolTicker (array_merge (array (
             'symbol' => $this->market_id($symbol),
         ), $params));
-        $serverTimeUTC = (is_array ($ticker) && array_key_exists ('serverTimeUTC', $ticker));
+        $serverTimeUTC = $this->safe_string($ticker, 'serverTimeUTC');
         if (!$serverTimeUTC)
             throw new ExchangeError ($this->id . ' fetchTicker returned a bad response => ' . $this->json ($ticker));
-        $timestamp = $this->parse8601 ($ticker['serverTimeUTC']);
+        $timestamp = $this->parse8601 ($serverTimeUTC);
         $vwap = $this->safe_float($ticker, 'vwap24h');
         $baseVolume = $this->safe_float($ticker, 'volume24h');
         $quoteVolume = null;
@@ -162,13 +162,13 @@ class itbit extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_wallets () {
-        if (!$this->userId)
-            throw new AuthenticationError ($this->id . ' fetchWallets requires userId in API settings');
-        $params = array (
-            'userId' => $this->userId,
+    public function fetch_wallets ($params = array ()) {
+        if (!$this->uid)
+            throw new AuthenticationError ($this->id . ' fetchWallets requires uid API credential');
+        $request = array (
+            'userId' => $this->uid,
         );
-        return $this->privateGetWallets ($params);
+        return $this->privateGetWallets (array_merge ($request, $params));
     }
 
     public function fetch_wallet ($walletId, $params = array ()) {
@@ -296,7 +296,8 @@ class itbit extends Exchange {
             $auth = array ( $method, $url, $body, $nonce, $timestamp );
             $message = $nonce . str_replace ('\\/', '/', $this->json ($auth));
             $hash = $this->hash ($this->encode ($message), 'sha256', 'binary');
-            $binhash = $this->binary_concat($url, $hash);
+            $binaryUrl = $this->encode ($url);
+            $binhash = $this->binary_concat($binaryUrl, $hash);
             $signature = $this->hmac ($binhash, $this->encode ($this->secret), 'sha512', 'base64');
             $headers = array (
                 'Authorization' => $this->apiKey . ':' . $signature,

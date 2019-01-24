@@ -13,7 +13,7 @@ class btcbox extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'btcbox',
             'name' => 'BtcBox',
-            'countries' => 'JP',
+            'countries' => array ( 'JP' ),
             'rateLimit' => 1000,
             'version' => 'v1',
             'has' => array (
@@ -21,7 +21,7 @@ class btcbox extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
-                'fetchTickers' => true,
+                'fetchTickers' => false,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/31275803-4df755a8-aaa1-11e7-9abb-11ec2fad9f2d.jpg',
@@ -35,7 +35,6 @@ class btcbox extends Exchange {
                         'depth',
                         'orders',
                         'ticker',
-                        'allticker',
                     ),
                 ),
                 'private' => array (
@@ -50,7 +49,10 @@ class btcbox extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/JPY' => array ( 'id' => 'BTC/JPY', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY' ),
+                'BTC/JPY' => array ( 'id' => 'BTC/JPY', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY', 'baseId' => 'btc', 'quoteId' => 'jpy' ),
+                'ETH/JPY' => array ( 'id' => 'ETH/JPY', 'symbol' => 'ETH/JPY', 'base' => 'ETH', 'quote' => 'JPY', 'baseId' => 'eth', 'quoteId' => 'jpy' ),
+                'LTC/JPY' => array ( 'id' => 'LTC/JPY', 'symbol' => 'LTC/JPY', 'base' => 'LTC', 'quote' => 'JPY', 'baseId' => 'ltc', 'quoteId' => 'jpy' ),
+                'BCH/JPY' => array ( 'id' => 'BCH/JPY', 'symbol' => 'BCH/JPY', 'base' => 'BCH', 'quote' => 'JPY', 'baseId' => 'bch', 'quoteId' => 'jpy' ),
             ),
             'exceptions' => array (
                 '104' => '\\ccxt\\AuthenticationError',
@@ -96,7 +98,7 @@ class btcbox extends Exchange {
         $request = array ();
         $numSymbols = is_array ($this->symbols) ? count ($this->symbols) : 0;
         if ($numSymbols > 1)
-            $request['coin'] = $market['id'];
+            $request['coin'] = $market['baseId'];
         $orderbook = $this->publicGetDepth (array_merge ($request, $params));
         return $this->parse_order_book($orderbook);
     }
@@ -131,28 +133,13 @@ class btcbox extends Exchange {
         );
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
-        $this->load_markets();
-        $tickers = $this->publicGetAllticker ($params);
-        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
-        $result = array ();
-        for ($i = 0; $i < count ($ids); $i++) {
-            $id = $ids[$i];
-            $market = $this->markets_by_id[$id];
-            $symbol = $market['symbol'];
-            $ticker = $tickers[$id];
-            $result[$symbol] = $this->parse_ticker($ticker, $market);
-        }
-        return $result;
-    }
-
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array ();
         $numSymbols = is_array ($this->symbols) ? count ($this->symbols) : 0;
         if ($numSymbols > 1)
-            $request['coin'] = $market['id'];
+            $request['coin'] = $market['baseId'];
         $ticker = $this->publicGetTicker (array_merge ($request, $params));
         return $this->parse_ticker($ticker, $market);
     }
@@ -179,7 +166,7 @@ class btcbox extends Exchange {
         $request = array ();
         $numSymbols = is_array ($this->symbols) ? count ($this->symbols) : 0;
         if ($numSymbols > 1)
-            $request['coin'] = $market['id'];
+            $request['coin'] = $market['baseId'];
         $response = $this->publicGetOrders (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -194,7 +181,7 @@ class btcbox extends Exchange {
         );
         $numSymbols = is_array ($this->symbols) ? count ($this->symbols) : 0;
         if ($numSymbols > 1)
-            $request['coin'] = $market['id'];
+            $request['coin'] = $market['baseId'];
         $response = $this->privatePostTradeAdd (array_merge ($request, $params));
         return array (
             'info' => $response,
@@ -318,13 +305,12 @@ class btcbox extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
         // typical error $response => array ("$result":false,"code":"401")
         if ($httpCode >= 400)
             return; // resort to defaultErrorHandler
         if ($body[0] !== '{')
             return; // not json, resort to defaultErrorHandler
-        $response = json_decode ($body, $as_associative_array = true);
         $result = $this->safe_value($response, 'result');
         if ($result === null || $result === true)
             return; // either public API (no error codes expected) or success

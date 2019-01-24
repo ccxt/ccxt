@@ -13,7 +13,7 @@ class nova extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'nova',
             'name' => 'Novaexchange',
-            'countries' => 'TZ', // Tanzania
+            'countries' => array ( 'TZ' ), // Tanzania
             'rateLimit' => 2000,
             'version' => 'v2',
             'has' => array (
@@ -63,7 +63,7 @@ class nova extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetMarkets ();
         $markets = $response['markets'];
         $result = array ();

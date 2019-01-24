@@ -13,7 +13,7 @@ class flowbtc extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'flowbtc',
             'name' => 'flowBTC',
-            'countries' => 'BR', // Brazil
+            'countries' => array ( 'BR' ), // Brazil
             'version' => 'v1',
             'rateLimit' => 1000,
             'has' => array (
@@ -23,7 +23,7 @@ class flowbtc extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg',
                 'api' => 'https://api.flowbtc.com:8405/ajax',
                 'www' => 'https://trader.flowbtc.com',
-                'doc' => 'http://www.flowbtc.com.br/api/',
+                'doc' => 'https://www.flowbtc.com.br/api.html',
             ),
             'requiredCredentials' => array (
                 'apiKey' => true,
@@ -70,7 +70,7 @@ class flowbtc extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicPostGetProductPairs ();
         $markets = $response['productPairs'];
         $result = array ();
@@ -195,10 +195,6 @@ class flowbtc extends Exchange {
             'startIndex' => -1,
         ), $params));
         return $this->parse_trades($response['trades'], $market, $since, $limit);
-    }
-
-    public function price_to_precision ($symbol, $price) {
-        return $this->decimal_to_precision($price, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

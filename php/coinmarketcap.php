@@ -15,7 +15,7 @@ class coinmarketcap extends Exchange {
             'name' => 'CoinMarketCap',
             'rateLimit' => 10000,
             'version' => 'v1',
-            'countries' => 'US',
+            'countries' => array ( 'US' ),
             'has' => array (
                 'CORS' => true,
                 'privateAPI' => false,
@@ -26,6 +26,7 @@ class coinmarketcap extends Exchange {
                 'editOrder' => false,
                 'fetchBalance' => false,
                 'fetchOrderBook' => false,
+                'fetchL2OrderBook' => false,
                 'fetchOHLCV' => false,
                 'fetchTrades' => false,
                 'fetchTickers' => true,
@@ -80,6 +81,9 @@ class coinmarketcap extends Exchange {
                 'MXN',
                 'RUB',
                 'USD',
+                'BTC',
+                'ETH',
+                'LTC',
             ),
         ));
     }
@@ -97,19 +101,42 @@ class coinmarketcap extends Exchange {
             'BlazeCoin' => 'BlazeCoin',
             'BlockCAT' => 'BlockCAT',
             'Catcoin' => 'Catcoin',
-            'Hi Mutual Society' => 'Hi Mutual Society',
+            'CanYaCoin' => 'CanYaCoin', // conflict with CAN (Content and AD Network)
+            'Comet' => 'Comet', // conflict with CMT (CyberMiles)
+            'CPChain' => 'CPChain',
+            'CrowdCoin' => 'CrowdCoin', // conflict with CRC CryCash
+            'Cubits' => 'Cubits', // conflict with QBT (Qbao)
+            'DAO.Casino' => 'DAO.Casino', // conflict with BET (BetaCoin)
+            'E-Dinar Coin' => 'E-Dinar Coin', // conflict with EDR Endor Protocol and EDRCoin
+            'EDRcoin' => 'EDRcoin', // conflict with EDR Endor Protocol and E-Dinar Coin
+            'ENTCash' => 'ENTCash', // conflict with ENT (Eternity)
+            'FairGame' => 'FairGame',
+            'Fabric Token' => 'Fabric Token',
+            'GET Protocol' => 'GET Protocol',
+            'Global Tour Coin' => 'Global Tour Coin', // conflict with GTC (Game.com)
+            'GuccioneCoin' => 'GuccioneCoin', // conflict with GCC (Global Cryptocurrency)
+            'HarmonyCoin' => 'HarmonyCoin', // conflict with HMC (Hi Mutual Society)
+            'Harvest Masternode Coin' => 'Harvest Masternode Coin', // conflict with HC (HyperCash)
+            'Hydro Protocol' => 'Hydro Protocol', // conflict with HOT (Holo)
+            'Huncoin' => 'Huncoin', // conflict with HNC (Helleniccoin)
             'iCoin' => 'iCoin',
+            'Infinity Economics' => 'Infinity Economics', // conflict with XIN (Mixin)
+            'KingN Coin' => 'KingN Coin', // conflict with KNC (Kyber Network)
+            'LiteBitcoin' => 'LiteBitcoin', // conflict with LBTC (LightningBitcoin)
             'Maggie' => 'Maggie',
-            'MIOTA' => 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
+            'IOTA' => 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
             'NetCoin' => 'NetCoin',
+            'PCHAIN' => 'PCHAIN', // conflict with PAI (Project Pai)
             'Polcoin' => 'Polcoin',
+            'PutinCoin' => 'PutinCoin', // conflict with PUT (Profile Utility Token)
+            'Rcoin' => 'Rcoin', // conflict with RCN (Ripio Credit Network)
         );
         if (is_array ($currencies) && array_key_exists ($name, $currencies))
             return $currencies[$name];
         return $base;
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetTicker (array (
             'limit' => 0,
         ));
@@ -158,7 +185,7 @@ class coinmarketcap extends Exchange {
         $last = null;
         $symbol = null;
         $volume = null;
-        if ($market) {
+        if ($market !== null) {
             $priceKey = 'price_' . $market['quoteId'];
             if (is_array ($ticker) && array_key_exists ($priceKey, $ticker))
                 if ($ticker[$priceKey])
@@ -204,7 +231,7 @@ class coinmarketcap extends Exchange {
         $tickers = array ();
         for ($t = 0; $t < count ($response); $t++) {
             $ticker = $response[$t];
-            $currencyId = (is_array ($this->currencies) && array_key_exists ($currency, $this->currencies)) ? $this->currencies[$currency]['id'] : strtolower ($currency);
+            $currencyId = strtolower ($currency);
             $id = $ticker['id'] . '/' . $currencyId;
             $symbol = $id;
             $market = null;
@@ -249,7 +276,6 @@ class coinmarketcap extends Exchange {
                 'info' => $currency,
                 'name' => $name,
                 'active' => true,
-                'status' => 'ok',
                 'fee' => null, // todo => redesign
                 'precision' => $precision,
                 'limits' => array (

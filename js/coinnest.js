@@ -12,7 +12,7 @@ module.exports = class coinnest extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'coinnest',
             'name': 'coinnest',
-            'countries': 'KR',
+            'countries': [ 'KR' ],
             'rateLimit': 1000,
             'has': {
                 'fetchOpenOrders': true,
@@ -72,7 +72,7 @@ module.exports = class coinnest extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let quote = 'KRW';
         let quoteId = quote.toLowerCase ();
         // todo: rewrite this for web endpoint
@@ -330,9 +330,9 @@ module.exports = class coinnest extends Exchange {
         let request = {
             'coin': market['baseId'],
         };
-        if (since)
+        if (since !== undefined)
             request['since'] = parseInt (since / 1000);
-        if (limit)
+        if (limit !== undefined)
             request['limit'] = limit;
         let response = await this.privatePostTradeTrust (this.extend (request, params));
         return this.parseOrders (response, market);

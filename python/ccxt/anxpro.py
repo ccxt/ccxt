@@ -57,19 +57,21 @@ class anxpro (Exchange):
                 },
             },
             'markets': {
-                'BTC/USD': {'id': 'BTCUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'multiplier': 100000},
-                'BTC/HKD': {'id': 'BTCHKD', 'symbol': 'BTC/HKD', 'base': 'BTC', 'quote': 'HKD', 'multiplier': 100000},
-                'BTC/EUR': {'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'multiplier': 100000},
-                'BTC/CAD': {'id': 'BTCCAD', 'symbol': 'BTC/CAD', 'base': 'BTC', 'quote': 'CAD', 'multiplier': 100000},
-                'BTC/AUD': {'id': 'BTCAUD', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', 'multiplier': 100000},
-                'BTC/SGD': {'id': 'BTCSGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD', 'multiplier': 100000},
-                'BTC/JPY': {'id': 'BTCJPY', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'multiplier': 100000},
-                'BTC/GBP': {'id': 'BTCGBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP', 'multiplier': 100000},
-                'BTC/NZD': {'id': 'BTCNZD', 'symbol': 'BTC/NZD', 'base': 'BTC', 'quote': 'NZD', 'multiplier': 100000},
-                'LTC/BTC': {'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'multiplier': 100000},
-                'STR/BTC': {'id': 'STRBTC', 'symbol': 'STR/BTC', 'base': 'STR', 'quote': 'BTC', 'multiplier': 100000000},
-                'XRP/BTC': {'id': 'XRPBTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'multiplier': 100000000},
-                'DOGE/BTC': {'id': 'DOGEBTC', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC', 'multiplier': 100000000},
+                'BTC/USD': {'id': 'BTCUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'multiplier': 100000, 'limits': {'amount': {'min': 0.01, 'max': 100000}, 'price': {'min': None, 'max': None}, 'cost': {'min': None, 'max': None}}},
+                'BTC/HKD': {'id': 'BTCHKD', 'symbol': 'BTC/HKD', 'base': 'BTC', 'quote': 'HKD', 'multiplier': 100000, 'limits': {'amount': {'min': 0.01, 'max': 100000}, 'price': {'min': None, 'max': None}, 'cost': {'min': None, 'max': None}}},
+                'BTC/EUR': {'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'multiplier': 100000, 'limits': {'amount': {'min': 0.01, 'max': 100000}, 'price': {'min': None, 'max': None}, 'cost': {'min': None, 'max': None}}},
+                'BTC/CAD': {'id': 'BTCCAD', 'symbol': 'BTC/CAD', 'base': 'BTC', 'quote': 'CAD', 'multiplier': 100000, 'limits': {'amount': {'min': 0.01, 'max': 100000}, 'price': {'min': None, 'max': None}, 'cost': {'min': None, 'max': None}}},
+                'BTC/AUD': {'id': 'BTCAUD', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', 'multiplier': 100000, 'limits': {'amount': {'min': 0.01, 'max': 100000}, 'price': {'min': None, 'max': None}, 'cost': {'min': None, 'max': None}}},
+                'BTC/SGD': {'id': 'BTCSGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD', 'multiplier': 100000, 'limits': {'amount': {'min': 0.01, 'max': 100000}, 'price': {'min': None, 'max': None}, 'cost': {'min': None, 'max': None}}},
+                'BTC/JPY': {'id': 'BTCJPY', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'multiplier': 100000, 'limits': {'amount': {'min': 0.01, 'max': 100000}, 'price': {'min': None, 'max': None}, 'cost': {'min': None, 'max': None}}},
+                'BTC/GBP': {'id': 'BTCGBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP', 'multiplier': 100000, 'limits': {'amount': {'min': 0.01, 'max': 100000}, 'price': {'min': None, 'max': None}, 'cost': {'min': None, 'max': None}}},
+                'BTC/NZD': {'id': 'BTCNZD', 'symbol': 'BTC/NZD', 'base': 'BTC', 'quote': 'NZD', 'multiplier': 100000, 'limits': {'amount': {'min': 0.01, 'max': 100000}, 'price': {'min': None, 'max': None}, 'cost': {'min': None, 'max': None}}},
+                'LTC/BTC': {'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'multiplier': 100000, 'limits': {'amount': {'min': 0.1, 'max': 10000000}, 'price': {'min': None, 'max': None}, 'cost': {'min': None, 'max': None}}},
+                # delisting announced
+                'XLM/BTC': {'id': 'STRBTC', 'symbol': 'XLM/BTC', 'base': 'XLM', 'quote': 'BTC', 'multiplier': 100000000, 'limits': {'amount': {'min': 0.01, 'max': 100000}, 'price': {'min': None, 'max': None}, 'cost': {'min': None, 'max': None}}},
+                'OAX/BTC': {'id': 'OAXBTC', 'symbol': 'OAX/BTC', 'base': 'OAX', 'quote': 'BTC', 'multiplier': 100000000, 'limits': {'amount': {'min': 0.01, 'max': 100000}, 'price': {'min': None, 'max': None}, 'cost': {'min': None, 'max': None}}},
+                'XRP/BTC': {'id': 'XRPBTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'multiplier': 100000000, 'limits': {'amount': {'min': 0.01, 'max': 100000}, 'price': {'min': None, 'max': None}, 'cost': {'min': None, 'max': None}}},
+                'DOGE/BTC': {'id': 'DOGEBTC', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC', 'multiplier': 100000000, 'limits': {'amount': {'min': 10000, 'max': 10000000000}, 'price': {'min': None, 'max': None}, 'cost': {'min': None, 'max': None}}},
             },
             'fees': {
                 'trading': {
@@ -159,28 +161,30 @@ class anxpro (Exchange):
     def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostCurrencyPairMoneyOrderCancel({'oid': id})
 
-    def get_amount_multiplier(self, currency):
-        if currency == 'BTC':
-            return 100000000
-        elif currency == 'LTC':
-            return 100000000
-        elif currency == 'STR':
-            return 100000000
-        elif currency == 'XRP':
-            return 100000000
-        elif currency == 'DOGE':
-            return 100000000
-        return 100
+    def get_amount_multiplier(self, code):
+        multipliers = {
+            'BTC': 100000000,
+            'LTC': 100000000,
+            'STR': 100000000,
+            'XRP': 100000000,
+            'DOGE': 100000000,
+        }
+        defaultValue = 100
+        return self.safe_integer(multipliers, code, defaultValue)
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
-        multiplier = self.get_amount_multiplier(currency)
-        response = self.privatePostMoneyCurrencySendSimple(self.extend({
+        currency = self.currency(code)
+        multiplier = self.get_amount_multiplier(code)
+        request = {
             'currency': currency,
             'amount_int': int(amount * multiplier),
             'address': address,
-        }, params))
+        }
+        if tag is not None:
+            request['destinationTag'] = tag
+        response = self.privatePostMoneyCurrencySendSimple(self.extend(request, params))
         return {
             'info': response,
             'id': response['data']['transactionId'],
@@ -201,7 +205,8 @@ class anxpro (Exchange):
             nonce = self.nonce()
             body = self.urlencode(self.extend({'nonce': nonce}, query))
             secret = base64.b64decode(self.secret)
-            auth = request + '\0' + body
+            # eslint-disable-next-line quotes
+            auth = request + "\0" + body
             signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',

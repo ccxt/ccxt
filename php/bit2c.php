@@ -13,11 +13,12 @@ class bit2c extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bit2c',
             'name' => 'Bit2C',
-            'countries' => 'IL', // Israel
+            'countries' => array ( 'IL' ), // Israel
             'rateLimit' => 3000,
             'has' => array (
                 'CORS' => false,
                 'fetchOpenOrders' => true,
+                'fetchMyTrades' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
@@ -64,15 +65,22 @@ class bit2c extends Exchange {
             ),
             'markets' => array (
                 'BTC/NIS' => array ( 'id' => 'BtcNis', 'symbol' => 'BTC/NIS', 'base' => 'BTC', 'quote' => 'NIS' ),
-                'BCH/NIS' => array ( 'id' => 'BchNis', 'symbol' => 'BCH/NIS', 'base' => 'BCH', 'quote' => 'NIS' ),
+                'ETH/NIS' => array ( 'id' => 'EthNis', 'symbol' => 'ETH/NIS', 'base' => 'ETH', 'quote' => 'NIS' ),
+                'BCH/NIS' => array ( 'id' => 'BchAbcNis', 'symbol' => 'BCH/NIS', 'base' => 'BCH', 'quote' => 'NIS' ),
                 'LTC/NIS' => array ( 'id' => 'LtcNis', 'symbol' => 'LTC/NIS', 'base' => 'LTC', 'quote' => 'NIS' ),
+                'ETC/NIS' => array ( 'id' => 'EtcNis', 'symbol' => 'ETC/NIS', 'base' => 'ETC', 'quote' => 'NIS' ),
                 'BTG/NIS' => array ( 'id' => 'BtgNis', 'symbol' => 'BTG/NIS', 'base' => 'BTG', 'quote' => 'NIS' ),
+                'LTC/BTC' => array ( 'id' => 'LtcBtc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
+                'BSV/NIS' => array ( 'id' => 'BchSvNis', 'symbol' => 'BSV/NIS', 'base' => 'BSV', 'quote' => 'NIS' ),
             ),
             'fees' => array (
                 'trading' => array (
                     'maker' => 0.5 / 100,
                     'taker' => 0.5 / 100,
                 ),
+            ),
+            'options' => array (
+                'fetchTradesMethod' => 'public_get_exchanges_pair_lasttrades',
             ),
         ));
     }
@@ -109,7 +117,9 @@ class bit2c extends Exchange {
         $timestamp = $this->milliseconds ();
         $averagePrice = $this->safe_float($ticker, 'av');
         $baseVolume = $this->safe_float($ticker, 'a');
-        $quoteVolume = $baseVolume * $averagePrice;
+        $quoteVolume = null;
+        if ($baseVolume !== null && $averagePrice !== null)
+            $quoteVolume = $baseVolume * $averagePrice;
         $last = $this->safe_float($ticker, 'll');
         return array (
             'symbol' => $symbol,
@@ -135,30 +145,15 @@ class bit2c extends Exchange {
         );
     }
 
-    public function parse_trade ($trade, $market = null) {
-        $timestamp = intval ($trade['date']) * 1000;
-        $symbol = null;
-        if ($market)
-            $symbol = $market['symbol'];
-        return array (
-            'id' => (string) $trade['tid'],
-            'info' => $trade,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $symbol,
-            'order' => null,
-            'type' => null,
-            'side' => null,
-            'price' => $trade['price'],
-            'amount' => $trade['amount'],
-        );
-    }
-
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
-        $response = $this->publicGetExchangesPairTrades (array_merge (array (
+        $method = $this->options['fetchTradesMethod'];
+        $response = $this->$method (array_merge (array (
             'pair' => $market['id'],
         ), $params));
+        if (gettype ($response) === 'string') {
+            throw new ExchangeError ($response);
+        }
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -189,7 +184,10 @@ class bit2c extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
         if ($api === 'public') {
-            $url .= '.json';
+            // lasttrades is the only endpoint that doesn't require the .json extension/suffix
+            if (mb_strpos ($path, 'lasttrades') < 0) {
+                $url .= '.json';
+            }
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
@@ -208,7 +206,7 @@ class bit2c extends Exchange {
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchOpenOrders() requires a $symbol argument');
         $market = $this->market ($symbol);
         $response = $this->privateGetOrderMyOrders (array_merge (array (
             'pair' => $market['id'],
@@ -234,12 +232,13 @@ class bit2c extends Exchange {
             $side = 'sell';
         }
         $id = $this->safe_string($order, 'id');
+        $status = $this->safe_string($order, 'status');
         return array (
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
-            'status' => $this->safe_string($order, 'status'),
+            'status' => $status,
             'symbol' => $symbol,
             'type' => null,
             'side' => $side,
@@ -251,6 +250,95 @@ class bit2c extends Exchange {
             'trades' => null,
             'fee' => null,
             'info' => $order,
+        );
+    }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        $method = 'privateGetOrderOrderhistory';
+        $request = array ();
+        if ($limit !== null)
+            $request['take'] = $limit;
+        $request['take'] = $limit;
+        if ($since !== null) {
+            $request['toTime'] = $this->ymd ($this->milliseconds (), '.');
+            $request['fromTime'] = $this->ymd ($since, '.');
+        }
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['pair'] = $market['id'];
+        }
+        $response = $this->$method (array_merge ($request, $params));
+        return $this->parse_trades($response, $market, $since, $limit);
+    }
+
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = null;
+        $id = null;
+        $price = null;
+        $amount = null;
+        $orderId = null;
+        $feeCost = null;
+        $side = null;
+        $reference = $this->safe_string($trade, 'reference');
+        if ($reference !== null) {
+            $timestamp = $this->safe_integer($trade, 'ticks') * 1000;
+            $price = $this->safe_float($trade, 'price');
+            $amount = $this->safe_float($trade, 'firstAmount');
+            $reference_parts = explode ('|', $reference); // $reference contains => 'pair|$orderId|tradeId'
+            if ($market === null) {
+                $marketId = $this->safe_string($trade, 'pair');
+                if (is_array ($this->markets_by_id[$marketId]) && array_key_exists ($marketId, $this->markets_by_id[$marketId])) {
+                    $market = $this->markets_by_id[$marketId];
+                } else if (is_array ($this->markets_by_id) && array_key_exists ($reference_parts[0], $this->markets_by_id)) {
+                    $market = $this->markets_by_id[$reference_parts[0]];
+                }
+            }
+            $orderId = $reference_parts[1];
+            $id = $reference_parts[2];
+            $side = $this->safe_integer($trade, 'action');
+            if ($side === 0) {
+                $side = 'buy';
+            } else if ($side === 1) {
+                $side = 'sell';
+            }
+            $feeCost = $this->safe_float($trade, 'feeAmount');
+        } else {
+            $timestamp = $this->safe_integer($trade, 'date') * 1000;
+            $id = $this->safe_integer($trade, 'tid');
+            $price = $this->safe_float($trade, 'price');
+            $amount = $this->safe_float($trade, 'amount');
+            $side = $this->safe_value($trade, 'isBid');
+            if ($side !== null) {
+                if ($side) {
+                    $side = 'buy';
+                } else {
+                    $side = 'sell';
+                }
+            }
+        }
+        $symbol = null;
+        if ($market !== null)
+            $symbol = $market['symbol'];
+        return array (
+            'info' => $trade,
+            'id' => $id,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
+            'order' => $orderId,
+            'type' => null,
+            'side' => $side,
+            'takerOrMaker' => null,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $price * $amount,
+            'fee' => array (
+                'cost' => $feeCost,
+                'currency' => 'NIS',
+                'rate' => null,
+            ),
         );
     }
 }

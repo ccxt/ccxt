@@ -13,7 +13,7 @@ class vaultoro extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'vaultoro',
             'name' => 'Vaultoro',
-            'countries' => 'CH',
+            'countries' => array ( 'CH' ),
             'rateLimit' => 1000,
             'version' => '1',
             'has' => array (
@@ -60,12 +60,12 @@ class vaultoro extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $result = array ();
         $markets = $this->publicGetMarkets ();
         $market = $markets['data'];
-        $baseId = $market['BaseCurrency'];
-        $quoteId = $market['MarketCurrency'];
+        $baseId = $market['MarketCurrency'];
+        $quoteId = $market['BaseCurrency'];
         $base = $this->common_currency_code($baseId);
         $quote = $this->common_currency_code($quoteId);
         $symbol = $base . '/' . $quote;

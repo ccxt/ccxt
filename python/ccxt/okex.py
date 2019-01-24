@@ -26,15 +26,18 @@ class okex (okcoinusd):
                     'private': 'https://www.okex.com/api',
                 },
                 'www': 'https://www.okex.com',
-                'doc': 'https://www.okex.com/rest_getStarted.html',
-                'fees': 'https://www.okex.com/fees.html',
+                'doc': 'https://github.com/okcoin-okex/API-docs-OKEx.com',
+                'fees': 'https://www.okex.com/pages/products/fees.html',
             },
             'commonCurrencies': {
                 'FAIR': 'FairGame',
-                'HMC': 'Hi Mutual Society',
+                'HOT': 'Hydro Protocol',
+                'HSR': 'HC',
                 'MAG': 'Maggie',
-                'NANO': 'XRB',
                 'YOYO': 'YOYOW',
+            },
+            'options': {
+                'fetchTickersMethod': 'fetch_tickers_from_api',
             },
         })
 
@@ -54,8 +57,8 @@ class okex (okcoinusd):
             'cost': float(self.fee_to_precision(symbol, cost)),
         }
 
-    def fetch_markets(self):
-        markets = super(okex, self).fetch_markets()
+    def fetch_markets(self, params={}):
+        markets = super(okex, self).fetch_markets(params)
         # TODO: they have a new fee schedule as of Feb 7
         # the new fees are progressive and depend on 30-day traded volume
         # the following is the worst case
@@ -68,7 +71,7 @@ class okex (okcoinusd):
                 markets[i]['taker'] = 0.0005
         return markets
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers_from_api(self, symbols=None, params={}):
         self.load_markets()
         request = {}
         response = self.publicGetTickers(self.extend(request, params))
@@ -77,12 +80,24 @@ class okex (okcoinusd):
         result = {}
         for i in range(0, len(tickers)):
             ticker = tickers[i]
-            market = None
-            if 'symbol' in ticker:
-                marketId = ticker['symbol']
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
-            ticker = self.parse_ticker(self.extend(tickers[i], {'timestamp': timestamp}), market)
+            ticker = self.parse_ticker(self.extend(tickers[i], {'timestamp': timestamp}))
             symbol = ticker['symbol']
             result[symbol] = ticker
         return result
+
+    def fetch_tickers_from_web(self, symbols=None, params={}):
+        self.load_markets()
+        request = {}
+        response = self.webGetSpotMarketsTickers(self.extend(request, params))
+        tickers = response['data']
+        result = {}
+        for i in range(0, len(tickers)):
+            ticker = self.parse_ticker(tickers[i])
+            symbol = ticker['symbol']
+            result[symbol] = ticker
+        return result
+
+    def fetch_tickers(self, symbols=None, params={}):
+        method = self.options['fetchTickersMethod']
+        response = getattr(self, method)(symbols, params)
+        return response

@@ -15,7 +15,7 @@ class itbit (Exchange):
         return self.deep_extend(super(itbit, self).describe(), {
             'id': 'itbit',
             'name': 'itBit',
-            'countries': 'US',
+            'countries': ['US'],
             'rateLimit': 2000,
             'version': 'v1',
             'has': {
@@ -85,10 +85,10 @@ class itbit (Exchange):
         ticker = self.publicGetMarketsSymbolTicker(self.extend({
             'symbol': self.market_id(symbol),
         }, params))
-        serverTimeUTC = ('serverTimeUTC' in list(ticker.keys()))
+        serverTimeUTC = self.safe_string(ticker, 'serverTimeUTC')
         if not serverTimeUTC:
             raise ExchangeError(self.id + ' fetchTicker returned a bad response: ' + self.json(ticker))
-        timestamp = self.parse8601(ticker['serverTimeUTC'])
+        timestamp = self.parse8601(serverTimeUTC)
         vwap = self.safe_float(ticker, 'vwap24h')
         baseVolume = self.safe_float(ticker, 'volume24h')
         quoteVolume = None
@@ -157,13 +157,13 @@ class itbit (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_wallets(self):
-        if not self.userId:
-            raise AuthenticationError(self.id + ' fetchWallets requires userId in API settings')
-        params = {
-            'userId': self.userId,
+    def fetch_wallets(self, params={}):
+        if not self.uid:
+            raise AuthenticationError(self.id + ' fetchWallets requires uid API credential')
+        request = {
+            'userId': self.uid,
         }
-        return self.privateGetWallets(params)
+        return self.privateGetWallets(self.extend(request, params))
 
     def fetch_wallet(self, walletId, params={}):
         wallet = {
@@ -281,7 +281,8 @@ class itbit (Exchange):
             auth = [method, url, body, nonce, timestamp]
             message = nonce + self.json(auth).replace('\\/', '/')
             hash = self.hash(self.encode(message), 'sha256', 'binary')
-            binhash = self.binary_concat(url, hash)
+            binaryUrl = self.encode(url)
+            binhash = self.binary_concat(binaryUrl, hash)
             signature = self.hmac(binhash, self.encode(self.secret), hashlib.sha512, 'base64')
             headers = {
                 'Authorization': self.apiKey + ':' + signature,

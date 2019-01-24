@@ -13,7 +13,7 @@ class bitso extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitso',
             'name' => 'Bitso',
-            'countries' => 'MX', // Mexico
+            'countries' => array ( 'MX' ), // Mexico
             'rateLimit' => 2000, // 30 requests per minute
             'version' => 'v3',
             'has' => array (
@@ -27,6 +27,7 @@ class bitso extends Exchange {
                 'www' => 'https://bitso.com',
                 'doc' => 'https://bitso.com/api_info',
                 'fees' => 'https://bitso.com/fees?l=es',
+                'referral' => 'https://bitso.com/?ref=itej',
             ),
             'api' => array (
                 'public' => array (
@@ -64,11 +65,17 @@ class bitso extends Exchange {
                         'bitcoin_withdrawal',
                         'debit_card_withdrawal',
                         'ether_withdrawal',
+                        'ripple_withdrawal',
+                        'bcash_withdrawal',
+                        'litecoin_withdrawal',
                         'orders',
                         'phone_number',
                         'phone_verification',
                         'phone_withdrawal',
                         'spei_withdrawal',
+                        'ripple_withdrawal',
+                        'bcash_withdrawal',
+                        'litecoin_withdrawal',
                     ),
                     'delete' => array (
                         'orders/{oid}',
@@ -83,7 +90,7 @@ class bitso extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetAvailableBooks ();
         $result = array ();
         for ($i = 0; $i < count ($markets['payload']); $i++) {
@@ -109,14 +116,12 @@ class bitso extends Exchange {
                 'amount' => $this->precision_from_string($market['minimum_amount']),
                 'price' => $this->precision_from_string($market['minimum_price']),
             );
-            $lot = $limits['amount']['min'];
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'info' => $market,
-                'lot' => $lot,
                 'limits' => $limits,
                 'precision' => $precision,
             );
@@ -161,7 +166,9 @@ class bitso extends Exchange {
         $timestamp = $this->parse8601 ($ticker['created_at']);
         $vwap = $this->safe_float($ticker, 'vwap');
         $baseVolume = $this->safe_float($ticker, 'volume');
-        $quoteVolume = $baseVolume * $vwap;
+        $quoteVolume = null;
+        if ($baseVolume !== null && $vwap !== null)
+            $quoteVolume = $baseVolume * $vwap;
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
@@ -299,15 +306,16 @@ class bitso extends Exchange {
     public function parse_order_status ($status) {
         $statuses = array (
             'partial-fill' => 'open', // this is a common substitution in ccxt
+            'completed' => 'closed',
         );
         if (is_array ($statuses) && array_key_exists ($status, $statuses))
-            return $statuses['status'];
+            return $statuses[$status];
         return $status;
     }
 
     public function parse_order ($order, $market = null) {
         $side = $order['side'];
-        $status = $this->parse_order_status($order['status']);
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $symbol = null;
         if ($market === null) {
             $marketId = $order['book'];
@@ -368,6 +376,78 @@ class bitso extends Exchange {
         return $orders;
     }
 
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $response = $this->privateGetOrdersOid (array (
+            'oid' => $id,
+        ));
+        $numOrders = is_array ($response['payload']) ? count ($response['payload']) : 0;
+        if (!gettype ($response['payload']) === 'array' && count (array_filter (array_keys ($response['payload']), 'is_string')) == 0 || ($numOrders !== 1)) {
+            throw new OrderNotFound ($this->id . ' => The order ' . $id . ' not found.');
+        }
+        return $this->parse_order($response['payload'][0], $market);
+    }
+
+    public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $response = $this->privateGetOrderTradesOid (array (
+            'oid' => $id,
+        ));
+        return $this->parse_trades($response['payload'], $market);
+    }
+
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $request = array (
+            'fund_currency' => $currency['id'],
+        );
+        $response = $this->privateGetFundingDestination (array_merge ($request, $params));
+        $address = $this->safe_string($response['payload'], 'account_identifier');
+        $tag = null;
+        if ($code === 'XRP') {
+            $parts = explode ('?dt=', $address);
+            $address = $parts[0];
+            $tag = $parts[1];
+        }
+        $this->check_address($address);
+        return array (
+            'currency' => $code,
+            'address' => $address,
+            'tag' => $tag,
+            'info' => $response,
+        );
+    }
+
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
+        $this->load_markets();
+        $methods = array (
+            'BTC' => 'Bitcoin',
+            'ETH' => 'Ether',
+            'XRP' => 'Ripple',
+            'BCH' => 'Bcash',
+            'LTC' => 'Litecoin',
+        );
+        $method = (is_array ($methods) && array_key_exists ($code, $methods)) ? $methods[$code] : null;
+        if ($method === null) {
+            throw new ExchangeError ($this->id . ' not valid withdraw coin => ' . $code);
+        }
+        $request = array (
+            'amount' => $amount,
+            'address' => $address,
+            'destination_tag' => $tag,
+        );
+        $classMethod = 'privatePost' . $method . 'Withdrawal';
+        $response = $this->$classMethod (array_merge ($request, $params));
+        return array (
+            'info' => $response,
+            'id' => $this->safe_string($response['payload'], 'wid'),
+        );
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $endpoint = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
@@ -396,19 +476,18 @@ class bitso extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
-        if (gettype ($body) != 'string')
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+        if (gettype ($body) !== 'string')
             return; // fallback to default $error handler
         if (strlen ($body) < 2)
             return; // fallback to default $error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             if (is_array ($response) && array_key_exists ('success', $response)) {
                 //
                 //     array ("$success":false,"$error":{"$code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237")}
                 //
                 $success = $this->safe_value($response, 'success', false);
-                if (gettype ($success) == 'string') {
+                if (gettype ($success) === 'string') {
                     if (($success === 'true') || ($success === '1'))
                         $success = true;
                     else

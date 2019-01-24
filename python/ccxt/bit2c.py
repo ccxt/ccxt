@@ -4,8 +4,16 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 
 
 class bit2c (Exchange):
@@ -14,11 +22,12 @@ class bit2c (Exchange):
         return self.deep_extend(super(bit2c, self).describe(), {
             'id': 'bit2c',
             'name': 'Bit2C',
-            'countries': 'IL',  # Israel
+            'countries': ['IL'],  # Israel
             'rateLimit': 3000,
             'has': {
                 'CORS': False,
                 'fetchOpenOrders': True,
+                'fetchMyTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
@@ -65,15 +74,22 @@ class bit2c (Exchange):
             },
             'markets': {
                 'BTC/NIS': {'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS'},
-                'BCH/NIS': {'id': 'BchNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS'},
+                'ETH/NIS': {'id': 'EthNis', 'symbol': 'ETH/NIS', 'base': 'ETH', 'quote': 'NIS'},
+                'BCH/NIS': {'id': 'BchAbcNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS'},
                 'LTC/NIS': {'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS'},
+                'ETC/NIS': {'id': 'EtcNis', 'symbol': 'ETC/NIS', 'base': 'ETC', 'quote': 'NIS'},
                 'BTG/NIS': {'id': 'BtgNis', 'symbol': 'BTG/NIS', 'base': 'BTG', 'quote': 'NIS'},
+                'LTC/BTC': {'id': 'LtcBtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC'},
+                'BSV/NIS': {'id': 'BchSvNis', 'symbol': 'BSV/NIS', 'base': 'BSV', 'quote': 'NIS'},
             },
             'fees': {
                 'trading': {
                     'maker': 0.5 / 100,
                     'taker': 0.5 / 100,
                 },
+            },
+            'options': {
+                'fetchTradesMethod': 'public_get_exchanges_pair_lasttrades',
             },
         })
 
@@ -105,7 +121,9 @@ class bit2c (Exchange):
         timestamp = self.milliseconds()
         averagePrice = self.safe_float(ticker, 'av')
         baseVolume = self.safe_float(ticker, 'a')
-        quoteVolume = baseVolume * averagePrice
+        quoteVolume = None
+        if baseVolume is not None and averagePrice is not None:
+            quoteVolume = baseVolume * averagePrice
         last = self.safe_float(ticker, 'll')
         return {
             'symbol': symbol,
@@ -130,29 +148,14 @@ class bit2c (Exchange):
             'info': ticker,
         }
 
-    def parse_trade(self, trade, market=None):
-        timestamp = int(trade['date']) * 1000
-        symbol = None
-        if market:
-            symbol = market['symbol']
-        return {
-            'id': str(trade['tid']),
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
-            'order': None,
-            'type': None,
-            'side': None,
-            'price': trade['price'],
-            'amount': trade['amount'],
-        }
-
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)
-        response = self.publicGetExchangesPairTrades(self.extend({
+        method = self.options['fetchTradesMethod']
+        response = getattr(self, method)(self.extend({
             'pair': market['id'],
         }, params))
+        if isinstance(response, basestring):
+            raise ExchangeError(response)
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -179,7 +182,9 @@ class bit2c (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         if api == 'public':
-            url += '.json'
+            # lasttrades is the only endpoint that doesn't require the .json extension/suffix
+            if path.find('lasttrades') < 0:
+                url += '.json'
         else:
             self.check_required_credentials()
             nonce = self.nonce()
@@ -196,7 +201,7 @@ class bit2c (Exchange):
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOpenOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         market = self.market(symbol)
         response = self.privateGetOrderMyOrders(self.extend({
             'pair': market['id'],
@@ -220,12 +225,13 @@ class bit2c (Exchange):
         elif side == 1:
             side = 'sell'
         id = self.safe_string(order, 'id')
+        status = self.safe_string(order, 'status')
         return {
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'status': self.safe_string(order, 'status'),
+            'status': status,
             'symbol': symbol,
             'type': None,
             'side': side,
@@ -237,4 +243,83 @@ class bit2c (Exchange):
             'trades': None,
             'fee': None,
             'info': order,
+        }
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        market = None
+        method = 'privateGetOrderOrderhistory'
+        request = {}
+        if limit is not None:
+            request['take'] = limit
+        request['take'] = limit
+        if since is not None:
+            request['toTime'] = self.ymd(self.milliseconds(), '.')
+            request['fromTime'] = self.ymd(since, '.')
+        if symbol is not None:
+            market = self.market(symbol)
+            request['pair'] = market['id']
+        response = getattr(self, method)(self.extend(request, params))
+        return self.parse_trades(response, market, since, limit)
+
+    def parse_trade(self, trade, market=None):
+        timestamp = None
+        id = None
+        price = None
+        amount = None
+        orderId = None
+        feeCost = None
+        side = None
+        reference = self.safe_string(trade, 'reference')
+        if reference is not None:
+            timestamp = self.safe_integer(trade, 'ticks') * 1000
+            price = self.safe_float(trade, 'price')
+            amount = self.safe_float(trade, 'firstAmount')
+            reference_parts = reference.split('|')  # reference contains: 'pair|orderId|tradeId'
+            if market is None:
+                marketId = self.safe_string(trade, 'pair')
+                if marketId in self.markets_by_id[marketId]:
+                    market = self.markets_by_id[marketId]
+                elif reference_parts[0] in self.markets_by_id:
+                    market = self.markets_by_id[reference_parts[0]]
+            orderId = reference_parts[1]
+            id = reference_parts[2]
+            side = self.safe_integer(trade, 'action')
+            if side == 0:
+                side = 'buy'
+            elif side == 1:
+                side = 'sell'
+            feeCost = self.safe_float(trade, 'feeAmount')
+        else:
+            timestamp = self.safe_integer(trade, 'date') * 1000
+            id = self.safe_integer(trade, 'tid')
+            price = self.safe_float(trade, 'price')
+            amount = self.safe_float(trade, 'amount')
+            side = self.safe_value(trade, 'isBid')
+            if side is not None:
+                if side:
+                    side = 'buy'
+                else:
+                    side = 'sell'
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        return {
+            'info': trade,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'order': orderId,
+            'type': None,
+            'side': side,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': price * amount,
+            'fee': {
+                'cost': feeCost,
+                'currency': 'NIS',
+                'rate': None,
+            },
         }

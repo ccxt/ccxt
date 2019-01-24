@@ -19,7 +19,6 @@ coverage
 .nyc_output
 travis-keys.sh
 ccxt.wiki/
-package-lock.json
 exchanges.json
 ccxt.sublime-workspace
 .idea
@@ -27,3 +26,8 @@ yarn.lock
 keys.local.json
 nbproject/
 vendor/
+python/package-lock.json
+python/package.json
+python/keys.json
+python/LICENSE.txt
+.env

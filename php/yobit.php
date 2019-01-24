@@ -13,12 +13,15 @@ class yobit extends liqui {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'yobit',
             'name' => 'YoBit',
-            'countries' => 'RU',
+            'countries' => array ( 'RU' ),
             'rateLimit' => 3000, // responses are cached every 2 seconds
             'version' => '3',
             'has' => array (
                 'createDepositAddress' => true,
                 'fetchDepositAddress' => true,
+                'fetchDeposits' => false,
+                'fetchWithdrawals' => false,
+                'fetchTransactions' => false,
                 'CORS' => false,
                 'withdraw' => true,
             ),
@@ -66,39 +69,75 @@ class yobit extends liqui {
             'commonCurrencies' => array (
                 'AIR' => 'AirCoin',
                 'ANI' => 'ANICoin',
-                'ANT' => 'AntsCoin',
+                'ANT' => 'AntsCoin',  // what is this, a coin for ants?
+                'ATMCHA' => 'ATM',
+                'ASN' => 'Ascension',
                 'AST' => 'Astral',
                 'ATM' => 'Autumncoin',
                 'BCC' => 'BCH',
                 'BCS' => 'BitcoinStake',
                 'BLN' => 'Bulleon',
+                'BOT' => 'BOTcoin',
+                'BON' => 'BONES',
+                'BPC' => 'BitcoinPremium',
                 'BTS' => 'Bitshares2',
                 'CAT' => 'BitClave',
+                'CMT' => 'CometCoin',
                 'COV' => 'Coven Coin',
+                'COVX' => 'COV',
                 'CPC' => 'Capricoin',
                 'CS' => 'CryptoSpots',
                 'DCT' => 'Discount',
                 'DGD' => 'DarkGoldCoin',
+                'DIRT' => 'DIRTY',
                 'DROP' => 'FaucetCoin',
+                'EKO' => 'EkoCoin',
+                'ENTER' => 'ENTRC',
+                'EPC' => 'ExperienceCoin',
                 'ERT' => 'Eristica Token',
+                'ESC' => 'EdwardSnowden',
+                'EUROPE' => 'EUROP',
+                'EXT' => 'LifeExtension',
+                'FUNK' => 'FUNKCoin',
+                'GCC' => 'GlobalCryptocurrency',
+                'GEN' => 'Genstake',
+                'GENE' => 'Genesiscoin',
+                'GOLD' => 'GoldMint',
+                'GOT' => 'Giotto Coin',
+                'HTML5' => 'HTML',
+                'HYPERX' => 'HYPER',
                 'ICN' => 'iCoin',
+                'INSANE' => 'INSN',
+                'JNT' => 'JointCoin',
+                'JPC' => 'JupiterCoin',
                 'KNC' => 'KingN Coin',
+                'LBTCX' => 'LiteBitcoin',
                 'LIZI' => 'LiZi',
                 'LOC' => 'LocoCoin',
                 'LOCX' => 'LOC',
-                'LUN' => 'LunarCoin',
+                'LUNYR' => 'LUN',
+                'LUN' => 'LunarCoin',  // they just change the ticker if it is already taken
                 'MDT' => 'Midnight',
                 'NAV' => 'NavajoCoin',
+                'NBT' => 'NiceBytes',
                 'OMG' => 'OMGame',
+                'PAC' => '$PAC',
+                'PLAY' => 'PlayCoin',
+                'PIVX' => 'Darknet',
+                'PRS' => 'PRE',
+                'PUTIN' => 'PUT',
                 'STK' => 'StakeCoin',
+                'SUB' => 'Subscriptio',
                 'PAY' => 'EPAY',
                 'PLC' => 'Platin Coin',
+                'RCN' => 'RCoin',
                 'REP' => 'Republicoin',
                 'RUR' => 'RUB',
                 'XIN' => 'XINCoin',
             ),
             'options' => array (
                 'fetchOrdersRequiresSymbol' => true,
+                'fetchTickersMaxLength' => 512,
             ),
         ));
     }
@@ -138,7 +177,7 @@ class yobit extends liqui {
                         $account = $this->account ();
                     }
                     $account[$key] = $balances[$side][$lowercase];
-                    if (($account['total'] != null) && ($account['free'] != null))
+                    if (($account['total'] !== null) && ($account['free'] !== null))
                         $account['used'] = $account['total'] - $account['free'];
                     $result[$currency] = $account;
                 }
@@ -156,7 +195,7 @@ class yobit extends liqui {
         return array (
             'currency' => $code,
             'address' => $address,
-            'status' => 'ok',
+            'tag' => null,
             'info' => $response['info'],
         );
     }
@@ -174,9 +213,48 @@ class yobit extends liqui {
         return array (
             'currency' => $code,
             'address' => $address,
-            'status' => 'ok',
+            'tag' => null,
             'info' => $response,
         );
+    }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        // some derived classes use camelcase notation for $request fields
+        $request = array (
+            // 'from' => 123456789, // $trade ID, from which the display starts numerical 0 (test $result => liqui ignores this field)
+            // 'count' => 1000, // the number of $trades for display numerical, default = 1000
+            // 'from_id' => $trade ID, from which the display starts numerical 0
+            // 'end_id' => $trade ID on which the display ends numerical ∞
+            // 'order' => 'ASC', // sorting, default = DESC (test $result => liqui ignores this field, most recent $trade always goes last)
+            // 'since' => 1234567890, // UTC start time, default = 0 (test $result => liqui ignores this field)
+            // 'end' => 1234567890, // UTC end time, default = ∞ (test $result => liqui ignores this field)
+            // 'pair' => 'eth_btc', // default = all markets
+        );
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['pair'] = $market['id'];
+        }
+        if ($limit !== null) {
+            $request['count'] = intval ($limit);
+        }
+        if ($since !== null) {
+            $request['since'] = intval ($since / 1000);
+        }
+        $method = $this->options['fetchMyTradesMethod'];
+        $response = $this->$method (array_merge ($request, $params));
+        $trades = $this->safe_value($response, 'return', array ());
+        $ids = is_array ($trades) ? array_keys ($trades) : array ();
+        $result = array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $trade = $this->parse_trade(array_merge ($trades[$id], array (
+                'trade_id' => $id,
+            )), $market);
+            $result[] = $trade;
+        }
+        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
@@ -194,9 +272,8 @@ class yobit extends liqui {
         );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if ($body[0] === '{') {
-            $response = json_decode ($body, $as_associative_array = true);
             if (is_array ($response) && array_key_exists ('success', $response)) {
                 if (!$response['success']) {
                     if (is_array ($response) && array_key_exists ('error_log', $response)) {
@@ -206,6 +283,9 @@ class yobit extends liqui {
                             throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
                         } else if (($response['error_log'] === 'not available') || ($response['error_log'] === 'external service unavailable')) {
                             throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
+                        } else if ($response['error_log'] === 'Total transaction amount') {
+                            // eg array ("success":0,"error":"Total transaction amount is less than minimal total => 0.00010000")
+                            throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
                         }
                     }
                     throw new ExchangeError ($this->id . ' ' . $this->json ($response));

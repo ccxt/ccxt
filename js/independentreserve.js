@@ -72,7 +72,7 @@ module.exports = class independentreserve extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let baseCurrencies = await this.publicGetGetValidPrimaryCurrencyCodes ();
         let quoteCurrencies = await this.publicGetGetValidSecondaryCurrencyCodes ();
         let result = [];
@@ -171,7 +171,7 @@ module.exports = class independentreserve extends Exchange {
 
     parseOrder (order, market = undefined) {
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             symbol = market['symbol'];
         } else {
             market = this.findMarket (order['PrimaryCurrencyCode'] + '/' + order['SecondaryCurrencyCode']);
@@ -188,21 +188,21 @@ module.exports = class independentreserve extends Exchange {
             side = 'sell';
         let timestamp = this.parse8601 (order['CreatedTimestampUtc']);
         let amount = this.safeFloat (order, 'VolumeOrdered');
-        if (typeof amount === 'undefined')
+        if (amount === undefined)
             amount = this.safeFloat (order, 'Volume');
         let filled = this.safeFloat (order, 'VolumeFilled');
         let remaining = undefined;
         let feeRate = this.safeFloat (order, 'FeePercent');
         let feeCost = undefined;
-        if (typeof amount !== 'undefined') {
-            if (typeof filled !== 'undefined') {
+        if (amount !== undefined) {
+            if (filled !== undefined) {
                 remaining = amount - filled;
-                if (typeof feeRate !== 'undefined')
+                if (feeRate !== undefined)
                     feeCost = feeRate * filled;
             }
         }
         let feeCurrency = undefined;
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
             feeCurrency = market['base'];
         }
@@ -212,7 +212,7 @@ module.exports = class independentreserve extends Exchange {
             'currency': feeCurrency,
         };
         let id = order['OrderGuid'];
-        let status = this.parseOrderStatus (order['Status']);
+        let status = this.parseOrderStatus (this.safeString (order, 'Status'));
         let cost = this.safeFloat (order, 'Value');
         let average = this.safeFloat (order, 'AvgPrice');
         let price = this.safeFloat (order, 'Price', average);
@@ -257,7 +257,7 @@ module.exports = class independentreserve extends Exchange {
             'orderGuid': id,
         }, params));
         let market = undefined;
-        if (typeof symbol !== 'undefined')
+        if (symbol !== undefined)
             market = this.market (symbol);
         return this.parseOrder (response, market);
     }
@@ -265,13 +265,16 @@ module.exports = class independentreserve extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = 50, params = {}) {
         await this.loadMarkets ();
         let pageIndex = this.safeInteger (params, 'pageIndex', 1);
+        if (limit === undefined) {
+            limit = 50;
+        }
         const request = this.ordered ({
             'pageIndex': pageIndex,
             'pageSize': limit,
         });
         const response = await this.privatePostGetTrades (this.extend (request, params));
         let market = undefined;
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             market = this.market (symbol);
         }
         return this.parseTrades (response['Data'], market, since, limit);
@@ -282,18 +285,18 @@ module.exports = class independentreserve extends Exchange {
         let id = this.safeString (trade, 'TradeGuid');
         let orderId = this.safeString (trade, 'OrderGuid');
         let price = this.safeFloat (trade, 'Price');
-        if (typeof price === 'undefined') {
+        if (price === undefined) {
             price = this.safeFloat (trade, 'SecondaryCurrencyTradePrice');
         }
         let amount = this.safeFloat (trade, 'VolumeTraded');
-        if (typeof amount === 'undefined') {
+        if (amount === undefined) {
             amount = this.safeFloat (trade, 'PrimaryCurrencyAmount');
         }
         let symbol = undefined;
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         let side = this.safeString (trade, 'OrderType');
-        if (typeof side !== 'undefined') {
+        if (side !== undefined) {
             if (side.indexOf ('Bid') >= 0)
                 side = 'buy';
             else if (side.indexOf ('Offer') >= 0)
@@ -365,21 +368,23 @@ module.exports = class independentreserve extends Exchange {
                 'apiKey=' + this.apiKey,
                 'nonce=' + nonce.toString (),
             ];
-            // remove this crap
             let keys = Object.keys (params);
-            let payload = [];
             for (let i = 0; i < keys.length; i++) {
                 let key = keys[i];
-                payload.push (key + '=' + params[key]);
+                let value = params[key].toString ();
+                auth.push (key + '=' + value);
             }
-            auth = this.arrayConcat (auth, payload);
             let message = auth.join (',');
             let signature = this.hmac (this.encode (message), this.encode (this.secret));
-            body = this.json ({
-                'apiKey': this.apiKey,
-                'nonce': nonce,
-                'signature': signature,
-            });
+            let query = this.ordered ({});
+            query['apiKey'] = this.apiKey;
+            query['nonce'] = nonce;
+            query['signature'] = signature.toUpperCase ();
+            for (let i = 0; i < keys.length; i++) {
+                let key = keys[i];
+                query[key] = params[key];
+            }
+            body = this.json (query);
             headers = { 'Content-Type': 'application/json' };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

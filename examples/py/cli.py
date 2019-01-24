@@ -73,7 +73,7 @@ with open(keys_file) as file:
     keys = json.load(file)
 
 config = {
-    'verbose': argv.verbose,
+    # 'verbose': argv.verbose,  # set later, after load_markets
     'timeout': 30000,
     'enableRateLimit': True,
 }
@@ -96,12 +96,27 @@ exchange = getattr(ccxt, argv.exchange_id)(config)
 
 # ------------------------------------------------------------------------------
 
-args = argv.args
+args = []
 
-# unpack json objects (mostly for extra params)
-args = [exchange.unjson(arg) if arg[0] == '{' else arg for arg in args]
+for arg in argv.args:
 
-args = [arg if re.match(r"[^\\d\\.]", arg) else float(arg) for arg in args]
+    # unpack json objects (mostly for extra params)
+    if arg[0] == '{' or arg[0] == '[':
+        args.append(exchange.unjson(arg))
+    elif arg == 'None':
+        args.append(None)
+    elif re.match(r'^[0-9+-]+$', arg):
+        args.append(int(arg))
+    elif re.match(r'^[.eE0-9+-]+$', arg):
+        args.append(float(arg))
+    elif re.match(r'^[0-9]{4}[-]?[0-9]{2}[-]?[0-9]{2}[T\s]?[0-9]{2}[:]?[0-9]{2}[:]?[0-9]{2}', arg):
+        args.append(exchange.parse8601(arg))
+    else:
+        args.append(arg)
+
+exchange.load_markets()
+
+exchange.verbose = argv.verbose  # now set verbose mode
 
 method = getattr(exchange, argv.method)
 

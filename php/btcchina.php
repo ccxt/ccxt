@@ -13,7 +13,7 @@ class btcchina extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'btcchina',
             'name' => 'BTCChina',
-            'countries' => 'CN',
+            'countries' => array ( 'CN' ),
             'rateLimit' => 1500,
             'version' => 'v1',
             'has' => array (
@@ -87,7 +87,7 @@ class btcchina extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetTicker (array (
             'market' => 'all',
         ));

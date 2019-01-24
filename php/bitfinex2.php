@@ -13,8 +13,9 @@ class bitfinex2 extends bitfinex {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitfinex2',
             'name' => 'Bitfinex v2',
-            'countries' => 'VG',
+            'countries' => array ( 'VG' ),
             'version' => 'v2',
+            'certified' => false,
             // new metainfo interface
             'has' => array (
                 'CORS' => true,
@@ -78,17 +79,19 @@ class bitfinex2 extends bitfinex {
                         'book/{symbol}/P2',
                         'book/{symbol}/P3',
                         'book/{symbol}/R0',
-                        'stats1/{key}:{size}:{symbol}/{side}/{section}',
-                        'stats1/{key}:{size}:{symbol}/long/last',
-                        'stats1/{key}:{size}:{symbol}/long/hist',
-                        'stats1/{key}:{size}:{symbol}/short/last',
-                        'stats1/{key}:{size}:{symbol}/short/hist',
+                        'stats1/{key}:{size}:{symbol}:{side}/{section}',
+                        'stats1/{key}:{size}:{symbol}/{section}',
+                        'stats1/{key}:{size}:{symbol}:long/last',
+                        'stats1/{key}:{size}:{symbol}:long/hist',
+                        'stats1/{key}:{size}:{symbol}:short/last',
+                        'stats1/{key}:{size}:{symbol}:short/hist',
                         'candles/trade:{timeframe}:{symbol}/{section}',
                         'candles/trade:{timeframe}:{symbol}/last',
                         'candles/trade:{timeframe}:{symbol}/hist',
                     ),
                     'post' => array (
                         'calc/trade/avg',
+                        'calc/fx',
                     ),
                 ),
                 'private' => array (
@@ -98,6 +101,7 @@ class bitfinex2 extends bitfinex {
                         'auth/r/orders/{symbol}/new',
                         'auth/r/orders/{symbol}/hist',
                         'auth/r/order/{symbol}:{id}/trades',
+                        'auth/r/trades/hist',
                         'auth/r/trades/{symbol}/hist',
                         'auth/r/positions',
                         'auth/r/funding/offers/{symbol}',
@@ -109,6 +113,7 @@ class bitfinex2 extends bitfinex {
                         'auth/r/funding/trades/{symbol}/hist',
                         'auth/r/info/margin/{key}',
                         'auth/r/info/funding/{key}',
+                        'auth/r/movements/hist',
                         'auth/r/movements/{currency}/hist',
                         'auth/r/stats/perf:{timeframe}/hist',
                         'auth/r/alerts',
@@ -116,6 +121,10 @@ class bitfinex2 extends bitfinex {
                         'auth/w/alert/{type}:{symbol}:{price}/del',
                         'auth/calc/order/avail',
                         'auth/r/ledgers/{symbol}/hist',
+                        'auth/r/settings',
+                        'auth/w/settings/set',
+                        'auth/w/settings/del',
+                        'auth/r/info/user',
                     ),
                 ),
             ),
@@ -168,12 +177,10 @@ class bitfinex2 extends bitfinex {
     }
 
     public function get_currency_id ($code) {
-        $isFiat = $this->is_fiat ($code);
-        $prefix = $isFiat ? 'f' : 't';
-        return $prefix . $code;
+        return 'f' . $code;
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->v1GetSymbolsDetails ();
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
@@ -215,7 +222,6 @@ class bitfinex2 extends bitfinex {
                 'active' => true,
                 'precision' => $precision,
                 'limits' => $limits,
-                'lot' => pow (10, -$precision['amount']),
                 'info' => $market,
             );
         }
@@ -234,16 +240,30 @@ class bitfinex2 extends bitfinex {
             $total = $balance[2];
             $available = $balance[4];
             if ($accountType === $balanceType) {
-                if ($currency[0] === 't')
+                $code = $currency;
+                if (is_array ($this->currencies_by_id) && array_key_exists ($currency, $this->currencies_by_id)) {
+                    $code = $this->currencies_by_id[$currency]['code'];
+                } else if ($currency[0] === 't') {
                     $currency = mb_substr ($currency, 1);
-                $uppercase = strtoupper ($currency);
-                $uppercase = $this->common_currency_code($uppercase);
+                    $code = strtoupper ($currency);
+                    $code = $this->common_currency_code($code);
+                } else {
+                    $code = $this->common_currency_code($code);
+                }
                 $account = $this->account ();
-                $account['free'] = $available;
                 $account['total'] = $total;
-                if ($account['free'])
+                if (!$available) {
+                    if ($available === 0) {
+                        $account['free'] = 0;
+                        $account['used'] = $total;
+                    } else {
+                        $account['free'] = $total;
+                    }
+                } else {
+                    $account['free'] = $available;
                     $account['used'] = $account['total'] - $account['free'];
-                $result[$uppercase] = $account;
+                }
+                $result[$code] = $account;
             }
         }
         return $this->parse_balance($result);
@@ -299,7 +319,7 @@ class bitfinex2 extends bitfinex {
             'last' => $last,
             'previousClose' => null,
             'change' => $ticker[$length - 6],
-            'percentage' => $ticker[$length - 5],
+            'percentage' => $ticker[$length - 5] * 100,
             'average' => null,
             'baseVolume' => $ticker[$length - 3],
             'quoteVolume' => null,
@@ -309,23 +329,30 @@ class bitfinex2 extends bitfinex {
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $tickers = $this->publicGetTickers (array_merge (array (
-            'symbols' => implode (',', $this->ids),
-        ), $params));
+        $request = array ();
+        if ($symbols !== null) {
+            $ids = $this->market_ids($symbols);
+            $request['symbols'] = implode (',', $ids);
+        } else {
+            $request['symbols'] = 'ALL';
+        }
+        $tickers = $this->publicGetTickers (array_merge ($request, $params));
         $result = array ();
         for ($i = 0; $i < count ($tickers); $i++) {
             $ticker = $tickers[$i];
             $id = $ticker[0];
-            $market = $this->markets_by_id[$id];
-            $symbol = $market['symbol'];
-            $result[$symbol] = $this->parse_ticker($ticker, $market);
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
+                $result[$symbol] = $this->parse_ticker($ticker, $market);
+            }
         }
         return $result;
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $market = $this->markets[$symbol];
+        $market = $this->market ($symbol);
         $ticker = $this->publicGetTickerSymbol (array_merge (array (
             'symbol' => $market['id'],
         ), $params));
@@ -354,13 +381,16 @@ class bitfinex2 extends bitfinex {
     public function fetch_trades ($symbol, $since = null, $limit = 120, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
+        $sort = '-1';
         $request = array (
             'symbol' => $market['id'],
-            'sort' => '-1',
             'limit' => $limit, // default = max = 120
         );
-        if ($since !== null)
+        if ($since !== null) {
             $request['start'] = $since;
+            $sort = '1';
+        }
+        $request['sort'] = $sort;
         $response = $this->publicGetTradesSymbolHist (array_merge ($request, $params));
         $trades = $this->sort_by($response, 1);
         return $this->parse_trades($trades, $market, null, $limit);
@@ -369,8 +399,12 @@ class bitfinex2 extends bitfinex {
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 100, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        if ($since === null)
+        if ($limit === null) {
+            $limit = 100;
+        }
+        if ($since === null) {
             $since = $this->milliseconds () - $this->parse_timeframe($timeframe) * $limit * 1000;
+        }
         $request = array (
             'symbol' => $market['id'],
             'timeframe' => $this->timeframes[$timeframe],
@@ -398,7 +432,7 @@ class bitfinex2 extends bitfinex {
         throw new NotSupported ($this->id . ' fetchDepositAddress() not implemented yet.');
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         throw new NotSupported ($this->id . ' withdraw not implemented yet');
     }
 

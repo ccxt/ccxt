@@ -6,11 +6,11 @@
 from ccxt.base.exchange import Exchange
 import base64
 import hashlib
-import json
+import math
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 
 
@@ -20,7 +20,7 @@ class btcmarkets (Exchange):
         return self.deep_extend(super(btcmarkets, self).describe(), {
             'id': 'btcmarkets',
             'name': 'BTC Markets',
-            'countries': 'AU',  # Australia
+            'countries': ['AU'],  # Australia
             'rateLimit': 1000,  # market data cached for 1 second(trades cached for 2 seconds)
             'has': {
                 'CORS': False,
@@ -39,7 +39,7 @@ class btcmarkets (Exchange):
                     'private': 'https://api.btcmarkets.net',
                     'web': 'https://btcmarkets.net/data',
                 },
-                'www': 'https://btcmarkets.net/',
+                'www': 'https://btcmarkets.net',
                 'doc': 'https://github.com/BTCMarkets/API',
             },
             'api': {
@@ -48,12 +48,20 @@ class btcmarkets (Exchange):
                         'market/{id}/tick',
                         'market/{id}/orderbook',
                         'market/{id}/trades',
+                        'v2/market/{id}/tickByTime/{timeframe}',
+                        'v2/market/{id}/trades',
+                        'v2/market/active',
                     ],
                 },
                 'private': {
                     'get': [
                         'account/balance',
                         'account/{id}/tradingfee',
+                        'v2/order/open',
+                        'v2/order/open/{id}',
+                        'v2/order/history/{id}',
+                        'v2/order/trade/history/{id}',
+                        'v2/transaction/history/{currency}',
                     ],
                     'post': [
                         'fundtransfer/withdrawCrypto',
@@ -73,19 +81,6 @@ class btcmarkets (Exchange):
                     ],
                 },
             },
-            'markets': {
-                'BTC/AUD': {'id': 'BTC/AUD', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', 'maker': 0.0085, 'taker': 0.0085, 'limits': {'amount': {'min': 0.001, 'max': None}}, 'precision': {'price': 2}},
-                'LTC/AUD': {'id': 'LTC/AUD', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD', 'maker': 0.0085, 'taker': 0.0085, 'limits': {'amount': {'min': 0.001, 'max': None}}, 'precision': {'price': 2}},
-                'ETH/AUD': {'id': 'ETH/AUD', 'symbol': 'ETH/AUD', 'base': 'ETH', 'quote': 'AUD', 'maker': 0.0085, 'taker': 0.0085, 'limits': {'amount': {'min': 0.001, 'max': None}}, 'precision': {'price': 2}},
-                'ETC/AUD': {'id': 'ETC/AUD', 'symbol': 'ETC/AUD', 'base': 'ETC', 'quote': 'AUD', 'maker': 0.0085, 'taker': 0.0085, 'limits': {'amount': {'min': 0.001, 'max': None}}, 'precision': {'price': 2}},
-                'XRP/AUD': {'id': 'XRP/AUD', 'symbol': 'XRP/AUD', 'base': 'XRP', 'quote': 'AUD', 'maker': 0.0085, 'taker': 0.0085, 'limits': {'amount': {'min': 0.001, 'max': None}}, 'precision': {'price': 2}},
-                'BCH/AUD': {'id': 'BCH/AUD', 'symbol': 'BCH/AUD', 'base': 'BCH', 'quote': 'AUD', 'maker': 0.0085, 'taker': 0.0085, 'limits': {'amount': {'min': 0.001, 'max': None}}, 'precision': {'price': 2}},
-                'LTC/BTC': {'id': 'LTC/BTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022, 'limits': {'amount': {'min': 0.001, 'max': None}}},
-                'ETH/BTC': {'id': 'ETH/BTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022, 'limits': {'amount': {'min': 0.001, 'max': None}}},
-                'ETC/BTC': {'id': 'ETC/BTC', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022, 'limits': {'amount': {'min': 0.001, 'max': None}}},
-                'XRP/BTC': {'id': 'XRP/BTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022, 'limits': {'amount': {'min': 0.001, 'max': None}}},
-                'BCH/BTC': {'id': 'BCH/BTC', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022, 'limits': {'amount': {'min': 0.001, 'max': None}}},
-            },
             'timeframes': {
                 '1m': 'minute',
                 '1h': 'hour',
@@ -96,6 +91,61 @@ class btcmarkets (Exchange):
                 '6': DDoSProtection,
             },
         })
+
+    def fetch_markets(self, params={}):
+        response = self.publicGetV2MarketActive()
+        result = []
+        markets = response['markets']
+        for i in range(0, len(markets)):
+            market = markets[i]
+            baseId = market['instrument']
+            quoteId = market['currency']
+            id = baseId + '/' + quoteId
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
+            symbol = base + '/' + quote
+            fee = 0.0085 if (quote == 'AUD') else 0.0022
+            pricePrecision = 2
+            amountPrecision = 4
+            minAmount = 0.001  # where does it come from?
+            minPrice = None
+            if quote == 'AUD':
+                if (base == 'XRP') or (base == 'OMG'):
+                    pricePrecision = 4
+                amountPrecision = -math.log10(minAmount)
+                minPrice = math.pow(10, -pricePrecision)
+            precision = {
+                'amount': amountPrecision,
+                'price': pricePrecision,
+            }
+            limits = {
+                'amount': {
+                    'min': minAmount,
+                    'max': None,
+                },
+                'price': {
+                    'min': minPrice,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            }
+            result.append({
+                'info': market,
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'maker': fee,
+                'taker': fee,
+                'limits': limits,
+                'precision': precision,
+            })
+        return result
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -230,7 +280,7 @@ class btcmarkets (Exchange):
             'id': str(response['id']),
         }
 
-    def cancel_orders(self, ids):
+    def cancel_orders(self, ids, symbol=None, params={}):
         self.load_markets()
         for i in range(0, len(ids)):
             ids[i] = int(ids[i])
@@ -239,6 +289,24 @@ class btcmarkets (Exchange):
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.cancel_orders([id])
+
+    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+        market = self.markets[symbol]
+        rate = market[takerOrMaker]
+        currency = None
+        cost = None
+        if market['quote'] == 'AUD':
+            currency = market['quote']
+            cost = float(self.cost_to_precision(symbol, amount * price))
+        else:
+            currency = market['base']
+            cost = float(self.amount_to_precision(symbol, amount))
+        return {
+            'type': takerOrMaker,
+            'currency': currency,
+            'rate': rate,
+            'cost': float(self.fee_to_precision(symbol, rate * cost)),
+        }
 
     def parse_my_trade(self, trade, market):
         multiplier = 100000000
@@ -275,7 +343,7 @@ class btcmarkets (Exchange):
         side = 'buy' if (order['orderSide'] == 'Bid') else 'sell'
         type = 'limit' if (order['ordertype'] == 'Limit') else 'market'
         timestamp = order['creationTime']
-        if not market:
+        if market is None:
             market = self.market(order['instrument'] + '/' + order['currency'])
         status = 'open'
         if order['status'] == 'Failed' or order['status'] == 'Cancelled' or order['status'] == 'Partially Cancelled' or order['status'] == 'Error':
@@ -336,7 +404,7 @@ class btcmarkets (Exchange):
         return request
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise NotSupported(self.id + ': fetchOrders requires a `symbol` parameter.')
         self.load_markets()
         market = self.market(symbol)
@@ -345,7 +413,7 @@ class btcmarkets (Exchange):
         return self.parse_orders(response['orders'], market)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise NotSupported(self.id + ': fetchOpenOrders requires a `symbol` parameter.')
         self.load_markets()
         market = self.market(symbol)
@@ -358,7 +426,7 @@ class btcmarkets (Exchange):
         return self.filter_by(orders, 'status', 'closed')
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise NotSupported(self.id + ': fetchMyTrades requires a `symbol` parameter.')
         self.load_markets()
         market = self.market(symbol)
@@ -393,11 +461,10 @@ class btcmarkets (Exchange):
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if len(body) < 2:
             return  # fallback to default error handler
         if body[0] == '{':
-            response = json.loads(body)
             if 'success' in response:
                 if not response['success']:
                     error = self.safe_string(response, 'errorCode')
@@ -407,7 +474,3 @@ class btcmarkets (Exchange):
                         raise ExceptionClass(message)
                     else:
                         raise ExchangeError(message)
-
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        return response

@@ -13,7 +13,7 @@ class yunbi extends acx {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'yunbi',
             'name' => 'YUNBI',
-            'countries' => 'CN',
+            'countries' => array ( 'CN' ),
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array (

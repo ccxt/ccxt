@@ -23,6 +23,7 @@ class bibox extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchFundingFees' => true,
                 'fetchTickers' => true,
+                'fetchOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchMyTrades' => true,
@@ -36,7 +37,7 @@ class bibox extends Exchange {
                 '15m' => '15min',
                 '30m' => '30min',
                 '1h' => '1hour',
-                '8h' => '12hour',
+                '12h' => '12hour',
                 '1d' => 'day',
                 '1w' => 'week',
             ),
@@ -49,6 +50,7 @@ class bibox extends Exchange {
                     'https://github.com/Biboxcom/api_reference/wiki/api_reference',
                 ),
                 'fees' => 'https://bibox.zendesk.com/hc/en-us/articles/115004417013-Fee-Structure-on-Bibox',
+                'referral' => 'https://www.bibox.com/signPage?id=11114745&lang=en',
             ),
             'api' => array (
                 'public' => array (
@@ -85,9 +87,11 @@ class bibox extends Exchange {
             'exceptions' => array (
                 '2021' => '\\ccxt\\InsufficientFunds', // Insufficient balance available for withdrawal
                 '2015' => '\\ccxt\\AuthenticationError', // Google authenticator is wrong
+                '2027' => '\\ccxt\\InsufficientFunds', // Insufficient balance available (for trade)
                 '2033' => '\\ccxt\\OrderNotFound', // operation failed! Orders have been completed or revoked
                 '2067' => '\\ccxt\\InvalidOrder', // Does not support market orders
                 '2068' => '\\ccxt\\InvalidOrder', // The number of orders can not be less than
+                '2085' => '\\ccxt\\InvalidOrder', // Order quantity is too small
                 '3012' => '\\ccxt\\AuthenticationError', // invalid apiKey
                 '3024' => '\\ccxt\\PermissionDenied', // wrong apikey permissions
                 '3025' => '\\ccxt\\AuthenticationError', // signature failed
@@ -96,6 +100,7 @@ class bibox extends Exchange {
             ),
             'commonCurrencies' => array (
                 'KEY' => 'Bihu',
+                'PAI' => 'PCHAIN',
             ),
         ));
     }
@@ -113,9 +118,9 @@ class bibox extends Exchange {
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $id = $base . '_' . $quote;
+            $id = $baseId . '_' . $quoteId;
             $precision = array (
-                'amount' => 8,
+                'amount' => 4,
                 'price' => 8,
             );
             $result[] = array (
@@ -127,7 +132,6 @@ class bibox extends Exchange {
                 'quoteId' => $quote,
                 'active' => true,
                 'info' => $market,
-                'lot' => pow (10, -$precision['amount']),
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
@@ -145,9 +149,10 @@ class bibox extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->safe_integer($ticker, 'timestamp', $this->seconds ());
+        // we don't set values that are not defined by the exchange
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
         $symbol = null;
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
         } else {
             $base = $ticker['coin_symbol'];
@@ -165,6 +170,11 @@ class bibox extends Exchange {
         $open = null;
         if (($last !== null) && ($change !== null))
             $open = $last - $change;
+        $percentage = $this->safe_string($ticker, 'percent');
+        if ($percentage !== null) {
+            $percentage = str_replace ('%', '', $percentage);
+            $percentage = floatval ($percentage);
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -181,7 +191,7 @@ class bibox extends Exchange {
             'last' => $last,
             'previousClose' => null,
             'change' => $change,
-            'percentage' => $this->safe_string($ticker, 'percent'),
+            'percentage' => $percentage,
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $this->safe_float($ticker, 'amount'),
@@ -202,47 +212,77 @@ class bibox extends Exchange {
     public function parse_tickers ($rawTickers, $symbols = null) {
         $tickers = array ();
         for ($i = 0; $i < count ($rawTickers); $i++) {
-            $tickers[] = $this->parse_ticker($rawTickers[$i]);
+            $ticker = $this->parse_ticker($rawTickers[$i]);
+            if (($symbols === null) || ($this->in_array($ticker['symbol'], $symbols))) {
+                $tickers[] = $ticker;
+            }
         }
-        return $this->filter_by_array($tickers, 'symbol', $symbols);
+        return $tickers;
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $response = $this->publicGetMdata (array_merge (array (
             'cmd' => 'marketAll',
         ), $params));
-        return $this->parse_tickers ($response['result'], $symbols);
+        $tickers = $this->parse_tickers ($response['result'], $symbols);
+        return $this->index_by($tickers, 'symbol');
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $trade['time'];
+        $timestamp = $this->safe_integer($trade, 'time');
+        $timestamp = $this->safe_integer($trade, 'createdAt', $timestamp);
         $side = $this->safe_integer($trade, 'side');
         $side = $this->safe_integer($trade, 'order_side', $side);
         $side = ($side === 1) ? 'buy' : 'sell';
+        $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($trade, 'pair');
-            if ($marketId !== null)
-                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
-                    $market = $this->markets_by_id[$marketId];
+            if ($marketId === null) {
+                $baseId = $this->safe_string($trade, 'coin_symbol');
+                $quoteId = $this->safe_string($trade, 'currency_symbol');
+                if (($baseId !== null) && ($quoteId !== null))
+                    $marketId = $baseId . '_' . $quoteId;
+            }
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                $market = $this->markets_by_id[$marketId];
         }
-        $symbol = ($market !== null) ? $market['symbol'] : null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         $fee = null;
-        if (is_array ($trade) && array_key_exists ('fee', $trade)) {
+        $feeCost = $this->safe_float($trade, 'fee');
+        $feeCurrency = $this->safe_string($trade, 'fee_symbol');
+        if ($feeCurrency !== null) {
+            if (is_array ($this->currencies_by_id) && array_key_exists ($feeCurrency, $this->currencies_by_id)) {
+                $feeCurrency = $this->currencies_by_id[$feeCurrency]['code'];
+            } else {
+                $feeCurrency = $this->common_currency_code($feeCurrency);
+            }
+        }
+        $feeRate = null; // todo => deduce from $market if $market is defined
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'amount');
+        $cost = $price * $amount;
+        if ($feeCost !== null) {
             $fee = array (
-                'cost' => $this->safe_float($trade, 'fee'),
-                'currency' => null,
+                'cost' => $feeCost,
+                'currency' => $feeCurrency,
+                'rate' => $feeRate,
             );
         }
         return array (
-            'id' => $this->safe_string($trade, 'id'),
             'info' => $trade,
+            'id' => $this->safe_string($trade, 'id'),
+            'order' => null, // Bibox does not have it (documented) yet
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
             'type' => 'limit',
+            'takerOrMaker' => null,
             'side' => $side,
-            'price' => $this->safe_float($trade, 'price'),
-            'amount' => $this->safe_float($trade, 'amount'),
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
             'fee' => $fee,
         );
     }
@@ -315,7 +355,6 @@ class bibox extends Exchange {
                 'info' => $currency,
                 'name' => $currency['name'],
                 'active' => $active,
-                'status' => 'ok',
                 'fee' => null,
                 'precision' => $precision,
                 'limits' => array (
@@ -369,7 +408,7 @@ class bibox extends Exchange {
             }
             $account = $this->account ();
             $balance = $indexed[$id];
-            if (gettype ($balance) == 'string') {
+            if (gettype ($balance) === 'string') {
                 $balance = floatval ($balance);
                 $account['free'] = $balance;
                 $account['used'] = 0.0;
@@ -417,19 +456,42 @@ class bibox extends Exchange {
         return $response;
     }
 
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostOrderpending (array (
+            'cmd' => 'orderpending/order',
+            'body' => array_merge (array (
+                'id' => $id,
+            ), $params),
+        ));
+        $order = $this->safe_value($response, 'result');
+        if ($this->is_empty($order)) {
+            throw new OrderNotFound ($this->id . ' $order ' . $id . ' not found');
+        }
+        return $this->parse_order($order);
+    }
+
     public function parse_order ($order, $market = null) {
         $symbol = null;
-        if ($market) {
+        if ($market === null) {
+            $marketId = null;
+            $baseId = $this->safe_string($order, 'coin_symbol');
+            $quoteId = $this->safe_string($order, 'currency_symbol');
+            if (($baseId !== null) && ($quoteId !== null))
+                $marketId = $baseId . '_' . $quoteId;
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                $market = $this->markets_by_id[$marketId];
+        }
+        if ($market !== null) {
             $symbol = $market['symbol'];
-        } else {
-            $symbol = $order['coin_symbol'] . '/' . $order['currency_symbol'];
         }
         $type = ($order['order_type'] === 1) ? 'market' : 'limit';
         $timestamp = $order['createdAt'];
         $price = $this->safe_float($order, 'price');
+        $average = $this->safe_float($order, 'deal_price');
         $filled = $this->safe_float($order, 'deal_amount');
         $amount = $this->safe_float($order, 'amount');
-        $cost = $this->safe_float($order, 'money');
+        $cost = $this->safe_float_2($order, 'deal_money', 'money');
         $remaining = null;
         if ($filled !== null) {
             if ($amount !== null)
@@ -438,9 +500,7 @@ class bibox extends Exchange {
                 $cost = $price * $filled;
         }
         $side = ($order['order_side'] === 1) ? 'buy' : 'sell';
-        $status = $this->safe_string($order, 'status');
-        if ($status !== null)
-            $status = $this->parse_order_status($status);
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $result = array (
             'info' => $order,
             'id' => $this->safe_string($order, 'id'),
@@ -453,6 +513,7 @@ class bibox extends Exchange {
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost ? $cost : floatval ($price) * $filled,
+            'average' => $average,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
@@ -464,14 +525,14 @@ class bibox extends Exchange {
     public function parse_order_status ($status) {
         $statuses = array (
             // original comments from bibox:
-            '1' => 'pending', // pending
+            '1' => 'open', // pending
             '2' => 'open', // part completed
             '3' => 'closed', // completed
             '4' => 'canceled', // part canceled
             '5' => 'canceled', // canceled
             '6' => 'canceled', // canceling
         );
-        return $this->safe_string($statuses, $status, strtolower ($status));
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -498,7 +559,7 @@ class bibox extends Exchange {
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = 200, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchClosedOrders requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchClosedOrders requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->privatePostOrderpending (array (
@@ -515,8 +576,8 @@ class bibox extends Exchange {
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
+        if ($symbol === null)
+            throw new ArgumentsRequired ($this->id . ' fetchMyTrades requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $size = ($limit) ? $limit : 200;
@@ -527,10 +588,12 @@ class bibox extends Exchange {
                 'account_type' => 0, // 0 - regular, 1 - margin
                 'page' => 1,
                 'size' => $size,
+                'coin_symbol' => $market['baseId'],
+                'currency_symbol' => $market['quoteId'],
             ), $params),
         ));
         $trades = $this->safe_value($response['result'], 'items', array ());
-        return $this->parse_orders($trades, $market, $since, $limit);
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function fetch_deposit_address ($code, $params = array ()) {
@@ -543,9 +606,12 @@ class bibox extends Exchange {
             ), $params),
         ));
         $address = $this->safe_string($response, 'result');
+        $tag = null; // todo => figure this out
         $result = array (
-            'info' => $response,
+            'currency' => $code,
             'address' => $address,
+            'tag' => $tag,
+            'info' => $response,
         );
         return $result;
     }
@@ -578,8 +644,8 @@ class bibox extends Exchange {
     }
 
     public function fetch_funding_fees ($codes = null, $params = array ()) {
-        //  by default it will try load withdrawal fees of all currencies (with separate requests)
-        //  however if you define $codes = array ( 'ETH', 'BTC' ) in args it will only load those
+        // by default it will try load withdrawal fees of all currencies (with separate requests)
+        // however if you define $codes = array ( 'ETH', 'BTC' ) in args it will only load those
         $this->load_markets();
         $withdrawFees = array ();
         $info = array ();
@@ -626,10 +692,9 @@ class bibox extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (strlen ($body) > 0) {
             if ($body[0] === '{') {
-                $response = json_decode ($body, $as_associative_array = true);
                 if (is_array ($response) && array_key_exists ('error', $response)) {
                     if (is_array ($response['error']) && array_key_exists ('code', $response['error'])) {
                         $code = $this->safe_string($response['error'], 'code');

@@ -12,7 +12,7 @@ class allcoin (okcoinusd):
         return self.deep_extend(super(allcoin, self).describe(), {
             'id': 'allcoin',
             'name': 'Allcoin',
-            'countries': 'CA',
+            'countries': ['CA'],
             'has': {
                 'CORS': False,
             },
@@ -25,7 +25,7 @@ class allcoin (okcoinusd):
                     'private': 'https://api.allcoin.com/api',
                 },
                 'www': 'https://www.allcoin.com',
-                'doc': 'https://www.allcoin.com/About/APIReference',
+                'doc': 'https://www.allcoin.com/api_market/market',
             },
             'api': {
                 'web': {
@@ -55,10 +55,9 @@ class allcoin (okcoinusd):
                     ],
                 },
             },
-            'markets': None,
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         result = []
         response = self.webGetHomeMarketOverViewDetail()
         coins = response['marketCoins']
@@ -109,17 +108,14 @@ class allcoin (okcoinusd):
         return result
 
     def parse_order_status(self, status):
-        if status == -1:
-            return 'canceled'
-        if status == 0:
-            return 'open'
-        if status == 1:
-            return 'open'  # partially filled
-        if status == 2:
-            return 'closed'
-        if status == 10:
-            return 'canceled'
-        return status
+        statuses = {
+            '-1': 'canceled',
+            '0': 'open',
+            '1': 'open',
+            '2': 'closed',
+            '10': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
 
     def get_create_date_field(self):
         # allcoin typo create_data instead of create_date

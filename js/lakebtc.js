@@ -12,7 +12,7 @@ module.exports = class lakebtc extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'lakebtc',
             'name': 'LakeBTC',
-            'countries': 'US',
+            'countries': [ 'US' ],
             'version': 'api_v2',
             'has': {
                 'CORS': true,
@@ -58,7 +58,7 @@ module.exports = class lakebtc extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetTicker ();
         let result = [];
         let keys = Object.keys (markets);
@@ -118,7 +118,7 @@ module.exports = class lakebtc extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
         let symbol = undefined;
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         let last = this.safeFloat (ticker, 'last');
         return {
@@ -213,7 +213,9 @@ module.exports = class lakebtc extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privatePostCancelOrder ({ 'params': id });
+        return await this.privatePostCancelOrder ({
+            'params': [ id ],
+        });
     }
 
     nonce () {
@@ -229,21 +231,22 @@ module.exports = class lakebtc extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
-            if (Object.keys (params).length)
-                params = params.join (',');
-            else
-                params = '';
+            let queryParams = '';
+            if ('params' in params) {
+                let paramsList = params['params'];
+                queryParams = paramsList.join (',');
+            }
             let query = this.urlencode ({
                 'tonce': nonce,
                 'accesskey': this.apiKey,
                 'requestmethod': method.toLowerCase (),
                 'id': nonce,
                 'method': path,
-                'params': params,
+                'params': queryParams,
             });
             body = this.json ({
                 'method': path,
-                'params': params,
+                'params': queryParams,
                 'id': nonce,
             });
             let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha1');

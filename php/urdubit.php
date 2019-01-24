@@ -13,7 +13,7 @@ class urdubit extends foxbit {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'urdubit',
             'name' => 'UrduBit',
-            'countries' => 'PK',
+            'countries' => array ( 'PK' ),
             'has' => array (
                 'CORS' => false,
             ),

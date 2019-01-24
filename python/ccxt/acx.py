@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import json
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 
@@ -15,7 +14,7 @@ class acx (Exchange):
         return self.deep_extend(super(acx, self).describe(), {
             'id': 'acx',
             'name': 'ACX',
-            'countries': 'AU',
+            'countries': ['AU'],
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
@@ -101,21 +100,36 @@ class acx (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetMarkets()
         result = []
         for p in range(0, len(markets)):
             market = markets[p]
             id = market['id']
             symbol = market['name']
-            base, quote = symbol.split('/')
+            baseId = self.safe_string(market, 'base_unit')
+            quoteId = self.safe_string(market, 'quote_unit')
+            if (baseId is None) or (quoteId is None):
+                ids = symbol.split('/')
+                baseId = ids[0].lower()
+                quoteId = ids[1].lower()
+            base = baseId.upper()
+            quote = quoteId.upper()
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
+            # todo: find out their undocumented precision and limits
+            precision = {
+                'amount': 8,
+                'price': 8,
+            }
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'precision': precision,
                 'info': market,
             })
         return result
@@ -248,7 +262,7 @@ class acx (Exchange):
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        if not limit:
+        if limit is None:
             limit = 500  # default is 30
         request = {
             'market': market['id'],
@@ -262,7 +276,7 @@ class acx (Exchange):
 
     def parse_order(self, order, market=None):
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         else:
             marketId = order['market']
@@ -324,14 +338,18 @@ class acx (Exchange):
             raise OrderNotFound(self.id + ' ' + self.json(order))
         return order
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
-        result = self.privatePostWithdraw(self.extend({
-            'currency': currency.lower(),
+        currency = self.currency(code)
+        # they have XRP but no docs on memo/tag
+        request = {
+            'currency': currency['id'],
             'sum': amount,
             'address': address,
-        }, params))
+        }
+        result = self.privatePostWithdraw(self.extend(request, params))
+        # withdrawal response is undocumented
         return {
             'info': result,
             'id': None,
@@ -371,8 +389,8 @@ class acx (Exchange):
                 'tonce': nonce,
             }, params))
             auth = method + '|' + request + '|' + query
-            signature = self.hmac(self.encode(auth), self.encode(self.secret))
-            suffix = query + '&signature=' + signature
+            signed = self.hmac(self.encode(auth), self.encode(self.secret))
+            suffix = query + '&signature=' + signed
             if method == 'GET':
                 url += '?' + suffix
             else:
@@ -380,9 +398,8 @@ class acx (Exchange):
                 headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if code == 400:
-            response = json.loads(body)
             error = self.safe_value(response, 'error')
             errorCode = self.safe_string(error, 'code')
             feedback = self.id + ' ' + self.json(response)

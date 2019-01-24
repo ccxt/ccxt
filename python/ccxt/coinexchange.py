@@ -19,6 +19,7 @@ class coinexchange (Exchange):
             # new metainfo interface
             'has': {
                 'privateAPI': False,
+                'fetchBalance': False,
                 'createOrder': False,
                 'createMarketOrder': False,
                 'createLimitOrder': False,
@@ -255,7 +256,7 @@ class coinexchange (Exchange):
                         'HC': 0.01,
                         'HEALTHY': 0.01,
                         'HIGH': 0.01,
-                        'HMC': 0.01,
+                        'HarmonyCoin': 0.01,
                         'HNC': 0.01,
                         'HOC': 0.01,
                         'HODL': 0.01,
@@ -540,15 +541,27 @@ class coinexchange (Exchange):
                 'price': 8,
             },
             'commonCurrencies': {
+                'ACC': 'AdCoin',
+                'ANC': 'AnyChain',
                 'BON': 'BonPeKaO',
+                'BONPAY': 'BON',
+                'eNAU': 'ENAU',
                 'ETN': 'Ethernex',
+                'FRC': 'FireRoosterCoin',
+                'GET': 'GreenEnergyToken',
                 'GDC': 'GoldenCryptoCoin',
+                'GOLD': 'GoldenCoin',
                 'GTC': 'GlobalTourCoin',
+                'HMC': 'HarmonyCoin',
                 'HNC': 'Huncoin',
+                'IBC': 'RCoin',
                 'MARS': 'MarsBux',
                 'MER': 'TheMermaidCoin',
+                'OC': 'occnetwork',
+                'PUT': 'PutinCoin',
                 'RUB': 'RubbleCoin',
                 'UP': 'UpscaleToken',
+                'VULCANO': 'VULC',
             },
         })
 
@@ -562,15 +575,11 @@ class coinexchange (Exchange):
             id = currency['CurrencyID']
             code = self.common_currency_code(currency['TickerCode'])
             active = currency['WalletStatus'] == 'online'
-            status = 'ok'
-            if not active:
-                status = 'disabled'
             result[code] = {
                 'id': id,
                 'code': code,
                 'name': currency['Name'],
                 'active': active,
-                'status': status,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -594,32 +603,34 @@ class coinexchange (Exchange):
             }
         return result
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetGetmarkets()
         markets = response['result']
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
             id = market['MarketID']
-            base = self.common_currency_code(market['MarketAssetCode'])
-            quote = self.common_currency_code(market['BaseCurrencyCode'])
-            symbol = base + '/' + quote
-            result.append({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': market['MarketAssetID'],
-                'quoteId': market['BaseCurrencyID'],
-                'active': market['Active'],
-                'lot': None,
-                'info': market,
-            })
+            baseId = self.safe_string(market, 'MarketAssetCode')
+            quoteId = self.safe_string(market, 'BaseCurrencyCode')
+            if baseId is not None and quoteId is not None:
+                base = self.common_currency_code(baseId)
+                quote = self.common_currency_code(quoteId)
+                symbol = base + '/' + quote
+                result.append({
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'active': market['Active'],
+                    'info': market,
+                })
         return result
 
     def parse_ticker(self, ticker, market=None):
         symbol = None
-        if not market:
+        if market is None:
             marketId = ticker['MarketID']
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
@@ -681,9 +692,8 @@ class coinexchange (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + path
         if api == 'public':
-            params = self.urlencode(params)
-            if len(params):
-                url += '?' + params
+            if params:
+                url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

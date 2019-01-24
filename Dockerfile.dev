@@ -1,0 +1,15 @@
+FROM ubuntu:16.04
+
+RUN apt-get update
+RUN apt-get install -y pandoc
+RUN apt-get install -y nodejs npm
+RUN apt-get install -y php-curl php-iconv php-mbstring php-bcmath
+RUN apt-get install -y python3 python3-pip
+RUN pip3 install setuptools
+
+RUN mkdir -p /app
+WORKDIR /app
+ADD . /app
+
+RUN cd python && python3 setup.py install && cd ..
+RUN npm install

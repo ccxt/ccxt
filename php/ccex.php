@@ -71,16 +71,17 @@ class ccex extends Exchange {
                 ),
             ),
             'commonCurrencies' => array (
-                'IOT' => 'IoTcoin',
                 'BLC' => 'Cryptobullcoin',
-                'XID' => 'InternationalDiamond',
-                'LUX' => 'Luxmi',
                 'CRC' => 'CoreCoin',
+                'IOT' => 'IoTcoin',
+                'LUX' => 'Luxmi',
+                'VIT' => 'VitalCoin',
+                'XID' => 'InternationalDiamond',
             ),
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $result = array ();
         $response = $this->webGetPairs ();
         $markets = $response['pairs'];
@@ -159,22 +160,21 @@ class ccex extends Exchange {
         $this->load_markets();
         $orderbooks = array ();
         $response = $this->publicGetFullorderbook ();
-        $types = is_array ($response['result']) ? array_keys ($response['result']) : array ();
-        for ($i = 0; $i < count ($types); $i++) {
-            $type = $types[$i];
-            $bidasks = $response['result'][$type];
+        $sides = is_array ($response['result']) ? array_keys ($response['result']) : array ();
+        for ($i = 0; $i < count ($sides); $i++) {
+            $side = $sides[$i];
+            $bidasks = $response['result'][$side];
             $bidasksByMarketId = $this->group_by($bidasks, 'Market');
             $marketIds = is_array ($bidasksByMarketId) ? array_keys ($bidasksByMarketId) : array ();
             for ($j = 0; $j < count ($marketIds); $j++) {
                 $marketId = $marketIds[$j];
-                $symbol = strtoupper ($marketId);
-                $side = $type;
-                if (is_array ($this->markets_by_id) && array_key_exists ($symbol, $this->markets_by_id)) {
+                $symbol = $marketId;
+                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
                     $market = $this->markets_by_id[$symbol];
                     $symbol = $market['symbol'];
                 } else {
-                    list ($base, $quote) = explode ('-', $symbol);
-                    $invertedId = $quote . '-' . $base;
+                    list ($baseId, $quoteId) = explode ('-', $symbol);
+                    $invertedId = $quoteId . '-' . $baseId;
                     if (is_array ($this->markets_by_id) && array_key_exists ($invertedId, $this->markets_by_id)) {
                         $market = $this->markets_by_id[$invertedId];
                         $symbol = $market['symbol'];

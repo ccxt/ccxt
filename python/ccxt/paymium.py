@@ -104,7 +104,9 @@ class paymium (Exchange):
         timestamp = ticker['at'] * 1000
         vwap = self.safe_float(ticker, 'vwap')
         baseVolume = self.safe_float(ticker, 'volume')
-        quoteVolume = baseVolume * vwap
+        quoteVolume = None
+        if baseVolume is not None and vwap is not None:
+            quoteVolume = baseVolume * vwap
         last = self.safe_float(ticker, 'price')
         return {
             'symbol': symbol,
@@ -159,7 +161,7 @@ class paymium (Exchange):
             'direction': side,
             'amount': amount,
         }
-        if type == 'market':
+        if type != 'market':
             order['price'] = price
         response = self.privatePostUserOrders(self.extend(order, params))
         return {
@@ -168,8 +170,8 @@ class paymium (Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
-        return self.privatePostCancelOrder(self.extend({
-            'orderNumber': id,
+        return self.privateDeleteUserOrdersUUIDCancel(self.extend({
+            'UUID': id,
         }, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

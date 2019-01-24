@@ -27,15 +27,18 @@ class okex extends okcoinusd {
                     'private' => 'https://www.okex.com/api',
                 ),
                 'www' => 'https://www.okex.com',
-                'doc' => 'https://www.okex.com/rest_getStarted.html',
-                'fees' => 'https://www.okex.com/fees.html',
+                'doc' => 'https://github.com/okcoin-okex/API-docs-OKEx.com',
+                'fees' => 'https://www.okex.com/pages/products/fees.html',
             ),
             'commonCurrencies' => array (
                 'FAIR' => 'FairGame',
-                'HMC' => 'Hi Mutual Society',
+                'HOT' => 'Hydro Protocol',
+                'HSR' => 'HC',
                 'MAG' => 'Maggie',
-                'NANO' => 'XRB',
                 'YOYO' => 'YOYOW',
+            ),
+            'options' => array (
+                'fetchTickersMethod' => 'fetch_tickers_from_api',
             ),
         ));
     }
@@ -58,8 +61,8 @@ class okex extends okcoinusd {
         );
     }
 
-    public function fetch_markets () {
-        $markets = parent::fetch_markets();
+    public function fetch_markets ($params = array ()) {
+        $markets = parent::fetch_markets($params);
         // TODO => they have a new fee schedule as of Feb 7
         // the new fees are progressive and depend on 30-day traded volume
         // the following is the worst case
@@ -75,7 +78,7 @@ class okex extends okcoinusd {
         return $markets;
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers_from_api ($symbols = null, $params = array ()) {
         $this->load_markets();
         $request = array ();
         $response = $this->publicGetTickers (array_merge ($request, $params));
@@ -84,16 +87,30 @@ class okex extends okcoinusd {
         $result = array ();
         for ($i = 0; $i < count ($tickers); $i++) {
             $ticker = $tickers[$i];
-            $market = null;
-            if (is_array ($ticker) && array_key_exists ('symbol', $ticker)) {
-                $marketId = $ticker['symbol'];
-                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
-                    $market = $this->markets_by_id[$marketId];
-            }
-            $ticker = $this->parse_ticker(array_merge ($tickers[$i], array ( 'timestamp' => $timestamp )), $market);
+            $ticker = $this->parse_ticker(array_merge ($tickers[$i], array ( 'timestamp' => $timestamp )));
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
         }
         return $result;
+    }
+
+    public function fetch_tickers_from_web ($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $request = array ();
+        $response = $this->webGetSpotMarketsTickers (array_merge ($request, $params));
+        $tickers = $response['data'];
+        $result = array ();
+        for ($i = 0; $i < count ($tickers); $i++) {
+            $ticker = $this->parse_ticker($tickers[$i]);
+            $symbol = $ticker['symbol'];
+            $result[$symbol] = $ticker;
+        }
+        return $result;
+    }
+
+    public function fetch_tickers ($symbols = null, $params = array ()) {
+        $method = $this->options['fetchTickersMethod'];
+        $response = $this->$method ($symbols, $params);
+        return $response;
     }
 }

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -12,13 +12,14 @@ module.exports = class coinone extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'coinone',
             'name': 'CoinOne',
-            'countries': 'KR', // Korea
+            'countries': [ 'KR' ], // Korea
             'rateLimit': 667,
             'version': 'v2',
             'has': {
                 'CORS': false,
                 'createMarketOrder': false,
                 'fetchTickers': true,
+                'fetchOrder': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -68,8 +69,14 @@ module.exports = class coinone extends Exchange {
                 'ETH/KRW': { 'id': 'eth', 'symbol': 'ETH/KRW', 'base': 'ETH', 'quote': 'KRW', 'baseId': 'eth', 'quoteId': 'krw' },
                 'IOTA/KRW': { 'id': 'iota', 'symbol': 'IOTA/KRW', 'base': 'IOTA', 'quote': 'KRW', 'baseId': 'iota', 'quoteId': 'krw' },
                 'LTC/KRW': { 'id': 'ltc', 'symbol': 'LTC/KRW', 'base': 'LTC', 'quote': 'KRW', 'baseId': 'ltc', 'quoteId': 'krw' },
+                'OMG/KRW': { 'id': 'omg', 'symbol': 'OMG/KRW', 'base': 'OMG', 'quote': 'KRW', 'baseId': 'omg', 'quoteId': 'krw' },
                 'QTUM/KRW': { 'id': 'qtum', 'symbol': 'QTUM/KRW', 'base': 'QTUM', 'quote': 'KRW', 'baseId': 'qtum', 'quoteId': 'krw' },
                 'XRP/KRW': { 'id': 'xrp', 'symbol': 'XRP/KRW', 'base': 'XRP', 'quote': 'KRW', 'baseId': 'xrp', 'quoteId': 'krw' },
+                'EOS/KRW': { 'id': 'eos', 'symbol': 'EOS/KRW', 'base': 'EOS', 'quote': 'KRW', 'baseId': 'eos', 'quoteId': 'krw' },
+                'DATA/KRW': { 'id': 'data', 'symbol': 'DATA/KRW', 'base': 'DATA', 'quote': 'KRW', 'baseId': 'data', 'quoteId': 'krw' },
+                'ZIL/KRW': { 'id': 'zil', 'symbol': 'ZIL/KRW', 'base': 'ZIL', 'quote': 'KRW', 'baseId': 'zil', 'quoteId': 'krw' },
+                'KNC/KRW': { 'id': 'knc', 'symbol': 'KNC/KRW', 'base': 'KNC', 'quote': 'KRW', 'baseId': 'knc', 'quoteId': 'krw' },
+                'ZRX/KRW': { 'id': 'zrx', 'symbol': 'ZRX/KRW', 'base': 'ZRX', 'quote': 'KRW', 'baseId': 'zrx', 'quoteId': 'krw' },
             },
             'fees': {
                 'trading': {
@@ -105,6 +112,7 @@ module.exports = class coinone extends Exchange {
             },
             'exceptions': {
                 '405': ExchangeNotAvailable,
+                '104': OrderNotFound,
             },
         });
     }
@@ -112,10 +120,15 @@ module.exports = class coinone extends Exchange {
     async fetchBalance (params = {}) {
         let response = await this.privatePostAccountBalance ();
         let result = { 'info': response };
-        let ids = Object.keys (response);
+        let balances = this.omit (response, [
+            'errorCode',
+            'result',
+            'normalWallets',
+        ]);
+        let ids = Object.keys (balances);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            let balance = response[id];
+            let balance = balances[id];
             let code = id.toUpperCase ();
             if (id in this.currencies_by_id)
                 code = this.currencies_by_id[id]['code'];
@@ -178,9 +191,9 @@ module.exports = class coinone extends Exchange {
         let last = this.safeFloat (ticker, 'last');
         let previousClose = this.safeFloat (ticker, 'yesterday_last');
         let change = undefined;
-        if (typeof last !== 'undefined' && typeof previousClose !== 'undefined')
+        if (last !== undefined && previousClose !== undefined)
             change = previousClose - last;
-        let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined;
+        let symbol = (market !== undefined) ? market['symbol'] : undefined;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -207,7 +220,14 @@ module.exports = class coinone extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let timestamp = parseInt (trade['timestamp']) * 1000;
-        let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined;
+        let symbol = (market !== undefined) ? market['symbol'] : undefined;
+        let is_ask = this.safeString (trade, 'is_ask');
+        let side = undefined;
+        if (is_ask === '1') {
+            side = 'sell';
+        } else if (is_ask === '0') {
+            side = 'buy';
+        }
         return {
             'id': undefined,
             'timestamp': timestamp,
@@ -215,7 +235,7 @@ module.exports = class coinone extends Exchange {
             'order': undefined,
             'symbol': symbol,
             'type': undefined,
-            'side': undefined,
+            'side': side,
             'price': this.safeFloat (trade, 'price'),
             'amount': this.safeFloat (trade, 'qty'),
             'fee': undefined,
@@ -237,24 +257,188 @@ module.exports = class coinone extends Exchange {
         if (type !== 'limit')
             throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
-        let order = {
+        let request = {
             'price': price,
             'currency': this.marketId (symbol),
             'qty': amount,
         };
         let method = 'privatePostOrder' + this.capitalize (type) + this.capitalize (side);
-        let response = await this[method] (this.extend (order, params));
-        // todo: return the full order structure
-        // return this.parseOrder (response, market);
-        let orderId = this.safeString (response, 'orderId');
-        return {
+        let response = await this[method] (this.extend (request, params));
+        let id = this.safeString (response, 'orderId');
+        if (id !== undefined) {
+            id = id.toUpperCase ();
+        }
+        let timestamp = this.milliseconds ();
+        let cost = price * amount;
+        let order = {
             'info': response,
-            'id': orderId,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'average': undefined,
+            'amount': amount,
+            'filled': undefined,
+            'remaining': amount,
+            'status': 'open',
+            'fee': undefined,
         };
+        this.orders[id] = order;
+        return order;
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let result = undefined;
+        let market = undefined;
+        if (symbol === undefined) {
+            if (id in this.orders) {
+                market = this.market (this.orders[id]['symbol']);
+            } else {
+                throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument for order ids missing in the .orders cache (the order was created with a different instance of this class or within a different run of this code).');
+            }
+        } else {
+            market = this.market (symbol);
+        }
+        try {
+            let response = await this.privatePostOrderOrderInfo (this.extend ({
+                'order_id': id,
+                'currency': market['id'],
+            }, params));
+            result = this.parseOrder (response);
+            this.orders[id] = result;
+        } catch (e) {
+            if (e instanceof OrderNotFound) {
+                if (id in this.orders) {
+                    this.orders[id]['status'] = 'canceled';
+                    result = this.orders[id];
+                } else {
+                    throw e;
+                }
+            } else {
+                throw e;
+            }
+        }
+        return result;
+    }
+
+    parseOrderStatus (status) {
+        let statuses = {
+            'live': 'open',
+            'partially_filled': 'open',
+            'filled': 'closed',
+        };
+        if (status in statuses)
+            return statuses[status];
+        return status;
+    }
+
+    parseOrder (order, market = undefined) {
+        let info = this.safeValue (order, 'info');
+        let id = this.safeString (info, 'orderId');
+        if (id !== undefined) {
+            id = id.toUpperCase ();
+        }
+        let timestamp = parseInt (info['timestamp']) * 1000;
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        let cost = undefined;
+        let side = this.safeString (info, 'type');
+        if (side.indexOf ('ask') >= 0) {
+            side = 'sell';
+        } else {
+            side = 'buy';
+        }
+        let price = this.safeFloat (info, 'price');
+        let amount = this.safeFloat (info, 'qty');
+        let remaining = this.safeFloat (info, 'remainQty');
+        let filled = undefined;
+        if (amount !== undefined) {
+            if (remaining !== undefined) {
+                filled = amount - remaining;
+            }
+            if (price !== undefined) {
+                cost = price * amount;
+            }
+        }
+        let currency = this.safeString (info, 'currency');
+        let fee = {
+            'currency': currency,
+            'cost': this.safeFloat (info, 'fee'),
+            'rate': this.safeFloat (info, 'feeRate'),
+        };
+        let symbol = undefined;
+        if (market === undefined) {
+            let marketId = currency.toLowerCase ();
+            if (marketId in this.markets_by_id)
+                market = this.markets_by_id[marketId];
+        }
+        if (market !== undefined)
+            symbol = market['symbol'];
+        let result = {
+            'info': order,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+        };
+        return result;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostOrderCancel ({ 'orderID': id });
+        let order = this.safeValue (this.orders, id);
+        let amount = undefined;
+        let price = undefined;
+        let side = undefined;
+        if (order === undefined) {
+            if (symbol === undefined) {
+                // eslint-disable-next-line quotes
+                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `symbol` argument is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
+            }
+            price = this.safeFloat (params, 'price');
+            if (price === undefined) {
+                // eslint-disable-next-line quotes
+                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `price` parameter is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
+            }
+            amount = this.safeFloat (params, 'qty');
+            if (amount === undefined) {
+                // eslint-disable-next-line quotes
+                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `qty` (amount) parameter is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
+            }
+            side = this.safeFloat (params, 'is_ask');
+            if (side === undefined) {
+                // eslint-disable-next-line quotes
+                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `is_ask` (side) parameter is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
+            }
+        } else {
+            price = order['price'];
+            amount = order['amount'];
+            side = (order['side'] === 'buy') ? 0 : 1;
+            symbol = order['symbol'];
+        }
+        let request = {
+            'order_id': id,
+            'price': price,
+            'qty': amount,
+            'is_ask': side,
+            'currency': this.marketId (symbol),
+        };
+        this.orders[id]['status'] = 'canceled';
+        return await this.privatePostOrderCancel (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -270,10 +454,10 @@ module.exports = class coinone extends Exchange {
             this.checkRequiredCredentials ();
             url += this.version + '/' + request;
             let nonce = this.nonce ().toString ();
-            let json = this.json ({
+            let json = this.json (this.extend ({
                 'access_token': this.apiKey,
                 'nonce': nonce,
-            });
+            }, params));
             let payload = this.stringToBase64 (this.encode (json));
             body = this.decode (payload);
             let secret = this.secret.toUpperCase ();
@@ -287,9 +471,8 @@ module.exports = class coinone extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if ((body[0] === '{') || (body[0] === '[')) {
-            let response = JSON.parse (body);
             if ('result' in response) {
                 let result = response['result'];
                 if (result !== 'success') {

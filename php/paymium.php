@@ -108,7 +108,9 @@ class paymium extends Exchange {
         $timestamp = $ticker['at'] * 1000;
         $vwap = $this->safe_float($ticker, 'vwap');
         $baseVolume = $this->safe_float($ticker, 'volume');
-        $quoteVolume = $baseVolume * $vwap;
+        $quoteVolume = null;
+        if ($baseVolume !== null && $vwap !== null)
+            $quoteVolume = $baseVolume * $vwap;
         $last = $this->safe_float($ticker, 'price');
         return array (
             'symbol' => $symbol,
@@ -166,7 +168,7 @@ class paymium extends Exchange {
             'direction' => $side,
             'amount' => $amount,
         );
-        if ($type === 'market')
+        if ($type !== 'market')
             $order['price'] = $price;
         $response = $this->privatePostUserOrders (array_merge ($order, $params));
         return array (
@@ -176,8 +178,8 @@ class paymium extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostCancelOrder (array_merge (array (
-            'orderNumber' => $id,
+        return $this->privateDeleteUserOrdersUUIDCancel (array_merge (array (
+            'UUID' => $id,
         ), $params));
     }
 

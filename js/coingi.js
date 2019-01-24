@@ -89,16 +89,8 @@ module.exports = class coingi extends Exchange {
         });
     }
 
-    async fetchMarkets () {
-        let response = undefined;
-        try {
-            this.parseJsonResponse = false;
-            response = await this.wwwGet ();
-            this.parseJsonResponse = true;
-        } catch (e) {
-            this.parseJsonResponse = true;
-            throw e;
-        }
+    async fetchMarkets (params = {}) {
+        let response = await this.wwwGet ();
         let parts = response.split ('do=currencyPairSelector-selectCurrencyPair" class="active">');
         let currencyParts = parts[1].split ('<div class="currency-pair-label">');
         let result = [];
@@ -114,19 +106,17 @@ module.exports = class coingi extends Exchange {
                 'amount': 8,
                 'price': 8,
             };
-            let lot = Math.pow (10, -precision['amount']);
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': id,
-                'lot': lot,
                 'active': true,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': Math.pow (10, -precision['amount']),
                         'max': Math.pow (10, precision['amount']),
                     },
                     'price': {

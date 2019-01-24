@@ -2,8 +2,9 @@
 echo "Converting .md → .rst..."
 pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=python/README.rst README.md
 pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/README.rst README.md
-pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/manual.rst ccxt.wiki/Manual.md
-pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/install.rst ccxt.wiki/Install.md
-pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/exchanges.rst ccxt.wiki/Exchange-Markets.md
-pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/exchanges-by-country.rst ccxt.wiki/Exchange-Markets-By-Country.md
+pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/FAQ.rst wiki/FAQ.md
+pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/manual.rst wiki/Manual.md
+pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/install.rst wiki/Install.md
+pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/exchanges.rst wiki/Exchange-Markets.md
+pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/exchanges-by-country.rst wiki/Exchange-Markets-By-Country.md
 echo "Successfully converted .md → .rst"

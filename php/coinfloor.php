@@ -14,7 +14,7 @@ class coinfloor extends Exchange {
             'id' => 'coinfloor',
             'name' => 'coinfloor',
             'rateLimit' => 1000,
-            'countries' => 'UK',
+            'countries' => array ( 'UK' ),
             'has' => array (
                 'CORS' => false,
                 'fetchOpenOrders' => true,
@@ -58,27 +58,42 @@ class coinfloor extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/GBP' => array ( 'id' => 'XBT/GBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP' ),
-                'BTC/EUR' => array ( 'id' => 'XBT/EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
-                'BTC/USD' => array ( 'id' => 'XBT/USD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
-                'BTC/PLN' => array ( 'id' => 'XBT/PLN', 'symbol' => 'BTC/PLN', 'base' => 'BTC', 'quote' => 'PLN' ),
-                'BCH/GBP' => array ( 'id' => 'BCH/GBP', 'symbol' => 'BCH/GBP', 'base' => 'BCH', 'quote' => 'GBP' ),
+                'BTC/GBP' => array ( 'id' => 'XBT/GBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP', 'baseId' => 'XBT', 'quoteId' => 'GBP' ),
+                'BTC/EUR' => array ( 'id' => 'XBT/EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'XBT', 'quoteId' => 'EUR' ),
+                'BTC/USD' => array ( 'id' => 'XBT/USD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'baseId' => 'XBT', 'quoteId' => 'USD' ),
+                'BTC/PLN' => array ( 'id' => 'XBT/PLN', 'symbol' => 'BTC/PLN', 'base' => 'BTC', 'quote' => 'PLN', 'baseId' => 'XBT', 'quoteId' => 'PLN' ),
+                'BCH/GBP' => array ( 'id' => 'BCH/GBP', 'symbol' => 'BCH/GBP', 'base' => 'BCH', 'quote' => 'GBP', 'baseId' => 'BCH', 'quoteId' => 'GBP' ),
             ),
         ));
     }
 
     public function fetch_balance ($params = array ()) {
-        $symbol = null;
+        $market = null;
         if (is_array ($params) && array_key_exists ('symbol', $params))
-            $symbol = $params['symbol'];
+            $market = $this->find_market($params['symbol']);
         if (is_array ($params) && array_key_exists ('id', $params))
-            $symbol = $params['id'];
-        if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchBalance requires a $symbol param');
-        // todo parse balance
-        return $this->privatePostIdBalance (array (
-            'id' => $this->market_id($symbol),
+            $market = $this->find_market($params['id']);
+        if (!$market)
+            throw new NotSupported ($this->id . ' fetchBalance requires a symbol param');
+        $response = $this->privatePostIdBalance (array (
+            'id' => $market['id'],
         ));
+        $result = array (
+            'info' => $response,
+        );
+        // base/quote used for $keys e.g. "xbt_reserved"
+        $keys = strtolower (explode ('/', $market['id']));
+        $result[$market['base']] = array (
+            'free' => floatval ($response[$keys[0] . '_available']),
+            'used' => floatval ($response[$keys[0] . '_reserved']),
+            'total' => floatval ($response[$keys[0] . '_balance']),
+        );
+        $result[$market['quote']] = array (
+            'free' => floatval ($response[$keys[1] . '_available']),
+            'used' => floatval ($response[$keys[1] . '_reserved']),
+            'total' => floatval ($response[$keys[1] . '_balance']),
+        );
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
@@ -92,7 +107,7 @@ class coinfloor extends Exchange {
         // rewrite to get the $timestamp from HTTP headers
         $timestamp = $this->milliseconds ();
         $symbol = null;
-        if ($market)
+        if ($market !== null)
             $symbol = $market['symbol'];
         $vwap = $this->safe_float($ticker, 'vwap');
         $baseVolume = $this->safe_float($ticker, 'volume');
@@ -175,8 +190,7 @@ class coinfloor extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        $timestamp = $this->parse_date($order['datetime']);
-        $datetime = $this->iso8601 ($timestamp);
+        $timestamp = $this->parse8601 ($order['datetime']);
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount');
         $cost = $price * $amount;
@@ -193,7 +207,7 @@ class coinfloor extends Exchange {
         return array (
             'info' => $order,
             'id' => $id,
-            'datetime' => $datetime,
+            'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $status,
@@ -210,7 +224,7 @@ class coinfloor extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
+        if ($symbol === null)
             throw new NotSupported ($this->id . ' fetchOpenOrders requires a $symbol param');
         $this->load_markets();
         $market = $this->market ($symbol);

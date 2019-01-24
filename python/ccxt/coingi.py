@@ -97,15 +97,8 @@ class coingi (Exchange):
             },
         })
 
-    def fetch_markets(self):
-        response = None
-        try:
-            self.parseJsonResponse = False
-            response = self.wwwGet()
-            self.parseJsonResponse = True
-        except Exception as e:
-            self.parseJsonResponse = True
-            raise e
+    def fetch_markets(self, params={}):
+        response = self.wwwGet()
         parts = response.split('do=currencyPairSelector-selectCurrencyPair" class="active">')
         currencyParts = parts[1].split('<div class="currency-pair-label">')
         result = []
@@ -121,19 +114,17 @@ class coingi (Exchange):
                 'amount': 8,
                 'price': 8,
             }
-            lot = math.pow(10, -precision['amount'])
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': id,
-                'lot': lot,
                 'active': True,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': math.pow(10, -precision['amount']),
                         'max': math.pow(10, precision['amount']),
                     },
                     'price': {

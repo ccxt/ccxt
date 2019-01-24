@@ -12,7 +12,7 @@ module.exports = class bitbank extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bitbank',
             'name': 'bitbank',
-            'countries': 'JP',
+            'countries': [ 'JP' ],
             'version': 'v1',
             'has': {
                 'fetchOHLCV': true,
@@ -49,8 +49,8 @@ module.exports = class bitbank extends Exchange {
                         '{pair}/ticker',
                         '{pair}/depth',
                         '{pair}/transactions',
-                        '{pair}/transactions/{YYYYMMDD}',
-                        '{pair}/candlestick/{candle-type}/{YYYYMMDD}',
+                        '{pair}/transactions/{yyyymmdd}',
+                        '{pair}/candlestick/{candletype}/{yyyymmdd}',
                     ],
                 },
                 'private': {
@@ -117,6 +117,7 @@ module.exports = class bitbank extends Exchange {
                 '50009': OrderNotFound,
                 '50010': OrderNotFound,
                 '60001': InsufficientFunds,
+                '60005': InvalidOrder,
             },
         });
     }
@@ -172,8 +173,9 @@ module.exports = class bitbank extends Exchange {
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'amount');
         let symbol = market['symbol'];
-        let cost = this.costToPrecision (symbol, price * amount);
+        let cost = parseFloat (this.costToPrecision (symbol, price * amount));
         let id = this.safeString (trade, 'transaction_id');
+        let takerOrMaker = this.safeString (trade, 'maker_taker');
         if (!id) {
             id = this.safeString (trade, 'trade_id');
         }
@@ -192,6 +194,7 @@ module.exports = class bitbank extends Exchange {
             'order': this.safeString (trade, 'order_id'),
             'type': this.safeString (trade, 'type'),
             'side': trade['side'],
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -226,10 +229,10 @@ module.exports = class bitbank extends Exchange {
         let date = this.milliseconds ();
         date = this.ymd (date);
         date = date.split ('-');
-        let response = await this.publicGetPairCandlestickCandleTypeYYYYMMDD (this.extend ({
+        let response = await this.publicGetPairCandlestickCandletypeYyyymmdd (this.extend ({
             'pair': market['id'],
-            'candle-type': this.timeframes[timeframe],
-            'YYYYMMDD': date.join (''),
+            'candletype': this.timeframes[timeframe],
+            'yyyymmdd': date.join (''),
         }, params));
         let ohlcv = response['data']['candlestick'][0]['ohlcv'];
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
@@ -265,7 +268,7 @@ module.exports = class bitbank extends Exchange {
         }
         if (market)
             symbol = market['symbol'];
-        let timestamp = this.safeInteger (order, 'ordered_at') * 1000;
+        let timestamp = this.safeInteger (order, 'ordered_at');
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'start_amount');
         let filled = this.safeFloat (order, 'executed_amount');
@@ -284,6 +287,12 @@ module.exports = class bitbank extends Exchange {
         } else {
             status = 'open';
         }
+        let type = this.safeString (order, 'type');
+        if (type !== undefined)
+            type = type.toLowerCase ();
+        let side = this.safeString (order, 'side');
+        if (side !== undefined)
+            side = side.toLowerCase ();
         return {
             'id': this.safeString (order, 'order_id'),
             'datetime': this.iso8601 (timestamp),
@@ -291,8 +300,8 @@ module.exports = class bitbank extends Exchange {
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
-            'type': order['type'],
-            'side': order['side'],
+            'type': type,
+            'side': side,
             'price': price,
             'cost': cost,
             'amount': amount,
@@ -307,11 +316,11 @@ module.exports = class bitbank extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (typeof price === 'undefined')
+        if (price === undefined)
             throw new InvalidOrder (this.id + ' createOrder requires a price argument for both market and limit orders');
         let request = {
             'pair': market['id'],
-            'amount': this.amountToString (symbol, amount),
+            'amount': this.amountToPrecision (symbol, amount),
             'price': this.priceToPrecision (symbol, price),
             'side': side,
             'type': type,
@@ -349,9 +358,9 @@ module.exports = class bitbank extends Exchange {
         let request = {
             'pair': market['id'],
         };
-        if (limit)
+        if (limit !== undefined)
             request['count'] = limit;
-        if (since)
+        if (since !== undefined)
             request['since'] = parseInt (since / 1000);
         let orders = await this.privateGetUserSpotActiveOrders (this.extend (request, params));
         return this.parseOrders (orders['data']['orders'], market, since, limit);
@@ -359,16 +368,16 @@ module.exports = class bitbank extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let market = undefined;
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             await this.loadMarkets ();
             market = this.market (symbol);
         }
         let request = {};
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             request['pair'] = market['id'];
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['count'] = limit;
-        if (typeof since !== 'undefined')
+        if (since !== undefined)
             request['since'] = parseInt (since / 1000);
         let trades = await this.privateGetUserSpotTradeHistory (this.extend (request, params));
         return this.parseTrades (trades['data']['trades'], market, since, limit);
@@ -380,15 +389,13 @@ module.exports = class bitbank extends Exchange {
         let response = await this.privateGetUserWithdrawalAccount (this.extend ({
             'asset': currency['id'],
         }, params));
-        // Not sure about this if there could be more accounts...
+        // Not sure about this if there could be more than one account...
         let accounts = response['data']['accounts'];
         let address = this.safeString (accounts[0], 'address');
-        let status = address ? 'ok' : 'none';
         return {
             'currency': currency,
             'address': address,
             'tag': undefined,
-            'status': status,
             'info': response,
         };
     }
@@ -510,12 +517,14 @@ module.exports = class bitbank extends Exchange {
                 '70004': 'We are unable to accept orders as the transaction is currently suspended',
                 '70005': 'Order can not be accepted because purchase order is currently suspended',
                 '70006': 'We can not accept orders because we are currently unsubscribed ',
+                '70009': 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
+                '70010': 'We are temporarily raising the minimum order quantity as the system load is now rising.',
             };
             let errorClasses = this.exceptions;
             let code = this.safeString (data, 'code');
             let message = this.safeString (errorMessages, code, 'Error');
             let ErrorClass = this.safeValue (errorClasses, code);
-            if (typeof ErrorClass !== 'undefined') {
+            if (ErrorClass !== undefined) {
                 throw new ErrorClass (message);
             } else {
                 throw new ExchangeError (this.id + ' ' + this.json (response));

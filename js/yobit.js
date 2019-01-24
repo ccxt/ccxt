@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const liqui = require ('./liqui.js');
-const { ExchangeError, InsufficientFunds, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, InvalidOrder, DDoSProtection } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -12,12 +12,15 @@ module.exports = class yobit extends liqui {
         return this.deepExtend (super.describe (), {
             'id': 'yobit',
             'name': 'YoBit',
-            'countries': 'RU',
+            'countries': [ 'RU' ],
             'rateLimit': 3000, // responses are cached every 2 seconds
             'version': '3',
             'has': {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
+                'fetchDeposits': false,
+                'fetchWithdrawals': false,
+                'fetchTransactions': false,
                 'CORS': false,
                 'withdraw': true,
             },
@@ -65,39 +68,75 @@ module.exports = class yobit extends liqui {
             'commonCurrencies': {
                 'AIR': 'AirCoin',
                 'ANI': 'ANICoin',
-                'ANT': 'AntsCoin',
+                'ANT': 'AntsCoin',  // what is this, a coin for ants?
+                'ATMCHA': 'ATM',
+                'ASN': 'Ascension',
                 'AST': 'Astral',
                 'ATM': 'Autumncoin',
                 'BCC': 'BCH',
                 'BCS': 'BitcoinStake',
                 'BLN': 'Bulleon',
+                'BOT': 'BOTcoin',
+                'BON': 'BONES',
+                'BPC': 'BitcoinPremium',
                 'BTS': 'Bitshares2',
                 'CAT': 'BitClave',
+                'CMT': 'CometCoin',
                 'COV': 'Coven Coin',
+                'COVX': 'COV',
                 'CPC': 'Capricoin',
                 'CS': 'CryptoSpots',
                 'DCT': 'Discount',
                 'DGD': 'DarkGoldCoin',
+                'DIRT': 'DIRTY',
                 'DROP': 'FaucetCoin',
+                'EKO': 'EkoCoin',
+                'ENTER': 'ENTRC',
+                'EPC': 'ExperienceCoin',
                 'ERT': 'Eristica Token',
+                'ESC': 'EdwardSnowden',
+                'EUROPE': 'EUROP',
+                'EXT': 'LifeExtension',
+                'FUNK': 'FUNKCoin',
+                'GCC': 'GlobalCryptocurrency',
+                'GEN': 'Genstake',
+                'GENE': 'Genesiscoin',
+                'GOLD': 'GoldMint',
+                'GOT': 'Giotto Coin',
+                'HTML5': 'HTML',
+                'HYPERX': 'HYPER',
                 'ICN': 'iCoin',
+                'INSANE': 'INSN',
+                'JNT': 'JointCoin',
+                'JPC': 'JupiterCoin',
                 'KNC': 'KingN Coin',
+                'LBTCX': 'LiteBitcoin',
                 'LIZI': 'LiZi',
                 'LOC': 'LocoCoin',
                 'LOCX': 'LOC',
-                'LUN': 'LunarCoin',
+                'LUNYR': 'LUN',
+                'LUN': 'LunarCoin',  // they just change the ticker if it is already taken
                 'MDT': 'Midnight',
                 'NAV': 'NavajoCoin',
+                'NBT': 'NiceBytes',
                 'OMG': 'OMGame',
+                'PAC': '$PAC',
+                'PLAY': 'PlayCoin',
+                'PIVX': 'Darknet',
+                'PRS': 'PRE',
+                'PUTIN': 'PUT',
                 'STK': 'StakeCoin',
+                'SUB': 'Subscriptio',
                 'PAY': 'EPAY',
                 'PLC': 'Platin Coin',
+                'RCN': 'RCoin',
                 'REP': 'Republicoin',
                 'RUR': 'RUB',
                 'XIN': 'XINCoin',
             },
             'options': {
                 'fetchOrdersRequiresSymbol': true,
+                'fetchTickersMaxLength': 512,
             },
         });
     }
@@ -137,7 +176,7 @@ module.exports = class yobit extends liqui {
                         account = this.account ();
                     }
                     account[key] = balances[side][lowercase];
-                    if ((typeof account['total'] !== 'undefined') && (typeof account['free'] !== 'undefined'))
+                    if ((account['total'] !== undefined) && (account['free'] !== undefined))
                         account['used'] = account['total'] - account['free'];
                     result[currency] = account;
                 }
@@ -155,7 +194,7 @@ module.exports = class yobit extends liqui {
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': undefined,
             'info': response['info'],
         };
     }
@@ -173,9 +212,48 @@ module.exports = class yobit extends liqui {
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': undefined,
             'info': response,
         };
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        // some derived classes use camelcase notation for request fields
+        let request = {
+            // 'from': 123456789, // trade ID, from which the display starts numerical 0 (test result: liqui ignores this field)
+            // 'count': 1000, // the number of trades for display numerical, default = 1000
+            // 'from_id': trade ID, from which the display starts numerical 0
+            // 'end_id': trade ID on which the display ends numerical ∞
+            // 'order': 'ASC', // sorting, default = DESC (test result: liqui ignores this field, most recent trade always goes last)
+            // 'since': 1234567890, // UTC start time, default = 0 (test result: liqui ignores this field)
+            // 'end': 1234567890, // UTC end time, default = ∞ (test result: liqui ignores this field)
+            // 'pair': 'eth_btc', // default = all markets
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['pair'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['count'] = parseInt (limit);
+        }
+        if (since !== undefined) {
+            request['since'] = parseInt (since / 1000);
+        }
+        let method = this.options['fetchMyTradesMethod'];
+        let response = await this[method] (this.extend (request, params));
+        let trades = this.safeValue (response, 'return', {});
+        let ids = Object.keys (trades);
+        let result = [];
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const trade = this.parseTrade (this.extend (trades[id], {
+                'trade_id': id,
+            }), market);
+            result.push (trade);
+        }
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -193,9 +271,8 @@ module.exports = class yobit extends liqui {
         };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if (body[0] === '{') {
-            let response = JSON.parse (body);
             if ('success' in response) {
                 if (!response['success']) {
                     if ('error_log' in response) {
@@ -205,6 +282,9 @@ module.exports = class yobit extends liqui {
                             throw new DDoSProtection (this.id + ' ' + this.json (response));
                         } else if ((response['error_log'] === 'not available') || (response['error_log'] === 'external service unavailable')) {
                             throw new DDoSProtection (this.id + ' ' + this.json (response));
+                        } else if (response['error_log'] === 'Total transaction amount') {
+                            // eg {"success":0,"error":"Total transaction amount is less than minimal total: 0.00010000"}
+                            throw new InvalidOrder (this.id + ' ' + this.json (response));
                         }
                     }
                     throw new ExchangeError (this.id + ' ' + this.json (response));

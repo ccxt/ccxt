@@ -14,7 +14,7 @@ class nova (Exchange):
         return self.deep_extend(super(nova, self).describe(), {
             'id': 'nova',
             'name': 'Novaexchange',
-            'countries': 'TZ',  # Tanzania
+            'countries': ['TZ'],  # Tanzania
             'rateLimit': 2000,
             'version': 'v2',
             'has': {
@@ -63,7 +63,7 @@ class nova (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetMarkets()
         markets = response['markets']
         result = []

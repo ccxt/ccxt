@@ -13,7 +13,7 @@ class fybse extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'fybse',
             'name' => 'FYB-SE',
-            'countries' => 'SE', // Sweden
+            'countries' => array ( 'SE' ), // Sweden
             'has' => array (
                 'CORS' => false,
             ),
