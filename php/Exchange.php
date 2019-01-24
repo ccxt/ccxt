@@ -2702,7 +2702,14 @@ abstract class Exchange extends CcxtEventEmitter {
         if (! (array_key_exists ('id', $config) && array_key_exists ('url', $config) && array_key_exists('type', $config))) {
             throw new ExchangeError ("invalid websocket configuration in exchange: " . $this->id);
         }
-        if ($config['type'] === 'ws-io') {
+        if ($config['type'] === 'signalr') {
+            return array (
+                'action'=> 'connect',
+                'conx-config'=> $config,
+                'reset-context'=> 'onconnect',
+                'conx-tpl'=> $conxTplName,
+            );
+        } else if ($config['type'] === 'ws-io') {
             return array (
                 'action'=> 'connect',
                 'conx-config'=> $config,
@@ -2890,7 +2897,10 @@ abstract class Exchange extends CcxtEventEmitter {
             'ready'=> false,
             'conx'=> null
         );
-        if ($websocketConfig['type'] === 'ws-io') {
+        $websocketConfig = $this->_websocket_on_init ($conxid, $websocketConfig);
+        if ($websocketConfig['type'] === 'signalr') {
+            $websocketConnectionInfo['conx'] = new WebsocketConnection ($websocketConfig, $this->timeout, $this->react_loop);
+        } else if ($websocketConfig['type'] === 'ws-io') {
             $websocketConnectionInfo['conx'] = new SocketIoLightConnection ($websocketConfig, $this->timeout, $this->react_loop);
         } else if ($websocketConfig['type'] === 'pusher') {
             $websocketConnectionInfo['conx'] = new PusherLightConnection ($websocketConfig, $this->timeout, $this->react_loop);
@@ -3066,6 +3076,10 @@ abstract class Exchange extends CcxtEventEmitter {
             $deferred->promise(), 'websocket_unsubscribe'), $this->react_loop);
     }
 
+    protected function _websocket_on_init ($contextId, $websocketConexConfig) {
+        return $websocketConexConfig;
+    }
+
     protected function _websocket_on_open ($contextId, $websocketConexConfig) {
     }
 
@@ -3140,7 +3154,13 @@ abstract class Exchange extends CcxtEventEmitter {
     public function gunzip($data) {
         return gzdecode($data);
     }
-
+    
+    public function inflateRaw ($data, $from = null) {
+        if ($from == 'base64') {
+            $data = base64_decode($data);
+        }
+        return gzinflate ($data);
+    }
 }
 
 

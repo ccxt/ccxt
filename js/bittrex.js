@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending, NotSupported } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -49,6 +49,7 @@ module.exports = class bittrex extends Exchange {
                     'account': 'https://{hostname}/api',
                     'market': 'https://{hostname}/api',
                     'v2': 'https://{hostname}/api/v2.0/pub',
+                    'socket': 'https://socket.{hostname}/signalr',
                 },
                 'www': 'https://bittrex.com',
                 'doc': [
@@ -102,6 +103,11 @@ module.exports = class bittrex extends Exchange {
                         'openorders',
                         'selllimit',
                         'sellmarket',
+                    ],
+                },
+                'socket': {
+                    'get': [
+                        'negotiate',
                     ],
                 },
             },
@@ -169,6 +175,25 @@ module.exports = class bittrex extends Exchange {
             'commonCurrencies': {
                 'BITS': 'SWIFT',
                 'CPC': 'CapriCoin',
+            },
+            'wsconf': {
+                'conx-tpls': {
+                    'default': {
+                        'type': 'signalr',
+                        'baseurl': 'wss://socket.bittrex.com/signalr/connect?transport=webSockets&clientProtocol=1.5&connectionToken=',
+                        'tokenUrl': 'https://socket.bittrex.com/signalr/negotiate?clientProtocol=1.5&connectionData=[{"name":"c2"}]&_=1524596108843',
+                        'disableCertCheck': true,
+                    },
+                },
+                'events': {
+                    'ob': {
+                        'conx-tpl': 'default',
+                        'conx-param': {
+                            'url': '{baseurl}{ConnectionToken}',
+                            'id': '{id}',
+                        },
+                    },
+                },
             },
         });
     }
@@ -907,7 +932,7 @@ module.exports = class bittrex extends Exchange {
         let url = this.implodeParams (this.urls['api'][api], {
             'hostname': this.hostname,
         }) + '/';
-        if (api !== 'v2')
+        if ((api !== 'v2') && (api !== 'socket'))
             url += this.version + '/';
         if (api === 'public') {
             url += api + '/' + method.toLowerCase () + path;
@@ -915,6 +940,10 @@ module.exports = class bittrex extends Exchange {
                 url += '?' + this.urlencode (params);
         } else if (api === 'v2') {
             url += path;
+            if (Object.keys (params).length)
+                url += '?' + this.urlencode (params);
+        } else if (api === 'socket') {
+            url += '/' + path;
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
@@ -939,6 +968,10 @@ module.exports = class bittrex extends Exchange {
     handleErrors (code, reason, url, method, headers, body, response = undefined) {
         if (body[0] === '{') {
             response = JSON.parse (body);
+            // {"Url":"/signalr","ConnectionToken":"...","ConnectionId":"...","KeepAliveTimeout":20.0,"DisconnectTimeout":30.0,"ConnectionTimeout":110.0,"TryWebSockets":true,"ProtocolVersion":"1.5","TransportConnectTimeout":5.0,"LongPollDelay":0.0}
+            let responseUrl = this.safeValue (response, 'Url');
+            if (responseUrl !== undefined)
+                return response;
             // { success: false, message: "message" }
             let success = this.safeValue (response, 'success');
             if (success === undefined)
@@ -1012,5 +1045,142 @@ module.exports = class bittrex extends Exchange {
         if ((api === 'account') || (api === 'market'))
             this.options['hasAlreadyAuthenticatedSuccessfully'] = true;
         return response;
+    }
+
+    async _websocketOnInit (contextId, websocketConfig) {
+        // php transpilation problem '[{"name":"c2"}]' ==> '[array ('+'"name":"c2")]'
+        let response = await this.socketGetNegotiate ({
+            'clientProtocol': '1.5',
+            'connectionData': '[{"name":"c2"}]',
+            '_': this.milliseconds (),
+        });
+        websocketConfig['url'] = this.implodeParams (websocketConfig['url'], {
+            'ConnectionToken': this.encodeURIComponent (response['ConnectionToken']),
+        });
+        return websocketConfig;
+    }
+
+    _websocketOnMessage (contextId, data) {
+        // WebsocketConnection: {"C":"d-30A89C0B-B2bAF,1","S":1,"M":[]}
+        // WebsocketConnection: {"C":"d-30A89C0B-B2bAF,2|Dj,DCF8B","G":"et1LtGEPps9CyZOiEwC3001IWa/rSLKX1sIKLK72TYwa09sSsFAeLZnCBYIzUB85QtVktyet7lOC5k522VZoWFrJ+QDfFvR5yfYxsqxMhOe4yp9J8XyzG3VGxPxW+CsuekQh/w==","M":[]}
+        // WebsocketConnection: {"R":true,"I":"1548327501"}
+        // WebsocketConnection: {"C":"d-30A89C0B-B2bAF,2|Dj,DCF8C","M":[{"H":"C2","M":"uE","A":["Xc6xDgIhEIThd5kaybIsC2yptproYaHG1pe48O6e8YjJTfM3XzEzTjDcpmPb7dsBDmdYpRSIHR6w54x2hwWHKyymKJ6oJqqaHS4w8tTdj9Ag5KvEkAPzIBpKZspD8l/SulUm0ZKryFZy3cogqlqE+sthWm4ueX/TPw=="]}]}
+        // WebsocketConnection: {"C":"d-30A89C0B-B2bAF,2|Dj,DCF8D","M":[{"H":"C2","M":"uE","A":["Lcw7DoAgEIThu0y9kiUriFuqrSYqFmpsvYTh7uLjb6b5Mhd6KJa5i0UTWxAGaM3OshA26H4hrlBLmKDiRIwXseJDRRihbDjRR/glIZjKhZJzLyhdJn/pIMz5Ms/5TLoB"]}]}
+        // WebsocketConnection: {"C":"d-30A89C0B-B2bAF,2|Dj,DCF8E","M":[{"H":"C2","M":"uE","A":["bc4xDsIwDIXhu7w5WHYSN3ZGYAUJWgZAXblE1bu3QlUFBW+WPv32gBMqbu2x2+27AwLOqM4qnAMeqM8B3R1VAq6oSZNTEebYGAdcUJl4DBvC5DlJkRi3hBcSjUTVXPJaKcrsJX1LbYiXebu4rmMf0P58p0wpmbmJ/T/dZHdy/0jORHRNvuZkP04="]}]}
+        // WebsocketConnection: {"I":"1548328520","E":"There was an error invoking Hub method 'c2.SubscribeToExchangeDeltas'."}
+        // better to create SignalR Class to do all of this?
+        let msg = JSON.parse (data);
+        let opIndex = this.safeString (msg, 'I');
+        if (opIndex !== undefined) {
+            // response to a request
+            let result = this.safeValue (msg, 'R');
+            let error = this.safeValue (msg, 'E');
+            if (opIndex !== undefined) {
+                if (opIndex.indexOf ('ob-sub_') === 0) {
+                    let rest = opIndex.replace ('ob-sub_', '');
+                    let parts = rest.split ('_');
+                    let nonce = parts[0];
+                    let id = rest.replace (nonce + '_', '');
+                    this.emit (nonce, result, new ExchangeError (error));
+                    if (result === true) {
+                        this.websocketSendJson ({
+                            'H': 'c2',
+                            'M': 'QueryExchangeState',
+                            'A': [id],
+                            'I': 'snapshot_' + rest,
+                        });
+                    }
+                } else if (opIndex.indexOf ('snapshot_') === 0) {
+                    let data = this.inflateRaw (result, 'base64');
+                    let parsedData = JSON.parse (data);
+                    this._websocketHandleOrderBookSnapshot (contextId, parsedData);
+                }
+            }
+        } else {
+            // TODO: check sequence number
+            let messages = this.safeValue (msg, 'M');
+            if (messages !== undefined) {
+                for (let i = 0; i < messages.length; i++) {
+                    let hub = this.safeString (messages[i], 'H');
+                    let method = this.safeString (messages[i], 'M');
+                    let methodArgs = this.safeValue (messages[i], 'A');
+                    if (hub === 'C2') {
+                        if (method === 'uE') {
+                            let data = this.inflateRaw (methodArgs[0], 'base64');
+                            let parsedData = JSON.parse (data);
+                            this._websocketHandleOrderBookDelta (contextId, parsedData);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    _websocketHandleOrderBookSnapshot (contextId, data) {
+        let id = this.safeString (data, 'M');
+        let symbol = this.findSymbol (id);
+        let ob = this.parseOrderBook (data, undefined, 'Z', 'S', 'R', 'Q');
+        let symbolData = this._contextGetSymbolData (contextId, 'ob', symbol);
+        symbolData['ob'] = ob;
+        this.emit ('ob', symbol, this._cloneOrderBook (symbolData['ob'], symbolData['limit']));
+        this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
+    }
+
+    _websocketHandleOrderBookDelta (contextId, data) {
+        // {"M":"USDT-BTC","N":912014,"Z":[{"TY":0,"R":3504.97634920,"Q":0.26480207},{"TY":1,"R":3504.97634919,"Q":0.0}],"S":[{"TY":0,"R":3579.37236706,"Q":0.21455380},{"TY":1,"R":6429.20850000,"Q":0.0}],"f":[]}
+        let id = this.safeString (data, 'M');
+        let symbol = this.findSymbol (id);
+        let symbolData = this._contextGetSymbolData (contextId, 'ob', symbol);
+        if ('ob' in symbolData) {
+            // snapshot previously received, else throw it
+            let bids = this.safeValue (data, 'Z');
+            let asks = this.safeValue (data, 'S');
+            if (bids !== undefined) {
+                for (let i = 0; i < bids.length; i++) {
+                    let elemType = this.safeInteger (bids[i], 'TY');
+                    let price = this.safeFloat (bids[i], 'R');
+                    let amount = this.safeFloat (bids[i], 'Q');
+                    // 0 = ADD, 1 = REMOVE, 2 = UPDATE
+                    if (elemType === 0) {
+                        this.updateBidAsk ([price, 0], symbolData['ob']['bids'], true);
+                    } else {
+                        this.updateBidAsk ([price, amount], symbolData['ob']['bids'], true);
+                    }
+                }
+            }
+            if (asks !== undefined) {
+                for (let i = 0; i < asks.length; i++) {
+                    let elemType = this.safeInteger (asks[i], 'TY');
+                    let price = this.safeFloat (asks[i], 'R');
+                    let amount = this.safeFloat (asks[i], 'Q');
+                    // 0 = ADD, 1 = REMOVE, 2 = UPDATE
+                    if (elemType === 0) {
+                        this.updateBidAsk ([price, 0], symbolData['ob']['asks'], false);
+                    } else {
+                        this.updateBidAsk ([price, amount], symbolData['ob']['asks'], false);
+                    }
+                }
+            }
+            this.emit ('ob', symbol, this._cloneOrderBook (symbolData['ob'], symbolData['limit']));
+            this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
+        }
+    }
+
+    _websocketSubscribe (contextId, event, symbol, nonce, params = {}) {
+        if (event !== 'ob') {
+            throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+        }
+        let symbolData = this._contextGetSymbolData (contextId, event, symbol);
+        symbolData['limit'] = this.safeInteger (params, 'limit', undefined);
+        let nonceStr = nonce.toString ();
+        this._contextSetSymbolData (contextId, event, symbol, symbolData);
+        // send request
+        const id = this.marketId (symbol);
+        this.websocketSendJson ({
+            'H': 'c2',
+            'M': 'SubscribeToExchangeDeltas',
+            'A': [id],
+            'I': 'ob-sub_' + nonceStr + '_' + id,
+        });
     }
 };

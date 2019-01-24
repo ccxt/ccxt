@@ -4,6 +4,7 @@ from .websocket_base_connection import WebsocketBaseConnection
 from autobahn.asyncio.websocket import WebSocketClientProtocol, \
     WebSocketClientFactory
 import asyncio
+import ssl
 from urllib.parse import urlparse
 import sys
 
@@ -63,8 +64,15 @@ class WebsocketConnection(WebsocketBaseConnection):
         else:
             future = asyncio.Future(loop=self.loop)
             try:
+                print("------------------------------>")
+                print(self.options['url'])
                 url_parsed = urlparse(self.options['url'])
-                ssl = True if url_parsed.scheme == 'wss' else False
+                print(url_parsed)
+                sys.stdout.flush()
+                ssl_param = True if url_parsed.scheme == 'wss' else False
+                if ssl_param and 'disableCertCheck' in self.options:
+                    ssl_param = ssl.SSLContext()
+                    ssl_param.verify_mode = ssl.CERT_NONE
                 port = url_parsed.port if url_parsed.port is not None else 443 if ssl else 80
 
                 client = MyClientProtocol(self, future, self.options['verbose'])
@@ -79,7 +87,7 @@ class WebsocketConnection(WebsocketBaseConnection):
                     factory = WebSocketClientFactory(self.options['url'])
                 factory.protocol = lambda: client
 
-                fut = self.loop.create_connection(factory, url_parsed.hostname, port, ssl=ssl)
+                fut = self.loop.create_connection(factory, url_parsed.hostname, port, ssl=ssl_param)
                 self.loop.call_later(self.timeout / 1000, lambda: future.done() or future.set_exception(TimeoutError()))
                 await fut
                 # self.loop.run_until_complete(fut)

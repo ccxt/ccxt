@@ -1775,6 +1775,13 @@ module.exports = class Exchange extends EventEmitter{
             throw new ExchangeError ("invalid websocket configuration in exchange: " + this.id);
         }
         switch (config['type']){
+            case 'signalr':
+                return {
+                    'action': 'connect',
+                    'conx-config': config,
+                    'reset-context': 'onconnect',
+                    'conx-tpl': conxTplName,
+                };
             case 'ws-io':
                 return {
                     'action': 'connect',
@@ -1867,7 +1874,7 @@ module.exports = class Exchange extends EventEmitter{
                     if (action['reset-context'] === 'onreconnect') {
                         this._websocketResetContext(conxid, conxtpl);
                     }
-                    this._contextSetConnectionInfo (conxid, this._websocketInitialize(conxConfig, conxid));
+                    this._contextSetConnectionInfo (conxid, await this._websocketInitialize(conxConfig, conxid));
                     break;
                 case 'connect':
                     conx = this._contextGetConnection(conxid);
@@ -1880,7 +1887,7 @@ module.exports = class Exchange extends EventEmitter{
                     } else {
                         this._websocketResetContext(conxid, conxtpl);
                     }
-                    this._contextSetConnectionInfo (conxid, this._websocketInitialize(conxConfig, conxid));
+                    this._contextSetConnectionInfo (conxid, await this._websocketInitialize(conxConfig, conxid));
                     break;
                 case 'disconnect':
                     conx = this._contextGetConnection(conxid);
@@ -1936,14 +1943,18 @@ module.exports = class Exchange extends EventEmitter{
         websocketConxInfo['conx'].sendJson(data);
     }
 
-    _websocketInitialize (websocketConfig, conxid = 'default') {
+    async _websocketInitialize (websocketConfig, conxid = 'default') {
         let websocketConnectionInfo = {
             'auth': false,
             'ready': false,
             'conx': null,
         };
+        websocketConfig = await this._websocketOnInit (conxid, websocketConfig);
         websocketConfig['agent'] = this.agent;
         switch (websocketConfig['type']){
+            case 'signalr':
+                websocketConnectionInfo['conx'] = new WebsocketConnection (websocketConfig, this.timeout);
+                break;
             case 'ws-io':
                 websocketConnectionInfo['conx'] = new SocketIoLightConnection (websocketConfig, this.timeout);
                 break;
@@ -1958,7 +1969,7 @@ module.exports = class Exchange extends EventEmitter{
                 break;
             default:
                 throw new NotSupported ("invalid websocket connection: " + websocketConfig['type'] + " for exchange " + this.id);
-        }
+        }        
         websocketConnectionInfo['conx'].on ('open', () => {
             websocketConnectionInfo['auth'] = false;
             this._websocketOnOpen(conxid, websocketConnectionInfo['conx'].options);
@@ -2131,6 +2142,9 @@ module.exports = class Exchange extends EventEmitter{
     }
 
 
+    async _websocketOnInit (contextId, websocketConexConfig) {
+        return websocketConexConfig;
+    }
 
     _websocketOnOpen (contextId, websocketConexConfig) {
     }
@@ -2205,5 +2219,12 @@ module.exports = class Exchange extends EventEmitter{
 
     gunzip (data) {
         return zlib.gunzipSync (data).toString ();
+    }
+
+    inflateRaw (data, from = null) {
+        if (from) {
+            data = Buffer.from(data, from);
+        }
+        return zlib.inflateRawSync (data).toString ();
     }
 }

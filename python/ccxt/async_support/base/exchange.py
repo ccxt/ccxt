@@ -19,6 +19,8 @@ import sys
 import yarl
 import re
 import json
+import base64
+import zlib
 
 # -----------------------------------------------------------------------------
 
@@ -539,7 +541,14 @@ class Exchange(BaseExchange, EventEmitter):
             config[key] = self.implode_params(conxParam[key], params)
         if (not (('id' in config) and ('url' in config) and ('type' in config))):
             raise ExchangeError("invalid websocket configuration in exchange: " + self.id)
-        if (config['type'] == 'ws-io'):
+        if (config['type'] == 'signalr'):
+            return {
+                'action': 'connect',
+                'conx-config': config,
+                'reset-context': 'onconnect',
+                'conx-tpl': conx_tpl_name,
+            }
+        elif (config['type'] == 'ws-io'):
             return {
                 'action': 'connect',
                 'conx-config': config,
@@ -620,17 +629,17 @@ class Exchange(BaseExchange, EventEmitter):
                     conx.close()
                 if (action['reset-context'] == 'onreconnect'):
                     self._websocket_reset_context(conxid, conxtpl)
-                self._contextSetConnectionInfo(conxid, self._websocket_initialize(conx_config, conxid))
+                self._contextSetConnectionInfo(conxid, await self._websocket_initialize(conx_config, conxid))
             elif (action['action'] == 'connect'):
                 conx = self._contextGetConnection(conxid)
                 if (conx is not None):
                     if (not conx.isActive()):
                         conx.close()
                         self._websocket_reset_context(conxid, conxtpl)
-                        self._contextSetConnectionInfo(conxid, self._websocket_initialize(conx_config, conxid))
+                        self._contextSetConnectionInfo(conxid, await self._websocket_initialize(conx_config, conxid))
                 else:
                     self._websocket_reset_context(conxid, conxtpl)
-                    self._contextSetConnectionInfo(conxid, self._websocket_initialize(conx_config, conxid))
+                    self._contextSetConnectionInfo(conxid, await self._websocket_initialize(conx_config, conxid))
             elif (action['action'] == 'disconnect'):
                 conx = self._contextGetConnection(conxid)
                 if (conx is not None):
@@ -695,15 +704,18 @@ class Exchange(BaseExchange, EventEmitter):
             sys.stdout.flush()
         websocket_conx_info['conx'].sendJson(data)
 
-    def _websocket_initialize(self, websocket_config, conxid='default'):
+    async def _websocket_initialize(self, websocket_config, conxid='default'):
         websocket_connection_info = {
             'auth': False,
             'ready': False,
             'conx': None,
         }
+        websocket_config = await self._websocket_on_init(conxid, websocket_config)
         if self.proxies is not None:
             websocket_config['proxies'] = self.proxies
-        if (websocket_config['type'] == 'ws-io'):
+        if (websocket_config['type'] == 'signalr'):
+            websocket_connection_info['conx'] = WebsocketConnection(websocket_config, self.timeout, self.asyncio_loop)
+        elif (websocket_config['type'] == 'ws-io'):
             websocket_connection_info['conx'] = SocketIoLightConnection(websocket_config, self.timeout, self.asyncio_loop)
         elif (websocket_config['type'] == 'pusher'):
             websocket_connection_info['conx'] = PusherLightConnection(websocket_config, self.timeout, self.asyncio_loop)
@@ -852,6 +864,9 @@ class Exchange(BaseExchange, EventEmitter):
         self._websocket_unsubscribe(conxid, event, symbol, oid, params)
         await future
 
+    async def _websocket_on_init(self, contextId, websocketConexConfig):
+        return websocketConexConfig
+
     def _websocket_on_open(self, contextId, websocketConexConfig):
         pass
 
@@ -946,3 +961,11 @@ class Exchange(BaseExchange, EventEmitter):
         # with gzip.GzipFile(fileobj=in_, mode='rb') as fo:
         #    gunzipped_bytes_obj = fo.read()
         # return gunzipped_bytes_obj.decode()
+
+    def inflateRaw(self, data, informat = None):
+        if informat == 'base64':
+            data = base64.b64decode(data, validate=True)
+        try:
+            return zlib.decompress(data, -zlib.MAX_WBITS)
+        except SyntaxError:
+            return zlib.decompress(data)

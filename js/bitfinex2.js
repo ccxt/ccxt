@@ -559,9 +559,9 @@ module.exports = class bitfinex2 extends bitfinex {
     _websocketHandleInfoVersion (contextId, data) {
         let version = this.safeInteger (data, 'version');
         if (typeof version !== 'undefined') {
-            this.websocketSendJson ({ 
-                'event': 'conf', 
-                'flags': 32768
+            this.websocketSendJson ({
+                'event': 'conf',
+                'flags': 32768,
             });
             this.emit ('statusok', true);
         }
