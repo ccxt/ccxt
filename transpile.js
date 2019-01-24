@@ -131,7 +131,7 @@ const commonRegexes = [
     [ /\.convertOHLCVToTradingView\s/g, '.convert_ohlcv_to_trading_view'],
     [ /\.signBodyWithSecret\s/g, '.sign_body_with_secret'],
     [ /\.isJsonEncodedObject\s/g, '.is_json_encoded_object'],
-    [ /\.setSandboxMode\s/g, '.set_sanbox_mode'],
+    [ /\.setSandboxMode\s/g, '.set_sandbox_mode'],
 ]
 
 // ----------------------------------------------------------------------------
