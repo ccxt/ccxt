@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.146'
+const version = '1.18.147'
 
 Exchange.ccxtVersion = version
 
@@ -4882,7 +4882,7 @@ module.exports = class bibox extends Exchange {
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
-            let id = base + '_' + quote;
+            let id = baseId + '_' + quoteId;
             let precision = {
                 'amount': 4,
                 'price': 8,
