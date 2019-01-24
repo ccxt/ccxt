@@ -48,6 +48,7 @@ module.exports = class bitflyer extends Exchange {
                     'get': [
                         'getpermissions',
                         'getbalance',
+                        'getbalancehistory',
                         'getcollateral',
                         'getcollateralaccounts',
                         'getaddresses',
