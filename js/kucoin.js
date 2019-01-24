@@ -12,16 +12,22 @@ module.exports = class kucoin extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'kucoin2',
             'name': 'KuCoin',
-            'country': ['HK'],
+            'country': ['SC'],
             'rateLimit': 1000,
             'version': 'v1',
             'certified': true,
             'comment': 'This comment is optional',
+            'has': {
+                'fetchMarkets': true,
+                'fetchCurrencies': true,
+                'fetchTickers': true,
+                'fetchOrderBook': true,
+            },
             'urls': {
                 'logo': 'https://example.com/image.jpg',
                 'api': {
-                    'public': 'https://openapi-sandbox.kucoin.com/api',
-                    'private': 'https://openapi-sandbox.kucoin.com/api',
+                    'public': 'https://openapi-sandbox.kucoin.com',
+                    'private': 'https://openapi-sandbox.kucoin.com',
                 },
                 'www': 'https://www.kucoin.com',
                 'doc': [
@@ -43,7 +49,7 @@ module.exports = class kucoin extends Exchange {
                         'market/candles',
                         'market/stats',
                         'currencies',
-                        'currencies/{currency}'
+                        'currencies/{currency}',
                     ],
                     'post': [
                         'bullet-public',
@@ -77,6 +83,21 @@ module.exports = class kucoin extends Exchange {
                         'orders',
                     ],
                 },
+            },
+            'timeframes': {
+                '1m': '1min',
+                '3m': '3min',
+                '5m': '5min',
+                '15m': '15min',
+                '30m': '30min',
+                '1h': '1hour',
+                '2h': '2hour',
+                '4h': '4hour',
+                '6h': '6hour',
+                '8h': '8hour',
+                '12h': '12hour',
+                '1d': '1day',
+                '1w': '1week',
             },
         });
     }
@@ -195,9 +216,42 @@ module.exports = class kucoin extends Exchange {
         return result;
     }
 
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const marketId = this.marketId (symbol);
+        const response = await this.publicGetMarketOrderbookLevelLevel ({ 'level': '1', 'symbol': marketId });
+        const responseData = response['data'];
+        return {
+            'symbol': symbol,
+            'timestamp': this.safeInteger (responseData, 'sequence'),
+            'last': this.safeFloat (responseData, 'price'),
+            'info': responseData,
+        };
+    }
+
+    async fetchOHLCV (symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const marketId = this.marketId (symbol);
+        let sinceSeconds = 0;
+        if (since !== undefined) {
+            sinceSeconds = Math.floor (since / 1000);
+        }
+        const response = await this.publicGetMarketCandles (this.extend ({
+            'symbol': marketId,
+            'startAt': sinceSeconds,
+            'type': this.timeframes[timeframe],
+        }), params);
+        return response;
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currencyId = this.currencyId (code);
+        return await this.privateGetDepositAddresses ({ 'currency': currencyId });
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let endpoint = '/' + this.version + '/' + this.implodeParams (path, params);
-        let url = this.urls['api'][api] + endpoint;
+        let endpoint = '/' + 'api' + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         const timestamp = this.nonce ();
         headers = this.extend (headers, {
@@ -206,11 +260,21 @@ module.exports = class kucoin extends Exchange {
             'KC-API-PASSPHRASE': this.password,
             'KC-API-SIGN': '',
         });
+        if (method === 'GET') {
+            endpoint = endpoint + '?' + this.urlencode (query);
+        } else {
+            body = query;
+        }
+        let url = this.urls['api'][api] + endpoint;
         if (api === 'private') {
             this.checkRequiredCredentials ();
+            let payload = [String (timestamp), method, endpoint];
+            if (body !== undefined && Object.keys (body).length > 0) {
+                payload.push (this.json (body));
+            }
+            const payloadString = payload.join ('');
+            headers['KC-API-SIGN'] = this.hmac (this.encode (payloadString), this.encode (this.secret), 'sha256', 'base64');
         }
-        console.log (query);
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-
 }
