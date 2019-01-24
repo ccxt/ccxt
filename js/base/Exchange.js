@@ -456,18 +456,16 @@ module.exports = class Exchange {
         }
     }
 
-    setSandboxMode(enabled) {
+    setSandboxMode (enabled) {
         if (!!enabled) {
-            if (this.urls.test) {
-                this.urls.api_bak = clone(this.urls.api)
-                this.urls.api = clone(this.urls.test)
+            if ('test' in this.urls) {
+                this.urls['api_backup'] = clone (this.urls['api'])
+                this.urls['api'] = clone (this.urls['test'])
             } else {
-                throw new Error('No sandbox URLs available')
+                throw new NotSupported (this.id + ' does not have a sandbox URL')
             }
-        } else {
-            if (this.urls.api_bak) {
-                this.urls.api = clone(this.urls.api_bak)
-            }
+        } else if ('api_backup' in this.urls) {
+            this.urls['api'] = clone (this.urls['api_backup'])
         }
     }
 
