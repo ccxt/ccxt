@@ -12,13 +12,13 @@ try:
 except NameError:
     basestring = str  # Python 2
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.decimal_to_precision import ROUND
 
 
 class rightbtc (Exchange):
@@ -418,8 +418,11 @@ class rightbtc (Exchange):
         market = self.market(symbol)
         order = {
             'trading_pair': market['id'],
-            'quantity': int(amount * 1e8),
-            'limit': int(price * 1e8),
+            # We need to use decimalToPrecision here, since
+            #   0.036*1e8 == 3599999.9999999995
+            # which would get truncated to 3599999 after int// which would then be rejected by rightBtc because it's too precise
+            'quantity': int(self.decimal_to_precision(amount * 1e8, ROUND, 0, self.precisionMode)),
+            'limit': int(self.decimal_to_precision(price * 1e8, ROUND, 0, self.precisionMode)),
             'type': type.upper(),
             'side': side.upper(),
         }
@@ -616,7 +619,7 @@ class rightbtc (Exchange):
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         ids = self.safe_string(params, 'ids')
         if (symbol is None) or (ids is None):
-            raise ExchangeError(self.id + " fetchOrders requires a 'symbol' argument and an extra 'ids' parameter. The 'ids' should be an array or a string of one or more order ids separated with slashes.")  # eslint-disable-line quotes
+            raise ArgumentsRequired(self.id + " fetchOrders requires a 'symbol' argument and an extra 'ids' parameter. The 'ids' should be an array or a string of one or more order ids separated with slashes.")  # eslint-disable-line quotes
         if isinstance(ids, list):
             ids = '/'.join(ids)
         self.load_markets()
@@ -709,13 +712,12 @@ class rightbtc (Exchange):
                 headers['Content-Type'] = 'application/json'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response=None):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if len(body) < 2:
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
             status = self.safe_value(response, 'status')
             if status is not None:
                 #

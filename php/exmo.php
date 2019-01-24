@@ -16,7 +16,6 @@ class exmo extends Exchange {
             'countries' => array ( 'ES', 'RU' ), // Spain, Russia
             'rateLimit' => 350, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version' => 'v1',
-            'parseJsonResponse' => false,
             'has' => array (
                 'CORS' => false,
                 'fetchClosedOrders' => 'emulated',
@@ -247,6 +246,13 @@ class exmo extends Exchange {
                 }
             }
         }
+        // sets fiat fees to null
+        $fiatGroups = $this->to_array($this->omit ($groupsByGroup, 'crypto'));
+        for ($i = 0; $i < count ($fiatGroups); $i++) {
+            $code = $this->common_currency_code($this->safe_string($fiatGroups[$i], 'title'));
+            $withdraw[$code] = null;
+            $deposit[$code] = null;
+        }
         $result = array (
             'info' => $response,
             'withdraw' => $withdraw,
@@ -315,7 +321,7 @@ class exmo extends Exchange {
                         'max' => $this->safe_float($maxCosts, $code),
                     ),
                 ),
-                'info' => $fee,
+                'info' => $id,
             );
         }
         return $result;
@@ -620,7 +626,8 @@ class exmo extends Exchange {
         $response = $this->privatePostOrderTrades (array_merge (array (
             'order_id' => (string) $id,
         ), $params));
-        return $this->parse_trades($response, $market, $since, $limit);
+        $trades = $this->safe_value($response, 'trades');
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function update_cached_orders ($openOrders, $symbol) {
@@ -736,15 +743,15 @@ class exmo extends Exchange {
                     if ($timestamp > $trade['timestamp']) {
                         $timestamp = $trade['timestamp'];
                     }
-                    $filled .= $trade['amount'];
+                    $filled = $this->sum ($filled, $trade['amount']);
                     if ($feeCost === null) {
                         $feeCost = 0.0;
                     }
-                    $feeCost .= $trade['fee']['cost'];
+                    $feeCost = $this->sum ($feeCost, $trade['fee']['cost']);
                     if ($cost === null) {
                         $cost = 0.0;
                     }
-                    $cost .= $trade['cost'];
+                    $cost = $this->sum ($cost, $trade['cost']);
                     $trades[] = $trade;
                 }
             }
@@ -885,7 +892,7 @@ class exmo extends Exchange {
         //            "$type" => "deposit",
         //            "curr" => "RUB",
         //            "$status" => "processing",
-        //            "provider" => "Qiwi (LA) [12345]",
+        //            "$provider" => "Qiwi (LA) [12345]",
         //            "$amount" => "1",
         //            "account" => "",
         //            "$txid" => "ec46f784ad976fd7f7539089d1a129fe46...",
@@ -924,7 +931,16 @@ class exmo extends Exchange {
         if (!$this->fees['funding']['percentage']) {
             $key = ($type === 'withdrawal') ? 'withdraw' : 'deposit';
             $feeCost = $this->safe_float($this->options['fundingFees'][$key], $code);
+            // users don't pay for cashbacks, no fees for that
+            $provider = $this->safe_string($transaction, 'provider');
+            if ($provider === 'cashback') {
+                $feeCost = 0;
+            }
             if ($feeCost !== null) {
+                // withdrawal $amount includes the $fee
+                if ($type === 'withdrawal') {
+                    $amount = $amount - $feeCost;
+                }
                 $fee = array (
                     'cost' => $feeCost,
                     'currency' => $code,
@@ -1019,13 +1035,10 @@ class exmo extends Exchange {
         return $this->milliseconds ();
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response = null) {
-        if (gettype ($body) !== 'string')
-            return; // fallback to default error handler
-        if (strlen ($body) < 2)
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+        if ($response === null)
             return; // fallback to default error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             if (is_array ($response) && array_key_exists ('result', $response)) {
                 //
                 //     array ("result":false,"error":"Error 50052 => Insufficient funds")
@@ -1057,10 +1070,5 @@ class exmo extends Exchange {
                 }
             }
         }
-    }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        return $this->parse_if_json_encoded_object($response);
     }
 }

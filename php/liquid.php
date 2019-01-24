@@ -646,7 +646,7 @@ class liquid extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if ($code >= 200 && $code < 300)
             return;
         $exceptions = $this->exceptions;
@@ -661,11 +661,8 @@ class liquid extends Exchange {
         if ($code === 429) {
             throw new DDoSProtection ($this->id . ' ' . $body);
         }
-        if (!$this->is_json_encoded_object($body)) {
-            return; // fallback to default error handler
-        }
         if ($response === null) {
-            $response = json_decode ($body, $as_associative_array = true);
+            return;
         }
         $feedback = $this->id . ' ' . $body;
         $message = $this->safe_string($response, 'message');

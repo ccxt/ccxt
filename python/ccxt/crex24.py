@@ -7,7 +7,6 @@ from ccxt.base.exchange import Exchange
 import base64
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
@@ -1119,12 +1118,11 @@ class crex24 (Exchange):
             headers['X-CREX24-API-SIGN'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if not self.is_json_encoded_object(body):
             return  # fallback to default error handler
         if (code >= 200) and(code < 300):
             return  # no error
-        response = json.loads(body)
         message = self.safe_string(response, 'errorDescription')
         feedback = self.id + ' ' + self.json(response)
         exact = self.exceptions['exact']

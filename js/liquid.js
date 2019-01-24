@@ -645,7 +645,7 @@ module.exports = class liquid extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if (code >= 200 && code < 300)
             return;
         const exceptions = this.exceptions;
@@ -660,11 +660,8 @@ module.exports = class liquid extends Exchange {
         if (code === 429) {
             throw new DDoSProtection (this.id + ' ' + body);
         }
-        if (!this.isJsonEncodedObject (body)) {
-            return; // fallback to default error handler
-        }
         if (response === undefined) {
-            response = JSON.parse (body);
+            return;
         }
         const feedback = this.id + ' ' + body;
         const message = this.safeString (response, 'message');

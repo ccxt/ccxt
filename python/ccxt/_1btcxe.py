@@ -174,9 +174,12 @@ class _1btcxe (Exchange):
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)
-        response = self.publicGetTransactions(self.extend({
+        request = {
             'currency': market['id'],
-        }, params))
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = self.publicGetTransactions(self.extend(request, params))
         trades = self.to_array(self.omit(response['transactions'], 'request_currency'))
         return self.parse_trades(trades, market, since, limit)
 

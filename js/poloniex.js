@@ -250,7 +250,7 @@ module.exports = class poloniex extends Exchange {
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
-                'active': true,
+                'active': market['isFrozen'] !== '1',
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -917,7 +917,7 @@ module.exports = class poloniex extends Exchange {
         await this.loadMarkets ();
         const year = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
         const now = this.seconds ();
-        let start = (since !== undefined) ? parseInt (since / 1000) : now - year;
+        let start = (since !== undefined) ? parseInt (since / 1000) : now - 10 * year;
         let request = {
             'start': start, // UNIX timestamp, required
             'end': now, // UNIX timestamp, required
@@ -1069,14 +1069,16 @@ module.exports = class poloniex extends Exchange {
         }
         const id = this.safeString (transaction, 'withdrawalNumber');
         const type = (id !== undefined) ? 'withdrawal' : 'deposit';
-        const amount = this.safeFloat (transaction, 'amount');
+        let amount = this.safeFloat (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
         let feeCost = this.safeFloat (transaction, 'fee');
         if (feeCost === undefined) {
-            if (type === 'deposit') {
-                // according to https://poloniex.com/fees/
-                feeCost = 0; // FIXME: remove hardcoded value that may change any time
-            }
+            // according to https://poloniex.com/fees/
+            feeCost = 0; // FIXME: remove hardcoded value that may change any time
+        }
+        if (type === 'withdrawal') {
+            // poloniex withdrawal amount includes the fee
+            amount = amount - feeCost;
         }
         return {
             'info': transaction,
@@ -1120,11 +1122,8 @@ module.exports = class poloniex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response = undefined) {
-        try {
-            response = JSON.parse (body);
-        } catch (e) {
-            // syntax error, resort to default error handler
+    handleErrors (code, reason, url, method, headers, body, response) {
+        if (response === undefined) {
             return;
         }
         // {"error":"Permission denied."}

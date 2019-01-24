@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 import base64
 import hashlib
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
@@ -442,9 +441,8 @@ class coinone (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
             if 'result' in response:
                 result = response['result']
                 if result != 'success':

@@ -424,7 +424,12 @@ module.exports = class bitforex extends Exchange {
         let remaining = amount - filled;
         let status = this.parseOrderStatus (this.safeString (order, 'orderState'));
         let cost = filled * price;
-        let fee = this.safeFloat (order, 'tradeFee');
+        const feeSide = (side === 'buy') ? 'base' : 'quote';
+        const feeCurrency = market[feeSide];
+        let fee = {
+            'cost': this.safeFloat (order, 'tradeFee'),
+            'currency': feeCurrency,
+        };
         let result = {
             'info': order,
             'id': id,
@@ -541,12 +546,11 @@ module.exports = class bitforex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if (typeof body !== 'string') {
             return; // fallback to default error handler
         }
         if ((body[0] === '{') || (body[0] === '[')) {
-            response = JSON.parse (body);
             let feedback = this.id + ' ' + body;
             let success = this.safeValue (response, 'success');
             if (success !== undefined) {

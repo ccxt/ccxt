@@ -72,6 +72,7 @@ const commonRegexes = [
     [ /\.parseOrders\s/g, '.parse_orders'],
     [ /\.parseOrderStatus\s/g, '.parse_order_status'],
     [ /\.parseOrder\s/g, '.parse_order'],
+    [ /\.parseJson\s/g, '.parse_json'],
     [ /\.filterByArray\s/g, '.filter_by_array'],
     [ /\.filterBySymbolSinceLimit\s/g, '.filter_by_symbol_since_limit'],
     [ /\.filterBySinceLimit\s/g, '.filter_by_since_limit'],
@@ -129,7 +130,6 @@ const commonRegexes = [
     [ /\.convertOHLCVToTradingView\s/g, '.convert_ohlcv_to_trading_view'],
     [ /\.signBodyWithSecret\s/g, '.sign_body_with_secret'],
     [ /\.isJsonEncodedObject\s/g, '.is_json_encoded_object'],
-    [ /\.parseIfJsonEncodedObject\s/g, '.parse_if_json_encoded_object'],
 ]
 
 // ----------------------------------------------------------------------------

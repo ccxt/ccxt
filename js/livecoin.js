@@ -508,7 +508,7 @@ module.exports = class livecoin extends Exchange {
             let order = rawOrders[i];
             result.push (this.parseOrder (order, market));
         }
-        return result;
+        return this.sortBy (result, 'timestamp');
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -643,11 +643,10 @@ module.exports = class livecoin extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if (typeof body !== 'string')
             return;
         if (body[0] === '{') {
-            response = JSON.parse (body);
             if (code >= 300) {
                 let errorCode = this.safeString (response, 'errorCode');
                 if (errorCode in this.exceptions) {

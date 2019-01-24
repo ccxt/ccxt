@@ -85,7 +85,13 @@ The following is a set of rules for contributing to the ccxt library codebase.
   - iconv
   - mbstring
   - PCRE
+  - bcmath (php<7.1)
 - [Pandoc](https://pandoc.org/installing.html) 1.19+
+
+Alternatively, you can use `docker` and `docker-compose` to install all dependencies in isolated environment:
+```
+  docker-compose run ccxt bash
+```
 
 ### What You Need To Know
 
@@ -241,38 +247,38 @@ And structurally:
 
 The basic JSON-skeleton for a new exchange integration is as follows:
 
-```JSON
+```
 {
-   "id": "example",
-   "name": "Example Exchange",
-   "country": [ "US", "EU", "CN", "RU" ],
-   "rateLimit": 1000,
-   "version": "1",
-   "comment": "This comment is optional",
-   "urls": {
-      "logo": "https://example.com/image.jpg",
-      "api": "https://api.example.com/api",
-      "www": "https://www.example.com",
-      "doc": [
-         "https://www.example.com/docs/api",
-         "https://www.example.com/docs/howto",
-         "https://github.com/example/docs"
-      ]
+   'id': 'example',
+   'name': 'Example Exchange',
+   'country': [ 'US', 'EU', 'CN', 'RU' ],
+   'rateLimit': 1000,
+   'version': '1',
+   'comment': 'This comment is optional',
+   'urls': {
+      'logo': 'https://example.com/image.jpg',
+      'api': 'https://api.example.com/api',
+      'www': 'https://www.example.com',
+      'doc': [
+         'https://www.example.com/docs/api',
+         'https://www.example.com/docs/howto',
+         'https://github.com/example/docs',
+      ],
    },
-   "api": {
-      "public": {
-         "get": [
-            "endpoint/example",
-            "orderbook/{pair}/full",
-            "{pair}/ticker"
-         ]
+   'api': {
+      'public': {
+         'get': [
+            'endpoint/example',
+            'orderbook/{pair}/full',
+            '{pair}/ticker',
+         ],
       },
-      "private": {
-         "post": [
-            "balance"
-         ]
-      }
-   }
+      'private': {
+         'post': [
+            'balance',
+         ],
+      },
+   },
 }
 ```
 

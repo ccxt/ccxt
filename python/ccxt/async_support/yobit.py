@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.liqui import liqui
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -261,9 +260,8 @@ class yobit (liqui):
             'id': None,
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if body[0] == '{':
-            response = json.loads(body)
             if 'success' in response:
                 if not response['success']:
                     if 'error_log' in response:

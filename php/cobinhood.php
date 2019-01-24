@@ -816,14 +816,13 @@ class cobinhood extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if ($code < 400 || $code >= 600) {
             return;
         }
         if ($body[0] !== '{') {
             throw new ExchangeError ($this->id . ' ' . $body);
         }
-        $response = json_decode ($body, $as_associative_array = true);
         $feedback = $this->id . ' ' . $this->json ($response);
         $errorCode = $this->safe_value($response['error'], 'error_code');
         if ($method === 'DELETE' || $method === 'GET') {

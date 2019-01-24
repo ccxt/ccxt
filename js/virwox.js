@@ -208,13 +208,13 @@ module.exports = class virwox extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetGetRawTradeData (this.extend ({
+        const market = this.market (symbol);
+        const response = await this.publicGetGetRawTradeData (this.extend ({
             'instrument': symbol,
             'timespan': 3600,
         }, params));
-        let result = response['result'];
-        let trades = result['data'];
+        const result = this.safeValue (response, 'result', {});
+        const trades = this.safeValue (result, 'data', []);
         return this.parseTrades (trades, market);
     }
 
@@ -267,10 +267,9 @@ module.exports = class virwox extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if (code === 200) {
             if ((body[0] === '{') || (body[0] === '[')) {
-                response = JSON.parse (body);
                 if ('result' in response) {
                     let result = response['result'];
                     if ('errorCode' in result) {

@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -554,13 +553,12 @@ class bitmex (Exchange):
             'id': response['transactID'],
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if code == 429:
             raise DDoSProtection(self.id + ' ' + body)
         if code >= 400:
             if body:
                 if body[0] == '{':
-                    response = json.loads(body)
                     error = self.safe_value(response, 'error', {})
                     message = self.safe_string(error, 'message')
                     feedback = self.id + ' ' + body

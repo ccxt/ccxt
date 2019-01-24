@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -295,13 +294,12 @@ class btcbox (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response=None):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
         # typical error response: {"result":false,"code":"401"}
         if httpCode >= 400:
             return  # resort to defaultErrorHandler
         if body[0] != '{':
             return  # not json, resort to defaultErrorHandler
-        response = json.loads(body)
         result = self.safe_value(response, 'result')
         if result is None or result is True:
             return  # either public API(no error codes expected) or success

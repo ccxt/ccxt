@@ -132,13 +132,12 @@ class wex extends liqui {
         );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if ($code === 200) {
             if ($body[0] !== '{') {
                 // $response is not JSON -> resort to default $error handler
                 return;
             }
-            $response = json_decode ($body, $as_associative_array = true);
             if (is_array ($response) && array_key_exists ('success', $response)) {
                 if (!$response['success']) {
                     $error = $this->safe_string($response, 'error');

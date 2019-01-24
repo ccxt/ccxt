@@ -7,7 +7,6 @@ from ccxt.async_support.base.exchange import Exchange
 import base64
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -707,11 +706,10 @@ class buda (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if not self.is_json_encoded_object(body):
             return  # fallback to default error handler
         if code >= 400:
-            response = json.loads(body)
             errorCode = self.safe_string(response, 'code')
             message = self.safe_string(response, 'message', body)
             feedback = self.name + ': ' + message

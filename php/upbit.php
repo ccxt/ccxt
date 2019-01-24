@@ -1210,7 +1210,7 @@ class upbit extends Exchange {
         );
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market_id($symbol);
+            $market = $this->market ($symbol);
             $request['market'] = $market['id'];
         }
         $response = $this->privateGetOrders (array_merge ($request, $params));
@@ -1472,10 +1472,9 @@ class upbit extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response = null) {
-        if (!$this->is_json_encoded_object($body))
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+        if ($response === null)
             return; // fallback to default $error handler
-        $response = json_decode ($body, $as_associative_array = true);
         //
         //   array ( 'error' => array ( 'message' => "Missing request parameter $error-> Check the required parameters!", 'name' =>  400 ) ),
         //   array ( 'error' => array ( 'message' => "side is missing, side does not have a valid value", 'name' => "validation_error" ) ),

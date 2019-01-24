@@ -162,7 +162,6 @@ module.exports = class Exchange {
                     'deposit': {},
                 },
             },
-            'parseJsonResponse': true, // whether a reply is required to be in JSON or not
             'skipJsonOnStatusCodes': [], // array of http status codes which override requirement for JSON response
             'exceptions': undefined,
             'httpExceptions': {
@@ -178,6 +177,7 @@ module.exports = class Exchange {
                 '521': ExchangeNotAvailable,
                 '522': ExchangeNotAvailable,
                 '525': ExchangeNotAvailable,
+                '526': ExchangeNotAvailable,
                 '400': ExchangeNotAvailable,
                 '403': ExchangeNotAvailable,
                 '405': ExchangeNotAvailable,
@@ -303,7 +303,7 @@ module.exports = class Exchange {
         this.debug         = false
         this.journal       = 'debug.json'
         this.userAgent     = undefined
-        this.twofa         = false // two-factor authentication (2FA)
+        this.twofa         = undefined // two-factor authentication (2FA)
 
         this.apiKey        = undefined
         this.secret        = undefined
@@ -387,10 +387,15 @@ module.exports = class Exchange {
         return encodeURIComponent (...args)
     }
 
-    checkRequiredCredentials () {
+    checkRequiredCredentials (error = true) {
         Object.keys (this.requiredCredentials).forEach ((key) => {
-            if (this.requiredCredentials[key] && !this[key])
-                throw new AuthenticationError (this.id + ' requires `' + key + '`')
+            if (this.requiredCredentials[key] && !this[key]) {
+                if (error) {
+                    throw new AuthenticationError (this.id + ' requires `' + key + '`')
+                } else {
+                    return error
+                }
+            }
         })
     }
 
@@ -535,10 +540,14 @@ module.exports = class Exchange {
         return this.fetch2 (path, type, method, params, headers, body)
     }
 
-    parseJson (response, responseBody, url, method) {
+    parseJson (jsonString) {
+        return JSON.parse (jsonString)
+    }
+
+    parseRestResponse (response, responseBody, url, method) {
         try {
 
-            return (responseBody.length > 0) ? JSON.parse (responseBody) : {} // empty object for empty body
+            return (responseBody.length > 0) ? this.parseJson (responseBody) : {} // empty object for empty body
 
         } catch (e) {
 
@@ -581,7 +590,7 @@ module.exports = class Exchange {
         return undefined;
     }
 
-    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response = undefined) {
+    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response) {
         // override me
     }
 
@@ -612,10 +621,6 @@ module.exports = class Exchange {
         throw new error ([ this.id, method, url, code, reason, details ].join (' '))
     }
 
-    parseIfJsonEncodedObject (input) {
-        return (this.isJsonEncodedObject (input) ? JSON.parse (input) : input)
-    }
-
     isJsonEncodedObject (object) {
         return ((typeof object === 'string') &&
                 (object.length >= 2) &&
@@ -635,8 +640,8 @@ module.exports = class Exchange {
 
         return response.text ().then ((responseBody) => {
 
-            let jsonRequired = this.parseJsonResponse && !this.skipJsonOnStatusCodes.includes (response.status)
-            let json = jsonRequired ? this.parseJson (response, responseBody, url, method) : undefined
+            const shouldParseJson = this.isJsonEncodedObject (responseBody) && !this.skipJsonOnStatusCodes.includes (response.status)
+            const json = shouldParseJson ? this.parseRestResponse (response, responseBody, url, method) : undefined
 
             let responseHeaders = this.getResponseHeaders (response)
 
@@ -659,7 +664,7 @@ module.exports = class Exchange {
             this.handleErrors (...args)
             this.defaultErrorHandler (response, responseBody, url, method)
 
-            return jsonRequired ? json : responseBody
+            return json || responseBody
         })
     }
 
@@ -1302,8 +1307,12 @@ module.exports = class Exchange {
     // ------------------------------------------------------------------------
     // web3 / 0x methods
 
+    static hasWeb3 () {
+        return Web3 && ethUtil && ethAbi && BigNumber
+    }
+
     checkRequiredDependencies () {
-        if (!Web3 || !ethUtil || !ethAbi || !BigNumber) {
+        if (!Exchange.hasWeb3 ()) {
             throw new ExchangeError ('The following npm modules are required:\nnpm install web3 ethereumjs-util ethereumjs-abi bignumber.js --no-save');
         }
     }
@@ -1427,8 +1436,86 @@ module.exports = class Exchange {
         ]);
     }
 
+    getZeroExOrderHashV2 (order) {
+        // https://github.com/0xProject/0x-monorepo/blob/development/python-packages/order_utils/src/zero_ex/order_utils/__init__.py
+        const addressPadding = '000000000000000000000000';
+        const header = '1901';
+        const domainStructHeader = '91ab3d17e3a50a9d89e63fd30b92be7f5336b03b287bb946787a83a9d62a2766f0f24618f4c4be1e62e026fb039a20ef96f4495294817d1027ffaa6d1f70e61ead7c5bef027816a800da1736444fb58a807ef4c9603b7848673f7e3a68eb14a5';
+        const orderSchemaHash = '770501f88a26ede5c04a20ef877969e961eb11fc13b78aaf414b633da0d4f86f';
+
+        const domainStructHash = ethAbi.soliditySHA3 (
+            [
+                'bytes',
+                'bytes',
+                'address'
+            ],
+            [
+                Buffer.from (domainStructHeader, 'hex'),
+                Buffer.from (addressPadding, 'hex'),
+                order['exchangeAddress']
+            ]
+        );
+        const orderStructHash = ethAbi.soliditySHA3 (
+            [
+                'bytes',
+                'bytes',
+                'address',
+                'bytes',
+                'address',
+                'bytes',
+                'address',
+                'bytes',
+                'address',
+                'uint256',
+                'uint256',
+                'uint256',
+                'uint256',
+                'uint256',
+                'uint256',
+                'string',
+                'string'
+            ],
+            [
+                Buffer.from (orderSchemaHash, 'hex'),
+                Buffer.from (addressPadding, 'hex'),
+                order['makerAddress'],
+                Buffer.from (addressPadding, 'hex'),
+                order['takerAddress'],
+                Buffer.from (addressPadding, 'hex'),
+                order['feeRecipientAddress'],
+                Buffer.from (addressPadding, 'hex'),
+                order['senderAddress'],
+                order['makerAssetAmount'],
+                order['takerAssetAmount'],
+                order['makerFee'],
+                order['takerFee'],
+                order['expirationTimeSeconds'],
+                order['salt'],
+                ethUtil.keccak (Buffer.from (order['makerAssetData'].slice(2), 'hex')),
+                ethUtil.keccak (Buffer.from (order['takerAssetData'].slice(2), 'hex')),
+            ]
+        );
+
+        return '0x' + ethUtil.keccak (
+            Buffer.concat ([
+                Buffer.from (header, 'hex'),
+                domainStructHash,
+                orderStructHash
+            ])
+        ).toString ('hex');
+    }
+
     signZeroExOrder (order, privateKey) {
         const orderHash = this.getZeroExOrderHash (order);
+        const signature = this.signMessage (orderHash, privateKey);
+        return this.extend (order, {
+            'orderHash': orderHash,
+            'ecSignature': signature, // todo fix v if needed
+        })
+    }
+
+    signZeroExOrderV2 (order, privateKey) {
+        const orderHash = this.getZeroExOrderHashV2 (order);
         const signature = this.signMessage (orderHash, privateKey);
         return this.extend (order, {
             'orderHash': orderHash,
@@ -1491,5 +1578,13 @@ module.exports = class Exchange {
     signMessage2 (message, privateKey) {
         // an alternative to signMessage using ethUtil (ethereumjs-util) instead of web3
         return this.signHash (this.hashMessage (message), privateKey.slice (-64))
+    }
+
+    oath (key) {
+        if (typeof this.twofa !== 'undefined') {
+            return this.totp (key)
+        } else {
+            throw new ExchangeError (this.id + ' this.twofa has not been set')
+        }
     }
 }

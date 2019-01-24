@@ -183,9 +183,13 @@ class _1btcxe extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
-        $response = $this->publicGetTransactions (array_merge (array (
+        $request = array (
             'currency' => $market['id'],
-        ), $params));
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->publicGetTransactions (array_merge ($request, $params));
         $trades = $this->to_array($this->omit ($response['transactions'], 'request_currency'));
         return $this->parse_trades($trades, $market, $since, $limit);
     }

@@ -13,7 +13,6 @@ except NameError:
     basestring = str  # Python 2
 import base64
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import InsufficientFunds
@@ -1277,7 +1276,7 @@ class hitbtc2 (hitbtc):
         url = self.urls['api'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if not isinstance(body, basestring):
             return
         if code >= 400:
@@ -1287,7 +1286,6 @@ class hitbtc2 (hitbtc):
                 raise ExchangeNotAvailable(feedback)
             # {"error":{"code":20002,"message":"Order not found","description":""}}
             if body[0] == '{':
-                response = json.loads(body)
                 if 'error' in response:
                     code = self.safe_string(response['error'], 'code')
                     exceptions = self.exceptions

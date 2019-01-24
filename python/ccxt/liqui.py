@@ -12,7 +12,6 @@ try:
 except NameError:
     basestring = str  # Python 2
 import hashlib
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -694,10 +693,9 @@ class liqui (Exchange):
                     }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response=None):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
         if not self.is_json_encoded_object(body):
             return  # fallback to default error handler
-        response = json.loads(body)
         if 'success' in response:
             #
             # 1 - Liqui only returns the integer 'success' key from their private API

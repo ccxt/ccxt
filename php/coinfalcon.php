@@ -144,12 +144,12 @@ class coinfalcon extends Exchange {
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
-        $this->load_markets();
         $tickers = $this->fetch_tickers($params);
         return $tickers[$symbol];
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->publicGetMarkets ();
         $tickers = $response['data'];
         $result = array ();
@@ -361,7 +361,7 @@ class coinfalcon extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if ($code < 400) {
             return;
         }

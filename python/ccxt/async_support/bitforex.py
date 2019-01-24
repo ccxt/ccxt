@@ -11,7 +11,6 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
@@ -419,7 +418,12 @@ class bitforex (Exchange):
         remaining = amount - filled
         status = self.parse_order_status(self.safe_string(order, 'orderState'))
         cost = filled * price
-        fee = self.safe_float(order, 'tradeFee')
+        feeSide = 'base' if (side == 'buy') else 'quote'
+        feeCurrency = market[feeSide]
+        fee = {
+            'cost': self.safe_float(order, 'tradeFee'),
+            'currency': feeCurrency,
+        }
         result = {
             'info': order,
             'id': id,
@@ -524,11 +528,10 @@ class bitforex (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
             feedback = self.id + ' ' + body
             success = self.safe_value(response, 'success')
             if success is not None:

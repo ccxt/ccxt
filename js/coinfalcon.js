@@ -143,12 +143,12 @@ module.exports = class coinfalcon extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
         let tickers = await this.fetchTickers (params);
         return tickers[symbol];
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.publicGetMarkets ();
         let tickers = response['data'];
         let result = {};
@@ -360,7 +360,7 @@ module.exports = class coinfalcon extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if (code < 400) {
             return;
         }

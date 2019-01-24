@@ -1183,14 +1183,13 @@ class crex24 extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (!$this->is_json_encoded_object($body)) {
             return; // fallback to default error handler
         }
         if (($code >= 200) && ($code < 300)) {
             return; // no error
         }
-        $response = json_decode ($body, $as_associative_array = true);
         $message = $this->safe_string($response, 'errorDescription');
         $feedback = $this->id . ' ' . $this->json ($response);
         $exact = $this->exceptions['exact'];

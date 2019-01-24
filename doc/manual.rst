@@ -55,7 +55,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 Exchanges
 =========
 
-The ccxt library currently supports the following 132 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 133 cryptocurrency exchange markets and trading APIs:
 
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 |                      | id                 | name                                                                                    | certified                                                            | ver   | doc                                                                                                 | countries                                |
@@ -186,6 +186,8 @@ The ccxt library currently supports the following 132 cryptocurrency exchange ma
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |coolcoin|           | coolcoin           | `CoolCoin <https://www.coolcoin.com>`__                                                 |                                                                      | \*    | `API <https://www.coolcoin.com/help.api.html>`__                                                    | Hong Kong                                |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
+| |coss|               | coss               | `COSS <https://www.coss.io/c/reg?r=OWCMHQVW2Q>`__                                       | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | 1     | `API <https://api.coss.io/v1/spec>`__                                                               | Singapore, Netherlands                   |
++----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |crex24|             | crex24             | `CREX24 <https://crex24.com/?refid=slxsjsjtil8xexl9hksr>`__                             |                                                                      | 2     | `API <https://docs.crex24.com/trade-api/v2>`__                                                      | Estonia                                  |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |crypton|            | crypton            | `Crypton <https://cryptonbtc.com>`__                                                    |                                                                      | 1     | `API <https://cryptonbtc.docs.apiary.io/>`__                                                        | EU                                       |
@@ -244,7 +246,7 @@ The ccxt library currently supports the following 132 cryptocurrency exchange ma
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |kraken|             | kraken             | `Kraken <https://www.kraken.com>`__                                                     | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | 0     | `API <https://www.kraken.com/en-us/help/api>`__                                                     | US                                       |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
-| |kucoin|             | kucoin             | `Kucoin <https://www.kucoin.com/?r=E5wkqe>`__                                           |                                                                      | 1     | `API <https://kucoinapidocs.docs.apiary.io>`__                                                      | Hong Kong                                |
+| |kucoin|             | kucoin             | `Kucoin <https://www.kucoin.com/?r=E5wkqe>`__                                           |                                                                      | 1     | `API <https://kucoinapidocs.docs.apiary.io>`__                                                      | Seychelles                               |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |kuna|               | kuna               | `Kuna <https://kuna.io>`__                                                              |                                                                      | 2     | `API <https://kuna.io/documents/api>`__                                                             | Ukraine                                  |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -700,9 +702,9 @@ Market Structure
        'quote':  'USD',      // uppercase string, quote currency, 3 or more letters
        'active': true,       // boolean, market status
        'precision': {        // number of decimal digits "after the dot"
-           'price': 8,       // integer
-           'amount': 8,      // integer
-           'cost': 8,        // integer
+           'price': 8,       // integer, might be missing if not supplied by the exchange
+           'amount': 8,      // integer, might be missing if not supplied by the exchange
+           'cost': 8,        // integer, very few exchanges actually have it
        },
        'limits': {           // value limits when placing orders on this market
            'amount': {
@@ -3418,6 +3420,7 @@ Notes
 .. |coinspot| image:: https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg
 .. |cointiger| image:: https://user-images.githubusercontent.com/1294454/39797261-d58df196-5363-11e8-9880-2ec78ec5bd25.jpg
 .. |coolcoin| image:: https://user-images.githubusercontent.com/1294454/36770529-be7b1a04-1c5b-11e8-9600-d11f1996b539.jpg
+.. |coss| image:: https://user-images.githubusercontent.com/1294454/50328158-22e53c00-0503-11e9-825c-c5cfd79bfa74.jpg
 .. |crex24| image:: https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg
 .. |crypton| image:: https://user-images.githubusercontent.com/1294454/41334251-905b5a78-6eed-11e8-91b9-f3aa435078a1.jpg
 .. |cryptopia| image:: https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg
