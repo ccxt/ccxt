@@ -291,15 +291,6 @@ module.exports = class btcbox extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    addCoinToParams (params, market) {
-        if (market !== undefined) {
-            return this.extend ({
-                'coin': market['baseId'],
-            }, params);
-        }
-        return params;
-    }
-
     async fetchOrdersByType (type, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         // a special case for btcbox – default symbol is BTC/JPY
