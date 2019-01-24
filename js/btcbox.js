@@ -308,7 +308,7 @@ module.exports = class btcbox extends Exchange {
         }
         const market = this.market (symbol);
         const request = {
-            'type': 'all', // 'open' or 'all'
+            'type': type, // 'open' or 'all'
             'coin': market['baseId'],
         };
         const response = await this.privatePostTradeList (this.extend (request, params));
