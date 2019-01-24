@@ -696,13 +696,13 @@ class exmo (Exchange):
                         timestamp = trade['timestamp']
                     if timestamp > trade['timestamp']:
                         timestamp = trade['timestamp']
-                    filled += trade['amount']
+                    filled = self.sum(filled, trade['amount'])
                     if feeCost is None:
                         feeCost = 0.0
-                    feeCost += trade['fee']['cost']
+                    feeCost = self.sum(feeCost, trade['fee']['cost'])
                     if cost is None:
                         cost = 0.0
-                    cost += trade['cost']
+                    cost = self.sum(cost, trade['cost'])
                     trades.append(trade)
         remaining = None
         if amount is not None:

@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.144'
+const version = '1.18.145'
 
 Exchange.ccxtVersion = version
 
@@ -35322,15 +35322,15 @@ module.exports = class exmo extends Exchange {
                     if (timestamp > trade['timestamp']) {
                         timestamp = trade['timestamp'];
                     }
-                    filled += trade['amount'];
+                    filled = this.sum (filled, trade['amount']);
                     if (feeCost === undefined) {
                         feeCost = 0.0;
                     }
-                    feeCost += trade['fee']['cost'];
+                    feeCost = this.sum (feeCost, trade['fee']['cost']);
                     if (cost === undefined) {
                         cost = 0.0;
                     }
-                    cost += trade['cost'];
+                    cost = this.sum (cost, trade['cost']);
                     trades.push (trade);
                 }
             }
