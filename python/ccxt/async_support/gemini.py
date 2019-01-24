@@ -109,10 +109,14 @@ class gemini (Exchange):
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        orderbook = await self.publicGetBookSymbol(self.extend({
+        request = {
             'symbol': self.market_id(symbol),
-        }, params))
-        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
+        }
+        if limit is not None:
+            request['limit_bids'] = limit
+            request['limit_asks'] = limit
+        response = await self.publicGetBookSymbol(self.extend(request, params))
+        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'amount')
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

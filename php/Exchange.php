@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.137';
+$version = '1.18.144';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.137';
+    const VERSION = '1.18.144';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -2127,10 +2127,10 @@ class Exchange {
         if ($numPrecisionDigits < 0) {
             $toNearest = 10 ** abs ($numPrecisionDigits);
             if ($roundingMode === ROUND) {
-                $result = (string) ($toNearest * decimal_to_precision ($x / $toNearest, $roundingMode, 0, DECIMAL_PLACES, $paddingMode));
+                $result = (string) ($toNearest * static::decimal_to_precision ($x / $toNearest, $roundingMode, 0, DECIMAL_PLACES, $paddingMode));
             }
             if ($roundingMode === TRUNCATE) {
-                $result = decimal_to_precision ($x - $x % $toNearest, $roundingMode, 0, DECIMAL_PLACES, $paddingMode);
+                $result = static::decimal_to_precision ($x - $x % $toNearest, $roundingMode, 0, DECIMAL_PLACES, $paddingMode);
             }
             return $result;
         }

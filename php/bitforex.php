@@ -425,7 +425,12 @@ class bitforex extends Exchange {
         $remaining = $amount - $filled;
         $status = $this->parse_order_status($this->safe_string($order, 'orderState'));
         $cost = $filled * $price;
-        $fee = $this->safe_float($order, 'tradeFee');
+        $feeSide = ($side === 'buy') ? 'base' : 'quote';
+        $feeCurrency = $market[$feeSide];
+        $fee = array (
+            'cost' => $this->safe_float($order, 'tradeFee'),
+            'currency' => $feeCurrency,
+        );
         $result = array (
             'info' => $order,
             'id' => $id,
