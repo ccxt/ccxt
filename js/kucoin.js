@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, DDoSProtection, NotSupported, BadRequest, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -97,6 +97,29 @@ module.exports = class kucoin extends Exchange {
                 '12h': '12hour',
                 '1d': '1day',
                 '1w': '1week',
+            },
+            'exceptions': {
+                '400': BadRequest,
+                '401': AuthenticationError,
+                '403': NotSupported,
+                '404': NotSupported,
+                '405': NotSupported,
+                '429': DDoSProtection,
+                '500': ExchangeError,
+                '503': ExchangeNotAvailable,
+                '200004': InsufficientFunds,
+                '300000': InvalidOrder,
+                '400001': AuthenticationError,
+                '400002': InvalidNonce,
+                '400003': AuthenticationError,
+                '400004': AuthenticationError,
+                '400005': AuthenticationError,
+                '400006': AuthenticationError,
+                '400007': AuthenticationError,
+                '400008': NotSupported,
+                '400100': ArgumentsRequired,
+                '411100': AccountSuspended,
+                '500000': ExchangeError,
             },
         });
     }
@@ -254,13 +277,15 @@ module.exports = class kucoin extends Exchange {
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currencyId = this.currencyId (code);
-        return await this.privateGetDepositAddresses (this.extend ({ 'currency': currencyId }, params));
+        const request = { 'currency': currencyId };
+        return await this.privateGetDepositAddresses (this.extend (request, params));
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
-        const response = await this.publicGetMarketOrderbookLevelLevel ({ 'symbol': marketId, 'level': 3 });
+        const request = { 'symbol': marketId, 'level': 3 };
+        const response = await this.publicGetMarketOrderbookLevelLevel (request, params);
         // { sequence: '1547731421688',
         //   asks: [ [ '5c419328ef83c75456bd615c', '0.9', '0.09' ], ... ],
         //   bids: [ [ '5c419328ef83c75456bd615c', '0.9', '0.09' ], ... ], }
@@ -272,72 +297,164 @@ module.exports = class kucoin extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
-        const clientOid = 'hi';
-        return await this.privatePostOrders (this.extend ({
+        const clientOid = 'hi6';
+        const request = {
             'clientOid': clientOid,
             'price': price,
             'side': side,
             'size': amount,
             'symbol': marketId,
             'type': type,
-        }, params));
+        };
+        const response = await this.privatePostOrders (this.extend (request, params));
+        const responseData = response['data'];
+        return {
+            'id': responseData['orderId'],
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'status': 'open',
+            'clientOid': clientOid,
+            'info': responseData,
+        };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return this.privateDeleteOrdersOrderId (this.extend ({ 'order-id': id }, params));
+        return this.privateDeleteOrdersOrderId (this.extend ({ 'orderId': id }, params));
     }
 
     async fetchOrders (symbol = undefined, since = 0, limit = 50, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const response = this.privateGetOrders (this.extend ({
+        const request = {
             'symbol': marketId,
             'startAt': Math.floor (since / 1000),
             'endAt': this.seconds (),
             'pageSize': limit,
-        }, params));
-        return response;
+        };
+        const response = this.privateGetOrders (this.extend (request, params));
+        const responseData = response['data'];
+        const orders = responseData['items'];
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    parseOrder (order, market = undefined) {
+        // {
+        //     "id": "5c35c02703aa673ceec2a168",
+        //     "symbol": "BTC-USDT",
+        //     "opType": "DEAL",
+        //     "type": "limit",
+        //     "side": "buy",
+        //     "price": "10",
+        //     "size": "2",
+        //     "funds": "0",
+        //     "dealFunds": "0.166",
+        //     "dealSize": "2",
+        //     "fee": "0",
+        //     "feeCurrency": "USDT",
+        //     "stp": "",
+        //     "stop": "",
+        //     "stopTriggered": false,
+        //     "stopPrice": "0",
+        //     "timeInForce": "GTC",
+        //     "postOnly": false,
+        //     "hidden": false,
+        //     "iceberge": false,
+        //     "visibleSize": "0",
+        //     "cancelAfter": 0,
+        //     "channel": "IOS",
+        //     "clientOid": "",
+        //     "remark": "",
+        //     "tags": "",
+        //     "isActive": false,
+        //     "cancelExist": false,
+        //     "createdAt": 1547026471000
+        // }
+        const marketId = order['symbol'];
+        const timestamp = order['createdAt'];
+
     }
 
     async fetchTrades (symbol, since = 0, limit = 50, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const response = this.privateGetFills (this.extend ({
+        const request = {
             'symbol': marketId,
             'startAt': Math.floor (since / 1000),
             'endAt': this.seconds (),
             'pageSize': limit,
-        }, params));
-        return response;
+        };
+        const response = this.privateGetFills (this.extend (request, params));
+        const responseData = response['data'];
+        const orders = responseData['items'];
+        return this.parseTrades (orders, market, since, limit);
+    }
+
+    parseTrade (trade, market = undefined) {
+        // {
+        //     "symbol":"BTC-USDT",
+        //     "tradeId":"5c35c02709e4f67d5266954e",
+        //     "orderId":"5c35c02703aa673ceec2a168",
+        //     "counterOrderId":"5c1ab46003aa676e487fa8e3",
+        //     "side":"buy",
+        //     "liquidity":"taker",
+        //     "forceTaker":true,
+        //     "price":"0.083",
+        //     "size":"0.8424304",
+        //     "funds":"0.0699217232",
+        //     "fee":"0",
+        //     "feeRate":"0",
+        //     "feeCurrency":"USDT",
+        //     "stop":"",
+        //     "type":"limit",
+        //     "createdAt":1547026472000
+        // }
 
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/api' + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api === 'private') {
-            this.checkRequiredCredentials ();
-            const timestamp = this.nonce ().toString ();
-            let payload = timestamp + method + endpoint;
-            headers = {
-                'KC-API-KEY': this.apiKey,
-                'KC-API-TIMESTAMP': timestamp,
-                'KC-API-PASSPHRASE': this.password,
-            };
+        let endpart = '';
+        headers = headers !== undefined ? headers : {};
+        if (Object.keys (query).length > 0) {
             if (method !== 'GET') {
                 body = this.json (query);
-                payload += body;                
+                endpart = body;
                 headers['Content-Type'] = 'application/json';
-            }
-            headers['KC-API-SIGN'] = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
-        } else {
-            if (Object.keys (query).length > 0) {
+            } else {
                 endpoint += '?' + this.urlencode (query);
             }
         }
         let url = this.urls['api'][api] + endpoint;
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            const timestamp = this.nonce ().toString ();
+            headers = this.extend ({
+                'KC-API-KEY': this.apiKey,
+                'KC-API-TIMESTAMP': timestamp,
+                'KC-API-PASSPHRASE': this.password,
+            }, headers);
+            let payload = timestamp + method + endpoint + endpart;
+            headers['KC-API-SIGN'] = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
+
+    handleErrors (code, reason, url, method, headers, body, response) {
+        // bad
+        // {"code":"400100","msg":"validation.createOrder.clientOidIsRequired"}
+        // good
+        // { code: '200000',
+        //   data: {...}, }
+        let errorCode = this.safeString (response, 'code');
+        if (errorCode in this.exceptions) {
+            let Exception = this.exceptions[errorCode];
+            let message = this.safeString (response, 'msg', '');
+            throw new Exception (this.id + ' ' + message);
+        }
+    }
 };
+
