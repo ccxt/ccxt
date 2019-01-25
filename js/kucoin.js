@@ -288,6 +288,33 @@ module.exports = class kucoin extends Exchange {
         return this.privateDeleteOrdersOrderId (this.extend ({ 'order-id': id }, params));
     }
 
+    async fetchOrders (symbol = undefined, since = 0, limit = 50, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketId = market['id'];
+        const response = this.privateGetOrders (this.extend ({
+            'symbol': marketId,
+            'startAt': Math.floor (since / 1000),
+            'endAt': this.seconds (),
+            'pageSize': limit,
+        }, params));
+        return response;
+    }
+
+    async fetchTrades (symbol, since = 0, limit = 50, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketId = market['id'];
+        const response = this.privateGetFills (this.extend ({
+            'symbol': marketId,
+            'startAt': Math.floor (since / 1000),
+            'endAt': this.seconds (),
+            'pageSize': limit,
+        }, params));
+        return response;
+
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/' + 'api' + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
