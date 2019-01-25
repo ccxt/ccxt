@@ -1048,10 +1048,10 @@ module.exports = class bittrex extends Exchange {
     }
 
     async _websocketOnInit (contextId, websocketConfig) {
-        // php transpilation problem '[{"name":"c2"}]' ==> '[array ('+'"name":"c2")]'
+        const connectionData = [{ "name": "c2" }];
         let response = await this.socketGetNegotiate ({
             'clientProtocol': '1.5',
-            'connectionData': '[{"name":"c2"}]',
+            'connectionData': this.json (connectionData),
             '_': this.milliseconds (),
         });
         websocketConfig['url'] = this.implodeParams (websocketConfig['url'], {
