@@ -47,7 +47,7 @@ module.exports = class kucoin extends Exchange {
                         'market/orderbook/level{level}',
                         'market/histories',
                         'market/candles',
-                        'market/stats',
+                        'market/stats/{symbol}',
                         'currencies',
                         'currencies/{currency}',
                     ],
@@ -80,7 +80,7 @@ module.exports = class kucoin extends Exchange {
                     ],
                     'delete': [
                         'withdrawals/{withdrawalId}',
-                        'orders',
+                        'orders/{order-id}',
                     ],
                 },
             },
@@ -116,6 +116,18 @@ module.exports = class kucoin extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetSymbols (params);
+        // { quoteCurrency: 'BTC',
+        //   symbol: 'KCS-BTC',
+        //   quoteMaxSize: '9999999',
+        //   quoteIncrement: '0.000001',
+        //   baseMinSize: '0.01',
+        //   quoteMinSize: '0.00001',
+        //   enableTrading: true,
+        //   priceIncrement: '0.00000001',
+        //   name: 'KCS-BTC',
+        //   baseIncrement: '0.01',
+        //   baseMaxSize: '9999999',
+        //   baseCurrency: 'KCS' }
         const responseData = response['data'];
         let result = {};
         for (let i = 0; i < responseData.length; i++) {
@@ -159,35 +171,15 @@ module.exports = class kucoin extends Exchange {
                 'info': entry,
             };
         }
-        // { id: 'KCS-BTC',
-        //   symbol: 'KCS/BTC',
-        //   baseId: 'KCS',
-        //   quoteId: 'BTC',
-        //   base: 'KCS',
-        //   quote: 'BTC',
-        //   active: true,
-        //   precision: { amount: 6, price: 8 },
-        //   limits:
-        //    { amount: { min: 0.00001, max: 9999999 },
-        //      price: { min: 1e-8, max: 999999899999.9999 } },
-        //   info:
-        //    { quoteCurrency: 'BTC',
-        //      symbol: 'KCS-BTC',
-        //      quoteMaxSize: '9999999',
-        //      quoteIncrement: '0.000001',
-        //      baseMinSize: '0.01',
-        //      quoteMinSize: '0.00001',
-        //      enableTrading: true,
-        //      priceIncrement: '0.00000001',
-        //      name: 'KCS-BTC',
-        //      baseIncrement: '0.01',
-        //      baseMaxSize: '9999999',
-        //      baseCurrency: 'KCS' } }
         return result;
     }
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetCurrencies (params);
+        // { precision: 10,
+        //   name: 'KCS',
+        //   fullName: 'KCS shares',
+        //   currency: 'KCS' }
         const responseData = response['data'];
         let result = {};
         for (let i = 0; i < responseData.length; i++) {
@@ -204,22 +196,14 @@ module.exports = class kucoin extends Exchange {
                 'info': entry,
             };
         }
-        // {   id: 'KCS',
-        //     name: 'KCS shares',
-        //     code: 'KCS',
-        //     precision: 10,
-        //     info: {
-        //         precision: 10,
-        //         name: 'KCS',
-        //         fullName: 'KCS shares',
-        //         currency: 'KCS' } }
         return result;
     }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
-        const response = await this.publicGetMarketOrderbookLevelLevel ({ 'level': '1', 'symbol': marketId });
+        const response = await this.publicGetMarketOrderbookLevelLevel (this.extend ({
+            'level': '1', 'symbol': marketId }, params));
         const responseData = response['data'];
         return {
             'symbol': symbol,
@@ -229,9 +213,20 @@ module.exports = class kucoin extends Exchange {
         };
     }
 
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        const timestamp = this.safeInteger (ohlcv, 0);
+        const open = this.safeFloat (ohlcv, 1);
+        const close = this.safeFloat (ohlcv, 2);
+        const high = this.safeFloat (ohlcv, 3);
+        const low = this.safeFloat (ohlcv, 4);
+        const volume = this.safeFloat (ohlcv, 6);
+        return [timestamp, open, high, low, close, volume]
+    }
+
     async fetchOHLCV (symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const marketId = this.marketId (symbol);
+        const market = this.market (symbol);
+        const marketId = market['id'];
         let sinceSeconds = 0;
         if (since !== undefined) {
             sinceSeconds = Math.floor (since / 1000);
@@ -239,15 +234,58 @@ module.exports = class kucoin extends Exchange {
         const response = await this.publicGetMarketCandles (this.extend ({
             'symbol': marketId,
             'startAt': sinceSeconds,
+            'endAt': this.seconds (),
             'type': this.timeframes[timeframe],
         }), params);
-        return response;
+        // [
+        //   [
+        //       "1545904980",             //Start time of the candle cycle
+        //       "0.058",                  //opening price
+        //       "0.049",                  //closing price
+        //       "0.058",                  //highest price
+        //       "0.049",                  //lowest price
+        //       "0.018",                  //Transaction amount
+        //       "0.000945"                //Transaction volume
+        //   ], ...,
+        // ]
+        const responseData = response['data'];
+        return this.parseOHLCVs (responseData, market, timeframe, since, limit)
     }
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currencyId = this.currencyId (code);
-        return await this.privateGetDepositAddresses ({ 'currency': currencyId });
+        return await this.privateGetDepositAddresses (this.extend ({ 'currency': currencyId }, params));
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const marketId = this.marketId (symbol);
+        const response = await this.publicGetMarketOrderbookLevelLevel ({ 'symbol': marketId, 'level': 3 });
+        // { sequence: '1547731421688',
+        //   asks: [ [ '5c419328ef83c75456bd615c', '0.9', '0.09' ], ... ],
+        //   bids: [ [ '5c419328ef83c75456bd615c', '0.9', '0.09' ], ... ], }
+        const responseData = response['data'];
+        const timestamp = this.safeInteger (responseData, 'sequence');
+        return this.parseOrderBook (responseData, timestamp, 'bids', 'asks', 1, 2);
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const marketId = this.marketId (symbol);
+        const clientOid = 'hi';
+        return await this.privatePostOrders (this.extend ({
+            'clientOid': clientOid,
+            'price': price,
+            'side': side,
+            'size': amount,
+            'symbol': marketId,
+            'type': type,
+        }, params));
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        return this.privateDeleteOrdersOrderId (this.extend ({ 'order-id': id }, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
