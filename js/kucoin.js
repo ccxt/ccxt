@@ -76,7 +76,6 @@ module.exports = class kucoin extends Exchange {
                         'withdrawals',
                         'orders',
                         'bullet-private',
-
                     ],
                     'delete': [
                         'withdrawals/{withdrawalId}',
