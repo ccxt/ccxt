@@ -3,7 +3,17 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound } = require ('./base/errors');
+const {
+    AuthenticationError,
+    ExchangeError,
+    NotSupported,
+    PermissionDenied,
+    InvalidNonce,
+    OrderNotFound,
+    InsufficientFunds,
+    RequestTimeout,
+    OrderImmediatelyFillable,
+} = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -147,18 +157,33 @@ module.exports = class bitstamp extends Exchange {
                 },
             },
             'exceptions': {
-                'No permission found': PermissionDenied,
-                'API key not found': AuthenticationError,
-                'IP address not allowed': PermissionDenied,
-                'Invalid nonce': InvalidNonce,
-                'Invalid signature': AuthenticationError,
-                'Authentication failed': AuthenticationError,
-                'Missing key, signature and nonce parameters': AuthenticationError,
-                'Your account is frozen': PermissionDenied,
-                'Please update your profile with your FATCA information, before using API.': PermissionDenied,
-                'Order not found': OrderNotFound,
+                'exact': {
+                    // fetchDepositAddress returns {"error": "No permission found"} on apiKeys that don't have the permission required
+                    'No permission found': PermissionDenied,
+                    'API key not found': AuthenticationError,
+                    'IP address not allowed': PermissionDenied,
+                    'Invalid nonce': InvalidNonce,
+                    'Invalid signature': AuthenticationError,
+                    'Authentication failed': AuthenticationError,
+                    'Missing key, signature and nonce parameters': AuthenticationError,
+                    'Your account is frozen': PermissionDenied,
+                    'Please update your profile with your FATCA information, before using API.': PermissionDenied,
+                    // workaround to force hopefully a retry
+                    'Order in queue. Please try again later.': RequestTimeout,
+                },
+                'broad': {
+                    // sometimes with '.', sometimes without
+                    'Order not found': OrderNotFound,
+                    'Minimum order size is': InsufficientFunds,
+                    'Price is more than': OrderImmediatelyFillable,
+                    'Check your account balance for details.': InsufficientFunds,
+                },
             },
         });
+    }
+
+    nonce () {
+        return this.milliseconds ();
     }
 
     async fetchMarkets (params = {}) {
@@ -212,18 +237,14 @@ module.exports = class bitstamp extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetOrderBookPair (this.extend ({
-            'pair': this.marketId (symbol),
-        }, params));
+        let orderbook = await this.publicGetOrderBookPair (this.extend ({ 'pair': this.marketId (symbol) }, params));
         let timestamp = parseInt (orderbook['timestamp']) * 1000;
         return this.parseOrderBook (orderbook, timestamp);
     }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let ticker = await this.publicGetTickerPair (this.extend ({
-            'pair': this.marketId (symbol),
-        }, params));
+        let ticker = await this.publicGetTickerPair (this.extend ({ 'pair': this.marketId (symbol) }, params));
         let timestamp = parseInt (ticker['timestamp']) * 1000;
         let vwap = this.safeFloat (ticker, 'vwap');
         let baseVolume = this.safeFloat (ticker, 'volume');
@@ -338,6 +359,7 @@ module.exports = class bitstamp extends Exchange {
             timestamp = this.parse8601 (trade['datetime']);
         }
         // only if overrided externally
+        let type = this.safeString (trade, 'order_type');
         let side = this.safeString (trade, 'side');
         let orderId = this.safeString (trade, 'order_id');
         let price = this.safeFloat (trade, 'price');
@@ -369,11 +391,6 @@ module.exports = class bitstamp extends Exchange {
             symbol = market['symbol'];
         }
         if (amount !== undefined) {
-            if (amount < 0) {
-                side = 'sell';
-            } else {
-                side = 'buy';
-            }
             amount = Math.abs (amount);
         }
         if (cost === undefined) {
@@ -393,7 +410,7 @@ module.exports = class bitstamp extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'order': orderId,
-            'type': undefined,
+            'type': type,
             'side': side,
             'price': price,
             'amount': amount,
@@ -408,10 +425,7 @@ module.exports = class bitstamp extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetTransactionsPair (this.extend ({
-            'pair': market['id'],
-            'time': 'hour',
-        }, params));
+        let response = await this.publicGetTransactionsPair (this.extend ({ 'pair': market['id'], 'time': 'hour' }, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -454,9 +468,11 @@ module.exports = class bitstamp extends Exchange {
         method += 'Pair';
         let response = await this[method] (this.extend (request, params));
         let order = this.parseOrder (response, market);
-        return this.extend (order, {
+        order = this.extend (order, {
             'type': type,
         });
+        this.orders[order.id] = order;
+        return order;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -487,7 +503,11 @@ module.exports = class bitstamp extends Exchange {
             market = this.market (symbol);
         }
         let response = await this.privatePostOrderStatus (this.extend ({ 'id': id }, params));
-        return this.parseOrder (response, market);
+        if (this.orders[id]) {
+            response['cache'] = this.orders[id];
+        }
+        let order = this.parseOrder (response, market);
+        return order;
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -687,12 +707,47 @@ module.exports = class bitstamp extends Exchange {
 
     parseOrder (order, market = undefined) {
         let id = this.safeString (order, 'id');
-        let side = this.safeString (order, 'type');
-        if (side !== undefined) {
-            side = (side === '1') ? 'sell' : 'buy';
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        let parsedOrder = {};
+        if (order['cache']) {
+            parsedOrder = order['cache'];
+        } else {
+            parsedOrder = {
+                'id': id,
+                'datetime': undefined,
+                'timestamp': undefined,
+                'lastTradeTimestamp': undefined,
+                'status': !status && id ? 'open' : status,
+                'symbol': undefined,
+                'type': undefined,
+                'side': undefined,
+                'price': 0.0,
+                'cost': 0.0,
+                'amount': undefined,
+                'filled': 0.0,
+                'remaining': 0.0,
+                'trades': [],
+                'fee': {
+                    'cost': 0.0,
+                    'currency': undefined,
+                },
+                'info': order,
+            };
         }
-        let timestamp = this.parse8601 (this.safeString (order, 'datetime'));
-        let symbol = undefined;
+        if (status) {
+            parsedOrder['status'] = status;
+        }
+        let side = this.safeString (order, 'type');
+        if (side) {
+            parsedOrder['side'] = (side === '1' ? 'sell' : 'buy');
+        }
+        let datetime = this.safeString (order, 'datetime');
+        if (datetime) {
+            parsedOrder['timestamp'] = this.parse8601 (datetime);
+            // todo maybe remove iso8601 here and use datetime as it should be same format
+            parsedOrder['datetime'] = this.iso8601 (parsedOrder['timestamp']);
+        }
+        // todo is this still doing anything?
         if (market === undefined) {
             if ('currency_pair' in order) {
                 let marketId = order['currency_pair'];
@@ -702,81 +757,67 @@ module.exports = class bitstamp extends Exchange {
             }
         }
         let amount = this.safeFloat (order, 'amount');
+        if (amount) {
+            parsedOrder['amount'] = amount;
+        }
+        let price = this.safeFloat (order, 'price');
+        if (price) {
+            parsedOrder['price'] = price;
+        }
         let filled = 0.0;
         let trades = [];
         let transactions = this.safeValue (order, 'transactions');
-        let feeCost = undefined;
-        let cost = undefined;
+        let feeCost = 0.0;
+        let cost = 0.0;
         if (transactions !== undefined) {
             if (Array.isArray (transactions)) {
                 feeCost = 0.0;
                 for (let i = 0; i < transactions.length; i++) {
                     let trade = this.parseTrade (this.extend ({
                         'order_id': id,
-                        'side': side,
+                        'side': parsedOrder['side'],
+                        'order_type': parsedOrder['type'],
                     }, transactions[i]), market);
                     filled += trade['amount'];
                     feeCost += trade['fee']['cost'];
-                    if (cost === undefined)
-                        cost = 0.0;
                     cost += trade['cost'];
                     trades.push (trade);
                 }
             }
         }
-        let status = this.parseOrderStatus (this.safeString (order, 'status'));
-        if ((status === 'closed') && (amount === undefined)) {
-            amount = filled;
+        if (trades.length > parsedOrder['trades'].length) {
+            parsedOrder['trades'] = trades;
+        } else if (trades.length > 0) {
+            for (let i = 0; i < trades.length; i++) {
+                parsedOrder['trades'].push (trades[i]);
+            }
         }
-        let remaining = undefined;
-        if (amount !== undefined) {
-            remaining = amount - filled;
+        if (filled > parsedOrder['filled']) {
+            parsedOrder['filled'] = filled;
         }
-        let price = this.safeFloat (order, 'price');
+        if ((parsedOrder['status'] === 'closed') && (parsedOrder['amount'] === undefined)) {
+            parsedOrder['amount'] = parsedOrder['filled'];
+        }
+        parsedOrder['remaining'] = parsedOrder['amount'] - parsedOrder['filled'];
+        if (cost > parsedOrder['cost']) {
+            parsedOrder['cost'] = cost;
+        }
+        if (feeCost > parsedOrder['fee']['cost']) {
+            parsedOrder['fee']['cost'] = cost;
+        }
         if (market === undefined) {
             market = this.getMarketFromTrades (trades);
         }
-        let feeCurrency = undefined;
         if (market !== undefined) {
-            symbol = market['symbol'];
-            feeCurrency = market['quote'];
+            parsedOrder['symbol'] = market['symbol'];
+            parsedOrder['fee']['currency'] = market['quote'];
         }
-        if (cost === undefined) {
-            if (price !== undefined) {
-                cost = price * filled;
-            }
-        } else if (price === undefined) {
-            if (filled > 0) {
-                price = cost / filled;
-            }
+        if (parsedOrder['cost'] === 0.0 && parsedOrder['filled'] > 0.0 && parsedOrder['price'] > 0.0) {
+            parsedOrder['cost'] = parsedOrder['price'] * parsedOrder['filled'];
+        } else if (parsedOrder['price'] === 0.0 && parsedOrder['filled'] > 0.0 && parsedOrder['cost'] > 0.0) {
+            parsedOrder['price'] = parsedOrder['cost'] / parsedOrder['filled'];
         }
-        let fee = undefined;
-        if (feeCost !== undefined) {
-            if (feeCurrency !== undefined) {
-                fee = {
-                    'cost': feeCost,
-                    'currency': feeCurrency,
-                };
-            }
-        }
-        return {
-            'id': id,
-            'datetime': this.iso8601 (timestamp),
-            'timestamp': timestamp,
-            'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': symbol,
-            'type': undefined,
-            'side': side,
-            'price': price,
-            'cost': cost,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'trades': trades,
-            'fee': fee,
-            'info': order,
-        };
+        return parsedOrder;
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -794,10 +835,13 @@ module.exports = class bitstamp extends Exchange {
                 'type': 'limit',
             }));
         }
+        let orders
         if (symbol === undefined) {
-            return this.filterBySinceLimit (result, since, limit);
+            orders = this.filterBySinceLimit (result, since, limit);
+        } else {
+            orders = this.filterBySymbolSinceLimit(result, symbol, since, limit);
         }
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     getCurrencyName (code) {
@@ -896,20 +940,40 @@ module.exports = class bitstamp extends Exchange {
         if (body.length < 2)
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
+            response = JSON.parse (body);
+            let status = this.safeString (response, 'status');
             // fetchDepositAddress returns {"error": "No permission found"} on apiKeys that don't have the permission required
             let error = this.safeString (response, 'error');
-            let exceptions = this.exceptions;
-            if (error in exceptions) {
-                throw new exceptions[error] (this.id + ' ' + body);
-            }
-            let status = this.safeString (response, 'status');
-            if (status === 'error') {
+            if (status === 'error' || error) {
+                let errorArray = [];
+                if (error) {
+                    errorArray.push (error);
+                }
+                if (response.reason && response.reason['__all__'] && Array.isArray (response.reason['__all__'])) {
+                    for (let i = 0; i < response.reason['__all__'].length; i++) {
+                        errorArray.push (response.reason['__all__'][i]);
+                    }
+                }
+                let feedback = this.id + ' ' + body;
+                // Iterate all messages
+                for (let i = 0; i < errorArray.length; i++) {
+                    let message = errorArray[i];
+                    const exact = this.exceptions['exact'];
+                    if (message in exact) {
+                        throw new exact[message] (feedback);
+                    }
+                    const broad = this.exceptions['broad'];
+                    const broadKey = this.findBroadlyMatchedKey (broad, message);
+                    if (broadKey !== undefined) {
+                        throw new broad[broadKey] (feedback);
+                    }
+                }
                 let code = this.safeString (response, 'code');
                 if (code !== undefined) {
                     if (code === 'API0005')
                         throw new AuthenticationError (this.id + ' invalid signature, use the uid for the main account if you have subaccounts');
                 }
-                throw new ExchangeError (this.id + ' ' + body);
+                throw new ExchangeError (feedback); // unknown message
             }
         }
     }
