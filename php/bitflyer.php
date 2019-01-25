@@ -49,6 +49,7 @@ class bitflyer extends Exchange {
                     'get' => array (
                         'getpermissions',
                         'getbalance',
+                        'getbalancehistory',
                         'getcollateral',
                         'getcollateralaccounts',
                         'getaddresses',
