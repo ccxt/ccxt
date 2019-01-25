@@ -289,30 +289,29 @@ module.exports = class kucoin extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let endpoint = '/' + 'api' + '/' + this.version + '/' + this.implodeParams (path, params);
+        let endpoint = '/api' + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        const timestamp = this.nonce ();
-        headers = this.extend (headers, {
-            'KC-API-KEY': this.apiKey,
-            'KC-API-TIMESTAMP': timestamp,
-            'KC-API-PASSPHRASE': this.password,
-            'KC-API-SIGN': '',
-        });
-        if (method === 'GET') {
-            endpoint = endpoint + '?' + this.urlencode (query);
-        } else {
-            body = query;
-        }
-        let url = this.urls['api'][api] + endpoint;
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            let payload = [String (timestamp), method, endpoint];
-            if (body !== undefined && Object.keys (body).length > 0) {
-                payload.push (this.json (body));
+            const timestamp = this.nonce ().toString ();
+            let payload = timestamp + method + endpoint;
+            headers = {
+                'KC-API-KEY': this.apiKey,
+                'KC-API-TIMESTAMP': timestamp,
+                'KC-API-PASSPHRASE': this.password,
+            };
+            if (method !== 'GET') {
+                payload += this.json (query);
+                body = this.json (query);
+                headers['Content-Type'] = 'application/json';
             }
-            const payloadString = payload.join ('');
-            headers['KC-API-SIGN'] = this.hmac (this.encode (payloadString), this.encode (this.secret), 'sha256', 'base64');
+            headers['KC-API-SIGN'] = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
+        } else {
+            if (Object.keys (query).length > 0) {
+                endpoint += '?' + this.urlencode (query);
+            }
         }
+        let url = this.urls['api'][api] + endpoint;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }
