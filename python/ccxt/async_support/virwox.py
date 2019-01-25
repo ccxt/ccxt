@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import json
 from ccxt.base.errors import ExchangeError
 
 
@@ -205,8 +204,8 @@ class virwox (Exchange):
             'instrument': symbol,
             'timespan': 3600,
         }, params))
-        result = response['result']
-        trades = result['data']
+        result = self.safe_value(response, 'result', {})
+        trades = self.safe_value(result, 'data', [])
         return self.parse_trades(trades, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -253,10 +252,9 @@ class virwox (Exchange):
             })
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if code == 200:
             if (body[0] == '{') or (body[0] == '['):
-                response = json.loads(body)
                 if 'result' in response:
                     result = response['result']
                     if 'errorCode' in result:

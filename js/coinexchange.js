@@ -17,6 +17,7 @@ module.exports = class coinexchange extends Exchange {
             // new metainfo interface
             'has': {
                 'privateAPI': false,
+                'fetchBalance': false,
                 'createOrder': false,
                 'createMarketOrder': false,
                 'createLimitOrder': false,

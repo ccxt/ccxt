@@ -676,7 +676,7 @@ class gatecoin extends Exchange {
         return $this->privatePostElectronicWalletUserWalletsDigiCurrency (array_merge ($request, $params));
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
@@ -685,7 +685,6 @@ class gatecoin extends Exchange {
             throw new PermissionDenied ($body);
         }
         if ($body[0] === '{') {
-            $response = json_decode ($body, $as_associative_array = true);
             if (is_array ($response) && array_key_exists ('responseStatus', $response)) {
                 $errorCode = $this->safe_string($response['responseStatus'], 'errorCode');
                 $message = $this->safe_string($response['responseStatus'], 'message');

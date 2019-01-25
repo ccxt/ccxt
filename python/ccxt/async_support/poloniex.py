@@ -6,7 +6,6 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -261,7 +260,7 @@ class poloniex (Exchange):
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
-                'active': True,
+                'active': market['isFrozen'] != '1',
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -857,7 +856,7 @@ class poloniex (Exchange):
         await self.load_markets()
         year = 31104000  # 60 * 60 * 24 * 30 * 12 = one year of history, why not
         now = self.seconds()
-        start = int(since / 1000) if (since is not None) else now - year
+        start = int(since / 1000) if (since is not None) else now - 10 * year
         request = {
             'start': start,  # UNIX timestamp, required
             'end': now,  # UNIX timestamp, required
@@ -996,9 +995,11 @@ class poloniex (Exchange):
         address = self.safe_string(transaction, 'address')
         feeCost = self.safe_float(transaction, 'fee')
         if feeCost is None:
-            if type == 'deposit':
-                # according to https://poloniex.com/fees/
-                feeCost = 0  # FIXME: remove hardcoded value that may change any time
+            # according to https://poloniex.com/fees/
+            feeCost = 0  # FIXME: remove hardcoded value that may change any time
+        if type == 'withdrawal':
+            # poloniex withdrawal amount includes the fee
+            amount = amount - feeCost
         return {
             'info': transaction,
             'id': id,
@@ -1037,11 +1038,8 @@ class poloniex (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
-        try:
-            response = json.loads(body)
-        except Exception as e:
-            # syntax error, resort to default error handler
+    def handle_errors(self, code, reason, url, method, headers, body, response):
+        if response is None:
             return
         # {"error":"Permission denied."}
         if 'error' in response:

@@ -235,65 +235,33 @@ describe ('ccxt base code', () => {
         equal (exchange.hasFetchDepositAddress, true)
     })
 
-    it ('check updateBidAsk() works', () => {
-        function checkUpdateBidAsk (bidAsk, ob, isBid, resultPosition) {
-            let currentList = ob[isBid ? 'bids' : 'asks'];
-            exchange.updateBidAsk (bidAsk, currentList, isBid);
-            log (currentList);
-            equal (currentList[resultPosition][0], bidAsk[0])
-            equal (currentList[resultPosition][1], bidAsk[1])    
-        }
-        function checkRemoveBidAsk (bidAsk, ob, isBid, result) {
-            let currentList = ob[isBid ? 'bids' : 'asks'];
-            exchange.updateBidAsk (bidAsk, currentList, isBid);
-            log (currentList);
-            deepEqual(currentList, result)
-        }
-        const exchange = new Exchange ({
-            id: 'mock'
+/*  ------------------------------------------------------------------------ */
+
+    if (Exchange.hasWeb3 ()) {
+        it ('getZeroExOrderHashV2 return valid signature for example order', () => {
+            // based on https://github.com/0xProject/0x-monorepo/blob/development/python-packages/order_utils/test/test_generate_order_hash_hex.py
+            const exampleOrder = {
+                "makerAddress": "0x0000000000000000000000000000000000000000",
+                "takerAddress": "0x0000000000000000000000000000000000000000",
+                "senderAddress": "0x0000000000000000000000000000000000000000",
+                "feeRecipientAddress": "0x0000000000000000000000000000000000000000",
+                "makerAssetData": "0x0000000000000000000000000000000000000000",
+                "takerAssetData": "0x0000000000000000000000000000000000000000",
+                "salt": "0",
+                "makerFee": "0",
+                "takerFee": "0",
+                "makerAssetAmount": "0",
+                "takerAssetAmount": "0",
+                "expirationTimeSeconds": "0",
+                "exchangeAddress": "0x0000000000000000000000000000000000000000",
+            }
+            const expectedOrderHash = '0xfaa49b35faeb9197e9c3ba7a52075e6dad19739549f153b77dfcf59408a4b422';
+            class Derived extends Exchange {}
+            const derived = new Derived ()
+            const orderHash = derived.getZeroExOrderHashV2(exampleOrder)
+            equal (orderHash, expectedOrderHash)
         })
-
-        const bids = [[0.8000, 2], [0.7900, 12], [0.7800, 22]];
-        const asks = [[0.9054, 10], [0.9055, 11], [0.9056, 12]];  
-
-        const orderbook = {
-            'bids': [[0.8000, 2], [0.7900, 12], [0.7800, 22]],
-            'asks': [[0.9054, 10], [0.9055, 11], [0.9056, 12]],
-            'timestamp': 1234567890,
-            'datetime': '2017-09-01T00:00:00',
-            'nonce': 134234234,
-            // 'info': {},
-        }
-        // bids
-        checkUpdateBidAsk ([0.8001, 4], orderbook, true, 0); // insert top
-        checkRemoveBidAsk ([0.8001, 0], orderbook, true, bids); // remove top
-        checkUpdateBidAsk ([0.7901, 5], orderbook, true, 1); // insert middle
-        checkRemoveBidAsk ([0.7901, 0], orderbook, true, bids); // remove middle
-        checkUpdateBidAsk ([0.7801, 5], orderbook, true, 2); // insert middle
-        checkRemoveBidAsk ([0.7801, 0], orderbook, true, bids); // remove middle
-        checkUpdateBidAsk ([0.7799, 6], orderbook, true, 3); // insert bottom
-        checkRemoveBidAsk ([0.7799, 0], orderbook, true, bids); // remove bottom
-
-        checkUpdateBidAsk ([0.8000, 7], orderbook, true, 0); // update top
-        checkUpdateBidAsk ([0.7900, 8], orderbook, true, 1); // update middle
-        checkUpdateBidAsk ([0.7800, 9], orderbook, true, 2); // update bottom
-
-        // asks
-        checkUpdateBidAsk ([0.90539, 4], orderbook, false, 0); // insert top
-        checkRemoveBidAsk ([0.90539, 0], orderbook, false, asks); // remove top
-        checkUpdateBidAsk ([0.90541, 5], orderbook, false, 1); // insert middle
-        checkRemoveBidAsk ([0.90541, 0], orderbook, false, asks); // remove middle
-        checkUpdateBidAsk ([0.90551, 5], orderbook, false, 2); // insert middle
-        checkRemoveBidAsk ([0.90551, 0], orderbook, false, asks); // remove middle
-        checkUpdateBidAsk ([0.90561, 6], orderbook, false, 3); // insert bottom
-        checkRemoveBidAsk ([0.90561, 0], orderbook, false, asks); // remove bottom
-
-        checkUpdateBidAsk ([0.9054, 7], orderbook, false, 0); // update top
-        checkUpdateBidAsk ([0.9055, 8], orderbook, false, 1); // update middle
-        checkUpdateBidAsk ([0.9056, 9], orderbook, false, 2); // update bottom
-
-        // exchange.mergeOrderBookDelta (orderbook, orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1);
-    })
+    }
 })
 
 /*  ------------------------------------------------------------------------ */

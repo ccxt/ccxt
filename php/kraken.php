@@ -17,7 +17,6 @@ class kraken extends Exchange {
             'version' => '0',
             'rateLimit' => 3000,
             'certified' => true,
-            'parseJsonResponse' => false,
             'has' => array (
                 'createDepositAddress' => true,
                 'fetchDepositAddress' => true,
@@ -742,6 +741,17 @@ class kraken extends Exchange {
         return $market;
     }
 
+    public function parse_order_status ($status) {
+        $statuses = array (
+            'pending' => 'open', // order pending book entry
+            'open' => 'open',
+            'closed' => 'closed',
+            'canceled' => 'canceled',
+            'expired' => 'expired',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
     public function parse_order ($order, $market = null) {
         $description = $order['descr'];
         $side = $description['type'];
@@ -783,13 +793,14 @@ class kraken extends Exchange {
                 }
             }
         }
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         return array (
             'id' => $order['id'],
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
-            'status' => $order['status'],
+            'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
@@ -925,8 +936,14 @@ class kraken extends Exchange {
     }
 
     public function parse_transaction_status ($status) {
+        // IFEX transaction states
         $statuses = array (
+            'Initial' => 'pending',
+            'Pending' => 'pending',
             'Success' => 'ok',
+            'Settled' => 'ok',
+            'Failure' => 'failed',
+            'Partial' => 'ok',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -978,6 +995,11 @@ class kraken extends Exchange {
         $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
         $type = $this->safe_string($transaction, 'type'); // injected from the outside
         $feeCost = $this->safe_float($transaction, 'fee');
+        if ($feeCost === null) {
+            if ($type === 'deposit') {
+                $feeCost = 0;
+            }
+        }
         return array (
             'info' => $transaction,
             'id' => $id,
@@ -1159,9 +1181,9 @@ class kraken extends Exchange {
         return $this->milliseconds ();
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if ($code === 520) {
-            throw new ExchangeNotAvailable ($this->id . ' ' . $body);
+            throw new ExchangeNotAvailable ($this->id . ' ' . (string) $code . ' ' . $reason);
         }
         if (mb_strpos ($body, 'Invalid order') !== false)
             throw new InvalidOrder ($this->id . ' ' . $body);
@@ -1174,7 +1196,6 @@ class kraken extends Exchange {
         if (mb_strpos ($body, 'Invalid arguments:volume') !== false)
             throw new InvalidOrder ($this->id . ' ' . $body);
         if ($body[0] === '{') {
-            $response = json_decode ($body, $as_associative_array = true);
             if (gettype ($response) !== 'string') {
                 if (is_array ($response) && array_key_exists ('error', $response)) {
                     $numErrors = is_array ($response['error']) ? count ($response['error']) : 0;
@@ -1190,10 +1211,5 @@ class kraken extends Exchange {
                 }
             }
         }
-    }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        return $this->parse_if_json_encoded_object($response);
     }
 }

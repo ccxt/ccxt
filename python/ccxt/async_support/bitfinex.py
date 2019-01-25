@@ -7,7 +7,6 @@ from ccxt.async_support.base.exchange import Exchange
 import base64
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -509,10 +508,9 @@ class bitfinex (Exchange):
         tickers = await self.publicGetTickers(params)
         result = {}
         for i in range(0, len(tickers)):
-            ticker = tickers[i]
-            parsedTicker = self.parse_ticker(ticker)
-            symbol = parsedTicker['symbol']
-            result[symbol] = parsedTicker
+            ticker = self.parse_ticker(tickers[i])
+            symbol = ticker['symbol']
+            result[symbol] = ticker
         return result
 
     async def fetch_ticker(self, symbol, params={}):
@@ -929,12 +927,11 @@ class bitfinex (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if len(body) < 2:
             return
         if code >= 400:
             if body[0] == '{':
-                response = json.loads(body)
                 feedback = self.id + ' ' + self.json(response)
                 message = None
                 if 'message' in response:

@@ -42,7 +42,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.46';
+$version = '1.18.152';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -58,7 +58,7 @@ const PAD_WITH_ZERO = 1;
 
 abstract class Exchange extends CcxtEventEmitter {
 
-    const VERSION = '1.18.46';
+    const VERSION = '1.18.152';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -150,6 +150,7 @@ abstract class Exchange extends CcxtEventEmitter {
         'coinspot',
         'cointiger',
         'coolcoin',
+        'coss',
         'crex24',
         'crypton',
         'cryptopia',
@@ -581,7 +582,7 @@ abstract class Exchange extends CcxtEventEmitter {
         $timestamp = (int) $timestamp;
         if ($timestamp < 0)
             return null;
-        $result = date ('c', (int) round ($timestamp / 1000));
+        $result = date ('c', (int) floor ($timestamp / 1000));
         $msec = (int) $timestamp % 1000;
         $result = str_replace ('+00:00', sprintf (".%03dZ", $msec), $result);
         return $result;
@@ -643,18 +644,6 @@ abstract class Exchange extends CcxtEventEmitter {
         return json_encode ($data, $flags);
     }
 
-    public static function parse_if_json_encoded_object ($input) {
-        if ((gettype ($input) !== 'string') || (strlen ($input) < 2)) {
-            return $input;
-        }
-        if ($input[0] === '{') {
-            return json_decode ($input, $as_associative_array = true);
-        } else if ($input[1] === '[') {
-            return json_decode ($input);
-        }
-        return $input;
-    }
-
     public static function is_json_encoded_object ($input) {
         return (gettype ($input) === 'string') &&
                 (strlen ($input) >= 2) &&
@@ -673,11 +662,15 @@ abstract class Exchange extends CcxtEventEmitter {
         return $this->seconds ();
     }
 
-    public function check_required_credentials () {
+    public function check_required_credentials ($error = true) {
         $keys = array_keys ($this->requiredCredentials);
         foreach ($this->requiredCredentials as $key => $value) {
             if ($value && (!$this->$key)) {
-                throw new AuthenticationError ($this->id . ' requires `' . $key . '`');
+                if ($error) {
+                    throw new AuthenticationError ($this->id . ' requires `' . $key . '`');
+                } else {
+                    return $error;
+                }
             }
         }
     }
@@ -786,6 +779,7 @@ abstract class Exchange extends CcxtEventEmitter {
             '521' => 'ExchangeNotAvailable',
             '522' => 'ExchangeNotAvailable',
             '525' => 'ExchangeNotAvailable',
+            '526' => 'ExchangeNotAvailable',
             '400' => 'ExchangeNotAvailable',
             '403' => 'ExchangeNotAvailable',
             '405' => 'ExchangeNotAvailable',
@@ -804,7 +798,7 @@ abstract class Exchange extends CcxtEventEmitter {
         $this->privateKey    = '';
         $this->walletAddress = '';
 
-        $this->twofa         = false;
+        $this->twofa         = null;
         $this->marketsById   = null;
         $this->markets_by_id = null;
         $this->currencies_by_id = null;
@@ -816,7 +810,6 @@ abstract class Exchange extends CcxtEventEmitter {
         $this->minFundingAddressLength = 1; // used in check_address
         $this->substituteCommonCurrencyCodes = true;
         $this->timeframes = null;
-        $this->parseJsonResponse = true;
 
         $this->requiredCredentials = array (
             'apiKey' => true,
@@ -934,6 +927,20 @@ abstract class Exchange extends CcxtEventEmitter {
             $this->set_markets ($this->markets);
     }
 
+    public function set_sandbox_mode ($enabled) {
+        if ($enabled) {
+            if (array_key_exists ('test', $this->urls)) {
+                $this->urls['api_backup'] = $this->urls['api'];
+                $this->urls['api'] = $this->urls['test'];
+            } else {
+                throw new NotSupported ($this->id . " does not have a sandbox URL");
+            }
+        } else if (array_key_exists ('api_backup', $this->urls)) {
+            $this->urls['api'] = $this->urls['api_backup'];
+            unset ($this->urls['api_backup']);
+        }
+    }
+
     public function define_rest_api ($api, $method_name, $options = array ()) {
         foreach ($api as $type => $methods)
             foreach ($methods as $http_method => $paths)
@@ -977,7 +984,7 @@ abstract class Exchange extends CcxtEventEmitter {
         throw new NotSupported ($this->id . ' camelcase() not implemented yet');
     }
 
-    public function hash ($request, $type = 'md5', $digest = 'hex') {
+    public static function hash ($request, $type = 'md5', $digest = 'hex') {
         $base64 = ($digest === 'base64');
         $binary = ($digest === 'binary');
         $hash = hash ($type, $request, ($binary || $base64) ? true : false);
@@ -986,7 +993,7 @@ abstract class Exchange extends CcxtEventEmitter {
         return $hash;
     }
 
-    public function hmac ($request, $secret, $type = 'sha256', $digest = 'hex') {
+    public static function hmac ($request, $secret, $type = 'sha256', $digest = 'hex') {
         $base64 = ($digest === 'base64');
         $binary = ($digest === 'binary');
         $hmac = hash_hmac ($type, $request, $secret, ($binary || $base64) ? true : false);
@@ -1051,8 +1058,12 @@ abstract class Exchange extends CcxtEventEmitter {
         return null;
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         // it's a stub function, does nothing in base code
+    }
+
+    public function parse_json ($json_string) {
+        return json_decode ($json_string, $as_associative_array = true);
     }
 
     public function fetch ($url, $method = 'GET', $headers = null, $body = null) {
@@ -1191,11 +1202,9 @@ abstract class Exchange extends CcxtEventEmitter {
 
         $json_response = null;
 
-        if ($this->parseJsonResponse) {
-
-            $json_response =
-                ((gettype ($result) == 'string') &&  (strlen ($result) > 1)) ?
-                    json_decode ($result, $as_associative_array = true) : null;
+        if ($this->is_json_encoded_object ($result)) {
+         
+            $json_response = $this->parse_json ($result, $as_associative_array = true);
 
             if ($this->enableLastJsonResponse) {
                 $this->last_json_response = $json_response;
@@ -1214,7 +1223,7 @@ abstract class Exchange extends CcxtEventEmitter {
             print_r (array ($method, $url, $http_status_code, $curl_error, $response_headers, $result));
         }
 
-        $this->handle_errors ($http_status_code, $curl_error, $url, $method, $response_headers, $result ? $result : null);
+        $this->handle_errors ($http_status_code, $curl_error, $url, $method, $response_headers, $result ? $result : null, $json_response);
 
         if ($result === false) {
 
@@ -1243,14 +1252,14 @@ abstract class Exchange extends CcxtEventEmitter {
                         'DDoS protection',
                         'rate-limiting in effect',
                     )) . ')';
-                    $this->raise_error ($error_class, $url, $method, $http_status_code, $result, $details);
                 }
+                $this->raise_error ($error_class, $url, $method, $http_status_code, $result, isset ($details) ? $details : null);
             } else {
                 $this->raise_error ($error_class, $url, $method, $http_status_code, $result);
             }
         }
 
-        if ($this->parseJsonResponse && !$json_response) {
+        if (!$json_response) {
 
             if (preg_match ('#offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing#i', $result)) {
 
@@ -1271,7 +1280,7 @@ abstract class Exchange extends CcxtEventEmitter {
             }
         }
 
-        return $this->parseJsonResponse ? $json_response : $result;
+        return $json_response ? $json_response : $result;
     }
 
     public function set_markets ($markets, $currencies = null) {
@@ -2157,10 +2166,10 @@ abstract class Exchange extends CcxtEventEmitter {
         if ($numPrecisionDigits < 0) {
             $toNearest = 10 ** abs ($numPrecisionDigits);
             if ($roundingMode === ROUND) {
-                $result = (string) ($toNearest * decimal_to_precision ($x / $toNearest, $roundingMode, 0, DECIMAL_PLACES, $paddingMode));
+                $result = (string) ($toNearest * static::decimal_to_precision ($x / $toNearest, $roundingMode, 0, DECIMAL_PLACES, $paddingMode));
             }
             if ($roundingMode === TRUNCATE) {
-                $result = decimal_to_precision ($x - $x % $toNearest, $roundingMode, 0, DECIMAL_PLACES, $paddingMode);
+                $result = static::decimal_to_precision ($x - $x % $toNearest, $roundingMode, 0, DECIMAL_PLACES, $paddingMode);
             }
             return $result;
         }
@@ -2249,9 +2258,16 @@ abstract class Exchange extends CcxtEventEmitter {
     // ------------------------------------------------------------------------
     // web3 / 0x methods
 
-    public function check_required_dependencies () {
+    public static function has_web3 () {
         // PHP version of this function does nothing, as most of its
         // dependencies are very lighweight and don't eat a lot
+        return true;
+    }
+
+    public function check_required_dependencies () {
+        if (!static::has_web3 ()) {
+            throw new ExchangeError ($this->id . ' requires web3 dependencies');
+        }
     }
 
     public function eth_decimals ($unit = 'ether') {
@@ -2310,7 +2326,7 @@ abstract class Exchange extends CcxtEventEmitter {
 
     public function fromWei ($amount, $unit = 'ether', $decimals = 18) {
         if (!isset (Exchange::$eth_units[$unit])) {
-            throw new \UnexpectedValueException ("Uknown unit '" . $unit . "', supported units: " . implode (', ', array_keys (Exchange::$eth_units)));
+            throw new \UnexpectedValueException ("Unknown unit '" . $unit . "', supported units: " . implode (', ', array_keys (Exchange::$eth_units)));
         }
         $denominator = substr_count (Exchange::$eth_units[$unit], 0) + strlen ($amount) - strpos ($amount, '.') - 1;
         return (float) (($unit === 'wei') ? $amount : bcdiv ($amount, Exchange::$eth_units[$unit], $denominator));
@@ -3160,6 +3176,43 @@ abstract class Exchange extends CcxtEventEmitter {
             $data = base64_decode($data);
         }
         return gzinflate ($data);
+    }
+
+    public function oath () {
+        if ($this->twofa) {
+            return $this->totp ($this->twofa);
+        } else {
+            throw new ExchangeError ($this->id . ' requires a non-empty value in $this->twofa property');
+        }
+    }
+
+    public static function totp ($key) {
+        function base32_decode($s){
+            static $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+            $tmp = '';
+            foreach (str_split($s) as $c) {
+                if (false === ($v = strpos($alphabet, $c))) {
+                    $v = 0;
+                }
+                $tmp .= sprintf('%05b', $v);
+            }
+            $args = array_map('bindec', str_split($tmp, 8));
+            array_unshift($args, 'C*');
+            return rtrim(call_user_func_array('pack', $args), "\0");
+        }
+        $noSpaceKey = str_replace (' ', '', $key);
+        $encodedKey = base32_decode($noSpaceKey);
+        $epoch = floor (time() / 30);
+        $encodedEpoch = pack ('J', $epoch);
+        $hmacResult = static::hmac($encodedEpoch, $encodedKey,"sha1", "hex");
+        $hmac = [];
+        foreach (str_split($hmacResult, 2) as $hex) {
+            $hmac[] = hexdec($hex);
+        }
+        $offset = $hmac[count($hmac) - 1] & 0xF;
+        $code = ($hmac[$offset + 0] & 0x7F) << 24 | ($hmac[$offset + 1] & 0xFF) << 16 | ($hmac[$offset + 2] & 0xFF) << 8 | ($hmac[$offset + 3] & 0xFF);
+        $otp = $code % pow(10, 6);
+        return str_pad((string) $otp, 6, '0', STR_PAD_LEFT);
     }
 }
 

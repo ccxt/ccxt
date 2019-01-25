@@ -959,11 +959,10 @@ class okcoinusd extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (strlen ($body) < 2)
             return; // fallback to default $error handler
         if ($body[0] === '{') {
-            $response = json_decode ($body, $as_associative_array = true);
             if (is_array ($response) && array_key_exists ('error_code', $response)) {
                 $error = $this->safe_string($response, 'error_code');
                 $message = $this->id . ' ' . $this->json ($response);

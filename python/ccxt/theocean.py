@@ -13,7 +13,6 @@ except NameError:
     basestring = str  # Python 2
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -39,7 +38,6 @@ class theocean (Exchange):
             'rateLimit': 3000,
             'version': 'v0',
             'certified': True,
-            'parseJsonResponse': False,
             'requiresWeb3': True,
             # add GET https://api.staging.theocean.trade/api/v0/candlesticks/intervals to fetchMarkets
             'timeframes': {
@@ -1167,7 +1165,7 @@ class theocean (Exchange):
                 url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response=None):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if len(body) < 2:
@@ -1177,7 +1175,6 @@ class theocean (Exchange):
         if body == "'Authentication failed'":
             raise AuthenticationError(self.id + ' ' + body)
         if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
             message = self.safe_string(response, 'message')
             if message is not None:
                 #
@@ -1198,11 +1195,3 @@ class theocean (Exchange):
                 if broadKey is not None:
                     raise broad[broadKey](feedback)
                 raise ExchangeError(feedback)  # unknown message
-
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if not isinstance(response, basestring):
-            raise ExchangeError(self.id + ' returned a non-string response: ' + str(response))
-        if (response[0] == '{' or response[0] == '['):
-            return json.loads(response)
-        return response

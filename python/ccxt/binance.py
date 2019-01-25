@@ -280,7 +280,10 @@ class binance (Exchange):
                 'timeDifference': 0,  # the difference between system clock and Binance clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'parseOrderToPrecision': False,  # force amounts and costs in parseOrder to precision
-                'newOrderRespType': 'RESULT',  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+                'newOrderRespType': {
+                    'market': 'FULL',  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+                    'limit': 'RESULT',  # we change it from 'ACK' by default to 'RESULT'
+                },
             },
             'exceptions': {
                 '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
@@ -684,12 +687,13 @@ class binance (Exchange):
             method += 'Test'
             params = self.omit(params, 'test')
         uppercaseType = type.upper()
+        newOrderRespType = self.safe_value(self.options['newOrderRespType'], type, 'RESULT')
         order = {
             'symbol': market['id'],
             'quantity': self.amount_to_precision(symbol, amount),
             'type': uppercaseType,
             'side': side.upper(),
-            'newOrderRespType': self.options['newOrderRespType'],  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+            'newOrderRespType': newOrderRespType,  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         }
         timeInForceIsRequired = False
         priceIsRequired = False
@@ -745,6 +749,8 @@ class binance (Exchange):
         request = {
             'symbol': market['id'],
         }
+        if since is not None:
+            request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
         response = self.privateGetAllOrders(self.extend(request, params))
@@ -1067,7 +1073,7 @@ class binance (Exchange):
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if (code == 418) or (code == 429):
             raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
         # error response in a form: {"code": -1013, "msg": "Invalid quantity."}
@@ -1082,7 +1088,6 @@ class binance (Exchange):
                 raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use self.price_to_precision(symbol, amount) ' + body)
         if len(body) > 0:
             if body[0] == '{':
-                response = json.loads(body)
                 # check success value for wapi endpoints
                 # response in format {'msg': 'The coin does not exist.', 'success': True/false}
                 success = self.safe_value(response, 'success', True)

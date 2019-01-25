@@ -296,7 +296,8 @@ class itbit extends Exchange {
             $auth = array ( $method, $url, $body, $nonce, $timestamp );
             $message = $nonce . str_replace ('\\/', '/', $this->json ($auth));
             $hash = $this->hash ($this->encode ($message), 'sha256', 'binary');
-            $binhash = $this->binary_concat($url, $hash);
+            $binaryUrl = $this->encode ($url);
+            $binhash = $this->binary_concat($binaryUrl, $hash);
             $signature = $this->hmac ($binhash, $this->encode ($this->secret), 'sha512', 'base64');
             $headers = array (
                 'Authorization' => $this->apiKey . ':' . $signature,

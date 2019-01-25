@@ -12,7 +12,6 @@ try:
 except NameError:
     basestring = str  # Python 2
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -698,10 +697,13 @@ class bitstamp (Exchange):
         elif price is None:
             if filled > 0:
                 price = cost / filled
-        fee = {
-            'cost': feeCost,
-            'currency': feeCurrency,
-        }
+        fee = None
+        if feeCost is not None:
+            if feeCurrency is not None:
+                fee = {
+                    'cost': feeCost,
+                    'currency': feeCurrency,
+                }
         return {
             'id': id,
             'datetime': self.iso8601(timestamp),
@@ -726,8 +728,17 @@ class bitstamp (Exchange):
         await self.load_markets()
         if symbol is not None:
             market = self.market(symbol)
-        orders = await self.privatePostOpenOrdersAll()
-        return self.parse_orders(orders, market, since, limit)
+        response = await self.privatePostOpenOrdersAll(params)
+        result = []
+        for i in range(0, len(response)):
+            order = self.parse_order(response[i], market, since, limit)
+            result.append(self.extend(order, {
+                'status': 'open',
+                'type': 'limit',
+            }))
+        if symbol is None:
+            return self.filter_by_since_limit(result, since, limit)
+        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
     def get_currency_name(self, code):
         if code == 'BTC':
@@ -811,13 +822,12 @@ class bitstamp (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response=None):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if len(body) < 2:
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
             # fetchDepositAddress returns {"error": "No permission found"} on apiKeys that don't have the permission required
             error = self.safe_string(response, 'error')
             exceptions = self.exceptions

@@ -502,7 +502,7 @@ class coinegg extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         // checks against error codes
         if (gettype ($body) !== 'string')
             return;
@@ -510,7 +510,6 @@ class coinegg extends Exchange {
             return;
         if ($body[0] !== '{')
             return;
-        $response = json_decode ($body, $as_associative_array = true);
         // private endpoints return the following structure:
         // array ("$result":true,"data":{...)} - success
         // array ("$result":false,"$code":"103") - failure

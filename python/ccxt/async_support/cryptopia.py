@@ -14,7 +14,6 @@ except NameError:
 import base64
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -31,7 +30,6 @@ class cryptopia (Exchange):
             'name': 'Cryptopia',
             'rateLimit': 1500,
             'countries': ['NZ'],  # New Zealand
-            'parseJsonResponse': False,
             'has': {
                 'CORS': False,
                 'createMarketOrder': False,
@@ -749,7 +747,10 @@ class cryptopia (Exchange):
         }, params))
         address = self.safe_string(response['Data'], 'BaseAddress')
         tag = self.safe_string(response['Data'], 'Address')
-        if (address is None) or len((address) < 1):
+        if address is not None:
+            if len(address) < 1:
+                address = None
+        if address is None:
             address = tag
             tag = None
         self.check_address(address)
@@ -804,43 +805,24 @@ class cryptopia (Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
-        if not isinstance(body, basestring):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
+        if response is None:
             return  # fallback to default error handler
-        if len(body) < 2:
-            return  # fallback to default error handler
-        fixedJSONString = self.sanitize_broken_json_string(body)
-        if fixedJSONString[0] == '{':
-            response = json.loads(fixedJSONString)
-            if 'Success' in response:
-                success = self.safe_value(response, 'Success')
-                if success is not None:
-                    if not success:
-                        error = self.safe_string(response, 'Error')
-                        feedback = self.id
-                        if isinstance(error, basestring):
-                            feedback = feedback + ' ' + error
-                            if error.find('Invalid trade amount') >= 0:
-                                raise InvalidOrder(feedback)
-                            if error.find('No matching trades found') >= 0:
-                                raise OrderNotFound(feedback)
-                            if error.find('does not exist') >= 0:
-                                raise OrderNotFound(feedback)
-                            if error.find('Insufficient Funds') >= 0:
-                                raise InsufficientFunds(feedback)
-                            if error.find('Nonce has already been used') >= 0:
-                                raise InvalidNonce(feedback)
-                        else:
-                            feedback = feedback + ' ' + fixedJSONString
-                        raise ExchangeError(feedback)
-
-    def sanitize_broken_json_string(self, jsonString):
-        # sometimes cryptopia will return a unicode symbol before actual JSON string.
-        indexOfBracket = jsonString.find('{')
-        if indexOfBracket >= 0:
-            return jsonString[indexOfBracket:]
-        return jsonString
-
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
-        return self.parse_if_json_encoded_object(self.sanitize_broken_json_string(response))
+        if 'Success' in response:
+            success = self.safe_value(response, 'Success')
+            if success is not None:
+                if not success:
+                    error = self.safe_string(response, 'Error')
+                    feedback = self.id + ' ' + body
+                    if isinstance(error, basestring):
+                        if error.find('Invalid trade amount') >= 0:
+                            raise InvalidOrder(feedback)
+                        if error.find('No matching trades found') >= 0:
+                            raise OrderNotFound(feedback)
+                        if error.find('does not exist') >= 0:
+                            raise OrderNotFound(feedback)
+                        if error.find('Insufficient Funds') >= 0:
+                            raise InsufficientFunds(feedback)
+                        if error.find('Nonce has already been used') >= 0:
+                            raise InvalidNonce(feedback)
+                    raise ExchangeError(feedback)

@@ -15,7 +15,6 @@ module.exports = class exmo extends Exchange {
             'countries': [ 'ES', 'RU' ], // Spain, Russia
             'rateLimit': 350, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version': 'v1',
-            'parseJsonResponse': false,
             'has': {
                 'CORS': false,
                 'fetchClosedOrders': 'emulated',
@@ -246,6 +245,13 @@ module.exports = class exmo extends Exchange {
                 }
             }
         }
+        // sets fiat fees to undefined
+        const fiatGroups = this.toArray (this.omit (groupsByGroup, 'crypto'));
+        for (let i = 0; i < fiatGroups.length; i++) {
+            const code = this.commonCurrencyCode (this.safeString (fiatGroups[i], 'title'));
+            withdraw[code] = undefined;
+            deposit[code] = undefined;
+        }
         const result = {
             'info': response,
             'withdraw': withdraw,
@@ -314,7 +320,7 @@ module.exports = class exmo extends Exchange {
                         'max': this.safeFloat (maxCosts, code),
                     },
                 },
-                'info': fee,
+                'info': id,
             };
         }
         return result;
@@ -616,10 +622,11 @@ module.exports = class exmo extends Exchange {
         let market = undefined;
         if (symbol !== undefined)
             market = this.market (symbol);
-        let response = await this.privatePostOrderTrades ({
+        const response = await this.privatePostOrderTrades (this.extend ({
             'order_id': id.toString (),
-        });
-        return this.parseTrades (response, market, since, limit);
+        }, params));
+        const trades = this.safeValue (response, 'trades');
+        return this.parseTrades (trades, market, since, limit);
     }
 
     updateCachedOrders (openOrders, symbol) {
@@ -735,15 +742,15 @@ module.exports = class exmo extends Exchange {
                     if (timestamp > trade['timestamp']) {
                         timestamp = trade['timestamp'];
                     }
-                    filled += trade['amount'];
+                    filled = this.sum (filled, trade['amount']);
                     if (feeCost === undefined) {
                         feeCost = 0.0;
                     }
-                    feeCost += trade['fee']['cost'];
+                    feeCost = this.sum (feeCost, trade['fee']['cost']);
                     if (cost === undefined) {
                         cost = 0.0;
                     }
-                    cost += trade['cost'];
+                    cost = this.sum (cost, trade['cost']);
                     trades.push (trade);
                 }
             }
@@ -923,7 +930,16 @@ module.exports = class exmo extends Exchange {
         if (!this.fees['funding']['percentage']) {
             let key = (type === 'withdrawal') ? 'withdraw' : 'deposit';
             let feeCost = this.safeFloat (this.options['fundingFees'][key], code);
+            // users don't pay for cashbacks, no fees for that
+            const provider = this.safeString (transaction, 'provider');
+            if (provider === 'cashback') {
+                feeCost = 0;
+            }
             if (feeCost !== undefined) {
+                // withdrawal amount includes the fee
+                if (type === 'withdrawal') {
+                    amount = amount - feeCost;
+                }
                 fee = {
                     'cost': feeCost,
                     'currency': code,
@@ -1018,13 +1034,10 @@ module.exports = class exmo extends Exchange {
         return this.milliseconds ();
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response = undefined) {
-        if (typeof body !== 'string')
-            return; // fallback to default error handler
-        if (body.length < 2)
+    handleErrors (httpCode, reason, url, method, headers, body, response) {
+        if (response === undefined)
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
-            response = JSON.parse (body);
             if ('result' in response) {
                 //
                 //     {"result":false,"error":"Error 50052: Insufficient funds"}
@@ -1056,10 +1069,5 @@ module.exports = class exmo extends Exchange {
                 }
             }
         }
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        return this.parseIfJsonEncodedObject (response);
     }
 };

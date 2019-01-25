@@ -752,12 +752,11 @@ class buda extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (!$this->is_json_encoded_object($body)) {
             return; // fallback to default error handler
         }
         if ($code >= 400) {
-            $response = json_decode ($body, $as_associative_array = true);
             $errorCode = $this->safe_string($response, 'code');
             $message = $this->safe_string($response, 'message', $body);
             $feedback = $this->name . ' => ' . $message;

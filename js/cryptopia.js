@@ -14,7 +14,6 @@ module.exports = class cryptopia extends Exchange {
             'name': 'Cryptopia',
             'rateLimit': 1500,
             'countries': [ 'NZ' ], // New Zealand
-            'parseJsonResponse': false,
             'has': {
                 'CORS': false,
                 'createMarketOrder': false,
@@ -806,7 +805,12 @@ module.exports = class cryptopia extends Exchange {
         }, params));
         let address = this.safeString (response['Data'], 'BaseAddress');
         let tag = this.safeString (response['Data'], 'Address');
-        if ((address === undefined) || (address.length < 1)) {
+        if (address !== undefined) {
+            if (address.length < 1) {
+                address = undefined;
+            }
+        }
+        if (address === undefined) {
             address = tag;
             tag = undefined;
         }
@@ -867,58 +871,36 @@ module.exports = class cryptopia extends Exchange {
         return this.milliseconds ();
     }
 
-    handleErrors (code, reason, url, method, headers, body, response = undefined) {
-        if (typeof body !== 'string')
+    handleErrors (code, reason, url, method, headers, body, response) {
+        if (response === undefined) {
             return; // fallback to default error handler
-        if (body.length < 2)
-            return; // fallback to default error handler
-        const fixedJSONString = this.sanitizeBrokenJSONString (body);
-        if (fixedJSONString[0] === '{') {
-            let response = JSON.parse (fixedJSONString);
-            if ('Success' in response) {
-                const success = this.safeValue (response, 'Success');
-                if (success !== undefined) {
-                    if (!success) {
-                        let error = this.safeString (response, 'Error');
-                        let feedback = this.id;
-                        if (typeof error === 'string') {
-                            feedback = feedback + ' ' + error;
-                            if (error.indexOf ('Invalid trade amount') >= 0) {
-                                throw new InvalidOrder (feedback);
-                            }
-                            if (error.indexOf ('No matching trades found') >= 0) {
-                                throw new OrderNotFound (feedback);
-                            }
-                            if (error.indexOf ('does not exist') >= 0) {
-                                throw new OrderNotFound (feedback);
-                            }
-                            if (error.indexOf ('Insufficient Funds') >= 0) {
-                                throw new InsufficientFunds (feedback);
-                            }
-                            if (error.indexOf ('Nonce has already been used') >= 0) {
-                                throw new InvalidNonce (feedback);
-                            }
-                        } else {
-                            feedback = feedback + ' ' + fixedJSONString;
+        }
+        if ('Success' in response) {
+            const success = this.safeValue (response, 'Success');
+            if (success !== undefined) {
+                if (!success) {
+                    let error = this.safeString (response, 'Error');
+                    let feedback = this.id + ' ' + body;
+                    if (typeof error === 'string') {
+                        if (error.indexOf ('Invalid trade amount') >= 0) {
+                            throw new InvalidOrder (feedback);
                         }
-                        throw new ExchangeError (feedback);
+                        if (error.indexOf ('No matching trades found') >= 0) {
+                            throw new OrderNotFound (feedback);
+                        }
+                        if (error.indexOf ('does not exist') >= 0) {
+                            throw new OrderNotFound (feedback);
+                        }
+                        if (error.indexOf ('Insufficient Funds') >= 0) {
+                            throw new InsufficientFunds (feedback);
+                        }
+                        if (error.indexOf ('Nonce has already been used') >= 0) {
+                            throw new InvalidNonce (feedback);
+                        }
                     }
+                    throw new ExchangeError (feedback);
                 }
             }
         }
-    }
-
-    sanitizeBrokenJSONString (jsonString) {
-        // sometimes cryptopia will return a unicode symbol before actual JSON string.
-        const indexOfBracket = jsonString.indexOf ('{');
-        if (indexOfBracket >= 0) {
-            return jsonString.slice (indexOfBracket);
-        }
-        return jsonString;
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        return this.parseIfJsonEncodedObject (this.sanitizeBrokenJSONString (response));
     }
 };

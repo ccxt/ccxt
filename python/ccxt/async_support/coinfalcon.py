@@ -141,11 +141,11 @@ class coinfalcon (Exchange):
         }
 
     async def fetch_ticker(self, symbol, params={}):
-        await self.load_markets()
         tickers = await self.fetch_tickers(params)
         return tickers[symbol]
 
     async def fetch_tickers(self, symbols=None, params={}):
+        await self.load_markets()
         response = await self.publicGetMarkets()
         tickers = response['data']
         result = {}
@@ -332,7 +332,7 @@ class coinfalcon (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if code < 400:
             return
         ErrorClass = self.safe_value({

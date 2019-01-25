@@ -53,7 +53,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 
 # Exchanges
 
-The ccxt library currently supports the following 132 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 133 cryptocurrency exchange markets and trading APIs:
 
 |                                                                                                                           | id                 | name                                                                                 | certified                                                                                                                   | ver   | doc                                                                                              | countries                               |
 |---------------------------------------------------------------------------------------------------------------------------|--------------------|--------------------------------------------------------------------------------------|:---------------------------------------------------------------------------------------------------------------------------:|:-----:|--------------------------------------------------------------------------------------------------|-----------------------------------------|
@@ -120,6 +120,7 @@ The ccxt library currently supports the following 132 cryptocurrency exchange ma
 |![coinspot](https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg)           | coinspot           | [CoinSpot](https://www.coinspot.com.au)                                              |                                                                                                                             | *     | [API](https://www.coinspot.com.au/api)                                                           | Australia                               |
 |![cointiger](https://user-images.githubusercontent.com/1294454/39797261-d58df196-5363-11e8-9880-2ec78ec5bd25.jpg)          | cointiger          | [CoinTiger](https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt)         |                                                                                                                             | 1     | [API](https://github.com/cointiger/api-docs-en/wiki)                                             | China                                   |
 |![coolcoin](https://user-images.githubusercontent.com/1294454/36770529-be7b1a04-1c5b-11e8-9600-d11f1996b539.jpg)           | coolcoin           | [CoolCoin](https://www.coolcoin.com)                                                 |                                                                                                                             | *     | [API](https://www.coolcoin.com/help.api.html)                                                    | Hong Kong                               |
+|![coss](https://user-images.githubusercontent.com/1294454/50328158-22e53c00-0503-11e9-825c-c5cfd79bfa74.jpg)               | coss               | [COSS](https://www.coss.io/c/reg?r=OWCMHQVW2Q)                                       | [![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | 1     | [API](https://api.coss.io/v1/spec)                                                               | Singapore, Netherlands                  |
 |![crex24](https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg)             | crex24             | [CREX24](https://crex24.com/?refid=slxsjsjtil8xexl9hksr)                             |                                                                                                                             | 2     | [API](https://docs.crex24.com/trade-api/v2)                                                      | Estonia                                 |
 |![crypton](https://user-images.githubusercontent.com/1294454/41334251-905b5a78-6eed-11e8-91b9-f3aa435078a1.jpg)            | crypton            | [Crypton](https://cryptonbtc.com)                                                    |                                                                                                                             | 1     | [API](https://cryptonbtc.docs.apiary.io/)                                                        | EU                                      |
 |![cryptopia](https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg)          | cryptopia          | [Cryptopia](https://www.cryptopia.co.nz/Register?referrer=kroitor)                   |                                                                                                                             | *     | [API](https://support.cryptopia.co.nz/csm?id=kb_article&sys_id=a75703dcdbb9130084ed147a3a9619bc) | New Zealand                             |
@@ -149,7 +150,7 @@ The ccxt library currently supports the following 132 cryptocurrency exchange ma
 |![jubi](https://user-images.githubusercontent.com/1294454/27766581-9d397d9a-5edd-11e7-8fb9-5d8236c0e692.jpg)               | jubi               | [jubi.com](https://www.jubi.com)                                                     |                                                                                                                             | 1     | [API](https://www.jubi.com/help/api.html)                                                        | China                                   |
 |![kkex](https://user-images.githubusercontent.com/1294454/47401462-2e59f800-d74a-11e8-814f-e4ae17b4968a.jpg)               | kkex               | [KKEX](https://kkex.com)                                                             |                                                                                                                             | 2     | [API](https://kkex.com/api_wiki/cn/)                                                             | China, US, Japan                        |
 |![kraken](https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg)             | kraken             | [Kraken](https://www.kraken.com)                                                     | [![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | 0     | [API](https://www.kraken.com/en-us/help/api)                                                     | US                                      |
-|![kucoin](https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg)             | kucoin             | [Kucoin](https://www.kucoin.com/?r=E5wkqe)                                           |                                                                                                                             | 1     | [API](https://kucoinapidocs.docs.apiary.io)                                                      | Hong Kong                               |
+|![kucoin](https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg)             | kucoin             | [Kucoin](https://www.kucoin.com/?r=E5wkqe)                                           |                                                                                                                             | 1     | [API](https://kucoinapidocs.docs.apiary.io)                                                      | Seychelles                              |
 |![kuna](https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg)               | kuna               | [Kuna](https://kuna.io)                                                              |                                                                                                                             | 2     | [API](https://kuna.io/documents/api)                                                             | Ukraine                                 |
 |![lakebtc](https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg)            | lakebtc            | [LakeBTC](https://www.lakebtc.com)                                                   |                                                                                                                             | 2     | [API](https://www.lakebtc.com/s/api_v2)                                                          | US                                      |
 |![lbank](https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg)              | lbank              | [LBank](https://www.lbank.info)                                                      |                                                                                                                             | 1     | [API](https://github.com/LBank-exchange/lbank-official-api-docs)                                 | China                                   |
@@ -553,9 +554,9 @@ In terms of the ccxt library, every exchange offers multiple markets within itse
     'quote':  'USD',      // uppercase string, quote currency, 3 or more letters
     'active': true,       // boolean, market status
     'precision': {        // number of decimal digits "after the dot"
-        'price': 8,       // integer
-        'amount': 8,      // integer
-        'cost': 8,        // integer
+        'price': 8,       // integer, might be missing if not supplied by the exchange
+        'amount': 8,      // integer, might be missing if not supplied by the exchange
+        'cost': 8,        // integer, very few exchanges actually have it
     },
     'limits': {           // value limits when placing orders on this market
         'amount': {
@@ -1499,6 +1500,8 @@ A price ticker contains statistics for a particular market/symbol for some perio
 }
 ```
 
+### Notes On Ticker Structure
+
 - The `bidVolume` is the volume (amount) of current best bid in the orderbook.
 - The `askVolume` is the volume (amount) of current best ask in the orderbook.
 - The `baseVolume` is the amount of base currency traded (bought or sold) in last 24 hours.
@@ -1516,7 +1519,13 @@ base currency ↓
 
 Timestamp and datetime are both Universal Time Coordinated (UTC) in milliseconds.
 
-Although some exchanges do mix-in orderbook's top bid/ask prices into their tickers (and some even top bid/asks volumes) you should not treat ticker as a `fetchOrderBook` replacement. The main purpose of a ticker is to serve statistical data, as such, treat it as "live 24h OHLCV". It is known that exchanges discourage frequent `fetchTicker` requests by imposing stricter rate limits on these queries. If you need a unified way to access bid/asks you should use `fetchL[123]OrderBook` family instead.
+- `ticker['timestamp']` is the time when the exchange generated this response (before replying it back to you). This may be missing (`undefined/None/null`), as documented in the Manual, not all exchanges provide a timestamp there. If it is defined, then it is the UTC timestamp **in milliseconds** since 1 Jan 1970 00:00:00.
+- `exchange.last_response_headers['Date']` is the date-time string of the last HTTP response received (from HTTP headers). The 'Date' parser should respect the timezone designated there. The precision of the date-time is 1 second, 1000 milliseconds. This date should be set by the exchange server when the message originated according to the following standards:
+    - https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.18
+    - https://tools.ietf.org/html/rfc1123#section-5.2.14
+    - https://tools.ietf.org/html/rfc822#section-5
+
+Although some exchanges do mix-in orderbook's top bid/ask prices into their tickers (and some even top bid/asks volumes) you should not treat a ticker as a `fetchOrderBook` replacement. The main purpose of a ticker is to serve statistical data, as such, treat it as "live 24h OHLCV". It is known that exchanges discourage frequent `fetchTicker` requests by imposing stricter rate limits on these queries. If you need a unified way to access bid/asks you should use `fetchL[123]OrderBook` family instead.
 
 To get historical prices and volumes use the unified [`fetchOHLCV`](https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-candlestick-charts) method where available.
 

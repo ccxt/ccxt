@@ -751,10 +751,15 @@ class bitstamp extends Exchange {
                 $price = $cost / $filled;
             }
         }
-        $fee = array (
-            'cost' => $feeCost,
-            'currency' => $feeCurrency,
-        );
+        $fee = null;
+        if ($feeCost !== null) {
+            if ($feeCurrency !== null) {
+                $fee = array (
+                    'cost' => $feeCost,
+                    'currency' => $feeCurrency,
+                );
+            }
+        }
         return array (
             'id' => $id,
             'datetime' => $this->iso8601 ($timestamp),
@@ -781,8 +786,19 @@ class bitstamp extends Exchange {
         if ($symbol !== null) {
             $market = $this->market ($symbol);
         }
-        $orders = $this->privatePostOpenOrdersAll ();
-        return $this->parse_orders($orders, $market, $since, $limit);
+        $response = $this->privatePostOpenOrdersAll ($params);
+        $result = array ();
+        for ($i = 0; $i < count ($response); $i++) {
+            $order = $this->parse_order($response[$i], $market, $since, $limit);
+            $result[] = array_merge ($order, array (
+                'status' => 'open',
+                'type' => 'limit',
+            ));
+        }
+        if ($symbol === null) {
+            return $this->filter_by_since_limit($result, $since, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
     public function get_currency_name ($code) {
@@ -875,13 +891,12 @@ class bitstamp extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
         if (gettype ($body) !== 'string')
             return; // fallback to default $error handler
         if (strlen ($body) < 2)
             return; // fallback to default $error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             // fetchDepositAddress returns array ("$error" => "No permission found") on apiKeys that don't have the permission required
             $error = $this->safe_string($response, 'error');
             $exceptions = $this->exceptions;

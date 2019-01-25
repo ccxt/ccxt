@@ -18,6 +18,7 @@ class coinexchange extends Exchange {
             // new metainfo interface
             'has' => array (
                 'privateAPI' => false,
+                'fetchBalance' => false,
                 'createOrder' => false,
                 'createMarketOrder' => false,
                 'createLimitOrder' => false,

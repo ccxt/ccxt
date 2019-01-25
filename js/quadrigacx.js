@@ -20,6 +20,7 @@ module.exports = class quadrigacx extends Exchange {
                 'fetchTickers': true,
                 'fetchOrder': true,
                 'fetchMyTrades': true,
+                'fetchTransactions': true,
                 'CORS': true,
                 'withdraw': true,
             },
@@ -74,6 +75,7 @@ module.exports = class quadrigacx extends Exchange {
                 'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc', 'maker': 0.005, 'taker': 0.005 },
                 'BCH/CAD': { 'id': 'bch_cad', 'symbol': 'BCH/CAD', 'base': 'BCH', 'quote': 'CAD', 'baseId': 'bch', 'quoteId': 'cad', 'maker': 0.005, 'taker': 0.005 },
                 'BCH/BTC': { 'id': 'bch_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'baseId': 'bch', 'quoteId': 'btc', 'maker': 0.005, 'taker': 0.005 },
+                'BSV/CAD': { 'id': 'bsv_cad', 'symbol': 'BSV/CAD', 'base': 'BSV', 'quote': 'CAD', 'baseId': 'bsv', 'quoteId': 'cad', 'maker': 0.005, 'taker': 0.005 },
                 'BTG/CAD': { 'id': 'btg_cad', 'symbol': 'BTG/CAD', 'base': 'BTG', 'quote': 'CAD', 'baseId': 'btg', 'quoteId': 'cad', 'maker': 0.005, 'taker': 0.005 },
                 'BTG/BTC': { 'id': 'btg_btc', 'symbol': 'BTG/BTC', 'base': 'BTG', 'quote': 'BTC', 'baseId': 'btg', 'quoteId': 'btc', 'maker': 0.005, 'taker': 0.005 },
             },
@@ -114,6 +116,77 @@ module.exports = class quadrigacx extends Exchange {
         let response = await this.privatePostUserTransactions (this.extend (request, params));
         let trades = this.filterBy (response, 'type', 2);
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchTransactions (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let market = undefined;
+        let request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['book'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let response = await this.privatePostUserTransactions (this.extend (request, params));
+        let user_transactions = this.filterByArray (response, 'type', [0, 1], false);
+        // return user_transactions;
+        return this.parseTransactions (user_transactions, market, since, limit);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        //     {
+        //         "btc":"0.99985260",
+        //         "method":"Bitcoin",
+        //         "fee":"0.00000000",
+        //         "type":0,
+        //         "datetime":"2018-10-08 05:26:23"
+        //     }
+        //
+        //     {
+        //         "btc":"-0.50000000",
+        //         "method":"Bitcoin",
+        //         "fee":"0.00000000",
+        //         "type":1,
+        //         "datetime":"2018-08-27 13:50:10"
+        //     }
+        //
+        let code = undefined;
+        let amount = undefined;
+        let omitted = this.omit (transaction, [ 'datetime', 'type', 'method', 'fee' ]);
+        let keys = Object.keys (omitted);
+        for (let i = 0; i < keys.length; i++) {
+            if (keys[i] in this.currencies_by_id) {
+                code = keys[i];
+            }
+        }
+        if (code !== undefined) {
+            amount = this.safeString (transaction, code);
+        }
+        let timestamp = this.parse8601 (this.safeString (transaction, 'datetime'));
+        let status = 'ok';
+        const fee = this.safeFloat (transaction, 'fee');
+        let type = this.safeInteger (transaction, 'type');
+        type = (type === 1) ? 'withdrawal' : 'deposit';
+        return {
+            'info': transaction,
+            'id': undefined,
+            'txid': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': undefined,
+            'tag': undefined,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': undefined,
+            'fee': {
+                'currency': code,
+                'cost': fee,
+            },
+        };
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -488,13 +561,12 @@ module.exports = class quadrigacx extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (statusCode, statusText, url, method, headers, body, response = undefined) {
+    handleErrors (statusCode, statusText, url, method, headers, body, response) {
         if (typeof body !== 'string')
             return; // fallback to default error handler
         if (body.length < 2)
             return;
         if ((body[0] === '{') || (body[0] === '[')) {
-            response = JSON.parse (body);
             let error = this.safeValue (response, 'error');
             if (error !== undefined) {
                 //

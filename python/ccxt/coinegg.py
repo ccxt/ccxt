@@ -12,7 +12,6 @@ try:
 except NameError:
     basestring = str  # Python 2
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
@@ -486,7 +485,7 @@ class coinegg (Exchange):
                 body = query
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         # checks against error codes
         if not isinstance(body, basestring):
             return
@@ -494,7 +493,6 @@ class coinegg (Exchange):
             return
         if body[0] != '{':
             return
-        response = json.loads(body)
         # private endpoints return the following structure:
         # {"result":true,"data":{...}} - success
         # {"result":false,"code":"103"} - failure
