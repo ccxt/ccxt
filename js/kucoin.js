@@ -300,8 +300,8 @@ module.exports = class kucoin extends Exchange {
                 'KC-API-PASSPHRASE': this.password,
             };
             if (method !== 'GET') {
-                payload += this.json (query);
                 body = this.json (query);
+                payload += body;                
                 headers['Content-Type'] = 'application/json';
             }
             headers['KC-API-SIGN'] = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
