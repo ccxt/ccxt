@@ -66,7 +66,7 @@ module.exports = class kucoin extends Exchange {
                         'withdrawals',
                         'withdrawals/quotas',
                         'orders',
-                        'orders/{order-id}',
+                        'orders/{orderId}',
                         'fills',
                     ],
                     'post': [
@@ -79,7 +79,7 @@ module.exports = class kucoin extends Exchange {
                     ],
                     'delete': [
                         'withdrawals/{withdrawalId}',
-                        'orders/{order-id}',
+                        'orders/{orderId}',
                     ],
                 },
             },
