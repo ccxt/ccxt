@@ -597,7 +597,8 @@ class exmo (Exchange):
         response = await self.privatePostOrderTrades(self.extend({
             'order_id': str(id),
         }, params))
-        return self.parse_trades(response, market, since, limit)
+        trades = self.safe_value(response, 'trades')
+        return self.parse_trades(trades, market, since, limit)
 
     def update_cached_orders(self, openOrders, symbol):
         # update local cache with open orders
@@ -695,13 +696,13 @@ class exmo (Exchange):
                         timestamp = trade['timestamp']
                     if timestamp > trade['timestamp']:
                         timestamp = trade['timestamp']
-                    filled += trade['amount']
+                    filled = self.sum(filled, trade['amount'])
                     if feeCost is None:
                         feeCost = 0.0
-                    feeCost += trade['fee']['cost']
+                    feeCost = self.sum(feeCost, trade['fee']['cost'])
                     if cost is None:
                         cost = 0.0
-                    cost += trade['cost']
+                    cost = self.sum(cost, trade['cost'])
                     trades.append(trade)
         remaining = None
         if amount is not None:

@@ -313,4 +313,4 @@ module.exports = class kucoin extends Exchange {
         let url = this.urls['api'][api] + endpoint;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};
