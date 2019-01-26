@@ -2440,4 +2440,9 @@ class Exchange {
         $otp = $code % pow(10, 6);
         return str_pad((string) $otp, 6, '0', STR_PAD_LEFT);
     }
+
+    public static function random () {
+        // returns a random number between 0 and 2 ** 32
+        return random_int (0, 2 ** 32);
+    }
 }

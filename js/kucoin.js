@@ -121,6 +121,9 @@ module.exports = class kucoin extends Exchange {
                 '411100': AccountSuspended,
                 '500000': ExchangeError,
             },
+            'options': {
+                'symbolSeparator': '-',
+            },
         });
     }
 
@@ -224,8 +227,11 @@ module.exports = class kucoin extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
-        const response = await this.publicGetMarketOrderbookLevelLevel (this.extend ({
-            'level': '1', 'symbol': marketId }, params));
+        const request = {
+            'level': '1',
+            'symbol': marketId
+        };
+        const response = await this.publicGetMarketOrderbookLevelLevel (this.extend (request, params));
         const responseData = response['data'];
         return {
             'symbol': symbol,
@@ -236,6 +242,17 @@ module.exports = class kucoin extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        // [
+        //   [
+        //       "1545904980",             //Start time of the candle cycle
+        //       "0.058",                  //opening price
+        //       "0.049",                  //closing price
+        //       "0.058",                  //highest price
+        //       "0.049",                  //lowest price
+        //       "0.018",                  //Transaction amount
+        //       "0.000945"                //Transaction volume
+        //   ], ...,
+        // ]
         const timestamp = this.safeInteger (ohlcv, 0);
         const open = this.safeFloat (ohlcv, 1);
         const close = this.safeFloat (ohlcv, 2);
@@ -253,23 +270,13 @@ module.exports = class kucoin extends Exchange {
         if (since !== undefined) {
             sinceSeconds = Math.floor (since / 1000);
         }
-        const response = await this.publicGetMarketCandles (this.extend ({
+        const request = {
             'symbol': marketId,
             'startAt': sinceSeconds,
             'endAt': this.seconds (),
             'type': this.timeframes[timeframe],
-        }), params);
-        // [
-        //   [
-        //       "1545904980",             //Start time of the candle cycle
-        //       "0.058",                  //opening price
-        //       "0.049",                  //closing price
-        //       "0.058",                  //highest price
-        //       "0.049",                  //lowest price
-        //       "0.018",                  //Transaction amount
-        //       "0.000945"                //Transaction volume
-        //   ], ...,
-        // ]
+        };
+        const response = await this.publicGetMarketCandles (this.extend (request, params));
         const responseData = response['data'];
         return this.parseOHLCVs (responseData, market, timeframe, since, limit)
     }
@@ -285,7 +292,7 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
         const request = { 'symbol': marketId, 'level': 3 };
-        const response = await this.publicGetMarketOrderbookLevelLevel (request, params);
+        const response = await this.publicGetMarketOrderbookLevelLevel (this.extend (request, params));
         // { sequence: '1547731421688',
         //   asks: [ [ '5c419328ef83c75456bd615c', '0.9', '0.09' ], ... ],
         //   bids: [ [ '5c419328ef83c75456bd615c', '0.9', '0.09' ], ... ], }
@@ -297,7 +304,8 @@ module.exports = class kucoin extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
-        const clientOid = 'hi6';
+        // required param, cannot be used twice
+        const clientOid = String (this.random ());
         const request = {
             'clientOid': clientOid,
             'price': price,
@@ -320,7 +328,8 @@ module.exports = class kucoin extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return this.privateDeleteOrdersOrderId (this.extend ({ 'orderId': id }, params));
+        const request = { 'orderId': id };
+        return this.privateDeleteOrdersOrderId (this.extend (request, params));
     }
 
     async fetchOrders (symbol = undefined, since = 0, limit = 50, params = {}) {
@@ -329,6 +338,7 @@ module.exports = class kucoin extends Exchange {
         const marketId = market['id'];
         const request = {
             'symbol': marketId,
+            'status': 'all',
             'startAt': Math.floor (since / 1000),
             'endAt': this.seconds (),
             'pageSize': limit,
@@ -337,6 +347,27 @@ module.exports = class kucoin extends Exchange {
         const responseData = response['data'];
         const orders = responseData['items'];
         return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = 0, limit = 50, params = {}) {
+        const request = this.extend ({
+            'status': 'done',
+        }, params);
+        return this.fetchOrders (symbol, since, limit, request);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = 0, limit = 50, params = {}) {
+        const request = this.extend ({
+            'status': 'active',
+        }, params);
+        return this.fetchOrders (symbol, since, limit, request);
+    }
+
+    parseSymbol (id) {
+        let [ quote, base ] = id.split (this.options['symbolSeparator']);
+        base = this.commonCurrencyCode (base);
+        quote = this.commonCurrencyCode (quote);
+        return base + '/' + quote;
     }
 
     parseOrder (order, market = undefined) {
@@ -371,9 +402,43 @@ module.exports = class kucoin extends Exchange {
         //     "cancelExist": false,
         //     "createdAt": 1547026471000
         // }
-        const marketId = order['symbol'];
-        const timestamp = order['createdAt'];
-
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        } else {
+            const marketId = this.safeString (order, 'symbol');
+            if (marketId !== undefined) {
+                symbol = this.parseSymbol (marketId);
+            }
+        }
+        const orderId = this.safeString (order, 'id');
+        const type = this.safeString (order, 'type');
+        const timestamp = this.safeString (order, 'createdAt');
+        const datetime = this.iso8601 (timestamp);
+        const price = this.safeFloat (order, 'price');
+        const side = this.safeString (order, 'side');
+        const feeCurrency = this.safeString (order, 'feeCurrency');
+        const fee = this.safeFloat (order, 'fee');
+        const amount = this.safeString (order, 'size');
+        // bool
+        const status = order['active'] ? 'open' : 'closed';
+        let fees = {
+            'currency': feeCurrency,
+            'cost': fee,
+        };
+        return {
+            'id': orderId,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'amount': amount,
+            'price': price,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'fee': fees,
+            'status': status,
+            'info': order,
+        };
     }
 
     async fetchTrades (symbol, since = 0, limit = 50, params = {}) {

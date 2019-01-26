@@ -57,6 +57,7 @@ import time
 import uuid
 import zlib
 from decimal import Decimal
+import random
 
 # -----------------------------------------------------------------------------
 
@@ -1804,3 +1805,7 @@ class Exchange(object):
         offset = hex_to_dec(hmac_res[-1]) * 2
         otp = str(hex_to_dec(hmac_res[offset: offset + 8]) & 0x7fffffff)
         return otp[-6:]
+
+    @staticmethod
+    def random():
+        return random.randint(0, 2**64)

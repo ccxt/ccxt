@@ -1601,4 +1601,9 @@ module.exports = class Exchange {
             throw new ExchangeError (this.id + ' this.twofa has not been set')
         }
     }
+
+    random () {
+        // returns a random number between 0 and 2^64
+        return Math.floor (Math.random () * 2 ** 64)
+    }
 }
