@@ -1713,6 +1713,40 @@ class Exchange(object):
             order_struct_hash
         )
         return '0x' + base64.b16encode(sha3).decode('ascii').lower()
+    
+    def getZeroExOrderHashV3(self, order):
+        unpacked = [
+            self.web3.toChecksumAddress(order['contractAddress']),
+            self.web3.toChecksumAddress(order['tokenBuy']),
+            int(order['amount_buy']),
+            self.web3.toChecksumAddress(order['tokenSell']),
+            int(order['amount_sell']),
+            int(order['expires']),
+            int(order['nonce']),
+            self.web3.toChecksumAddress(order['address']),
+        ]
+        types = [
+            'address',
+            'address',
+            'uint256',
+            'address',
+            'uint256',
+            'uint256',
+            'uint256',
+            'address',
+        ]
+        return self.web3.soliditySha3(types, unpacked).hex()
+
+    def getZeroExOrderHashV4(self, order):
+        unpacked = [
+            int(order['orderHash']),
+            int(order['nonce']),
+        ]
+        types = [
+            'uint256',
+            'uint256',
+        ]
+        return self.web3.soliditySha3(types, unpacked).hex()
 
     def signZeroExOrder(self, order, privateKey):
         orderHash = self.getZeroExOrderHash(order)
@@ -1728,6 +1762,22 @@ class Exchange(object):
         return self.extend(order, {
             'orderHash': orderHash,
             'ecSignature': signature,  # todo fix v if needed
+        })
+    
+    def signZeroExOrderV3(self, order, privateKey):
+        orderHash = self.getZeroExOrderHashV3(order)
+        signature = self.signMessage(orderHash[-64:], privateKey)
+        return self.extend(order, {
+            'orderHash': orderHash,
+            'ecSignature': signature,
+        })
+    
+    def signZeroExOrderV4(self, order, privateKey):
+        orderHash = self.getZeroExOrderHashV4(order)
+        signature = self.signMessage(orderHash[-64:], privateKey)
+        return self.extend(order, {
+            'orderHash': orderHash,
+            'ecSignature': signature,
         })
 
     def hashMessage(self, message):

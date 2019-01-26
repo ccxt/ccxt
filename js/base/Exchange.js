@@ -1518,6 +1518,26 @@ module.exports = class Exchange {
             ])
         ).toString ('hex');
     }
+    
+    getZeroExOrderHashV3 (order) {
+        return this.soliditySha3 ([
+            order['contractAddress'], // address
+            order['tokenBuy'], // address
+            order['amount_buy'], // uint256
+            order['tokenSell'], // address
+            order['amount_sell'], // uint256
+            order['expires'], // uint256
+            order['nonce'], // uint256
+            order['address'], // address
+        ]);
+    }
+
+    getZeroExOrderHashV4 (order) {
+        return this.soliditySha3 ([
+            order['orderHash'], // address
+            order['nonce'], // uint256
+        ]);
+    }
 
     signZeroExOrder (order, privateKey) {
         const orderHash = this.getZeroExOrderHash (order);
@@ -1534,6 +1554,24 @@ module.exports = class Exchange {
         return this.extend (order, {
             'orderHash': orderHash,
             'ecSignature': signature, // todo fix v if needed
+        })
+    }
+    
+    signZeroExOrderV3 (order, privateKey) {
+        const orderHash = this.getZeroExOrderHashV3 (order);
+        const signature = this.signMessage (orderHash, privateKey);
+        return this.extend (order, {
+            'orderHash': orderHash,
+            'ecSignature': signature,
+        })
+    }
+
+    signZeroExOrderV4 (order, privateKey) {
+        const orderHash = this.getZeroExOrderHashV4 (order);
+        const signature = this.signMessage (orderHash, privateKey);
+        return this.extend (order, {
+            'orderHash': orderHash,
+            'ecSignature': signature,
         })
     }
 

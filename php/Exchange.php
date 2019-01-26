@@ -2377,12 +2377,52 @@ class Exchange {
         return call_user_func_array('\kornrunner\Solidity::sha3', $unpacked);
     }
 
+    public function getZeroExOrderHashV3 ($order) {
+        $unpacked = array (
+            $order['contractAddress'],
+            $order['tokenBuy'],
+            $order['amount_buy'],
+            $order['tokenSell'],
+            $order['amount_sell'],
+            $order['expires'],
+            $order['nonce'],
+            $order['address'],
+        );
+        return call_user_func_array('\kornrunner\Solidity::sha3', $unpacked);
+    }
+
+    public function getZeroExOrderHashV4 ($order) {
+        $unpacked = array (
+            $order['orderHash'],
+            $order['nonce'],
+        );
+        return call_user_func_array('\kornrunner\Solidity::sha3', $unpacked);
+    }
+
     public function signZeroExOrder ($order, $privateKey) {
         $orderHash = $this->getZeroExOrderHash ($order);
         $signature = $this->signMessage ($orderHash, privateKey);
         return array_merge ($order, array (
             'orderHash' => $orderHash,
             'ecSignature' => $signature, // todo fix v if needed
+        ));
+    }
+
+    public function signZeroExOrderV3 ($order, $privateKey) {
+        $orderHash = $this->getZeroExOrderHashV3 ($order);
+        $signature = $this->signMessage ($orderHash, $privateKey);
+        return array_merge ($order, array (
+            'orderHash' => $orderHash,
+            'ecSignature' => $signature,
+        ));
+    }
+
+    public function signZeroExOrderV4 ($order, $privateKey) {
+        $orderHash = $this->getZeroExOrderHashV4 ($order);
+        $signature = $this->signMessage ($orderHash, $privateKey);
+        return array_merge ($order, array (
+            'orderHash' => $orderHash,
+            'ecSignature' => $signature,
         ));
     }
 
