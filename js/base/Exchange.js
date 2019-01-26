@@ -11,7 +11,6 @@ const {
     , values
     , deepExtend
     , extend
-    , clone
     , flatten
     , unique
     , indexBy
@@ -453,19 +452,6 @@ module.exports = class Exchange {
                     throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)')
                 throw e
             })
-        }
-    }
-
-    setSandboxMode (enabled) {
-        if (!!enabled) {
-            if ('test' in this.urls) {
-                this.urls['api_backup'] = clone (this.urls['api'])
-                this.urls['api'] = clone (this.urls['test'])
-            } else {
-                throw new NotSupported (this.id + ' does not have a sandbox URL')
-            }
-        } else if ('api_backup' in this.urls) {
-            this.urls['api'] = clone (this.urls['api_backup'])
         }
     }
 
@@ -1600,10 +1586,5 @@ module.exports = class Exchange {
         } else {
             throw new ExchangeError (this.id + ' this.twofa has not been set')
         }
-    }
-
-    random () {
-        // returns a random number between 0 and 2^64
-        return Math.floor (Math.random () * 2 ** 64)
     }
 }

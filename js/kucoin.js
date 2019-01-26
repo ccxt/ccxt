@@ -20,8 +20,14 @@ module.exports = class kucoin extends Exchange {
             'has': {
                 'fetchMarkets': true,
                 'fetchCurrencies': true,
-                'fetchTickers': true,
+                'fetchTicker': true,
                 'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchOrder': true,
+                'fetchClosedOrders': true,
+                'fetchOpenOrders': true,
+                'fetchDepositAddress': true,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://example.com/image.jpg',
@@ -305,7 +311,7 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
         // required param, cannot be used twice
-        const clientOid = String (this.random ());
+        const clientOid = this.uuid ();
         const request = {
             'clientOid': clientOid,
             'price': price,
@@ -332,13 +338,16 @@ module.exports = class kucoin extends Exchange {
         return this.privateDeleteOrdersOrderId (this.extend (request, params));
     }
 
-    async fetchOrders (symbol = undefined, since = 0, limit = 50, params = {}) {
+    async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
+        if (since === undefined) {
+            since = 0;
+        }
         const request = {
             'symbol': marketId,
-            'status': 'all',
+            'status': status,
             'startAt': Math.floor (since / 1000),
             'endAt': this.seconds (),
             'pageSize': limit,
@@ -349,18 +358,18 @@ module.exports = class kucoin extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = 0, limit = 50, params = {}) {
-        const request = this.extend ({
-            'status': 'done',
-        }, params);
-        return this.fetchOrders (symbol, since, limit, request);
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchOrdersByStatus ('done', symbol, since, limit, params);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = 0, limit = 50, params = {}) {
-        const request = this.extend ({
-            'status': 'active',
-        }, params);
-        return this.fetchOrders (symbol, since, limit, request);
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchOrdersByStatus ('active', symbol, since, limit, params);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let openOrders = this.fetchOpenOrders ('active', symbol, since, limit, params);
+        const closedOrders = this.fetchClosedOrders ('active', symbol, since, limit, params);
+        return this.arrayConcat (openOrders, closedOrders);
     }
 
     parseSymbol (id) {
@@ -419,7 +428,9 @@ module.exports = class kucoin extends Exchange {
         const side = this.safeString (order, 'side');
         const feeCurrency = this.safeString (order, 'feeCurrency');
         const fee = this.safeFloat (order, 'fee');
-        const amount = this.safeString (order, 'size');
+        const amount = this.safeFloat (order, 'size');
+        const filled = this.safeFloat (order, 'dealSize');
+        const remaining = amount - filled;
         // bool
         const status = order['active'] ? 'open' : 'closed';
         let fees = {
@@ -433,6 +444,8 @@ module.exports = class kucoin extends Exchange {
             'side': side,
             'amount': amount,
             'price': price,
+            'filled': filled,
+            'remaining': remaining,
             'timestamp': timestamp,
             'datetime': datetime,
             'fee': fees,
@@ -476,7 +489,60 @@ module.exports = class kucoin extends Exchange {
         //     "type":"limit",
         //     "createdAt":1547026472000
         // }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        } else {
+            const marketId = this.safeString (trade, 'symbol');
+            if (marketId !== undefined) {
+                symbol = this.parseSymbol (marketId);
+            }
+        }
+        const tradeId = this.safeString (trade, 'tradeId');
+        const orderId = this.safeString (trade, 'orderId');
+        const amount = this.safeString (trade, 'size');
+        const timestamp = this.safeString (trade, 'createdAt');
+        const datetime = this.iso8601 (timestamp);
+        const price = this.safeFloat (trade, 'price');
+        const side = this.safeString (trade, 'side');
+        const fees = {
+            'cost': this.safeFloat (trade, 'fee'),
+            'rate': this.safeFloat (trade, 'feeRate'),
+            'feeCurrency': this.safeString (trade, 'feeCurrency'),
+        };
+        return {
+            'id': tradeId,
+            'orderId': orderId,
+            'symbol': symbol,
+            'amount': amount,
+            'price': price,
+            'fee': fees,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'side': side,
+            'info': trade,
+        }
+    }
 
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        await this.loadMarkets ();
+        this.checkAddress (address);
+        const currency = this.currencyId (code);
+        let request = {
+            'currency': currency,
+            'address': address,
+        };
+        if (tag !== undefined) {
+            request['memo'] = tag;
+        }
+        const response = await this.privatePostWithdrawal (this.extend (request, params));
+        // {
+        //   "withdrawalId": "5bffb63303aa675e8bbe18f9"
+        // }
+        const responseData = response['data'];
+        return {
+            'id': this.safeString (responseData, 'withdrawalId');
+        }
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -522,4 +588,3 @@ module.exports = class kucoin extends Exchange {
         }
     }
 };
-

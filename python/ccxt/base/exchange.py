@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.151'
+__version__ = '1.18.148'
 
 # -----------------------------------------------------------------------------
 
@@ -57,7 +57,6 @@ import time
 import uuid
 import zlib
 from decimal import Decimal
-import random
 
 # -----------------------------------------------------------------------------
 
@@ -320,17 +319,6 @@ class Exchange(object):
 
     def describe(self):
         return {}
-
-    def set_sandbox_mode(self, enabled):
-        if enabled:
-            if 'test' in self.urls:
-                self.urls['api_backup'] = self.urls['api']
-                self.urls['api'] = self.urls['test']
-            else:
-                raise NotSupported(self.id + ' does not have a sandbox URL')
-        elif 'api_backup' in self.urls:
-            self.urls['api'] = self.urls['api_backup']
-            del self.urls['api_backup']
 
     @classmethod
     def define_rest_api(cls, api, method_name, options={}):
@@ -1805,7 +1793,3 @@ class Exchange(object):
         offset = hex_to_dec(hmac_res[-1]) * 2
         otp = str(hex_to_dec(hmac_res[offset: offset + 8]) & 0x7fffffff)
         return otp[-6:]
-
-    @staticmethod
-    def random():
-        return random.randint(0, 2**64)
