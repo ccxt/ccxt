@@ -19,7 +19,7 @@ module.exports = class walutomat extends Exchange {
                 'fetchMarkets': true,
                 'fetchBalance': true,
                 'fetchOrderBook': true,
-                'fetchTrades': true,
+                'fetchTrades': false,
                 'createOrder': true,
                 'cancelOrder': true,
                 'fetchOrders': true,
@@ -112,20 +112,27 @@ module.exports = class walutomat extends Exchange {
         return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'baseVolume');
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
             'operationType': 'MARKET_FX',
-            'currencies': this.marketId (symbol),
-            'continueFrom': since,
-            'volume': limit,
             'sortOrder': 'DESC',
         };
+        if (symbol !== undefined) {
+            request['currencies'] = this.marketId (symbol);
+        }
+        if (since !== undefined) {
+            // TODO: Not sure if it's correct (idk if it's timestamp or DateTime string
+            request['continueFrom'] = since;
+        }
+        if (limit !== undefined) {
+            request['volume'] = limit;
+        }
         let response = await this.privateGetAccountHistory (this.extend (request, params));
         let result = [];
         for (let i = 0; i < response.length; i++) {
             result.push ({
-                'id': this.safeInteger (response, 'id'),
+                'id': this.safeInteger (response[i], 'id'),
             });
         }
         return result;
