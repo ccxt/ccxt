@@ -22,7 +22,6 @@ module.exports = class kucoin extends Exchange {
                 'fetchCurrencies': true,
                 'fetchTicker': true,
                 'fetchOrderBook': true,
-                'fetchOrders': true,
                 'fetchOrder': true,
                 'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
@@ -234,15 +233,39 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
         const request = {
-            'level': '1',
             'symbol': marketId
         };
-        const response = await this.publicGetMarketOrderbookLevelLevel (this.extend (request, params));
+        const response = await this.publicGetMarketStatsSymbol (this.extend (request, params));
+        //{
+        //     "symbol": "ETH-BTC",
+        //     "changeRate": "-0.778",
+        //     "changePrice": "-0.00778",
+        //     "open": 1,
+        //     "close": 0.99222,
+        //     "high": "1",
+        //     "low": "0.00222",
+        //     "vol": "4.2678",
+        //     "volValue": "2.21016762"
+        // }
         const responseData = response['data'];
+        const change = this.safeFloat (responseData, 'changePrice');
+        const percentage = this.safeFloat (responseData, 'changeRate');
+        const open = this.safeFloat (responseData, 'open');
+        const close = this.safeFloat (responseData, 'close');
+        const high = this.safeFloat (responseData, 'high');
+        const low = this.safeFloat (responseData, 'low');
+        const baseVolume = this.safeFloat (responseData, 'vol');
+        const quoteVolume = this.safeFloat (responseData, 'volValue');
         return {
             'symbol': symbol,
-            'timestamp': this.safeInteger (responseData, 'sequence'),
-            'last': this.safeFloat (responseData, 'price'),
+            'change': change,
+            'percentage': percentage,
+            'open': open,
+            'close': close,
+            'high': high,
+            'low': low,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': responseData,
         };
     }
@@ -342,17 +365,16 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        if (since === undefined) {
-            since = 0;
-        }
-        const request = {
+        let request = {
             'symbol': marketId,
             'status': status,
-            'startAt': Math.floor (since / 1000),
-            'endAt': this.seconds (),
+            'endAt': this.milliseconds (),
             'pageSize': limit,
         };
-        const response = this.privateGetOrders (this.extend (request, params));
+        if (since !== undefined) {
+            request['startAt'] = since;
+        }
+        const response = await this.privateGetOrders (this.extend (request, params));
         const responseData = response['data'];
         const orders = responseData['items'];
         return this.parseOrders (orders, market, since, limit);
@@ -366,10 +388,17 @@ module.exports = class kucoin extends Exchange {
         return this.fetchOrdersByStatus ('active', symbol, since, limit, params);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let openOrders = this.fetchOpenOrders ('active', symbol, since, limit, params);
-        const closedOrders = this.fetchClosedOrders ('active', symbol, since, limit, params);
-        return this.arrayConcat (openOrders, closedOrders);
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        const request = {
+            'orderId': id,
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const response = await this.privateGetOrdersOrderId (this.extend (request, params));
+        const responseData = response['data'];
+        return this.parseOrder (responseData, market);
     }
 
     parseSymbol (id) {
@@ -432,7 +461,7 @@ module.exports = class kucoin extends Exchange {
         const filled = this.safeFloat (order, 'dealSize');
         const remaining = amount - filled;
         // bool
-        const status = order['active'] ? 'open' : 'closed';
+        const status = order['isActive'] ? 'open' : 'closed';
         let fees = {
             'currency': feeCurrency,
             'cost': fee,
@@ -521,7 +550,7 @@ module.exports = class kucoin extends Exchange {
             'datetime': datetime,
             'side': side,
             'info': trade,
-        }
+        };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -541,8 +570,8 @@ module.exports = class kucoin extends Exchange {
         // }
         const responseData = response['data'];
         return {
-            'id': this.safeString (responseData, 'withdrawalId');
-        }
+            'id': this.safeString (responseData, 'withdrawalId'),
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
