@@ -6,6 +6,7 @@ const walutomat = new ccxt.walutomat({
 });
 
 (async () => {
+    
     const orderBookBest = await walutomat.fetchOrderBook("EUR/PLN");
 
     console.log(orderBookBest);
@@ -31,6 +32,7 @@ const walutomat = new ccxt.walutomat({
     const cancelOrder = await walutomat.cancelOrder("GUID");
 
     console.log(cancelOrder);
+    
 })();
 
 
