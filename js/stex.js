@@ -477,17 +477,6 @@ module.exports = class stex extends Exchange {
         return status;
     }
 
-    parseOrderStatusRe (status) {
-        let statuses = {
-            'open': 'wait',
-            'closed': 'closed',
-            'canceled': 'cancel',
-        };
-        if (status in statuses)
-            return statuses[status];
-        return status;
-    }
-
     parseOrder (order, market = undefined) {
         let timestamp = this.safeInteger (order, 'timestamp');
         if (timestamp !== undefined) {
@@ -722,14 +711,6 @@ module.exports = class stex extends Exchange {
             return response['graf'];
         } else {
             return response;
-        }
-    }
-
-    checkforstatus (status, array) {
-        if (status in array) {
-            return true;
-        } else {
-            return false;
         }
     }
 
