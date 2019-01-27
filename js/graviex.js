@@ -566,7 +566,6 @@ module.exports = class graviex extends Exchange {
         let sign_str = method + '|' + path + '|' + paramencoded;
         let signature = this.hmac (sign_str, this.secret, 'sha256');
         sorted['signature'] = signature;
-        let paramencoded = this.urlencode (sorted);
         if (is_post) {
             body = paramencoded;
         } else {
