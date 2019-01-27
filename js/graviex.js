@@ -556,14 +556,10 @@ module.exports = class graviex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let host = this.urls['api'][api];
-        if ('addpath' in params) {
-            path = '/' + 'api' + '/' + 'v2' + '/' + path + '/' + params['addpath'];
+        if ('incmarket' in params) {
+            path = '/' + 'api' + '/' + 'v2' + '/' + path + '/' + params['incmarket'];
         } else {
             path = '/' + 'api' + '/' + 'v2' + '/' + path;
-        }
-        let is_post = false;
-        if (method === 'POST') {
-            is_post = true;
         }
         let tonce = this.nonce ();
         params['tonce'] = tonce;
@@ -571,13 +567,15 @@ module.exports = class graviex extends Exchange {
         let url = host + path;
         let sorted = this.keysort (params);
         let paramencoded = this.urlencode (sorted);
-        let sign_str = method + '|' + path + '|' + paramencoded;
-        let signature = this.hmac (sign_str, this.secret, 'sha256');
-        sorted['signature'] = signature;
-        if (is_post) {
+        if (method === 'POST') {
             body = paramencoded;
         } else {
             url += '?' + paramencoded;
+        }
+        if (api !== 'public') {
+            let sign_str = method + '|' + path + '|' + paramencoded;
+            let signature = this.hmac (sign_str, this.secret, 'sha256');
+            sorted['signature'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
