@@ -661,13 +661,12 @@ module.exports = class kucoin extends Exchange {
         //     "updatedAt": 1546504603000 }
         //
         let code = undefined;
+        let currencyId = this.safeString (transaction, 'currency');
+        currency = this.safeValue (this.currencies_by_id, currencyId);
         if (currency !== undefined) {
             code = currency['code'];
         } else {
-            let currencyId = this.safeString (transaction, 'currency');
-            if (currencyId !== undefined) {
-                code = this.commonCurrencyCode (currencyId);
-            }
+            code = this.commonCurrencyCode (currencyId);
         }
         const address = this.safeString (transaction, 'address');
         const amount = this.safeFloat (transaction, 'amount');
