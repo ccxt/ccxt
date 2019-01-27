@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InsufficientFunds, AuthenticationError } = require ('./base/errors');
 
 module.exports = class graviex extends Exchange {
     describe () {
@@ -51,33 +51,32 @@ module.exports = class graviex extends Exchange {
                 'fees': 'https://graviex.net/documents/fees-and-discounts',
             },
             'api': {
-                // market: Unique market id. It's always in the form of xxxyyy, where xxx is the base currency code, yyy is the quote currency code, e.g. 'btccny'. All available markets can be found at /api/v2/markets.
                 'public': {
                     'get': [
                         'markets',
                         'tickers',
-                        'order_book', // Requires market XXXYYY. Optional: asks_limit, bids_limit.
-                        'depth', // Requires market XXXYYY. Optional: asks_limit, bids_limit.
-                        'trades', // Requires market XXXYYY. Optional: limit, timestamp, from, to, order_by
-                        'k', // Requires market XXXYYY. Optional: limit, timestamp, period
-                        'k_with_pending_trades', // Requires market XXXYYY and tradeid. Optional: limit, timestamp, period
+                        'order_book',
+                        'depth',
+                        'trades',
+                        'k',
+                        'k_with_pending_trades',
                     ],
                 },
                 'private': {
                     'get': [
-                        'members/me', // Requires access_key, tonce, signature and api secret.
-                        'deposits', // Requires access_key, tonce, signature and api secret. Optional currency, limit and state.
-                        'deposit', // Requires access_key, tonce, signature, txid and api secret.
-                        'deposit_address', // Requires access_key, tonce, signature, currency and api secret.
-                        'orders', // Requires access_key, tonce, signature and api secret. Optional market, state, limit, page, order_by
-                        'order', // Requires access_key, tonce, signature and api secret AND id (unique orderid).
-                        'trades/my' // Requires market XXXYYY, access_key, tonce, signature and api secret . Optional: limit, timestamp, from, to, order_by
+                        'members/me',
+                        'deposits',
+                        'deposit',
+                        'deposit_address',
+                        'orders',
+                        'order',
+                        'trades/my',
                     ],
                     'post': [
-                        'orders', // Requires access_key, tonce, signature and api secret AND market, side(sell/buy), volume. Optional price ord_type
-                        'orders/multi', // Requires access_key, tonce, signature and api secret AND market, orders, orders[side(sell/buy)], orders[volume]. Optional orders[price], orders[ord_type]. To create multiple orders at once
-                        'orders/clear', // Requires access_key, tonce, signature and api secret. Optional side(sell/buy) to only clear orders on one side.
-                        'order/delete', // Requires access_key, tonce, signature and api secret AND id (unique orderid).
+                        'orders',
+                        'orders/multi',
+                        'orders/clear',
+                        'order/delete',
                     ],
                 },
             },
@@ -126,8 +125,7 @@ module.exports = class graviex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let response = await this.publicGetMarkets();
-        let markets = response;
+        let markets = await this.publicGetMarkets ();
         let result = [];
         let keys = Object.keys (markets);
         for (let i = 0; i < keys.length; i++) {
@@ -187,7 +185,7 @@ module.exports = class graviex extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetTickers (this.extend(market['id'], params));
+        let response = await this.publicGetTickers (this.extend (market['id'], params));
         return this.parseTicker (response, market);
     }
 
@@ -285,14 +283,14 @@ module.exports = class graviex extends Exchange {
         }, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
-    
+
     async createDepositAddress (code, params = {}) {
         let response = await this.privateGetDepositAddress (this.extend ({
             'currency': code.toLowerCase (),
         }, params));
         let address = JSON.parse (response);
         address = JSON.parse (address);
-        this.checkAddress(address);
+        this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
@@ -307,7 +305,7 @@ module.exports = class graviex extends Exchange {
         }, params));
         let address = JSON.parse (response);
         address = JSON.parse (address);
-        this.checkAddress(address);
+        this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
@@ -334,7 +332,7 @@ module.exports = class graviex extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         let timestamp = this.safeFloat (transaction, 'done_at');
-        if (timestamp !== undefined && timestamp !== "NULL") {
+        if (timestamp !== undefined && timestamp !== 'NULL') {
             timestamp = parseInt (timestamp * 1000);
         }
         let updated = this.safeFloat (transaction, 'timestamp');
@@ -385,7 +383,6 @@ module.exports = class graviex extends Exchange {
         };
         return (status in statuses) ? statuses[status] : status;
     }
-    
 
     parseOrderStatus (status) {
         let statuses = {
@@ -393,19 +390,21 @@ module.exports = class graviex extends Exchange {
             'closed': 'closed',
             'cancel': 'canceled',
         };
-        if (status in statuses)
+        if (status in statuses) {
             return statuses[status];
+		}
         return status;
     }
-    
+
     parseOrderStatusRe (status) {
         let statuses = {
             'open': 'wait',
             'closed': 'closed',
             'canceled': 'cancel',
         };
-        if (status in statuses)
+        if (status in statuses) {
             return statuses[status];
+		}
         return status;
     }
 
@@ -471,7 +470,7 @@ module.exports = class graviex extends Exchange {
             request['ord_type'] = type;
         }
         let response = await this[method] (this.extend (request, params));
-        let order = this.parseOrder(response, market);
+        let order = this.parseOrder (response, market);
         let id = order['id'];
         this.orders[id] = order;
         return order;
@@ -482,7 +481,7 @@ module.exports = class graviex extends Exchange {
         await this.privatePostOrderDelete (this.extend ({
             'id': id,
         }, params));
-        return this.fetchOrder(id, symbol);
+        return this.fetchOrder (id, symbol);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -491,7 +490,7 @@ module.exports = class graviex extends Exchange {
         let response = await this.privateGetOrder (this.extend ({
             'id': id,
         }, params));
-        return this.parseOrder(response, market);
+        return this.parseOrder (response, market);
     }
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -505,7 +504,7 @@ module.exports = class graviex extends Exchange {
         };
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
+            market = this.market (symbol);
             request['market'] = market['id'];
         }
         if (status !== undefined) {
@@ -549,7 +548,7 @@ module.exports = class graviex extends Exchange {
     nonce () {
         return this.milliseconds ();
     }
-    
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let host = this.urls['api'][api];
         path = '/' + 'api' + '/' + 'v2' + '/' + path;
@@ -561,7 +560,7 @@ module.exports = class graviex extends Exchange {
         params['tonce'] = tonce;
         params['access_key'] = this.apiKey;
         let url = host + path;
-        let sorted = this.keysort(params);
+        let sorted = this.keysort (params);
         let paramencoded = this.urlencode (sorted);
         let sign_str = method + '|' + path + '|' + paramencoded;
         let signature = this.hmac (sign_str, this.secret, 'sha256');
@@ -573,8 +572,8 @@ module.exports = class graviex extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-     
-     handleErrors (code, reason, url, method, headers, body, response) {
+
+    handleErrors (code, reason, url, method, headers, body, response) {
         if ('error' in response) {
             let code = this.safeInteger (response['error'], 'code');
             if (code !== undefined) {
@@ -584,7 +583,9 @@ module.exports = class graviex extends Exchange {
                 }
                 else if (code === 2005 || code === 2007) {
                     throw new AuthenticationError (error);
-                }
+                } else {
+					throw new ExchangeError (error);
+				}
             }
         }
     }
@@ -593,6 +594,5 @@ module.exports = class graviex extends Exchange {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         return response;
     }
-     
-     
+ 
 };
