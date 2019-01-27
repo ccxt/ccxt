@@ -312,7 +312,7 @@ module.exports = class kucoin extends Exchange {
         const marketId = market['id'];
         let request = {
             'symbol': marketId,
-            'endAt': this.seconds (),
+            'endAt': this.seconds (), // required param
             'type': this.timeframes[timeframe],
         };
         if (since !== undefined) {
@@ -393,6 +393,9 @@ module.exports = class kucoin extends Exchange {
         };
         if (since !== undefined) {
             request['startAt'] = since;
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
         }
         const response = await this.privateGetOrders (this.extend (request, params));
         const responseData = response['data'];
@@ -507,9 +510,15 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const request = {
+        let request = {
             'symbol': marketId,
         };
+        if (since !== undefined) {
+            request['startAt'] = since;
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
         const response = this.privateGetFills (this.extend (request, params));
         const responseData = response['data'];
         const orders = responseData['items'];
@@ -519,9 +528,15 @@ module.exports = class kucoin extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
-        const request = {
+        let request = {
             'symbol': marketId,
         };
+        if (since !== undefined) {
+            request['startAt'] = Math.floor (since / 1000);
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
         const response = await this.publicGetMarketHistories (this.extend (request, params));
         //
         // { sequence: '1547732882509',
@@ -695,6 +710,9 @@ module.exports = class kucoin extends Exchange {
         if (since !== undefined) {
             request['startAt'] = since;
         }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
         const response = await this.privateGetDeposits (this.extend (request, params));
         //
         // paginated
@@ -721,6 +739,9 @@ module.exports = class kucoin extends Exchange {
         }
         if (since !== undefined) {
             request['startAt'] = since;
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
         }
         const response = await this.privateGetWithdrawals (this.extend (request, params));
         //
