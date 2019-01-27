@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, PermissionDenied} = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, PermissionDenied } = require ('./base/errors');
 
 module.exports = class stex extends Exchange {
     describe () {
@@ -298,7 +298,7 @@ module.exports = class stex extends Exchange {
         if (data !== undefined) {
             let address = this.safeString (data, 'address');
             this.checkAddress (address);
-            let tag = this.safeString (data, 'msg');
+            tag = this.safeString (data, 'msg');
         }
         return {
             'currency': code,
@@ -351,7 +351,7 @@ module.exports = class stex extends Exchange {
             let response7 = await this.privatePostTransHistory (this.extend ({ 'status': 'PROCESSING' }, request));
             let response8 = await this.privatePostTransHistory (this.extend ({ 'status': 'WITHDRAWAL_ERROR' }, request));
             let response9 = await this.privatePostTransHistory (this.extend ({ 'status': 'CANCELED_BY_ADMIN' }, request));
-            return this.extend(this.getdatafromresponse (response1), this.getdatafromresponse (response2), this.getdatafromresponse (response3), this.getdatafromresponse (response4), this.getdatafromresponse (response5), this.getdatafromresponse (response6), this.getdatafromresponse (response7), this.getdatafromresponse (response8), this.getdatafromresponse (response9));
+            return this.extend (this.getdatafromresponse (response1), this.getdatafromresponse (response2), this.getdatafromresponse (response3), this.getdatafromresponse (response4), this.getdatafromresponse (response5), this.getdatafromresponse (response6), this.getdatafromresponse (response7), this.getdatafromresponse (response8), this.getdatafromresponse (response9));
         } else {
             let response1 = await this.privatePostTransHistory (this.extend ({ 'status': 'FINISHED' }, request));
             return this.getdatafromresponse (response1);
@@ -359,13 +359,13 @@ module.exports = class stex extends Exchange {
     }
 
     async fetchTransactionsHelper (code = undefined, since = undefined, limit = undefined, only = undefined, params = {}) {
-		if (code === undefined || code === 'ALL') {
+        if (code === undefined || code === 'ALL') {
             throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a currency code argument');
         }
         await this.loadMarkets ();
         if (limit === undefined) {
             limit = 50;
-		}
+        }
         await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {
@@ -379,10 +379,10 @@ module.exports = class stex extends Exchange {
         let withdrawals = {};
         if ('DEPOSIT' in data)
             if (only === undefined || only === 'deposits')
-                deposits = this.processTransactionHelper(data, 'DEPOSIT' );
+                deposits = this.processTransactionHelper (data, 'DEPOSIT' );
         if ('WITHDRAWAL' in data)
             if (only === undefined || only === 'withdrawals')
-                withdrawals = this.processTransactionHelper(data, 'WITHDRAWAL' );
+                withdrawals = this.processTransactionHelper (data, 'WITHDRAWAL');
         return this.arrayConcat (deposits, withdrawals);
     }
 
@@ -414,7 +414,7 @@ module.exports = class stex extends Exchange {
         let timestamp = this.safeFloat (transaction, 'Date');
         if (timestamp !== undefined && timestamp !== 'NULL')
             timestamp = parseInt (timestamp * 1000);
-        let code = this.safeString (transaction, 'Currency' );
+        let code = this.safeString (transaction, 'Currency');
         if (code !== undefined)
             code = currency['id'];
         const type = this.safeString (transaction, 'type'); // DEPOSIT or WITHDRAWAL
@@ -567,7 +567,7 @@ module.exports = class stex extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-		}
+        }
         let response = {};
         if (status !== undefined) {
             if (status === 'wait') {
@@ -590,12 +590,12 @@ module.exports = class stex extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-		}
+        }
         let res1 = await this.fetchTradeHistory (symbol, since, limit, 1, params);
         let res2 = await this.fetchTradeHistory (symbol, since, limit, 2, params);
         let res3 = await this.fetchTradeHistory (symbol, since, limit, 3, params);
         let res4 = await this.fetchTradeHistory (symbol, since, limit, 4, params);
-        let response = this.extend(res1, res2, res3, res4);
+        let response = this.extend (res1, res2, res3, res4);
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -685,7 +685,7 @@ module.exports = class stex extends Exchange {
         };
         if (status in statuses) {
             return statuses[status];
-		}
+        }
         return status;
     }
 
@@ -693,7 +693,7 @@ module.exports = class stex extends Exchange {
         let market = undefined;
         if (symbol !== undefined)
             market = this.market (symbol);
-        params = this.extend ({ "owner": 'OWN' }, params);
+        params = this.extend ({ 'owner': 'OWN' }, params);
         let finish = await this.fetchTradeHistory (symbol, since, limit, 3, params);
         return this.parseTrades (finish, market, since, limit);
     }
@@ -701,21 +701,21 @@ module.exports = class stex extends Exchange {
     getdatafromresponse (response) {
         if ('data' in response) {
             return response['data'];
-		} else if ('result' in response) {
+        } else if ('result' in response) {
             return response['result'];
-		} else if ('graf' in response) {
+        } else if ('graf' in response) {
             return response['graf'];
-		} else {
+        } else {
             return response;
-		}
+        }
     }
 
     checkforstatus (status, array) {
         if (status in array) {
             return true;
-		} else {
+        } else {
             return false;
-		}
+        }
     }
 
     async fetchBalance (params = {}) {
@@ -769,12 +769,12 @@ module.exports = class stex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-		let url = '/' + path;
+        let url = '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else if (api === 'private') {
-            let url = '/';
+            url = '/';
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             body = this.urlencode (this.extend ({ 'nonce': nonce, 'method': path }, params));
@@ -795,14 +795,13 @@ module.exports = class stex extends Exchange {
                 let error = this.safeString (response, 'error');
                 if (error === 'No data found') {
                     return response;
-				} else if (error === 'Login from this IP is forbidden') {
+                } else if (error === 'Login from this IP is forbidden') {
                     throw new PermissionDenied (error);
-				} else {
+                } else {
                     throw new ExchangeError (error);
-				}
+                }
             }
         }
         return response;
     }
-
 };
