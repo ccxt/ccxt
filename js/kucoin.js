@@ -37,6 +37,7 @@ module.exports = class kucoin extends Exchange {
             },
             'urls': {
                 'logo': 'https://example.com/image.jpg',
+                'referral': 'https://www.kucoin.com/#/?r=87rh55',
                 'api': {
                     'public': 'https://openapi-v2.kucoin.com',
                     'private': 'https://openapi-v2.kucoin.com',
