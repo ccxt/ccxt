@@ -738,6 +738,19 @@ module.exports = class Exchange {
         return this.setMarkets (markets, currencies)
     }
 
+    async loadAccounts (reload = false, params = {}) {
+        if (reload) {
+            this.accounts = await this.fetchAccounts (params);
+        } else {
+            if (this.accounts) {
+                return this.accounts;
+            } else {
+                this.accounts = await this.fetchAccounts (params);
+            }
+        }
+        return this.accounts;
+    }
+
     fetchBidsAsks (symbols = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchBidsAsks not supported yet')
     }

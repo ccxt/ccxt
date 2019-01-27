@@ -34,6 +34,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchMyTrades': true,
                 'createOrder': true,
                 'cancelOrder': true,
+                'fetchAccounts': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg',
@@ -240,6 +241,23 @@ module.exports = class kucoin extends Exchange {
                 'name': name,
                 'code': code,
                 'precision': precision,
+                'info': entry,
+            };
+        }
+        return result;
+    }
+
+    async fetchAccounts (params = {}) {
+        const response = await this.privateGetAccounts (params);
+        const responseData = response['data'];
+        let result = {};
+        for (let i = 0; i < responseData.length; i++) {
+            const entry = responseData[i];
+            const accountId = entry['type'];
+            result[accountId] = {
+                'accountId': accountId,
+                'type': accountId, // main or trade
+                'currency': undefined,
                 'info': entry,
             };
         }

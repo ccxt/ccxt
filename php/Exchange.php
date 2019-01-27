@@ -1178,7 +1178,7 @@ class Exchange {
         $json_response = null;
 
         if ($this->is_json_encoded_object ($result)) {
-         
+
             $json_response = $this->parse_json ($result, $as_associative_array = true);
 
             if ($this->enableLastJsonResponse) {
@@ -1330,6 +1330,23 @@ class Exchange {
         if (array_key_exists ('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'])
             $currencies = $this->fetch_currencies ();
         return $this->set_markets ($markets, $currencies);
+    }
+
+    public function loadAccounts ($reload = false, $params = array()) {
+        return $this->load_accounts ($reload, $params);
+    }
+
+    public function load_accounts ($reload = false, $params = array()) {
+        if ($reload) {
+            $this->accounts = $this->fetch_accounts ($params);
+        } else {
+            if ($this->accounts) {
+                return $this->accounts;
+            } else {
+                $this->accounts = $this->fetch_accounts ($params);
+            }
+        }
+        return $this->accounts;
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
