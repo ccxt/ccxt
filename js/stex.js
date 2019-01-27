@@ -122,6 +122,9 @@ module.exports = class stex extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.safeFloat (ticker, 'updated_time');
+        if (timestamp !== undefined) {
+            timestamp = parseInt (timestamp * 1000);
+        }
         let symbol = undefined;
         if (market !== undefined)
             symbol = market['symbol'];
@@ -212,7 +215,10 @@ module.exports = class stex extends Exchange {
 
     parseTrade (trade, market = undefined) {
         // this method parses both public and private trades
-        let timestamp = this.safeInteger (trade, 'timestamp') * 1000;
+        let timestamp = this.safeInteger (trade, 'timestamp');
+        if (timestamp !== undefined) {
+            timestamp = parseInt (timestamp * 1000);
+        }
         let tradeId = this.safeString (trade, 'id');
         let orderId = undefined;
         let price = this.safeFloat (trade, 'price');
@@ -417,8 +423,9 @@ module.exports = class stex extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         let timestamp = this.safeFloat (transaction, 'Date');
-        if (timestamp !== undefined && timestamp !== 'NULL')
+        if (timestamp !== undefined) {
             timestamp = parseInt (timestamp * 1000);
+        }
         let code = this.safeString (transaction, 'Currency');
         if (code !== undefined)
             code = currency['id'];
@@ -482,7 +489,10 @@ module.exports = class stex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let timestamp = this.safeInteger (order, 'timestamp') * 1000;
+        let timestamp = this.safeInteger (order, 'timestamp');
+        if (timestamp !== undefined) {
+            timestamp = parseInt (timestamp * 1000);
+        }
         let price = this.safeString (order, 'rate');
         if (price === undefined) {
             let keys = Object.keys (order['rates']);
