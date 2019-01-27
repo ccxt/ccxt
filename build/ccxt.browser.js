@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.155'
+const version = '1.18.156'
 
 Exchange.ccxtVersion = version
 
@@ -16611,7 +16611,7 @@ module.exports = class bitz extends Exchange {
         let parts = microtime.split (' ');
         let milliseconds = parseFloat (parts[0]);
         let seconds = parseInt (parts[1]);
-        let total = seconds + milliseconds;
+        let total = this.sum (seconds, milliseconds);
         return parseInt (total * 1000);
     }
 
