@@ -310,16 +310,14 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        let sinceSeconds = 0;
-        if (since !== undefined) {
-            sinceSeconds = Math.floor (since / 1000);
-        }
-        const request = {
+        let request = {
             'symbol': marketId,
-            'startAt': sinceSeconds,
             'endAt': this.seconds (),
             'type': this.timeframes[timeframe],
         };
+        if (since !== undefined) {
+            request['startAt'] = Math.floor (since / 1000);
+        }
         const response = await this.publicGetMarketCandles (this.extend (request, params));
         const responseData = response['data'];
         return this.parseOHLCVs (responseData, market, timeframe, since, limit);
@@ -392,8 +390,6 @@ module.exports = class kucoin extends Exchange {
         let request = {
             'symbol': marketId,
             'status': status,
-            'endAt': this.milliseconds (),
-            'pageSize': limit,
         };
         if (since !== undefined) {
             request['startAt'] = since;
@@ -513,9 +509,7 @@ module.exports = class kucoin extends Exchange {
         const marketId = market['id'];
         const request = {
             'symbol': marketId,
-            'startAt': Math.floor (since / 1000),
             'endAt': this.seconds (),
-            'pageSize': limit,
         };
         const response = this.privateGetFills (this.extend (request, params));
         const responseData = response['data'];
@@ -738,8 +732,7 @@ module.exports = class kucoin extends Exchange {
         //      totalPage: 0,
         //      pageSize: 10,
         //      currentPage: 1,
-        //      items: [...]
-        //     } }
+        //      items: [...] } }
         //
         const responseData = response['data']['items'];
         return this.parseTransactions (responseData, currency, since, limit);
