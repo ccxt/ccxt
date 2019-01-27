@@ -509,7 +509,6 @@ module.exports = class kucoin extends Exchange {
         const marketId = market['id'];
         const request = {
             'symbol': marketId,
-            'endAt': this.seconds (),
         };
         const response = this.privateGetFills (this.extend (request, params));
         const responseData = response['data'];
