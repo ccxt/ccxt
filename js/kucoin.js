@@ -13,10 +13,10 @@ module.exports = class kucoin extends Exchange {
             'id': 'kucoin2',
             'name': 'KuCoin',
             'country': ['SC'],
-            'rateLimit': 1000,
+            'rateLimit': 334,
             'version': 'v1',
             'certified': true,
-            'comment': 'This comment is optional',
+            'comment': 'Platform 2.0',
             'has': {
                 'fetchMarkets': true,
                 'fetchCurrencies': true,
@@ -29,6 +29,11 @@ module.exports = class kucoin extends Exchange {
                 'withdraw': true,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
+                'fetchBalance': true,
+                'fetchTrades': true,
+                'fetchMyTrades': true,
+                'createOrder': true,
+                'cancelOrder': true,
             },
             'urls': {
                 'logo': 'https://example.com/image.jpg',
@@ -127,6 +132,7 @@ module.exports = class kucoin extends Exchange {
                 '400100': ArgumentsRequired,
                 '411100': AccountSuspended,
                 '500000': ExchangeError,
+                'order_not_exist': OrderNotFound,  //  {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
             },
             'options': {
                 'symbolSeparator': '-',
@@ -235,10 +241,10 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
         const request = {
-            'symbol': marketId
+            'symbol': marketId,
         };
         const response = await this.publicGetMarketStatsSymbol (this.extend (request, params));
-        //{
+        // {
         //     "symbol": "ETH-BTC",
         //     "changeRate": "-0.778",
         //     "changePrice": "-0.00778",
@@ -290,7 +296,7 @@ module.exports = class kucoin extends Exchange {
         const high = this.safeFloat (ohlcv, 3);
         const low = this.safeFloat (ohlcv, 4);
         const volume = this.safeFloat (ohlcv, 6);
-        return [timestamp, open, high, low, close, volume]
+        return [timestamp, open, high, low, close, volume];
     }
 
     async fetchOHLCV (symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
@@ -309,7 +315,7 @@ module.exports = class kucoin extends Exchange {
         };
         const response = await this.publicGetMarketCandles (this.extend (request, params));
         const responseData = response['data'];
-        return this.parseOHLCVs (responseData, market, timeframe, since, limit)
+        return this.parseOHLCVs (responseData, market, timeframe, since, limit);
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -322,7 +328,7 @@ module.exports = class kucoin extends Exchange {
         return {
             'address': address,
             'tag': memo,
-        }
+        };
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -366,7 +372,8 @@ module.exports = class kucoin extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         const request = { 'orderId': id };
-        return this.privateDeleteOrdersOrderId (this.extend (request, params));
+        const response = this.privateDeleteOrdersOrderId (this.extend (request, params));
+        return response;
     }
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -491,7 +498,7 @@ module.exports = class kucoin extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, since = 0, limit = 50, params = {}) {
+    async fetchMyTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
@@ -505,6 +512,22 @@ module.exports = class kucoin extends Exchange {
         const responseData = response['data'];
         const orders = responseData['items'];
         return this.parseTrades (orders, market, since, limit);
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const marketId = this.marketId (symbol);
+        const request = {
+            'symbol': marketId,
+        };
+        const response = await this.publicGetMarketHistories (this.extend (request, params));
+        // { sequence: '1547732882509',
+        //     side: 'sell',
+        //     size: '0.23',
+        //     price: '0.03389',
+        //     time: 1548552077777972000 }
+        const responseData = response['data'];
+        return this.parseTrades (responseData, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
@@ -537,8 +560,8 @@ module.exports = class kucoin extends Exchange {
         }
         const tradeId = this.safeString (trade, 'tradeId');
         const orderId = this.safeString (trade, 'orderId');
-        const amount = this.safeString (trade, 'size');
-        const timestamp = this.safeString (trade, 'createdAt');
+        const amount = this.safeFloat (trade, 'size');
+        const timestamp = this.safeInteger2 (trade, 'createdAt', 'time');
         const datetime = this.iso8601 (timestamp);
         const price = this.safeFloat (trade, 'price');
         const side = this.safeString (trade, 'side');
@@ -579,6 +602,7 @@ module.exports = class kucoin extends Exchange {
         const responseData = response['data'];
         return {
             'id': this.safeString (responseData, 'withdrawalId'),
+            'info': responseData,
         };
     }
 
@@ -641,8 +665,7 @@ module.exports = class kucoin extends Exchange {
             fees['rate'] = fees['cost'] / amount;
         }
         const tag = this.safeString (transaction, 'memo');
-        const createdAt = this.safeInteger (transaction, 'createdAt');
-        const timestamp = this.safeInteger (transaction, 'updatedAt', createdAt);
+        const timestamp = this.safeInteger2 (transaction, 'updatedAt', 'createdAt');
         const datetime = this.iso8601 (timestamp);
         return {
             'address': address,
@@ -682,7 +705,7 @@ module.exports = class kucoin extends Exchange {
         //     }
         // }
         const responseData = response['data']['items'];
-        return this.parseTransactions (responseData, currency, since, limit)
+        return this.parseTransactions (responseData, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -708,7 +731,28 @@ module.exports = class kucoin extends Exchange {
         //     }
         // }
         const responseData = response['data']['items'];
-        return this.parseTransactions (responseData, currency, since, limit)
+        return this.parseTransactions (responseData, currency, since, limit);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'type': 'main',
+        };
+        const response = await this.privateGetAccounts (this.extend (request, params));
+        const responseData = response['data'];
+        let result = { 'info': responseData };
+        for (let i = 0; i < responseData.length; i++) {
+            const entry = responseData[i];
+            const currencyId = entry['currency'];
+            const code = this.commonCurrencyCode (currencyId);
+            let account = {};
+            account['total'] = this.safeFloat (entry, 'balance', 0);
+            account['free'] = this.safeFloat (entry, 'available', 0);
+            account['used'] = this.safeFloat (entry, 'holds', 0);
+            result[code] = account;
+        }
+        return this.parseBalance (result);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
