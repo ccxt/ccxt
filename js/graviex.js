@@ -129,7 +129,6 @@ module.exports = class graviex extends Exchange {
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
-            let id = market['id'];
             let symbolParts = market['name'].split ('/');
             let baseId = symbolParts[0];
             let quoteId = symbolParts[1];
@@ -138,7 +137,7 @@ module.exports = class graviex extends Exchange {
             let symbol = base + '/' + quote;
             let active = true;
             result.push ({
-                'id': id,
+                'id': this.safeString (market, 'id'),
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -152,32 +151,31 @@ module.exports = class graviex extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.safeFloat (ticker, 'at');
+        let timestamp = this.safeInteger (ticker, 'at');
         if (timestamp !== undefined) {
             timestamp = parseInt (timestamp * 1000);
         }
-        let symbol = market['symbol'];
-        let last = this.safeFloat (ticker['ticker'], 'last');
+        ticker = ticker['ticker'];
         return {
-            'symbol': symbol,
+            'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker['ticker'], 'high'),
-            'low': this.safeFloat (ticker['ticker'], 'low'),
-            'bid': this.safeFloat (ticker['ticker'], 'buy'),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker['ticker'], 'sell'),
+            'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': last,
-            'last': last,
+            'close': undefined,
+            'last': this.safeFloat (ticker, 'last'),
             'previousClose': undefined,
-            'change': this.safeFloat (ticker['ticker'], 'change'),
+            'change': this.safeFloat (ticker, 'change'),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker['ticker'], 'vol'),
-            'quoteVolume': this.safeFloat (ticker['ticker'], 'volbtc'),
+            'baseVolume': this.safeFloat (ticker, 'vol'),
+            'quoteVolume': this.safeFloat (ticker, 'volbtc'),
             'info': ticker,
         };
     }
@@ -206,11 +204,12 @@ module.exports = class graviex extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (limit === undefined)
+        if (limit === undefined) {
             limit = 20; // default
+        }
         const request = {
             'market': this.marketId (symbol),
-            'limit': limit.toString (),
+            'limit': limit,
         };
         let response = await this.publicGetDepth (this.extend (request, params));
         return this.parseOrderBook (response);
@@ -222,8 +221,6 @@ module.exports = class graviex extends Exchange {
         if (timestamp !== undefined) {
             timestamp = parseInt (timestamp * 1000);
         }
-        let tradeId = this.safeString (trade, 'id');
-        let orderId = this.safeString (trade, 'order_id');
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'volume');
         let marketId = this.safeString (trade, 'market');
@@ -233,18 +230,16 @@ module.exports = class graviex extends Exchange {
             symbol = market['symbol'];
         }
         let cost = parseFloat (this.costToPrecision (symbol, price * amount));
-        let takerOrMaker = this.safeString (trade, 'side');
-        let side = this.safeString (trade, 'side');
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': tradeId,
-            'order': orderId,
+            'id': this.safeString (trade, 'id'),
+            'order': this.safeString (trade, 'order_id'),
             'type': undefined,
-            'side': side,
-            'takerOrMaker': takerOrMaker,
+            'side': this.safeString (trade, 'side'),
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -352,7 +347,6 @@ module.exports = class graviex extends Exchange {
             code = currency['code'].toLowerCase ();
         }
         let type = 'deposit'; // DEPOSIT or WITHDRAWAL
-        let status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
         let feeCost = this.safeFloat (transaction, 'fee');
         if (feeCost !== undefined) {
             feeCost = Math.abs (feeCost);
@@ -368,7 +362,7 @@ module.exports = class graviex extends Exchange {
             'type': type,
             'amount': this.safeFloat (transaction, 'amount'),
             'currency': code,
-            'status': status,
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'state')),
             'updated': updated,
             'fee': {
                 'currency': code,
@@ -414,11 +408,6 @@ module.exports = class graviex extends Exchange {
         if (timestamp !== undefined) {
             timestamp = parseInt (timestamp * 1000);
         }
-        let price = this.safeFloat (order, 'price');
-        let cost = undefined;
-        let amount = this.safeFloat (order, 'volume');
-        let filled = this.safeFloat (order, 'executed_volume');
-        const average = this.safeFloat (order, 'avg_price');
         let symbol = undefined;
         let marketId = this.safeString (order, 'market');
         market = this.safeValue (this.markets_by_id, marketId);
@@ -429,27 +418,22 @@ module.exports = class graviex extends Exchange {
                 feeCurrency = market['quote'];
             }
         }
-        let trades = this.safeInteger (order, 'trades_count');
-        let remaining = this.safeFloat (order, 'remaining_volume');
-        let status = this.parseOrderStatus (this.safeString (order, 'state'));
-        let type = this.safeString (order, 'ord_type');
-        let side = this.safeString (order, 'side');
         return {
             'id': this.safeString (order, 'id'),
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
-            'status': status,
+            'status': this.parseOrderStatus (this.safeString (order, 'state')),
             'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': cost,
-            'average': average,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'trades': trades,
+            'type': this.safeString (order, 'ord_type'),
+            'side': this.safeString (order, 'side'),
+            'price': this.safeFloat (order, 'price'),
+            'cost': undefined,
+            'average': this.safeFloat (order, 'avg_price'),
+            'amount': this.safeFloat (order, 'volume'),
+            'filled': this.safeFloat (order, 'executed_volume'),
+            'remaining': this.safeFloat (order, 'remaining_volume'),
+            'trades': this.safeInteger (order, 'trades_count'),
             'fee': {
                 'currency': feeCurrency,
                 'cost': undefined,
@@ -475,7 +459,7 @@ module.exports = class graviex extends Exchange {
         }
         let response = await this[method] (this.extend (request, params));
         let order = this.parseOrder (response, market);
-        let id = order['id'];
+        let id = this.safeString (order, 'id');
         this.orders[id] = order;
         return order;
     }
