@@ -155,15 +155,12 @@ module.exports = class stex extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let response = await this.fetchTickers (undefined, params); // Cannot find a public method of retriving specific ticker on STEX, fetching all instead.
-        let ids = Object.keys (response);
-        for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            if (id === symbol) {
-                return response[id];
-            }
+        const tickers = await this.fetchTickers (undefined, params); // Cannot find a public method of retriving specific ticker on STEX, fetching all instead.
+        const ticker = this.safeValue (tickers, symbol);
+        if (ticker === undefined) {
+            throw new ExchangeError (this.id + ' ' + symbol + ' ticker not found');
         }
-        return {};
+        return ticker;
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
