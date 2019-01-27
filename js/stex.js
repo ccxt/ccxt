@@ -124,7 +124,9 @@ module.exports = class stex extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.safeFloat (ticker, 'updated_time');
-        let symbol = market['symbol'];
+		let symbol = undefined;
+        if (market !== undefined)
+            symbol = market['symbol'];
         let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -134,7 +136,7 @@ module.exports = class stex extends Exchange {
             'low': undefined,
             'bid': this.safeFloat (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'asl'),
+            'ask': this.safeFloat (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
