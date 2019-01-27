@@ -926,10 +926,11 @@ module.exports = class hitbtc2 extends hitbtc {
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const amount = this.safeFloat (transaction, 'amount');
         let type = this.safeString (transaction, 'type');
-        if (type === 'payin')
+        if (type === 'payin') {
             type = 'deposit';
-        else if (type === 'payout')
+        } else if (type === 'payout') {
             type = 'withdrawal';
+        }
         const address = this.safeString (transaction, 'address');
         const txid = this.safeString (transaction, 'hash');
         return {
