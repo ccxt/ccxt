@@ -25,6 +25,7 @@ module.exports = class walutomat extends Exchange {
                 'fetchOrders': true,
                 'fetchClosedOrders': true,
                 'fetchTicker': false,
+                'fetchOHLCV': false,
             },
             'urls': {
                 'logo': 'https://api.walutomat.pl/v2.0.0/walutomat_logo.png',
