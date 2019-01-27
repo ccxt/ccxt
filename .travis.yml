@@ -14,8 +14,8 @@ before_install:
 - nvm install stable
 - nvm use stable
 - npm install
-- npm install web3 ethereumjs-util ethereumjs-abi bignumber.js --no-save
-- git checkout package.json package-lock.json
+- npm install web3 ethereumjs-util ethereumjs-abi bignumber.js
+# git checkout package.json package-lock.json
 - sudo wget --quiet https://github.com/jgm/pandoc/releases/download/2.2.1/pandoc-2.2.1-1-amd64.deb
 - sudo dpkg -i pandoc-2.2.1-1-amd64.deb
 - sudo apt-get install python3-pip
@@ -40,6 +40,7 @@ script:
 - node run-tests --js --python2 5; export TESTS_FAILED=$?
 - set -e # activate it again!
 - if [ "$TESTS_FAILED" -ne 0 ]; then exit 1; fi
+- git checkout package.json package-lock.json
 # - export TWINE_REPOSITORY_URL=https://pypi.python.org/pypi
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./push.sh; fi
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./push-wiki.sh; fi
