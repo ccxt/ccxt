@@ -137,7 +137,7 @@ module.exports = class kucoin extends Exchange {
                 '400100': ArgumentsRequired,
                 '411100': AccountSuspended,
                 '500000': ExchangeError,
-                'order_not_exist': OrderNotFound,  //  {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
+                'order_not_exist': OrderNotFound,  // {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
             },
             'options': {
                 'symbolSeparator': '-',
@@ -254,8 +254,7 @@ module.exports = class kucoin extends Exchange {
         };
         const response = await this.publicGetMarketStatsSymbol (this.extend (request, params));
         //
-        // {
-        //     "symbol": "ETH-BTC",
+        //   { "symbol": "ETH-BTC",
         //     "changeRate": "-0.778",
         //     "changePrice": "-0.00778",
         //     "open": 1,
@@ -263,8 +262,7 @@ module.exports = class kucoin extends Exchange {
         //     "high": "1",
         //     "low": "0.00222",
         //     "vol": "4.2678",
-        //     "volValue": "2.21016762"
-        // }
+        //     "volValue": "2.21016762" }
         //
         const responseData = response['data'];
         const change = this.safeFloat (responseData, 'changePrice');
@@ -291,17 +289,13 @@ module.exports = class kucoin extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         //
-        // [
-        //   [
-        //       "1545904980",             //Start time of the candle cycle
+        //   [ [ "1545904980",             //Start time of the candle cycle
         //       "0.058",                  //opening price
         //       "0.049",                  //closing price
         //       "0.058",                  //highest price
         //       "0.049",                  //lowest price
         //       "0.018",                  //Transaction amount
-        //       "0.000945"                //Transaction volume
-        //   ], ...,
-        // ]
+        //       "0.000945" ], ... ]       //Transaction volume
         //
         const timestamp = this.safeInteger (ohlcv, 0);
         const open = this.safeFloat (ohlcv, 1);
@@ -440,8 +434,7 @@ module.exports = class kucoin extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // {
-        //     "id": "5c35c02703aa673ceec2a168",
+        //   { "id": "5c35c02703aa673ceec2a168",
         //     "symbol": "BTC-USDT",
         //     "opType": "DEAL",
         //     "type": "limit",
@@ -469,8 +462,7 @@ module.exports = class kucoin extends Exchange {
         //     "tags": "",
         //     "isActive": false,
         //     "cancelExist": false,
-        //     "createdAt": 1547026471000
-        // }
+        //     "createdAt": 1547026471000 }
         //
         let symbol = undefined;
         if (market !== undefined) {
@@ -551,8 +543,7 @@ module.exports = class kucoin extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        // {
-        //     "symbol":"BTC-USDT",
+        //   { "symbol":"BTC-USDT",
         //     "tradeId":"5c35c02709e4f67d5266954e",
         //     "orderId":"5c35c02703aa673ceec2a168",
         //     "counterOrderId":"5c1ab46003aa676e487fa8e3",
@@ -567,8 +558,7 @@ module.exports = class kucoin extends Exchange {
         //     "feeCurrency":"USDT",
         //     "stop":"",
         //     "type":"limit",
-        //     "createdAt":1547026472000
-        // }
+        //     "createdAt":1547026472000 }
         //
         let symbol = undefined;
         if (market !== undefined) {
@@ -618,9 +608,7 @@ module.exports = class kucoin extends Exchange {
         }
         const response = await this.privatePostWithdrawal (this.extend (request, params));
         //
-        // {
-        //   "withdrawalId": "5bffb63303aa675e8bbe18f9"
-        // }
+        // { "withdrawalId": "5bffb63303aa675e8bbe18f9" }
         //
         const responseData = response['data'];
         return {
@@ -641,8 +629,7 @@ module.exports = class kucoin extends Exchange {
     parseTransaction (transaction, currency = undefined) {
         //
         // Deposits
-        // {
-        //     "address": "0x5f047b29041bcfdbf0e4478cdfa753a336ba6989",
+        //   { "address": "0x5f047b29041bcfdbf0e4478cdfa753a336ba6989",
         //     "memo": "5c247c8a03aa677cea2a251d",
         //     "amount": 1,
         //     "fee": 0.0001,
@@ -651,11 +638,9 @@ module.exports = class kucoin extends Exchange {
         //     "walletTxId": "5bbb57386d99522d9f954c5a@test004",
         //     "status": "SUCCESS",
         //     "createdAt": 1544178843000,
-        //     "updatedAt": 1544178891000
-        // },
+        //     "updatedAt": 1544178891000 }
         // Withdrawals
-        // {
-        //     "id": "5c2dc64e03aa675aa263f1ac",
+        //   { "id": "5c2dc64e03aa675aa263f1ac",
         //     "address": "0x5bedb060b8eb8d823e2414d82acce78d38be7fe9",
         //     "memo": "",
         //     "currency": "ETH",
@@ -665,8 +650,7 @@ module.exports = class kucoin extends Exchange {
         //     "isInner": false,
         //     "status": "FAILURE",
         //     "createdAt": 1546503758000,
-        //     "updatedAt": 1546504603000
-        // }
+        //     "updatedAt": 1546504603000 }
         //
         let code = undefined;
         if (currency !== undefined) {
@@ -728,8 +712,7 @@ module.exports = class kucoin extends Exchange {
         //      pageSize: 10,
         //      currentPage: 1,
         //      items: [...]
-        //     }
-        // }
+        //     } }
         //
         const responseData = response['data']['items'];
         return this.parseTransactions (responseData, currency, since, limit);
@@ -756,8 +739,7 @@ module.exports = class kucoin extends Exchange {
         //      pageSize: 10,
         //      currentPage: 1,
         //      items: [...]
-        //     }
-        // }
+        //     } }
         //
         const responseData = response['data']['items'];
         return this.parseTransactions (responseData, currency, since, limit);
