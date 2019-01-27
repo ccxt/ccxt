@@ -155,7 +155,7 @@ module.exports = class graviex extends Exchange {
         if (timestamp !== undefined) {
             timestamp = parseInt (timestamp * 1000);
         }
-        ticker = ticker['ticker'];
+		ticker = this.safeValue (ticker, 'ticker');
         return {
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
