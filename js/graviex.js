@@ -392,7 +392,7 @@ module.exports = class graviex extends Exchange {
         };
         if (status in statuses) {
             return statuses[status];
-		}
+        }
         return status;
     }
 
@@ -404,7 +404,7 @@ module.exports = class graviex extends Exchange {
         };
         if (status in statuses) {
             return statuses[status];
-		}
+        }
         return status;
     }
 
@@ -580,12 +580,11 @@ module.exports = class graviex extends Exchange {
                 let error = this.safeString (response['error'], 'message');
                 if (code === 2002) {
                     throw new InsufficientFunds (error);
-                }
-                else if (code === 2005 || code === 2007) {
+                } else if (code === 2005 || code === 2007) {
                     throw new AuthenticationError (error);
                 } else {
-					throw new ExchangeError (error);
-				}
+                    throw new ExchangeError (error);
+                }
             }
         }
     }
@@ -594,5 +593,4 @@ module.exports = class graviex extends Exchange {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         return response;
     }
- 
 };
