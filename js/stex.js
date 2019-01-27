@@ -152,26 +152,31 @@ module.exports = class stex extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetTicker (this.extend (market['id'], params));
-        return this.parseTicker (response, market);
+        let response = await this.fetchTickers (undefined, params); // Cannot find a public method of retriving specific ticker on STEX, fetching all instead.
+        let ids = Object.keys (response);
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            if (id === symbol) {
+                return response[id];
+            }
+        }
+        return {};
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let tickers = await this.publicGetTicker (params);
-        let ids = Object.keys (tickers);
         let result = {};
-        for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
+        for (let i = 0; i < tickers.length; i++) {
             let market = undefined;
-            let symbol = id;
-            let ticker = tickers[id];
+            let ticker = tickers[i];
+            let symbol = undefined;
+            let id = this.safeString (ticker, 'market_name');
             if (id in this.markets_by_id) {
                 market = this.markets_by_id[id];
                 symbol = market['symbol'];
             } else {
-                let symbolParts = ticker['market_name'].split ('_');
+                let symbolParts = id.split ('_');
                 let base = symbolParts[0].toUpperCase ();
                 let quote = symbolParts[1].toUpperCase ();
                 base = this.commonCurrencyCode (base);
