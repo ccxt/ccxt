@@ -426,7 +426,7 @@ module.exports = class bitz extends Exchange {
         //          source:   "api"                             }
         //
         const ticker = this.parseTicker (response['data'], market);
-        let timestamp = this.parseMicrotime (this.safeString (response, 'microtime'));
+        let timestamp = this.safeInteger (response, 'time') * 1000;
         return this.extend (ticker, {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -470,7 +470,7 @@ module.exports = class bitz extends Exchange {
         //          source:   "api"                                                }
         //
         let tickers = response['data'];
-        let timestamp = this.parseMicrotime (this.safeString (response, 'microtime'));
+        let timestamp = this.safeInteger (response, 'time') * 1000;
         let result = {};
         let ids = Object.keys (tickers);
         for (let i = 0; i < ids.length; i++) {
@@ -529,7 +529,7 @@ module.exports = class bitz extends Exchange {
         //          source:   "api"                                                     }
         //
         let orderbook = response['data'];
-        let timestamp = this.parseMicrotime (this.safeString (response, 'microtime'));
+        let timestamp = this.safeInteger (response, 'time') * 1000;
         return this.parseOrderBook (orderbook, timestamp);
     }
 
@@ -799,7 +799,7 @@ module.exports = class bitz extends Exchange {
         //         "source": "api",
         //     }
         //
-        let timestamp = this.parseMicrotime (this.safeString (response, 'microtime'));
+        let timestamp = this.safeInteger (response, 'time') * 1000;
         let order = this.extend ({
             'timestamp': timestamp,
         }, response['data']);
