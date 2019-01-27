@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.151'
+const version = '1.18.153'
 
 Exchange.ccxtVersion = version
 
@@ -18923,60 +18923,90 @@ module.exports = class btcbox extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'amount': amount,
             'price': price,
             'type': side,
+            'coin': market['baseId'],
         };
-        let numSymbols = this.symbols.length;
-        if (numSymbols > 1)
-            request['coin'] = market['baseId'];
-        let response = await this.privatePostTradeAdd (this.extend (request, params));
-        return {
-            'info': response,
-            'id': response['id'],
-        };
+        const response = await this.privatePostTradeAdd (this.extend (request, params));
+        //
+        //     {
+        //         "result":true,
+        //         "id":"11"
+        //     }
+        //
+        return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privatePostTradeCancel (this.extend ({
+        // a special case for btcbox – default symbol is BTC/JPY
+        if (symbol === undefined) {
+            symbol = 'BTC/JPY';
+        }
+        const market = this.market (symbol);
+        const request = {
             'id': id,
-        }, params));
+            'coin': market['baseId'],
+        };
+        const response = await this.privatePostTradeCancel (this.extend (request, params));
+        //
+        //     {"result":true, "id":"11"}
+        //
+        return this.parseOrder (response, market);
     }
 
-    parseOrder (order) {
-        // {"id":11,"datetime":"2014-10-21 10:47:20","type":"sell","price":42000,"amount_original":1.2,"amount_outstanding":1.2,"status":"closed","trades":[]}
-        const id = this.safeString (order, 'id');
-        const timestamp = this.parse8601 (order['datetime'] + '+09:00'); // Tokyo time
-        const amount = this.safeFloat (order, 'amount_original');
-        const remaining = this.safeFloat (order, 'amount_outstanding');
-        let filled = undefined;
-        if (amount !== undefined)
-            if (remaining !== undefined)
-                filled = amount - remaining;
-        const price = this.safeFloat (order, 'price');
-        let cost = undefined;
-        if (price !== undefined)
-            if (filled !== undefined)
-                cost = filled * price;
-        // status is set by fetchOrder method only
+    parseOrderStatus (status) {
         const statuses = {
             // TODO: complete list
             'part': 'open', // partially or not at all executed
             'all': 'closed', // fully executed
             'cancelled': 'canceled',
             'closed': 'closed', // never encountered, seems to be bug in the doc
+            'no': 'closed', // not clarified in the docs...
         };
-        let status = undefined;
-        if (order['status'] in statuses)
-            status = statuses[order['status']];
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        // {"id":11,"datetime":"2014-10-21 10:47:20","type":"sell","price":42000,"amount_original":1.2,"amount_outstanding":1.2,"status":"closed","trades":[]}
+        //
+        const id = this.safeString (order, 'id');
+        const datetimeString = this.safeString (order, 'datetime');
+        let timestamp = undefined;
+        if (datetimeString !== undefined) {
+            timestamp = this.parse8601 (order['datetime'] + '+09:00'); // Tokyo time
+        }
+        const amount = this.safeFloat (order, 'amount_original');
+        const remaining = this.safeFloat (order, 'amount_outstanding');
+        let filled = undefined;
+        if (amount !== undefined) {
+            if (remaining !== undefined) {
+                filled = amount - remaining;
+            }
+        }
+        const price = this.safeFloat (order, 'price');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (filled !== undefined) {
+                cost = filled * price;
+            }
+        }
+        // status is set by fetchOrder method only
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         // fetchOrders do not return status, use heuristic
         if (status === undefined)
             if (remaining !== undefined && remaining === 0)
                 status = 'closed';
         let trades = undefined; // todo: this.parseTrades (order['trades']);
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const side = this.safeString (order, 'type');
         return {
             'id': id,
             'timestamp': timestamp,
@@ -18985,10 +19015,10 @@ module.exports = class btcbox extends Exchange {
             'amount': amount,
             'remaining': remaining,
             'filled': filled,
-            'side': order['type'],
+            'side': side,
             'type': undefined,
             'status': status,
-            'symbol': 'BTC/JPY',
+            'symbol': symbol,
             'price': price,
             'cost': cost,
             'trades': trades,
@@ -18999,33 +19029,48 @@ module.exports = class btcbox extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostTradeView (this.extend ({
+        // a special case for btcbox – default symbol is BTC/JPY
+        if (symbol === undefined) {
+            symbol = 'BTC/JPY';
+        }
+        const market = this.market (symbol);
+        const request = this.extend ({
             'id': id,
-        }, params));
-        return this.parseOrder (response);
+            'coin': market['baseId'],
+        }, params);
+        const response = await this.privatePostTradeView (this.extend (request, params));
+        return this.parseOrder (response, market);
+    }
+
+    async fetchOrdersByType (type, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        // a special case for btcbox – default symbol is BTC/JPY
+        if (symbol === undefined) {
+            symbol = 'BTC/JPY';
+        }
+        const market = this.market (symbol);
+        const request = {
+            'type': type, // 'open' or 'all'
+            'coin': market['baseId'],
+        };
+        const response = await this.privatePostTradeList (this.extend (request, params));
+        const orders = this.parseOrders (response, market, since, limit);
+        // status (open/closed/canceled) is undefined
+        // btcbox does not return status, but we know it's 'open' as we queried for open orders
+        if (type === 'open') {
+            for (let i = 0; i < orders.length; i++) {
+                orders[i]['status'] = 'open';
+            }
+        }
+        return orders;
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let response = await this.privatePostTradeList (this.extend ({
-            'type': 'all', // 'open' or 'all'
-        }, params));
-        // status (open/closed/canceled) is undefined
-        return this.parseOrders (response);
+        return await this.fetchOrdersByType ('all', symbol, since, limit, params);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let response = await this.privatePostTradeList (this.extend ({
-            'type': 'open', // 'open' or 'all'
-        }, params));
-        const orders = this.parseOrders (response);
-        // btcbox does not return status, but we know it's 'open' as we queried for open orders
-        for (let i = 0; i < orders.length; i++) {
-            const order = orders[i];
-            order['status'] = 'open';
-        }
-        return orders;
+        return await this.fetchOrdersByType ('open', symbol, since, limit, params);
     }
 
     nonce () {
@@ -38686,11 +38731,15 @@ module.exports = class gateio extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         let currency = this.currency (code);
-        let response = await this.privatePostWithdraw (this.extend ({
+        const request = {
             'currency': currency['id'],
             'amount': amount,
             'address': address, // Address must exist in you AddressBook in security settings
-        }, params));
+        };
+        if (tag !== undefined) {
+            request['address'] += ' ' + tag;
+        }
+        let response = await this.privatePostWithdraw (this.extend (request, params));
         return {
             'info': response,
             'id': undefined,
