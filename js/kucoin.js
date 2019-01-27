@@ -36,7 +36,7 @@ module.exports = class kucoin extends Exchange {
                 'cancelOrder': true,
             },
             'urls': {
-                'logo': 'https://example.com/image.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg',
                 'referral': 'https://www.kucoin.com/#/?r=87rh55',
                 'api': {
                     'public': 'https://openapi-v2.kucoin.com',
