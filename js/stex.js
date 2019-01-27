@@ -379,7 +379,7 @@ module.exports = class stex extends Exchange {
         let withdrawals = {};
         if ('DEPOSIT' in data)
             if (only === undefined || only === 'deposits')
-                deposits = this.processTransactionHelper (data, 'DEPOSIT' );
+                deposits = this.processTransactionHelper (data, 'DEPOSIT');
         if ('WITHDRAWAL' in data)
             if (only === undefined || only === 'withdrawals')
                 withdrawals = this.processTransactionHelper (data, 'WITHDRAWAL');
