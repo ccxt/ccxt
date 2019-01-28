@@ -1713,7 +1713,7 @@ class Exchange(object):
             order_struct_hash
         )
         return '0x' + base64.b16encode(sha3).decode('ascii').lower()
-    
+
     def getZeroExOrderHashV3(self, order):
         unpacked = [
             self.web3.toChecksumAddress(order['contractAddress']),
@@ -1763,7 +1763,7 @@ class Exchange(object):
             'orderHash': orderHash,
             'ecSignature': signature,  # todo fix v if needed
         })
-    
+
     def signZeroExOrderV3(self, order, privateKey):
         orderHash = self.getZeroExOrderHashV3(order)
         signature = self.signMessage(orderHash[-64:], privateKey)
@@ -1771,7 +1771,7 @@ class Exchange(object):
             'orderHash': orderHash,
             'ecSignature': signature,
         })
-    
+
     def signZeroExOrderV4(self, order, privateKey):
         orderHash = self.getZeroExOrderHashV4(order)
         signature = self.signMessage(orderHash[-64:], privateKey)
