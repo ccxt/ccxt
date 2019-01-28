@@ -165,6 +165,7 @@ const exchanges = {
     'therock':                 require ('./js/therock.js'),
     'tidebit':                 require ('./js/tidebit.js'),
     'tidex':                   require ('./js/tidex.js'),
+    'tokenomy':                require ('./js/tokenomy.js'),
     'uex':                     require ('./js/uex.js'),
     'upbit':                   require ('./js/upbit.js'),
     'urdubit':                 require ('./js/urdubit.js'),

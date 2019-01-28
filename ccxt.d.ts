@@ -444,6 +444,7 @@ declare module 'ccxt' {
     export class therock extends Exchange {}
     export class tidebit extends Exchange {}
     export class tidex extends liqui {}
+    export class tokenomy extends Exchange {}
     export class uex extends Exchange {}
     export class upbit extends Exchange {}
     export class urdubit extends foxbit {}
