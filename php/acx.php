@@ -402,7 +402,7 @@ class acx extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $request = '/api' . '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         if (is_array ($this->urls) && array_key_exists ('extension', $this->urls))
             $request .= $this->urls['extension'];
         $query = $this->omit ($params, $this->extract_params($path));

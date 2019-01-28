@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.158'
+const version = '1.18.159'
 
 Exchange.ccxtVersion = version
 
@@ -865,7 +865,7 @@ module.exports = class acx extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/api' + '/' + this.version + '/' + this.implodeParams (path, params);
+        let request = '/api/' + this.version + '/' + this.implodeParams (path, params);
         if ('extension' in this.urls)
             request += this.urls['extension'];
         let query = this.omit (params, this.extractParams (path));
