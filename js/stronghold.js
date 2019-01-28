@@ -32,11 +32,13 @@ module.exports = class Stronghold extends Exchange {
                     'get': [
                         'utilities/time',
                         'utilites/uuid',
+                        'venues/trade-public/assets',
                         'venues/trade-public/markets',
                         'venues/trade-public/markets/{marketId}/orderbook',
-                        'venues/trade-public/markets/{marketId}/trades'
+                        'venues/trade-public/markets/{marketId}/trades',
                     ],
                     'post': [
+                        'venues/trade-public/assets',
                         'iam/credential',
                         'identities',
                     ],
@@ -53,13 +55,11 @@ module.exports = class Stronghold extends Exchange {
                 'private': {
                     'get': [
                         'venues',
-                        'venues/{venueId}/assets',
                         'venues/{venueId}/accounts/{accountId}',
                         'venues/{venueId}/custody/accounts/{accountId}/payment/{paymentId}',
                         'venues/{venueId}/custody/accounts/{accountId}/transactions',
                     ],
                     'post': [
-                        'venues/{venueId}/assets',
                         'venues/{venueId}/accounts',
                         'venues/{venueId}/accounts/{accountId}/orders',
                         'venues/{venueId}/accounts/{accountId}/deposit',
@@ -75,8 +75,8 @@ module.exports = class Stronghold extends Exchange {
         });
     }
 
-    async fetchMarkets () {
-        const response = await this.publicGetVenuesTradePublicMarkets ();
+    async fetchMarkets (params = {}) {
+        const response = await this.publicGetVenuesTradePublicMarkets (params);
         const responseData = response['result'];
         // [ { id: 'SHXUSD',
         //     baseAssetId: 'SHX/stronghold.co',
@@ -111,6 +111,31 @@ module.exports = class Stronghold extends Exchange {
                 'base': base,
                 'quote': quote,
                 'limits': limits,
+                'precision': precision,
+                'info': entry,
+            };
+        }
+        return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetVenuesTradePublicAssets ();
+        //    [ { id: 'XLM/native',
+        //        alias: '',
+        //        code: 'XLM',
+        //        name: '',
+        //        displayDecimalsFull: 7,
+        //        displayDecimalsSignificant: 2 }, ... ]
+        const responseData = response['result'];
+        let result = {};
+        for (let i = 0; i < responseData.length; i++) {
+            const entry = responseData[i];
+            const currencyId = this.safeString (entry, 'code');
+            const code = this.commonCurrencyCode (currencyId);
+            const precision = this.safeInteger (entry, 'displayDecimalsFull');
+            result[code] = {
+                'code': code,
+                'id': currencyId,
                 'precision': precision,
                 'info': entry,
             };
