@@ -1048,7 +1048,7 @@ module.exports = class bittrex extends Exchange {
     }
 
     async _websocketOnInit (contextId, websocketConfig) {
-        const connectionData = [{ "name": "c2" }];
+        const connectionData = [{ 'name': 'c2' }];
         let response = await this.socketGetNegotiate ({
             'clientProtocol': '1.5',
             'connectionData': this.json (connectionData),
