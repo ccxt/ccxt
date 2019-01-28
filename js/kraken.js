@@ -214,7 +214,8 @@ module.exports = class kraken extends Exchange {
                 'conx-tpls': {
                     'default': {
                         'type': 'ws',
-                        'baseurl': 'wss://ws-sandbox.kraken.com',
+                        'baseurl': 'wss://ws.kraken.com',
+                        'sandboxurl' : 'wss://ws-sandbox.kraken.com',
                     },
                 },
                 'methodmap': {
