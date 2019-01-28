@@ -42,6 +42,7 @@ class gateio extends Exchange {
                     'https://gate.io/fee',
                     'https://support.gate.io/hc/en-us/articles/115003577673',
                 ),
+                'referral' => 'https://www.gate.io/signup/2436035',
             ),
             'api' => array (
                 'public' => array (

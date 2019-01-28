@@ -394,7 +394,7 @@ class bitz (Exchange):
         parts = microtime.split(' ')
         milliseconds = float(parts[0])
         seconds = int(parts[1])
-        total = seconds + milliseconds
+        total = self.sum(seconds, milliseconds)
         return int(total * 1000)
 
     async def fetch_ticker(self, symbol, params={}):

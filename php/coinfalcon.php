@@ -276,7 +276,7 @@ class coinfalcon extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        // $price/size must be string
+        // price/size must be string
         $amount = $this->amount_to_precision($symbol, $amount);
         $request = array (
             'market' => $market['id'],

@@ -441,7 +441,7 @@ class bitfinex2 (bitfinex):
             self.check_required_credentials()
             nonce = str(self.nonce())
             body = self.json(query)
-            auth = '/api' + '/' + request + nonce + body
+            auth = '/api/' + request + nonce + body
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha384)
             headers = {
                 'bfx-nonce': nonce,

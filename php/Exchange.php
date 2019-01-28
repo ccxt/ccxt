@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.154';
+$version = '1.18.165';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.154';
+    const VERSION = '1.18.165';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -1512,8 +1512,8 @@ class Exchange {
         return $this->filter_by_currency_since_limit ($result, $code, $since, $limit);
     }
 
-    public function parseTransactions ($transactions, $side, $market = null, $since = null, $limit = null) {
-        return $this->parse_transactions ($transactions, $side, $market, $since, $limit);
+    public function parseTransactions ($transactions, $currency = null, $since = null, $limit = null) {
+        return $this->parse_transactions ($transactions, $currency, $since, $limit);
     }
 
     public function parse_orders ($orders, $market = null, $since = null, $limit = null) {

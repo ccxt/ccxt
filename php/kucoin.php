@@ -688,7 +688,7 @@ class kucoin extends Exchange {
             $currency = $currencies[$i];
             $id = $currency['coin'];
             // todo => will need to rethink the fees
-            // to add support for multiple withdrawal/$deposit methods and
+            // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $code = $this->common_currency_code($id);
             $precision = $currency['tradePrecision'];
