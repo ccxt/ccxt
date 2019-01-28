@@ -119,8 +119,10 @@ module.exports = class walutomat extends Exchange {
             'operationType': 'MARKET_FX',
             'sortOrder': 'DESC',
         };
+        let market = undefined;
         if (symbol !== undefined) {
-            request['currencies'] = this.marketId (symbol);
+            market = this.market (symbol);
+            request['currencies'] = market['id'];
         }
         if (since !== undefined) {
             // TODO: Not sure if it's correct (idk if it's timestamp or DateTime string
@@ -130,13 +132,7 @@ module.exports = class walutomat extends Exchange {
             request['volume'] = limit;
         }
         const response = await this.privateGetAccountHistory (this.extend (request, params));
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            result.push ({
-                'id': this.safeInteger (response[i], 'id'),
-            });
-        }
-        return result;
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -164,29 +160,9 @@ module.exports = class walutomat extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         // TODO: Would be nice to get parametrized API response
         await this.loadMarkets ();
+        const market = undefined;
         const orders = await this.privateGetMarketOrders ();
-        const result = [];
-        for (let i = 0; i < orders.length; i++) {
-            result.push ({
-                'info': orders[i],
-                'id': this.safeString (orders[i], 'orderId'),
-                'symbol': this.findSymbol (this.safeString (orders[i], 'market')),
-                'timestamp': undefined,
-                'datetime': this.safeString (orders[i], 'submitTs'),
-                'lastTradeTimestamp': undefined,
-                'type': 'limit',
-                'side': this.safeString (orders[i], 'buySell').toLowerCase (),
-                'price': this.safeFloat (orders[i], 'price'),
-                'cost': this.safeFloat (orders[i], 'feeAmountMax'),
-                'amount': this.safeFloat (orders[i], 'volume'),
-                'remaining': undefined,
-                'filled': undefined,
-                'status': this.parseOrderStatus (this.safeString (orders[i], 'status')),
-                'fee': undefined,
-                'trades': undefined,
-            });
-        }
-        return result;
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -196,6 +172,27 @@ module.exports = class walutomat extends Exchange {
 
     formatOrderBook (orderBookEntry) {
         return [this.safeFloat (orderBookEntry, 'price'), this.safeFloat (orderBookEntry, 'baseVolume')];
+    }
+
+    parseOrder (order, market = undefined) {
+        return {
+            'info': order,
+            'id': this.safeString (order, 'orderId'),
+            'symbol': this.findSymbol (this.safeString (order, 'market')),
+            'timestamp': undefined,
+            'datetime': this.safeString (order, 'submitTs'),
+            'lastTradeTimestamp': undefined,
+            'type': 'limit',
+            'side': this.safeString (order, 'buySell').toLowerCase (),
+            'price': this.safeFloat (order, 'price'),
+            'cost': this.safeFloat (order, 'feeAmountMax'),
+            'amount': this.safeFloat (order, 'volume'),
+            'remaining': undefined,
+            'filled': undefined,
+            'status': this.parseOrderStatus (this.safeString (order, 'status')),
+            'fee': undefined,
+            'trades': undefined,
+        };
     }
 
     parseOrderStatus (status) {
