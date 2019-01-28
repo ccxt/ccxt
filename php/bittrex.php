@@ -963,7 +963,7 @@ class bittrex extends Exchange {
                     // Bittrex will return an ambiguous INVALID_ORDER $message
                     // upon canceling already-canceled and closed orders
                     // therefore this special case for cancelOrder
-                    // $url = 'https://bittrex.com/api/v1.1/market/$cancel?apikey=API_KEY&uuid=ORDER_UUID'
+                    // $url = 'https://bittrex.com/api/v1.1/market/cancel?apikey=API_KEY&uuid=ORDER_UUID'
                     $cancel = 'cancel';
                     $indexOfCancel = mb_strpos ($url, $cancel);
                     if ($indexOfCancel >= 0) {

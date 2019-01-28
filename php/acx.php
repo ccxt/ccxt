@@ -365,7 +365,7 @@ class acx extends Exchange {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency ($code);
-        // they have XRP but no docs on memo/$tag
+        // they have XRP but no docs on memo/tag
         $request = array (
             'currency' => $currency['id'],
             'sum' => $amount,
