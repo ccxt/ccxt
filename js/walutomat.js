@@ -196,16 +196,13 @@ module.exports = class walutomat extends Exchange {
     }
 
     parseOrderStatus (status) {
-        let statuses = {
+        const statuses = {
             'MARKET_REQUESTED': 'open',
             'MARKET_PUBLISHED': 'open',
             'CLOSED': 'closed',
             'CANCELLED': 'canceled',
         };
-        if (status in statuses) {
-            return statuses[status];
-        }
-        return status;
+        return this.safeValue (statuses, status, status);
     }
 
     parseTrade (trade, market = undefined) {
