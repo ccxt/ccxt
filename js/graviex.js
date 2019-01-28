@@ -151,13 +151,19 @@ module.exports = class graviex extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        let symbol = this.safeString (market, 'symbol');
         let timestamp = this.safeInteger (ticker, 'at');
         if (timestamp !== undefined) {
             timestamp = parseInt (timestamp * 1000);
         }
+        const info = ticker;
         ticker = this.safeValue (ticker, 'ticker');
+        if (ticker === undefined) {
+            throw new ExchangeError (this.id + ' ' + symbol + ' ticker not found');
+        }
+        const last = this.safeFloat (ticker, 'last');
         return {
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'high'),
@@ -168,23 +174,26 @@ module.exports = class graviex extends Exchange {
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'last': this.safeFloat (ticker, 'last'),
+            'close': last,
+            'last': last,
             'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'change'),
-            'percentage': undefined,
+            'change': undefined,
+            'percentage': this.safeFloat (ticker, 'change'),
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': this.safeFloat (ticker, 'volbtc'),
-            'info': ticker,
+            'info': info,
         };
     }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetTickers (this.extend ({ 'addpath': market['id'] }, params));
-        return this.parseTicker (response, market);
+        const tickers = await this.fetchTickers (undefined, params);
+        const ticker = this.safeValue (tickers, symbol);
+        if (ticker === undefined) {
+            throw new ExchangeError (this.id + ' ' + symbol + ' ticker not found');
+        }
+        return ticker;
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -539,14 +548,12 @@ module.exports = class graviex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let host = this.urls['api'][api];
-        if ('incmarket' in params) {
-            path = '/' + 'api' + '/' + 'v2' + '/' + path + '/' + params['incmarket'];
-        } else {
-            path = '/' + 'api' + '/' + 'v2' + '/' + path;
-        }
+        path = '/' + 'api' + '/' + this.version + '/' + path;
         let tonce = this.nonce ();
         params['tonce'] = tonce;
-        params['access_key'] = this.apiKey;
+        if (this.apiKey !== undefined) {
+            params['access_key'] = this.apiKey;
+        }
         let url = host + path;
         let sorted = this.keysort (params);
         let paramencoded = this.urlencode (sorted);
@@ -567,13 +574,13 @@ module.exports = class graviex extends Exchange {
         if ('error' in response) {
             let code = this.safeInteger (response['error'], 'code');
             if (code !== undefined) {
-                let error = this.safeString (response['error'], 'message');
+                const msg = this.safeString (response['error'], 'message');
                 if (code === 2002) {
-                    throw new InsufficientFunds (error);
+                    throw new InsufficientFunds (msg);
                 } else if (code === 2005 || code === 2007) {
-                    throw new AuthenticationError (error);
+                    throw new AuthenticationError (msg);
                 } else {
-                    throw new ExchangeError (error);
+                    throw new ExchangeError (msg);
                 }
             }
         }
