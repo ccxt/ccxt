@@ -275,11 +275,12 @@ class gdax (Exchange):
             symbol = market['symbol']
         feeRate = None
         feeCurrency = None
+        takerOrMaker = None
         if market is not None:
             feeCurrency = market['quote']
             if 'liquidity' in trade:
-                rateType = 'taker' if (trade['liquidity'] == 'T') else 'maker'
-                feeRate = market[rateType]
+                takerOrMaker = 'taker' if (trade['liquidity'] == 'T') else 'maker'
+                feeRate = market[takerOrMaker]
         feeCost = self.safe_float(trade, 'fill_fees')
         if feeCost is None:
             feeCost = self.safe_float(trade, 'fee')
@@ -305,6 +306,7 @@ class gdax (Exchange):
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': type,
+            'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'amount': amount,
