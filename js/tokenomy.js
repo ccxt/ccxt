@@ -12,7 +12,7 @@ module.exports = class tokenomy extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'tokenomy',
             'name': 'TOKENOMY',
-            'countries': [ 'ID' ], // Indonesia
+            'countries': [ 'SG' ], // Singapore
             'has': {
                 'CORS': false,
                 'createMarketOrder': false,
