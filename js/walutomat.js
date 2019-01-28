@@ -68,11 +68,11 @@ module.exports = class walutomat extends Exchange {
     }
 
     fetchMarkets (params = {}) {
-        let currencies = ['EUR', 'GBP', 'USD', 'CHF', 'PLN'];
-        let markets = [];
-        let currenciesLength = currencies.length;
+        const currencies = ['EUR', 'GBP', 'USD', 'CHF', 'PLN'];
+        const markets = [];
+        const currenciesLength = currencies.length;
         for (let base = 0; base < currenciesLength - 1; base++) {
-            let newIndex = base + 1;
+            const newIndex = base + 1;
             for (let quote = newIndex; quote < currencies.length; quote++) {
                 markets.push ({
                     'id': currencies[base] + '_' + currencies[quote],
@@ -92,8 +92,8 @@ module.exports = class walutomat extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        let balances = await this.privateGetAccountBalances ();
-        let result = {};
+        const balances = await this.privateGetAccountBalances ();
+        const result = {};
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
             result[this.safeString (balance, 'currency')] = {
@@ -107,14 +107,14 @@ module.exports = class walutomat extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let symbolObject = { 'symbol': this.marketId (symbol) };
-        let response = await this.publicGetPublicMarketOrderbookSymbol (this.extend (symbolObject, params));
+        const symbolObject = { 'symbol': this.marketId (symbol) };
+        const response = await this.publicGetPublicMarketOrderbookSymbol (this.extend (symbolObject, params));
         return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'baseVolume');
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'operationType': 'MARKET_FX',
             'sortOrder': 'DESC',
         };
@@ -128,8 +128,8 @@ module.exports = class walutomat extends Exchange {
         if (limit !== undefined) {
             request['volume'] = limit;
         }
-        let response = await this.privateGetAccountHistory (this.extend (request, params));
-        let result = [];
+        const response = await this.privateGetAccountHistory (this.extend (request, params));
+        const result = [];
         for (let i = 0; i < response.length; i++) {
             result.push ({
                 'id': this.safeInteger (response[i], 'id'),
@@ -140,22 +140,21 @@ module.exports = class walutomat extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let pair = this.marketId (symbol);
-        let currencies = pair.split ('_');
-        let body = {
+        const market = this.market (symbol);
+        const body = {
             'submitId': this.uuid (),
-            'pair': pair,
+            'pair': market['id'],
             'price': price,
             'buySell': side.toUpperCase (),
-            'volumeCurrency': currencies[0],
-            'otherCurrency': currencies[1],
+            'volumeCurrency': market['baseId'],
+            'otherCurrency': market['quoteId'],
             'volume': amount,
         };
         return await this.privatePostMarketOrders (this.extend (body, params));
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        let request = {
+        const request = {
             'orderId': id,
         };
         return await this.privatePostMarketOrdersCloseOrderId (this.extend (request, params));
@@ -164,8 +163,8 @@ module.exports = class walutomat extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         // TODO: Would be nice to get parametrized API response
         await this.loadMarkets ();
-        let orders = await this.privateGetMarketOrders ();
-        let result = [];
+        const orders = await this.privateGetMarketOrders ();
+        const result = [];
         for (let i = 0; i < orders.length; i++) {
             result.push ({
                 'info': orders[i],
@@ -216,18 +215,18 @@ module.exports = class walutomat extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + this.url (path, params);
-        let uri = this.makeUri (path, params);
-        let query = this.omit (params, this.extractParams (path));
+        const url = this.urls['api'] + '/' + this.version + '/' + this.url (path, params);
+        const uri = this.makeUri (path, params);
+        const query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            let timestamp = this.milliseconds ().toString ();
+            const timestamp = this.milliseconds ().toString ();
             let prehash = uri + timestamp;
             if (method === 'POST') {
                 body = this.json (query);
                 prehash += body;
             }
-            let signature = this.hmac (this.encode (prehash), this.encode (this.secret), 'sha256', 'hex');
+            const signature = this.hmac (this.encode (prehash), this.encode (this.secret), 'sha256', 'hex');
             headers = {
                 'X-API-KEY': this.apiKey,
                 'X-API-SIGNATURE': signature,
@@ -244,11 +243,11 @@ module.exports = class walutomat extends Exchange {
         if (body.length < 2)
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
-            let errorMessage = this.safeString (response, 'message');
-            let errors = this.safeValue (response, 'errors', {});
+            const errorMessage = this.safeString (response, 'message');
+            const errors = this.safeValue (response, 'errors', {});
             if (errorMessage) {
-                let exceptions = this.exceptions;
-                let feedback = this.json (errors);
+                const exceptions = this.exceptions;
+                const feedback = this.json (errors);
                 if (errorMessage in exceptions) {
                     throw new exceptions[errorMessage] (feedback);
                 } else {
