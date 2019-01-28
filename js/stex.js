@@ -55,7 +55,7 @@ module.exports = class stex extends Exchange {
                         'prices',
                         'trades',
                         'orderbook',
-                        'graficPublic',
+                        'grafic_public',
                     ],
                 },
                 'private': {
@@ -188,18 +188,6 @@ module.exports = class stex extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        if (limit === undefined)
-            limit = 20; // default
-        const request = {
-            'pair': this.marketId (symbol),
-            'limit': limit.toString (),
-        };
-        let response = await this.publicGetOrderbook (this.extend (request, params));
-        return this.parseOrderBook (response['result'], undefined, 'buy', 'sell', 'Rate', 'Quantity');
-    }
-
     checkforRates (trade) {
         let rate = undefined;
         if ('rates' in trade) {
@@ -265,7 +253,7 @@ module.exports = class stex extends Exchange {
             'pair': market['id'],
             'limit': limit,
         }, params));
-        return this.parseTrades (this.getdatafromresponse (response), market, since, limit);
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
@@ -282,36 +270,34 @@ module.exports = class stex extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1d', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (limit === undefined)
-            limit = 100;
-        if (since !== undefined)
+        if (limit !== undefined) {
+            params['count'] = limit;
+        }
+        if (since !== undefined) {
             params['since'] = since;
-        let response = await this.privatePostGrafic (this.extend ({
+        }
+        params = this.extend ({
             'pair': market['id'],
             'interval': this.timeframes[timeframe],
             'page': 1,
-            'count': limit,
-        }, params));
-        let data = this.getdatafromresponse (response);
-        return this.parseOHLCVs (this.getdatafromresponse (data), market, timeframe, since, limit);
+        }, params);
+        let response = await this.publicGetGraficPublic (params);
+        return this.parseOHLCVs (response['graf'], market, timeframe, since, limit);
     }
 
     async createDepositAddress (code, params = {}) {
         let response = await this.privatePostGenerateWallets (this.extend ({
             'currency': code,
         }, params));
-        let data = this.getdatafromresponse (response);
         let address = undefined;
-        let tag = undefined;
-        if (data !== undefined) {
-            let address = this.safeString (data, 'address');
+        if (response !== undefined) {
+            let address = this.safeString (response, 'address');
             this.checkAddress (address);
-            tag = this.safeString (data, 'msg');
         }
         return {
             'currency': code,
             'address': address,
-            'tag': tag,
+            'tag': undefined,
             'info': response,
         };
     }
@@ -320,36 +306,35 @@ module.exports = class stex extends Exchange {
         let response = await this.privatePostGetInfo ();
         let address = undefined;
         let tag = undefined;
-        let data = this.getdatafromresponse (response);
-        if ('wallets_addresses' in data) {
-            if (code in data['wallets_addresses'])
-                address = data['wallets_addresses'][code];
+        if ('wallets_addresses' in response) {
+            if (code in response['wallets_addresses'])
+                address = response['wallets_addresses'][code];
         }
-        if ('publick_key' in data) {
-            if (code in data['publick_key'])
-                tag = data['publick_key'][code];
+        if ('publick_key' in response) {
+            if (code in response['publick_key'])
+                tag = response['publick_key'][code];
         }
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'info': address,
+            'info': response,
         };
     }
 
-    processTransactionHelper (data = undefined, txtype = undefined) {
+    processTransactionHelper (response = undefined, txtype = undefined) {
         let result = {};
-        let ids = Object.keys (data[txtype]);
+        let ids = Object.keys (response[txtype]);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            result.push (this.extend ({ 'id': id, 'type': txtype.toLowerCase () }, data[txtype][id]));
+            result.push (this.extend ({ 'id': id, 'type': txtype.toLowerCase () }, response[txtype][id]));
         }
         return result;
     }
 
     async fetchTransHistory (request, type = undefined) {
-        if (type === 'all') {
+        if (type === 'extended') {
             let response1 = await this.privatePostTransHistory (this.extend ({ 'status': 'FINISHED' }, request));
             let response2 = await this.privatePostTransHistory (this.extend ({ 'status': 'AWAITING_CONFIRMATIONS' }, request));
             let response3 = await this.privatePostTransHistory (this.extend ({ 'status': 'EMAIL_SENT' }, request));
@@ -359,10 +344,13 @@ module.exports = class stex extends Exchange {
             let response7 = await this.privatePostTransHistory (this.extend ({ 'status': 'PROCESSING' }, request));
             let response8 = await this.privatePostTransHistory (this.extend ({ 'status': 'WITHDRAWAL_ERROR' }, request));
             let response9 = await this.privatePostTransHistory (this.extend ({ 'status': 'CANCELED_BY_ADMIN' }, request));
-            return this.extend (this.getdatafromresponse (response1), this.getdatafromresponse (response2), this.getdatafromresponse (response3), this.getdatafromresponse (response4), this.getdatafromresponse (response5), this.getdatafromresponse (response6), this.getdatafromresponse (response7), this.getdatafromresponse (response8), this.getdatafromresponse (response9));
-        } else {
-            let response1 = await this.privatePostTransHistory (this.extend ({ 'status': 'FINISHED' }, request));
-            return this.getdatafromresponse (response1);
+            return this.extend (response1, response2, response3, response4, response5, response6, response7, response8, response9);
+        } else if (type === 'closed' || type === undefined) {
+            let response = await this.privatePostTransHistory (this.extend ({ 'status': 'FINISHED' }, request));
+            return response;
+        } else if (type === 'open') {
+            let response = await this.privatePostTransHistory (this.extend ({ 'status': 'AWAITING_CONFIRMATIONS' }, request));
+            return response;
         }
     }
 
@@ -432,7 +420,7 @@ module.exports = class stex extends Exchange {
         let fee = undefined;
         if (getfee[0] !== undefined)
             fee = getfee[0];
-        let response = {
+        return {
             'info': transaction,
             'id': this.safeString (transaction, 'id'),
             'txid': this.safeString (transaction, 'TX_id'),
@@ -451,7 +439,6 @@ module.exports = class stex extends Exchange {
                 'rate': undefined,
             },
         };
-        return response;
     }
 
     parseTransactionStatus (status) {
@@ -517,6 +504,18 @@ module.exports = class stex extends Exchange {
         };
     }
 
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (limit === undefined)
+            limit = 20; // default
+        const request = {
+            'pair': this.marketId (symbol),
+            'limit': limit.toString (),
+        };
+        let response = await this.publicGetOrderbook (this.extend (request, params));
+        return this.parseOrderBook (response, undefined, undefined, undefined, 'Rate', 'Quantity');
+    }
+
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -527,8 +526,7 @@ module.exports = class stex extends Exchange {
             'type': 'ALL',
             'owner': 'ALL',
         }, params);
-        let response = await this.privatePostActiveOrders (request);
-        let data = this.getdatafromresponse (response);
+        let data = await this.privatePostActiveOrders (request);
         if (id in data) {
             return this.parseOrder (data[id], market);
         } else {
@@ -635,8 +633,7 @@ module.exports = class stex extends Exchange {
             'rate': price,
         };
         let response = await this[method] (this.extend (request, params));
-        let data = this.getdatafromresponse (response);
-        let id = this.safeString (data, 'order_id');
+        let id = this.safeString (response, 'order_id');
         let order = await this.fetchOrder (id, symbol);
         return order;
     }
@@ -667,12 +664,11 @@ module.exports = class stex extends Exchange {
         if (since !== undefined)
             request['since'] = market['id'];
         let result = {};
-        let tradehist = await this.privatePostTradeHistory (this.extend (request, params));
-        let data = this.getdatafromresponse (tradehist);
-        let ids = Object.keys (data);
+        let response = await this.privatePostTradeHistory (this.extend (request, params));
+        let ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            result.push (this.extend ({ 'id': id, 'status': this.parseTradeHistoryStatus (status) }, data[id]));
+            result.push (this.extend ({ 'id': id, 'status': this.parseTradeHistoryStatus (status) }, response[id]));
         }
         return result;
     }
@@ -699,26 +695,13 @@ module.exports = class stex extends Exchange {
         return this.parseTrades (finish, market, since, limit);
     }
 
-    getdatafromresponse (response) {
-        if ('data' in response) {
-            return response['data'];
-        } else if ('result' in response) {
-            return response['result'];
-        } else if ('graf' in response) {
-            return response['graf'];
-        } else {
-            return response;
-        }
-    }
-
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostGetInfo ();
-        let data = this.getdatafromresponse (response);
-        let funds = data['funds'];
-        let holdfunds = data['hold_funds'];
+        let funds = response['funds'];
+        let holdfunds = response['hold_funds'];
         let fkeys = Object.keys (funds);
-        let result = { 'info': data };
+        let result = { 'info': response };
         for (let i = 0; i < fkeys.length; i++) {
             let id = fkeys[i];
             let currency = this.commonCurrencyCode (id);
@@ -745,14 +728,13 @@ module.exports = class stex extends Exchange {
         if (tag !== undefined)
             request['paymentid'] = tag;
         let response = await this.privatePostWithdraw (this.extend (request, params));
-        let data = this.getdatafromresponse (response);
-        let msg = this.safeString (data, 'message');
+        let msg = this.safeString (response, 'message');
         if (msg !== undefined) {
             if (msg === 'This method is currently disabled')
                 throw new ExchangeError (msg);
         }
         return {
-            'info': data,
+            'info': response,
             'id': undefined,
         };
     }
@@ -792,6 +774,12 @@ module.exports = class stex extends Exchange {
                     throw new PermissionDenied (error);
                 } else {
                     throw new ExchangeError (error);
+                }
+            } else {
+                if ('data' in response) {
+                    return response['data'];
+                } else if ('result' in response) {
+                    return response['result'];
                 }
             }
         }
