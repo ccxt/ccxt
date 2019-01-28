@@ -571,7 +571,7 @@ class gdax (Exchange):
         response = self.privateGetAccountsIdTransfers(self.extend(request, params))
         for i in range(0, len(response)):
             response[i]['currency'] = code
-        return self.parseTransactions(response)
+        return self.parseTransactions(response, currency, since, limit)
 
     def parse_transaction_status(self, transaction):
         if 'canceled_at' in transaction and transaction['canceled_at']:

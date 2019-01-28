@@ -607,7 +607,7 @@ class gdax extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $response[$i]['currency'] = $code;
         }
-        return $this->parseTransactions ($response);
+        return $this->parseTransactions ($response, $currency, $since, $limit);
     }
 
     public function parse_transaction_status ($transaction) {
