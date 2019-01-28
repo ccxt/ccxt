@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.144';
+$version = '1.18.156';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.144';
+    const VERSION = '1.18.156';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -900,6 +900,20 @@ class Exchange {
 
         if ($this->markets)
             $this->set_markets ($this->markets);
+    }
+
+    public function set_sandbox_mode ($enabled) {
+        if ($enabled) {
+            if (array_key_exists ('test', $this->urls)) {
+                $this->urls['api_backup'] = $this->urls['api'];
+                $this->urls['api'] = $this->urls['test'];
+            } else {
+                throw new NotSupported ($this->id . " does not have a sandbox URL");
+            }
+        } else if (array_key_exists ('api_backup', $this->urls)) {
+            $this->urls['api'] = $this->urls['api_backup'];
+            unset ($this->urls['api_backup']);
+        }
     }
 
     public function define_rest_api ($api, $method_name, $options = array ()) {

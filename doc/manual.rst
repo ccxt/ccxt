@@ -216,7 +216,7 @@ The ccxt library currently supports the following 133 cryptocurrency exchange ma
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |gatecoin|           | gatecoin           | `Gatecoin <https://gatecoin.com>`__                                                     |                                                                      | \*    | `API <https://gatecoin.com/api>`__                                                                  | Hong Kong                                |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
-| |gateio|             | gateio             | `Gate.io <https://gate.io/>`__                                                          |                                                                      | 2     | `API <https://gate.io/api2>`__                                                                      | China                                    |
+| |gateio|             | gateio             | `Gate.io <https://www.gate.io/signup/2436035>`__                                        |                                                                      | 2     | `API <https://gate.io/api2>`__                                                                      | China                                    |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |gdax|               | gdax               | `GDAX <https://www.gdax.com>`__                                                         |                                                                      | \*    | `API <https://docs.gdax.com>`__                                                                     | US                                       |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -246,7 +246,7 @@ The ccxt library currently supports the following 133 cryptocurrency exchange ma
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |kraken|             | kraken             | `Kraken <https://www.kraken.com>`__                                                     | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | 0     | `API <https://www.kraken.com/en-us/help/api>`__                                                     | US                                       |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
-| |kucoin|             | kucoin             | `Kucoin <https://www.kucoin.com/?r=E5wkqe>`__                                           |                                                                      | 1     | `API <https://kucoinapidocs.docs.apiary.io>`__                                                      | Hong Kong                                |
+| |kucoin|             | kucoin             | `Kucoin <https://www.kucoin.com/?r=E5wkqe>`__                                           |                                                                      | 1     | `API <https://kucoinapidocs.docs.apiary.io>`__                                                      | Seychelles                               |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |kuna|               | kuna               | `Kuna <https://kuna.io>`__                                                              |                                                                      | 2     | `API <https://kuna.io/documents/api>`__                                                             | Ukraine                                  |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -1697,6 +1697,9 @@ A price ticker contains statistics for a particular market/symbol for some perio
        'quoteVolume':   float, // volume of quote currency traded for last 24 hours
    }
 
+Notes On Ticker Structure
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
 -  The ``bidVolume`` is the volume (amount) of current best bid in the orderbook.
 -  The ``askVolume`` is the volume (amount) of current best ask in the orderbook.
 -  The ``baseVolume`` is the amount of base currency traded (bought or sold) in last 24 hours.
@@ -1714,7 +1717,14 @@ A price ticker contains statistics for a particular market/symbol for some perio
 
 Timestamp and datetime are both Universal Time Coordinated (UTC) in milliseconds.
 
-Although some exchanges do mix-in orderbook’s top bid/ask prices into their tickers (and some even top bid/asks volumes) you should not treat ticker as a ``fetchOrderBook`` replacement. The main purpose of a ticker is to serve statistical data, as such, treat it as “live 24h OHLCV”. It is known that exchanges discourage frequent ``fetchTicker`` requests by imposing stricter rate limits on these queries. If you need a unified way to access bid/asks you should use ``fetchL[123]OrderBook`` family instead.
+-  ``ticker['timestamp']`` is the time when the exchange generated this response (before replying it back to you). This may be missing (``undefined/None/null``), as documented in the Manual, not all exchanges provide a timestamp there. If it is defined, then it is the UTC timestamp **in milliseconds** since 1 Jan 1970 00:00:00.
+-  ``exchange.last_response_headers['Date']`` is the date-time string of the last HTTP response received (from HTTP headers). The ‘Date’ parser should respect the timezone designated there. The precision of the date-time is 1 second, 1000 milliseconds. This date should be set by the exchange server when the message originated according to the following standards:
+
+   -  https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.18
+   -  https://tools.ietf.org/html/rfc1123#section-5.2.14
+   -  https://tools.ietf.org/html/rfc822#section-5
+
+Although some exchanges do mix-in orderbook’s top bid/ask prices into their tickers (and some even top bid/asks volumes) you should not treat a ticker as a ``fetchOrderBook`` replacement. The main purpose of a ticker is to serve statistical data, as such, treat it as “live 24h OHLCV”. It is known that exchanges discourage frequent ``fetchTicker`` requests by imposing stricter rate limits on these queries. If you need a unified way to access bid/asks you should use ``fetchL[123]OrderBook`` family instead.
 
 To get historical prices and volumes use the unified ```fetchOHLCV`` <https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-candlestick-charts>`__ method where available.
 

@@ -743,15 +743,15 @@ class exmo extends Exchange {
                     if ($timestamp > $trade['timestamp']) {
                         $timestamp = $trade['timestamp'];
                     }
-                    $filled .= $trade['amount'];
+                    $filled = $this->sum ($filled, $trade['amount']);
                     if ($feeCost === null) {
                         $feeCost = 0.0;
                     }
-                    $feeCost .= $trade['fee']['cost'];
+                    $feeCost = $this->sum ($feeCost, $trade['fee']['cost']);
                     if ($cost === null) {
                         $cost = 0.0;
                     }
-                    $cost .= $trade['cost'];
+                    $cost = $this->sum ($cost, $trade['cost']);
                     $trades[] = $trade;
                 }
             }

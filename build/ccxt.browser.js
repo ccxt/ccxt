@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.144'
+const version = '1.18.156'
 
 Exchange.ccxtVersion = version
 
@@ -1364,6 +1364,7 @@ const {
     , values
     , deepExtend
     , extend
+    , clone
     , flatten
     , unique
     , indexBy
@@ -1805,6 +1806,19 @@ module.exports = class Exchange {
                     throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)')
                 throw e
             })
+        }
+    }
+
+    setSandboxMode (enabled) {
+        if (!!enabled) {
+            if ('test' in this.urls) {
+                this.urls['api_backup'] = clone (this.urls['api'])
+                this.urls['api'] = clone (this.urls['test'])
+            } else {
+                throw new NotSupported (this.id + ' does not have a sandbox URL')
+            }
+        } else if ('api_backup' in this.urls) {
+            this.urls['api'] = clone (this.urls['api_backup'])
         }
     }
 
@@ -4882,7 +4896,7 @@ module.exports = class bibox extends Exchange {
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
-            let id = base + '_' + quote;
+            let id = baseId + '_' + quoteId;
             let precision = {
                 'amount': 4,
                 'price': 8,
@@ -10208,6 +10222,7 @@ module.exports = class bitflyer extends Exchange {
                     'get': [
                         'getpermissions',
                         'getbalance',
+                        'getbalancehistory',
                         'getcollateral',
                         'getcollateralaccounts',
                         'getaddresses',
@@ -16596,7 +16611,7 @@ module.exports = class bitz extends Exchange {
         let parts = microtime.split (' ');
         let milliseconds = parseFloat (parts[0]);
         let seconds = parseInt (parts[1]);
-        let total = seconds + milliseconds;
+        let total = this.sum (seconds, milliseconds);
         return parseInt (total * 1000);
     }
 
@@ -18908,60 +18923,90 @@ module.exports = class btcbox extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'amount': amount,
             'price': price,
             'type': side,
+            'coin': market['baseId'],
         };
-        let numSymbols = this.symbols.length;
-        if (numSymbols > 1)
-            request['coin'] = market['baseId'];
-        let response = await this.privatePostTradeAdd (this.extend (request, params));
-        return {
-            'info': response,
-            'id': response['id'],
-        };
+        const response = await this.privatePostTradeAdd (this.extend (request, params));
+        //
+        //     {
+        //         "result":true,
+        //         "id":"11"
+        //     }
+        //
+        return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privatePostTradeCancel (this.extend ({
+        // a special case for btcbox – default symbol is BTC/JPY
+        if (symbol === undefined) {
+            symbol = 'BTC/JPY';
+        }
+        const market = this.market (symbol);
+        const request = {
             'id': id,
-        }, params));
+            'coin': market['baseId'],
+        };
+        const response = await this.privatePostTradeCancel (this.extend (request, params));
+        //
+        //     {"result":true, "id":"11"}
+        //
+        return this.parseOrder (response, market);
     }
 
-    parseOrder (order) {
-        // {"id":11,"datetime":"2014-10-21 10:47:20","type":"sell","price":42000,"amount_original":1.2,"amount_outstanding":1.2,"status":"closed","trades":[]}
-        const id = this.safeString (order, 'id');
-        const timestamp = this.parse8601 (order['datetime'] + '+09:00'); // Tokyo time
-        const amount = this.safeFloat (order, 'amount_original');
-        const remaining = this.safeFloat (order, 'amount_outstanding');
-        let filled = undefined;
-        if (amount !== undefined)
-            if (remaining !== undefined)
-                filled = amount - remaining;
-        const price = this.safeFloat (order, 'price');
-        let cost = undefined;
-        if (price !== undefined)
-            if (filled !== undefined)
-                cost = filled * price;
-        // status is set by fetchOrder method only
+    parseOrderStatus (status) {
         const statuses = {
             // TODO: complete list
             'part': 'open', // partially or not at all executed
             'all': 'closed', // fully executed
             'cancelled': 'canceled',
             'closed': 'closed', // never encountered, seems to be bug in the doc
+            'no': 'closed', // not clarified in the docs...
         };
-        let status = undefined;
-        if (order['status'] in statuses)
-            status = statuses[order['status']];
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        // {"id":11,"datetime":"2014-10-21 10:47:20","type":"sell","price":42000,"amount_original":1.2,"amount_outstanding":1.2,"status":"closed","trades":[]}
+        //
+        const id = this.safeString (order, 'id');
+        const datetimeString = this.safeString (order, 'datetime');
+        let timestamp = undefined;
+        if (datetimeString !== undefined) {
+            timestamp = this.parse8601 (order['datetime'] + '+09:00'); // Tokyo time
+        }
+        const amount = this.safeFloat (order, 'amount_original');
+        const remaining = this.safeFloat (order, 'amount_outstanding');
+        let filled = undefined;
+        if (amount !== undefined) {
+            if (remaining !== undefined) {
+                filled = amount - remaining;
+            }
+        }
+        const price = this.safeFloat (order, 'price');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (filled !== undefined) {
+                cost = filled * price;
+            }
+        }
+        // status is set by fetchOrder method only
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         // fetchOrders do not return status, use heuristic
         if (status === undefined)
             if (remaining !== undefined && remaining === 0)
                 status = 'closed';
         let trades = undefined; // todo: this.parseTrades (order['trades']);
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const side = this.safeString (order, 'type');
         return {
             'id': id,
             'timestamp': timestamp,
@@ -18970,10 +19015,10 @@ module.exports = class btcbox extends Exchange {
             'amount': amount,
             'remaining': remaining,
             'filled': filled,
-            'side': order['type'],
+            'side': side,
             'type': undefined,
             'status': status,
-            'symbol': 'BTC/JPY',
+            'symbol': symbol,
             'price': price,
             'cost': cost,
             'trades': trades,
@@ -18984,33 +19029,48 @@ module.exports = class btcbox extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostTradeView (this.extend ({
+        // a special case for btcbox – default symbol is BTC/JPY
+        if (symbol === undefined) {
+            symbol = 'BTC/JPY';
+        }
+        const market = this.market (symbol);
+        const request = this.extend ({
             'id': id,
-        }, params));
-        return this.parseOrder (response);
+            'coin': market['baseId'],
+        }, params);
+        const response = await this.privatePostTradeView (this.extend (request, params));
+        return this.parseOrder (response, market);
+    }
+
+    async fetchOrdersByType (type, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        // a special case for btcbox – default symbol is BTC/JPY
+        if (symbol === undefined) {
+            symbol = 'BTC/JPY';
+        }
+        const market = this.market (symbol);
+        const request = {
+            'type': type, // 'open' or 'all'
+            'coin': market['baseId'],
+        };
+        const response = await this.privatePostTradeList (this.extend (request, params));
+        const orders = this.parseOrders (response, market, since, limit);
+        // status (open/closed/canceled) is undefined
+        // btcbox does not return status, but we know it's 'open' as we queried for open orders
+        if (type === 'open') {
+            for (let i = 0; i < orders.length; i++) {
+                orders[i]['status'] = 'open';
+            }
+        }
+        return orders;
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let response = await this.privatePostTradeList (this.extend ({
-            'type': 'all', // 'open' or 'all'
-        }, params));
-        // status (open/closed/canceled) is undefined
-        return this.parseOrders (response);
+        return await this.fetchOrdersByType ('all', symbol, since, limit, params);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let response = await this.privatePostTradeList (this.extend ({
-            'type': 'open', // 'open' or 'all'
-        }, params));
-        const orders = this.parseOrders (response);
-        // btcbox does not return status, but we know it's 'open' as we queried for open orders
-        for (let i = 0; i < orders.length; i++) {
-            const order = orders[i];
-            order['status'] = 'open';
-        }
-        return orders;
+        return await this.fetchOrdersByType ('open', symbol, since, limit, params);
     }
 
     nonce () {
@@ -33529,7 +33589,7 @@ module.exports = class cryptopia extends Exchange {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, PermissionDenied } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -33599,8 +33659,59 @@ module.exports = class deribit extends Exchange {
                 },
             },
             'exceptions': {
-                'Invalid API Key.': AuthenticationError,
-                'Access Denied': PermissionDenied,
+                // 0 or absent Success, No error
+                '9999': PermissionDenied,   // "api_not_enabled" User didn't enable API for the Account
+                '10000': AuthenticationError,  // "authorization_required" Authorization issue, invalid or absent signature etc
+                '10001': ExchangeError,     // "error" Some general failure, no public information available
+                '10002': InvalidOrder,      // "qty_too_low" Order quantity is too low
+                '10003': InvalidOrder,      // "order_overlap" Rejection, order overlap is found and self-trading is not enabled
+                '10004': OrderNotFound,     // "order_not_found" Attempt to operate with order that can't be found by specified id
+                '10005': InvalidOrder,      // "price_too_low <Limit>" Price is too low, <Limit> defines current limit for the operation
+                '10006': InvalidOrder,      // "price_too_low4idx <Limit>" Price is too low for current index, <Limit> defines current bottom limit for the operation
+                '10007': InvalidOrder, // "price_too_high <Limit>" Price is too high, <Limit> defines current up limit for the operation
+                '10008': InvalidOrder, // "price_too_high4idx <Limit>" Price is too high for current index, <Limit> defines current up limit for the operation
+                '10009': InsufficientFunds, // "not_enough_funds" Account has not enough funds for the operation
+                '10010': OrderNotFound, // "already_closed" Attempt of doing something with closed order
+                '10011': InvalidOrder, // "price_not_allowed" This price is not allowed for some reason
+                '10012': InvalidOrder, // "book_closed" Operation for instrument which order book had been closed
+                '10013': PermissionDenied, // "pme_max_total_open_orders <Limit>" Total limit of open orders has been exceeded, it is applicable for PME users
+                '10014': PermissionDenied, // "pme_max_future_open_orders <Limit>" Limit of count of futures' open orders has been exceeded, it is applicable for PME users
+                '10015': PermissionDenied, // "pme_max_option_open_orders <Limit>" Limit of count of options' open orders has been exceeded, it is applicable for PME users
+                '10016': PermissionDenied, // "pme_max_future_open_orders_size <Limit>" Limit of size for futures has been exceeded, it is applicable for PME users
+                '10017': PermissionDenied, // "pme_max_option_open_orders_size <Limit>" Limit of size for options has been exceeded, it is applicable for PME users
+                '10019': PermissionDenied, // "locked_by_admin" Trading is temporary locked by admin
+                '10020': ExchangeError, // "invalid_or_unsupported_instrument" Instrument name is not valid
+                '10022': InvalidOrder, // "invalid_quantity" quantity was not recognized as a valid number
+                '10023': InvalidOrder, // "invalid_price" price was not recognized as a valid number
+                '10024': InvalidOrder, // "invalid_max_show" max_show parameter was not recognized as a valid number
+                '10025': InvalidOrder, // "invalid_order_id" Order id is missing or its format was not recognized as valid
+                '10026': InvalidOrder, // "price_precision_exceeded" Extra precision of the price is not supported
+                '10027': InvalidOrder, // "non_integer_contract_amount" Futures contract amount was not recognized as integer
+                '10028': DDoSProtection, // "too_many_requests" Allowed request rate has been exceeded
+                '10029': OrderNotFound, // "not_owner_of_order" Attempt to operate with not own order
+                '10030': ExchangeError, // "must_be_websocket_request" REST request where Websocket is expected
+                '10031': ExchangeError, // "invalid_args_for_instrument" Some of arguments are not recognized as valid
+                '10032': InvalidOrder, // "whole_cost_too_low" Total cost is too low
+                '10033': NotSupported, // "not_implemented" Method is not implemented yet
+                '10034': InvalidOrder, // "stop_price_too_high" Stop price is too high
+                '10035': InvalidOrder, // "stop_price_too_low" Stop price is too low
+                '11035': InvalidOrder, // "no_more_stops <Limit>" Allowed amount of stop orders has been exceeded
+                '11036': InvalidOrder, // "invalid_stoppx_for_index_or_last" Invalid StopPx (too high or too low) as to current index or market
+                '11037': InvalidOrder, // "outdated_instrument_for_IV_order" Instrument already not available for trading
+                '11038': InvalidOrder, // "no_adv_for_futures" Advanced orders are not available for futures
+                '11039': InvalidOrder, // "no_adv_postonly" Advanced post-only orders are not supported yet
+                '11040': InvalidOrder, // "impv_not_in_range 0..499%" Implied volatility is out of allowed range
+                '11041': InvalidOrder, // "not_adv_order" Advanced order properties can't be set if the order is not advanced
+                '11042': PermissionDenied, // "permission_denied" Permission for the operation has been denied
+                '11044': OrderNotFound, // "not_open_order" Attempt to do open order operations with the not open order
+                '11045': ExchangeError, // "invalid_event" Event name has not been recognized
+                '11046': ExchangeError, // "outdated_instrument" At several minutes to instrument expiration, corresponding advanced implied volatility orders are not allowed
+                '11047': ExchangeError, // "unsupported_arg_combination" The specified combination of arguments is not supported
+                '11048': ExchangeError, // "not_on_this_server" The requested operation is not available on this server.
+                '11050': ExchangeError, // "invalid_request" Request has not been parsed properly
+                '11051': ExchangeNotAvailable, // "system_maintenance" System is under maintenance
+                '11030': ExchangeError, // "other_reject <Reason>" Some rejects which are not considered as very often, more info may be specified in <Reason>
+                '11031': ExchangeError, // "other_error <Error>" Some errors which are not considered as very often, more info may be specified in <Error>
             },
             'options': {
                 'fetchTickerQuotes': true,
@@ -33956,6 +34067,24 @@ module.exports = class deribit extends Exchange {
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (httpCode, reason, url, method, headers, body, response) {
+        if (!response) {
+            return; // fallback to default error handler
+        }
+        //
+        //     {"usOut":1535877098645376,"usIn":1535877098643364,"usDiff":2012,"testnet":false,"success":false,"message":"order_not_found","error":10004}
+        //
+        const error = this.safeString (response, 'error');
+        if ((error !== undefined) && (error !== '0')) {
+            const feedback = this.id + ' ' + body;
+            const exceptions = this.exceptions;
+            if (error in exceptions) {
+                throw new exceptions[error] (feedback);
+            }
+            throw new ExchangeError (feedback); // unknown message
+        }
     }
 };
 
@@ -35322,15 +35451,15 @@ module.exports = class exmo extends Exchange {
                     if (timestamp > trade['timestamp']) {
                         timestamp = trade['timestamp'];
                     }
-                    filled += trade['amount'];
+                    filled = this.sum (filled, trade['amount']);
                     if (feeCost === undefined) {
                         feeCost = 0.0;
                     }
-                    feeCost += trade['fee']['cost'];
+                    feeCost = this.sum (feeCost, trade['fee']['cost']);
                     if (cost === undefined) {
                         cost = 0.0;
                     }
-                    cost += trade['cost'];
+                    cost = this.sum (cost, trade['cost']);
                     trades.push (trade);
                 }
             }
@@ -38078,6 +38207,7 @@ module.exports = class gateio extends Exchange {
                     'https://gate.io/fee',
                     'https://support.gate.io/hc/en-us/articles/115003577673',
                 ],
+                'referral': 'https://www.gate.io/signup/2436035',
             },
             'api': {
                 'public': {
@@ -38602,11 +38732,15 @@ module.exports = class gateio extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         let currency = this.currency (code);
-        let response = await this.privatePostWithdraw (this.extend ({
+        const request = {
             'currency': currency['id'],
             'amount': amount,
             'address': address, // Address must exist in you AddressBook in security settings
-        }, params));
+        };
+        if (tag !== undefined) {
+            request['address'] += ' ' + tag;
+        }
+        let response = await this.privatePostWithdraw (this.extend (request, params));
         return {
             'info': response,
             'id': undefined,
@@ -41832,7 +41966,7 @@ module.exports = class hitbtc2 extends hitbtc {
             request['startTime'] = since;
         }
         let response = await this.privateGetAccountTransactions (this.extend (request, params));
-        return this.parseTransactions (response);
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -41896,7 +42030,12 @@ module.exports = class hitbtc2 extends hitbtc {
         }
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const amount = this.safeFloat (transaction, 'amount');
-        const type = this.safeString (transaction, 'type');
+        let type = this.safeString (transaction, 'type');
+        if (type === 'payin') {
+            type = 'deposit';
+        } else if (type === 'payout') {
+            type = 'withdrawal';
+        }
         const address = this.safeString (transaction, 'address');
         const txid = this.safeString (transaction, 'hash');
         return {
@@ -46790,7 +46929,7 @@ module.exports = class kucoin extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'kucoin',
             'name': 'Kucoin',
-            'countries': [ 'HK' ], // Hong Kong
+            'countries': [ 'SC' ], // Republic of Seychelles
             'version': 'v1',
             'rateLimit': 2000,
             'userAgent': this.userAgents['chrome'],
@@ -48185,7 +48324,7 @@ module.exports = class kucoin extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    throwExceptionOnError (response) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         //
         // API endpoints return the following formats
         //     { success: false, code: "ERROR", msg: "Min price:100.0" }
@@ -48201,15 +48340,15 @@ module.exports = class kucoin extends Exchange {
         if (response['success'] === true)
             return; // not an error
         if (!('code' in response) || !('msg' in response))
-            throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
-        const code = this.safeString (response, 'code');
+            throw new ExchangeError (this.id + ': malformed response: ' + body);
+        const responseCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
-        const feedback = this.id + ' ' + this.json (response);
-        if (code === 'UNAUTH') {
+        const feedback = this.id + ' ' + body;
+        if (responseCode === 'UNAUTH') {
             if (message === 'Invalid nonce')
                 throw new InvalidNonce (feedback);
             throw new AuthenticationError (feedback);
-        } else if (code === 'ERROR') {
+        } else if (responseCode === 'ERROR') {
             if (message.indexOf ('The precision of amount') >= 0)
                 throw new InvalidOrder (feedback); // amount violates precision.amount
             if (message.indexOf ('Min amount each order') >= 0)
@@ -48220,21 +48359,11 @@ module.exports = class kucoin extends Exchange {
                 throw new InvalidOrder (feedback); // price > limits.price.max
             if (message.indexOf ('The precision of price') >= 0)
                 throw new InvalidOrder (feedback); // price violates precision.price
-        } else if (code === 'NO_BALANCE') {
+        } else if (responseCode === 'NO_BALANCE') {
             if (message.indexOf ('Insufficient balance') >= 0)
                 throw new InsufficientFunds (feedback);
         }
-        throw new ExchangeError (this.id + ': unknown response: ' + this.json (response));
-    }
-
-    handleErrors (code, reason, url, method, headers, body, response) {
-        if (response !== undefined) {
-            // JS callchain parses body beforehand
-            this.throwExceptionOnError (response);
-        } else if (body && (body[0] === '{')) {
-            // Python/PHP callchains don't have json available at this step
-            this.throwExceptionOnError (JSON.parse (body));
-        }
+        throw new ExchangeError (this.id + ': unknown response: ' + body);
     }
 };
 

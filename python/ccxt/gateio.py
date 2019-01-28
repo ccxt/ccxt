@@ -57,6 +57,7 @@ class gateio (Exchange):
                     'https://gate.io/fee',
                     'https://support.gate.io/hc/en-us/articles/115003577673',
                 ],
+                'referral': 'https://www.gate.io/signup/2436035',
             },
             'api': {
                 'public': {
@@ -533,11 +534,14 @@ class gateio (Exchange):
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        response = self.privatePostWithdraw(self.extend({
+        request = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,  # Address must exist in you AddressBook in security settings
-        }, params))
+        }
+        if tag is not None:
+            request['address'] += ' ' + tag
+        response = self.privatePostWithdraw(self.extend(request, params))
         return {
             'info': response,
             'id': None,
