@@ -208,6 +208,12 @@ module.exports = class walutomat extends Exchange {
         return status;
     }
 
+    parseTrade (trade, market = undefined) {
+        return {
+            'id': this.safeInteger (trade, 'id'),
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const url = this.urls['api'] + '/' + this.version + '/' + this.url (path, params);
         const uri = '/api' + '/' + this.version + '/' + this.url (path, params);
