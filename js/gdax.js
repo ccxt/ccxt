@@ -275,11 +275,12 @@ module.exports = class gdax extends Exchange {
             symbol = market['symbol'];
         let feeRate = undefined;
         let feeCurrency = undefined;
+        let takerOrMaker = undefined;
         if (market !== undefined) {
             feeCurrency = market['quote'];
             if ('liquidity' in trade) {
-                let rateType = (trade['liquidity'] === 'T') ? 'taker' : 'maker';
-                feeRate = market[rateType];
+                takerOrMaker = (trade['liquidity'] === 'T') ? 'taker' : 'maker';
+                feeRate = market[takerOrMaker];
             }
         }
         let feeCost = this.safeFloat (trade, 'fill_fees');
@@ -307,6 +308,7 @@ module.exports = class gdax extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': type,
+            'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'amount': amount,
