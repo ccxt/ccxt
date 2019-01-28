@@ -1512,8 +1512,8 @@ class Exchange {
         return $this->filter_by_currency_since_limit ($result, $code, $since, $limit);
     }
 
-    public function parseTransactions ($transactions, $side, $market = null, $since = null, $limit = null) {
-        return $this->parse_transactions ($transactions, $side, $market, $since, $limit);
+    public function parseTransactions ($transactions, $currency = null, $since = null, $limit = null) {
+        return $this->parse_transactions ($transactions, $currency, $since, $limit);
     }
 
     public function parse_orders ($orders, $market = null, $since = null, $limit = null) {
