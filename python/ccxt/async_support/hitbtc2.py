@@ -1256,7 +1256,7 @@ class hitbtc2 (hitbtc):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = '/api' + '/' + self.version + '/'
+        url = '/api/' + self.version + '/'
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             url += api + '/' + self.implode_params(path, params)
