@@ -34,6 +34,7 @@ module.exports = class Stronghold extends Exchange {
                         'utilites/uuid',
                         'venues/trade-public/markets',
                         'venues/trade-public/markets/{marketId}/orderbook',
+                        'venues/trade-public/markets/{marketId}/trades'
                     ],
                     'post': [
                         'iam/credential',
@@ -77,6 +78,14 @@ module.exports = class Stronghold extends Exchange {
     async fetchMarkets () {
         const response = await this.publicGetVenuesTradePublicMarkets ();
         const responseData = response['result'];
+        // [ { id: 'SHXUSD',
+        //     baseAssetId: 'SHX/stronghold.co',
+        //     counterAssetId: 'USD/stronghold.co',
+        //     minimumOrderSize: '1.0000000',
+        //     minimumOrderIncrement: '1.0000000',
+        //     minimumPriceIncrement: '0.00010000',
+        //     displayDecimalsPrice: 4,
+        //     displayDecimalsAmount: 0 }, ... ]
         let result = {};
         for (let i = 0; i < responseData.length; i++) {
             const entry = responseData[i];
@@ -114,9 +123,47 @@ module.exports = class Stronghold extends Exchange {
         const marketId = this.marketId (symbol);
         const request = { 'marketId': marketId };
         const response = await this.publicGetVenuesTradePublicMarketsMarketIdOrderbook (this.extend (request, params));
+        // { marketId: 'ETHBTC',
+        //   bids:
+        //    [ [ '0.031500', '7.385000' ], ... ],
+        //   asks:
+        //    [ [ '0.031500', '7.385000' ], ... ], }
         const responseData = response['result'];
         const timestamp = this.parse8601 (this.safeString (response, 'timestamp'));
         return this.parseOrderBook (responseData, timestamp, 'bids', 'asks', 0, 1);
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketId = market['id'];
+        const request = { 'marketId': marketId };
+        const response = await this.publicGetVenuesTradePublicMarketsMarketIdTrades (this.extend (request, params));
+        // { marketId: 'ETHBTC',
+        //   trades:
+        //    [ [ '0.03150000', '0.0012000', 'sell', '2019-01-28T01:42:17Z' ], ... ] }
+        const responseData = response['result'];
+        return this.parseTrades (responseData['trades'], market, since, limit);
+    }
+
+    parseTrade (trade, market = undefined) {
+        // [ '0.03177000', '0.0643501', 'sell', '2019-01-27T23:02:04Z' ]
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const price = this.safeFloat (trade, 0);
+        const amount = this.safeFloat (trade, 1);
+        const side = this.safeString (trade, 2);
+        const datetime = this.safeString (trade, 3);
+        return {
+            'symbol': symbol,
+            'price': price,
+            'amount': amount,
+            'side': side,
+            'datetime': datetime,
+            'timestamp': this.parse8601 (datetime),
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
