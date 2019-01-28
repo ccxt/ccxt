@@ -211,13 +211,9 @@ module.exports = class walutomat extends Exchange {
         return status;
     }
 
-    makeUri (path, params) {
-        return '/api/' + this.version + '/' + this.url (path, params);
-    }
-
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const url = this.urls['api'] + '/' + this.version + '/' + this.url (path, params);
-        const uri = this.makeUri (path, params);
+        const uri = '/api/' + this.version + '/' + this.url (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
             this.checkRequiredCredentials ();
