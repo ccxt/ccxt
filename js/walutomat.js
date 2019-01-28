@@ -175,6 +175,10 @@ module.exports = class walutomat extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        let side = this.safeString (order, 'buySell');
+        if (side !== undefined) {
+            side = side.toLowerCase ();
+        }
         return {
             'info': order,
             'id': this.safeString (order, 'orderId'),
@@ -183,7 +187,7 @@ module.exports = class walutomat extends Exchange {
             'datetime': this.safeString (order, 'submitTs'),
             'lastTradeTimestamp': undefined,
             'type': 'limit',
-            'side': this.safeString (order, 'buySell').toLowerCase (),
+            'side': side,
             'price': this.safeFloat (order, 'price'),
             'cost': this.safeFloat (order, 'feeAmountMax'),
             'amount': this.safeFloat (order, 'volume'),
