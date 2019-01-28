@@ -209,6 +209,7 @@ module.exports = class kraken extends Exchange {
                 'EQuery:Unknown asset': ExchangeError,
                 'EGeneral:Internal error': ExchangeNotAvailable,
                 'EGeneral:Temporary lockout': DDoSProtection,
+                'EGeneral:Permission denied': AuthenticationError
             },
         });
     }
