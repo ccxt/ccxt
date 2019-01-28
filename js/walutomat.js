@@ -175,24 +175,63 @@ module.exports = class walutomat extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        return {
+        const id = this.safeString (order, 'orderId');
+        let symbol = undefined;
+        if ('market' in order) {
+            market = this.safeString (order, 'market');
+            symbol = this.findSymbol (market);
+        }
+        let timestamp = undefined;
+        let datetime = undefined;
+        if ('submitTs' in order) {
+            datetime = this.safeString (order, 'submitTs');
+            timestamp = this.parse8601 (datetime);
+        }
+        let lastTradeTimestamp = undefined;
+        if ('submitTs' in order) {
+            lastTradeTimestamp = timestamp;
+        }
+        let side = undefined;
+        if ('buySell' in order) {
+            side = this.safeString (order, 'buySell').toLowerCase ();
+        }
+        let price = undefined;
+        if ('price' in order) {
+            price = this.safeFloat (order, 'price');
+        }
+        let cost = undefined;
+        if ('feeAmountMax' in order) {
+            cost = this.safeFloat (order, 'feeAmountMax');
+        }
+        let amount = undefined;
+        if ('volume' in order) {
+            amount = this.safeFloat (order, 'volume');
+        }
+        const remaining = undefined;
+        const filled = undefined;
+        let status = undefined;
+        if ('status' in order) {
+            status = this.parseOrderStatus (this.safeString (order, 'status'));
+        }
+        const fee = undefined;
+        const result = {
             'info': order,
-            'id': this.safeString (order, 'orderId'),
-            'symbol': this.findSymbol (this.safeString (order, 'market')),
-            'timestamp': undefined,
-            'datetime': this.safeString (order, 'submitTs'),
-            'lastTradeTimestamp': undefined,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': symbol,
             'type': 'limit',
-            'side': this.safeString (order, 'buySell').toLowerCase (),
-            'price': this.safeFloat (order, 'price'),
-            'cost': this.safeFloat (order, 'feeAmountMax'),
-            'amount': this.safeFloat (order, 'volume'),
-            'remaining': undefined,
-            'filled': undefined,
-            'status': this.parseOrderStatus (this.safeString (order, 'status')),
-            'fee': undefined,
-            'trades': undefined,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
         };
+        return result;
     }
 
     parseOrderStatus (status) {
