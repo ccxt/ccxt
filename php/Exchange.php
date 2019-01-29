@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.168';
+$version = '1.18.171';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.168';
+    const VERSION = '1.18.171';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -1037,8 +1037,8 @@ class Exchange {
         // it's a stub function, does nothing in base code
     }
 
-    public function parse_json ($json_string) {
-        return json_decode ($json_string, $as_associative_array = true);
+    public function parse_json ($json_string, $as_associative_array = true) {
+        return json_decode ($json_string, $as_associative_array);
     }
 
     public function fetch ($url, $method = 'GET', $headers = null, $body = null) {
@@ -1179,7 +1179,7 @@ class Exchange {
 
         if ($this->is_json_encoded_object ($result)) {
          
-            $json_response = $this->parse_json ($result, $as_associative_array = true);
+            $json_response = $this->parse_json ($result);
 
             if ($this->enableLastJsonResponse) {
                 $this->last_json_response = $json_response;

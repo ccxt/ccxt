@@ -137,8 +137,8 @@ class coinfalcon extends Exchange {
             'change' => floatval ($ticker['change_in_24h']),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['volume']),
-            'quoteVolume' => null,
+            'baseVolume' => null,
+            'quoteVolume' => floatval ($ticker['volume']),
             'info' => $ticker,
         );
     }
