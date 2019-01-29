@@ -14,7 +14,7 @@ module.exports = class kucoin extends Exchange {
             'name': 'KuCoin',
             'country': ['SC'],
             'rateLimit': 334,
-            'version': 'v1',
+            'version': 'v2',
             'certified': true,
             'comment': 'Platform 2.0',
             'has': {
@@ -141,6 +141,7 @@ module.exports = class kucoin extends Exchange {
                 'order_not_exist': OrderNotFound,  // {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
             },
             'options': {
+                'version': 'v1',
                 'symbolSeparator': '-',
             },
         });
@@ -797,7 +798,11 @@ module.exports = class kucoin extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let endpoint = '/api' + '/' + this.version + '/' + this.implodeParams (path, params);
+        //
+        // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint 
+        //                                †                 ↑
+        //
+        let endpoint = '/api/' + this.options['version'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         let endpart = '';
         headers = headers !== undefined ? headers : {};
