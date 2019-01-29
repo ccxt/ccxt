@@ -136,8 +136,8 @@ module.exports = class coinfalcon extends Exchange {
             'change': parseFloat (ticker['change_in_24h']),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['volume']),
-            'quoteVolume': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['volume']),
             'info': ticker,
         };
     }
