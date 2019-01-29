@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.170'
+const version = '1.18.171'
 
 Exchange.ccxtVersion = version
 
@@ -26695,8 +26695,8 @@ module.exports = class coinfalcon extends Exchange {
             'change': parseFloat (ticker['change_in_24h']),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['volume']),
-            'quoteVolume': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['volume']),
             'info': ticker,
         };
     }
