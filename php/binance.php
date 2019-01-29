@@ -256,7 +256,6 @@ class binance extends Exchange {
             ),
             'commonCurrencies' => array (
                 'YOYO' => 'YOYOW',
-                'BCC' => 'BCH',
             ),
             // exchange-specific options
             'options' => array (
@@ -311,7 +310,7 @@ class binance extends Exchange {
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $market['symbol'];
-            // "123456" is a "test $symbol/$market"
+            // "123456" is a "test symbol/market"
             if ($id === '123456')
                 continue;
             $baseId = $market['baseAsset'];

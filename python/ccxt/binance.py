@@ -267,7 +267,6 @@ class binance (Exchange):
             },
             'commonCurrencies': {
                 'YOYO': 'YOYOW',
-                'BCC': 'BCH',
             },
             # exchange-specific options
             'options': {

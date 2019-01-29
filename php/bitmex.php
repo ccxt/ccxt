@@ -611,7 +611,7 @@ class bitmex extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $query = '/api' . '/' . $this->version . '/' . $path;
+        $query = '/api/' . $this->version . '/' . $path;
         if ($method !== 'PUT')
             if ($params)
                 $query .= '?' . $this->urlencode ($params);

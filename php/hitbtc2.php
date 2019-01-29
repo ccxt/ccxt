@@ -862,7 +862,7 @@ class hitbtc2 extends hitbtc {
             $request['startTime'] = $since;
         }
         $response = $this->privateGetAccountTransactions (array_merge ($request, $params));
-        return $this->parseTransactions ($response);
+        return $this->parseTransactions ($response, $currency, $since, $limit);
     }
 
     public function parse_transaction ($transaction, $currency = null) {
@@ -927,6 +927,11 @@ class hitbtc2 extends hitbtc {
         $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
         $amount = $this->safe_float($transaction, 'amount');
         $type = $this->safe_string($transaction, 'type');
+        if ($type === 'payin') {
+            $type = 'deposit';
+        } else if ($type === 'payout') {
+            $type = 'withdrawal';
+        }
         $address = $this->safe_string($transaction, 'address');
         $txid = $this->safe_string($transaction, 'hash');
         return array (
@@ -1297,7 +1302,7 @@ class hitbtc2 extends hitbtc {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = '/api' . '/' . $this->version . '/';
+        $url = '/api/' . $this->version . '/';
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'public') {
             $url .= $api . '/' . $this->implode_params($path, $params);
