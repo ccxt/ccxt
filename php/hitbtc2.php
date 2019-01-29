@@ -1302,7 +1302,7 @@ class hitbtc2 extends hitbtc {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = '/api' . '/' . $this->version . '/';
+        $url = '/api/' . $this->version . '/';
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'public') {
             $url .= $api . '/' . $this->implode_params($path, $params);
