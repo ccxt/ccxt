@@ -37,7 +37,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchAccounts': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg',
                 'referral': 'https://www.kucoin.com/#/?r=87rh55',
                 'api': {
                     'public': 'https://openapi-v2.kucoin.com',
