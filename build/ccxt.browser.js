@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.173'
+const version = '1.18.174'
 
 Exchange.ccxtVersion = version
 
@@ -57612,6 +57612,7 @@ module.exports = class southxchange extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'active': true,
                 'info': market,
             });
         }
