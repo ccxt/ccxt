@@ -84,7 +84,7 @@ module.exports = class graviex extends Exchange {
                 'trading': {
                     'percentage': true,
                     'maker': 0.0,
-                    'taker': 0.2,
+                    'taker': 0.2 / 100,
                 },
                 'funding': {
                     'withdraw': {
