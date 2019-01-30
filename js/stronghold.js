@@ -234,7 +234,6 @@ module.exports = class Stronghold extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let venue = this.options['venues']['main'];
         let endpoint = '/' + this.version + '/' + this.implodeParams (path, this.extend (params, { 'venueId': venue }));
-        let url = this.urls['api'][api] + endpoint;
         let query = this.omit (params, this.extractParams (path));
         let endpart = '';
         headers = headers !== undefined ? headers : {};
@@ -244,9 +243,9 @@ module.exports = class Stronghold extends Exchange {
             } else {
                 body = this.json (query);
                 endpart = body;
-                headers['Content-Type'] = 'application/json';
             }
         }
+        let url = this.urls['api'][api] + endpoint;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ().toString ();
@@ -255,7 +254,7 @@ module.exports = class Stronghold extends Exchange {
             headers = this.extend ({
                 'SH-CRED-ID': this.apiKey,
                 'SH-CRED-SIG': this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64'),
-                'SH-CRED-TIME': timestamp.toString (),
+                'SH-CRED-TIME': timestamp,
                 'SH-CRED-PASS': this.password,
             }, headers);
             headers['Content-Type'] = 'application/json';
