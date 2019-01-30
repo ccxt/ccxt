@@ -264,7 +264,7 @@ module.exports = class Stronghold extends Exchange {
                 'SH-CRED-TIME': timestamp,
                 'SH-CRED-PASS': this.password,
             }, headers);
-            headers['Content-Type'] = 'application/json';
+            headers['Content-Type'] = 'application/json; charset=utf-8';
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
