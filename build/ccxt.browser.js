@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.181'
+const version = '1.18.182'
 
 Exchange.ccxtVersion = version
 
@@ -48405,7 +48405,7 @@ module.exports = class kucoin2 extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'kucoin2',
             'name': 'KuCoin',
-            'country': ['SC'],
+            'countries': [ 'SC' ],
             'rateLimit': 334,
             'version': 'v2',
             'certified': true,

@@ -26,7 +26,7 @@ class kucoin2 (Exchange):
         return self.deep_extend(super(kucoin2, self).describe(), {
             'id': 'kucoin2',
             'name': 'KuCoin',
-            'country': ['SC'],
+            'countries': ['SC'],
             'rateLimit': 334,
             'version': 'v2',
             'certified': True,
