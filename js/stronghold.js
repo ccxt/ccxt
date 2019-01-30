@@ -199,8 +199,6 @@ module.exports = class Stronghold extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetVenuesVenueIdAccountsAccountIdTransactions ({ "accountId": "f72b9fb5-9607-4dd3-b31f-6ded21337056" })
-
-
     }
 
     parseTrade (trade, market = undefined) {
@@ -221,6 +219,20 @@ module.exports = class Stronghold extends Exchange {
             'datetime': datetime,
             'timestamp': this.parse8601 (datetime),
         };
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const marketId = this.marketId (symbol);
+        const request = {
+            'marketID': marketId,
+            'type': type,
+            'side': side,
+            'size': this.amountToPrecision (symbol, amount),
+            'price': this.priceToPrecision (symbol, price),
+        }
+        const response = await this.privatePostVenuesVenueIdAccountsAccountIdOrders (this.extend (request, params));
+        return response;
     }
 
     nonce () {
