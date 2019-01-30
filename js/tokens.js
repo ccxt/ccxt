@@ -16,16 +16,45 @@ module.exports = class tokens extends Exchange {
             'name': 'Tokens',
             'countries': [ 'GB' ],
             'rateLimit': 1000,
-            'version': 'v1',
+            'certified': false,
+            //'version': 'v1',
             'has': {
-                'CORS': true,
-                'fetchDepositAddress': true,
-                'fetchOrder': 'emulated',
-                'fetchOpenOrders': true,
-                'fetchMyTrades': true,
-                'fetchTransactions': true,
-                'fetchWithdrawals': true,
-                'withdraw': true,
+                'fetchDepositAddress': false,
+                'CORS': false,
+                'publicAPI': true,
+                'privateAPI': true,
+                'cancelOrder': true,
+                'cancelOrders': false,
+                'createDepositAddress': false,
+                'createOrder': true,
+                'createMarketOrder': true,
+                'createLimitOrder': true,
+                'deposit': false,
+                'editOrder': 'emulated',
+                'fetchBalance': true,
+                'fetchBidsAsks': false,
+                'fetchClosedOrders': false,
+                'fetchCurrencies': false,
+                'fetchDepositAddress': false,
+                'fetchDeposits': false,
+                'fetchFundingFees': false,
+                'fetchL2OrderBook': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': false,
+                'fetchOHLCV': 'emulated',
+                'fetchOpenOrders': false,
+                'fetchOrder': false,
+                'fetchOrderBook': true,
+                'fetchOrderBooks': false,
+                'fetchOrders': false,
+                'fetchTicker': true,
+                'fetchTickers': false,
+                'fetchTrades': true,
+                'fetchTradingFees': false,
+                'fetchTradingLimits': false,
+                'fetchTransactions': false,
+                'fetchWithdrawals': false,
+                'withdraw': false,
             },
             'urls': {
                 // 'logo': '',
@@ -41,20 +70,22 @@ module.exports = class tokens extends Exchange {
                 'public': {
                     'get': [
                         'public/ticker/{pair}/',
-                        'public/ticker/hour/{pair}/',
-                        'public/trades/minute/{pair}/',
-                        'public/trades/hour/{pair}/',
-                        'public/trades/day/{pair}/',
+                        'public/ticker/{time}/{pair}/',
+                        'public/trades/{time}/{pair}/',
+                        // 'public/trades/minute/{pair}/',
+                        // 'public/trades/hour/{pair}/',
+                        // 'public/trades/day/{pair}/',
                         'public/trading-pairs/get/all/',
                         'public/order-book/{pair}/'
                     ],
                 },
                 'private': {
                     'get': [
-                       '/private/balance/{currency}/',
-                       '/private/orders/get/all/',
-                       '/private/orders/get/{id}/',
-                       '/private/orders/get/{trading_pair}/'  
+                       'private/balance/',
+                       'private/balance/{currency}/',
+                       'private/orders/get/all/',
+                       'private/orders/get/{id}/',
+                       'private/orders/get/{trading_pair}/'  
                     ],
                     'post' : [
                         '/private/orders/add/limit/',
@@ -62,7 +93,6 @@ module.exports = class tokens extends Exchange {
                     ]
                 }
             },
-            // https://www.tokens.net/fees/
             'fees': {
                 'trading': {
                     'tierBased': false,
@@ -122,35 +152,261 @@ module.exports = class tokens extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {}
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'];
+        url += this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (api === 'public') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
+        } else {
+            this.checkRequiredCredentials ();
+            let nonce = this.nonce ().toString ();
+            let auth = nonce + this.apiKey;
+            let signature = this.encode (this.hmac (this.encode (auth), this.encode (this.secret)));
+            headers = {
+                'key' : this.apiKey,
+                'signature': signature.toUpperCase (),
+                'nonce': nonce
+            };
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {}
+    async fetchMarkets (params = {}) {
+        let markets = await this.publicGetPublicTradingPairsGetAll ();
+        let result = [];
+        for(var key in markets) {
+            let market = markets[key];
+            let symbol = market['title'];
+            let [ base, quote ] = symbol.split ('/');
+            let baseId = base.toLowerCase ();
+            let quoteId = quote.toLowerCase ();
+            let symbolId = baseId + '_' + quoteId;
+            let id = baseId + quoteId;
 
-    async fetchTicker (symbol, params = {}) {}
+            let precision = {
+                'amount': market['priceDecimals'],
+                'price': market['amountDecimals'],
+            };
+            let parts = market['minAmount'].split (' ');
+            let cost = parts[0];
+            // let [ cost, currency ] = market['minimum_order'].split (' ');
+            let active = (market['trading'] === 'Enabled');
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'symbolId': symbolId,
+                'info': market,
+                'active': active,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -precision['amount']),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': parseFloat (cost),
+                        'max': undefined,
+                    },
+                },
+            });
+        }
+        return result
+    }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {}
+    async parseOrderBook(orderbook, market) {
 
-    async fetchBalance (params = {}) {}
+        orderbook.asks = orderbook.asks.map((item) => {
+            return [parseFloat(item[1]), parseFloat(item[0])];
+        });
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {}
+        orderbook.bids = orderbook.bids.map((item) => {
+            return [parseFloat(item[1]), parseFloat(item[0])];
+        });
 
-    async cancelOrder (id, symbol = undefined, params = {}) {}
+        return {
+            asks: orderbook.asks,
+            bids: orderbook.bids,
+            datetime: this.iso8601(orderbook.timestamp),
+            timestamp: orderbook.timestamp * 1000,
+            nonce: parseInt((Math.floor(Math.random() * 9999) + 1000).toString() + orderbook.timestamp.toString(), 10),
+        };
+    }
 
-    async fetchOrderStatus (id, symbol = undefined, params = {}) {}
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let orderbook = await this.publicGetPublicOrderBookPair (this.extend({
+            'pair': market['id'],
+        }, params));
 
-    async fetchOrder (id, symbol = undefined, params = {}) {}
+        let timestamp = parseInt (orderbook['timestamp']) * 1000;
+        return this.parseOrderBook (orderbook, timestamp);
+    }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {}
+    async fetchTicker (symbol, params = { time: 'hour'}) {
+         await this.loadMarkets ();
+        let ticker = await this.publicGetPublicTickerPair (this.extend ({
+            'pair': this.marketId (symbol),
+        }, params));
+        let timestamp = parseInt (ticker['timestamp']) * 1000;
+        let vwap = this.safeFloat (ticker, 'vwap');
+        let baseVolume = this.safeFloat (ticker, 'volume');
+        let quoteVolume = undefined;
+        if (baseVolume !== undefined && vwap !== undefined)
+            quoteVolume = baseVolume * vwap;
+        let last = this.safeFloat (ticker, 'last');
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
+            'vwap': vwap,
+            'open': this.safeFloat (ticker, 'open'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
+        };
+    }
 
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {}
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {}
+    parseTrade (trade, market = undefined) {
+        let side = this.safeString (trade, 'type');
+        let symbol = undefined;
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'amount');
+        let id = this.safeString2 (trade, 'tid', 'id');
+        let timestamp = parseInt (trade['datetime']) * 1000;
+        let cost = this.safeFloat (trade, 'cost');
+        let feeCurrency = undefined;
+        if (market !== undefined) {
+            price = this.safeFloat (trade, market['symbolId'], price);
+            amount = this.safeFloat (trade, market['baseId'], amount);
+            cost = this.safeFloat (trade, market['quoteId'], cost);
+            feeCurrency = market['quote'];
+            symbol = market['symbol'];
+        }
+        if (cost === undefined) {
+            if (price !== undefined) {
+                if (amount !== undefined) {
+                    cost = price * amount;
+                }
+            }
+        }
+        if (cost !== undefined) {
+            cost = Math.abs (cost);
+        }
+        return {
+            amount: amount,
+            id: id,
+            info: trade,
+            order: undefined,
+            price: price,
+            timestamp: timestamp,
+            datetime: this.iso8601 (timestamp),
+            type: undefined,
+            side: side,
+            symbol: symbol,
+            cost: cost
+        };
+    }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {}
+    nonce () {
+        return this.milliseconds ();
+    }
 
-    async fetchDepositAddress (code, params = {}) {}
+    parseTrades (trades, market = undefined, since = undefined, limit = undefined) {
+        //this code is commented out temporarily to catch for exchange-specific errors
+        // if (!this.isArray (trades.trades)) {
+        //     throw new ExchangeError (this.id + ' parseTrades expected an array in the trades argument, but got ' + typeof trades);
+        // }
+        // console.log(trades)
+        if (trades.trades.length === 0) {
+            return [];
+        }
+        let result = Object.values (trades.trades).map (trade => this.parseTrade (trade, market))
+        result = this.sortBy (result, 'timestamp')
+        let symbol = (market !== undefined) ? market['symbol'] : undefined
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit)
+    }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {}
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = { time : 'hour'}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.publicGetPublicTradesTimePair (this.extend ({
+            'pair': market['id']
+        }, params));
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchBalance (currency = undefined) {
+        await this.loadMarkets ();
+        //let results = []
+        let result = {};
+        if (typeof currency === 'undefined' ) {
+            result['info'] = []
+            for (var key in this.currencies) {
+                let res = await this.privateGetPrivateBalanceCurrency({'currency' : key})
+                let account = this.account ();
+                account['free'] =  parseFloat (res.available)
+                account['used'] =  0.0
+                account['total'] = parseFloat (res.total) 
+                result[key] = account
+                result['info'].push(res)
+            }
+        } else {
+            let res = await this.privateGetPrivateBalanceCurrency({'currency' : currency})
+            let account = this.account ();
+            account['free'] =  parseFloat (res.available)
+            account['used'] =  0.0
+            account['total'] = parseFloat (res.total) 
+            result[res.currency] = account
+            result['info'] = res
+        }
+        //let res = await this.privateGetPrivateOrdersGetAll()
+        return this.parseBalance (result);
+        //return result
+    }
+
+    // async createOrder (symbol, type, side, amount, price = undefined, params = {}) {}
+
+    // async cancelOrder (id, symbol = undefined, params = {}) {}
+
+    // async fetchOrderStatus (id, symbol = undefined, params = {}) {}
+
+    // async fetchOrder (id, symbol = undefined, params = {}) {}
+
+    // async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {}
+
+    // async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {}
+
+    // async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {}
+
+    // async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {}
+
+    // async fetchDepositAddress (code, params = {}) {}
+
+    // async withdraw (code, amount, address, tag = undefined, params = {}) {}
 
     // error example:
     // {
@@ -160,203 +416,9 @@ module.exports = class tokens extends Exchange {
     // "reason": API Key is missing
     // }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response) {}
+    // handleErrors (httpCode, reason, url, method, headers, body, response) {
+    //     //console.log(httpCode, reason, url, method, headers)
+    // }
 
 };
 
-
-
-
-// import {Exchange, OrderBook, Trade} from "ccxt";
-
-// const https = require("https");
-
-// module.exports = class tokens extends Exchange {
-//     describe()  {
-//         return this.deepExtend(super.describe(), {
-//             id: "tokens",
-//             name: "Tokens",
-//             rateLimit: 1000,
-//             urls: {
-//                 api: "https://api.tokens.net/",
-//             },
-//             requiredCredentials: {
-//                 apiKey: true,
-//                 secret: true,
-//                 uid: true,
-//             },
-//             api: {
-//                 public: {
-//                     get: [
-//                         "public/trades/hour/{pair}/",
-//                     ],
-//                 },
-//             },
-//         });
-//     }
-
-//     // @ts-ignore
-//      async loadMarkets(reload)  {
-//         return {
-//             "DPP/ETH": {
-//                 id: "DPPETH",
-//                 symbol: "DPP/ETH",
-//                 base: "DPP",
-//                 quote: "ETH",
-//             },
-//         };
-//     }
-
-//      async fetchTrades(symbol, since, limit, params) {
-//         const market = this.formatSymbol(this.formatSymbol(symbol));
-//         let response;
-
-//         try {
-//             response = await this.makeTradesCallToApi(market);
-//         } catch (e) {
-//             throw new Error(`Could not fetch trades from tokens for pair ${symbol}`);
-//         }
-
-//         if (response === undefined || response.status !== "ok") {
-//             Logger.error(response);
-//             throw new Error(`Error on ${this.constructor.name} exchange fetching pair ${symbol}`);
-//         }
-
-//         return this.parseTrades(response, market, since, limit);
-//     }
-
-//      async fetchOrderBook(symbol, limit, params) {
-//         const market = this.formatSymbol(this.formatSymbol(symbol));
-//         let response;
-
-//         try {
-//             response = await this.makeOrderbookCallToApi(market);
-//         } catch (e) {
-//             throw new Error(`Could not fetch order book from tokens for pair ${symbol}`);
-//         }
-
-//         if (response === undefined || response.status !== "ok") {
-//             Logger.error(response);
-//             throw new Error(`Error on ${this.constructor.name} exchange fetching pair ${symbol}`);
-//         }
-
-//         return this.parseOrderBook(response, market);
-//     }
-
-//      async makeTradesCallToApi(market) {
-//         return new Promise((resolve, reject) => {
-//             https.get(`https://api.tokens.net/public/trades/hour/${market}/`, (resp) => {
-//                 let data = "";
-
-//                 resp.on("data", (chunk) => {
-//                     data += chunk;
-//                 });
-
-//                 resp.on("end", () => {
-
-//                     try {
-
-//                         const parsed = JSON.parse(data);
-//                         resolve(parsed);
-
-//                     } catch (error) {
-
-//                         Logger.error(error.message);
-//                         Logger.debug(data);
-//                         reject(error)
-//                     }
-//                 });
-//             }).on('error', (error) => {
-//                 Logger.error(error.message);
-//                 reject(error)
-//             });
-//         });
-
-//     }
-
-//      async makeOrderbookCallToApi(market) {
-//         return new Promise((resolve, reject) => {
-//             https.get(`https://api.tokens.net/public/order-book/${market}/`, (resp
-//             ) => {
-//                 let data = "";
-
-//                 resp.on("data", (chunk) => {
-//                     data += chunk;
-//                 });
-
-//                 resp.on("end", () => {
-
-//                     try {
-
-//                         const parsed = JSON.parse(data);
-//                         resolve(parsed);
-
-//                     } catch (error) {
-
-//                         Logger.error(error.message);
-//                         Logger.debug(data);
-//                         reject(error)
-//                     }
-//                 });
-//             }).on('error', (error) => {
-//                 Logger.error(error.message);
-//                 reject(error)
-//             });
-//         });
-
-//     }
-
-//      async parseTrades(trades, market, since, limit) {
-//         let tradeList = [];
-
-//         if (trades.trades.length === 0) {
-//             return [];
-//         }
-
-//         for (const trade of trades.trades) {
-//             const parsedTrade = await this.parseTrade(trade);
-//             tradeList.push(parsedTrade);
-//         }
-
-//         return tradeList;
-//     }
-
-//      async parseOrderBook(orderbook, market) {
-
-//         orderbook.asks = orderbook.asks.map((item) => {
-//             return [parseFloat(item[1]), parseFloat(item[0])];
-//         });
-
-//         orderbook.bids = orderbook.bids.map((item) => {
-//             return [parseFloat(item[1]), parseFloat(item[0])];
-//         });
-
-//         return {
-//             asks: orderbook.asks,
-//             bids: orderbook.bids,
-//             datetime: this.iso8601(orderbook.timestamp),
-//             timestamp: orderbook.timestamp * 1000,
-//             nonce: parseInt((Math.floor(Math.random() * 9999) + 1000).toString() + orderbook.timestamp.toString(), 10),
-//         };
-//     }
-
-//     formatSymbol(symbol) {
-//         return symbol.replace("/", "").toLowerCase();
-//     }
-
-//     async parseTrade(tradeItem) {
-//         return {
-//             amount: parseFloat(tradeItem.amount),
-//             datetime: new Date(tradeItem.datetime).toISOString(),
-//             id: tradeItem.id.toString(),
-//             info: tradeItem,
-//             order: undefined,
-//             price: parseFloat(tradeItem.price),
-//             timestamp: parseInt(tradeItem.datetime, 10) * 1000,
-//             type: undefined,
-//             side: tradeItem.type,
-//             symbol: "DPP/ETH",
-//         };
-//     }
-
-// }
