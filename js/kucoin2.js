@@ -65,7 +65,7 @@ module.exports = class kucoin2 extends Exchange {
                         'market/orderbook/level{level}',
                         'market/histories',
                         'market/candles',
-                        'market/stats/{symbol}',
+                        'market/stats',
                         'currencies',
                         'currencies/{currency}',
                     ],
@@ -265,45 +265,79 @@ module.exports = class kucoin2 extends Exchange {
         return result;
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const marketId = this.marketId (symbol);
-        const request = {
-            'symbol': marketId,
-        };
-        const response = await this.publicGetMarketStatsSymbol (this.extend (request, params));
+    parseTicker (ticker, market = undefined) {
         //
-        //   { "symbol": "ETH-BTC",
-        //     "changeRate": "-0.778",
-        //     "changePrice": "-0.00778",
-        //     "open": 1,
-        //     "close": 0.99222,
-        //     "high": "1",
-        //     "low": "0.00222",
-        //     "vol": "4.2678",
-        //     "volValue": "2.21016762" }
+        //     {
+        //         "symbol": "ETH-BTC",
+        //         "high": "0.1",
+        //         "vol": "3891.5909166",
+        //         "low": "0.024",
+        //         "changePrice": "0.031809",
+        //         "changeRate": "31809",
+        //         "close": "0.03181",
+        //         "volValue": "119.5545894397034",
+        //         "open": "0.000001",
+        //     }
         //
-        const responseData = response['data'];
-        const change = this.safeFloat (responseData, 'changePrice');
-        const percentage = this.safeFloat (responseData, 'changeRate');
-        const open = this.safeFloat (responseData, 'open');
-        const close = this.safeFloat (responseData, 'close');
-        const high = this.safeFloat (responseData, 'high');
-        const low = this.safeFloat (responseData, 'low');
-        const baseVolume = this.safeFloat (responseData, 'vol');
-        const quoteVolume = this.safeFloat (responseData, 'volValue');
+        const change = this.safeFloat (ticker, 'changePrice');
+        const percentage = this.safeFloat (ticker, 'changeRate');
+        const open = this.safeFloat (ticker, 'open');
+        const last = this.safeFloat (ticker, 'close');
+        const high = this.safeFloat (ticker, 'high');
+        const low = this.safeFloat (ticker, 'low');
+        const baseVolume = this.safeFloat (ticker, 'vol');
+        const quoteVolume = this.safeFloat (ticker, 'volValue');
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
         return {
             'symbol': symbol,
-            'change': change,
-            'percentage': percentage,
-            'open': open,
-            'close': close,
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': high,
             'low': low,
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
-            'info': responseData,
+            'info': ticker,
         };
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetMarketStats (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "symbol": "ETH-BTC",
+        //             "high": "0.1",
+        //             "vol": "3891.5909166",
+        //             "low": "0.024",
+        //             "changePrice": "0.031809",
+        //             "changeRate": "31809",
+        //             "close": "0.03181",
+        //             "volValue": "119.5545894397034",
+        //             "open": "0.000001",
+        //         },
+        //     }
+        //
+        return this.parseTicker (response['data'], market);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
@@ -405,9 +439,8 @@ module.exports = class kucoin2 extends Exchange {
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketId = market['id'];
         let request = {
-            'symbol': marketId,
+            'symbol': market['id'],
             'status': status,
         };
         if (since !== undefined) {
@@ -538,17 +571,17 @@ module.exports = class kucoin2 extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = this.privateGetFills (this.extend (request, params));
-        const responseData = response['data'];
-        const orders = responseData['items'];
-        return this.parseTrades (orders, market, since, limit);
+        const response = await this.privateGetFills (this.extend (request, params));
+        const data = this.safeValue (response, 'data', {});
+        const trades = this.safeValue (data, 'items', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const marketId = this.marketId (symbol);
+        const market = this.market (symbol);
         let request = {
-            'symbol': marketId,
+            'symbol': market['id'],
         };
         if (since !== undefined) {
             request['startAt'] = Math.floor (since / 1000);
@@ -564,8 +597,8 @@ module.exports = class kucoin2 extends Exchange {
         //     price: '0.03389',
         //     time: 1548552077777972000 }
         //
-        const responseData = response['data'];
-        return this.parseTrades (responseData, since, limit);
+        const trades = this.safeValue (response, 'data', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
@@ -588,37 +621,45 @@ module.exports = class kucoin2 extends Exchange {
         //     "createdAt":1547026472000 }
         //
         let symbol = undefined;
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeValue (this.markets_by_id, marketId, market);
         if (market !== undefined) {
             symbol = market['symbol'];
-        } else {
-            const marketId = this.safeString (trade, 'symbol');
-            if (marketId !== undefined) {
-                symbol = this.parseSymbol (marketId);
-            }
         }
-        const tradeId = this.safeString (trade, 'tradeId');
+        let id = this.safeString (trade, 'tradeId');
+        if (id !== undefined) {
+            id = id.toString ();
+        }
         const orderId = this.safeString (trade, 'orderId');
         const amount = this.safeFloat (trade, 'size');
         const timestamp = this.safeInteger2 (trade, 'createdAt', 'time');
-        const datetime = this.iso8601 (timestamp);
         const price = this.safeFloat (trade, 'price');
         const side = this.safeString (trade, 'side');
-        const fees = {
+        const fee = {
             'cost': this.safeFloat (trade, 'fee'),
             'rate': this.safeFloat (trade, 'feeRate'),
             'feeCurrency': this.safeString (trade, 'feeCurrency'),
         };
+        const type = this.safeString (trade, 'type');
+        let cost = this.safeFloat (trade, 'funds');
+        if (amount !== undefined) {
+            if (price !== undefined) {
+                cost = amount * price;
+            }
+        }
         return {
-            'id': tradeId,
-            'orderId': orderId,
-            'symbol': symbol,
-            'amount': amount,
-            'price': price,
-            'fee': fees,
-            'timestamp': timestamp,
-            'datetime': datetime,
-            'side': side,
             'info': trade,
+            'id': id,
+            'order': orderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
         };
     }
 
@@ -798,6 +839,9 @@ module.exports = class kucoin2 extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        if (this.urls['api'][api] !== this.urls['test'][api]) {
+            throw new NotSupported ("KuCoin Platform 2.0 API currently works in preflight sandbox test mode. To proceed with KuCoin Platform 2.0 API in sandbox test mode and acknowledge this warning, please, set .urls['api'] = .urls['test'] after instantiating the exchange class. To trade with the exchange in live mode, please, use " + this.name + " API v1 as you would normally do. The official launch of KuCoin Platform 2.0 will be announced soon."); // eslint-disable-line quotes
+        }
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                †                 ↑
@@ -806,7 +850,7 @@ module.exports = class kucoin2 extends Exchange {
         let query = this.omit (params, this.extractParams (path));
         let endpart = '';
         headers = headers !== undefined ? headers : {};
-        if (Object.keys (query).length > 0) {
+        if (Object.keys (query).length) {
             if (method !== 'GET') {
                 body = this.json (query);
                 endpart = body;
