@@ -910,8 +910,9 @@ module.exports = class hitbtc extends Exchange {
             'amount': amount,
             'address': address,
         };
-        if (tag)
-            request['paymentId'] = tag;
+        if (tag !== undefined) {
+            request['extra_id'] = tag;
+        }
         let response = await this.paymentPostPayout (this.extend (request, params));
         return {
             'info': response,
