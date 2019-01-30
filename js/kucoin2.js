@@ -12,7 +12,7 @@ module.exports = class kucoin2 extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'kucoin2',
             'name': 'KuCoin',
-            'country': ['SC'],
+            'countries': [ 'SC' ],
             'rateLimit': 334,
             'version': 'v2',
             'certified': true,
