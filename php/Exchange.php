@@ -1332,6 +1332,23 @@ class Exchange {
         return $this->set_markets ($markets, $currencies);
     }
 
+    public function loadAccounts ($reload = false, $params = array()) {
+        return $this->load_accounts ($reload, $params);
+    }
+
+    public function load_accounts ($reload = false, $params = array()) {
+        if ($reload) {
+            $this->accounts = $this->fetch_accounts ($params);
+        } else {
+            if ($this->accounts) {
+                return $this->accounts;
+            } else {
+                $this->accounts = $this->fetch_accounts ($params);
+            }
+        }
+        return $this->accounts;
+    }
+
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
         return (gettype ($ohlcv) === 'array' && count (array_filter (array_keys ($ohlcv), 'is_string')) == 0) ?
             array_slice ($ohlcv, 0, 6) : $ohlcv;

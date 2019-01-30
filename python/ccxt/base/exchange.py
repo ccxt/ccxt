@@ -1067,6 +1067,16 @@ class Exchange(object):
             currencies = self.fetch_currencies()
         return self.set_markets(markets, currencies)
 
+    def load_accounts(self, reload=False, params={}):
+        if reload:
+            self.accounts = self.fetch_accounts(params)
+        else:
+            if self.accounts:
+                return self.accounts
+            else:
+                self.accounts = self.fetch_accounts(params)
+        return self.accounts
+
     def populate_fees(self):
         if not (hasattr(self, 'markets') or hasattr(self, 'currencies')):
             return
