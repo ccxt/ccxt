@@ -12,7 +12,7 @@ class kucoin extends Exchange {
     public function describe () {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'kucoin',
-            'name' => 'Kucoin',
+            'name' => 'KuCoin',
             'countries' => array ( 'SC' ), // Republic of Seychelles
             'version' => 'v1',
             'rateLimit' => 2000,
@@ -44,7 +44,7 @@ class kucoin extends Exchange {
                 '1w' => 'W',
             ),
             'urls' => array (
-                'logo' => 'https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg',
                 'api' => array (
                     'public' => 'https://api.kucoin.com',
                     'private' => 'https://api.kucoin.com',
