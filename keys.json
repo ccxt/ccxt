@@ -68,6 +68,7 @@
     "okcoinusd":     { "skip": true },
     "paymium":       { "skip": true },
     "poloniex":      { "skip": true, "timeout": 20000 },
+    "quadrigacx":    { "skip": true },
     "quoinex":       { "skip": true },
     "qryptos":       { "skip": true },
     "rightbtc":      { "skip": true },

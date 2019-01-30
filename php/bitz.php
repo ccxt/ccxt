@@ -388,7 +388,7 @@ class bitz extends Exchange {
         $parts = explode (' ', $microtime);
         $milliseconds = floatval ($parts[0]);
         $seconds = intval ($parts[1]);
-        $total = $seconds . $milliseconds;
+        $total = $this->sum ($seconds, $milliseconds);
         return intval ($total * 1000);
     }
 

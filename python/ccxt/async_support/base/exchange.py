@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.152'
+__version__ = '1.18.176'
 
 # -----------------------------------------------------------------------------
 
@@ -162,6 +162,7 @@ class Exchange(BaseExchange):
             self.raise_error(ExchangeError, url, method, e, None)
 
         self.handle_errors(response.status, response.reason, url, method, headers, http_response, json_response)
+        self.handle_rest_errors(None, response.status, http_response, url, method)
         self.handle_rest_response(http_response, json_response, url, method, headers, body)
         if json_response is not None:
             return json_response

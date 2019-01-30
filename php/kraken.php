@@ -209,6 +209,7 @@ class kraken extends Exchange {
                 'EQuery:Unknown asset' => '\\ccxt\\ExchangeError',
                 'EGeneral:Internal error' => '\\ccxt\\ExchangeNotAvailable',
                 'EGeneral:Temporary lockout' => '\\ccxt\\DDoSProtection',
+                'EGeneral:Permission denied' => '\\ccxt\\PermissionDenied',
             ),
         ));
     }
