@@ -3,6 +3,8 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { ExchangeError, InvalidNonce, AuthenticationError, AccountSuspended } = require ('./base/errors');
+
 
 // ----------------------------------------------------------------------------
 
@@ -27,29 +29,35 @@ module.exports = class Stronghold extends Exchange {
                 ],
             },
             'venueId': 'trade-public',
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+                'password': true,
+            },
             'api': {
                 'public': {
                     'get': [
                         'utilities/time',
                         'utilites/uuid',
-                        'venues/trade-public/assets',
-                        'venues/trade-public/markets',
-                        'venues/trade-public/markets/{marketId}/orderbook',
-                        'venues/trade-public/markets/{marketId}/trades',
+                        'venues',
+                        'venues/{venueId}/assets',
+                        'venues/{venueId}/markets',
+                        'venues/{venueId}/markets/{marketId}/orderbook',
+                        'venues/{venueId}/markets/{marketId}/trades',
                     ],
                     'post': [
-                        'venues/trade-public/assets',
-                        'iam/credential',
+                        'venues/{venueId}/assets',
+                        'iam/credentials',
                         'identities',
                     ],
                     'patch': [
                         'identities',
                     ],
                     'put': [
-                        'iam/credential/{credentialId}',
+                        'iam/credentials/{credentialId}',
                     ],
                     'delete': [
-                        'iam/credential/{credentialId}',
+                        'iam/credentials/{credentialId}',
                     ],
                 },
                 'private': {
@@ -57,6 +65,7 @@ module.exports = class Stronghold extends Exchange {
                         'venues',
                         'venues/{venueId}/accounts/{accountId}',
                         'venues/{venueId}/custody/accounts/{accountId}/payment/{paymentId}',
+                        'venues/{venueId}/custody/accounts/{accountId}/orders',
                         'venues/{venueId}/custody/accounts/{accountId}/transactions',
                     ],
                     'post': [
@@ -72,11 +81,27 @@ module.exports = class Stronghold extends Exchange {
                     ],
                 },
             },
+            'options': {
+                'venues': {
+                    'main': 'trade-public',
+                    'sandbox': 'sandbox-public',
+                },
+            },
+            'exceptions': {
+                'CREDENTIAL_MISSING': AuthenticationError,
+                'CREDENTIAL_INVALID': AuthenticationError,
+                'CREDENTIAL_REVOKED': AccountSuspended,
+                'CREDENTIAL_NO_IDENTITY': AuthenticationError,
+                'PASSPHRASE_INVALID': AuthenticationError,
+                'SIGNATURE_INVALID': AuthenticationError,
+                'TIME_INVALID': InvalidNonce,
+                'BYPASS_INVALID': AuthenticationError,
+            },
         });
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetVenuesTradePublicMarkets (params);
+        const response = await this.publicGetVenuesVenueIdMarkets (params);
         const responseData = response['result'];
         // [ { id: 'SHXUSD',
         //     baseAssetId: 'SHX/stronghold.co',
@@ -119,7 +144,7 @@ module.exports = class Stronghold extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.publicGetVenuesTradePublicAssets ();
+        const response = await this.publicGetVenuesVenueIdAssets ();
         //    [ { id: 'XLM/native',
         //        alias: '',
         //        code: 'XLM',
@@ -191,25 +216,50 @@ module.exports = class Stronghold extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let venue = { 'venueId': this.venueId };
-        let endpoint = '/' + this.version + '/' + this.implodeParams (path, this.extend (params, venue));
-        let url = this.urls['api'][api] + endpoint;
-        let query = this.omit (params, this.extractParams (path));
-        /*if (Object.keys(query).length > 0) {
-            if (method === 'GET') {
-                endpoint +=
+    nonce () {
+        return this.seconds ();
+    }
+
+    setSandboxMode (enabled) {
+        if (enabled) {
+            this.options['venues']['backup'] = this.options['venues']['main'];
+            this.options['venues']['main'] = this.options['venues']['sandbox'];
+        } else {
+            if ('backup' in this.options['venues']) {
+                this.options['venues']['main'] = this.options['venues']['backup'];
             }
         }
+    }
 
-        let timestamp = this.seconds ();
-        headers = {
-            'SH-CRED-ID': '2727fe7a-20ac-43f4-92ed-3f0301938426',
-            'SH-CRED-SIG': '1234',
-            'SH-CRED-PASS': 'mypassword',
-            'SH-CRED-TIME': String (timestamp),
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let venue = this.options['venues']['main'];
+        let endpoint = '/' + this.version + '/' + this.implodeParams (path, this.extend (params, { 'venueId': venue }));
+        let url = this.urls['api'][api] + endpoint;
+        let query = this.omit (params, this.extractParams (path));
+        let endpart = '';
+        headers = headers !== undefined ? headers : {};
+        if (Object.keys (query).length > 0) {
+            if (method === 'GET') {
+                endpoint += '?' + this.urlencode (query);
+            } else {
+                body = this.json (query);
+                endpart = body;
+                headers['Content-Type'] = 'application/json';
+            }
         }
-        */
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            const timestamp = this.nonce ().toString ();
+            const payload = timestamp + method + endpoint + endpart;
+            console.log (payload);
+            headers = this.extend ({
+                'SH-CRED-ID': this.apiKey,
+                'SH-CRED-SIG': this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64'),
+                'SH-CRED-TIME': timestamp.toString (),
+                'SH-CRED-PASS': this.password,
+            }, headers);
+            headers['Content-Type'] = 'application/json';
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
