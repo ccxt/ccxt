@@ -54,8 +54,8 @@ module.exports = class poloniex extends Exchange {
                 },
                 'www': 'https://poloniex.com',
                 'doc': [
-                    'https://poloniex.com/support/api/',
-                    'http://pastebin.com/dMX7mZE0',
+                    'https://docs.poloniex.com',
+                    'https://pastebin.com/dMX7mZE0',
                 ],
                 'fees': 'https://poloniex.com/fees',
             },
