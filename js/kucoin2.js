@@ -590,12 +590,18 @@ module.exports = class kucoin2 extends Exchange {
             request['pageSize'] = limit;
         }
         const response = await this.publicGetMarketHistories (this.extend (request, params));
-        //
-        // { sequence: '1547732882509',
-        //     side: 'sell',
-        //     size: '0.23',
-        //     price: '0.03389',
-        //     time: 1548552077777972000 }
+        //     {
+        //         "code": "200000",
+        //         "data": [
+        //             {
+        //                 "sequence": "1548764654235",
+        //                 "side": "sell",
+        //                 "size":"0.6841354",
+        //                 "price":"0.03202",
+        //                 "time":1548848575203567174
+        //             }
+        //         ]
+        //     }
         //
         const trades = this.safeValue (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
@@ -603,22 +609,36 @@ module.exports = class kucoin2 extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        //   { "symbol":"BTC-USDT",
-        //     "tradeId":"5c35c02709e4f67d5266954e",
-        //     "orderId":"5c35c02703aa673ceec2a168",
-        //     "counterOrderId":"5c1ab46003aa676e487fa8e3",
-        //     "side":"buy",
-        //     "liquidity":"taker",
-        //     "forceTaker":true,
-        //     "price":"0.083",
-        //     "size":"0.8424304",
-        //     "funds":"0.0699217232",
-        //     "fee":"0",
-        //     "feeRate":"0",
-        //     "feeCurrency":"USDT",
-        //     "stop":"",
-        //     "type":"limit",
-        //     "createdAt":1547026472000 }
+        // fetchTrades (public)
+        //
+        //     {
+        //         "sequence": "1548764654235",
+        //         "side": "sell",
+        //         "size":"0.6841354",
+        //         "price":"0.03202",
+        //         "time":1548848575203567174
+        //     }
+        //
+        // fetchMyTrades (private)
+        //
+        //     {
+        //         "symbol":"BTC-USDT",
+        //         "tradeId":"5c35c02709e4f67d5266954e",
+        //         "orderId":"5c35c02703aa673ceec2a168",
+        //         "counterOrderId":"5c1ab46003aa676e487fa8e3",
+        //         "side":"buy",
+        //         "liquidity":"taker",
+        //         "forceTaker":true,
+        //         "price":"0.083",
+        //         "size":"0.8424304",
+        //         "funds":"0.0699217232",
+        //         "fee":"0",
+        //         "feeRate":"0",
+        //         "feeCurrency":"USDT",
+        //         "stop":"",
+        //         "type":"limit",
+        //         "createdAt":1547026472000
+        //     }
         //
         let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
@@ -632,7 +652,12 @@ module.exports = class kucoin2 extends Exchange {
         }
         const orderId = this.safeString (trade, 'orderId');
         const amount = this.safeFloat (trade, 'size');
-        const timestamp = this.safeInteger2 (trade, 'createdAt', 'time');
+        let timestamp = this.safeInteger (trade, 'time');
+        if (timestamp !== undefined) {
+            timestamp = parseInt (timestamp / 1000000);
+        } else {
+            timestamp = this.safeInteger (trade, 'createdAt');
+        }
         const price = this.safeFloat (trade, 'price');
         const side = this.safeString (trade, 'side');
         const fee = {
