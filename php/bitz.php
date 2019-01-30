@@ -334,7 +334,7 @@ class bitz extends Exchange {
         //                 askQty => "0.0663",
         //               bidPrice => "0.03961469",
         //                 bidQty => "19.5451",
-        //                   open => "0.04036769",
+        //                   $open => "0.04036769",
         //                   high => "0.04062988",
         //                    low => "0.03956123",
         //                    now => "0.03970100",
@@ -357,6 +357,13 @@ class bitz extends Exchange {
             $symbol = $market['symbol'];
         }
         $last = $this->safe_float($ticker, 'now');
+        $open = $this->safe_float($ticker, 'open');
+        $change = null;
+        $average = null;
+        if ($last !== null && $open !== null) {
+            $change = $last - $open;
+            $average = $this->sum ($last, $open) / 2;
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -368,13 +375,13 @@ class bitz extends Exchange {
             'ask' => $this->safe_float($ticker, 'askPrice'),
             'askVolume' => $this->safe_float($ticker, 'askQty'),
             'vwap' => null,
-            'open' => $this->safe_float($ticker, 'open'),
+            'open' => $open,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_float($ticker, 'priceChange24h'),
-            'percentage' => null,
-            'average' => null,
+            'change' => $change,
+            'percentage' => $this->safe_float($ticker, 'priceChange24h'),
+            'average' => $average,
             'baseVolume' => $this->safe_float($ticker, 'volume'),
             'quoteVolume' => $this->safe_float($ticker, 'quoteVolume'),
             'info' => $ticker,
