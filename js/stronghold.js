@@ -198,7 +198,7 @@ module.exports = class Stronghold extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetVenuesVenueIdAccountsAccountIdTransactions ({ "accountId": "f72b9fb5-9607-4dd3-b31f-6ded21337056" })
+        const response = await this.privateGetVenuesVenueIdAccountsAccountIdTransactions ({ "accountId": "f72b9fb5-9607-4dd3-b31f-6ded21337056" });
     }
 
     parseTrade (trade, market = undefined) {
@@ -223,16 +223,49 @@ module.exports = class Stronghold extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        const marketId = this.marketId (symbol);
         const request = {
-            'marketID': marketId,
+            'marketID': this.marketId (symbol),
             'type': type,
             'side': side,
             'size': this.amountToPrecision (symbol, amount),
             'price': this.priceToPrecision (symbol, price),
-        }
+        };
         const response = await this.privatePostVenuesVenueIdAccountsAccountIdOrders (this.extend (request, params));
         return response;
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'accountId': this.apiKey,
+        };
+        const response = await this.privateGetVenuesVenueIdAccountsAccountIdOrders (this.extend (request, params));
+        const orders = response['result'];
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    parseOrder (order, market = undefined) {
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['id'];
+        }
+        const id = this.safeString (order, 'id');
+        const datetime = this.safeString (order, 'placedAt');
+        const amount = this.safeFloat (order, 'size');
+        const filled = this.safeFloat (order, 'sizeFilled');
+        return {
+          'id': id,
+          'info': order,
+          'symbol': symbol,
+          'datetime': datetime,
+          'timestamp': this.parse8601 (datetime),
+          'side': this.safeString (order, 'side'),
+          'amount': amount,
+          'filled': filled,
+          'remaining': amount - filled,
+          'price': this.safeFloat (order, 'price'),
+        };
     }
 
     nonce () {
