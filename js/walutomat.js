@@ -175,44 +175,19 @@ module.exports = class walutomat extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        market = this.safeString (order, 'market');
         const id = this.safeString (order, 'orderId');
-        let symbol = undefined;
-        if ('market' in order) {
-            market = this.safeString (order, 'market');
-            symbol = this.findSymbol (market);
-        }
-        let timestamp = undefined;
-        let datetime = undefined;
-        if ('submitTs' in order) {
-            datetime = this.safeString (order, 'submitTs');
-            timestamp = this.parse8601 (datetime);
-        }
-        let lastTradeTimestamp = undefined;
-        if ('submitTs' in order) {
-            lastTradeTimestamp = timestamp;
-        }
-        let side = undefined;
-        if ('buySell' in order) {
-            side = this.safeString (order, 'buySell').toLowerCase ();
-        }
-        let price = undefined;
-        if ('price' in order) {
-            price = this.safeFloat (order, 'price');
-        }
-        let cost = undefined;
-        if ('feeAmountMax' in order) {
-            cost = this.safeFloat (order, 'feeAmountMax');
-        }
-        let amount = undefined;
-        if ('volume' in order) {
-            amount = this.safeFloat (order, 'volume');
-        }
+        const symbol = this.findSymbol (market);
+        const datetime = this.safeString (order, 'submitTs');
+        const timestamp = this.parse8601 (datetime);
+        const lastTradeTimestamp = timestamp;
+        const side = this.safeString (order, 'buySell').toLowerCase ();
+        const price = this.safeFloat (order, 'price');
+        const amount = this.safeFloat (order, 'volume');
+        const cost = amount * price;
         const remaining = undefined;
         const filled = undefined;
-        let status = undefined;
-        if ('status' in order) {
-            status = this.parseOrderStatus (this.safeString (order, 'status'));
-        }
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const fee = undefined;
         const result = {
             'info': order,
