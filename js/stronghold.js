@@ -66,7 +66,7 @@ module.exports = class Stronghold extends Exchange {
                         'venues/{venueId}/accounts/{accountId}',
                         'venues/{venueId}/custody/accounts/{accountId}/payment/{paymentId}',
                         'venues/{venueId}/custody/accounts/{accountId}/orders',
-                        'venues/{venueId}/custody/accounts/{accountId}/transactions',
+                        'venues/{venueId}/accounts/{accountId}/transactions',
                     ],
                     'post': [
                         'venues/{venueId}/accounts',
@@ -198,7 +198,7 @@ module.exports = class Stronghold extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = this.privateGetVenuesVenueIdAccountsAccountIdTransactions ({ "accountId": "f72b9fb5-9607-4dd3-b31f-6ded21337056" })
+        const response = await this.privateGetVenuesVenueIdAccountsAccountIdTransactions ({ "accountId": "f72b9fb5-9607-4dd3-b31f-6ded21337056" })
 
 
     }
