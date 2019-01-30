@@ -799,7 +799,7 @@ module.exports = class kucoin extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         //
-        // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint 
+        // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                †                 ↑
         //
         let endpoint = '/api/' + this.options['version'] + '/' + this.implodeParams (path, params);
