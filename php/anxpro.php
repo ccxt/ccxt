@@ -27,7 +27,7 @@ class anxpro extends Exchange {
                 'api' => 'https://anxpro.com/api',
                 'www' => 'https://anxpro.com',
                 'doc' => array (
-                    'http://docs.anxv2.apiary.io',
+                    'https://anxv2.docs.apiary.io',
                     'https://anxpro.com/pages/api',
                 ),
             ),

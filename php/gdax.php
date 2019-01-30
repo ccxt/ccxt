@@ -233,7 +233,7 @@ class gdax extends Exchange {
             'id' => $market['id'],
         ), $params);
         $ticker = $this->publicGetProductsIdTicker ($request);
-        $timestamp = $this->parse8601 ($ticker['time']);
+        $timestamp = $this->parse8601 ($this->safe_value($ticker, 'time'));
         $bid = null;
         $ask = null;
         if (is_array ($ticker) && array_key_exists ('bid', $ticker))

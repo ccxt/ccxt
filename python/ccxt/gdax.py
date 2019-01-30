@@ -234,7 +234,7 @@ class gdax (Exchange):
             'id': market['id'],
         }, params)
         ticker = self.publicGetProductsIdTicker(request)
-        timestamp = self.parse8601(ticker['time'])
+        timestamp = self.parse8601(self.safe_value(ticker, 'time'))
         bid = None
         ask = None
         if 'bid' in ticker:

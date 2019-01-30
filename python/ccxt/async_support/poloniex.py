@@ -30,26 +30,28 @@ class poloniex (Exchange):
             'countries': ['US'],
             'rateLimit': 1000,  # up to 6 calls per second
             'has': {
-                'createDepositAddress': True,
-                'fetchDepositAddress': True,
                 'CORS': False,
-                'editOrder': True,
+                'createDepositAddress': True,
                 'createMarketOrder': False,
-                'fetchOHLCV': True,
-                'fetchOrderTrades': True,
-                'fetchMyTrades': True,
-                'fetchOrderBooks': True,
-                'fetchOrder': 'emulated',
-                'fetchOrders': 'emulated',
-                'fetchOpenOrders': True,
+                'editOrder': True,
                 'fetchClosedOrders': 'emulated',
+                'fetchCurrencies': True,
+                'fetchDepositAddress': True,
+                'fetchDeposits': 'emulated',
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrder': True,  # True endpoint for a single open order
+                'fetchOpenOrders': True,  # True endpoint for open orders
+                'fetchOrder': 'emulated',  # no endpoint for a single open-or-closed order(just for an open order only)
+                'fetchOrderBooks': True,
+                'fetchOrders': 'emulated',  # no endpoint for open-or-closed orders(just for open orders only)
+                'fetchOrderStatus': 'emulated',  # no endpoint for status of a single open-or-closed order(just for open orders only)
+                'fetchOrderTrades': True,  # True endpoint for trades of a single open or closed order
                 'fetchTickers': True,
                 'fetchTradingFees': True,
-                'fetchCurrencies': True,
-                'withdraw': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': 'emulated',  # but almost True )
-                'fetchDeposits': 'emulated',
+                'withdraw': True,
             },
             'timeframes': {
                 '5m': 300,
@@ -565,7 +567,41 @@ class poloniex (Exchange):
                             }))
         return self.filter_by_since_limit(result, since, limit)
 
+    def parse_order_status(self, status):
+        statuses = {
+            'Open': 'open',
+            'Partially filled': 'open',
+        }
+        return self.safe_string(statuses, status, status)
+
     def parse_order(self, order, market=None):
+        #
+        # fetchOpenOrder
+        #
+        #     {
+        #         status: 'Open',
+        #         rate: '0.40000000',
+        #         amount: '1.00000000',
+        #         currencyPair: 'BTC_ETH',
+        #         date: '2018-10-17 17:04:50',
+        #         total: '0.40000000',
+        #         type: 'buy',
+        #         startingAmount: '1.00000',
+        #     }
+        #
+        # fetchOpenOrders
+        #
+        #     {
+        #         orderNumber: '514514894224',
+        #         type: 'buy',
+        #         rate: '0.00001000',
+        #         startingAmount: '100.00000000',
+        #         amount: '100.00000000',
+        #         total: '0.00100000',
+        #         date: '2018-10-23 17:38:53',
+        #         margin: 0,
+        #     }
+        #
         timestamp = self.safe_integer(order, 'timestamp')
         if not timestamp:
             timestamp = self.parse8601(order['date'])
@@ -573,9 +609,11 @@ class poloniex (Exchange):
         if 'resultingTrades' in order:
             trades = self.parse_trades(order['resultingTrades'], market)
         symbol = None
-        if market:
+        marketId = self.safe_string(order, 'currencyPair')
+        market = self.safe_value(self.markets_by_id, marketId, market)
+        if market is not None:
             symbol = market['symbol']
-        price = self.safe_float(order, 'price')
+        price = self.safe_float_2(order, 'price', 'rate')
         remaining = self.safe_float(order, 'amount')
         amount = self.safe_float(order, 'startingAmount', remaining)
         filled = None
@@ -595,16 +633,21 @@ class poloniex (Exchange):
                     tradePrice = trade['price']
                     filled = self.sum(filled, tradeAmount)
                     cost += tradePrice * tradeAmount
+        status = self.parse_order_status(self.safe_string(order, 'status'))
+        type = self.safe_string(order, 'type')
+        side = self.safe_string(order, 'side', type)
+        if type == side:
+            type = None
         return {
             'info': order,
             'id': order['orderNumber'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'status': order['status'],
+            'status': status,
             'symbol': symbol,
-            'type': order['type'],
-            'side': order['side'],
+            'type': type,
+            'side': side,
             'price': price,
             'cost': cost,
             'amount': amount,
@@ -780,6 +823,37 @@ class poloniex (Exchange):
         if id in self.orders:
             self.orders[id]['status'] = 'canceled'
         return response
+
+    async def fetch_open_order(self, id, symbol=None, params={}):
+        await self.load_markets()
+        id = str(id)
+        response = await self.privatePostReturnOrderStatus(self.extend({
+            'orderNumber': id,
+        }, params))
+        #
+        #     {
+        #         success: 1,
+        #         result: {
+        #             '6071071': {
+        #                 status: 'Open',
+        #                 rate: '0.40000000',
+        #                 amount: '1.00000000',
+        #                 currencyPair: 'BTC_ETH',
+        #                 date: '2018-10-17 17:04:50',
+        #                 total: '0.40000000',
+        #                 type: 'buy',
+        #                 startingAmount: '1.00000',
+        #             },
+        #         },
+        #     }
+        #
+        result = self.safe_value(response['result'], id)
+        if result is None:
+            raise OrderNotFound(self.id + ' order id ' + id + ' not found')
+        order = self.parse_order(result)
+        order['id'] = id
+        self.orders[id] = order
+        return order
 
     async def fetch_order_status(self, id, symbol=None, params={}):
         await self.load_markets()

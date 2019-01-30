@@ -22,11 +22,12 @@ before_install:
 - python3 --version
 - python2 --version
 - pip3 --version
-- sudo -H pip3 install --upgrade setuptools pip wheel requests
+- sudo -H pip3 install --upgrade setuptools
+- sudo -H pip3 install --upgrade pip wheel requests pyopenssl
 - sudo -H pip3 install --ignore-installed six
 - sudo -H pip3 install --upgrade tox twine
-- pip install --upgrade web3
-- pip install --upgrade aiohttp requests
+- pip install --upgrade setuptools 
+- pip install --upgrade web3 aiohttp requests pyopenssl
 - pip2 install requests[security]
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
