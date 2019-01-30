@@ -196,6 +196,13 @@ module.exports = class Stronghold extends Exchange {
         return this.parseTrades (responseData['trades'], market, since, limit);
     }
 
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = this.privateGetVenuesVenueIdAccountsAccountIdTransactions ({ "accountId": "f72b9fb5-9607-4dd3-b31f-6ded21337056" })git
+
+
+    }
+
     parseTrade (trade, market = undefined) {
         // [ '0.03177000', '0.0643501', 'sell', '2019-01-27T23:02:04Z' ]
         let symbol = undefined;
