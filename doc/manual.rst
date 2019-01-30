@@ -55,7 +55,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 Exchanges
 =========
 
-The ccxt library currently supports the following 133 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 134 cryptocurrency exchange markets and trading APIs:
 
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 |                      | id                 | name                                                                                    | certified                                                            | ver   | doc                                                                                                 | countries                                |
@@ -247,6 +247,8 @@ The ccxt library currently supports the following 133 cryptocurrency exchange ma
 | |kraken|             | kraken             | `Kraken <https://www.kraken.com>`__                                                     | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | 0     | `API <https://www.kraken.com/en-us/help/api>`__                                                     | US                                       |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |kucoin|             | kucoin             | `KuCoin <https://www.kucoin.com/?r=E5wkqe>`__                                           |                                                                      | 1     | `API <https://kucoinapidocs.docs.apiary.io>`__                                                      | Seychelles                               |
++----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
+| |kucoin2|            | kucoin2            | `KuCoin <https://www.kucoin.com/#/?r=87rh55>`__                                         | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | 2     | `API <https://docs.kucoin.com>`__                                                                   |                                          |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |kuna|               | kuna               | `Kuna <https://kuna.io>`__                                                              |                                                                      | 2     | `API <https://kuna.io/documents/api>`__                                                             | Ukraine                                  |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -3461,6 +3463,7 @@ Notes
 .. |kkex| image:: https://user-images.githubusercontent.com/1294454/47401462-2e59f800-d74a-11e8-814f-e4ae17b4968a.jpg
 .. |kraken| image:: https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg
 .. |kucoin| image:: https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg
+.. |kucoin2| image:: https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg
 .. |kuna| image:: https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg
 .. |lakebtc| image:: https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg
 .. |lbank| image:: https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg

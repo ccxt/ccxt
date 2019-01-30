@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.18.179'
+__version__ = '1.18.180'
 
 # ----------------------------------------------------------------------------
 
@@ -158,6 +158,7 @@ from ccxt.jubi import jubi                                  # noqa: F401
 from ccxt.kkex import kkex                                  # noqa: F401
 from ccxt.kraken import kraken                              # noqa: F401
 from ccxt.kucoin import kucoin                              # noqa: F401
+from ccxt.kucoin2 import kucoin2                            # noqa: F401
 from ccxt.kuna import kuna                                  # noqa: F401
 from ccxt.lakebtc import lakebtc                            # noqa: F401
 from ccxt.lbank import lbank                                # noqa: F401
@@ -293,6 +294,7 @@ exchanges = [
     'kkex',
     'kraken',
     'kucoin',
+    'kucoin2',
     'kuna',
     'lakebtc',
     'lbank',
