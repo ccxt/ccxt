@@ -881,8 +881,8 @@ class hitbtc (Exchange):
             'amount': amount,
             'address': address,
         }
-        if tag:
-            request['paymentId'] = tag
+        if tag is not None:
+            request['extra_id'] = tag
         response = await self.paymentPostPayout(self.extend(request, params))
         return {
             'info': response,
