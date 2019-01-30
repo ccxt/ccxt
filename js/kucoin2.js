@@ -831,6 +831,9 @@ module.exports = class kucoin2 extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
+        if (!response) {
+            return;
+        }
         //
         // bad
         // {"code":"400100","msg":"validation.createOrder.clientOidIsRequired"}
