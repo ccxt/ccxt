@@ -198,7 +198,7 @@ module.exports = class Stronghold extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = this.privateGetVenuesVenueIdAccountsAccountIdTransactions ({ "accountId": "f72b9fb5-9607-4dd3-b31f-6ded21337056" })git
+        const response = this.privateGetVenuesVenueIdAccountsAccountIdTransactions ({ "accountId": "f72b9fb5-9607-4dd3-b31f-6ded21337056" })
 
 
     }
