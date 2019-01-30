@@ -17,7 +17,6 @@ module.exports = class tokens extends Exchange {
             'countries': [ 'GB' ],
             'rateLimit': 1000,
             'certified': false,
-            //'version': 'v1',
             'has': {
                 'fetchDepositAddress': false,
                 'CORS': false,
@@ -72,24 +71,20 @@ module.exports = class tokens extends Exchange {
                         'public/ticker/{pair}/',
                         'public/ticker/{time}/{pair}/',
                         'public/trades/{time}/{pair}/',
-                        // 'public/trades/minute/{pair}/',
-                        // 'public/trades/hour/{pair}/',
-                        // 'public/trades/day/{pair}/',
                         'public/trading-pairs/get/all/',
                         'public/order-book/{pair}/'
                     ],
                 },
                 'private': {
                     'get': [
-                       'private/balance/',
                        'private/balance/{currency}/',
                        'private/orders/get/all/',
                        'private/orders/get/{id}/',
                        'private/orders/get/{trading_pair}/'  
                     ],
                     'post' : [
-                        '/private/orders/add/limit/',
-                        '/private/orders/cancel/{id}/'
+                        'private/orders/add/limit/',
+                        'private/orders/cancel/{id}/'
                     ]
                 }
             },
@@ -336,11 +331,6 @@ module.exports = class tokens extends Exchange {
     }
 
     parseTrades (trades, market = undefined, since = undefined, limit = undefined) {
-        //this code is commented out temporarily to catch for exchange-specific errors
-        // if (!this.isArray (trades.trades)) {
-        //     throw new ExchangeError (this.id + ' parseTrades expected an array in the trades argument, but got ' + typeof trades);
-        // }
-        // console.log(trades)
         if (trades.trades.length === 0) {
             return [];
         }
@@ -361,7 +351,6 @@ module.exports = class tokens extends Exchange {
 
     async fetchBalance (currency = undefined) {
         await this.loadMarkets ();
-        //let results = []
         let result = {};
         if (typeof currency === 'undefined' ) {
             result['info'] = []
@@ -383,9 +372,7 @@ module.exports = class tokens extends Exchange {
             result[res.currency] = account
             result['info'] = res
         }
-        //let res = await this.privateGetPrivateOrdersGetAll()
         return this.parseBalance (result);
-        //return result
     }
 
     // async createOrder (symbol, type, side, amount, price = undefined, params = {}) {}

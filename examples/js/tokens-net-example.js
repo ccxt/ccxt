@@ -10,11 +10,11 @@ tokens.fetchMarkets().then(function(r){
 	log(r)
 })
 
-tokens.fetchOrderBook('DTR/ETH').then(function(r){
+tokens.fetchOrderBook('DPP/ETH').then(function(r){
 	log(r)
 })
 
-tokens.fetchTrades('DTR/ETH').then(function(r){
+tokens.fetchTrades('DPP/ETH').then(function(r){
 	log(r)
 })
 
@@ -22,7 +22,7 @@ tokens.fetchBalance('ETH').then(function(r){
 	log(r)
 })
 
-// emulated, this 'attacks' tokens.net with multiple requests in sequence as tokens does not have a single route to get all, depending on rate limit
+// emulated, this 'attacks' tokens.net with multiple requests in sequence as tokens.net does not have a single route to get all balances in one call
 tokens.fetchBalance().then(function(r){
 	log(r)
 })
