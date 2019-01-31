@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InvalidNonce, AuthenticationError, AccountSuspended, InsufficientFunds, InvalidArguments } = require ('./base/errors');
+const { InvalidNonce, AuthenticationError, AccountSuspended, InsufficientFunds, InvalidArguments, ExchangeError } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -390,6 +390,26 @@ module.exports = class stronghold extends Exchange {
             'id': response['result']['id'],
             'info': response,
         };
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response) {
+        if (!response) {
+            return;
+        }
+        // { requestId: '3e7d17ab-b316-4721-b5aa-f7e6497eeab9',
+        //   timestamp: '2019-01-31T21:59:06.696855Z',
+        //   success: true,
+        //   statusCode: 200,
+        //   result: [] }
+        let errorCode = this.safeString (response, 'errorCode');
+        if (errorCode in this.exceptions) {
+            let Exception = this.exceptions[errorCode];
+            throw new Exception (this.id + ' ' + body);
+        }
+        const success = this.safeValue (response, 'success');
+        if (!success) {
+            throw new ExchangeError (this.id + ' ' + body);
+        }
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
