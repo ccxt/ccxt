@@ -302,14 +302,14 @@ module.exports = class Stronghold extends Exchange {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ().toString ();
             const payload = timestamp + method + endpoint + endpart;
-            console.log (payload);
-            headers = this.extend ({
+            const secret = this.base64ToBinary (this.secret);
+            headers = {
                 'SH-CRED-ID': this.apiKey,
-                'SH-CRED-SIG': this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64'),
+                'SH-CRED-SIG': this.hmac (this.encode (payload), secret, 'sha256', 'base64'),
                 'SH-CRED-TIME': timestamp,
                 'SH-CRED-PASS': this.password,
-            }, headers);
-            headers['Content-Type'] = 'application/json; charset=utf-8';
+                'Content-Type': 'application/json',
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
