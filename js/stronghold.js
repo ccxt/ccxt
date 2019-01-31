@@ -7,7 +7,7 @@ const { InvalidNonce, AuthenticationError, AccountSuspended } = require ('./base
 
 // ----------------------------------------------------------------------------
 
-module.exports = class Stronghold extends Exchange {
+module.exports = class stronghold extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'stronghold',
