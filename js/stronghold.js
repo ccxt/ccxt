@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InvalidNonce, AuthenticationError, AccountSuspended } = require ('./base/errors');
+const { InvalidNonce, AuthenticationError, AccountSuspended, InsufficientFunds, InvalidArguments } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -67,6 +67,7 @@ module.exports = class stronghold extends Exchange {
                         'venues/{venueId}/custody/accounts/{accountId}/payment/{paymentId}',
                         'venues/{venueId}/accounts/{accountId}/orders',
                         'venues/{venueId}/accounts/{accountId}/trades',
+                        'venues/{venueId}/markets/{marketId}/transactions',
                     ],
                     'post': [
                         'venues/{venueId}/accounts',
@@ -85,6 +86,11 @@ module.exports = class stronghold extends Exchange {
                     'main': 'trade-public',
                     'sandbox': 'sandbox-public',
                 },
+                'paymentMethods': {
+                    'ETH': 'ethereum',
+                    'BTC': 'bitcoin',
+                    'XLM': 'stellar',
+                },
             },
             'exceptions': {
                 'CREDENTIAL_MISSING': AuthenticationError,
@@ -95,13 +101,14 @@ module.exports = class stronghold extends Exchange {
                 'SIGNATURE_INVALID': AuthenticationError,
                 'TIME_INVALID': InvalidNonce,
                 'BYPASS_INVALID': AuthenticationError,
+                'INSUFFICIENT_FUNDS': InsufficientFunds,
             },
         });
     }
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetVenuesVenueIdMarkets (params);
-        const responseData = response['result'];
+        const data = response['result'];
         // [ { id: 'SHXUSD',
         //     baseAssetId: 'SHX/stronghold.co',
         //     counterAssetId: 'USD/stronghold.co',
@@ -111,15 +118,15 @@ module.exports = class stronghold extends Exchange {
         //     displayDecimalsPrice: 4,
         //     displayDecimalsAmount: 0 }, ... ]
         let result = {};
-        for (let i = 0; i < responseData.length; i++) {
-            const entry = responseData[i];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
             const marketId = entry['id'];
-            const baseAssetId = entry['baseAssetId'].split ('/');
-            const baseId = baseAssetId[0];
-            const quoteAssetId = entry['counterAssetId'].split ('/');
-            const quoteId = quoteAssetId[0];
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const baseId = entry['baseAssetId'];
+            const quoteId = entry['counterAssetId'];
+            const baseAssetId = baseId.split ('/')[0];
+            const quoteAssetId = quoteId.split ('/')[0];
+            const base = this.commonCurrencyCode (baseAssetId);
+            const quote = this.commonCurrencyCode (quoteAssetId);
             const symbol = base + '/' + quote;
             const limits = {
                 'amount': {
@@ -136,6 +143,8 @@ module.exports = class stronghold extends Exchange {
                 'id': marketId,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'limits': limits,
                 'precision': precision,
                 'info': entry,
@@ -152,10 +161,10 @@ module.exports = class stronghold extends Exchange {
         //        name: '',
         //        displayDecimalsFull: 7,
         //        displayDecimalsSignificant: 2 }, ... ]
-        const responseData = response['result'];
+        const data = response['result'];
         let result = {};
-        for (let i = 0; i < responseData.length; i++) {
-            const entry = responseData[i];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
             const currencyId = this.safeString (entry, 'code');
             const code = this.commonCurrencyCode (currencyId);
             const precision = this.safeInteger (entry, 'displayDecimalsFull');
@@ -179,9 +188,9 @@ module.exports = class stronghold extends Exchange {
         //    [ [ '0.031500', '7.385000' ], ... ],
         //   asks:
         //    [ [ '0.031500', '7.385000' ], ... ], }
-        const responseData = response['result'];
+        const data = response['result'];
         const timestamp = this.parse8601 (this.safeString (response, 'timestamp'));
-        return this.parseOrderBook (responseData, timestamp, 'bids', 'asks', 0, 1);
+        return this.parseOrderBook (data, timestamp, 'bids', 'asks', 0, 1);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -199,8 +208,7 @@ module.exports = class stronghold extends Exchange {
         //         ]
         //     }
         //
-        const responseData = response['result'];
-        return this.parseTrades (responseData['trades'], market, since, limit);
+        return this.parseTrades (response['result']['trades'], market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -318,6 +326,72 @@ module.exports = class stronghold extends Exchange {
         return this.parseBalance (result);
     }
 
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (code);
+        const response = this.privateGetVenuesVenueIdAccountsAccountIdTrades ();
+        return this.parseTrades (response['result'], market, since, limit);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let paymentMethod = undefined;
+        if (code in this.options['paymentMethods']) {
+            paymentMethod = this.options['paymentMethods'][code];
+        } else {
+            throw new InvalidArguments (this.id + ' fetchDepositAddress requires code to be BTC, ETH, or XLM');
+        }
+        const currencyId = this.currencyId (code);
+        const request = {
+            'assetId': currencyId,
+            'paymentMethod': paymentMethod,
+        };
+        const response = await this.privatePostVenuesVenueIdAccountsAccountIdDeposit (this.extend (request, params));
+        // { assetId: 'BTC/stronghold.co',
+        //   paymentMethod: 'bitcoin',
+        //   paymentMethodInstructions: {
+        //       deposit_address: 'mzMT9Cfw8JXVWK7rMonrpGfY9tt57ytHt4' },
+        //   direction: 'deposit' }
+        const address = response['result']['paymentMethodInstructions']['deposit_address'];
+        return {
+            'currency': code,
+            'address': this.checkAddress (address),
+            'info': response,
+        };
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        await this.loadMarkets ();
+        let paymentMethod = undefined;
+        const currencyId = this.currencyId (code);
+        if (code in this.options['paymentMethods']) {
+            paymentMethod = this.options['paymentMethods'][code];
+        } else {
+            throw new InvalidArguments (this.id + ' fetchDepositAddress requires code to be BTC, ETH, or XLM');
+        }
+        const request = {
+            'assetId': currencyId,
+            'paymentMethod': paymentMethod,
+        };
+        const response = await this.privatePostVenuesVenueIdAccountsAccountIdDeposit (this.extend (request, params));
+        // {
+        //     "id": "5be48892-1b6e-4431-a3cf-34b38811e82c",
+        //     "assetId": "BTC/stronghold.co",
+        //     "amount": "10",
+        //     "feeAmount": "0.01",
+        //     "paymentMethod": "bitcoin",
+        //     "paymentMethodDetails": {
+        //       "withdrawal_address": "1vHysJeXYV6nqhroBaGi52QWFarbJ1dmQ"
+        //     },
+        //     "direction": "withdrawal",
+        //     "status": "pending"
+        //   }
+        return {
+            'id': response['result']['id'],
+            'info': response,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const extractedParams = this.extractParams (path);
         const requiredParams = extractedParams;
@@ -331,7 +405,6 @@ module.exports = class stronghold extends Exchange {
                 }
             }
         }
-        console.log (params);
         let endpoint = '/' + this.version + '/' + this.implodeParams (path, params);
         const rawEndpoint = endpoint;
         let query = this.omit (params, extractedParams);
