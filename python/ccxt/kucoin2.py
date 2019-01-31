@@ -52,7 +52,7 @@ class kucoin2 (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg',
-                'referral': 'https://www.kucoin.com/#/?r=87rh55',
+                'referral': 'https://www.kucoin.com/?r=E5wkqe',
                 'api': {
                     'public': 'https://openapi-v2.kucoin.com',
                     'private': 'https://openapi-v2.kucoin.com',

@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.187'
+const version = '1.18.190'
 
 Exchange.ccxtVersion = version
 
@@ -41068,8 +41068,9 @@ module.exports = class hitbtc extends Exchange {
             'amount': amount,
             'address': address,
         };
-        if (tag)
-            request['paymentId'] = tag;
+        if (tag !== undefined) {
+            request['extra_id'] = tag;
+        }
         let response = await this.paymentPostPayout (this.extend (request, params));
         return {
             'info': response,
@@ -48433,7 +48434,7 @@ module.exports = class kucoin2 extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg',
-                'referral': 'https://www.kucoin.com/#/?r=87rh55',
+                'referral': 'https://www.kucoin.com/?r=E5wkqe',
                 'api': {
                     'public': 'https://openapi-v2.kucoin.com',
                     'private': 'https://openapi-v2.kucoin.com',
@@ -55902,10 +55903,7 @@ module.exports = class poloniex extends Exchange {
                     'private': 'https://poloniex.com/tradingApi',
                 },
                 'www': 'https://poloniex.com',
-                'doc': [
-                    'https://docs.poloniex.com',
-                    'https://pastebin.com/dMX7mZE0',
-                ],
+                'doc': 'https://docs.poloniex.com',
                 'fees': 'https://poloniex.com/fees',
             },
             'api': {
@@ -62892,9 +62890,9 @@ module.exports = class upbit extends Exchange {
             let currency = this.commonCurrencyCode (id);
             let account = this.account ();
             let balance = indexed[id];
-            let total = this.safeFloat (balance, 'balance');
+            let free = this.safeFloat (balance, 'balance');
             let used = this.safeFloat (balance, 'locked');
-            let free = total - used;
+            let total = this.sum (free, used);
             account['free'] = free;
             account['used'] = used;
             account['total'] = total;

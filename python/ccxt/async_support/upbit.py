@@ -415,9 +415,9 @@ class upbit (Exchange):
             currency = self.common_currency_code(id)
             account = self.account()
             balance = indexed[id]
-            total = self.safe_float(balance, 'balance')
+            free = self.safe_float(balance, 'balance')
             used = self.safe_float(balance, 'locked')
-            free = total - used
+            total = self.sum(free, used)
             account['free'] = free
             account['used'] = used
             account['total'] = total
