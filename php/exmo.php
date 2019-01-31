@@ -626,7 +626,8 @@ class exmo extends Exchange {
         $response = $this->privatePostOrderTrades (array_merge (array (
             'order_id' => (string) $id,
         ), $params));
-        return $this->parse_trades($response, $market, $since, $limit);
+        $trades = $this->safe_value($response, 'trades');
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function update_cached_orders ($openOrders, $symbol) {
@@ -742,15 +743,15 @@ class exmo extends Exchange {
                     if ($timestamp > $trade['timestamp']) {
                         $timestamp = $trade['timestamp'];
                     }
-                    $filled .= $trade['amount'];
+                    $filled = $this->sum ($filled, $trade['amount']);
                     if ($feeCost === null) {
                         $feeCost = 0.0;
                     }
-                    $feeCost .= $trade['fee']['cost'];
+                    $feeCost = $this->sum ($feeCost, $trade['fee']['cost']);
                     if ($cost === null) {
                         $cost = 0.0;
                     }
-                    $cost .= $trade['cost'];
+                    $cost = $this->sum ($cost, $trade['cost']);
                     $trades[] = $trade;
                 }
             }

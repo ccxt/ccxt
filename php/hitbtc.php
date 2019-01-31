@@ -911,8 +911,9 @@ class hitbtc extends Exchange {
             'amount' => $amount,
             'address' => $address,
         );
-        if ($tag)
-            $request['paymentId'] = $tag;
+        if ($tag !== null) {
+            $request['extra_id'] = $tag;
+        }
         $response = $this->paymentPostPayout (array_merge ($request, $params));
         return array (
             'info' => $response,

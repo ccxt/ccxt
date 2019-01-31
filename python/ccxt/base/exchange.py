@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.142'
+__version__ = '1.18.190'
 
 # -----------------------------------------------------------------------------
 
@@ -319,6 +319,17 @@ class Exchange(object):
 
     def describe(self):
         return {}
+
+    def set_sandbox_mode(self, enabled):
+        if enabled:
+            if 'test' in self.urls:
+                self.urls['api_backup'] = self.urls['api']
+                self.urls['api'] = self.urls['test']
+            else:
+                raise NotSupported(self.id + ' does not have a sandbox URL')
+        elif 'api_backup' in self.urls:
+            self.urls['api'] = self.urls['api_backup']
+            del self.urls['api_backup']
 
     @classmethod
     def define_rest_api(cls, api, method_name, options={}):
@@ -1055,6 +1066,16 @@ class Exchange(object):
         if self.has['fetchCurrencies']:
             currencies = self.fetch_currencies()
         return self.set_markets(markets, currencies)
+
+    def load_accounts(self, reload=False, params={}):
+        if reload:
+            self.accounts = self.fetch_accounts(params)
+        else:
+            if self.accounts:
+                return self.accounts
+            else:
+                self.accounts = self.fetch_accounts(params)
+        return self.accounts
 
     def populate_fees(self):
         if not (hasattr(self, 'markets') or hasattr(self, 'currencies')):

@@ -12,8 +12,8 @@ class kucoin extends Exchange {
     public function describe () {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'kucoin',
-            'name' => 'Kucoin',
-            'countries' => array ( 'HK' ), // Hong Kong
+            'name' => 'KuCoin',
+            'countries' => array ( 'SC' ), // Republic of Seychelles
             'version' => 'v1',
             'rateLimit' => 2000,
             'userAgent' => $this->userAgents['chrome'],
@@ -44,7 +44,7 @@ class kucoin extends Exchange {
                 '1w' => 'W',
             ),
             'urls' => array (
-                'logo' => 'https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg',
                 'api' => array (
                     'public' => 'https://api.kucoin.com',
                     'private' => 'https://api.kucoin.com',
@@ -688,7 +688,7 @@ class kucoin extends Exchange {
             $currency = $currencies[$i];
             $id = $currency['coin'];
             // todo => will need to rethink the fees
-            // to add support for multiple withdrawal/$deposit methods and
+            // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $code = $this->common_currency_code($id);
             $precision = $currency['tradePrecision'];
@@ -1408,7 +1408,7 @@ class kucoin extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function throw_exception_on_error ($response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         //
         // API endpoints return the following formats
         //     array ( success => false, $code => "ERROR", msg => "Min price:100.0" )
@@ -1417,22 +1417,22 @@ class kucoin extends Exchange {
         // Web OHLCV endpoint returns this:
         //     array ( s => "ok", o => array (), h => array (), l => array (), c => array (), v => array () )
         //
-        // This particular method handles API responses only
+        // This particular $method handles API responses only
         //
         if (!(is_array ($response) && array_key_exists ('success', $response)))
             return;
         if ($response['success'] === true)
             return; // not an error
         if (!(is_array ($response) && array_key_exists ('code', $response)) || !(is_array ($response) && array_key_exists ('msg', $response)))
-            throw new ExchangeError ($this->id . ' => malformed $response => ' . $this->json ($response));
-        $code = $this->safe_string($response, 'code');
+            throw new ExchangeError ($this->id . ' => malformed $response => ' . $body);
+        $responseCode = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'msg');
-        $feedback = $this->id . ' ' . $this->json ($response);
-        if ($code === 'UNAUTH') {
+        $feedback = $this->id . ' ' . $body;
+        if ($responseCode === 'UNAUTH') {
             if ($message === 'Invalid nonce')
                 throw new InvalidNonce ($feedback);
             throw new AuthenticationError ($feedback);
-        } else if ($code === 'ERROR') {
+        } else if ($responseCode === 'ERROR') {
             if (mb_strpos ($message, 'The precision of amount') !== false)
                 throw new InvalidOrder ($feedback); // amount violates precision.amount
             if (mb_strpos ($message, 'Min amount each order') !== false)
@@ -1443,20 +1443,10 @@ class kucoin extends Exchange {
                 throw new InvalidOrder ($feedback); // price > limits.price.max
             if (mb_strpos ($message, 'The precision of price') !== false)
                 throw new InvalidOrder ($feedback); // price violates precision.price
-        } else if ($code === 'NO_BALANCE') {
+        } else if ($responseCode === 'NO_BALANCE') {
             if (mb_strpos ($message, 'Insufficient balance') !== false)
                 throw new InsufficientFunds ($feedback);
         }
-        throw new ExchangeError ($this->id . ' => unknown $response => ' . $this->json ($response));
-    }
-
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
-        if ($response !== null) {
-            // JS callchain parses $body beforehand
-            $this->throw_exception_on_error($response);
-        } else if ($body && ($body[0] === '{')) {
-            // Python/PHP callchains don't have json available at this step
-            $this->throw_exception_on_error(json_decode ($body, $as_associative_array = true));
-        }
+        throw new ExchangeError ($this->id . ' => unknown $response => ' . $body);
     }
 }

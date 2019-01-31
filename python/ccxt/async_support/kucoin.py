@@ -7,7 +7,6 @@ from ccxt.async_support.base.exchange import Exchange
 import base64
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -24,8 +23,8 @@ class kucoin (Exchange):
     def describe(self):
         return self.deep_extend(super(kucoin, self).describe(), {
             'id': 'kucoin',
-            'name': 'Kucoin',
-            'countries': ['HK'],  # Hong Kong
+            'name': 'KuCoin',
+            'countries': ['SC'],  # Republic of Seychelles
             'version': 'v1',
             'rateLimit': 2000,
             'userAgent': self.userAgents['chrome'],
@@ -56,7 +55,7 @@ class kucoin (Exchange):
                 '1w': 'W',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg',
                 'api': {
                     'public': 'https://api.kucoin.com',
                     'private': 'https://api.kucoin.com',
@@ -1341,7 +1340,7 @@ class kucoin (Exchange):
                 url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def throw_exception_on_error(self, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         #
         # API endpoints return the following formats
         #     {success: False, code: "ERROR", msg: "Min price:100.0"}
@@ -1357,15 +1356,15 @@ class kucoin (Exchange):
         if response['success'] is True:
             return  # not an error
         if not('code' in list(response.keys())) or not('msg' in list(response.keys())):
-            raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
-        code = self.safe_string(response, 'code')
+            raise ExchangeError(self.id + ': malformed response: ' + body)
+        responseCode = self.safe_string(response, 'code')
         message = self.safe_string(response, 'msg')
-        feedback = self.id + ' ' + self.json(response)
-        if code == 'UNAUTH':
+        feedback = self.id + ' ' + body
+        if responseCode == 'UNAUTH':
             if message == 'Invalid nonce':
                 raise InvalidNonce(feedback)
             raise AuthenticationError(feedback)
-        elif code == 'ERROR':
+        elif responseCode == 'ERROR':
             if message.find('The precision of amount') >= 0:
                 raise InvalidOrder(feedback)  # amount violates precision.amount
             if message.find('Min amount each order') >= 0:
@@ -1376,15 +1375,7 @@ class kucoin (Exchange):
                 raise InvalidOrder(feedback)  # price > limits.price.max
             if message.find('The precision of price') >= 0:
                 raise InvalidOrder(feedback)  # price violates precision.price
-        elif code == 'NO_BALANCE':
+        elif responseCode == 'NO_BALANCE':
             if message.find('Insufficient balance') >= 0:
                 raise InsufficientFunds(feedback)
-        raise ExchangeError(self.id + ': unknown response: ' + self.json(response))
-
-    def handle_errors(self, code, reason, url, method, headers, body, response):
-        if response is not None:
-            # JS callchain parses body beforehand
-            self.throw_exception_on_error(response)
-        elif body and(body[0] == '{'):
-            # Python/PHP callchains don't have json available at self step
-            self.throw_exception_on_error(json.loads(body))
+        raise ExchangeError(self.id + ': unknown response: ' + body)

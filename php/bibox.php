@@ -75,7 +75,7 @@ class bibox extends Exchange {
                     'tierBased' => false,
                     'percentage' => true,
                     'taker' => 0.001,
-                    'maker' => 0.0,
+                    'maker' => 0.001,
                 ),
                 'funding' => array (
                     'tierBased' => false,
@@ -118,7 +118,7 @@ class bibox extends Exchange {
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $id = $base . '_' . $quote;
+            $id = $baseId . '_' . $quoteId;
             $precision = array (
                 'amount' => 4,
                 'price' => 8,

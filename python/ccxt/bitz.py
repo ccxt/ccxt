@@ -365,6 +365,12 @@ class bitz (Exchange):
         if market is not None:
             symbol = market['symbol']
         last = self.safe_float(ticker, 'now')
+        open = self.safe_float(ticker, 'open')
+        change = None
+        average = None
+        if last is not None and open is not None:
+            change = last - open
+            average = self.sum(last, open) / 2
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -376,13 +382,13 @@ class bitz (Exchange):
             'ask': self.safe_float(ticker, 'askPrice'),
             'askVolume': self.safe_float(ticker, 'askQty'),
             'vwap': None,
-            'open': self.safe_float(ticker, 'open'),
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_float(ticker, 'priceChange24h'),
-            'percentage': None,
-            'average': None,
+            'change': change,
+            'percentage': self.safe_float(ticker, 'priceChange24h'),
+            'average': average,
             'baseVolume': self.safe_float(ticker, 'volume'),
             'quoteVolume': self.safe_float(ticker, 'quoteVolume'),
             'info': ticker,
@@ -394,7 +400,7 @@ class bitz (Exchange):
         parts = microtime.split(' ')
         milliseconds = float(parts[0])
         seconds = int(parts[1])
-        total = seconds + milliseconds
+        total = self.sum(seconds, milliseconds)
         return int(total * 1000)
 
     def fetch_ticker(self, symbol, params={}):
