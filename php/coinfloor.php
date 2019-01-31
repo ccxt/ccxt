@@ -21,7 +21,7 @@ class coinfloor extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg',
-                'api' => 'https://webapi.coinfloor.co.uk:8090/bist',
+                'api' => 'https://webapi.coinfloor.co.uk/bist',
                 'www' => 'https://www.coinfloor.co.uk',
                 'doc' => array (
                     'https://github.com/coinfloor/api',
