@@ -195,7 +195,7 @@ module.exports = class Stronghold extends Exchange {
         //         marketId: 'ETHBTC',
         //         trades: [
         //             [ '0.03150000', '0.0012000', 'sell', '2019-01-28T01:42:17Z' ],
-        //             ... 
+        //             ...
         //         ]
         //     }
         //
