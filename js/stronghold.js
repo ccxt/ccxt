@@ -3,8 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidNonce, AuthenticationError, AccountSuspended } = require ('./base/errors');
-
+const { InvalidNonce, AuthenticationError, AccountSuspended } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
