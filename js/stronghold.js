@@ -32,6 +32,7 @@ module.exports = class stronghold extends Exchange {
                 'apiKey': true,
                 'secret': true,
                 'password': true,
+                'uid': true,
             },
             'api': {
                 'public': {
@@ -64,14 +65,13 @@ module.exports = class stronghold extends Exchange {
                         'venues',
                         'venues/{venueId}/accounts/{accountId}',
                         'venues/{venueId}/custody/accounts/{accountId}/payment/{paymentId}',
-                        'venues/{venueId}/custody/accounts/{accountId}/orders',
-                        'venues/{venueId}/accounts/{accountId}/transactions',
+                        'venues/{venueId}/accounts/{accountId}/orders',
+                        'venues/{venueId}/accounts/{accountId}/trades',
                     ],
                     'post': [
                         'venues/{venueId}/accounts',
                         'venues/{venueId}/accounts/{accountId}/orders',
                         'venues/{venueId}/accounts/{accountId}/deposit',
-                        'venues/{venueId}/accounts/{accountId}/withdrawal',
                         'venues/{venueId}/accounts/{accountId}/withdrawal',
                         'venues/{venueId}/custody/accounts/{accountId}/payment',
                         'venues/{venueId}/custody/accounts/{accountId}/payment/{paymentId}/stop',
@@ -173,7 +173,7 @@ module.exports = class stronghold extends Exchange {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
         const request = { 'marketId': marketId };
-        const response = await this.publicGetVenuesTradePublicMarketsMarketIdOrderbook (this.extend (request, params));
+        const response = await this.publicGetVenuesVenueIdMarketsMarketIdOrderbook (this.extend (request, params));
         // { marketId: 'ETHBTC',
         //   bids:
         //    [ [ '0.031500', '7.385000' ], ... ],
@@ -189,7 +189,7 @@ module.exports = class stronghold extends Exchange {
         const market = this.market (symbol);
         const marketId = market['id'];
         const request = { 'marketId': marketId };
-        const response = await this.publicGetVenuesTradePublicMarketsMarketIdTrades (this.extend (request, params));
+        const response = await this.publicGetVenuesVenueIdMarketsMarketIdTrades (this.extend (request, params));
         //
         //     {
         //         marketId: 'ETHBTC',
@@ -205,7 +205,7 @@ module.exports = class stronghold extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetVenuesVenueIdAccountsAccountIdTransactions ({ 'accountId': 'f72b9fb5-9607-4dd3-b31f-6ded21337056' });
+        const response = await this.privateGetVenuesVenueIdAccountsAccountIdTrades ({ 'accountId': 'f72b9fb5-9607-4dd3-b31f-6ded21337056' });
         return response;
     }
 
@@ -234,6 +234,7 @@ module.exports = class stronghold extends Exchange {
             'side': side,
             'datetime': datetime,
             'timestamp': this.parse8601 (datetime),
+            'info': trade,
         };
     }
 
@@ -253,10 +254,7 @@ module.exports = class stronghold extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'accountId': this.apiKey,
-        };
-        const response = await this.privateGetVenuesVenueIdAccountsAccountIdOrders (this.extend (request, params));
+        const response = await this.privateGetVenuesVenueIdAccountsAccountIdOrders (params);
         const orders = response['result'];
         return this.parseOrders (orders, market, since, limit);
     }
@@ -284,6 +282,10 @@ module.exports = class stronghold extends Exchange {
         };
     }
 
+    parseAsset (assetId) {
+        return assetId.split ('/')[0];
+    }
+
     nonce () {
         return this.seconds ();
     }
@@ -299,10 +301,40 @@ module.exports = class stronghold extends Exchange {
         }
     }
 
+    async fetchBalance (params = {}) {
+        const response = await this.privateGetVenuesVenueIdAccountsAccountId (params);
+        const balances = response['result']['balances'];
+        let result = {};
+        for (let i = 0; i < balances.length; i++) {
+            const entry = balances[i];
+            const asset = this.parseAsset (entry['assetId']);
+            const code = this.commonCurrencyCode (asset);
+            let account = this.account ();
+            account['total'] = this.safeFloat (entry, 'amount');
+            account['available'] = this.safeFloat (entry, 'availableForTrade');
+            account['free'] = account['total'] - account['available'];
+            result[code] = account;
+        }
+        return this.parseBalance (result);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let venue = this.options['venues']['main'];
-        let endpoint = '/' + this.version + '/' + this.implodeParams (path, this.extend (params, { 'venueId': venue }));
-        let query = this.omit (params, this.extractParams (path));
+        const extractedParams = this.extractParams (path);
+        const requiredParams = extractedParams;
+        for (let i = 0; i < requiredParams.length; i++) {
+            let param = requiredParams[i];
+            if (!(param in params)) {
+                if (param === 'venueId') {
+                    params['venueId'] = this.options['venues']['main'];
+                } else if (param === 'accountId') {
+                    params['accountId'] = this.uid;
+                }
+            }
+        }
+        console.log (params);
+        let endpoint = '/' + this.version + '/' + this.implodeParams (path, params);
+        const rawEndpoint = endpoint;
+        let query = this.omit (params, extractedParams);
         let endpart = '';
         headers = headers !== undefined ? headers : {};
         if (Object.keys (query).length > 0) {
@@ -317,7 +349,7 @@ module.exports = class stronghold extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ().toString ();
-            const payload = timestamp + method + endpoint + endpart;
+            const payload = timestamp + method + rawEndpoint + endpart;
             const secret = this.base64ToBinary (this.secret);
             headers = {
                 'SH-CRED-ID': this.apiKey,
