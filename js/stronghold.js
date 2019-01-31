@@ -190,9 +190,15 @@ module.exports = class Stronghold extends Exchange {
         const marketId = market['id'];
         const request = { 'marketId': marketId };
         const response = await this.publicGetVenuesTradePublicMarketsMarketIdTrades (this.extend (request, params));
-        // { marketId: 'ETHBTC',
-        //   trades:
-        //    [ [ '0.03150000', '0.0012000', 'sell', '2019-01-28T01:42:17Z' ], ... ] }
+        //
+        //     {
+        //         marketId: 'ETHBTC',
+        //         trades: [
+        //             [ '0.03150000', '0.0012000', 'sell', '2019-01-28T01:42:17Z' ],
+        //             ... 
+        //         ]
+        //     }
+        //
         const responseData = response['result'];
         return this.parseTrades (responseData['trades'], market, since, limit);
     }
@@ -200,10 +206,19 @@ module.exports = class Stronghold extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetVenuesVenueIdAccountsAccountIdTransactions ({ 'accountId': 'f72b9fb5-9607-4dd3-b31f-6ded21337056' });
+        return response;
     }
 
     parseTrade (trade, market = undefined) {
-        // [ '0.03177000', '0.0643501', 'sell', '2019-01-27T23:02:04Z' ]
+        //
+        // fetchTrades (public)
+        //
+        //      [ '0.03177000', '0.0643501', 'sell', '2019-01-27T23:02:04Z' ]
+        //
+        // fetchMyTrades (private)
+        //
+        //      ?
+        //
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -256,16 +271,16 @@ module.exports = class Stronghold extends Exchange {
         const amount = this.safeFloat (order, 'size');
         const filled = this.safeFloat (order, 'sizeFilled');
         return {
-          'id': id,
-          'info': order,
-          'symbol': symbol,
-          'datetime': datetime,
-          'timestamp': this.parse8601 (datetime),
-          'side': this.safeString (order, 'side'),
-          'amount': amount,
-          'filled': filled,
-          'remaining': amount - filled,
-          'price': this.safeFloat (order, 'price'),
+            'id': id,
+            'info': order,
+            'symbol': symbol,
+            'datetime': datetime,
+            'timestamp': this.parse8601 (datetime),
+            'side': this.safeString (order, 'side'),
+            'amount': amount,
+            'filled': filled,
+            'remaining': amount - filled,
+            'price': this.safeFloat (order, 'price'),
         };
     }
 
