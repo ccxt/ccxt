@@ -27,12 +27,10 @@ module.exports = class stronghold extends Exchange {
                     'https://docs.stronghold.co/',
                 ],
             },
-            'venueId': 'trade-public',
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,
                 'password': true,
-                'uid': false, // required sometimes
             },
             'api': {
                 'public': {
@@ -67,7 +65,7 @@ module.exports = class stronghold extends Exchange {
                         'venues/{venueId}/custody/accounts/{accountId}/payment/{paymentId}',
                         'venues/{venueId}/accounts/{accountId}/orders',
                         'venues/{venueId}/accounts/{accountId}/trades',
-                        'venues/{venueId}/markets/{marketId}/transactions',
+                        'venues/{venueId}/accounts/{accountId}/transactions',
                     ],
                     'post': [
                         'venues/{venueId}/accounts',
@@ -78,6 +76,7 @@ module.exports = class stronghold extends Exchange {
                         'venues/{venueId}/custody/accounts/{accountId}/payment/{paymentId}/stop',
                         'venues/{venueId}/custody/accounts/{accountId}/operations/{operationId}/signatures',
                         'venues/{venueId}/anchor/withdrawal',
+                        'venues/{venueId}/testing/friendbot',
                     ],
                 },
             },
@@ -91,6 +90,7 @@ module.exports = class stronghold extends Exchange {
                     'BTC': 'bitcoin',
                     'XLM': 'stellar',
                 },
+                'accountId': undefined,
             },
             'exceptions': {
                 'CREDENTIAL_MISSING': AuthenticationError,
@@ -211,9 +211,9 @@ module.exports = class stronghold extends Exchange {
         return this.parseTrades (response['result']['trades'], market, since, limit);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactions (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetVenuesVenueIdAccountsAccountIdTrades ({ 'accountId': 'f72b9fb5-9607-4dd3-b31f-6ded21337056' });
+        const response = await this.privateGetVenuesVenueIdAccountsAccountIdTransactions ({ 'accountId': 'f72b9fb5-9607-4dd3-b31f-6ded21337056' });
         return response;
     }
 
@@ -225,16 +225,24 @@ module.exports = class stronghold extends Exchange {
         //
         // fetchMyTrades (private)
         //
-        //      ?
+        //      { id: '9cdb109c-d035-47e2-81f8-a0c802c9c5f9',
+        //        orderId: 'a38d8bcb-9ff5-4c52-81a0-a40196a66462',
+        //        marketId: 'XLMUSD',
+        //        side: 'sell',
+        //        size: '1.0000000',
+        //        price: '0.10440600',
+        //        settled: true,
+        //        maker: false,
+        //        executedAt: '2019-02-01T18:44:21Z' }
         //
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const price = this.safeFloat (trade, 0);
-        const amount = this.safeFloat (trade, 1);
-        const side = this.safeString (trade, 2);
-        const datetime = this.safeString (trade, 3);
+        const price = this.safeFloat2 (trade, 0, 'price');
+        const amount = this.safeFloat2 (trade, 1, 'size');
+        const side = this.safeString2 (trade, 2, 'side');
+        const datetime = this.safeString2 (trade, 3, 'executedAt');
         return {
             'symbol': symbol,
             'price': price,
@@ -270,7 +278,7 @@ module.exports = class stronghold extends Exchange {
     parseOrder (order, market = undefined) {
         let symbol = undefined;
         if (market !== undefined) {
-            symbol = market['id'];
+            symbol = market['symbol'];
         }
         const id = this.safeString (order, 'id');
         const datetime = this.safeString (order, 'placedAt');
@@ -322,10 +330,10 @@ module.exports = class stronghold extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (code);
-        const response = this.privateGetVenuesVenueIdAccountsAccountIdTrades ();
+        const response = await this.privateGetVenuesVenueIdAccountsAccountIdTrades (params);
         return this.parseTrades (response['result'], market, since, limit);
     }
 
@@ -413,25 +421,10 @@ module.exports = class stronghold extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const extractedParams = this.extractParams (path);
-        for (let i = 0; i < extractedParams.length; i++) {
-            let param = extractedParams[i];
-            if (!(param in params)) {
-                if (param === 'venueId') {
-                    params['venueId'] = this.options['venues']['main'];
-                } else if (param === 'accountId') {
-                    if (this.uid === undefined) {
-                        throw new AuthenticationError (this.id + ' requires uid');
-                    }
-                    params['accountId'] = this.uid;
-                }
-            }
-        }
         let endpoint = '/' + this.version + '/' + this.implodeParams (path, params);
         const rawEndpoint = endpoint;
-        let query = this.omit (params, extractedParams);
+        let query = this.omit (params, this.extractParams (path));
         let endpart = '';
-        headers = headers !== undefined ? headers : {};
         if (Object.keys (query).length > 0) {
             if (method === 'GET') {
                 endpoint += '?' + this.urlencode (query);
@@ -455,5 +448,23 @@ module.exports = class stronghold extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const extractedParams = this.extractParams (path);
+        for (let i = 0; i < extractedParams.length; i++) {
+            let param = extractedParams[i];
+            if (!(param in params)) {
+                if (param === 'venueId') {
+                    params['venueId'] = this.options['venues']['main'];
+                } else if (param === 'accountId') {
+                    if (this.options['accountId'] === undefined) {
+                        throw new AuthenticationError (this.id + ' ' + path + ' requires an accountId');
+                    }
+                    params['accountId'] = this.options['accountId'];
+                }
+            }
+        }
+        return await this.fetch2 (path, api, method, params, headers, body);
     }
 };
