@@ -555,7 +555,7 @@ module.exports = class kraken extends Exchange {
         } else if (itemType === 'margin') {
             type = 'margin'; // ← this needs to be unified
         } else {
-            throw new ExchangeError (this['id'] + ' unsupported ledger item type: ' + itemType);
+            throw new ExchangeError (this.id + ' unsupported ledger item type: ' + itemType);
         }
         let code = this.safeCurrencyCode (data, 'asset', currency);
         let amount = this.safeFloat (data, 'amount');
