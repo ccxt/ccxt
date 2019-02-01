@@ -37,8 +37,8 @@ class bitsane (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/41387105-d86bf4c6-6f8d-11e8-95ea-2fa943872955.jpg',
                 'api': 'https://bitsane.com/api',
                 'www': 'https://bitsane.com',
-                'doc': 'https://bitsane.com/info-api',
-                'fees': 'https://bitsane.com/fees',
+                'doc': 'https://bitsane.com/help/api',
+                'fees': 'https://bitsane.com/help/fees',
             },
             'api': {
                 'public': {

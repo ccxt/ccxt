@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.190'
+const version = '1.18.192'
 
 Exchange.ccxtVersion = version
 
@@ -10215,7 +10215,7 @@ module.exports = class bitflyer extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
                 'api': 'https://api.bitflyer.jp',
                 'www': 'https://bitflyer.jp',
-                'doc': 'https://bitflyer.jp/API',
+                'doc': 'https://lightning.bitflyer.com/docs?lang=en',
             },
             'api': {
                 'public': {
@@ -13077,8 +13077,8 @@ module.exports = class bitsane extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/41387105-d86bf4c6-6f8d-11e8-95ea-2fa943872955.jpg',
                 'api': 'https://bitsane.com/api',
                 'www': 'https://bitsane.com',
-                'doc': 'https://bitsane.com/info-api',
-                'fees': 'https://bitsane.com/fees',
+                'doc': 'https://bitsane.com/help/api',
+                'fees': 'https://bitsane.com/help/fees',
             },
             'api': {
                 'public': {
@@ -26976,7 +26976,7 @@ module.exports = class coinfloor extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg',
-                'api': 'https://webapi.coinfloor.co.uk:8090/bist',
+                'api': 'https://webapi.coinfloor.co.uk/bist',
                 'www': 'https://www.coinfloor.co.uk',
                 'doc': [
                     'https://github.com/coinfloor/api',
@@ -33640,7 +33640,7 @@ module.exports = class deribit extends Exchange {
                 'api': 'https://www.deribit.com',
                 'www': 'https://www.deribit.com',
                 'doc': [
-                    'https://www.deribit.com/pages/docs/api',
+                    'https://docs.deribit.com/',
                     'https://github.com/deribit',
                 ],
                 'fees': 'https://www.deribit.com/pages/information/fees',
@@ -40185,7 +40185,7 @@ module.exports = class hitbtc extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
-                'api': 'http://api.hitbtc.com',
+                'api': 'https://api.hitbtc.com',
                 'www': 'https://hitbtc.com',
                 'referral': 'https://hitbtc.com/?ref_id=5a5d39a65d466',
                 'doc': 'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md',
@@ -41180,7 +41180,10 @@ module.exports = class hitbtc2 extends hitbtc {
                 'api': 'https://api.hitbtc.com',
                 'www': 'https://hitbtc.com',
                 'referral': 'https://hitbtc.com/?ref_id=5a5d39a65d466',
-                'doc': 'https://api.hitbtc.com',
+                'doc': [
+                    'https://api.hitbtc.com',
+                    'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv2.md',
+                ],
                 'fees': [
                     'https://hitbtc.com/fees-and-limits',
                     'https://support.hitbtc.com/hc/en-us/articles/115005148605-Fees-and-limits',
