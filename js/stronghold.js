@@ -32,7 +32,7 @@ module.exports = class stronghold extends Exchange {
                 'apiKey': true,
                 'secret': true,
                 'password': true,
-                'uid': true,
+                'uid': false, // required sometimes
             },
             'api': {
                 'public': {
@@ -290,10 +290,6 @@ module.exports = class stronghold extends Exchange {
         };
     }
 
-    parseAsset (assetId) {
-        return assetId.split ('/')[0];
-    }
-
     nonce () {
         return this.seconds ();
     }
@@ -315,7 +311,7 @@ module.exports = class stronghold extends Exchange {
         let result = {};
         for (let i = 0; i < balances.length; i++) {
             const entry = balances[i];
-            const asset = this.parseAsset (entry['assetId']);
+            const asset = entry['assetId'].split ('/')[0];
             const code = this.commonCurrencyCode (asset);
             let account = this.account ();
             account['total'] = this.safeFloat (entry, 'amount');
@@ -392,6 +388,10 @@ module.exports = class stronghold extends Exchange {
         };
     }
 
+    async fetchAccounts (params) {
+        return await this.privatePostVenuesVenueIdAccounts (params)
+    }
+
     handleErrors (code, reason, url, method, headers, body, response) {
         if (!response) {
             return;
@@ -414,13 +414,15 @@ module.exports = class stronghold extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const extractedParams = this.extractParams (path);
-        const requiredParams = extractedParams;
-        for (let i = 0; i < requiredParams.length; i++) {
-            let param = requiredParams[i];
+        for (let i = 0; i < extractedParams.length; i++) {
+            let param = extractedParams[i];
             if (!(param in params)) {
                 if (param === 'venueId') {
                     params['venueId'] = this.options['venues']['main'];
                 } else if (param === 'accountId') {
+                    if (this.uid === undefined) {
+                        throw new AuthenticationError (this.id + ' requires uid');
+                    }
                     params['accountId'] = this.uid;
                 }
             }
