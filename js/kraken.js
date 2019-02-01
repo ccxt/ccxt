@@ -576,7 +576,8 @@ module.exports = class kraken extends Exchange {
             'cost': this.safeFloat (data, 'fee'),
             'currency': code,
         };
-        let balance = this.safeFloat (data, 'balance');
+        let balanceBefore = undefined;
+        let balanceAfter = this.safeFloat (data, 'balance');
         return {
             'info': data,
             'id': id,
@@ -587,7 +588,8 @@ module.exports = class kraken extends Exchange {
             'type': type,
             'currency': code,
             'amount': amount,
-            'balance': balance,
+            'balanceBefore': balanceBefore,
+            'balanceAfter': balanceAfter,
             'timestamp': timestamp,
             'datetime': datetime,
             'fee': fee,
