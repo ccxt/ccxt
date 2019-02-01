@@ -1576,6 +1576,10 @@ class Exchange {
         return $code;
     }
 
+    public function safeCurrencyCode ($data, $key, $currency = null) {
+        return $this->safe_currency_code ($data, $key, $currency);
+    }
+
     public function filter_by_symbol ($array, $symbol = null) {
         if ($symbol) {
             $grouped = $this->group_by ($array, 'symbol');
