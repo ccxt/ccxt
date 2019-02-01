@@ -633,6 +633,7 @@ module.exports = class kraken extends Exchange {
         if (id === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchLedgerItem requires a ledger item id argument');
         }
+        await this.loadMarkets ();
         if (Array.isArray (id)) {
             id = id.slice (0, 20).join (',');
         }
