@@ -528,20 +528,6 @@ module.exports = class kraken extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    safeCurrencyCode (data, key, currency = undefined) {
-        let code = undefined;
-        let currencyId = this.safeString (data, key);
-        if (currencyId in this.currencies_by_id) {
-            currency = this.currencies_by_id[currencyId];
-        } else {
-            code = this.commonCurrencyCode (currencyId);
-        }
-        if (currency !== undefined) {
-            code = currency['code'];
-        }
-        return code;
-    }
-
     parseLedgerItem (data, currency = undefined) {
         // { 'LTFK7F-N2CUX-PNY4SX': {   refid: "TSJTGT-DT7WN-GPPQMJ",
         //                               time:  1520102320.555,
@@ -604,17 +590,6 @@ module.exports = class kraken extends Exchange {
             'datetime': datetime,
             'fee': fee,
         };
-    }
-
-    parseLedgerItems (data, currency = undefined, since = undefined, limit = undefined) {
-        let result = [];
-        data = Object.values (data || []);
-        for (let i = 0; i < data.length; i++) {
-            result.push (this.parseLedgerItem (data[i], currency));
-        }
-        result = this.sortBy (result, 'timestamp');
-        let code = (currency !== undefined) ? currency['code'] : undefined;
-        return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
     async fetchLedgerItems (code = undefined, since = undefined, limit = undefined, params = {}) {
