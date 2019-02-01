@@ -564,6 +564,8 @@ module.exports = class kraken extends Exchange {
             type = 'transaction';
         } else if (itemType === 'deposit') {
             type = 'transaction';
+        } else if (itemType === 'margin') {
+            type = 'margin'; // ← this needs to be unified
         } else {
             throw new ExchangeError (this['id'] + ' unsupported ledger item type: ' + itemType);
         }
@@ -616,6 +618,7 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchLedgerItems (code = undefined, since = undefined, limit = undefined, params = {}) {
+        // https://www.kraken.com/features/api#get-ledgers-info
         await this.loadMarkets ();
         let request = {};
         let currency = undefined;
@@ -645,7 +648,40 @@ module.exports = class kraken extends Exchange {
             value['id'] = key;
             data.push (value);
         }
-        return this.parseLedgerItems (data, currency, since, limit, params);
+        return this.parseLedgerItems (data, currency, since, limit);
+    }
+
+    async fetchLedgerItem (id, code = undefined, params = {}) {
+        // https://www.kraken.com/features/api#query-ledgers
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchLedgerItem requires a ledger item id argument');
+        }
+        if (Array.isArray (id)) {
+            id = id.slice (0, 20).join (',');
+        }
+        let request = this.extend ({
+            'id': id,
+        }, params);
+        let response = await this.privatePostQueryLedgers (request);
+        // {  error: [],
+        //   result: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
+        //                                         time:  1520103488.314,
+        //                                         type: "withdrawal",
+        //                                       aclass: "currency",
+        //                                        asset: "XETH",
+        //                                       amount: "-0.2805800000",
+        //                                          fee: "0.0050000000",
+        //                                      balance: "0.0000051000"           } } }
+        let ledger = response['result'];
+        let keys = Object.keys (ledger);
+        let data = [];
+        for (let i = 0; i < keys.length; i++) {
+            let key = keys[i];
+            let value = ledger[key];
+            value['id'] = key;
+            data.push (value);
+        }
+        return this.parseLedgerItems (data);
     }
 
     parseTrade (trade, market = undefined) {
