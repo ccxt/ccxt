@@ -2,7 +2,7 @@
 
 // ---------------------------------------------------------------------------
 
-const okcoinusd = require ('./okcoinusd.js');
+let okcoinusd = require ('./okcoinusd.js');
 
 // ---------------------------------------------------------------------------
 
@@ -11,11 +11,21 @@ module.exports = class okex extends okcoinusd {
         return this.deepExtend (super.describe (), {
             'id': 'okex',
             'name': 'OKEX',
-            'countries': [ 'CN', 'US' ],
+            'countries': ['CN', 'US'],
             'has': {
                 'CORS': false,
                 'futures': true,
                 'fetchTickers': true,
+            },
+            'api': {
+                'web': {
+                    'get': [
+                        'spot/markets/products',
+                    ],
+                    'post': [
+                        'futures/pc/market/futuresCoin',
+                    ],
+                },
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg',
@@ -60,20 +70,102 @@ module.exports = class okex extends okcoinusd {
     }
 
     async fetchMarkets (params = {}) {
-        let markets = await super.fetchMarkets (params);
         // TODO: they have a new fee schedule as of Feb 7
         // the new fees are progressive and depend on 30-day traded volume
         // the following is the worst case
+
+        let futuresResponse = await this.webPostFuturesPcMarketFuturesCoin ();
+        let spotResponse = await this.webGetSpotMarketsProducts ();
+        let markets = spotResponse.data.concat (futuresResponse.data);
+        let result = [];
         for (let i = 0; i < markets.length; i++) {
-            if (markets[i]['spot']) {
-                markets[i]['maker'] = 0.0015;
-                markets[i]['taker'] = 0.0020;
+            let isFutureMarket = typeof markets[i]['contracts'] !== 'undefined';
+            let id = markets[i]['symbol'];
+            let precision = {
+                'amount': markets[i]['maxSizeDigit'],
+                'price': markets[i]['maxPriceDigit'],
+            };
+            let minAmount = markets[i]['minTradeSize'];
+            let minPrice = Math.pow (10, -precision['price']);
+            if (isFutureMarket) {
+                id = id.replace (/^f_/, '');
+                let baseId = markets[i].symbolDesc;
+                let quoteId = markets[i].quote.toUpperCase ();
+                let base = this.commonCurrencyCode (baseId);
+                let quote = this.commonCurrencyCode (quoteId);
+                let symbol = base + '/' + quote;
+                result.push (this.extend (this.fees['trading'], {
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'info': markets[i],
+                    'type': 'future',
+                    'spot': false,
+                    'future': true,
+                    'active': true,
+                    'precision': precision,
+                    'limits': {
+                        'amount': {
+                            'min': minAmount,
+                            'max': undefined,
+                        },
+                        'price': {
+                            'min': minPrice,
+                            'max': undefined,
+                        },
+                        'cost': {
+                            'min': minAmount * minPrice,
+                            'max': undefined,
+                        },
+                    },
+                    'maker': 0.0003,
+                    'taker': 0.0005,
+                }));
             } else {
-                markets[i]['maker'] = 0.0003;
-                markets[i]['taker'] = 0.0005;
+                let [baseId, quoteId] = id.split ('_');
+                let baseIdUppercase = baseId.toUpperCase ();
+                let quoteIdUppercase = quoteId.toUpperCase ();
+                let base = this.commonCurrencyCode (baseIdUppercase);
+                let quote = this.commonCurrencyCode (quoteIdUppercase);
+                let symbol = base + '/' + quote;
+                result.push (this.extend (this.fees['trading'], {
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'baseNumericId': markets[i]['baseCurrency'],
+                    'quoteNumericId': markets[i]['quoteCurrency'],
+                    'info': markets[i],
+                    'type': 'spot',
+                    'spot': true,
+                    'future': false,
+                    'active': markets[i]['online'] !== 0,
+                    'precision': precision,
+                    'limits': {
+                        'amount': {
+                            'min': minAmount,
+                            'max': undefined,
+                        },
+                        'price': {
+                            'min': minPrice,
+                            'max': undefined,
+                        },
+                        'cost': {
+                            'min': minAmount * minPrice,
+                            'max': undefined,
+                        },
+                    },
+                    'maker': 0.0015,
+                    'taker': 0.0020,
+                }));
             }
         }
-        return markets;
+        return result;
     }
 
     async fetchTickersFromApi (symbols = undefined, params = {}) {
