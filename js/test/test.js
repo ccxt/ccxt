@@ -231,6 +231,10 @@ let testExchange = async exchange => {
     await tests['fetchClosedOrders'] (exchange, symbol)
     await tests['fetchMyTrades']     (exchange, symbol)
 
+    if ('fetchLedgerItems' in tests) {
+        await tests['fetchLedgerItems'] (exchange)
+    }
+
     // const code = exchange.markets[symbol]['quote']
     // await tests['fetchTransactions'] (exchange, code)
     // await tests['fetchDeposits']     (exchange, code)

@@ -32,6 +32,8 @@ module.exports = class kraken extends Exchange {
                 'fetchWithdrawals': true,
                 'fetchDeposits': true,
                 'withdraw': true,
+                'fetchLedgerItem': true,
+                'fetchLedgerItems': true,
             },
             'marketsByAltname': {},
             'timeframes': {
