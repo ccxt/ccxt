@@ -634,7 +634,7 @@ module.exports = class kraken extends Exchange {
         // https://www.kraken.com/features/api#query-ledgers
         await this.loadMarkets ();
         if (Array.isArray (ids)) {
-            ids = ids.slice (0, 20).join (',');
+            ids = ids.join (',');
         }
         let request = this.extend ({
             'id': ids,
