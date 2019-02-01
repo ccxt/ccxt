@@ -1520,7 +1520,7 @@ class Exchange {
         return $this->parse_trades ($trades, $market, $since, $limit);
     }
 
-    public function parse_ledger_items ($items, $currency = null, $since = null, $limit = null) {
+    public function parse_ledger ($items, $currency = null, $since = null, $limit = null) {
         $array = is_array ($items) ? array_values ($items) : array ();
         $result = array ();
         foreach ($array as $item)
@@ -1530,8 +1530,8 @@ class Exchange {
         return $this->filter_by_currency_since_limit ($result, $code, $since, $limit);
     }
 
-    public function parseLedgerItems ($items, $currency = null, $since = null, $limit = null) {
-        return $this->parse_ledger_items ($items, $currency, $since, $limit);
+    public function parseLedger ($items, $currency = null, $since = null, $limit = null) {
+        return $this->parse_ledger ($items, $currency, $since, $limit);
     }
 
     public function parse_transactions ($transactions, $currency = null, $since = null, $limit = null) {

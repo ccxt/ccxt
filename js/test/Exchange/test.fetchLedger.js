@@ -14,9 +14,9 @@ require ('ansicolor').nice
 
 module.exports = async (exchange, code) => {
 
-    if (exchange.has.fetchLedgerItems) {
+    if (exchange.has.fetchLedger) {
 
-        let items = await exchange.fetchLedgerItems (code)
+        let items = await exchange.fetchLedger (code)
 
         assert (items instanceof Array)
 

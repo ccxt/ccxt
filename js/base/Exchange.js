@@ -1181,7 +1181,7 @@ module.exports = class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    parseLedgerItems (data, currency = undefined, since = undefined, limit = undefined) {
+    parseLedger (data, currency = undefined, since = undefined, limit = undefined) {
         let result = [];
         let array = Object.values (data || []);
         for (let i = 0; i < array.length; i++) {

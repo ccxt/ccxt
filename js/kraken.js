@@ -33,7 +33,7 @@ module.exports = class kraken extends Exchange {
                 'fetchDeposits': true,
                 'withdraw': true,
                 'fetchLedgerItem': true,
-                'fetchLedgerItems': true,
+                'fetchLedger': true,
             },
             'marketsByAltname': {},
             'timeframes': {
@@ -594,7 +594,7 @@ module.exports = class kraken extends Exchange {
         };
     }
 
-    async fetchLedgerItems (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
         // https://www.kraken.com/features/api#get-ledgers-info
         await this.loadMarkets ();
         let request = {};
@@ -625,7 +625,7 @@ module.exports = class kraken extends Exchange {
             value['id'] = key;
             data.push (value);
         }
-        return this.parseLedgerItems (data, currency, since, limit);
+        return this.parseLedger (data, currency, since, limit);
     }
 
     async fetchLedgerItem (id, code = undefined, params = {}) {
@@ -659,7 +659,7 @@ module.exports = class kraken extends Exchange {
             value['id'] = key;
             data.push (value);
         }
-        return this.parseLedgerItems (data);
+        return this.parseLedger (data);
     }
 
     parseTrade (trade, market = undefined) {
