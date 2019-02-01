@@ -630,17 +630,14 @@ module.exports = class kraken extends Exchange {
         return this.parseLedger (data, currency, since, limit);
     }
 
-    async fetchLedgerItem (id, code = undefined, params = {}) {
+    async fetchLedgerItemsByIds (ids, code = undefined, params = {}) {
         // https://www.kraken.com/features/api#query-ledgers
-        if (id === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchLedgerItem requires a ledger item id argument');
-        }
         await this.loadMarkets ();
-        if (Array.isArray (id)) {
-            id = id.slice (0, 20).join (',');
+        if (Array.isArray (ids)) {
+            ids = ids.slice (0, 20).join (',');
         }
         let request = this.extend ({
-            'id': id,
+            'id': ids,
         }, params);
         let response = await this.privatePostQueryLedgers (request);
         // {  error: [],
@@ -662,6 +659,11 @@ module.exports = class kraken extends Exchange {
             data.push (value);
         }
         return this.parseLedger (data);
+    }
+
+    async fetchLedgerItem (id, code = undefined, params = {}) {
+        let items = await this.fetchLedgerItemsByIds (id, code, params);
+        return items[0];
     }
 
     parseTrade (trade, market = undefined) {
