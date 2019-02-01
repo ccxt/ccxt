@@ -44,12 +44,15 @@ module.exports = class okcoinusd extends Exchange {
             'api': {
                 'web': {
                     'get': [
-                        'futures/pc/market/marketOverview', // todo: merge in fetchMarkets
+                        'futures/pc/market/marketOverview',
                         'spot/markets/index-tickers', // todo: add fetchTickers
                         'spot/markets/currencies',
                         'spot/markets/products',
                         'spot/markets/tickers',
                         'spot/user-level',
+                    ],
+                    'post': [
+                        'futures/pc/market/futuresCoin',
                     ],
                 },
                 'public': {
@@ -306,61 +309,47 @@ module.exports = class okcoinusd extends Exchange {
             },
             'options': {
                 'marketBuyPrice': false,
-                'defaultContractType': 'this_week', // next_week, quarter
                 'warnOnFetchOHLCVLimitArgument': true,
                 'fiats': [ 'USD', 'CNY' ],
-                'futures': {
-                    'BCH': true,
-                    'BTC': true,
-                    'BTG': true,
-                    'EOS': true,
-                    'ETC': true,
-                    'ETH': true,
-                    'LTC': true,
-                    'NEO': true,
-                    'QTUM': true,
-                    'USDT': true,
-                    'XRP': true,
-                },
             },
         });
     }
 
     async fetchMarkets (params = {}) {
-        let response = await this.webGetSpotMarketsProducts ();
-        let markets = response['data'];
+        // TODO: they have a new fee schedule as of Feb 7
+        // the new fees are progressive and depend on 30-day traded volume
+        // the following is the worst case
         let result = [];
-        for (let i = 0; i < markets.length; i++) {
-            let id = markets[i]['symbol'];
-            let [ baseId, quoteId ] = id.split ('_');
+        let spotResponse = await this.webGetSpotMarketsProducts ();
+        let spotMarkets = spotResponse.data;
+        for (let i = 0; i < spotMarkets.length; i++) {
+            let id = spotMarkets[i]['symbol'];
+            let precision = {
+                'amount': spotMarkets[i]['maxSizeDigit'],
+                'price': spotMarkets[i]['maxPriceDigit'],
+            };
+            let minAmount = spotMarkets[i]['minTradeSize'];
+            let minPrice = Math.pow (10, -precision['price']);
+            let [baseId, quoteId] = id.split ('_');
             let baseIdUppercase = baseId.toUpperCase ();
             let quoteIdUppercase = quoteId.toUpperCase ();
             let base = this.commonCurrencyCode (baseIdUppercase);
             let quote = this.commonCurrencyCode (quoteIdUppercase);
             let symbol = base + '/' + quote;
-            let precision = {
-                'amount': markets[i]['maxSizeDigit'],
-                'price': markets[i]['maxPriceDigit'],
-            };
-            let minAmount = markets[i]['minTradeSize'];
-            let minPrice = Math.pow (10, -precision['price']);
-            let active = (markets[i]['online'] !== 0);
-            let baseNumericId = markets[i]['baseCurrency'];
-            let quoteNumericId = markets[i]['quoteCurrency'];
-            let market = this.extend (this.fees['trading'], {
+            result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'baseNumericId': baseNumericId,
-                'quoteNumericId': quoteNumericId,
-                'info': markets[i],
+                'baseNumericId': spotMarkets[i]['baseCurrency'],
+                'quoteNumericId': spotMarkets[i]['quoteCurrency'],
+                'info': spotMarkets[i],
                 'type': 'spot',
                 'spot': true,
                 'future': false,
-                'active': active,
+                'active': spotMarkets[i]['online'] !== 0,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -376,21 +365,58 @@ module.exports = class okcoinusd extends Exchange {
                         'max': undefined,
                     },
                 },
-            });
-            result.push (market);
-            if ((this.has['futures']) && (market['base'] in this.options['futures'])) {
-                let fiats = this.options['fiats'];
-                for (let j = 0; j < fiats.length; j++) {
-                    const fiat = fiats[j];
-                    const lowercaseFiat = fiat.toLowerCase ();
-                    result.push (this.extend (market, {
-                        'quote': fiat,
-                        'symbol': market['base'] + '/' + fiat,
-                        'id': market['base'].toLowerCase () + '_' + lowercaseFiat,
-                        'quoteId': lowercaseFiat,
+                'maker': 0.0015,
+                'taker': 0.0020,
+            }));
+        }
+        if (this.has['futures']) {
+            let futuresResponse = await this.webPostFuturesPcMarketFuturesCoin ();
+            let futuresMarkets = futuresResponse.data;
+            for (let i = 0; i < futuresMarkets.length; i++) {
+                let precision = {
+                    'amount': futuresMarkets[i]['maxSizeDigit'],
+                    'price': futuresMarkets[i]['maxPriceDigit'],
+                };
+                let minAmount = futuresMarkets[i]['minTradeSize'];
+                let minPrice = Math.pow (10, -precision['price']);
+                let baseId = futuresMarkets[i].symbolDesc;
+                let quoteId = futuresMarkets[i].quote.toUpperCase ();
+                let base = this.commonCurrencyCode (baseId);
+                let quote = this.commonCurrencyCode (quoteId);
+                for (let j = 0; j < this.options['contractTypes'].length; j++) {
+                    let contractType = this.options['contractTypes'][j];
+                    // let id = futuresMarkets[i]['symbol'] + '__' + contractType;
+                    let id = baseId.toLowerCase () + '_' + quoteId.toLowerCase () + '__' + contractType;
+                    let symbol = id.toUpperCase ();
+                    result.push (this.extend (this.fees['trading'], {
+                        'id': id,
+                        'symbol': symbol,
+                        'base': base,
+                        'quote': quote,
+                        'baseId': baseId,
+                        'quoteId': quoteId,
+                        'info': futuresMarkets[i],
                         'type': 'future',
                         'spot': false,
                         'future': true,
+                        'active': true,
+                        'precision': precision,
+                        'limits': {
+                            'amount': {
+                                'min': minAmount,
+                                'max': undefined,
+                            },
+                            'price': {
+                                'min': minPrice,
+                                'max': undefined,
+                            },
+                            'cost': {
+                                'min': minAmount * minPrice,
+                                'max': undefined,
+                            },
+                        },
+                        'maker': 0.0003,
+                        'taker': 0.0005,
                     }));
                 }
             }
@@ -401,17 +427,10 @@ module.exports = class okcoinusd extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let method = 'publicGet';
-        let request = {
-            'symbol': market['id'],
-        };
+        let method = market['future'] ? 'publicGetFutureDepth' : 'publicGetDepth';
+        let request = this.createRequestBase (market);
         if (limit !== undefined)
             request['size'] = limit;
-        if (market['future']) {
-            method += 'Future';
-            request['contract_type'] = this.options['defaultContractType']; // this_week, next_week, quarter
-        }
-        method += 'Depth';
         let orderbook = await this[method] (this.extend (request, params));
         return this.parseOrderBook (orderbook);
     }
@@ -490,15 +509,8 @@ module.exports = class okcoinusd extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let method = 'publicGet';
-        let request = {
-            'symbol': market['id'],
-        };
-        if (market['future']) {
-            method += 'Future';
-            request['contract_type'] = this.options['defaultContractType']; // this_week, next_week, quarter
-        }
-        method += 'Ticker';
+        let request = this.createRequestBase (market);
+        let method = market['future'] ? 'publicGetFutureTicker' : 'publicGetTicker';
         let response = await this[method] (this.extend (request, params));
         let ticker = this.safeValue (response, 'ticker');
         if (ticker === undefined)
@@ -532,15 +544,8 @@ module.exports = class okcoinusd extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let method = 'publicGet';
-        let request = {
-            'symbol': market['id'],
-        };
-        if (market['future']) {
-            method += 'Future';
-            request['contract_type'] = this.options['defaultContractType']; // this_week, next_week, quarter
-        }
-        method += 'Trades';
+        let method = market['future'] ? 'publicGetFutureTrades' : 'publicGetTrades';
+        let request = this.createRequestBase (market);
         let response = await this[method] (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -563,16 +568,9 @@ module.exports = class okcoinusd extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let method = 'publicGet';
-        let request = {
-            'symbol': market['id'],
-            'type': this.timeframes[timeframe],
-        };
-        if (market['future']) {
-            method += 'Future';
-            request['contract_type'] = this.options['defaultContractType']; // this_week, next_week, quarter
-        }
-        method += 'Kline';
+        let method = market['future'] ? 'publicGetFutureKline' : 'publicGetKline';
+        let request = this.createRequestBase (market);
+        request.type = this.timeframes[timeframe];
         if (limit !== undefined) {
             if (this.options['warnOnFetchOHLCVLimitArgument'])
                 throw new ExchangeError (this.id + ' fetchOHLCV counts "limit" candles from current time backwards, therefore the "limit" argument for ' + this.id + ' is disabled. Set ' + this.id + '.options["warnOnFetchOHLCVLimitArgument"] = false to suppress this warning message.');
@@ -619,15 +617,11 @@ module.exports = class okcoinusd extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let method = 'privatePost';
-        let order = {
-            'symbol': market['id'],
-            'type': side,
-        };
+        let method = market['future'] ? 'privatePostFutureTrade' : 'privatePostTrade';
+        let request = this.createRequestBase (market);
+        request['type'] = side;
         if (market['future']) {
-            method += 'Future';
-            order = this.extend (order, {
-                'contract_type': this.options['defaultContractType'], // this_week, next_week, quarter
+            request = this.extend (request, {
                 'match_price': 0, // match best counter party price? 0 or 1, ignores price if 1
                 'lever_rate': 10, // leverage rate value: 10 or 20 (10 by default)
                 'price': price,
@@ -635,32 +629,31 @@ module.exports = class okcoinusd extends Exchange {
             });
         } else {
             if (type === 'limit') {
-                order['price'] = price;
-                order['amount'] = amount;
+                request['price'] = price;
+                request['amount'] = amount;
             } else {
-                order['type'] += '_market';
+                request['type'] += '_market';
                 if (side === 'buy') {
                     if (this.options['marketBuyPrice']) {
                         if (price === undefined) {
                             // eslint-disable-next-line quotes
                             throw new ExchangeError (this.id + " market buy orders require a price argument (the amount you want to spend or the cost of the order) when this.options['marketBuyPrice'] is true.");
                         }
-                        order['price'] = price;
+                        request['price'] = price;
                     } else {
-                        order['price'] = this.safeFloat (params, 'cost');
-                        if (!order['price']) {
+                        request['price'] = this.safeFloat (params, 'cost');
+                        if (!request['price']) {
                             // eslint-disable-next-line quotes
                             throw new ExchangeError (this.id + " market buy orders require an additional cost parameter, cost = price * amount. If you want to pass the cost of the market order (the amount you want to spend) in the price argument (the default " + this.id + " behaviour), set this.options['marketBuyPrice'] = true. It will effectively suppress this warning exception as well.");
                         }
                     }
                 } else {
-                    order['amount'] = amount;
+                    request['amount'] = amount;
                 }
             }
         }
         params = this.omit (params, 'cost');
-        method += 'Trade';
-        let response = await this[method] (this.extend (order, params));
+        let response = await this[method] (this.extend (request, params));
         let timestamp = this.milliseconds ();
         return {
             'info': response,
@@ -687,17 +680,9 @@ module.exports = class okcoinusd extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let request = {
-            'symbol': market['id'],
-            'order_id': id,
-        };
-        let method = 'privatePost';
-        if (market['future']) {
-            method += 'FutureCancel';
-            request['contract_type'] = this.options['defaultContractType']; // this_week, next_week, quarter
-        } else {
-            method += 'CancelOrder';
-        }
+        let method = market['future'] ? 'privatePostFutureCancel' : 'privatePostCancelOrder';
+        let request = this.createRequestBase (market);
+        request['order_id'] = id;
         let response = await this[method] (this.extend (request, params));
         return response;
     }
@@ -804,23 +789,17 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        // params:
+        // 'status': 0, // 0 for unfilled orders, 1 for filled orders
+        // 'current_page': 1, // current page number
+        // 'page_length': 200, // number of orders returned per page, maximum 200
         if (symbol === undefined)
             throw new ExchangeError (this.id + ' fetchOrder requires a symbol parameter');
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let method = 'privatePost';
-        let request = {
-            'order_id': id,
-            'symbol': market['id'],
-            // 'status': 0, // 0 for unfilled orders, 1 for filled orders
-            // 'current_page': 1, // current page number
-            // 'page_length': 200, // number of orders returned per page, maximum 200
-        };
-        if (market['future']) {
-            method += 'Future';
-            request['contract_type'] = this.options['defaultContractType']; // this_week, next_week, quarter
-        }
-        method += 'OrderInfo';
+        let method = market['future'] ? 'privatePostFutureOrderInfo' : 'privatePostOrderInfo';
+        let request = this.createRequestBase (market);
+        request['order_id'] = id;
         let response = await this[method] (this.extend (request, params));
         let ordersField = this.getOrdersField ();
         let numOrders = response[ordersField].length;
@@ -834,16 +813,13 @@ module.exports = class okcoinusd extends Exchange {
             throw new ExchangeError (this.id + ' fetchOrders requires a symbol parameter');
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let method = 'privatePost';
-        let request = {
-            'symbol': market['id'],
-        };
+        let method = market['future'] ? 'privatePostFutureOrdersInfo' : 'privatePost';
+        let request = this.createRequestBase (market);
         let order_id_in_params = ('order_id' in params);
         if (market['future']) {
-            method += 'FutureOrdersInfo';
-            request['contract_type'] = this.options['defaultContractType']; // this_week, next_week, quarter
-            if (!order_id_in_params)
+            if (!order_id_in_params) {
                 throw new ExchangeError (this.id + ' fetchOrders() requires order_id param for futures market ' + symbol + ' (a string of one or more order ids, comma-separated)');
+            }
         } else {
             let status = undefined;
             if ('type' in params) {
@@ -956,6 +932,19 @@ module.exports = class okcoinusd extends Exchange {
         }
         url = this.urls['api'][api] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    createRequestBase (market) {
+        if (!market['future']) {
+            return {
+                'symbol': market['id'],
+            };
+        }
+        let marketParts = market['id'].split ('__');
+        return {
+            'symbol': marketParts[0],
+            'contract_type': marketParts[1],
+        };
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
