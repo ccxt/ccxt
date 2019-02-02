@@ -530,7 +530,7 @@ module.exports = class kraken extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    parseLedgerItem (data, currency = undefined) {
+    parseLedgerItem (item, currency = undefined) {
         // { 'LTFK7F-N2CUX-PNY4SX': {   refid: "TSJTGT-DT7WN-GPPQMJ",
         //                               time:  1520102320.555,
         //                               type: "trade",
@@ -539,13 +539,13 @@ module.exports = class kraken extends Exchange {
         //                             amount: "0.1087194600",
         //                                fee: "0.0000000000",
         //                            balance: "0.2855851000"         }, ... }
-        let id = this.safeString (data, 'id');
+        let id = this.safeString (item, 'id');
         let direction = undefined;
         let account = undefined;
-        let referenceId = this.safeString (data, 'refid');
+        let referenceId = this.safeString (item, 'refid');
         let referenceAccount = undefined;
         let type = undefined;
-        let itemType = this.safeString (data, 'type');
+        let itemType = this.safeString (item, 'type');
         if (itemType === 'trade') {
             type = 'trade';
         } else if (itemType === 'withdrawal') {
@@ -557,15 +557,15 @@ module.exports = class kraken extends Exchange {
         } else {
             throw new ExchangeError (this.id + ' unsupported ledger item type: ' + itemType);
         }
-        let code = this.safeCurrencyCode (data, 'asset', currency);
-        let amount = this.safeFloat (data, 'amount');
+        let code = this.safeCurrencyCode (item, 'asset', currency);
+        let amount = this.safeFloat (item, 'amount');
         if (amount < 0) {
             direction = 'out';
             amount = Math.abs (amount);
         } else {
             direction = 'in';
         }
-        let time = this.safeFloat (data, 'time');
+        let time = this.safeFloat (item, 'time');
         let timestamp = undefined;
         let datetime = undefined;
         if (time !== undefined) {
@@ -573,13 +573,13 @@ module.exports = class kraken extends Exchange {
             datetime = this.iso8601 (timestamp);
         }
         let fee = {
-            'cost': this.safeFloat (data, 'fee'),
+            'cost': this.safeFloat (item, 'fee'),
             'currency': code,
         };
         let balanceBefore = undefined;
-        let balanceAfter = this.safeFloat (data, 'balance');
+        let balanceAfter = this.safeFloat (item, 'balance');
         return {
-            'info': data,
+            'info': item,
             'id': id,
             'direction': direction,
             'account': account,
@@ -620,14 +620,14 @@ module.exports = class kraken extends Exchange {
         //                                                balance: "0.0000051000"           },
         let ledger = response['result']['ledger'];
         let keys = Object.keys (ledger);
-        let data = [];
+        let items = [];
         for (let i = 0; i < keys.length; i++) {
             let key = keys[i];
             let value = ledger[key];
             value['id'] = key;
-            data.push (value);
+            items.push (value);
         }
-        return this.parseLedger (data, currency, since, limit);
+        return this.parseLedger (items, currency, since, limit);
     }
 
     async fetchLedgerItemsByIds (ids, code = undefined, params = {}) {
@@ -647,21 +647,20 @@ module.exports = class kraken extends Exchange {
         //                                       amount: "-0.2805800000",
         //                                          fee: "0.0050000000",
         //                                      balance: "0.0000051000"           } } }
-        let ledger = response['result'];
-        let keys = Object.keys (ledger);
-        let data = [];
+        let result = response['result'];
+        let keys = Object.keys (result);
+        let items = [];
         for (let i = 0; i < keys.length; i++) {
             let key = keys[i];
-            let value = ledger[key];
+            let value = result[key];
             value['id'] = key;
-            data.push (value);
+            items.push (value);
         }
-        return this.parseLedger (data);
+        return this.parseLedger (items);
     }
 
     async fetchLedgerItem (id, code = undefined, params = {}) {
-        id = [id];
-        let items = await this.fetchLedgerItemsByIds (id, code, params);
+        const items = await this.fetchLedgerItemsByIds ([ id ], code, params);
         return items[0];
     }
 
