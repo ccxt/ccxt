@@ -12,7 +12,7 @@ module.exports = class stronghold extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'stronghold',
             'name': 'Stronghold',
-            'country': ['US'],
+            'country': [ 'US' ],
             'rateLimit': 1000,
             'version': 'v1',
             'comment': 'This comment is optional',
@@ -119,21 +119,44 @@ module.exports = class stronghold extends Exchange {
         });
     }
 
+    async fetchTime (params = {}) {
+        const response = await this.publicGetUtilitiesTime (params);
+        //
+        //     {
+        //         "requestId": "6de8f506-ad9d-4d0d-94f3-ec4d55dfcdb9",
+        //         "timestamp": 1536436649207281,
+        //         "success": true,
+        //         "statusCode": 200,
+        //         "result": {
+        //             "timestamp": "2018-09-08T19:57:29.207282Z"
+        //         }
+        //     }
+        //
+        return this.parse8601 (this.safeString (response['result'], 'timestamp'));
+    }
+
     async fetchMarkets (params = {}) {
         const request = {
             'venueId': this.options['venueId'],
         };
         const response = await this.publicGetVenuesVenueIdMarkets (this.extend (request, params));
         const data = response['result'];
-        // [ { id: 'SHXUSD',
-        //     baseAssetId: 'SHX/stronghold.co',
-        //     counterAssetId: 'USD/stronghold.co',
-        //     minimumOrderSize: '1.0000000',
-        //     minimumOrderIncrement: '1.0000000',
-        //     minimumPriceIncrement: '0.00010000',
-        //     displayDecimalsPrice: 4,
-        //     displayDecimalsAmount: 0 }, ... ]
-        let result = {};
+        //
+        //     [
+        //         {
+        //             id: 'SHXUSD',
+        //             baseAssetId: 'SHX/stronghold.co',
+        //             counterAssetId: 'USD/stronghold.co',
+        //             minimumOrderSize: '1.0000000',
+        //             minimumOrderIncrement: '1.0000000',
+        //             minimumPriceIncrement: '0.00010000',
+        //             displayDecimalsPrice: 4,
+        //             displayDecimalsAmount: 0
+        //         },
+        //         ...
+        //     ]
+        //
+        const result = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const marketId = entry['id'];
@@ -561,13 +584,17 @@ module.exports = class stronghold extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response) {
         if (!response) {
-            return;
+            return; // fallback to base error handler by default
         }
-        // { requestId: '3e7d17ab-b316-4721-b5aa-f7e6497eeab9',
-        //   timestamp: '2019-01-31T21:59:06.696855Z',
-        //   success: true,
-        //   statusCode: 200,
-        //   result: [] }
+        //
+        //     {
+        //         requestId: '3e7d17ab-b316-4721-b5aa-f7e6497eeab9',
+        //         timestamp: '2019-01-31T21:59:06.696855Z',
+        //         success: true,
+        //         statusCode: 200,
+        //         result: []
+        //     }
+        //
         let errorCode = this.safeString (response, 'errorCode');
         if (errorCode in this.exceptions) {
             let Exception = this.exceptions[errorCode];
