@@ -271,11 +271,16 @@ module.exports = class stronghold extends Exchange {
         const response = await this.publicGetVenuesVenueIdMarketsMarketIdTrades (this.extend (request, params));
         //
         //     {
-        //         marketId: 'ETHBTC',
-        //         trades: [
-        //             [ '0.03150000', '0.0012000', 'sell', '2019-01-28T01:42:17Z' ],
+        //         "requestId": "4d343700-b53f-4975-afcc-732ae9d3c828",
+        //         "timestamp": "2018-11-08T19:22:11.399543Z",
+        //         "success": true,
+        //         "statusCode": 200,
+        //         "result": {
+        //         "marketId": "",
+        //         "trades": [
+        //             [ "0.9", "3.10", "sell", "2018-11-08T19:22:11.399547Z" ],
         //             ...
-        //         ]
+        //         ],
         //     }
         //
         return this.parseTrades (response['result']['trades'], market, since, limit);
