@@ -98,7 +98,10 @@ module.exports = class stronghold extends Exchange {
             'options': {
                 'accountId': undefined,
                 'venueId': 'trade-public',
-                'venues': [ 'trade-public', 'sandbox-public' ],
+                'venues': {
+                    'trade': 'trade-public',
+                    'sandbox': 'sandbox-public',
+                },
                 'paymentMethods': {
                     'ETH': 'ethereum',
                     'BTC': 'bitcoin',
@@ -230,6 +233,9 @@ module.exports = class stronghold extends Exchange {
                 'id': currencyId,
                 'precision': precision,
                 'info': entry,
+                'active': undefined,
+                'name': undefined,
+                'limits': this.limits (),
             };
         }
         return result;
@@ -435,6 +441,13 @@ module.exports = class stronghold extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        // { id: '178596',
+        //   marketId: 'XLMUSD',
+        //   side: 'buy',
+        //   size: '1.0000000',
+        //   sizeFilled: '0',
+        //   price: '0.10000000',
+        //   placedAt: '2019-02-01T19:47:52Z' }
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -463,12 +476,9 @@ module.exports = class stronghold extends Exchange {
 
     setSandboxMode (enabled) {
         if (enabled) {
-            this.options['venues']['backup'] = this.options['venues']['main'];
-            this.options['venues']['main'] = this.options['venues']['sandbox'];
+            this.options['venueId'] = this.options['venues']['sandbox'];
         } else {
-            if ('backup' in this.options['venues']) {
-                this.options['venues']['main'] = this.options['venues']['backup'];
-            }
+            this.options['venueId'] = this.options['venues']['trade'];
         }
     }
 
@@ -621,8 +631,8 @@ module.exports = class stronghold extends Exchange {
         const request = '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'][api] + request;
-        if (method === 'GET') {
-            if (Object.keys (query).length) {
+        if (Object.keys (query).length) {
+            if (method === 'GET') {
                 url += '?' + this.urlencode (query);
             } else {
                 body = this.json (query);

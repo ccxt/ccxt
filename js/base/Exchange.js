@@ -1601,4 +1601,21 @@ module.exports = class Exchange {
             throw new ExchangeError (this.id + ' this.twofa has not been set')
         }
     }
+
+    limits () {
+        return {
+            'amount': {
+                'min': undefined,
+                'max': undefined,
+            },
+            'price': {
+                'min': undefined,
+                'max': undefined,
+            },
+            'cost': {
+                'min': undefined,
+                'max': undefined,
+            },
+        };
+    }
 }
