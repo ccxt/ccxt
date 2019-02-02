@@ -235,7 +235,7 @@ module.exports = class stronghold extends Exchange {
                 'info': entry,
                 'active': undefined,
                 'name': undefined,
-                'limits': this.limits (),
+                'limits': this.limit (),
             };
         }
         return result;
