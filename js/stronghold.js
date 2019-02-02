@@ -580,23 +580,23 @@ module.exports = class stronghold extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let endpoint = '/' + this.version + '/' + this.implodeParams (path, params);
-        const rawEndpoint = endpoint;
+        const request = '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        let endpart = '';
-        if (Object.keys (query).length > 0) {
-            if (method === 'GET') {
-                endpoint += '?' + this.urlencode (query);
+        let url = this.urls['api'][api] + request;
+        if (method === 'GET') {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
             } else {
                 body = this.json (query);
-                endpart = body;
             }
         }
-        let url = this.urls['api'][api] + endpoint;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ().toString ();
-            const payload = timestamp + method + rawEndpoint + endpart;
+            let payload = timestamp + method + request;
+            if (body !== undefined) {
+                payload += body;
+            }
             const secret = this.base64ToBinary (this.secret);
             headers = {
                 'SH-CRED-ID': this.apiKey,
