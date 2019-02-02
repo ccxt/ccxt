@@ -506,7 +506,11 @@ module.exports = class stronghold extends Exchange {
             throw new ArgumentsRequired (this.id + " fetchMyTrades requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
         }
         const response = await this.privateGetVenuesVenueIdAccountsAccountIdTrades (request);
-        return this.parseTrades (response['result'], since, limit);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol)
+        }
+        return this.parseTrades (response['result'], market, since, limit);
     }
 
     async createDepositAddress (code, params = {}) {
