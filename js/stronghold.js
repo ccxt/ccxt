@@ -392,10 +392,15 @@ module.exports = class stronghold extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const response = await this.privateGetVenuesVenueIdAccountsAccountIdOrders (params);
-        const orders = response['result'];
-        return this.parseOrders (orders, market, since, limit);
+        const request = this.extend ({
+            'venueId': this.options['venueId'],
+            'accountId': this.options['accountId'],
+        }, request);
+        if (!request['accountId']) {
+            throw new ArgumentsRequired (this.id + " cancelOrder requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
+        }
+        const response = await this.privateGetVenuesVenueIdAccountsAccountIdOrders (request);
+        return this.parseOrders (response['result'], undefined, since, limit);
     }
 
     parseOrder (order, market = undefined) {
