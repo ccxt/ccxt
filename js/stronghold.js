@@ -259,9 +259,13 @@ module.exports = class stronghold extends Exchange {
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
+        const request = this.extend ({
             'venueId': this.options['venueId'],
-        };
+            'accountId': this.options['accountId'],
+        }, params);
+        if (!request['accountId']) {
+            throw new ArgumentsRequired (this.id + " fetchTransactions requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
+        }
         const response = await this.privateGetVenuesVenueIdAccountsAccountIdTransactions (params);
         let currency = undefined;
         if (code !== undefined) {
@@ -341,7 +345,7 @@ module.exports = class stronghold extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request = this.extend ({
             'venueId': this.options['venueId'],
             'accountId': this.options['accountId'],
             'marketID': market['id'],
@@ -349,7 +353,10 @@ module.exports = class stronghold extends Exchange {
             'side': side,
             'size': this.amountToPrecision (symbol, amount),
             'price': this.priceToPrecision (symbol, price),
-        };
+        }, params);
+        if (!request['accountId']) {
+            throw new ArgumentsRequired (this.id + " createOrder requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
+        }
         const response = await this.privatePostVenuesVenueIdAccountsAccountIdOrders (this.extend (request, params));
         //     const datetime = this.safeString (response, 'timestamp');        
         //     return {
