@@ -214,23 +214,36 @@ module.exports = class stronghold extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
-        const request = { 'marketId': marketId };
+        const request = {
+            'marketId': marketId,
+            'venueId': this.options['venueId'],
+        };
         const response = await this.publicGetVenuesVenueIdMarketsMarketIdOrderbook (this.extend (request, params));
-        // { marketId: 'ETHBTC',
-        //   bids:
-        //    [ [ '0.031500', '7.385000' ], ... ],
-        //   asks:
-        //    [ [ '0.031500', '7.385000' ], ... ], }
+        //
+        //     {
+        //         marketId: 'ETHBTC',
+        //         bids: [
+        //             [ '0.031500', '7.385000' ],
+        //             ...,
+        //         ],
+        //         asks: [
+        //             [ '0.031500', '7.385000' ],
+        //             ...,
+        //         ],
+        //     }
+        //
         const data = response['result'];
         const timestamp = this.parse8601 (this.safeString (response, 'timestamp'));
-        return this.parseOrderBook (data, timestamp, 'bids', 'asks', 0, 1);
+        return this.parseOrderBook (data, timestamp);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketId = market['id'];
-        const request = { 'marketId': marketId };
+        const request = {
+            'marketId': market['id'],
+            'venueId': this.options['venueId'],
+        };
         const response = await this.publicGetVenuesVenueIdMarketsMarketIdTrades (this.extend (request, params));
         //
         //     {
