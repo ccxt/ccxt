@@ -22,9 +22,9 @@ module.exports = class stronghold extends Exchange {
                     'public': 'https://api.stronghold.co',
                     'private': 'https://api.stronghold.co',
                 },
-                'www': 'https://www.example.com',
+                'www': 'https://stronghold.co',
                 'doc': [
-                    'https://docs.stronghold.co/',
+                    'https://docs.stronghold.co',
                 ],
             },
             'requiredCredentials': {
