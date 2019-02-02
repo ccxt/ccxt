@@ -508,7 +508,7 @@ module.exports = class stronghold extends Exchange {
         const response = await this.privateGetVenuesVenueIdAccountsAccountIdTrades (request);
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol)
+            market = this.market (symbol);
         }
         return this.parseTrades (response['result'], market, since, limit);
     }
