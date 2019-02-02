@@ -552,7 +552,8 @@ module.exports = class stronghold extends Exchange {
     }
 
     async fetchAccounts (params) {
-        return await this.privatePostVenuesVenueIdAccounts (params);
+        //     return await this.privatePostVenuesVenueIdAccounts (params);
+        throw new NotSupported (this.id + ' fetchAccounts is not implemented on the exchange side.');
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
@@ -603,23 +604,5 @@ module.exports = class stronghold extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const extractedParams = this.extractParams (path);
-        for (let i = 0; i < extractedParams.length; i++) {
-            let param = extractedParams[i];
-            if (!(param in params)) {
-                if (param === 'venueId') {
-                    params['venueId'] = this.options['venues']['main'];
-                } else if (param === 'accountId') {
-                    if (this.options['accountId'] === undefined) {
-                        throw new AuthenticationError (this.id + ' ' + path + ' requires an accountId');
-                    }
-                    params['accountId'] = this.options['accountId'];
-                }
-            }
-        }
-        return await this.fetch2 (path, api, method, params, headers, body);
     }
 };
