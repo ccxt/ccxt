@@ -266,7 +266,7 @@ module.exports = class stronghold extends Exchange {
         if (!request['accountId']) {
             throw new ArgumentsRequired (this.id + " fetchTransactions requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
         }
-        const response = await this.privateGetVenuesVenueIdAccountsAccountIdTransactions (params);
+        const response = await this.privateGetVenuesVenueIdAccountsAccountIdTransactions (request);
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -357,7 +357,8 @@ module.exports = class stronghold extends Exchange {
         if (!request['accountId']) {
             throw new ArgumentsRequired (this.id + " createOrder requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
         }
-        const response = await this.privatePostVenuesVenueIdAccountsAccountIdOrders (this.extend (request, params));
+        const response = await this.privatePostVenuesVenueIdAccountsAccountIdOrders (request);
+        // to be removed
         //     const datetime = this.safeString (response, 'timestamp');        
         //     return {
         //         'id': undefined,
@@ -369,17 +370,24 @@ module.exports = class stronghold extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        const request = {
+        const request = this.extend ({
+            'venueId': this.options['venueId'],
+            'accountId': this.options['accountId'],
             'orderId': id,
-        };
-        const response = await this.privateDeleteVenuesVenueIdAccountsAccountIdOrdersOrderId (this.extend (request, params));
-        const datetime = this.safeString (response, 'timestamp');
-        return {
-            'id': id,
-            'datetime': datetime,
-            'timestamp': this.parse8601 (datetime),
-            'info': response,
-        };
+        }, params);
+        if (!request['accountId']) {
+            throw new ArgumentsRequired (this.id + " cancelOrder requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
+        }
+        const response = await this.privateDeleteVenuesVenueIdAccountsAccountIdOrdersOrderId (request);
+        // to be removed
+        //     const datetime = this.safeString (response, 'timestamp');
+        //     return {
+        //         'id': id,
+        //         'datetime': datetime,
+        //         'timestamp': this.parse8601 (datetime),
+        //         'info': response,
+        //     };
+        return this.parseOrder (response);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
