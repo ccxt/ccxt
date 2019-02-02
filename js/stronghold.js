@@ -276,11 +276,12 @@ module.exports = class stronghold extends Exchange {
         //         "success": true,
         //         "statusCode": 200,
         //         "result": {
-        //         "marketId": "",
-        //         "trades": [
-        //             [ "0.9", "3.10", "sell", "2018-11-08T19:22:11.399547Z" ],
-        //             ...
-        //         ],
+        //             "marketId": "",
+        //             "trades": [
+        //                 [ "0.9", "3.10", "sell", "2018-11-08T19:22:11.399547Z" ],
+        //                 ...
+        //             ],
+        //         }
         //     }
         //
         return this.parseTrades (response['result']['trades'], market, since, limit);
