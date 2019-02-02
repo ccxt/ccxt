@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeNotAvailable, ArgumentsRequired, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress } = require ('./base/errors');
+const { ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -32,6 +32,8 @@ module.exports = class kraken extends Exchange {
                 'fetchWithdrawals': true,
                 'fetchDeposits': true,
                 'withdraw': true,
+                'fetchLedgerItem': true,
+                'fetchLedger': true,
             },
             'marketsByAltname': {},
             'timeframes': {
@@ -205,10 +207,12 @@ module.exports = class kraken extends Exchange {
                 'EService:Unavailable': ExchangeNotAvailable,
                 'EDatabase:Internal error': ExchangeNotAvailable,
                 'EService:Busy': ExchangeNotAvailable,
-                'EAPI:Rate limit exceeded': DDoSProtection,
                 'EQuery:Unknown asset': ExchangeError,
+                'EAPI:Rate limit exceeded': DDoSProtection,
+                'EOrder:Rate limit exceeded': DDoSProtection,
                 'EGeneral:Internal error': ExchangeNotAvailable,
                 'EGeneral:Temporary lockout': DDoSProtection,
+                'EGeneral:Permission denied': PermissionDenied,
             },
         });
     }
@@ -524,6 +528,140 @@ module.exports = class kraken extends Exchange {
         let response = await this.publicGetOHLC (this.extend (request, params));
         let ohlcvs = response['result'][market['id']];
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+    }
+
+    parseLedgerItem (item, currency = undefined) {
+        // { 'LTFK7F-N2CUX-PNY4SX': {   refid: "TSJTGT-DT7WN-GPPQMJ",
+        //                               time:  1520102320.555,
+        //                               type: "trade",
+        //                             aclass: "currency",
+        //                              asset: "XETH",
+        //                             amount: "0.1087194600",
+        //                                fee: "0.0000000000",
+        //                            balance: "0.2855851000"         }, ... }
+        let id = this.safeString (item, 'id');
+        let direction = undefined;
+        let account = undefined;
+        let referenceId = this.safeString (item, 'refid');
+        let referenceAccount = undefined;
+        let type = undefined;
+        let itemType = this.safeString (item, 'type');
+        if (itemType === 'trade') {
+            type = 'trade';
+        } else if (itemType === 'withdrawal') {
+            type = 'transaction';
+        } else if (itemType === 'deposit') {
+            type = 'transaction';
+        } else if (itemType === 'margin') {
+            type = 'margin'; // ← this needs to be unified
+        } else {
+            throw new ExchangeError (this.id + ' unsupported ledger item type: ' + itemType);
+        }
+        let code = this.safeCurrencyCode (item, 'asset', currency);
+        let amount = this.safeFloat (item, 'amount');
+        if (amount < 0) {
+            direction = 'out';
+            amount = Math.abs (amount);
+        } else {
+            direction = 'in';
+        }
+        let time = this.safeFloat (item, 'time');
+        let timestamp = undefined;
+        let datetime = undefined;
+        if (time !== undefined) {
+            timestamp = parseInt (time * 1000);
+            datetime = this.iso8601 (timestamp);
+        }
+        let fee = {
+            'cost': this.safeFloat (item, 'fee'),
+            'currency': code,
+        };
+        let balanceBefore = undefined;
+        let balanceAfter = this.safeFloat (item, 'balance');
+        return {
+            'info': item,
+            'id': id,
+            'direction': direction,
+            'account': account,
+            'referenceId': referenceId,
+            'referenceAccount': referenceAccount,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'balanceBefore': balanceBefore,
+            'balanceAfter': balanceAfter,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'fee': fee,
+        };
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        // https://www.kraken.com/features/api#get-ledgers-info
+        await this.loadMarkets ();
+        let request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['start'] = parseInt (since / 1000);
+        }
+        let response = await this.privatePostLedgers (this.extend (request, params));
+        // {  error: [],
+        //   result: { ledger: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
+        //                                                   time:  1520103488.314,
+        //                                                   type: "withdrawal",
+        //                                                 aclass: "currency",
+        //                                                  asset: "XETH",
+        //                                                 amount: "-0.2805800000",
+        //                                                    fee: "0.0050000000",
+        //                                                balance: "0.0000051000"           },
+        let ledger = response['result']['ledger'];
+        let keys = Object.keys (ledger);
+        let items = [];
+        for (let i = 0; i < keys.length; i++) {
+            let key = keys[i];
+            let value = ledger[key];
+            value['id'] = key;
+            items.push (value);
+        }
+        return this.parseLedger (items, currency, since, limit);
+    }
+
+    async fetchLedgerItemsByIds (ids, code = undefined, params = {}) {
+        // https://www.kraken.com/features/api#query-ledgers
+        await this.loadMarkets ();
+        ids = ids.join (',');
+        let request = this.extend ({
+            'id': ids,
+        }, params);
+        let response = await this.privatePostQueryLedgers (request);
+        // {  error: [],
+        //   result: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
+        //                                         time:  1520103488.314,
+        //                                         type: "withdrawal",
+        //                                       aclass: "currency",
+        //                                        asset: "XETH",
+        //                                       amount: "-0.2805800000",
+        //                                          fee: "0.0050000000",
+        //                                      balance: "0.0000051000"           } } }
+        let result = response['result'];
+        let keys = Object.keys (result);
+        let items = [];
+        for (let i = 0; i < keys.length; i++) {
+            let key = keys[i];
+            let value = result[key];
+            value['id'] = key;
+            items.push (value);
+        }
+        return this.parseLedger (items);
+    }
+
+    async fetchLedgerItem (id, code = undefined, params = {}) {
+        const items = await this.fetchLedgerItemsByIds ([ id ], code, params);
+        return items[0];
     }
 
     parseTrade (trade, market = undefined) {

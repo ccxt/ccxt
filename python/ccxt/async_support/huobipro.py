@@ -479,9 +479,9 @@ class huobipro (Exchange):
         response = await self.marketGetHistoryKline(self.extend(request, params))
         return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
 
-    async def load_accounts(self, reload=False):
+    async def load_accounts(self, reload=False, params={}):
         if reload:
-            self.accounts = await self.fetch_accounts()
+            self.accounts = await self.fetch_accounts(params)
         else:
             if self.accounts:
                 return self.accounts
@@ -490,9 +490,9 @@ class huobipro (Exchange):
                 self.accountsById = self.index_by(self.accounts, 'id')
         return self.accounts
 
-    async def fetch_accounts(self):
+    async def fetch_accounts(self, params={}):
         await self.load_markets()
-        response = await self.privateGetAccountAccounts()
+        response = await self.privateGetAccountAccounts(params)
         return response['data']
 
     async def fetch_currencies(self, params={}):

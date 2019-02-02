@@ -83,6 +83,7 @@ class southxchange (Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'active': None,
                 'info': market,
             })
         return result

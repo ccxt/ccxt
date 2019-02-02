@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.156'
+__version__ = '1.18.195'
 
 # -----------------------------------------------------------------------------
 
@@ -140,6 +140,7 @@ from ccxt.async_support.jubi import jubi                                  # noqa
 from ccxt.async_support.kkex import kkex                                  # noqa: F401
 from ccxt.async_support.kraken import kraken                              # noqa: F401
 from ccxt.async_support.kucoin import kucoin                              # noqa: F401
+from ccxt.async_support.kucoin2 import kucoin2                            # noqa: F401
 from ccxt.async_support.kuna import kuna                                  # noqa: F401
 from ccxt.async_support.lakebtc import lakebtc                            # noqa: F401
 from ccxt.async_support.lbank import lbank                                # noqa: F401
@@ -275,6 +276,7 @@ exchanges = [
     'kkex',
     'kraken',
     'kucoin',
+    'kucoin2',
     'kuna',
     'lakebtc',
     'lbank',

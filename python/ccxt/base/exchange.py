@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.156'
+__version__ = '1.18.195'
 
 # -----------------------------------------------------------------------------
 
@@ -1067,6 +1067,16 @@ class Exchange(object):
             currencies = self.fetch_currencies()
         return self.set_markets(markets, currencies)
 
+    def load_accounts(self, reload=False, params={}):
+        if reload:
+            self.accounts = self.fetch_accounts(params)
+        else:
+            if self.accounts:
+                return self.accounts
+            else:
+                self.accounts = self.fetch_accounts(params)
+        return self.accounts
+
     def populate_fees(self):
         if not (hasattr(self, 'markets') or hasattr(self, 'currencies')):
             return
@@ -1360,6 +1370,13 @@ class Exchange(object):
         symbol = market['symbol'] if market else None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit)
 
+    def parse_ledger(self, data, currency=None, since=None, limit=None):
+        array = self.to_array(data)
+        array = [self.parse_ledger_item(item, currency) for item in array]
+        array = self.sort_by(array, 'timestamp')
+        code = currency['code'] if currency else None
+        return self.filter_by_currency_since_limit(array, code, since, limit)
+
     def parse_transactions(self, transactions, currency=None, since=None, limit=None):
         array = self.to_array(transactions)
         array = [self.parse_transaction(transaction, currency) for transaction in array]
@@ -1373,6 +1390,17 @@ class Exchange(object):
         array = self.sort_by(array, 'timestamp')
         symbol = market['symbol'] if market else None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit)
+
+    def safe_currency_code(self, data, key, currency=None):
+        code = None
+        currency_id = self.safe_string(data, key)
+        if currency_id in self.currencies_by_id:
+            currency = self.currencies_by_id[currency_id]
+        else:
+            code = self.common_currency_code(currency_id)
+        if currency is not None:
+            code = currency['code']
+        return code
 
     def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None):
         array = self.to_array(array)

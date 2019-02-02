@@ -68,7 +68,10 @@ class hitbtc2 (hitbtc):
                 'api': 'https://api.hitbtc.com',
                 'www': 'https://hitbtc.com',
                 'referral': 'https://hitbtc.com/?ref_id=5a5d39a65d466',
-                'doc': 'https://api.hitbtc.com',
+                'doc': [
+                    'https://api.hitbtc.com',
+                    'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv2.md',
+                ],
                 'fees': [
                     'https://hitbtc.com/fees-and-limits',
                     'https://support.hitbtc.com/hc/en-us/articles/115005148605-Fees-and-limits',
@@ -1256,7 +1259,7 @@ class hitbtc2 (hitbtc):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = '/api' + '/' + self.version + '/'
+        url = '/api/' + self.version + '/'
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             url += api + '/' + self.implode_params(path, params)

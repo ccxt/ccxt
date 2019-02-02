@@ -52,12 +52,12 @@ class bittrex extends Exchange {
                 ),
                 'www' => 'https://bittrex.com',
                 'doc' => array (
-                    'https://bittrex.com/Home/Api',
-                    'https://www.npmjs.org/package/node.bittrex.api',
+                    'https://bittrex.github.io/api/',
+                    'https://www.npmjs.com/package/bittrex-node',
                 ),
                 'fees' => array (
-                    'https://bittrex.com/Fees',
-                    'https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-',
+                    'https://bittrex.zendesk.com/hc/en-us/articles/115003684371-BITTREX-SERVICE-FEES-AND-WITHDRAWAL-LIMITATIONS',
+                    'https://bittrex.zendesk.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-',
                 ),
             ),
             'api' => array (
@@ -963,7 +963,7 @@ class bittrex extends Exchange {
                     // Bittrex will return an ambiguous INVALID_ORDER $message
                     // upon canceling already-canceled and closed orders
                     // therefore this special case for cancelOrder
-                    // $url = 'https://bittrex.com/api/v1.1/market/$cancel?apikey=API_KEY&uuid=ORDER_UUID'
+                    // $url = 'https://bittrex.com/api/v1.1/market/cancel?apikey=API_KEY&uuid=ORDER_UUID'
                     $cancel = 'cancel';
                     $indexOfCancel = mb_strpos ($url, $cancel);
                     if ($indexOfCancel >= 0) {

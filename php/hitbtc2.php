@@ -52,7 +52,10 @@ class hitbtc2 extends hitbtc {
                 'api' => 'https://api.hitbtc.com',
                 'www' => 'https://hitbtc.com',
                 'referral' => 'https://hitbtc.com/?ref_id=5a5d39a65d466',
-                'doc' => 'https://api.hitbtc.com',
+                'doc' => array (
+                    'https://api.hitbtc.com',
+                    'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv2.md',
+                ),
                 'fees' => array (
                     'https://hitbtc.com/fees-and-limits',
                     'https://support.hitbtc.com/hc/en-us/articles/115005148605-Fees-and-limits',
@@ -1302,7 +1305,7 @@ class hitbtc2 extends hitbtc {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = '/api' . '/' . $this->version . '/';
+        $url = '/api/' . $this->version . '/';
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'public') {
             $url .= $api . '/' . $this->implode_params($path, $params);

@@ -233,7 +233,7 @@ class gdax extends Exchange {
             'id' => $market['id'],
         ), $params);
         $ticker = $this->publicGetProductsIdTicker ($request);
-        $timestamp = $this->parse8601 ($ticker['time']);
+        $timestamp = $this->parse8601 ($this->safe_value($ticker, 'time'));
         $bid = null;
         $ask = null;
         if (is_array ($ticker) && array_key_exists ('bid', $ticker))
@@ -276,11 +276,12 @@ class gdax extends Exchange {
             $symbol = $market['symbol'];
         $feeRate = null;
         $feeCurrency = null;
+        $takerOrMaker = null;
         if ($market !== null) {
             $feeCurrency = $market['quote'];
             if (is_array ($trade) && array_key_exists ('liquidity', $trade)) {
-                $rateType = ($trade['liquidity'] === 'T') ? 'taker' : 'maker';
-                $feeRate = $market[$rateType];
+                $takerOrMaker = ($trade['liquidity'] === 'T') ? 'taker' : 'maker';
+                $feeRate = $market[$takerOrMaker];
             }
         }
         $feeCost = $this->safe_float($trade, 'fill_fees');
@@ -308,6 +309,7 @@ class gdax extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
             'type' => $type,
+            'takerOrMaker' => $takerOrMaker,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
@@ -605,7 +607,7 @@ class gdax extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $response[$i]['currency'] = $code;
         }
-        return $this->parseTransactions ($response);
+        return $this->parseTransactions ($response, $currency, $since, $limit);
     }
 
     public function parse_transaction_status ($transaction) {
