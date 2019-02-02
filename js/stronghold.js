@@ -450,7 +450,7 @@ module.exports = class stronghold extends Exchange {
     }
 
     async fetchAccounts (params) {
-        return await this.privatePostVenuesVenueIdAccounts (params)
+        return await this.privatePostVenuesVenueIdAccounts (params);
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
