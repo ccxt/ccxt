@@ -1806,7 +1806,7 @@ class Exchange(object):
         return otp[-6:]
 
     @staticmethod
-    def limits (currency=False):
+    def limit(currency=False):
         limits = {
             'amount': {
                 'min': None,

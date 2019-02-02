@@ -1178,7 +1178,7 @@ class Exchange {
         $json_response = null;
 
         if ($this->is_json_encoded_object ($result)) {
-         
+
             $json_response = $this->parse_json ($result, $as_associative_array = true);
 
             if ($this->enableLastJsonResponse) {
@@ -2441,7 +2441,7 @@ class Exchange {
         return str_pad((string) $otp, 6, '0', STR_PAD_LEFT);
     }
 
-    public static function limits ($currency = False) {
+    public static function limit ($currency = False) {
         $limits = array (
             'cost' => array (
                 'min' => null,

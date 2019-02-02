@@ -1602,7 +1602,7 @@ module.exports = class Exchange {
         }
     }
 
-    limits (currency = false) {
+    limit (currency = false) {
         let limits = {
             'amount': {
                 'min': undefined,
