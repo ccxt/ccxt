@@ -345,19 +345,20 @@ module.exports = class stronghold extends Exchange {
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
-        }         
+        }
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': undefined,
             'order': orderId,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'takerOrMaker': takerOrMaker,
             'fee': {
                 'cost': undefined,
                 'currency': undefined,
@@ -383,7 +384,7 @@ module.exports = class stronghold extends Exchange {
         }
         const response = await this.privatePostVenuesVenueIdAccountsAccountIdOrders (request);
         // to be removed
-        //     const datetime = this.safeString (response, 'timestamp');        
+        //     const datetime = this.safeString (response, 'timestamp');
         //     return {
         //         'id': undefined,
         //         'datetime': datetime,
@@ -538,7 +539,6 @@ module.exports = class stronghold extends Exchange {
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
-        const currencyId = this.currencyId (code);
         const paymentMethod = this.safeString (this.options['paymentMethods'], code);
         if (paymentMethod === undefined) {
             throw new NotSupported (this.id + ' withdraw requires code to be BTC, ETH, or XLM');
@@ -546,7 +546,7 @@ module.exports = class stronghold extends Exchange {
         const request = this.extend ({
             'venueId': this.options['venueId'],
             'accountId': this.options['accountId'],
-            'assetId': currencyId,
+            'assetId': this.currencyId (code),
             'amount': this.amountToPrecision (amount, code),
             'paymentMethod': paymentMethod,
             'paymentMethodDetails': {
@@ -575,6 +575,7 @@ module.exports = class stronghold extends Exchange {
         //         'id': response['result']['id'],
         //         'info': response,
         //     };
+        return this.parseTransaction (response);
     }
 
     async fetchAccounts (params) {
