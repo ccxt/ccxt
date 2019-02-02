@@ -428,9 +428,13 @@ module.exports = class stronghold extends Exchange {
         }
         const request = {
             'assetId': currencyId,
+            'amount': this.amountToPrecision (amount, code),
             'paymentMethod': paymentMethod,
+            'paymentMethodDetails': {
+                'withdrawal_address': address,
+            },
         };
-        const response = await this.privatePostVenuesVenueIdAccountsAccountIdDeposit (this.extend (request, params));
+        const response = await this.privatePostVenuesVenueIdAccountsAccountIdWithdrawal (this.extend (request, params));
         // {
         //     "id": "5be48892-1b6e-4431-a3cf-34b38811e82c",
         //     "assetId": "BTC/stronghold.co",
