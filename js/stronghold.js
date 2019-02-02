@@ -383,9 +383,9 @@ module.exports = class stronghold extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchMyTrades (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (code);
+        const market = this.market (symbol);
         const response = await this.privateGetVenuesVenueIdAccountsAccountIdTrades (params);
         return this.parseTrades (response['result'], market, since, limit);
     }
