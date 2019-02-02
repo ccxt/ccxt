@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InvalidNonce, AuthenticationError, AccountSuspended, InsufficientFunds, ExchangeError, ArgumentsRequired } = require ('./base/errors');
+const { InvalidNonce, AuthenticationError, AccountSuspended, InsufficientFunds, ExchangeError, ArgumentsRequired, NotSupported } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -395,7 +395,7 @@ module.exports = class stronghold extends Exchange {
         const request = this.extend ({
             'venueId': this.options['venueId'],
             'accountId': this.options['accountId'],
-        }, request);
+        }, params);
         if (!request['accountId']) {
             throw new ArgumentsRequired (this.id + " cancelOrder requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
         }
@@ -442,7 +442,14 @@ module.exports = class stronghold extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        const response = await this.privateGetVenuesVenueIdAccountsAccountId (params);
+        const request = this.extend ({
+            'venueId': this.options['venueId'],
+            'accountId': this.options['accountId'],
+        }, params);
+        if (!request['accountId']) {
+            throw new ArgumentsRequired (this.id + " fetchBalance requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
+        }
+        const response = await this.privateGetVenuesVenueIdAccountsAccountId (request);
         const balances = response['result']['balances'];
         let result = {};
         for (let i = 0; i < balances.length; i++) {
@@ -460,25 +467,35 @@ module.exports = class stronghold extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const response = await this.privateGetVenuesVenueIdAccountsAccountIdTrades (params);
-        return this.parseTrades (response['result'], market, since, limit);
+        const request = this.extend ({
+            'venueId': this.options['venueId'],
+            'accountId': this.options['accountId'],
+        }, params);
+        if (!request['accountId']) {
+            throw new ArgumentsRequired (this.id + " fetchMyTrades requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
+        }
+        const response = await this.privateGetVenuesVenueIdAccountsAccountIdTrades (request);
+        return this.parseTrades (response['result'], since, limit);
     }
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let paymentMethod = undefined;
-        if (code in this.options['paymentMethods']) {
-            paymentMethod = this.options['paymentMethods'][code];
-        } else {
-            throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires code to be BTC, ETH, or XLM');
+        const currencyId = this.currencyId (code);
+        const paymentMethod = this.safeString (this.options['paymentMethods'], code);
+        if (paymentMethod === undefined) {
+            throw new NotSupported (this.id + ' fetchDepositAddress requires code to be BTC, ETH, or XLM');
         }
         const currencyId = this.currencyId (code);
-        const request = {
+        const request = this.extend ({
+            'venueId': this.options['venueId'],
+            'accountId': this.options['accountId'],
             'assetId': currencyId,
             'paymentMethod': paymentMethod,
-        };
-        const response = await this.privatePostVenuesVenueIdAccountsAccountIdDeposit (this.extend (request, params));
+        }, params);
+        if (!request['accountId']) {
+            throw new ArgumentsRequired (this.id + " fetchDepositAddress requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
+        }
+        const response = await this.privatePostVenuesVenueIdAccountsAccountIdDeposit (request);
         // { assetId: 'BTC/stronghold.co',
         //   paymentMethod: 'bitcoin',
         //   paymentMethodInstructions: {
@@ -494,38 +511,43 @@ module.exports = class stronghold extends Exchange {
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
-        let paymentMethod = undefined;
         const currencyId = this.currencyId (code);
-        if (code in this.options['paymentMethods']) {
-            paymentMethod = this.options['paymentMethods'][code];
-        } else {
-            throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires code to be BTC, ETH, or XLM');
+        const paymentMethod = this.safeString (this.options['paymentMethods'], code);
+        if (paymentMethod === undefined) {
+            throw new NotSupported (this.id + ' withdraw requires code to be BTC, ETH, or XLM');
         }
-        const request = {
+        const request = this.extend ({
+            'venueId': this.options['venueId'],
+            'accountId': this.options['accountId'],
             'assetId': currencyId,
             'amount': this.amountToPrecision (amount, code),
             'paymentMethod': paymentMethod,
             'paymentMethodDetails': {
                 'withdrawal_address': address,
             },
-        };
-        const response = await this.privatePostVenuesVenueIdAccountsAccountIdWithdrawal (this.extend (request, params));
-        // {
-        //     "id": "5be48892-1b6e-4431-a3cf-34b38811e82c",
-        //     "assetId": "BTC/stronghold.co",
-        //     "amount": "10",
-        //     "feeAmount": "0.01",
-        //     "paymentMethod": "bitcoin",
-        //     "paymentMethodDetails": {
-        //       "withdrawal_address": "1vHysJeXYV6nqhroBaGi52QWFarbJ1dmQ"
-        //     },
-        //     "direction": "withdrawal",
-        //     "status": "pending"
-        //   }
-        return {
-            'id': response['result']['id'],
-            'info': response,
-        };
+        }, params);
+        if (!request['accountId']) {
+            throw new ArgumentsRequired (this.id + " withdraw requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
+        }
+        const response = await this.privatePostVenuesVenueIdAccountsAccountIdWithdrawal (request);
+        //
+        //     {
+        //         "id": "5be48892-1b6e-4431-a3cf-34b38811e82c",
+        //         "assetId": "BTC/stronghold.co",
+        //         "amount": "10",
+        //         "feeAmount": "0.01",
+        //         "paymentMethod": "bitcoin",
+        //         "paymentMethodDetails": {
+        //             "withdrawal_address": "1vHysJeXYV6nqhroBaGi52QWFarbJ1dmQ"
+        //         },
+        //         "direction": "withdrawal",
+        //         "status": "pending"
+        //     }
+        //
+        //     return {
+        //         'id': response['result']['id'],
+        //         'info': response,
+        //     };
     }
 
     async fetchAccounts (params) {
