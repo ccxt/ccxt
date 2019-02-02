@@ -278,38 +278,59 @@ module.exports = class stronghold extends Exchange {
         //
         // fetchMyTrades (private)
         //
-        //      { id: '9cdb109c-d035-47e2-81f8-a0c802c9c5f9',
-        //        orderId: 'a38d8bcb-9ff5-4c52-81a0-a40196a66462',
-        //        marketId: 'XLMUSD',
-        //        side: 'sell',
-        //        size: '1.0000000',
-        //        price: '0.10440600',
-        //        settled: true,
-        //        maker: false,
-        //        executedAt: '2019-02-01T18:44:21Z' }
+        //     {
+        //         id: '9cdb109c-d035-47e2-81f8-a0c802c9c5f9',
+        //         orderId: 'a38d8bcb-9ff5-4c52-81a0-a40196a66462',
+        //         marketId: 'XLMUSD',
+        //         side: 'sell',
+        //         size: '1.0000000',
+        //         price: '0.10440600',
+        //         settled: true,
+        //         maker: false,
+        //         executedAt: '2019-02-01T18:44:21Z'
+        //     }
         //
+        let id = undefined;
+        let takerOrMaker = undefined;
+        let price = undefined;
+        let amount = undefined;
+        let cost = undefined;
+        let side = undefined;
+        let timestamp = undefined;
+        let orderId = undefined;
+        if (this.isArray (trade)) {
+            price = parseFloat (trade[0]);
+            amount = parseFloat (trade[1]);
+            side = parseFloat (trade[2]);
+            timestamp = this.parse8601 (trade[3]);
+        } else {
+            id = this.safeString (trade, 'id');
+            price = this.safeFloat (trade, 'price');
+            amount = this.safeFloat (trade, 'size');
+            side = this.safeString (trade, 'side');
+            timestamp = this.parse8601 (this.safeString (trade, 'executedAt'));
+            orderId = this.safeString (trade, 'orderId');
+            let marketId = this.safeString (trade, 'marketId');
+            market = this.safeValue (this.markets_by_id, marketId);
+            takerOrMaker = trade['maker'] ? 'maker' : 'taker';
+        }
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
-        }
-        const price = this.safeFloat2 (trade, 0, 'price');
-        const amount = this.safeFloat2 (trade, 1, 'size');
-        const side = this.safeString2 (trade, 2, 'side');
-        const datetime = this.safeString2 (trade, 3, 'executedAt');
-        const order = this.safeString (trade, 'orderId');
-        const takerOrMaker = trade['maker'] ? 'maker' : 'taker';
+        }         
         return {
-            'symbol': symbol,
+            'id': id,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'order': orderId,
+            'side': side,
             'price': price,
             'amount': amount,
-            'side': side,
-            'datetime': datetime,
-            'order': order,
-            'timestamp': this.parse8601 (datetime),
-            'takerOrMaker': takerOrMaker,
-            'info': trade,
-            'cost': price * amount,
-            'fees': {
+            'cost': cost,
+            'fee': {
                 'cost': undefined,
                 'currency': undefined,
                 'rate': undefined,
