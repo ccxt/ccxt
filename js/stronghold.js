@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InvalidNonce, AuthenticationError, AccountSuspended, InsufficientFunds, InvalidArguments, ExchangeError } = require ('./base/errors');
+const { InvalidNonce, AuthenticationError, AccountSuspended, InsufficientFunds, ExchangeError, ArgumentsRequired } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -17,14 +17,14 @@ module.exports = class stronghold extends Exchange {
             'version': 'v1',
             'comment': 'This comment is optional',
             'urls': {
-                'logo': 'https://example.com/image.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/52160042-98c1f300-26be-11e9-90dd-da8473944c83.jpg',
                 'api': {
                     'public': 'https://api.stronghold.co',
                     'private': 'https://api.stronghold.co',
                 },
-                'www': 'https://www.example.com',
+                'www': 'https://stronghold.co',
                 'doc': [
-                    'https://docs.stronghold.co/',
+                    'https://docs.stronghold.co',
                 ],
             },
             'requiredCredentials': {
@@ -383,9 +383,9 @@ module.exports = class stronghold extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchMyTrades (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (code);
+        const market = this.market (symbol);
         const response = await this.privateGetVenuesVenueIdAccountsAccountIdTrades (params);
         return this.parseTrades (response['result'], market, since, limit);
     }
@@ -396,7 +396,7 @@ module.exports = class stronghold extends Exchange {
         if (code in this.options['paymentMethods']) {
             paymentMethod = this.options['paymentMethods'][code];
         } else {
-            throw new InvalidArguments (this.id + ' fetchDepositAddress requires code to be BTC, ETH, or XLM');
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires code to be BTC, ETH, or XLM');
         }
         const currencyId = this.currencyId (code);
         const request = {
@@ -424,7 +424,7 @@ module.exports = class stronghold extends Exchange {
         if (code in this.options['paymentMethods']) {
             paymentMethod = this.options['paymentMethods'][code];
         } else {
-            throw new InvalidArguments (this.id + ' fetchDepositAddress requires code to be BTC, ETH, or XLM');
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires code to be BTC, ETH, or XLM');
         }
         const request = {
             'assetId': currencyId,
@@ -454,7 +454,7 @@ module.exports = class stronghold extends Exchange {
     }
 
     async fetchAccounts (params) {
-        return await this.privatePostVenuesVenueIdAccounts (params)
+        return await this.privatePostVenuesVenueIdAccounts (params);
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
