@@ -1804,3 +1804,26 @@ class Exchange(object):
         offset = hex_to_dec(hmac_res[-1]) * 2
         otp = str(hex_to_dec(hmac_res[offset: offset + 8]) & 0x7fffffff)
         return otp[-6:]
+
+    @staticmethod
+    def limits (currency=False):
+        limits = {
+            'amount': {
+                'min': None,
+                'max': None,
+            },
+            'price': {
+                'min': None,
+                'max': None,
+            },
+            'cost': {
+                'min': None,
+                'max': None,
+            },
+        }
+        if currency:
+            limits['withdraw'] = {
+                'min': None,
+                'max': None,
+            }
+        return limits

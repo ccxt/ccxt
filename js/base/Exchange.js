@@ -189,7 +189,7 @@ module.exports = class Exchange {
                 '401': AuthenticationError,
                 '511': AuthenticationError,
             },
-            // some exchanges report only 'free' on `fetchBlance` call (i.e. report no 'used' funds)
+            // some exchanges report only 'free' on `fetchBalance` call (i.e. report no 'used' funds)
             // in this case ccxt will try to infer 'used' funds from open order cache, which might be stale
             // still, some exchanges report number of open orders together with balance
             // if you set the following flag to 'true' ccxt will leave 'used' funds undefined in case of discrepancy
@@ -1602,8 +1602,8 @@ module.exports = class Exchange {
         }
     }
 
-    limits () {
-        return {
+    limits (currency = false) {
+        let limits = {
             'amount': {
                 'min': undefined,
                 'max': undefined,
@@ -1616,6 +1616,13 @@ module.exports = class Exchange {
                 'min': undefined,
                 'max': undefined,
             },
-        };
+        }
+        if (currency) {
+            limits['withdraw'] = {
+                'min': undefined,
+                'max': undefined,
+            }
+        }
+        return limits;
     }
 }

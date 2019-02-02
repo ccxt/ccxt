@@ -293,23 +293,6 @@ module.exports = class stronghold extends Exchange {
         return this.parseTrades (response['result']['trades'], market, since, limit);
     }
 
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = this.extend ({
-            'venueId': this.options['venueId'],
-            'accountId': this.options['accountId'],
-        }, params);
-        if (!request['accountId']) {
-            throw new ArgumentsRequired (this.id + " fetchTransactions requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
-        }
-        const response = await this.privateGetVenuesVenueIdAccountsAccountIdTransactions (request);
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-        }
-        return this.parseTransactions (response['result'], currency, since, limit);
-    }
-
     parseTrade (trade, market = undefined) {
         //
         // fetchTrades (public)
@@ -376,6 +359,71 @@ module.exports = class stronghold extends Exchange {
                 'currency': undefined,
                 'rate': undefined,
             },
+        };
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = this.extend ({
+            'venueId': this.options['venueId'],
+            'accountId': this.options['accountId'],
+        }, params);
+        if (!request['accountId']) {
+            throw new ArgumentsRequired (this.id + " fetchTransactions requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
+        }
+        const response = await this.privateGetVenuesVenueIdAccountsAccountIdTransactions (request);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        return this.parseTransactions (response['result'], currency, since, limit);
+    }
+
+    parseTransactionStatus (status) {
+        let statuses = {
+            'queued': 'pending',
+        };
+        return this.safeString (statuses, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        // {
+        //     "id": "6408e003-0f14-4457-9340-ba608992ad5c",
+        //     "status": "queued",
+        //     "direction": "outgoing",
+        //     "amount": "98.95000000",
+        //     "assetId": "XLM/native",
+        //     "sourceAccount": {
+        //       "id": "774fa8ef-600b-4636-b9ed-cd6d23421915",
+        //       "venueSpecificId": "GC5FIBIQZTQRMJE34GYF5EKH77GEQ3OHFX3NIP5OKDIZFA6VERLZSHY6"
+        //     },
+        //     "destinationAccount": {
+        //       "id": "f72b9fb5-9607-4dd3-b31f-6ded21337056",
+        //       "venueSpecificId": "GAOWV6CYBE7DEWSWPODXLMI5YB75VXXZJX5OYVQ2YLZH2TVA3TMMSNYW"
+        //     }
+        //   }
+        const id = this.safeString (transaction, 'id');
+        const assetId = this.safeString (transaction, 'assetId');
+        const currencyId = assetId.split ('/')[0];
+        const code = this.commonCurrencyCode (currencyId);
+        const amount = this.safeFloat (transaction, 'amount');
+        const rawStatus = this.safeString (transaction, 'status');
+        const status = this.parseTransactionStatus (rawStatus);
+        const feeCost = this.safeFloat (transaction, 'feeAmount');
+        const type = this.safeString (transaction, 'direction') === 'outgoing' ? 'withdraw' : 'deposit';
+        const fee = {
+            'cost': feeCost,
+            'rate': feeCost / amount,
+        };
+        return {
+            'id': id,
+            'info': transaction,
+            'code': code,
+            'amount': amount,
+            'status': status,
+            'fee': fee,
+            'tag': undefined,
+            'type': type,
         };
     }
 

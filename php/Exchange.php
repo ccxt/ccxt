@@ -2440,4 +2440,30 @@ class Exchange {
         $otp = $code % pow(10, 6);
         return str_pad((string) $otp, 6, '0', STR_PAD_LEFT);
     }
+
+    public static function limits ($currency = False) {
+        $limits = array (
+            'cost' => array (
+                'min' => null,
+                'max' => null,
+            ),
+            'price' => array (
+                'min' => null,
+                'max' => null,
+            ),
+            'amount' => array (
+                'min' => null,
+                'max' => null,
+            ),
+        );
+        if ($currency) {
+            $limits = array_merge ($limits, array (
+                'withdraw' => array (
+                    'min' => null,
+                    'max' => null,
+                )
+            ));
+        }
+        return $limits;
+    }
 }
