@@ -177,15 +177,25 @@ module.exports = class stronghold extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.publicGetVenuesVenueIdAssets ();
-        //    [ { id: 'XLM/native',
-        //        alias: '',
-        //        code: 'XLM',
-        //        name: '',
-        //        displayDecimalsFull: 7,
-        //        displayDecimalsSignificant: 2 }, ... ]
+        const request = {
+            'venueId': this.options['venueId'],
+        };
+        const response = await this.publicGetVenuesVenueIdAssets (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             id: 'XLM/native',
+        //             alias: '',
+        //             code: 'XLM',
+        //             name: '',
+        //             displayDecimalsFull: 7,
+        //             displayDecimalsSignificant: 2,
+        //         },
+        //         ...
+        //     ]
+        //
         const data = response['result'];
-        let result = {};
+        const result = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const currencyId = this.safeString (entry, 'code');
