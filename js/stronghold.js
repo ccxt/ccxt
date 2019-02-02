@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InvalidNonce, AuthenticationError, AccountSuspended, InsufficientFunds, InvalidArguments, ExchangeError } = require ('./base/errors');
+const { InvalidNonce, AuthenticationError, AccountSuspended, InsufficientFunds, ExchangeError, ArgumentsRequired } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -396,7 +396,7 @@ module.exports = class stronghold extends Exchange {
         if (code in this.options['paymentMethods']) {
             paymentMethod = this.options['paymentMethods'][code];
         } else {
-            throw new InvalidArguments (this.id + ' fetchDepositAddress requires code to be BTC, ETH, or XLM');
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires code to be BTC, ETH, or XLM');
         }
         const currencyId = this.currencyId (code);
         const request = {
@@ -424,7 +424,7 @@ module.exports = class stronghold extends Exchange {
         if (code in this.options['paymentMethods']) {
             paymentMethod = this.options['paymentMethods'][code];
         } else {
-            throw new InvalidArguments (this.id + ' fetchDepositAddress requires code to be BTC, ETH, or XLM');
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires code to be BTC, ETH, or XLM');
         }
         const request = {
             'assetId': currencyId,
