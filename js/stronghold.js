@@ -39,7 +39,8 @@ module.exports = class stronghold extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchTrades': true,
                 'fetchMyTrades': true,
-                'fetchDepositAddress': true,
+                'fetchDepositAddress': false,
+                'createDepositAddress': true,
                 'withdraw': true,
                 'fetchTicker': false,
             },
@@ -478,12 +479,12 @@ module.exports = class stronghold extends Exchange {
         return this.parseTrades (response['result'], since, limit);
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async createDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currencyId = this.currencyId (code);
         const paymentMethod = this.safeString (this.options['paymentMethods'], code);
         if (paymentMethod === undefined) {
-            throw new NotSupported (this.id + ' fetchDepositAddress requires code to be BTC, ETH, or XLM');
+            throw new NotSupported (this.id + ' createDepositAddress requires code to be BTC, ETH, or XLM');
         }
         const currencyId = this.currencyId (code);
         const request = this.extend ({
@@ -493,7 +494,7 @@ module.exports = class stronghold extends Exchange {
             'paymentMethod': paymentMethod,
         }, params);
         if (!request['accountId']) {
-            throw new ArgumentsRequired (this.id + " fetchDepositAddress requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
+            throw new ArgumentsRequired (this.id + " createDepositAddress requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
         }
         const response = await this.privatePostVenuesVenueIdAccountsAccountIdDeposit (request);
         // { assetId: 'BTC/stronghold.co',
