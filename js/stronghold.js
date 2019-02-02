@@ -340,21 +340,25 @@ module.exports = class stronghold extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'marketID': this.marketId (symbol),
+            'venueId': this.options['venueId'],
+            'accountId': this.options['accountId'],
+            'marketID': market['id'],
             'type': type,
             'side': side,
             'size': this.amountToPrecision (symbol, amount),
             'price': this.priceToPrecision (symbol, price),
         };
         const response = await this.privatePostVenuesVenueIdAccountsAccountIdOrders (this.extend (request, params));
-        const datetime = this.safeString (response, 'timestamp');
-        return {
-            'id': undefined,
-            'datetime': datetime,
-            'timestamp': this.parse8601 (datetime),
-            'info': response,
-        };
+        //     const datetime = this.safeString (response, 'timestamp');        
+        //     return {
+        //         'id': undefined,
+        //         'datetime': datetime,
+        //         'timestamp': this.parse8601 (datetime),
+        //         'info': response,
+        //     };
+        return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
