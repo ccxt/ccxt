@@ -95,16 +95,14 @@ module.exports = class stronghold extends Exchange {
                 },
             },
             'options': {
-                'venues': {
-                    'main': 'trade-public',
-                    'sandbox': 'sandbox-public',
-                },
+                'accountId': undefined,
+                'venueId': 'trade-public',
+                'venues': [ 'trade-public', 'sandbox-public' ],
                 'paymentMethods': {
                     'ETH': 'ethereum',
                     'BTC': 'bitcoin',
                     'XLM': 'stellar',
                 },
-                'accountId': undefined,
             },
             'exceptions': {
                 'CREDENTIAL_MISSING': AuthenticationError,
@@ -121,7 +119,10 @@ module.exports = class stronghold extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetVenuesVenueIdMarkets (params);
+        const request = {
+            'venueId': this.options['venueId'],
+        };
+        const response = await this.publicGetVenuesVenueIdMarkets (this.extend (request, params));
         const data = response['result'];
         // [ { id: 'SHXUSD',
         //     baseAssetId: 'SHX/stronghold.co',
