@@ -633,9 +633,7 @@ module.exports = class kraken extends Exchange {
     async fetchLedgerItemsByIds (ids, code = undefined, params = {}) {
         // https://www.kraken.com/features/api#query-ledgers
         await this.loadMarkets ();
-        if (Array.isArray (ids)) {
-            ids = ids.join (',');
-        }
+        ids = ids.join (',');
         let request = this.extend ({
             'id': ids,
         }, params);
@@ -662,6 +660,7 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchLedgerItem (id, code = undefined, params = {}) {
+        id = [id];
         let items = await this.fetchLedgerItemsByIds (id, code, params);
         return items[0];
     }
