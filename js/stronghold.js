@@ -259,8 +259,14 @@ module.exports = class stronghold extends Exchange {
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const currency = this.currency (code);
+        const request = {
+            'venueId': this.options['venueId'],
+        };
         const response = await this.privateGetVenuesVenueIdAccountsAccountIdTransactions (params);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
         return this.parseTransactions (response['result'], currency, since, limit);
     }
 
