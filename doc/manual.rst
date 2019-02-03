@@ -1365,7 +1365,7 @@ Each market is an associative array (aka dictionary) with the following keys:
 -  ``symbol``. An uppercase string code representation of a particular trading pair or instrument. This is usually written as ``BaseCurrency/QuoteCurrency`` with a slash as in ``BTC/USD``, ``LTC/CNY`` or ``ETH/EUR``, etc. Symbols are used to reference markets within the ccxt library (explained below).
 -  ``base``. An uppercase string code of base fiat or crypto currency.
 -  ``quote``. An uppercase string code of quoted fiat or crypto currency.
--  ``active``. A boolean indicating whether or not trading this market is currently possible.
+-  ``active``. A boolean indicating whether or not trading this market is currently possible. Often, when a market is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that market. The user should check if the market is active and `reload market cache periodically, as explained below <#market-cache-force-reload>`__.
 -  ``info``. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 -  ``precision``. The amounts of decimal digits accepted in order values by exchanges upon order placement for price, amount and cost.
 -  ``limits``. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price \* amount).
@@ -3513,7 +3513,7 @@ Transaction Structure
        'address':  '0x02b0a9b7b4cDe774af0f8e47cb4f1c2ccdEa0806', // "from" or "to"
        'tag':      '0x0123456789' // "tag" or "memo" or "payment_id" associated with the address
        'type':     'deposit',   // or 'withdrawal', string
-       'amount':    1.2345,     // float
+       'amount':    1.2345,     // float (does not include the fee)
        'currency': 'ETH',       // a common unified currency code, string
        'status':   'pending',   // 'ok', 'failed', 'canceled', string
        'updated':   undefined,  // UTC timestamp in ms of most recent status change
@@ -3648,7 +3648,7 @@ Fees are often grouped into two categories:
 
 Because the fee structure can depend on the actual volume of currencies traded by the user, the fees can be account-specific. Methods to work with account-specific fees:
 
-::
+.. code:: javascript
 
    fetchFees (params = {})
    fetchTradingFees (params = {})
@@ -3660,7 +3660,7 @@ Because this is still a work in progress, some or all of methods and info descri
 
 **DO NOT use the ``.fees`` property as most often it contains the predefined/hardcoded info, which is now deprecated. Actual fees should only be accessed from markets and currencies.**
 
-Fee structure
+Fee Structure
 ~~~~~~~~~~~~~
 
 .. code:: javascript
@@ -3687,7 +3687,7 @@ The ``calculateFee`` method will return a unified fee structure with precalculat
 
 Accessing trading fee rates should be done via the ``.markets`` property, like so:
 
-::
+.. code:: javascript
 
    exchange.markets['ETH/BTC']['taker'] // taker fee rate for ETH/BTC
    exchange.markets['BTC/USD']['maker'] // maker fee rate for BTC/USD
@@ -3701,15 +3701,69 @@ Funding fees are properties of currencies (account balance).
 
 Accessing funding fee rates should be done via the ``.currencies`` property. This aspect is not unified yet and is subject to change.
 
-::
+.. code:: javascript
 
    exchange.currencies['ETH']['fee'] // tx/withdrawal fee rate for ETH
    exchange.currencies['BTC']['fee'] // tx/withdrawal fee rate for BTC
 
 Ledger
-~~~~~~
+------
 
 ``UNDER CONSTRUCTION``
+
+Some exchanges provide additional endpoints for fetching the all-in-one ledger history. The ledger is simply the history of changes, actions done by the user or operations that altered the user’s balance in any way, that is, the history of movements of all funds from/to all accounts of the user. That includes deposits and withdrawals (funding), amounts incoming and outcoming in result of a trade or an order, trading fees, transfers between accounts, rebates, cashbacks and other types of events that are subject to accounting.
+
+.. code:: javascript
+
+   async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {})
+
+Some exchanges don’t allow to fetch all ledger entries for all assets at once, those require the ``code`` argument to be supplied to ``fetchLedger`` method.
+
+Ledger Structure
+~~~~~~~~~~~~~~~~
+
+.. code:: javascript
+
+   {
+       'id': 'string-id',                      // id of the ledger entry, a string
+       'direction': 'out',                     // or 'in'
+       'account': 'my-account-id',             // string id of the account if any
+       'referenceId': 'trade-id',              // the reference type id
+       'referenceAccount': 'other-account-id', // string id of the opposite account (if any)
+       'type': 'trade',                        // string, reference type, see below
+       'currency': 'BTC',                      // string, unified currency code, 'ETH', 'USDT'...
+       'amount': 123.45,                       // absolute number, float (does not include the fee)
+       'timestamp': 1544582941735,             // milliseconds since epoch time in UTC
+       'datetime': "2018-12-12T02:49:01.735Z", // string of timestamp, ISO8601
+       'fee': {                                // object or or undefined
+           'cost': 54.321,                     // absolute number on top of the amount
+           'currency': 'ETH',                  // string, unified currency code, 'ETH', 'USDT'...
+       },
+       'info': { ... },                        // raw ledger entry as is from the exchange
+   }
+
+Notes on Ledger Structure
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Reference Accounts
+^^^^^^^^^^^^^^^^^^
+
+The ``referenceId`` field
+
+Types of Ledger Entries
+^^^^^^^^^^^^^^^^^^^^^^^
+
+The type of the ledger entry is the type of the operation associated with it. If the amount comes due to a sell order, then it is associated with a corresponding trade type ledger entry, and the referenceId will contain associated trade id (if the exchange in question provides it). If the amount comes out due to a withdrawal, then is is associated with a corresponding transaction.
+
+-  ``trade``
+-  ``transaction``
+-  ``fee``
+-  ``rebate``
+-  ``cashback``
+-  ``referral``
+-  ``transfer``
+-  ``whatever``
+-  …
 
 Overriding The Nonce
 --------------------
