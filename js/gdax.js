@@ -169,7 +169,10 @@ module.exports = class gdax extends Exchange {
             if ((base === 'ETH') || (base === 'LTC')) {
                 taker = 0.003;
             }
-            const accessible = this.safeValue (market, 'accessible');
+            let accessible = true;
+            if ('accessible' in market) {
+                accessible = this.safeValue (market, 'accessible');
+            }
             const active = (market['status'] === 'online') && accessible;
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
@@ -229,7 +232,7 @@ module.exports = class gdax extends Exchange {
             'id': market['id'],
         }, params);
         let ticker = await this.publicGetProductsIdTicker (request);
-        let timestamp = this.parse8601 (ticker['time']);
+        let timestamp = this.parse8601 (this.safeValue (ticker, 'time'));
         let bid = undefined;
         let ask = undefined;
         if ('bid' in ticker)
@@ -272,11 +275,12 @@ module.exports = class gdax extends Exchange {
             symbol = market['symbol'];
         let feeRate = undefined;
         let feeCurrency = undefined;
+        let takerOrMaker = undefined;
         if (market !== undefined) {
             feeCurrency = market['quote'];
             if ('liquidity' in trade) {
-                let rateType = (trade['liquidity'] === 'T') ? 'taker' : 'maker';
-                feeRate = market[rateType];
+                takerOrMaker = (trade['liquidity'] === 'T') ? 'taker' : 'maker';
+                feeRate = market[takerOrMaker];
             }
         }
         let feeCost = this.safeFloat (trade, 'fill_fees');
@@ -304,6 +308,7 @@ module.exports = class gdax extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': type,
+            'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'amount': amount,
@@ -601,7 +606,7 @@ module.exports = class gdax extends Exchange {
         for (let i = 0; i < response.length; i++) {
             response[i]['currency'] = code;
         }
-        return this.parseTransactions (response);
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     parseTransactionStatus (transaction) {

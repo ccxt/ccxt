@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.120'
+__version__ = '1.18.195'
 
 # -----------------------------------------------------------------------------
 
@@ -319,6 +319,17 @@ class Exchange(object):
 
     def describe(self):
         return {}
+
+    def set_sandbox_mode(self, enabled):
+        if enabled:
+            if 'test' in self.urls:
+                self.urls['api_backup'] = self.urls['api']
+                self.urls['api'] = self.urls['test']
+            else:
+                raise NotSupported(self.id + ' does not have a sandbox URL')
+        elif 'api_backup' in self.urls:
+            self.urls['api'] = self.urls['api_backup']
+            del self.urls['api_backup']
 
     @classmethod
     def define_rest_api(cls, api, method_name, options={}):
@@ -1056,6 +1067,16 @@ class Exchange(object):
             currencies = self.fetch_currencies()
         return self.set_markets(markets, currencies)
 
+    def load_accounts(self, reload=False, params={}):
+        if reload:
+            self.accounts = self.fetch_accounts(params)
+        else:
+            if self.accounts:
+                return self.accounts
+            else:
+                self.accounts = self.fetch_accounts(params)
+        return self.accounts
+
     def populate_fees(self):
         if not (hasattr(self, 'markets') or hasattr(self, 'currencies')):
             return
@@ -1349,6 +1370,13 @@ class Exchange(object):
         symbol = market['symbol'] if market else None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit)
 
+    def parse_ledger(self, data, currency=None, since=None, limit=None):
+        array = self.to_array(data)
+        array = [self.parse_ledger_item(item, currency) for item in array]
+        array = self.sort_by(array, 'timestamp')
+        code = currency['code'] if currency else None
+        return self.filter_by_currency_since_limit(array, code, since, limit)
+
     def parse_transactions(self, transactions, currency=None, since=None, limit=None):
         array = self.to_array(transactions)
         array = [self.parse_transaction(transaction, currency) for transaction in array]
@@ -1362,6 +1390,17 @@ class Exchange(object):
         array = self.sort_by(array, 'timestamp')
         symbol = market['symbol'] if market else None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit)
+
+    def safe_currency_code(self, data, key, currency=None):
+        code = None
+        currency_id = self.safe_string(data, key)
+        if currency_id in self.currencies_by_id:
+            currency = self.currencies_by_id[currency_id]
+        else:
+            code = self.common_currency_code(currency_id)
+        if currency is not None:
+            code = currency['code']
+        return code
 
     def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None):
         array = self.to_array(array)
@@ -1497,8 +1536,12 @@ class Exchange(object):
     # -------------------------------------------------------------------------
     # web3 / 0x methods
 
+    @staticmethod
+    def has_web3():
+        return Web3 is not None
+
     def check_required_dependencies(self):
-        if Web3 is None:
+        if not Exchange.has_web3():
             raise NotSupported("Web3 functionality requires Python3 and web3 package installed: https://github.com/ethereum/web3.py")
 
     def eth_decimals(self, unit='ether'):

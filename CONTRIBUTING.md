@@ -8,15 +8,15 @@
 
 If you want to submit an issue and you want your issue to be resolved quickly, here's a checklist for you:
 
-- Read the [Manual](https://github.com/ccxt-dev/ccxt/wiki/Manual), and especially carefully read the following sections:
-  - [Exchange Properties](https://github.com/ccxt-dev/ccxt/wiki/Manual#exchange-properties)
-  - [Rate Limit](https://github.com/ccxt-dev/ccxt/wiki/Manual#rate-limit)
-  - [DDoS Protection](https://github.com/ccxt-dev/ccxt/wiki/Manual#ddos-protection-by-cloudflare--incapsula)
-  - [Authentication](https://github.com/ccxt-dev/ccxt/wiki/Manual#authentication)
-  - [API Keys Setup](https://github.com/ccxt-dev/ccxt/wiki/Manual#api-keys-setup)
-- Read the [Troubleshooting](https://github.com/ccxt-dev/ccxt/wiki/Manual#troubleshooting) section and follow troubleshooting steps.
+- Read the [Manual](https://github.com/ccxt/ccxt/wiki/Manual), and especially carefully read the following sections:
+  - [Exchange Properties](https://github.com/ccxt/ccxt/wiki/Manual#exchange-properties)
+  - [Rate Limit](https://github.com/ccxt/ccxt/wiki/Manual#rate-limit)
+  - [DDoS Protection](https://github.com/ccxt/ccxt/wiki/Manual#ddos-protection-by-cloudflare--incapsula)
+  - [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication)
+  - [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup)
+- Read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section and follow troubleshooting steps.
 - Read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) for most frequently asked questions.
-- Read the [API docs](https://github.com/ccxt-dev/ccxt/wiki/Exchange-Markets) for your exchange.
+- Read the [API docs](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) for your exchange.
 - Search for similar issues first to avoid duplicates.
 - If your issue is unique, along with a basic description of the failure, the following **IS REQUIRED**:
   - **set `exchange.verbose = true` property on the exchange instance before calling its functions or methods**
@@ -80,13 +80,18 @@ The following is a set of rules for contributing to the ccxt library codebase.
 - [Node.js](https://nodejs.org/en/download/) 8+
 - [Python](https://www.python.org/downloads/) 3.5.3+ and Python 2.7+
   - tox (`brew install tox` or `pip install tox`)
-- [PHP](http://php.net/downloads.php) 5.3+ with the following extensions installed and enabled:
+- [PHP](https://secure.php.net/downloads.php) 5.3+ with the following extensions installed and enabled:
   - cURL
   - iconv
   - mbstring
   - PCRE
   - bcmath (php<7.1)
 - [Pandoc](https://pandoc.org/installing.html) 1.19+
+
+Alternatively, you can use `docker` and `docker-compose` to install all dependencies in isolated environment:
+```
+  docker-compose run ccxt bash
+```
 
 ### What You Need To Know
 
@@ -293,7 +298,7 @@ Upon instantiation the base exchange class takes each URL from its list of endpo
 
 #### Continuous Integration
 
-Builds are automated with [Travis CI](https://travis-ci.org/ccxt/ccxt). The build steps for Travis CI are described in the [`.travis.yml`](https://github.com/ccxt-dev/ccxt/blob/master/.travis.yml) file.
+Builds are automated with [Travis CI](https://travis-ci.org/ccxt/ccxt). The build steps for Travis CI are described in the [`.travis.yml`](https://github.com/ccxt/ccxt/blob/master/.travis.yml) file.
 
 Windows builds are automated with [Appveyor](https://ci.appveyor.com/project/ccxt/ccxt). The build steps for Appveyor are in the [`appveyor.yml`](https://github.com/ccxt/ccxt/blob/master/appveyor.yml) file.
 

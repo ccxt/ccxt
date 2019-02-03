@@ -622,10 +622,11 @@ module.exports = class exmo extends Exchange {
         let market = undefined;
         if (symbol !== undefined)
             market = this.market (symbol);
-        let response = await this.privatePostOrderTrades (this.extend ({
+        const response = await this.privatePostOrderTrades (this.extend ({
             'order_id': id.toString (),
         }, params));
-        return this.parseTrades (response, market, since, limit);
+        const trades = this.safeValue (response, 'trades');
+        return this.parseTrades (trades, market, since, limit);
     }
 
     updateCachedOrders (openOrders, symbol) {
@@ -741,15 +742,15 @@ module.exports = class exmo extends Exchange {
                     if (timestamp > trade['timestamp']) {
                         timestamp = trade['timestamp'];
                     }
-                    filled += trade['amount'];
+                    filled = this.sum (filled, trade['amount']);
                     if (feeCost === undefined) {
                         feeCost = 0.0;
                     }
-                    feeCost += trade['fee']['cost'];
+                    feeCost = this.sum (feeCost, trade['fee']['cost']);
                     if (cost === undefined) {
                         cost = 0.0;
                     }
-                    cost += trade['cost'];
+                    cost = this.sum (cost, trade['cost']);
                     trades.push (trade);
                 }
             }

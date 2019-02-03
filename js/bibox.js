@@ -74,7 +74,7 @@ module.exports = class bibox extends Exchange {
                     'tierBased': false,
                     'percentage': true,
                     'taker': 0.001,
-                    'maker': 0.0,
+                    'maker': 0.001,
                 },
                 'funding': {
                     'tierBased': false,
@@ -117,7 +117,7 @@ module.exports = class bibox extends Exchange {
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
-            let id = base + '_' + quote;
+            let id = baseId + '_' + quoteId;
             let precision = {
                 'amount': 4,
                 'price': 8,

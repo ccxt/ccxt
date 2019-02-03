@@ -42,6 +42,7 @@ class gateio extends Exchange {
                     'https://gate.io/fee',
                     'https://support.gate.io/hc/en-us/articles/115003577673',
                 ),
+                'referral' => 'https://www.gate.io/signup/2436035',
             ),
             'api' => array (
                 'public' => array (
@@ -566,11 +567,15 @@ class gateio extends Exchange {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency ($code);
-        $response = $this->privatePostWithdraw (array_merge (array (
+        $request = array (
             'currency' => $currency['id'],
             'amount' => $amount,
             'address' => $address, // Address must exist in you AddressBook in security settings
-        ), $params));
+        );
+        if ($tag !== null) {
+            $request['address'] .= ' ' . $tag;
+        }
+        $response = $this->privatePostWithdraw (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => null,

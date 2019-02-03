@@ -734,7 +734,7 @@ class buda extends Exchange {
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
-            $components = array ( $method, '/$api/' . $this->version . '/' . $request );
+            $components = array ( $method, '/api/' . $this->version . '/' . $request );
             if ($body) {
                 $base64_body = base64_encode ($this->encode ($body));
                 $components[] = $this->decode ($base64_body);

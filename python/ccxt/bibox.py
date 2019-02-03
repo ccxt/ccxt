@@ -92,7 +92,7 @@ class bibox (Exchange):
                     'tierBased': False,
                     'percentage': True,
                     'taker': 0.001,
-                    'maker': 0.0,
+                    'maker': 0.001,
                 },
                 'funding': {
                     'tierBased': False,
@@ -134,7 +134,7 @@ class bibox (Exchange):
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
-            id = base + '_' + quote
+            id = baseId + '_' + quoteId
             precision = {
                 'amount': 4,
                 'price': 8,

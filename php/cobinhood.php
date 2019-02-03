@@ -182,6 +182,7 @@ class cobinhood extends Exchange {
                 'invalid_nonce' => '\\ccxt\\InvalidNonce',
                 'unauthorized_scope' => '\\ccxt\\PermissionDenied',
                 'invalid_address' => '\\ccxt\\InvalidAddress',
+                'parameter_error' => '\\ccxt\\OrderNotFound',
             ),
             'commonCurrencies' => array (
                 'SMT' => 'SocialMedia.Market',
@@ -365,8 +366,8 @@ class cobinhood extends Exchange {
         $amount = $this->safe_float($trade, 'size');
         $cost = $price * $amount;
         // you can't determine your $side from maker/taker $side and vice versa
-        // you can't determine if your order/$trade was a maker or a taker based
-        // on just the $side of your order/$trade
+        // you can't determine if your order/trade was a maker or a taker based
+        // on just the $side of your order/trade
         // https://github.com/ccxt/ccxt/issues/4300
         // $side = ($trade['maker_side'] === 'bid') ? 'sell' : 'buy';
         $side = null;

@@ -11,6 +11,7 @@ const {
     , values
     , deepExtend
     , extend
+    , clone
     , flatten
     , unique
     , indexBy
@@ -455,6 +456,19 @@ module.exports = class Exchange {
         }
     }
 
+    setSandboxMode (enabled) {
+        if (!!enabled) {
+            if ('test' in this.urls) {
+                this.urls['api_backup'] = clone (this.urls['api'])
+                this.urls['api'] = clone (this.urls['test'])
+            } else {
+                throw new NotSupported (this.id + ' does not have a sandbox URL')
+            }
+        } else if ('api_backup' in this.urls) {
+            this.urls['api'] = clone (this.urls['api_backup'])
+        }
+    }
+
     defineRestApi (api, methodName, options = {}) {
 
         for (const type of Object.keys (api)) {
@@ -722,6 +736,19 @@ module.exports = class Exchange {
             currencies = await this.fetchCurrencies ()
         }
         return this.setMarkets (markets, currencies)
+    }
+
+    async loadAccounts (reload = false, params = {}) {
+        if (reload) {
+            this.accounts = await this.fetchAccounts (params);
+        } else {
+            if (this.accounts) {
+                return this.accounts;
+            } else {
+                this.accounts = await this.fetchAccounts (params);
+            }
+        }
+        return this.accounts;
     }
 
     fetchBidsAsks (symbols = undefined, params = {}) {
@@ -1154,6 +1181,17 @@ module.exports = class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
+    parseLedger (data, currency = undefined, since = undefined, limit = undefined) {
+        let result = [];
+        let array = Object.values (data || []);
+        for (let i = 0; i < array.length; i++) {
+            result.push (this.parseLedgerItem (array[i], currency));
+        }
+        result = this.sortBy (result, 'timestamp');
+        let code = (currency !== undefined) ? currency['code'] : undefined;
+        return this.filterByCurrencySinceLimit (result, code, since, limit);
+    }
+
     parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
         // this code is commented out temporarily to catch for exchange-specific errors
         // if (!this.isArray (orders)) {
@@ -1163,6 +1201,20 @@ module.exports = class Exchange {
         result = sortBy (result, 'timestamp')
         let symbol = (market !== undefined) ? market['symbol'] : undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
+    }
+
+    safeCurrencyCode (data, key, currency = undefined) {
+        let code = undefined;
+        let currencyId = this.safeString (data, key);
+        if (currencyId in this.currencies_by_id) {
+            currency = this.currencies_by_id[currencyId];
+        } else {
+            code = this.commonCurrencyCode (currencyId);
+        }
+        if (currency !== undefined) {
+            code = currency['code'];
+        }
+        return code;
     }
 
     filterBySymbol (array, symbol = undefined) {
@@ -1307,8 +1359,12 @@ module.exports = class Exchange {
     // ------------------------------------------------------------------------
     // web3 / 0x methods
 
+    static hasWeb3 () {
+        return Web3 && ethUtil && ethAbi && BigNumber
+    }
+
     checkRequiredDependencies () {
-        if (!Web3 || !ethUtil || !ethAbi || !BigNumber) {
+        if (!Exchange.hasWeb3 ()) {
             throw new ExchangeError ('The following npm modules are required:\nnpm install web3 ethereumjs-util ethereumjs-abi bignumber.js --no-save');
         }
     }

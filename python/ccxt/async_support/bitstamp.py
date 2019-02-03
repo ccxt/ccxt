@@ -647,17 +647,27 @@ class bitstamp (Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         price: '0.00008012',
+        #         currency_pair: 'XRP/BTC',
+        #         datetime: '2019-01-31 21:23:36',
+        #         amount: '15.00000000',
+        #         type: '0',
+        #         id: '2814205012'
+        #     }
+        #
         id = self.safe_string(order, 'id')
         side = self.safe_string(order, 'type')
         if side is not None:
             side = 'sell' if (side == '1') else 'buy'
         timestamp = self.parse8601(self.safe_string(order, 'datetime'))
         symbol = None
-        if market is None:
-            if 'currency_pair' in order:
-                marketId = order['currency_pair']
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
+        marketId = self.safe_string(order, 'currency_pair')
+        marketId = marketId.replace('/', '')
+        marketId = marketId.lower()
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
         amount = self.safe_float(order, 'amount')
         filled = 0.0
         trades = []
@@ -729,9 +739,20 @@ class bitstamp (Exchange):
         if symbol is not None:
             market = self.market(symbol)
         response = await self.privatePostOpenOrdersAll(params)
+        #     [
+        #         {
+        #             price: '0.00008012',
+        #             currency_pair: 'XRP/BTC',
+        #             datetime: '2019-01-31 21:23:36',
+        #             amount: '15.00000000',
+        #             type: '0',
+        #             id: '2814205012',
+        #         }
+        #     ]
+        #
         result = []
         for i in range(0, len(response)):
-            order = self.parse_order(response[i], market, since, limit)
+            order = self.parse_order(response[i], market)
             result.append(self.extend(order, {
                 'status': 'open',
                 'type': 'limit',

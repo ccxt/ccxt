@@ -135,8 +135,8 @@ class coinfalcon (Exchange):
             'change': float(ticker['change_in_24h']),
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['volume']),
-            'quoteVolume': None,
+            'baseVolume': None,
+            'quoteVolume': float(ticker['volume']),
             'info': ticker,
         }
 

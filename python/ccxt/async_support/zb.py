@@ -40,6 +40,7 @@ class zb (Exchange):
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchOHLCV': True,
+                'fetchTickers': True,
                 'withdraw': True,
             },
             'timeframes': {

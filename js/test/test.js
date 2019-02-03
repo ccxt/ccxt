@@ -218,8 +218,8 @@ let testExchange = async exchange => {
     exchange.checkRequiredCredentials ()
 
     // move to testnet/sandbox if possible before accessing the balance if possible
-    if (exchange.urls['test'])
-        exchange.urls['api'] = exchange.urls['test']
+    // if (exchange.urls['test'])
+    //    exchange.urls['api'] = exchange.urls['test']
 
     let balance = await tests['fetchBalance'] (exchange)
 
@@ -230,6 +230,10 @@ let testExchange = async exchange => {
     await tests['fetchOpenOrders']   (exchange, symbol)
     await tests['fetchClosedOrders'] (exchange, symbol)
     await tests['fetchMyTrades']     (exchange, symbol)
+
+    if ('fetchLedger' in tests) {
+        await tests['fetchLedger'] (exchange)
+    }
 
     // const code = exchange.markets[symbol]['quote']
     // await tests['fetchTransactions'] (exchange, code)
