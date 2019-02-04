@@ -954,8 +954,8 @@ class Exchange(BaseExchange, EventEmitter):
 
     def gunzip(self, data):
         # return data.decode('zlib_codec').decode('utf8')
-        # return zlib.decompress(data, 16+zlib.MAX_WBITS)
-        return "{}"
+        return zlib.decompress(data, 16+zlib.MAX_WBITS)
+        # return "{}"
         # return gzip.GzipFile(fileobj=StringIO(data)).read()
         # in_ = io.BytesIO()
         # in_.write(data)

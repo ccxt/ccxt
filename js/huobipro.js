@@ -1008,6 +1008,7 @@ module.exports = class huobipro extends Exchange {
         // TODO: pako function in Exchange.js/.py/.php
         // console.log(data);
         let text = this.gunzip (data);
+        console.log (text);
         // text = pako.inflate (data, { 'to': 'string', });
         // console.log (text);
         let msg = JSON.parse (text);
@@ -1028,11 +1029,13 @@ module.exports = class huobipro extends Exchange {
 
     _websocketDispatch (contextId, data) {
         // console.log('received', data.ch, 'data.ts', data.ts, 'crawler.ts', moment().format('x'));
-        const vals = data.ch.split ('.');
+        const ch = this.safeString (data, 'ch');
+        const vals = ch.split ('.');
         let rawsymbol = vals[1];
         let channel = vals[2];
         // :symbol
-        const symbol = this.marketsById[rawsymbol].symbol;
+        // const symbol = this.marketsById[rawsymbol].symbol;
+        const symbol = this.findSymbol (rawsymbol);
         // let channel = data.ch.split('.')[2];
         if (channel === 'depth') {
             // :ob emit
@@ -1055,17 +1058,17 @@ module.exports = class huobipro extends Exchange {
         if (event !== 'ob') {
             throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
         }
-        params['depth'] = params['depth'] || '2';
         let data = this._contextGetSymbolData (contextId, event, symbol);
         // depth from 0 to 5
         // see https://github.com/huobiapi/API_Docs/wiki/WS_api_reference#%E8%AE%A2%E9%98%85-market-depth-%E6%95%B0%E6%8D%AE-marketsymboldepthtype
-        data['depth'] = params['depth'];
+        let depth = this.safeInteger (params, 'depth', 2);
+        data['depth'] = depth;
         // it is not limit
-        data['limit'] = params['limit'] || 100;
+        data['limit'] = this.safeInteger (params, 'limit', 100);
         this._contextSetSymbolData (contextId, event, symbol, data);
         const rawsymbol = this.marketId (symbol);
         const sendJson = {
-            'sub': 'market.' + rawsymbol + '.depth.step' + params['depth'],
+            'sub': 'market.' + rawsymbol + '.depth.step' + depth.toString (),
             'id': rawsymbol,
         };
         this.websocketSendJson (sendJson);
@@ -1077,10 +1080,10 @@ module.exports = class huobipro extends Exchange {
         if (event !== 'ob') {
             throw new NotSupported ('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
         }
-        params['depth'] = params['depth'] || '2';
+        var depth = this.safeInteger (params, 'depth', 2);
         const rawsymbol = this.marketId (symbol);
         const sendJson = {
-            'unsub': 'market.' + rawsymbol + '.depth.step' + params['depth'],
+            'unsub': 'market.' + rawsymbol + '.depth.step' + depth.toString (),
             'id': rawsymbol,
         };
         this.websocketSendJson (sendJson);
