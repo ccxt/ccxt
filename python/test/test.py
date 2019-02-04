@@ -357,7 +357,7 @@ with open(keys_file) as file:
 
 # instantiate all exchanges
 for id in ccxt.exchanges:
-    if id == 'theocean':
+    if id == 'theocean' or id == 'theocean1':
         continue
     exchange = getattr(ccxt, id)
     exchange_config = {'verbose': argv.verbose}
@@ -374,7 +374,7 @@ def main():
 
     if argv.exchange:
 
-        if argv.exchange != 'theocean':
+        if argv.exchange != 'theocean' and argv.exchange != 'theocean1':
 
             exchange = exchanges[argv.exchange]
             symbol = argv.symbol
