@@ -1008,7 +1008,6 @@ module.exports = class huobipro extends Exchange {
         // TODO: pako function in Exchange.js/.py/.php
         // console.log(data);
         let text = this.gunzip (data);
-        console.log (text);
         // text = pako.inflate (data, { 'to': 'string', });
         // console.log (text);
         let msg = JSON.parse (text);
