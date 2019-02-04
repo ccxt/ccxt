@@ -3154,20 +3154,22 @@ async fetchLedger (code = undefined, since = undefined, limit = undefined, param
 
 Some exchanges don't allow to fetch all ledger entries for all assets at once, those require the `code` argument to be supplied to `fetchLedger` method.
 
-### Ledger Structure
+### Ledger Entry Structure
 
 ```JavaScript
 {
     'id': 'string-id',                      // id of the ledger entry, a string
     'direction': 'out',                     // or 'in'
-    'account': 'my-account-id',             // string id of the account if any
-    'referenceId': 'trade-id',              // the reference type id
-    'referenceAccount': 'other-account-id', // string id of the opposite account (if any)
+    'account': '06d4ab58-dfcd-468a',        // string id of the account if any
+    'referenceId': 'bf7a-d4441fb3fd31',     // string id of the trade, transaction, etc...
+    'referenceAccount': '3146-4286-bb71',   // string id of the opposite account (if any)
     'type': 'trade',                        // string, reference type, see below
     'currency': 'BTC',                      // string, unified currency code, 'ETH', 'USDT'...
     'amount': 123.45,                       // absolute number, float (does not include the fee)
     'timestamp': 1544582941735,             // milliseconds since epoch time in UTC
     'datetime': "2018-12-12T02:49:01.735Z", // string of timestamp, ISO8601
+    'before': 0,                            // amount of currency on balance before
+    'after': 0,                             // amount of currency on balance after
     'fee': {                                // object or or undefined
         'cost': 54.321,                     // absolute number on top of the amount
         'currency': 'ETH',                  // string, unified currency code, 'ETH', 'USDT'...
@@ -3176,13 +3178,7 @@ Some exchanges don't allow to fetch all ledger entries for all assets at once, t
 }
 ```
 
-### Notes on Ledger Structure
-
-#### Reference Accounts
-
-The `referenceId` field
-
-#### Types of Ledger Entries
+### Notes on Ledger Entry Structure
 
 The type of the ledger entry is the type of the operation associated with it. If the amount comes due to a sell order, then it is associated with a corresponding trade type ledger entry, and the referenceId will contain associated trade id (if the exchange in question provides it). If the amount comes out due to a withdrawal, then is is associated with a corresponding transaction.
 
@@ -3195,6 +3191,8 @@ The type of the ledger entry is the type of the operation associated with it. If
 - `transfer`
 - `whatever`
 - ...
+
+The `referenceId` field holds the id of the corresponding event that was registered by adding a new item to the ledger. The ledger entry type can be associated with a regular trade or a funding transaction (deposit or withdrawal) or an internal `transfer` between two accounts of the same user. If the ledger entry is associated with an internal transfer, the `account` field will contain the id of the account that is being altered with the ledger entry in question. The `referenceAccount` field will contain the id of the opposite account the funds are transferred to/from, depending on the `direction` (`'in'` or `'out'`).
 
 ## Overriding The Nonce
 

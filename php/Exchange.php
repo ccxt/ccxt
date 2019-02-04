@@ -1179,7 +1179,7 @@ class Exchange {
         $json_response = null;
 
         if ($this->is_json_encoded_object ($result)) {
-         
+
             $json_response = $this->parse_json ($result);
 
             if ($this->enableLastJsonResponse) {
@@ -1524,7 +1524,7 @@ class Exchange {
         $array = is_array ($items) ? array_values ($items) : array ();
         $result = array ();
         foreach ($array as $item)
-            $result[] = $this->parse_ledger_item ($item, $currency);
+            $result[] = $this->parse_ledger_entry ($item, $currency);
         $result = $this->sort_by ($result, 'timestamp');
         $code = isset ($currency) ? $currency['code'] : null;
         return $this->filter_by_currency_since_limit ($result, $code, $since, $limit);

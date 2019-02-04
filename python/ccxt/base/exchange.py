@@ -1372,7 +1372,7 @@ class Exchange(object):
 
     def parse_ledger(self, data, currency=None, since=None, limit=None):
         array = self.to_array(data)
-        array = [self.parse_ledger_item(item, currency) for item in array]
+        array = [self.parse_ledger_entry(item, currency) for item in array]
         array = self.sort_by(array, 'timestamp')
         code = currency['code'] if currency else None
         return self.filter_by_currency_since_limit(array, code, since, limit)

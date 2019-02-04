@@ -1185,7 +1185,7 @@ module.exports = class Exchange {
         let result = [];
         let array = Object.values (data || []);
         for (let i = 0; i < array.length; i++) {
-            result.push (this.parseLedgerItem (array[i], currency));
+            result.push (this.parseLedgerEntry (array[i], currency));
         }
         result = this.sortBy (result, 'timestamp');
         let code = (currency !== undefined) ? currency['code'] : undefined;
