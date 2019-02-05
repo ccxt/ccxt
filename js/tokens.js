@@ -185,7 +185,7 @@ module.exports = class tokens extends Exchange {
             let parts = market['minAmount'].split (' ');
             let cost = parts[0];
             // let [ cost, currency ] = market['minimum_order'].split (' ');
-            let active = (market['trading'] === 'Enabled');
+            let active = true;
             result.push ({
                 'id': id,
                 'symbol': symbol,
