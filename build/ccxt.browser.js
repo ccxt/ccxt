@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.198'
+const version = '1.18.199'
 
 Exchange.ccxtVersion = version
 
@@ -24405,6 +24405,7 @@ module.exports = class coincheck extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchOpenOrders': true,
+                'fetchMyTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg',
@@ -24620,19 +24621,89 @@ module.exports = class coincheck extends Exchange {
         };
     }
 
-    parseTrade (trade, market) {
-        let timestamp = this.parse8601 (trade['created_at']);
+    parseTrade (trade, market = undefined) {
+        const timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
+        const id = this.safeString (trade, 'id');
+        const price = this.safeFloat (trade, 'rate');
+        const marketId = this.safeString (trade, 'pair');
+        market = this.safeValue (this.markets_by_id, marketId, market);
+        let symbol = undefined;
+        let baseId = undefined;
+        let quoteId = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                baseId = market['baseId'];
+                quoteId = market['quoteId'];
+                symbol = market['symbol'];
+            } else {
+                const ids = marketId.split ('_');
+                baseId = ids[0];
+                quoteId = ids[1];
+                const base = this.commonCurrencyCode (baseId);
+                const quote = this.commonCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if (symbol === undefined) {
+            if (market !== undefined) {
+                symbol = market['symbol'];
+            }
+        }
+        let takerOrMaker = undefined;
+        let amount = undefined;
+        let cost = undefined;
+        let side = undefined;
+        let fee = undefined;
+        let orderId = undefined;
+        if ('liquidity' in trade) {
+            if (this.safeString (trade, 'liquidity') === 'T') {
+                takerOrMaker = 'taker';
+            } else if (this.safeString (trade, 'liquidity') === 'M') {
+                takerOrMaker = 'maker';
+            }
+            const funds = this.safeValue (trade, 'funds', {});
+            amount = this.safeFloat (funds, baseId);
+            cost = this.safeFloat (funds, quoteId);
+            fee = {
+                'currency': this.safeString (trade, 'fee_currency'),
+                'cost': this.safeFloat (trade, 'fee'),
+            };
+            side = this.safeString (trade, 'side');
+            orderId = this.safeString (trade, 'order_id');
+        } else {
+            amount = this.safeFloat (trade, 'amount');
+            side = this.safeString (trade, 'order_type');
+        }
+        if (cost === undefined) {
+            if (amount !== undefined) {
+                if (price !== undefined) {
+                    cost = amount * price;
+                }
+            }
+        }
         return {
-            'id': trade['id'].toString (),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': trade['order_type'],
-            'price': this.safeFloat (trade, 'rate'),
-            'amount': this.safeFloat (trade, 'amount'),
+            'id': id,
             'info': trade,
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
+            'symbol': symbol,
+            'type': undefined,
+            'side': side,
+            'order': orderId,
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
         };
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const market = this.market (symbol);
+        const response = await this.privateGetExchangeOrdersTransactions (this.extend ({}, params));
+        const transactions = this.safeValue (response, 'transactions', []);
+        return this.parseTrades (transactions, market, since, limit);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -24647,11 +24718,8 @@ module.exports = class coincheck extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.publicGetTrades (this.extend (request, params));
-        if ('success' in response)
-            if (response['success'])
-                if (response['data'] !== undefined)
-                    return this.parseTrades (response['data'], market, since, limit);
-        throw new ExchangeError (this.id + ' ' + this.json (response));
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
