@@ -16,7 +16,6 @@ module.exports = class tokens extends Exchange {
             'rateLimit': 1000,
             'certified': false,
             'has': {
-                'fetchDepositAddress': false,
                 'CORS': false,
                 'publicAPI': true,
                 'privateAPI': true,
@@ -143,7 +142,6 @@ module.exports = class tokens extends Exchange {
             let auth = nonce + this.apiKey;
             let signature = this.encode (this.hmac (this.encode (auth), this.encode (this.secret)));
             body = this.urlencode (query);
-            console.log (body);
             headers = {
                 'key': this.apiKey,
                 'signature': signature.toUpperCase (),
@@ -157,8 +155,9 @@ module.exports = class tokens extends Exchange {
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetPublicTradingPairsGetAll ();
         let result = [];
-        for (let key in markets) {
-            let market = markets[key];
+        const keys = Object.keys (markets);
+        for (let i = 0; i < keys.length; i += 1) {
+            let market = markets[keys[i]];
             let symbol = market['title'];
             let [ base, quote ] = symbol.split ('/');
             let baseId = base.toLowerCase ();
@@ -277,15 +276,17 @@ module.exports = class tokens extends Exchange {
     async fetchBalance (currency = undefined) {
         await this.loadMarkets ();
         let result = {};
-        if (typeof currency === 'undefined') {
+        if (typeof currency === 'undefined') {
             result['info'] = [];
-            for (let key in this.currencies) {
-                let res = await this.privateGetPrivateBalanceCurrency ({ 'currency': key });
+            const keys = Object.keys (this.currencies);
+            for (let i = 0; i < keys.length; i += 1) {
+            // for (let key in this.currencies) {
+                let res = await this.privateGetPrivateBalanceCurrency ({ 'currency': keys[i] });
                 let account = this.account ();
                 account['free'] = parseFloat (res.available);
                 account['used'] = 0.0;
                 account['total'] = parseFloat (res.total);
-                result[key] = account;
+                result[keys[i]] = account;
                 result['info'].push (res);
             }
         } else {
@@ -308,12 +309,10 @@ module.exports = class tokens extends Exchange {
         let id = this.safeString2 (trade, 'tid', 'id');
         let timestamp = parseInt (trade['datetime']) * 1000;
         let cost = this.safeFloat (trade, 'cost');
-        let feeCurrency = undefined;
         if (market !== undefined) {
             price = this.safeFloat (trade, market['symbolId'], price);
             amount = this.safeFloat (trade, market['baseId'], amount);
             cost = this.safeFloat (trade, market['quoteId'], cost);
-            feeCurrency = market['quote'];
             symbol = market['symbol'];
         }
         if (cost === undefined) {
@@ -377,7 +376,6 @@ module.exports = class tokens extends Exchange {
         };
         let trades = [];
         for (let i = 0; i < order.trades.length; i++) {
-            order.trades[i];
             trades.push (this.parseTrade (order.trades[i], market));
         }
         return {
@@ -465,43 +463,30 @@ module.exports = class tokens extends Exchange {
         switch (response.errorCode) {
         case 100:
             throw new ArgumentsRequired (response.reason);
-            break;
         case 101:
             throw new ArgumentsRequired (response.reason);
-            break;
         case 102:
             throw new ArgumentsRequired (response.reason);
-            break;
         case 110:
             throw new InvalidNonce (response.reason);
-            break;
         case 111:
             throw new InvalidNonce (response.reason);
-            break;
         case 120:
             throw new BadRequest (response.reason);
-            break;
         case 121:
             throw new BadRequest (response.reason);
-            break;
         case 130:
             throw new BadRequest (response.reason);
-            break;
         case 131:
             throw new BadRequest (response.reason);
-            break;
         case 140:
             throw new BadRequest (response.reason);
-            break;
         case 150:
             throw new BadRequest (response.reason);
-            break;
         case 160:
             throw new BadRequest (response.reason);
-            break;
         case 429:
             throw new DDoSProtection (response.reason);
-            break;
         default:
             // catch other errors if not defined here
             if (response.status === 'error') throw new ExchangeError (response.reason);
