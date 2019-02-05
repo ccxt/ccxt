@@ -422,16 +422,16 @@ module.exports = class tokens extends Exchange {
         };
     }
 
-    async cancelOrder (id) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostPrivateOrdersCancelId ({ 'id': id });
     }
 
-    async fetchOrderStatus (id) {
+    async fetchOrderStatus (id, symbol = undefined, params = {}) {
         let order = await this.privateGetPrivateOrdersGetId ({ 'id': id });
         return this.parseOrderStatus (this.safeString (order, 'orderStatus'));
     }
 
-    async fetchOrder (id) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let order = await this.privateGetPrivateOrdersGetId ({ 'id': id });
         let parsed = this.parseOrder (order);
