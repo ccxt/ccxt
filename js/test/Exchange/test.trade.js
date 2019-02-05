@@ -26,7 +26,6 @@ module.exports = (exchange, trade, symbol, now) => {
     const isExchangeTimeDrifting = [
         'bitfinex',
         'bitfinex2',
-        'tokens',
         'kraken', // override for kraken and possibly other exchanges as well
     ].includes (exchange.id)
 
