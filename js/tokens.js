@@ -7,8 +7,6 @@ const { ExchangeError, BadRequest, ArgumentsRequired, InvalidNonce, DDoSProtecti
 
 //  ---------------------------------------------------------------------------
 
-
-
 module.exports = class tokens extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -63,7 +61,7 @@ module.exports = class tokens extends Exchange {
             },
             'requiredCredentials': {
                 'apiKey': true,
-                'secret': true
+                'secret': true,
             },
             'api': {
                 'public': {
@@ -72,28 +70,28 @@ module.exports = class tokens extends Exchange {
                         'public/ticker/{time}/{pair}/',
                         'public/trades/{time}/{pair}/',
                         'public/trading-pairs/get/all/',
-                        'public/order-book/{pair}/'
+                        'public/order-book/{pair}/',
                     ],
                 },
                 'private': {
                     'get': [
-                       'private/balance/{currency}/',
-                       'private/orders/get/all/',
-                       'private/orders/get/{id}/',
-                       'private/orders/get/{trading_pair}/'  
+                        'private/balance/{currency}/',
+                        'private/orders/get/all/',
+                        'private/orders/get/{id}/',
+                        'private/orders/get/{trading_pair}/',
                     ],
-                    'post' : [
+                    'post': [
                         'private/orders/add/limit/',
-                        'private/orders/cancel/{id}/'
-                    ]
-                }
+                        'private/orders/cancel/{id}/',
+                    ],
+                },
             },
             'fees': {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
                     'taker': 0.2 / 100,
-                    'maker': 0.0 / 100
+                    'maker': 0.0 / 100,
                 },
                 'funding': {
                     'tierBased': false,
@@ -109,7 +107,7 @@ module.exports = class tokens extends Exchange {
                         'DPP': 100,
                         'DTR': 30,
                         'ELI': 100,
-                        'ETH':0.005,
+                        'ETH': 0.005,
                         'EURS': 1.5,
                         'GUSD': 1,
                         'LANA': 5000,
@@ -125,10 +123,10 @@ module.exports = class tokens extends Exchange {
                         'XAUR': 15,
                         'XLM': 0.1,
                         'XRM': 0.0001,
-                        'XRP' : 0.05
-                    }
+                        'XRP': 0.05,
+                    },
                 },
-            }
+            },
         });
     }
 
@@ -145,12 +143,12 @@ module.exports = class tokens extends Exchange {
             let auth = nonce + this.apiKey;
             let signature = this.encode (this.hmac (this.encode (auth), this.encode (this.secret)));
             body = this.urlencode (query);
-            console.log(body)
+            console.log (body);
             headers = {
-                'key' : this.apiKey,
+                'key': this.apiKey,
                 'signature': signature.toUpperCase (),
                 'nonce': nonce,
-                'Content-Type': 'application/x-www-form-urlencoded'
+                'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -159,7 +157,7 @@ module.exports = class tokens extends Exchange {
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetPublicTradingPairsGetAll ();
         let result = [];
-        for(var key in markets) {
+        for (let key in markets) {
             let market = markets[key];
             let symbol = market['title'];
             let [ base, quote ] = symbol.split ('/');
@@ -167,7 +165,6 @@ module.exports = class tokens extends Exchange {
             let quoteId = quote.toLowerCase ();
             let symbolId = baseId + '_' + quoteId;
             let id = baseId + quoteId;
-
             let precision = {
                 'amount': market['priceDecimals'],
                 'price': market['amountDecimals'],
@@ -203,25 +200,23 @@ module.exports = class tokens extends Exchange {
                 },
             });
         }
-        return result
+        return result;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-
-        let orderbook = await this.publicGetPublicOrderBookPair (this.extend({
+        let orderbook = await this.publicGetPublicOrderBookPair (this.extend ({
             'pair': market['id'],
         }, params));
-
         let timestamp = parseInt (orderbook['timestamp']) * 1000;
         let parsedOrderbook = this.parseOrderBook (orderbook, timestamp);
-        parsedOrderbook['nonce'] = this.nonce()
+        parsedOrderbook['nonce'] = this.nonce ();
         return parsedOrderbook;
     }
 
-    async fetchTicker (symbol, params = { time: 'hour'}) {
-         await this.loadMarkets ();
+    async fetchTicker (symbol, params = { 'time': 'hour' }) {
+        await this.loadMarkets ();
         let ticker = await this.publicGetPublicTickerPair (this.extend ({
             'pair': this.marketId (symbol),
         }, params));
@@ -264,17 +259,17 @@ module.exports = class tokens extends Exchange {
         if (trades.trades.length === 0) {
             return [];
         }
-        let result = Object.values (trades.trades).map (trade => this.parseTrade (trade, market))
-        result = this.sortBy (result, 'timestamp')
-        let symbol = (market !== undefined) ? market['symbol'] : undefined
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit)
+        let result = Object.values (trades.trades).map (trade => this.parseTrade (trade, market));
+        result = this.sortBy (result, 'timestamp');
+        let symbol = (market !== undefined) ? market['symbol'] : undefined;
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = { time : 'hour'}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = { 'time': 'hour' }) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetPublicTradesTimePair (this.extend ({
-            'pair': market['id']
+            'pair': market['id'],
         }, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -282,25 +277,25 @@ module.exports = class tokens extends Exchange {
     async fetchBalance (currency = undefined) {
         await this.loadMarkets ();
         let result = {};
-        if (typeof currency === 'undefined' ) {
-            result['info'] = []
-            for (var key in this.currencies) {
-                let res = await this.privateGetPrivateBalanceCurrency({'currency' : key})
+        if (typeof currency === 'undefined') {
+            result['info'] = [];
+            for (let key in this.currencies) {
+                let res = await this.privateGetPrivateBalanceCurrency ({ 'currency': key });
                 let account = this.account ();
-                account['free'] =  parseFloat (res.available)
-                account['used'] =  0.0
-                account['total'] = parseFloat (res.total) 
-                result[key] = account
-                result['info'].push(res)
+                account['free'] = parseFloat (res.available);
+                account['used'] = 0.0;
+                account['total'] = parseFloat (res.total);
+                result[key] = account;
+                result['info'].push (res);
             }
         } else {
-            let res = await this.privateGetPrivateBalanceCurrency({'currency' : currency})
+            let res = await this.privateGetPrivateBalanceCurrency ({ 'currency': currency });
             let account = this.account ();
-            account['free'] =  parseFloat (res.available)
-            account['used'] =  0.0
-            account['total'] = parseFloat (res.total) 
-            result[res.currency] = account
-            result['info'] = res
+            account['free'] = parseFloat (res.available);
+            account['used'] = 0.0;
+            account['total'] = parseFloat (res.total);
+            result[res.currency] = account;
+            result['info'] = res;
         }
         return this.parseBalance (result);
     }
@@ -332,17 +327,17 @@ module.exports = class tokens extends Exchange {
             cost = Math.abs (cost);
         }
         return {
-            amount: amount,
-            id: id,
-            info: trade,
-            order: undefined,
-            price: price,
-            timestamp: timestamp,
-            datetime: this.iso8601 (timestamp),
-            type: undefined,
-            side: side,
-            symbol: symbol,
-            cost: cost
+            'amount': amount,
+            'id': id,
+            'info': trade,
+            'order': undefined,
+            'price': price,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'type': undefined,
+            'side': side,
+            'symbol': symbol,
+            'cost': cost,
         };
     }
 
@@ -351,30 +346,27 @@ module.exports = class tokens extends Exchange {
             'open': 'open',
             'filled': 'closed',
             'canceled': 'canceled',
-            'expired': 'canceled'
+            'expired': 'canceled',
         };
         return (status in statuses) ? statuses[status] : status;
     }
 
     async parseOrder (order, market = undefined) {
-
         market = this.markets_by_id[order.currencyPair];
         let status = this.parseOrderStatus (this.safeString (order, 'orderStatus'));
         let id = this.safeString (order, 'id');
         let side = this.safeString (order, 'type');
-        let timestamp = (order['created'] * 1000).toString();
-    
-        let symbol = undefined
-        let feeCurrency = undefined
+        let timestamp = (order['created'] * 1000).toString ();
+        let symbol = undefined;
+        let feeCurrency = undefined;
         let fee = undefined;
         let cost = undefined;
-        let filled = undefined
+        let filled = undefined;
         let amount = this.safeFloat (order, 'amount');
-        let price = this.safeFloat(order, 'price')
+        let price = this.safeFloat (order, 'price');
         let remaining = this.safeFloat (order, 'remainingAmount');
         filled = amount - remaining;
-        cost = price * filled
-
+        cost = price * filled;
         if (market !== undefined) {
             symbol = market['symbol'];
             feeCurrency = market['quote'];
@@ -382,12 +374,12 @@ module.exports = class tokens extends Exchange {
         fee = {
             'cost': undefined,
             'currency': feeCurrency,
-        }
-        let trades = []
-        for (var i = 0; i < order.trades.length; i++) {
-            order.trades[i]
-            trades.push(this.parseTrade(order.trades[i], market))
         };
+        let trades = [];
+        for (let i = 0; i < order.trades.length; i++) {
+            order.trades[i];
+            trades.push (this.parseTrade (order.trades[i], market));
+        }
         return {
             'id': id,
             'datetime': this.iso8601 (timestamp),
@@ -404,45 +396,43 @@ module.exports = class tokens extends Exchange {
             'remaining': remaining,
             'trades': trades,
             'fee': fee,
-            'info': order
+            'info': order,
         };
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'tradingPair': market['id'],
             'amount': this.amountToPrecision (symbol, amount),
-            'side' : side,
-            'price' : this.priceToPrecision (symbol, price)
+            'side': side,
+            'price': this.priceToPrecision (symbol, price),
         };
-
-        let response = await this.privatePostPrivateOrdersAddLimit(this.extend (request, params))
-        //let order = this.parseOrder (response, market);
-        let timestamp = (response['timestamp'] * 1000).toString();
+        let response = await this.privatePostPrivateOrdersAddLimit (this.extend (request, params));
+        // let order = this.parseOrder (response, market);
+        let timestamp = (response['timestamp'] * 1000).toString ();
         return {
             'info': response,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
-            'id': this.safeString (response, 'orderId')
+            'id': this.safeString (response, 'orderId'),
         };
     }
 
     async cancelOrder (id) {
-        return await this.privatePostPrivateOrdersCancelId({'id': id })
+        return await this.privatePostPrivateOrdersCancelId ({ 'id': id });
     }
 
     async fetchOrderStatus (id) {
-        let order = await this.privateGetPrivateOrdersGetId({id : id})
+        let order = await this.privateGetPrivateOrdersGetId ({ 'id': id });
         return this.parseOrderStatus (this.safeString (order, 'orderStatus'));
     }
 
     async fetchOrder (id) {
         await this.loadMarkets ();
-        let order = await this.privateGetPrivateOrdersGetId({id : id})
-        let parsed = this.parseOrder(order)
+        let order = await this.privateGetPrivateOrdersGetId ({ 'id': id });
+        let parsed = this.parseOrder (order);
         return parsed;
     }
 
@@ -472,51 +462,50 @@ module.exports = class tokens extends Exchange {
     // 160 Invalid currency code
     // 429 API rate limit exceeded
     handleErrors (httpCode, reason, url, method, headers, body, response) {
-        switch(response.errorCode) {
-          case 100:
-            throw new ArgumentsRequired(response.reason)
+        switch (response.errorCode) {
+        case 100:
+            throw new ArgumentsRequired (response.reason);
             break;
-          case 101:
-            throw new ArgumentsRequired(response.reason)
+        case 101:
+            throw new ArgumentsRequired (response.reason);
             break;
-          case 102:
-            throw new ArgumentsRequired(response.reason)
+        case 102:
+            throw new ArgumentsRequired (response.reason);
             break;
-          case 110:
-            throw new InvalidNonce(response.reason)
+        case 110:
+            throw new InvalidNonce (response.reason);
             break;
-          case 111:
-            throw new InvalidNonce(response.reason)
+        case 111:
+            throw new InvalidNonce (response.reason);
             break;
-          case 120:
-            throw new BadRequest(response.reason)
+        case 120:
+            throw new BadRequest (response.reason);
             break;
-          case 121:
-            throw new BadRequest(response.reason)
+        case 121:
+            throw new BadRequest (response.reason);
             break;
-          case 130:
-            throw new BadRequest(response.reason)
+        case 130:
+            throw new BadRequest (response.reason);
             break;
-          case 131:
-            throw new BadRequest(response.reason)
+        case 131:
+            throw new BadRequest (response.reason);
             break;
-          case 140:
-            throw new BadRequest(response.reason)
+        case 140:
+            throw new BadRequest (response.reason);
             break;
-          case 150:
-            throw new BadRequest(response.reason)
+        case 150:
+            throw new BadRequest (response.reason);
             break;
-          case 160:
-            throw new BadRequest(response.reason)
+        case 160:
+            throw new BadRequest (response.reason);
             break;
-          case 429:
-            throw new DDoSProtection(response.reason)
+        case 429:
+            throw new DDoSProtection (response.reason);
             break;
-          default:
+        default:
             // catch other errors if not defined here
-            if(response.status === 'error') throw new ExchangeError(response.reason)
+            if (response.status === 'error') throw new ExchangeError (response.reason);
         }
     }
-
 };
 
