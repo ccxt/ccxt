@@ -338,7 +338,7 @@ module.exports = class theocean extends Exchange {
         //         "timestamp": "1512929327792"
         //     }
         //
-        let timestamp = parseInt (this.safeFloat (ticker, 'timestamp') / 1000);
+        let timestamp = parseInt (this.safeInteger (ticker, 'timestamp') / 1000);
         let symbol = undefined;
         let base = undefined;
         if (market !== undefined) {
@@ -603,6 +603,9 @@ module.exports = class theocean extends Exchange {
         let side = this.safeString (order, 'side');
         let type = this.safeString (order, 'type'); // injected from outside
         let timestamp = this.safeInteger (order, 'creationTimestamp');
+        if (timestamp !== 'undefined') {
+            timestamp = parseInt (timestamp / 1000);
+        }
         let symbol = undefined;
         let baseId = this.safeString (order, 'baseTokenAddress');
         let quoteId = this.safeString (order, 'quoteTokenAddress');
@@ -642,7 +645,6 @@ module.exports = class theocean extends Exchange {
                     let fillEvents = this.safeValue (timelineEventsGroupedByAction, 'filled');
                     let numFillEvents = fillEvents.length;
                     lastTradeTimestamp = this.safeInteger (fillEvents[numFillEvents - 1], 'timestamp');
-                    lastTradeTimestamp = (lastTradeTimestamp !== undefined) ? lastTradeTimestamp * 1000 : lastTradeTimestamp;
                     trades = [];
                     for (let i = 0; i < numFillEvents; i++) {
                         let trade = this.parseTrade (this.extend (fillEvents[i], {
