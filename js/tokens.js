@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, BadRequest, ArgumentsRequired, InvalidNonce, DDoSProtection } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -128,22 +128,7 @@ module.exports = class tokens extends Exchange {
                         'XRP' : 0.05
                     }
                 },
-            },
-            'exceptions': {
-                // 100 API Key is missing
-                // 101 Nonce is missing
-                // 102 Signature is missing
-                // 110 Nonce has to be integer
-                // 111 Provided nonce is less or equal to the last nonce
-                // 120 Invalid API key
-                // 121 Signature is invalid
-                // 130 Invalid trading pair
-                // 131 Invalid order id
-                // 140 Only opened orders can be canceled
-                // 150 Parameter {parameter} is invalid with error: {error}
-                // 160 Invalid currency code
-                // 429 API rate limit exceeded
-            },
+            }
         });
     }
 
@@ -371,30 +356,22 @@ module.exports = class tokens extends Exchange {
         return (status in statuses) ? statuses[status] : status;
     }
 
-    wait (ms) {return new Promise((r, j)=>setTimeout(r, ms))}
-
     async parseOrder (order, market = undefined) {
-        
-        // This wait is unreilable, often the orderId is not avaiuable on privateGetPrivateOrdersGetId when we call this immideately after createOrder.
-        // TO DO: remove, return only id; leave to user to get order details in a separate call
 
-        await this.wait(500)
-        
-        let fullOrder = await this.privateGetPrivateOrdersGetId({id : order.orderId})
-        let status = this.parseOrderStatus (this.safeString (fullOrder, 'orderStatus'));
-        let id = this.safeString (fullOrder, 'id');
-        let side = this.safeString (fullOrder, 'type');
-        let timestamp = (fullOrder['created'] * 1000).toString();
-        //let timestamp = this.safeString (fullOrder, 'created');
-        
+        market = this.markets_by_id[order.currencyPair];
+        let status = this.parseOrderStatus (this.safeString (order, 'orderStatus'));
+        let id = this.safeString (order, 'id');
+        let side = this.safeString (order, 'type');
+        let timestamp = (order['created'] * 1000).toString();
+    
         let symbol = undefined
         let feeCurrency = undefined
         let fee = undefined;
         let cost = undefined;
         let filled = undefined
-        let amount = this.safeFloat (fullOrder, 'amount');
-        let price = this.safeFloat(fullOrder, 'price')
-        let remaining = this.safeFloat (fullOrder, 'remainingAmount');
+        let amount = this.safeFloat (order, 'amount');
+        let price = this.safeFloat(order, 'price')
+        let remaining = this.safeFloat (order, 'remainingAmount');
         filled = amount - remaining;
         cost = price * filled
 
@@ -407,9 +384,9 @@ module.exports = class tokens extends Exchange {
             'currency': feeCurrency,
         }
         let trades = []
-        for (var i = 0; i < fullOrder.trades.length; i++) {
-            fullOrder.trades[i]
-            trades.push(this.parseTrade(fullOrder.trades[i]))
+        for (var i = 0; i < order.trades.length; i++) {
+            order.trades[i]
+            trades.push(this.parseTrade(order.trades[i], market))
         };
         return {
             'id': id,
@@ -427,11 +404,12 @@ module.exports = class tokens extends Exchange {
             'remaining': remaining,
             'trades': trades,
             'fee': fee,
-            'info': fullOrder,
+            'info': order
         };
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -442,15 +420,31 @@ module.exports = class tokens extends Exchange {
         };
 
         let response = await this.privatePostPrivateOrdersAddLimit(this.extend (request, params))
-        let order = this.parseOrder (response, market);
-        return order
+        //let order = this.parseOrder (response, market);
+        let timestamp = (response['timestamp'] * 1000).toString();
+        return {
+            'info': response,
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
+            'id': this.safeString (response, 'orderId')
+        };
     }
 
-    // async cancelOrder (id, symbol = undefined, params = {}) {}
+    async cancelOrder (id) {
+        return await this.privatePostPrivateOrdersCancelId({'id': id })
+    }
 
-    // async fetchOrderStatus (id, symbol = undefined, params = {}) {}
+    async fetchOrderStatus (id) {
+        let order = await this.privateGetPrivateOrdersGetId({id : id})
+        return this.parseOrderStatus (this.safeString (order, 'orderStatus'));
+    }
 
-    // async fetchOrder (id, symbol = undefined, params = {}) {}
+    async fetchOrder (id) {
+        await this.loadMarkets ();
+        let order = await this.privateGetPrivateOrdersGetId({id : id})
+        let parsed = this.parseOrder(order)
+        return parsed;
+    }
 
     // async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {}
 
@@ -464,17 +458,64 @@ module.exports = class tokens extends Exchange {
 
     // async withdraw (code, amount, address, tag = undefined, params = {}) {}
 
-    // error example:
-    // {
-    // "timestamp": 1234567890,
-    // "status": error,
-    // "errorCode": 100,
-    // "reason": API Key is missing
-    // }
-
+    // 100 API Key is missing
+    // 101 Nonce is missing
+    // 102 Signature is missing
+    // 110 Nonce has to be integer
+    // 111 Provided nonce is less or equal to the last nonce
+    // 120 Invalid API key
+    // 121 Signature is invalid
+    // 130 Invalid trading pair
+    // 131 Invalid order id
+    // 140 Only opened orders can be canceled
+    // 150 Parameter {parameter} is invalid with error: {error}
+    // 160 Invalid currency code
+    // 429 API rate limit exceeded
     handleErrors (httpCode, reason, url, method, headers, body, response) {
-        //console.log(httpCode, reason, url, method, headers, body, response)
-        //console.log(body, response)
+        switch(response.errorCode) {
+          case 100:
+            throw new ArgumentsRequired(response.reason)
+            break;
+          case 101:
+            throw new ArgumentsRequired(response.reason)
+            break;
+          case 102:
+            throw new ArgumentsRequired(response.reason)
+            break;
+          case 110:
+            throw new InvalidNonce(response.reason)
+            break;
+          case 111:
+            throw new InvalidNonce(response.reason)
+            break;
+          case 120:
+            throw new BadRequest(response.reason)
+            break;
+          case 121:
+            throw new BadRequest(response.reason)
+            break;
+          case 130:
+            throw new BadRequest(response.reason)
+            break;
+          case 131:
+            throw new BadRequest(response.reason)
+            break;
+          case 140:
+            throw new BadRequest(response.reason)
+            break;
+          case 150:
+            throw new BadRequest(response.reason)
+            break;
+          case 160:
+            throw new BadRequest(response.reason)
+            break;
+          case 429:
+            throw new DDoSProtection(response.reason)
+            break;
+          default:
+            // catch other errors if not defined here
+            if(response.status === 'error') throw new ExchangeError(response.reason)
+        }
     }
 
 };
