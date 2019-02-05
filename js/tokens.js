@@ -53,7 +53,7 @@ module.exports = class tokens extends Exchange {
                 'withdraw': false,
             },
             'urls': {
-                // 'logo': '',
+                'logo': 'https://user-images.githubusercontent.com/4224211/52278879-67fcea80-2958-11e9-9cec-94a7333a9d7e.png',
                 'api': 'https://api.tokens.net/',
                 'www': 'https://www.tokens.net',
                 'doc': 'https://www.tokens.net/api/',
