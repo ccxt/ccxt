@@ -126,6 +126,20 @@ module.exports = class tokens extends Exchange {
                     },
                 },
             },
+            'exceptions': {
+                '100': ArgumentsRequired,
+                '101': ArgumentsRequired,
+                '102': ArgumentsRequired,
+                '110': InvalidNonce,
+                '111': InvalidNonce,
+                '120': BadRequest,
+                '121': BadRequest,
+                '130': BadRequest,
+                '140': BadRequest,
+                '150': BadRequest,
+                '160': BadRequest,
+                '429': DDoSProtection,
+            },
         });
     }
 
@@ -460,36 +474,20 @@ module.exports = class tokens extends Exchange {
     // 160 Invalid currency code
     // 429 API rate limit exceeded
     handleErrors (httpCode, reason, url, method, headers, body, response) {
-        switch (response.errorCode) {
-        case 100:
-            throw new ArgumentsRequired (response.reason);
-        case 101:
-            throw new ArgumentsRequired (response.reason);
-        case 102:
-            throw new ArgumentsRequired (response.reason);
-        case 110:
-            throw new InvalidNonce (response.reason);
-        case 111:
-            throw new InvalidNonce (response.reason);
-        case 120:
-            throw new BadRequest (response.reason);
-        case 121:
-            throw new BadRequest (response.reason);
-        case 130:
-            throw new BadRequest (response.reason);
-        case 131:
-            throw new BadRequest (response.reason);
-        case 140:
-            throw new BadRequest (response.reason);
-        case 150:
-            throw new BadRequest (response.reason);
-        case 160:
-            throw new BadRequest (response.reason);
-        case 429:
-            throw new DDoSProtection (response.reason);
-        default:
-            // catch other errors if not defined here
-            if (response.status === 'error') throw new ExchangeError (response.reason);
+        if (typeof body !== 'string')
+            return;
+        if (body.length < 2)
+            return;
+        if ((body[0] === '{') || (body[0] === '[')) {
+            let error = this.safeString (response, 'errorCode');
+            let exceptions = this.exceptions;
+            if (error in exceptions) {
+                throw new exceptions[error] (response.reason);
+            }
+            let status = this.safeString (response, 'status');
+            if (status === 'error') {
+                throw new ExchangeError (response.reason);
+            }
         }
     }
 };
