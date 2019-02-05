@@ -277,15 +277,7 @@ module.exports = class coincheck extends Exchange {
     }
 
     parseTrade (trade, market) {
-        let keys = Object.keys (trade);
-        let isMyTrade = false;
-        for (let i = 0; i < keys.length; i++) {
-            if (keys[i] === 'liquidity') {
-                isMyTrade = true;
-                break;
-            }
-        }
-        if (isMyTrade) {
+        if ('liquidity' in trade) {
             return this.parseMyTrade (trade, market);
         } else {
             let timestamp = this.parse8601 (trade['created_at']);
