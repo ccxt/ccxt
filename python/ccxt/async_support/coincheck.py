@@ -19,6 +19,7 @@ class coincheck (Exchange):
             'has': {
                 'CORS': False,
                 'fetchOpenOrders': True,
+                'fetchMyTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg',
@@ -220,19 +221,79 @@ class coincheck (Exchange):
             'info': ticker,
         }
 
-    def parse_trade(self, trade, market):
-        timestamp = self.parse8601(trade['created_at'])
+    def parse_trade(self, trade, market=None):
+        timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
+        id = self.safe_string(trade, 'id')
+        price = self.safe_float(trade, 'rate')
+        marketId = self.safe_string(trade, 'pair')
+        market = self.safe_value(self.markets_by_id, marketId, market)
+        symbol = None
+        baseId = None
+        quoteId = None
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                baseId = market['baseId']
+                quoteId = market['quoteId']
+                symbol = market['symbol']
+            else:
+                ids = marketId.split('_')
+                baseId = ids[0]
+                quoteId = ids[1]
+                base = self.common_currency_code(baseId)
+                quote = self.common_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if symbol is None:
+            if market is not None:
+                symbol = market['symbol']
+        takerOrMaker = None
+        amount = None
+        cost = None
+        side = None
+        fee = None
+        orderId = None
+        if 'liquidity' in trade:
+            if self.safe_string(trade, 'liquidity') == 'T':
+                takerOrMaker = 'taker'
+            elif self.safe_string(trade, 'liquidity') == 'M':
+                takerOrMaker = 'maker'
+            funds = self.safe_value(trade, 'funds', {})
+            amount = self.safe_float(funds, baseId)
+            cost = self.safe_float(funds, quoteId)
+            fee = {
+                'currency': self.safe_string(trade, 'fee_currency'),
+                'cost': self.safe_float(trade, 'fee'),
+            }
+            side = self.safe_string(trade, 'side')
+            orderId = self.safe_string(trade, 'order_id')
+        else:
+            amount = self.safe_float(trade, 'amount')
+            side = self.safe_string(trade, 'order_type')
+        if cost is None:
+            if amount is not None:
+                if price is not None:
+                    cost = amount * price
         return {
-            'id': str(trade['id']),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
-            'type': None,
-            'side': trade['order_type'],
-            'price': self.safe_float(trade, 'rate'),
-            'amount': self.safe_float(trade, 'amount'),
+            'id': id,
             'info': trade,
+            'datetime': self.iso8601(timestamp),
+            'timestamp': timestamp,
+            'symbol': symbol,
+            'type': None,
+            'side': side,
+            'order': orderId,
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
         }
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        market = self.market(symbol)
+        response = await self.privateGetExchangeOrdersTransactions(self.extend({}, params))
+        transactions = self.safe_value(response, 'transactions', [])
+        return self.parse_trades(transactions, market, since, limit)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         if symbol != 'BTC/JPY':
@@ -244,11 +305,8 @@ class coincheck (Exchange):
         if limit is not None:
             request['limit'] = limit
         response = await self.publicGetTrades(self.extend(request, params))
-        if 'success' in response:
-            if response['success']:
-                if response['data'] is not None:
-                    return self.parse_trades(response['data'], market, since, limit)
-        raise ExchangeError(self.id + ' ' + self.json(response))
+        data = self.safe_value(response, 'data', [])
+        return self.parse_trades(data, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         order = {
