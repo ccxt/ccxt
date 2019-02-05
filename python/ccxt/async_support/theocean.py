@@ -343,7 +343,7 @@ class theocean (Exchange):
         #         "timestamp": "1512929327792"
         #     }
         #
-        timestamp = int(self.safe_float(ticker, 'timestamp') / 1000)
+        timestamp = int(self.safe_integer(ticker, 'timestamp') / 1000)
         symbol = None
         base = None
         if market is not None:
@@ -584,6 +584,8 @@ class theocean (Exchange):
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'type')  # injected from outside
         timestamp = self.safe_integer(order, 'creationTimestamp')
+        if timestamp != 'None':
+            timestamp = int(timestamp / 1000)
         symbol = None
         baseId = self.safe_string(order, 'baseTokenAddress')
         quoteId = self.safe_string(order, 'quoteTokenAddress')
@@ -620,7 +622,7 @@ class theocean (Exchange):
                     fillEvents = self.safe_value(timelineEventsGroupedByAction, 'filled')
                     numFillEvents = len(fillEvents)
                     lastTradeTimestamp = self.safe_integer(fillEvents[numFillEvents - 1], 'timestamp')
-                    lastTradeTimestamp = lastTradeTimestamp * 1000 if (lastTradeTimestamp is not None) else lastTradeTimestamp
+                    lastTradeTimestamp = lastTradeTimestamp if (lastTradeTimestamp is not None) else lastTradeTimestamp
                     trades = []
                     for i in range(0, numFillEvents):
                         trade = self.parse_trade(self.extend(fillEvents[i], {
