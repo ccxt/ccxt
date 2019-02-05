@@ -233,66 +233,82 @@ module.exports = class coincheck extends Exchange {
         };
     }
 
-    parseMyTrade (trade, market = undefined) {
-        let timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
-        let id = this.safeString (trade, 'id');
-        let takerOrMaker = undefined;
-        if (this.safeString (trade, 'liquidity') === 'T') {
-            takerOrMaker = 'taker';
-        } else if (this.safeString (trade, 'liquidity') === 'M') {
-            takerOrMaker = 'maker';
-        }
-        let marketId = this.safeString (trade, 'pair');
-        let [ baseId, quoteId ] = marketId.split ('_');
+    parseTrade (trade, market = undefined) {
+        const timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
+        const id = this.safeString (trade, 'id');
+        const price = this.safeFloat (trade, 'rate');
+        const marketId = this.safeString (trade, 'pair');
+        market = this.safeValue (this.markets_by_id, marketId, market);
         let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        } else {
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            symbol = base + '/' + quote;
+        let baseId = undefined;
+        let quoteId = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                baseId = market['baseId'];
+                quoteId = market['quoteId'];
+                symbol = market['symbol'];
+            } else {
+                const ids = marketId.split ('_');
+                baseId = ids[0];
+                quoteId = ids[1];
+                const base = this.commonCurrencyCode (baseId);
+                const quote = this.commonCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
         }
-        let price = this.safeFloat (trade, 'rate');
-        let amount = this.safeFloat (trade['funds'], baseId);
-        let cost = this.safeFloat (trade['funds'], quoteId);
-        let fee = {
-            'currency': this.safeString (trade, 'fee_currency'),
-            'cost': this.safeFloat (trade, 'fee'),
-        };
+        if (symbol === undefined) {
+            if (market !== undefined) {
+                symbol = market['symbol'];
+            }
+        }
+        let takerOrMaker = undefined;
+        let amount = undefined;
+        let cost = undefined;
+        let side = undefined;
+        let fee = undefined;
+        let orderId = undefined;
+        if ('liquidity' in trade) {
+            if (this.safeString (trade, 'liquidity') === 'T') {
+                takerOrMaker = 'taker';
+            } else if (this.safeString (trade, 'liquidity') === 'M') {
+                takerOrMaker = 'maker';
+            }
+            const funds = this.safeValue (trade, 'funds', {});
+            amount = this.safeFloat (funds, baseId);
+            cost = this.safeFloat (funds, quoteId);
+            fee = {
+                'currency': this.safeString (trade, 'fee_currency'),
+                'cost': this.safeFloat (trade, 'fee'),
+            };
+            side = this.safeString (trade, 'side');
+            orderId = this.safeString (trade, 'order_id');
+        } else {
+            amount = this.safeFloat (trade, 'amount');
+            side = this.safeString (trade, 'order_type');
+        }
+        if (cost === undefined) {
+            if (amount !== undefined) {
+                if (price !== undefined) {
+                    cost = amount * price;
+                }
+            }
+        }
         return {
-            'amount': amount,
-            'datetime': this.iso8601 (timestamp),
             'id': id,
             'info': trade,
-            'order': this.safeString (trade, 'order_id'),
+            'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'symbol': symbol,
-            'side': trade['side'],
+            'type': undefined,
+            'side': side,
+            'order': orderId,
             'takerOrMaker': takerOrMaker,
             'price': price,
+            'amount': amount,
             'cost': cost,
             'fee': fee,
         };
-    }
-
-    parseTrade (trade, market) {
-        if ('liquidity' in trade) {
-            return this.parseMyTrade (trade, market);
-        } else {
-            let timestamp = this.parse8601 (trade['created_at']);
-            return {
-                'id': trade['id'].toString (),
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'symbol': market['symbol'],
-                'type': undefined,
-                'side': trade['order_type'],
-                'price': this.safeFloat (trade, 'rate'),
-                'amount': this.safeFloat (trade, 'amount'),
-                'info': trade,
-            };
-        }
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
