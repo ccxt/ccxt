@@ -1287,11 +1287,12 @@ Turn on the built-in rate-limiter with ``.enableRateLimit`` property, like so:
    $exchange->enableRateLimit = true; // enable
    $exchange->enableRateLimit = false; // disable
 
-In case your calls hit a rate limit or get nonce errors, the ccxt library will throw an exception of one of the following types:
+In case your calls hit a rate limit or get nonce errors, the ccxt library will throw an ``InvalidNonce`` exception, or, in some cases, one of the following types:
 
--  DDoSProtectionError
--  ExchangeNotAvailable
--  ExchangeError
+-  ``DDoSProtectionError``
+-  ``ExchangeNotAvailable``
+-  ``ExchangeError``
+   – ``InvalidNonce``
 
 A later retry is usually enough to handle that. More on that here:
 
