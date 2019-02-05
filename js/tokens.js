@@ -228,7 +228,7 @@ module.exports = class tokens extends Exchange {
         return parsedOrderbook;
     }
 
-    async fetchTicker (symbol, params = { 'time': 'hour' }) {
+    async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let ticker = await this.publicGetPublicTickerPair (this.extend ({
             'pair': this.marketId (symbol),
@@ -268,24 +268,13 @@ module.exports = class tokens extends Exchange {
         return this.milliseconds ();
     }
 
-    parseTrades (trades, market = undefined, since = undefined, limit = undefined) {
-        let tradesProperty = trades['trades'];
-        if (tradesProperty.length === 0) {
-            return [];
-        }
-        let result = Object.values (tradesProperty).map (trade => this.parseTrade (trade, market));
-        result = this.sortBy (result, 'timestamp');
-        let symbol = (market !== undefined) ? market['symbol'] : undefined;
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
-    }
-
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = { 'time': 'hour' }) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetPublicTradesTimePair (this.extend ({
             'pair': market['id'],
         }, params));
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response['trades'], market, since, limit);
     }
 
     async fetchBalance (currency = undefined) {
@@ -295,7 +284,6 @@ module.exports = class tokens extends Exchange {
             result['info'] = [];
             let keys = Object.keys (this.currencies);
             for (let i = 0; i < keys.length; i += 1) {
-            // for (let key in this.currencies) {
                 let res = await this.privateGetPrivateBalanceCurrency ({ 'currency': keys[i] });
                 let account = this.account ();
                 account['free'] = parseFloat (res['available']);
