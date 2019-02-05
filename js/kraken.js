@@ -835,7 +835,6 @@ module.exports = class kraken extends Exchange {
         }, params));
         let orders = response['result'];
         let order = this.parseOrder (this.extend ({ 'id': id }, orders[id]));
-        
         return this.extend ({ 'info': response }, order);
     }
 
