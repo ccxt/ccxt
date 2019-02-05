@@ -17,6 +17,7 @@ module.exports = class coincheck extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchOpenOrders': true,
+                'fetchMyTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg',
@@ -232,19 +233,94 @@ module.exports = class coincheck extends Exchange {
         };
     }
 
-    parseTrade (trade, market) {
-        let timestamp = this.parse8601 (trade['created_at']);
-        return {
-            'id': trade['id'].toString (),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': trade['order_type'],
-            'price': this.safeFloat (trade, 'rate'),
-            'amount': this.safeFloat (trade, 'amount'),
-            'info': trade,
+    parseMyTrade (trade, market = undefined) {
+        let timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
+        let id = this.safeString (trade, 'id');
+        let takerOrMaker = undefined;
+        if (this.safeString (trade, 'liquidity') === 'T') {
+            takerOrMaker = 'taker';
+        } else if (this.safeString (trade, 'liquidity') === 'M') {
+            takerOrMaker = 'maker';
+        }
+        let marketId = this.safeString (trade, 'pair');
+        let [ baseId, quoteId ] = marketId.split ('_');
+        let symbol = undefined;
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        } else {
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
+            symbol = base + '/' + quote;
+        }
+        let price = this.safeFloat (trade, 'rate');
+        let amount = this.safeFloat (trade['funds'], baseId);
+        let cost = this.safeFloat (trade['funds'], quoteId);
+        let fee = {
+            'currency': this.safeString (trade, 'fee_currency'),
+            'cost': this.safeFloat (trade, 'fee'),
         };
+        return {
+            'amount': amount,
+            'datetime': this.iso8601 (timestamp),
+            'id': id,
+            'info': trade,
+            'order': this.safeString (trade, 'order_id'),
+            'timestamp': timestamp,
+            'symbol': symbol,
+            'side': trade['side'],
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'cost': cost,
+            'fee': fee,
+        };
+    }
+
+    parseTrade (trade, market) {
+        let keys = Object.keys (trade);
+        let isMyTrade = false;
+        for (let i = 0; i < keys.length; i++) {
+            if (keys[i] === 'liquidity') {
+                isMyTrade = true;
+                break;
+            }
+        }
+        if (isMyTrade) {
+            return this.parseMyTrade (trade, market);
+        } else {
+            let timestamp = this.parse8601 (trade['created_at']);
+            return {
+                'id': trade['id'].toString (),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'symbol': market['symbol'],
+                'type': undefined,
+                'side': trade['order_type'],
+                'price': this.safeFloat (trade, 'rate'),
+                'amount': this.safeFloat (trade, 'amount'),
+                'info': trade,
+            };
+        }
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol !== 'BTC/JPY') {
+            throw new NotSupported (this.id + ' fetchTrades () supports BTC/JPY only');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetExchangeOrdersTransactions (this.extend (request, params));
+        if ('success' in response)
+            if (response['success'])
+                if (response['transactions'] !== undefined) {
+                    return this.parseTrades (response['transactions'], market, since, limit);
+                }
+        throw new ExchangeError (this.id + ' ' + this.json (response));
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
