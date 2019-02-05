@@ -304,17 +304,8 @@ module.exports = class coincheck extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol !== 'BTC/JPY') {
-            throw new NotSupported (this.id + ' fetchTrades () supports BTC/JPY only');
-        }
         const market = this.market (symbol);
-        const request = {
-            'pair': market['id'],
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this.privateGetExchangeOrdersTransactions (this.extend (request, params));
+        const response = await this.privateGetExchangeOrdersTransactions (this.extend ({}, params));
         if ('success' in response)
             if (response['success'])
                 if (response['transactions'] !== undefined) {
