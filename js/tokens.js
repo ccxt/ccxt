@@ -223,7 +223,7 @@ module.exports = class tokens extends Exchange {
             'pair': market['id'],
         }, params));
         let timestamp = parseInt (orderbook['timestamp']) * 1000;
-        let parsedOrderbook = this.parseOrderBook (orderbook, timestamp);
+        let parsedOrderbook = this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 1, 0);
         parsedOrderbook['nonce'] = this.nonce ();
         return parsedOrderbook;
     }
