@@ -232,6 +232,7 @@ module.exports = class tokens extends Exchange {
         await this.loadMarkets ();
         let ticker = await this.publicGetPublicTickerPair (this.extend ({
             'pair': this.marketId (symbol),
+            'time': 'hour',
         }, params));
         let timestamp = parseInt (ticker['timestamp']) * 1000;
         let vwap = this.safeFloat (ticker, 'vwap');
@@ -273,6 +274,7 @@ module.exports = class tokens extends Exchange {
         let market = this.market (symbol);
         let response = await this.publicGetPublicTradesTimePair (this.extend ({
             'pair': market['id'],
+            'time': 'hour',
         }, params));
         return this.parseTrades (response['trades'], market, since, limit);
     }
