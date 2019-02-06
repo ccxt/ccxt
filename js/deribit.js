@@ -409,13 +409,13 @@ module.exports = class deribit extends Exchange {
         if (price !== undefined)
             request['price'] = price;
         let response = await this.privatePostEdit (this.extend (request, params));
-        return this.parseOrder (response['result']);
+        return this.parseOrder (response['result']['order']);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostCancel (this.extend ({ 'orderId': id }, params));
-        return this.parseOrder (response['result']);
+        return this.parseOrder (response['result']['order']);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
