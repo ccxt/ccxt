@@ -99,6 +99,7 @@ class binance extends Exchange {
                         'ping',
                         'time',
                         'depth',
+                        'trades',
                         'aggTrades',
                         'klines',
                         'ticker/24hr',
@@ -259,6 +260,7 @@ class binance extends Exchange {
             ),
             // exchange-specific options
             'options' => array (
+                'fetchTradesMethod' => 'publicGetTrades',
                 'fetchTickersMethod' => 'publicGetTicker24hr',
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultLimitOrderType' => 'limit', // or 'limit_maker'
@@ -525,20 +527,61 @@ class binance extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestampField = (is_array ($trade) && array_key_exists ('T', $trade)) ? 'T' : 'time';
-        $timestamp = $this->safe_integer($trade, $timestampField);
-        $priceField = (is_array ($trade) && array_key_exists ('p', $trade)) ? 'p' : 'price';
-        $price = $this->safe_float($trade, $priceField);
-        $amountField = (is_array ($trade) && array_key_exists ('q', $trade)) ? 'q' : 'qty';
-        $amount = $this->safe_float($trade, $amountField);
-        $idField = (is_array ($trade) && array_key_exists ('a', $trade)) ? 'a' : 'id';
-        $id = $this->safe_string($trade, $idField);
+        //
+        // aggregate trades
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
+        //
+        //     {
+        //         "a" => 26129,         // Aggregate tradeId
+        //         "p" => "0.01633102",  // Price
+        //         "q" => "4.70443515",  // Quantity
+        //         "f" => 27781,         // First tradeId
+        //         "l" => 27781,         // Last tradeId
+        //         "T" => 1498793709153, // Timestamp
+        //         "m" => true,          // Was the buyer the maker?
+        //         "M" => true           // Was the $trade the best $price match?
+        //     }
+        //
+        // recent public trades and old public trades
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#recent-trades-list
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#old-$trade-lookup-market_data
+        //
+        //     {
+        //         "$id" => 28457,
+        //         "$price" => "4.00000100",
+        //         "qty" => "12.00000000",
+        //         "time" => 1499865549590,
+        //         "isBuyerMaker" => true,
+        //         "isBestMatch" => true
+        //     }
+        //
+        // private trades
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#account-$trade-list-user_data
+        //
+        //     {
+        //         "$symbol" => "BNBBTC",
+        //         "$id" => 28457,
+        //         "orderId" => 100234,
+        //         "$price" => "4.00000100",
+        //         "qty" => "12.00000000",
+        //         "commission" => "10.10000000",
+        //         "commissionAsset" => "BNB",
+        //         "time" => 1499865549590,
+        //         "isBuyer" => true,
+        //         "isMaker" => false,
+        //         "isBestMatch" => true
+        //     }
+        //
+        $timestamp = $this->safe_integer_2($trade, 'T', 'time');
+        $price = $this->safe_float_2($trade, 'p', 'price');
+        $amount = $this->safe_float_2($trade, 'q', 'qty');
+        $id = $this->safe_string_2($trade, 'a', 'id');
         $side = null;
-        $order = null;
-        if (is_array ($trade) && array_key_exists ('orderId', $trade))
-            $order = $this->safe_string($trade, 'orderId');
+        $order = $this->safe_string($trade, 'orderId');
         if (is_array ($trade) && array_key_exists ('m', $trade)) {
             $side = $trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
+        } else if (is_array ($trade) && array_key_exists ('isBuyerMaker', $trade)) {
+            $side = $trade['isBuyerMaker'] ? 'sell' : 'buy';
         } else {
             if (is_array ($trade) && array_key_exists ('isBuyer', $trade))
                 $side = ($trade['isBuyer']) ? 'buy' : 'sell'; // this is a true $side
@@ -583,27 +626,58 @@ class binance extends Exchange {
         $market = $this->market ($symbol);
         $request = array (
             'symbol' => $market['id'],
+            // 'fromId' => 123,    // ID to get aggregate trades from INCLUSIVE.
+            // 'startTime' => 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
+            // 'endTime' => 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
+            // 'limit' => 500,     // default = 500, maximum = 1000
         );
         if ($since !== null) {
             $request['startTime'] = $since;
             $request['endTime'] = $this->sum ($since, 3600000);
         }
-        if ($limit !== null)
-            $request['limit'] = $limit;
-        // 'fromId' => 123,    // ID to get aggregate trades from INCLUSIVE.
-        // 'startTime' => 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
-        // 'endTime' => 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
-        // 'limit' => 500,     // default = 500, maximum = 1000
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default = 500, maximum = 1000
+        }
         //
         // Caveats:
         // - default $limit (500) applies only if no other parameters set, trades up
         //   to the maximum $limit may be returned to satisfy other parameters
         // - if both $limit and time window is set and time window contains more
         //   trades than the $limit then the last trades from the window are returned
-        // - 'tradeId' accepted and returned by this method is "aggregate" trade id
+        // - 'tradeId' accepted and returned by this $method is "aggregate" trade id
         //   which is different from actual trade id
         // - setting both fromId and time window results in error
-        $response = $this->publicGetAggTrades (array_merge ($request, $params));
+        $method = $this->safe_value($this->options, 'fetchTradesMethod', 'publicGetTrades');
+        $response = $this->$method (array_merge ($request, $params));
+        //
+        // aggregate trades
+        //
+        //     array (
+        //         {
+        //             "a" => 26129,         // Aggregate tradeId
+        //             "p" => "0.01633102",  // Price
+        //             "q" => "4.70443515",  // Quantity
+        //             "f" => 27781,         // First tradeId
+        //             "l" => 27781,         // Last tradeId
+        //             "T" => 1498793709153, // Timestamp
+        //             "m" => true,          // Was the buyer the maker?
+        //             "M" => true           // Was the trade the best price match?
+        //         }
+        //     )
+        //
+        // recent public trades and historical public trades
+        //
+        //     array (
+        //         {
+        //             "id" => 28457,
+        //             "price" => "4.00000100",
+        //             "qty" => "12.00000000",
+        //             "time" => 1499865549590,
+        //             "isBuyerMaker" => true,
+        //             "isBestMatch" => true
+        //         }
+        //     )
+        //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -872,6 +946,23 @@ class binance extends Exchange {
         if ($limit !== null)
             $request['limit'] = $limit;
         $response = $this->privateGetMyTrades (array_merge ($request, $params));
+        //
+        //     array (
+        //         {
+        //             "$symbol" => "BNBBTC",
+        //             "id" => 28457,
+        //             "orderId" => 100234,
+        //             "price" => "4.00000100",
+        //             "qty" => "12.00000000",
+        //             "commission" => "10.10000000",
+        //             "commissionAsset" => "BNB",
+        //             "time" => 1499865549590,
+        //             "isBuyer" => true,
+        //             "isMaker" => false,
+        //             "isBestMatch" => true
+        //         }
+        //     )
+        //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
