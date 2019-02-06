@@ -1256,7 +1256,7 @@ class Exchange {
             }
         }
 
-        return $json_response ? $json_response : $result;
+        return isset ($json_response) ? $json_response : $result;
     }
 
     public function set_markets ($markets, $currencies = null) {
