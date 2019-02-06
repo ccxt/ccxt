@@ -263,11 +263,13 @@ module.exports = class itbit extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        let walletIdInParams = ('walletId' in params);
-        if (!walletIdInParams)
+        const walletIdInParams = ('walletId' in params);
+        if (!walletIdInParams) {
             throw new ExchangeError (this.id + ' fetchOrder requires a walletId parameter');
-        let response = await this.privateGetWalletsWalletIdOrdersId (this.extend ({ 'id': id }, params));
-        return (this.parseOrder (response));
+        }
+        const request = { 'id': id };
+        const response = await this.privateGetWalletsWalletIdOrdersId (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
