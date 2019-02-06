@@ -253,9 +253,9 @@ class itbit (Exchange):
         walletIdInParams = ('walletId' in list(params.keys()))
         if not walletIdInParams:
             raise ExchangeError(self.id + ' fetchOrder requires a walletId parameter')
-        return self.privateGetWalletsWalletIdOrdersId(self.extend({
-            'id': id,
-        }, params))
+        request = {'id': id}
+        response = self.privateGetWalletsWalletIdOrdersId(self.extend(request, params))
+        return self.parse_order(response)
 
     def cancel_order(self, id, symbol=None, params={}):
         walletIdInParams = ('walletId' in list(params.keys()))
