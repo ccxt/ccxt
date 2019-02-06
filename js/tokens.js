@@ -74,7 +74,7 @@ module.exports = class tokens extends Exchange {
                 },
                 'private': {
                     'get': [
-                        'private/balance/{currency}/',
+                        'private/balance/{code}/',
                         'private/orders/get/all/',
                         'private/orders/get/{id}/',
                         'private/orders/get/{trading_pair}/',
@@ -279,29 +279,29 @@ module.exports = class tokens extends Exchange {
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
-    async fetchBalance (currency = undefined) {
+    async fetchBalanceByCode (code, params = {}) {
         await this.loadMarkets ();
         let result = {};
-        if (currency === undefined) {
-            result['info'] = [];
-            let keys = Object.keys (this.currencies);
-            for (let i = 0; i < keys.length; i += 1) {
-                let res = await this.privateGetPrivateBalanceCurrency ({ 'currency': keys[i] });
-                let account = this.account ();
-                account['free'] = parseFloat (res['available']);
-                account['used'] = 0.0;
-                account['total'] = parseFloat (res['total']);
-                result[keys[i]] = account;
-                result['info'].push (res);
-            }
-        } else {
-            let res = await this.privateGetPrivateBalanceCurrency ({ 'currency': currency });
-            let account = this.account ();
-            account['free'] = parseFloat (res['available']);
-            account['used'] = 0.0;
-            account['total'] = parseFloat (res['total']);
-            result[res['currency']] = account;
-            result['info'] = res;
+        let response = await this.privateGetPrivateBalanceCode ({ 'code': code });
+        result['free'] = this.safeFloat (response, 'available');
+        result['used'] = 0.0;
+        result['total'] = this.safeFloat (response, 'total');
+        result['info'] = response;
+        return result;
+    }
+
+    async fetchBalance (params = {}) {
+        let codes = this.safeValue (this.options, 'fetchBalanceCurrencies');
+        if (codes === undefined)
+            codes = this.safeValue (params, 'codes');
+        if ((codes === undefined) || (!Array.isArray (codes))) {
+            throw new ExchangeError (this.id + ' fetchBalance() requires a `codes` parameter (an array of currency codes)');
+        }
+        await this.loadMarkets ();
+        let result = {};
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            result[code] = await this.fetchBalanceByCode (code);
         }
         return this.parseBalance (result);
     }
