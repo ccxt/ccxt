@@ -343,7 +343,7 @@ class theocean extends Exchange {
         //         "$timestamp" => "1512929327792"
         //     }
         //
-        $timestamp = intval ($this->safe_float($ticker, 'timestamp') / 1000);
+        $timestamp = intval ($this->safe_integer($ticker, 'timestamp') / 1000);
         $symbol = null;
         $base = null;
         if ($market !== null) {
@@ -608,6 +608,9 @@ class theocean extends Exchange {
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'type'); // injected from outside
         $timestamp = $this->safe_integer($order, 'creationTimestamp');
+        if ($timestamp !== 'null') {
+            $timestamp = intval ($timestamp / 1000);
+        }
         $symbol = null;
         $baseId = $this->safe_string($order, 'baseTokenAddress');
         $quoteId = $this->safe_string($order, 'quoteTokenAddress');
@@ -647,7 +650,7 @@ class theocean extends Exchange {
                     $fillEvents = $this->safe_value($timelineEventsGroupedByAction, 'filled');
                     $numFillEvents = is_array ($fillEvents) ? count ($fillEvents) : 0;
                     $lastTradeTimestamp = $this->safe_integer($fillEvents[$numFillEvents - 1], 'timestamp');
-                    $lastTradeTimestamp = ($lastTradeTimestamp !== null) ? $lastTradeTimestamp * 1000 : $lastTradeTimestamp;
+                    $lastTradeTimestamp = ($lastTradeTimestamp !== null) ? $lastTradeTimestamp : $lastTradeTimestamp;
                     $trades = array ();
                     for ($i = 0; $i < $numFillEvents; $i++) {
                         $trade = $this->parse_trade(array_merge ($fillEvents[$i], array (
