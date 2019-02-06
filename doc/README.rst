@@ -643,6 +643,13 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 [`Become a sponsor <https://opencollective.com/ccxt#sponsor>`__]
 
+Supporters
+~~~~~~~~~~
+
+Support this project by becoming a supporter. Your avatar will show up here with a link to your website.
+
+[`Become a supporter <https://opencollective.com/ccxt#supporter>`__]
+
 Backers
 ~~~~~~~
 
