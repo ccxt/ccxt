@@ -266,10 +266,6 @@ module.exports = class tokens extends Exchange {
         };
     }
 
-    nonce () {
-        return this.milliseconds ();
-    }
-
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
