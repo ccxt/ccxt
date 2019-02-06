@@ -23,7 +23,7 @@ module.exports = class tokens extends Exchange {
                 'cancelOrders': false,
                 'createDepositAddress': false,
                 'createOrder': true,
-                'createMarketOrder': true,
+                'createMarketOrder': false,
                 'createLimitOrder': true,
                 'deposit': false,
                 'editOrder': 'emulated',
@@ -38,7 +38,7 @@ module.exports = class tokens extends Exchange {
                 'fetchMarkets': true,
                 'fetchMyTrades': false,
                 'fetchOHLCV': 'emulated',
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': false,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
@@ -77,7 +77,8 @@ module.exports = class tokens extends Exchange {
                         'private/balance/{code}/',
                         'private/orders/get/all/',
                         'private/orders/get/{id}/',
-                        'private/orders/get/{trading_pair}/',
+                        'private/orders/get/{pair}/',
+                        'private/orders/get/all/',
                     ],
                     'post': [
                         'private/orders/add/limit/',
@@ -380,9 +381,11 @@ module.exports = class tokens extends Exchange {
             'currency': feeCurrency,
         };
         let trades = [];
-        let orderTrades = order['trades'];
-        for (let i = 0; i < orderTrades.length; i++) {
-            trades.push (this.parseTrade (orderTrades[i], market));
+        if (order['trades'] !== undefined) {
+            let orderTrades = order['trades'];
+            for (let i = 0; i < orderTrades.length; i++) {
+                trades.push (this.parseTrade (orderTrades[i], market));
+            }
         }
         return {
             'id': id,
@@ -414,7 +417,6 @@ module.exports = class tokens extends Exchange {
             'price': this.priceToPrecision (symbol, price),
         };
         let response = await this.privatePostPrivateOrdersAddLimit (this.extend (request, params));
-        // let order = this.parseOrder (response, market);
         let timestamp = (response['timestamp'] * 1000).toString ();
         return {
             'info': response,
@@ -438,6 +440,24 @@ module.exports = class tokens extends Exchange {
         let order = await this.privateGetPrivateOrdersGetId ({ 'id': id });
         let parsed = this.parseOrder (order);
         return parsed;
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetPrivateOrdersGetAll ();
+        const result = [];
+        for (let i = 0; i < response['openOrders'].length; i++) {
+            let orderToBeParsed = response['openOrders'][i];
+            this.extend (orderToBeParsed, {
+                'status': 'open',
+            });
+            const order = await this.parseOrder (orderToBeParsed);
+            result.push (order);
+        }
+        if (symbol === undefined) {
+            return this.filterBySinceLimit (result, since, limit);
+        }
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response) {
