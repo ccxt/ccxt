@@ -81,6 +81,6 @@
     "vbtc":          { "skip": true },
     "xbtce":         { "skip": true },
     "yobit":         { "skip": true },
-    "yunbi":         { "skip": true }
-    "zb":            { "skip": true },
+    "yunbi":         { "skip": true },
+    "zb":            { "skip": true }
 }
