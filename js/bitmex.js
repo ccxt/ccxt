@@ -364,11 +364,11 @@ module.exports = class bitmex extends Exchange {
         let timestamp = this.parse8601 (ohlcv['timestamp']);
         return [
             timestamp,
-            ohlcv['open'],
-            ohlcv['high'],
-            ohlcv['low'],
-            ohlcv['close'],
-            ohlcv['volume'],
+            this.safeFlaot (ohlcv, 'open'),
+            this.safeFlaot (ohlcv, 'high'),
+            this.safeFlaot (ohlcv, 'low'),
+            this.safeFlaot (ohlcv, 'close'),
+            this.safeFlaot (ohlcv, 'volume'),
         ];
     }
 
