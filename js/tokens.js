@@ -39,7 +39,7 @@ module.exports = class tokens extends Exchange {
                 'fetchMyTrades': false,
                 'fetchOHLCV': 'emulated',
                 'fetchOpenOrders': true,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
