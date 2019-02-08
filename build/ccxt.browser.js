@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.210'
+const version = '1.18.211'
 
 Exchange.ccxtVersion = version
 
@@ -59177,8 +59177,8 @@ module.exports = class southxchange extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'Variation24Hr'),
-            'percentage': undefined,
+            'change': undefined,
+            'percentage': this.safeFloat (ticker, 'Variation24Hr'),
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'Volume24Hr'),
             'quoteVolume': undefined,
