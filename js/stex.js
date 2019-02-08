@@ -313,7 +313,9 @@ module.exports = class stex extends Exchange {
             if (code in response['publick_key'])
                 tag = response['publick_key'][code];
         }
-        this.checkAddress (address);
+        if (address !== undefined) {
+            this.checkAddress (address);
+        }
         return {
             'currency': code,
             'address': address,
