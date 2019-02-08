@@ -92,7 +92,7 @@ class bibox (Exchange):
                     'tierBased': False,
                     'percentage': True,
                     'taker': 0.001,
-                    'maker': 0.0,
+                    'maker': 0.001,
                 },
                 'funding': {
                     'tierBased': False,

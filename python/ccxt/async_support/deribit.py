@@ -42,7 +42,7 @@ class deribit (Exchange):
                 'api': 'https://www.deribit.com',
                 'www': 'https://www.deribit.com',
                 'doc': [
-                    'https://www.deribit.com/pages/docs/api',
+                    'https://docs.deribit.com/',
                     'https://github.com/deribit',
                 ],
                 'fees': 'https://www.deribit.com/pages/information/fees',
@@ -393,12 +393,12 @@ class deribit (Exchange):
         if price is not None:
             request['price'] = price
         response = await self.privatePostEdit(self.extend(request, params))
-        return self.parse_order(response['result'])
+        return self.parse_order(response['result']['order'])
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
         response = await self.privatePostCancel(self.extend({'orderId': id}, params))
-        return self.parse_order(response['result'])
+        return self.parse_order(response['result']['order'])
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

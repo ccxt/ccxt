@@ -182,6 +182,7 @@ class cobinhood extends Exchange {
                 'invalid_nonce' => '\\ccxt\\InvalidNonce',
                 'unauthorized_scope' => '\\ccxt\\PermissionDenied',
                 'invalid_address' => '\\ccxt\\InvalidAddress',
+                'parameter_error' => '\\ccxt\\OrderNotFound',
             ),
             'commonCurrencies' => array (
                 'SMT' => 'SocialMedia.Market',

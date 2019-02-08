@@ -506,9 +506,9 @@ module.exports = class huobipro extends Exchange {
         return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
     }
 
-    async loadAccounts (reload = false) {
+    async loadAccounts (reload = false, params = {}) {
         if (reload) {
-            this.accounts = await this.fetchAccounts ();
+            this.accounts = await this.fetchAccounts (params);
         } else {
             if (this.accounts) {
                 return this.accounts;
@@ -520,9 +520,9 @@ module.exports = class huobipro extends Exchange {
         return this.accounts;
     }
 
-    async fetchAccounts () {
+    async fetchAccounts (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetAccountAccounts ();
+        let response = await this.privateGetAccountAccounts (params);
         return response['data'];
     }
 

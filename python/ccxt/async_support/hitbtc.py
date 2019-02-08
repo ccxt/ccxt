@@ -32,7 +32,7 @@ class hitbtc (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
-                'api': 'http://api.hitbtc.com',
+                'api': 'https://api.hitbtc.com',
                 'www': 'https://hitbtc.com',
                 'referral': 'https://hitbtc.com/?ref_id=5a5d39a65d466',
                 'doc': 'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md',
@@ -489,7 +489,7 @@ class hitbtc (Exchange):
                 },
             },
             'commonCurrencies': {
-                'BCC': 'BCC',
+                'BCH': 'Bitcoin Cash',
                 'BET': 'DAO.Casino',
                 'CAT': 'BitClave',
                 'DRK': 'DASH',
@@ -881,8 +881,8 @@ class hitbtc (Exchange):
             'amount': amount,
             'address': address,
         }
-        if tag:
-            request['paymentId'] = tag
+        if tag is not None:
+            request['extra_id'] = tag
         response = await self.paymentPostPayout(self.extend(request, params))
         return {
             'info': response,

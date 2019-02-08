@@ -34,7 +34,7 @@ class deribit extends Exchange {
                 'api' => 'https://www.deribit.com',
                 'www' => 'https://www.deribit.com',
                 'doc' => array (
-                    'https://www.deribit.com/pages/docs/api',
+                    'https://docs.deribit.com/',
                     'https://github.com/deribit',
                 ),
                 'fees' => 'https://www.deribit.com/pages/information/fees',
@@ -410,13 +410,13 @@ class deribit extends Exchange {
         if ($price !== null)
             $request['price'] = $price;
         $response = $this->privatePostEdit (array_merge ($request, $params));
-        return $this->parse_order($response['result']);
+        return $this->parse_order($response['result']['order']);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostCancel (array_merge (array ( 'orderId' => $id ), $params));
-        return $this->parse_order($response['result']);
+        return $this->parse_order($response['result']['order']);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
