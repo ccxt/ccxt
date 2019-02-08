@@ -1924,6 +1924,14 @@ Note that your private requests will fail with an exception or error if you don'
 
 ## Querying Account Balance
 
+To query for balance and get the amount of funds available for trading or funds locked in orders, use the `fetchBalance` method:
+
+```JavaScript
+fetchBalance (params = {})
+```
+
+### Balance Structure
+
 The returned balance structure is as follows:
 
 ```JavaScript
