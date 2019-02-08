@@ -454,7 +454,6 @@ module.exports = class bitstamp extends Exchange {
         method += 'Pair';
         let response = await this[method] (this.extend (request, params));
         response['currency_pair']=symbol;
-        console.log('greetings from ccxt local:\n',response);
 	      let order = this.parseOrder (response, market);
         return this.extend (order, {
             'type': type,
