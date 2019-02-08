@@ -363,14 +363,14 @@ class bitmex extends Exchange {
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         $timestamp = $this->parse8601 ($ohlcv['timestamp']);
-        return [
+        return array (
             $timestamp,
-            $ohlcv['open'],
-            $ohlcv['high'],
-            $ohlcv['low'],
-            $ohlcv['close'],
-            $ohlcv['volume'],
-        ];
+            $this->safe_float($ohlcv, 'open'),
+            $this->safe_float($ohlcv, 'high'),
+            $this->safe_float($ohlcv, 'low'),
+            $this->safe_float($ohlcv, 'close'),
+            $this->safe_float($ohlcv, 'volume'),
+        );
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
