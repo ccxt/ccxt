@@ -121,19 +121,54 @@ module.exports = class itbit extends Exchange {
 
     parseTrade (trade, market) {
         let timestamp = this.parse8601 (trade['timestamp']);
-        let id = trade['matchNumber'].toString ();
-        return {
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'id': id,
-            'order': id,
-            'type': undefined,
-            'side': undefined,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'amount'),
-        };
+        if ('matchNumber' in trade) {
+            // then this is a public request response, ie, market data
+            let id = trade['matchNumber'].toString ();
+            return {
+                'info': trade,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'symbol': market['symbol'],
+                'id': id,
+                'order': id,
+                'type': undefined,
+                'side': undefined,
+                'price': this.safeFloat (trade, 'price'),
+                'amount': this.safeFloat (trade, 'amount'),
+            };
+        } else {
+            // this is a private request response, ie, MY trades
+            // note on fee from itbit:
+            // + **commissionPaid** `string` - *net trade fee paid after using any available rebate balance*
+            let fee = {
+                'cost': this.safeFloat (trade, 'commissionPaid'),
+                'currency': this.safeString (trade, 'commissionCurrency'),
+            };
+            return {
+                'info': trade,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'symbol': this.marketsById[this.safeString (trade, 'instrument')].symbol,
+                'id': this.safeString (trade, 'executionId'),
+                'order': this.safeString (trade, 'orderId'),
+                'type': undefined,
+                'side': this.safeString (trade, 'direction'),
+                'price': this.safeFloat (trade, 'rate'),
+                'amount': this.safeFloat (trade, 'currency1Amount'),
+                'fee': fee,
+            };
+        }
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let walletIdInParams = ('walletId' in params);
+        if (!walletIdInParams)
+            throw new ExchangeError (this.id + ' fetchMyTrades requires a walletId parameter');
+        let walletId = params['walletId'];
+        let response = await this.privateGetWalletsWalletIdTrades (this.extend ({
+            'walletId': walletId,
+        }, params));
+        return this.parseTrades (response.tradingHistory, undefined, since, limit);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
