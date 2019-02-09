@@ -453,8 +453,7 @@ module.exports = class bitstamp extends Exchange {
         }
         method += 'Pair';
         let response = await this[method] (this.extend (request, params));
-        response['currency_pair']=symbol;
-	      let order = this.parseOrder (response, market);
+        let order = this.parseOrder (response, market);
         return this.extend (order, {
             'type': type,
         });
@@ -705,10 +704,13 @@ module.exports = class bitstamp extends Exchange {
         let timestamp = this.parse8601 (this.safeString (order, 'datetime'));
         let symbol = undefined;
         let marketId = this.safeString (order, 'currency_pair');
-        marketId = marketId.replace ('/', '');
-        marketId = marketId.toLowerCase ();
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
+        if (marketId !== undefined) {
+            marketId = marketId.replace ('/', '');
+            marketId = marketId.toLowerCase ();
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            }
         }
         let amount = this.safeFloat (order, 'amount');
         let filled = 0.0;
@@ -747,7 +749,9 @@ module.exports = class bitstamp extends Exchange {
         }
         let feeCurrency = undefined;
         if (market !== undefined) {
-            symbol = market['symbol'];
+            if (symbol === undefined) {
+                symbol = market['symbol'];
+            }
             feeCurrency = market['quote'];
         }
         if (cost === undefined) {
