@@ -179,27 +179,22 @@ module.exports = class nova extends Exchange {
         await this.loadMarkets ();
         amount = amount.toString ();
         price = price.toString ();
-        let market = this.market (symbol);
-        let order = {
+        const market = this.market (symbol);
+        const order = {
             'tradetype': side.toUpperCase (),
             'tradeamount': amount,
             'tradeprice': price,
             'tradebase': 1,
             'pair': market['id'],
         };
-        let response = await this.privatePostTradePair (this.extend (order, params));
-        let orderid = undefined;
-        const tradeitems = this.safeValue (response, 'tradeitems');
-        if (tradeitems !== undefined) {
-            for (let i = 0; i < tradeitems.length; i++) {
-                if (this.safeString (tradeitems[i], 'type') === 'created') {
-                    orderid = this.safeString (tradeitems[i], 'orderid');
-                }
-            }
-        }
+        const response = await this.privatePostTradePair (this.extend (order, params));
+        const tradeItems = this.safeValue (response, 'tradeitems', []);
+        const tradeItemsByType = this.indexBy (tradeItems, 'type');
+        const created = this.safeValue (tradeItemsByType, 'created', {});
+        const orderId = this.safeString (created, 'orderid');
         return {
             'info': response,
-            'id': orderid,
+            'id': orderId,
         };
     }
 
