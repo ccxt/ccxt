@@ -1124,7 +1124,7 @@ class exmo extends Exchange {
             $parts = explode (':', $address);
             $numParts = is_array ($parts) ? count ($parts) : 0;
             if ($numParts === 2) {
-                $address = $parts[1];
+                $address = str_replace (' ', '', $parts[1]);
             }
         }
         $fee = null;

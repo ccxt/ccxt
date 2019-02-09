@@ -8,6 +8,7 @@ cp ../wiki/README.md ./Home.md
 cp ../wiki/Exchange-Markets.md .
 cp ../wiki/Exchange-Markets-By-Country.md .
 cp ../wiki/Install.md .
+cp ../wiki/Requirements.md .
 git config --global user.email "travis@travis-ci.org"
 git config --global user.name "Travis CI"
 git commit -a -m ${COMMIT_MESSAGE}

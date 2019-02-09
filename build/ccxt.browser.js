@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.210'
+const version = '1.18.221'
 
 Exchange.ccxtVersion = version
 
@@ -14870,10 +14870,13 @@ module.exports = class bitstamp extends Exchange {
         let timestamp = this.parse8601 (this.safeString (order, 'datetime'));
         let symbol = undefined;
         let marketId = this.safeString (order, 'currency_pair');
-        marketId = marketId.replace ('/', '');
-        marketId = marketId.toLowerCase ();
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
+        if (marketId !== undefined) {
+            marketId = marketId.replace ('/', '');
+            marketId = marketId.toLowerCase ();
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            }
         }
         let amount = this.safeFloat (order, 'amount');
         let filled = 0.0;
@@ -14912,7 +14915,9 @@ module.exports = class bitstamp extends Exchange {
         }
         let feeCurrency = undefined;
         if (market !== undefined) {
-            symbol = market['symbol'];
+            if (symbol === undefined) {
+                symbol = market['symbol'];
+            }
             feeCurrency = market['quote'];
         }
         if (cost === undefined) {
@@ -26736,8 +26741,8 @@ module.exports = class coinexchange extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'Change'),
-            'percentage': undefined,
+            'change': undefined,
+            'percentage': this.safeFloat (ticker, 'Change'),
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': this.safeFloat (ticker, 'Volume'),
@@ -27958,8 +27963,8 @@ module.exports = class coinmarketcap extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
-            'percentage': undefined,
+            'change': undefined,
+            'percentage': change,
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': volume,
@@ -36071,7 +36076,7 @@ module.exports = class exmo extends Exchange {
             const parts = address.split (':');
             let numParts = parts.length;
             if (numParts === 2) {
-                address = parts[1];
+                address = parts[1].replace (' ', '');
             }
         }
         let fee = undefined;
@@ -54836,6 +54841,8 @@ module.exports = class nova extends Exchange {
             'has': {
                 'CORS': false,
                 'createMarketOrder': false,
+                'createDepositAddress': true,
+                'fetchDepositAddress': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg',
@@ -54935,8 +54942,8 @@ module.exports = class nova extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'change24h'),
-            'percentage': undefined,
+            'change': undefined,
+            'percentage': this.safeFloat (ticker, 'change24h'),
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': this.safeFloat (ticker, 'volume24h'),
@@ -54995,18 +55002,22 @@ module.exports = class nova extends Exchange {
         await this.loadMarkets ();
         amount = amount.toString ();
         price = price.toString ();
-        let market = this.market (symbol);
-        let order = {
+        const market = this.market (symbol);
+        const order = {
             'tradetype': side.toUpperCase (),
             'tradeamount': amount,
             'tradeprice': price,
             'tradebase': 1,
             'pair': market['id'],
         };
-        let response = await this.privatePostTradePair (this.extend (order, params));
+        const response = await this.privatePostTradePair (this.extend (order, params));
+        const tradeItems = this.safeValue (response, 'tradeitems', []);
+        const tradeItemsByType = this.indexBy (tradeItems, 'type');
+        const created = this.safeValue (tradeItemsByType, 'created', {});
+        const orderId = this.safeString (created, 'orderid');
         return {
             'info': response,
-            'id': undefined,
+            'id': orderId,
         };
     }
 
@@ -55014,6 +55025,40 @@ module.exports = class nova extends Exchange {
         return await this.privatePostCancelorder (this.extend ({
             'orderid': id,
         }, params));
+    }
+
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        let response = await this.privatePostGetnewdepositaddressCurrency (this.extend ({
+            'currency': currency,
+        }, params));
+        const address = this.safeString (response, 'address');
+        this.checkAddress (address);
+        const tag = this.safeString (response, 'tag');
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        let response = await this.privatePostGetdepositaddressCurrency (this.extend ({
+            'currency': currency,
+        }, params));
+        const address = this.safeString (response, 'address');
+        this.checkAddress (address);
+        const tag = this.safeString (response, 'tag');
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -59177,8 +59222,8 @@ module.exports = class southxchange extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'Variation24Hr'),
-            'percentage': undefined,
+            'change': undefined,
+            'percentage': this.safeFloat (ticker, 'Variation24Hr'),
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'Volume24Hr'),
             'quoteVolume': undefined,

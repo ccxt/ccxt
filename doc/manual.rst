@@ -1673,7 +1673,19 @@ In order to get current best price (query market price) and calculate bidask spr
 Price Tickers
 -------------
 
-A price ticker contains statistics for a particular market/symbol for some period of time in recent past, usually last 24 hours. The structure of a ticker is as follows:
+A price ticker contains statistics for a particular market/symbol for some period of time in recent past, usually last 24 hours. The methods for fetching tickers are:
+
+.. code:: javascript
+
+   fetchTicker (symbol, params = {})   // for one ticker
+   fetchTickers (symbol, params = {})  // for all tickers at once
+
+Check the ``exchange.has['fetchTicker']`` and ``exchange.has['fetchTickers']`` properties of the exchange instance to determine if the exchange in question does support these methods.
+
+Ticker structure
+~~~~~~~~~~~~~~~~
+
+The structure of a ticker is as follows:
 
 .. code:: javascript
 
@@ -2133,6 +2145,15 @@ Note that your private requests will fail with an exception or error if you donâ
 
 Querying Account Balance
 ------------------------
+
+To query for balance and get the amount of funds available for trading or funds locked in orders, use the ``fetchBalance`` method:
+
+.. code:: javascript
+
+   fetchBalance (params = {})
+
+Balance Structure
+~~~~~~~~~~~~~~~~~
 
 The returned balance structure is as follows:
 
@@ -2803,13 +2824,20 @@ Funding Your Account
 Deposit
 ~~~~~~~
 
-::
+In order to deposit funds to an exchange you must get an address from the exchange for the currency you want to deposit there. Most of exchanges will create and manage those addresses for the user. Some exchanges will also allow the user to create new addresses for deposits. Some of exchanges require a new deposit address to be created for each new deposit.
+
+The address for depositing can be either an already existing address that was created previously with the exchange or it can be created upon request. In order to see which of the two methods are supported, check the ``exchange.has['fetchDepositAddress']`` and ``exchange.has['createDepositAddress']`` properties.
+
+.. code:: javascript
 
    fetchDepositAddress (code, params = {})
    createDepositAddress (code, params = {})
 
--  ``code`` is the currency code (uppercase string)
+-  ``code`` is the unified currency code (uppercase string)
 -  ``params`` contains optional extra overrides
+
+Address structure
+^^^^^^^^^^^^^^^^^
 
 .. code:: javascript
 
