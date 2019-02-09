@@ -556,16 +556,16 @@ module.exports = class graviex extends Exchange {
         }
         let url = host + path;
         let sorted = this.keysort (params);
+        if (api !== 'public') {
+            let sign_str = method + '|' + path + '|' + this.urlencode (sorted);
+            let signature = this.hmac (sign_str, this.secret, 'sha256');
+            sorted['signature'] = signature;
+        }
         let paramencoded = this.urlencode (sorted);
         if (method === 'POST') {
             body = paramencoded;
         } else {
             url += '?' + paramencoded;
-        }
-        if (api !== 'public') {
-            let sign_str = method + '|' + path + '|' + paramencoded;
-            let signature = this.hmac (sign_str, this.secret, 'sha256');
-            sorted['signature'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
