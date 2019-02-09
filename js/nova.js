@@ -188,9 +188,18 @@ module.exports = class nova extends Exchange {
             'pair': market['id'],
         };
         let response = await this.privatePostTradePair (this.extend (order, params));
+        let orderid = undefined;
+        const tradeitems = this.safeValue (response, 'tradeitems');
+        if (tradeitems !== undefined) {
+            for (let i = 0; i < tradeitems.length; i++) {
+                if (this.safeString (tradeitems[i], 'type') === 'created') {
+                    orderid = this.safeString (tradeitems[i], 'orderid');
+                }
+            }
+        }
         return {
             'info': response,
-            'id': undefined,
+            'id': orderid,
         };
     }
 
