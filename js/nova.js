@@ -18,6 +18,8 @@ module.exports = class nova extends Exchange {
             'has': {
                 'CORS': false,
                 'createMarketOrder': false,
+                'createDepositAddress': true,
+                'fetchDepositAddress': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg',
@@ -196,6 +198,40 @@ module.exports = class nova extends Exchange {
         return await this.privatePostCancelorder (this.extend ({
             'orderid': id,
         }, params));
+    }
+    
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        let response = await this.privatePostGetnewdepositaddressCurrency (this.extend ({
+            'currency': currency,
+        }, params));
+        const address = this.safeString (response, 'address');
+        this.checkAddress (address);
+        const tag = this.safeString (response, 'tag');
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        };
+    }
+    
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        let response = await this.privatePostGetdepositaddressCurrency (this.extend ({
+            'currency': currency,
+        }, params));
+        const address = this.safeString (response, 'address');
+        this.checkAddress (address);
+        const tag = this.safeString (response, 'tag');
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
