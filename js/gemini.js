@@ -22,6 +22,7 @@ module.exports = class gemini extends Exchange {
                 'fetchBidsAsks': false,
                 'fetchTickers': false,
                 'fetchMyTrades': true,
+                'fetchMyTradesBySymbol': true,
                 'fetchOrder': true,
                 'fetchOrders': false,
                 'fetchOpenOrders': true,
@@ -322,7 +323,15 @@ module.exports = class gemini extends Exchange {
         return await this.privatePostOrderCancel ({ 'order_id': id });
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (since = undefined, limit = undefined, params = {}) {
+        let trades = [];
+        for (let idx = 0; idx < Object.keys (this.markets).length; idx++) {
+            trades.concat (await this.fetchMyTradesBySymbol (Object.keys (this.markets)[idx], since, limit, params));
+        }
+        return (trades);
+    }
+
+    async fetchMyTradesBySymbol (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined)
             throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
         await this.loadMarkets ();
