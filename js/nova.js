@@ -208,7 +208,7 @@ module.exports = class nova extends Exchange {
             'orderid': id,
         }, params));
     }
-    
+
     async createDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -225,7 +225,7 @@ module.exports = class nova extends Exchange {
             'info': response,
         };
     }
-    
+
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
