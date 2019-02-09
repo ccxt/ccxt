@@ -18,7 +18,7 @@ The exchange is required to implement the following list of methods and structur
 - `fetchAccounts` - required if exchange allows to manage user accounts / sub-accounts
 - [`createOrder`](https://github.com/ccxt/ccxt/wiki/Manual#placing-orders) (limit, market, etc)
 - [`cancelOrder`](https://github.com/ccxt/ccxt/wiki/Manual#canceling-orders)
-- `editOrder` (optional, but highly desireable) – change the price/amount of an open order
+- `editOrder` – change the price/amount of an open order
 - **Trading history**
   - [`fetchOrder`](https://github.com/ccxt/ccxt/wiki/Manual#querying-orders) – one order by order id
   - [`fetchOpenOrders`](https://github.com/ccxt/ccxt/wiki/Manual#querying-orders) – a list of all open orders
