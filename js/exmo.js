@@ -1123,7 +1123,7 @@ module.exports = class exmo extends Exchange {
             const parts = address.split (':');
             let numParts = parts.length;
             if (numParts === 2) {
-                address = parts[1];
+                address = parts[1].replace (' ', '');
             }
         }
         let fee = undefined;
