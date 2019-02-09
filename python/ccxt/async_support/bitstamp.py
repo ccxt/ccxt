@@ -664,10 +664,12 @@ class bitstamp (Exchange):
         timestamp = self.parse8601(self.safe_string(order, 'datetime'))
         symbol = None
         marketId = self.safe_string(order, 'currency_pair')
-        marketId = marketId.replace('/', '')
-        marketId = marketId.lower()
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
+        if marketId is not None:
+            marketId = marketId.replace('/', '')
+            marketId = marketId.lower()
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
         amount = self.safe_float(order, 'amount')
         filled = 0.0
         trades = []
@@ -699,7 +701,8 @@ class bitstamp (Exchange):
             market = self.get_market_from_trades(trades)
         feeCurrency = None
         if market is not None:
-            symbol = market['symbol']
+            if symbol is None:
+                symbol = market['symbol']
             feeCurrency = market['quote']
         if cost is None:
             if price is not None:

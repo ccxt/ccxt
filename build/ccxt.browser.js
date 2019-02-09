@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.216'
+const version = '1.18.217'
 
 Exchange.ccxtVersion = version
 
@@ -14870,10 +14870,13 @@ module.exports = class bitstamp extends Exchange {
         let timestamp = this.parse8601 (this.safeString (order, 'datetime'));
         let symbol = undefined;
         let marketId = this.safeString (order, 'currency_pair');
-        marketId = marketId.replace ('/', '');
-        marketId = marketId.toLowerCase ();
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
+        if (marketId !== undefined) {
+            marketId = marketId.replace ('/', '');
+            marketId = marketId.toLowerCase ();
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            }
         }
         let amount = this.safeFloat (order, 'amount');
         let filled = 0.0;
@@ -14912,7 +14915,9 @@ module.exports = class bitstamp extends Exchange {
         }
         let feeCurrency = undefined;
         if (market !== undefined) {
-            symbol = market['symbol'];
+            if (symbol === undefined) {
+                symbol = market['symbol'];
+            }
             feeCurrency = market['quote'];
         }
         if (cost === undefined) {
