@@ -24,16 +24,16 @@ The exchange is required to implement the following list of methods and structur
 
 - [`fetchBalance`](https://github.com/ccxt/ccxt/wiki/Manual#querying-account-balance) - for all types of accounts + [balance structure](https://github.com/ccxt/ccxt/wiki/Manual#balance-structure)
 - `fetchAccounts` - required if the exchange has multiple accounts or sub-accounts
-- [`createOrder`](https://github.com/ccxt/ccxt/wiki/Manual#placing-orders) – *limit/market* orders
+- [`createOrder`](https://github.com/ccxt/ccxt/wiki/Manual#placing-orders) – *limit/market* orders + [order structure](https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
 - [`cancelOrder`](https://github.com/ccxt/ccxt/wiki/Manual#canceling-orders)
 - `editOrder` – change the price and/or amount of an open order
 
 #### Trading History
 
-- [`fetchOrder`](https://github.com/ccxt/ccxt/wiki/Manual#querying-orders) – one order by order id
+- [`fetchOrder`](https://github.com/ccxt/ccxt/wiki/Manual#querying-orders) – one order by order id + [order structure](https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
 - [`fetchOpenOrders`](https://github.com/ccxt/ccxt/wiki/Manual#querying-orders) – a list of all open orders
 - [`fetchAllOrders`](https://github.com/ccxt/ccxt/wiki/Manual#querying-orders) – a list of all orders
-- [`fetchMyTrades`](https://github.com/ccxt/ccxt/wiki/Manual#personal-trades) – the personal history of filled trades for the account
+- [`fetchMyTrades`](https://github.com/ccxt/ccxt/wiki/Manual#personal-trades) – the personal history of filled trades for the account + [trade structure](https://github.com/ccxt/ccxt/wiki/Manual#trade-structure)
 
 #### Funding
 
