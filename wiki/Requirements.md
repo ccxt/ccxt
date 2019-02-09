@@ -14,17 +14,21 @@ The exchange is required to implement the following list of methods and structur
 
 ## Private API
 
-- [`fetchBalance`]() - for all types of accounts + [balance structure]()
+- [`fetchBalance`](https://github.com/ccxt/ccxt/wiki/Manual#querying-account-balance) - for all types of accounts + [balance structure](https://github.com/ccxt/ccxt/wiki/Manual#balance-structure)
 - `fetchAccounts` - required if exchange allows to manage user accounts / sub-accounts
 - [`createOrder`](https://github.com/ccxt/ccxt/wiki/Manual#placing-orders) (limit, market, etc)
 - [`cancelOrder`](https://github.com/ccxt/ccxt/wiki/Manual#canceling-orders)
 - `editOrder` (optional, but highly desireable) – change the price/amount of an open order
-- [`fetchOrder`](https://github.com/ccxt/ccxt/wiki/Manual#querying-orders) – one order by order id
-- [`fetchOpenOrders`](https://github.com/ccxt/ccxt/wiki/Manual#querying-orders) – a list of all open orders
-- [`fetchAllOrders`](https://github.com/ccxt/ccxt/wiki/Manual#querying-orders) – a list of all orders
-- [`fetchMyTrades`](https://github.com/ccxt/ccxt/wiki/Manual#personal-trades) – filled trades (personal history of trades for the account)
-- [`fetchDepositAddress`](https://github.com/ccxt/ccxt/wiki/Manual#funding-your-account) – deposit address(es) + [address structure](https://github.com/ccxt/ccxt/wiki/Manual#address-structure)
-- [`fetchDeposits / fetchWithdrawals / fetchTransactions`](https://github.com/ccxt/ccxt/wiki/Manual#transactions) – funding history and sub-account transfers + [transaction structure](https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure)
-- [`fetchLedger`](https://github.com/ccxt/ccxt/wiki/Manual#ledger) - asset movement history including referral payments, cashbacks + [ledger entry structure](https://github.com/ccxt/ccxt/wiki/Manual#ledger-entry-structureccccccigfrubcntngfuhein)
-- [`withdraw`]()
-- `transfer` - required if exchange has sub-accounts to transfer assets between them
+- **Trading history**
+  - [`fetchOrder`](https://github.com/ccxt/ccxt/wiki/Manual#querying-orders) – one order by order id
+  - [`fetchOpenOrders`](https://github.com/ccxt/ccxt/wiki/Manual#querying-orders) – a list of all open orders
+  - [`fetchAllOrders`](https://github.com/ccxt/ccxt/wiki/Manual#querying-orders) – a list of all orders
+  - [`fetchMyTrades`](https://github.com/ccxt/ccxt/wiki/Manual#personal-trades) – filled trades (personal history of trades for the account)
+-- **Funding**
+  - [`fetchDepositAddress`](https://github.com/ccxt/ccxt/wiki/Manual#funding-your-account) – deposit address(es) + [address structure](https://github.com/ccxt/ccxt/wiki/Manual#address-structure)
+  - [`fetchDeposits`](https://github.com/ccxt/ccxt/wiki/Manual#transactions)
+  - [`fetchWithdrawals`](https://github.com/ccxt/ccxt/wiki/Manual#transactions)
+  - [`fetchTransactions`](https://github.com/ccxt/ccxt/wiki/Manual#transactions) + [transaction structure](https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure)
+  - [`fetchLedger`](https://github.com/ccxt/ccxt/wiki/Manual#ledger) - asset movement history including referral payments, cashbacks + [ledger entry structure](https://github.com/ccxt/ccxt/wiki/Manual#ledger-entry-structureccccccigfrubcntngfuhein)
+  - [`withdraw`](https://github.com/ccxt/ccxt/wiki/Manual#withdraw)
+  - `transfer` - required if exchange has sub-accounts to transfer assets between them
