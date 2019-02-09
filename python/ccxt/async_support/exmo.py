@@ -1051,7 +1051,7 @@ class exmo (Exchange):
             parts = address.split(':')
             numParts = len(parts)
             if numParts == 2:
-                address = parts[1]
+                address = parts[1].replace(' ', '')
         fee = None
         # fixed funding fees only(for now)
         if not self.fees['funding']['percentage']:
