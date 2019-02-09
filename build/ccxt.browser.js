@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.220'
+const version = '1.18.221'
 
 Exchange.ccxtVersion = version
 
@@ -27963,8 +27963,8 @@ module.exports = class coinmarketcap extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
-            'percentage': undefined,
+            'change': undefined,
+            'percentage': change,
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': volume,
