@@ -1475,7 +1475,18 @@ var_dump ($exchange->id, 'market price', $result);
 
 ## Price Tickers
 
-A price ticker contains statistics for a particular market/symbol for some period of time in recent past, usually last 24 hours. The structure of a ticker is as follows:
+A price ticker contains statistics for a particular market/symbol for some period of time in recent past, usually last 24 hours. The methods for fetching tickers are:
+
+```JavaScript
+fetchTicker (symbol, params = {})   // for one ticker
+fetchTickers (symbol, params = {})  // for all tickers at once
+```
+
+Check the `exchange.has['fetchTicker']` and `exchange.has['fetchTickers']` properties of the exchange instance to determine if the exchange in question does support these methods.
+
+### Ticker structure
+
+The structure of a ticker is as follows:
 
 ```JavaScript
 {
