@@ -428,10 +428,10 @@ module.exports = class okcoinusd extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = market['future'] ? 'publicGetFutureDepth' : 'publicGetDepth';
-        let request = this.createRequestBase (market);
+        let request = this.createRequest (market, params);
         if (limit !== undefined)
             request['size'] = limit;
-        let orderbook = await this[method] (this.extend (request, params));
+        let orderbook = await this[method] (request);
         return this.parseOrderBook (orderbook);
     }
 
@@ -509,9 +509,9 @@ module.exports = class okcoinusd extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let request = this.createRequestBase (market);
         let method = market['future'] ? 'publicGetFutureTicker' : 'publicGetTicker';
-        let response = await this[method] (this.extend (request, params));
+        let request = this.createRequest (market, params);
+        let response = await this[method] (request);
         let ticker = this.safeValue (response, 'ticker');
         if (ticker === undefined)
             throw new ExchangeError (this.id + ' fetchTicker returned an empty response: ' + this.json (response));
@@ -545,8 +545,8 @@ module.exports = class okcoinusd extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = market['future'] ? 'publicGetFutureTrades' : 'publicGetTrades';
-        let request = this.createRequestBase (market);
-        let response = await this[method] (this.extend (request, params));
+        let request = this.createRequest (market, params);
+        let response = await this[method] (request);
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -569,17 +569,15 @@ module.exports = class okcoinusd extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = market['future'] ? 'publicGetFutureKline' : 'publicGetKline';
-        let request = this.createRequestBase (market);
-        request.type = this.timeframes[timeframe];
+        let request = this.createRequest (market, {
+            'type': this.timeframes[timeframe],
+            'since': since === undefined ? this.milliseconds () - 86400000 : since,  // default last 24h
+        });
         if (limit !== undefined) {
             if (this.options['warnOnFetchOHLCVLimitArgument'])
                 throw new ExchangeError (this.id + ' fetchOHLCV counts "limit" candles from current time backwards, therefore the "limit" argument for ' + this.id + ' is disabled. Set ' + this.id + '.options["warnOnFetchOHLCVLimitArgument"] = false to suppress this warning message.');
             request['size'] = parseInt (limit); // max is 1440 candles
         }
-        if (since !== undefined)
-            request['since'] = since;
-        else
-            request['since'] = this.milliseconds () - 86400000; // last 24 hours
         let response = await this[method] (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
@@ -618,38 +616,21 @@ module.exports = class okcoinusd extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = market['future'] ? 'privatePostFutureTrade' : 'privatePostTrade';
-        let request = this.createRequestBase (market);
-        request['type'] = side;
+        let request = this.createRequest (market, {
+            'type': type === 'market' ? side + '_market' : side,
+            'amount': amount,
+            'price': market['spot'] && type === 'market' && side === 'buy' && !this.options['marketBuyPrice'] ? this.safeFloat (params, 'cost') : price,
+        });
         if (market['future']) {
-            request = this.extend (request, {
-                'match_price': 0, // match best counter party price? 0 or 1, ignores price if 1
-                'lever_rate': 10, // leverage rate value: 10 or 20 (10 by default)
-                'price': price,
-                'amount': amount,
-            });
-        } else {
-            if (type === 'limit') {
-                request['price'] = price;
-                request['amount'] = amount;
+            request.match_price = 0; // match best counter party price? 0 or 1, ignores price if 1
+            request.lever_rate = 10; // leverage rate value: 10 or 20 (10 by default)
+        } else if (type === 'market' && side === 'buy' && !request['price']) {
+            if (this.options['marketBuyPrice']) {
+                // eslint-disable-next-line quotes
+                throw new ExchangeError (this.id + " market buy orders require a price argument (the amount you want to spend or the cost of the order) when this.options['marketBuyPrice'] is true.");
             } else {
-                request['type'] += '_market';
-                if (side === 'buy') {
-                    if (this.options['marketBuyPrice']) {
-                        if (price === undefined) {
-                            // eslint-disable-next-line quotes
-                            throw new ExchangeError (this.id + " market buy orders require a price argument (the amount you want to spend or the cost of the order) when this.options['marketBuyPrice'] is true.");
-                        }
-                        request['price'] = price;
-                    } else {
-                        request['price'] = this.safeFloat (params, 'cost');
-                        if (!request['price']) {
-                            // eslint-disable-next-line quotes
-                            throw new ExchangeError (this.id + " market buy orders require an additional cost parameter, cost = price * amount. If you want to pass the cost of the market order (the amount you want to spend) in the price argument (the default " + this.id + " behaviour), set this.options['marketBuyPrice'] = true. It will effectively suppress this warning exception as well.");
-                        }
-                    }
-                } else {
-                    request['amount'] = amount;
-                }
+                // eslint-disable-next-line quotes
+                throw new ExchangeError (this.id + " market buy orders require an additional cost parameter, cost = price * amount. If you want to pass the cost of the market order (the amount you want to spend) in the price argument (the default " + this.id + " behaviour), set this.options['marketBuyPrice'] = true. It will effectively suppress this warning exception as well.");
             }
         }
         params = this.omit (params, 'cost');
@@ -681,8 +662,9 @@ module.exports = class okcoinusd extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = market['future'] ? 'privatePostFutureCancel' : 'privatePostCancelOrder';
-        let request = this.createRequestBase (market);
-        request['order_id'] = id;
+        let request = this.createRequest (market, {
+            'order_id': id,
+        });
         let response = await this[method] (this.extend (request, params));
         return response;
     }
@@ -798,8 +780,9 @@ module.exports = class okcoinusd extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = market['future'] ? 'privatePostFutureOrderInfo' : 'privatePostOrderInfo';
-        let request = this.createRequestBase (market);
-        request['order_id'] = id;
+        let request = this.createRequest (market, {
+            'order_id': id,
+        });
         let response = await this[method] (this.extend (request, params));
         let ordersField = this.getOrdersField ();
         let numOrders = response[ordersField].length;
@@ -814,19 +797,15 @@ module.exports = class okcoinusd extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = market['future'] ? 'privatePostFutureOrdersInfo' : 'privatePost';
-        let request = this.createRequestBase (market);
+        let request = this.createRequest (market);
         let order_id_in_params = ('order_id' in params);
         if (market['future']) {
             if (!order_id_in_params) {
                 throw new ExchangeError (this.id + ' fetchOrders() requires order_id param for futures market ' + symbol + ' (a string of one or more order ids, comma-separated)');
             }
         } else {
-            let status = undefined;
-            if ('type' in params) {
-                status = params['type'];
-            } else if ('status' in params) {
-                status = params['status'];
-            } else {
+            let status = ('type' in params) ? params['type'] : params['status'];
+            if (typeof status === 'undefined') {
                 let name = order_id_in_params ? 'type' : 'status';
                 throw new ExchangeError (this.id + ' fetchOrders() requires ' + name + ' param for spot market ' + symbol + ' (0 - for unfilled orders, 1 - for filled/canceled orders)');
             }
@@ -934,17 +913,17 @@ module.exports = class okcoinusd extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    createRequestBase (market) {
+    createRequest (market, params = {}) {
         if (!market['future']) {
-            return {
+            return this.deepExtend ({
                 'symbol': market['id'],
-            };
+            }, params);
         }
         let marketParts = market['id'].split ('__');
-        return {
+        return this.deepExtend ({
             'symbol': marketParts[0],
             'contract_type': marketParts[1],
-        };
+        });
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
