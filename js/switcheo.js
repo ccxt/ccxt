@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, DDoSProtection, InvalidAddress, InvalidOrder } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -76,6 +76,14 @@ module.exports = class switcheo extends Exchange {
                         'balances',
                     ],
                 },
+                'private': {
+                    'post': [
+                        'orders',
+                        'orders/{id}/broadcast',
+                        'cancellations',
+                        'cancellations/{id}/broadcast',
+                    ],
+                },
             },
             'exceptions': {
                 'param_required': ExchangeError, // 400 Missing parameter
@@ -121,6 +129,7 @@ module.exports = class switcheo extends Exchange {
         current_contract['GAS'] = current_contract['NEO'];
         current_contract['SWTH'] = current_contract['NEO'];
         current_contract['SDUSD'] = current_contract['NEO'];
+        current_contract['SDUSDC'] = current_contract['NEO'];
         current_contract['PAX'] = current_contract['ETH'];
         current_contract['DAI'] = current_contract['ETH'];
         return current_contract;
@@ -167,6 +176,7 @@ module.exports = class switcheo extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'network': quote,
                 'active': active,
                 'precision': precision,
                 'limits': limits,
@@ -178,18 +188,6 @@ module.exports = class switcheo extends Exchange {
 
     async fetchPairs () {
         let pairs = await this.publicGetExchangePairs ();
-        //
-        //     [
-        //       {
-        //         "name": "GAS_NEO",
-        //         "precision": 3
-        //       },{
-        //         "name": "SWTH_NEO",
-        //         "precision": 6
-        //       }
-        //     ]
-        //
-        // let result = [];
         return pairs;
     }
 
@@ -205,6 +203,93 @@ module.exports = class switcheo extends Exchange {
         }
         let response = await this.publicGetOffersBook (this.extend (request, params));
         return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'quantity');
+    }
+
+    signOrderList (orderParams, privateKey) {
+        let orderDict = {};
+        for (let i = 0; i < orderParams.length; i++) {
+            let signedOrder = this.signMessageHash (orderParams[i]['txn']['sha256'], privateKey);
+            orderDict[orderParams[i]['id']] = '0x' + signedOrder;
+        }
+        return orderDict;
+    }
+
+    signCreateOrder (createOrderDetails, privateKey) {
+        let executeOrder = {
+            'signatures': {
+                'fill_groups': this.signOrderList (createOrderDetails['fill_groups'], privateKey),
+                'fills': {},
+                'makes': this.signOrderList (createOrderDetails['makes'], privateKey),
+            },
+        };
+        return executeOrder;
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, useSwitcheoToken = undefined, params = {}) {
+        const errorMessage = this.id + ' createOrder() requires `exchange.walletAddress` and `exchange.privateKey`. The .walletAddress should be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377". The .privateKey for that wallet should be a "0x"-prefixed hexstring like "0xe4f40d465efa94c98aec1a51f574329344c772c1bce33be07fa20a56795fdd09".';
+        if (!this.walletAddress || (this.walletAddress.indexOf ('0x') !== 0)) {
+            throw new InvalidAddress (errorMessage);
+        }
+        if (!this.privateKey || (this.privateKey.indexOf ('0x') !== 0)) {
+            throw new InvalidAddress (errorMessage);
+        }
+        await this.loadMarkets ();
+        const makerOrTaker = this.safeString (params, 'makerOrTaker');
+        const isMarket = (type === 'market');
+        const isMakerOrTakerUndefined = (makerOrTaker === undefined);
+        const isTaker = (makerOrTaker === 'taker');
+        if (isMarket && !isMakerOrTakerUndefined && !isTaker) {
+            throw new InvalidOrder (this.id + ' createOrder() ' + type + ' order type cannot be a ' + makerOrTaker + '. The createOrder() method of ' + type + ' type can be used with taker orders only.');
+        }
+        let timestamp = this.milliseconds ();
+        let market = this.market (symbol);
+        let reserveRequest = {
+            'walletAddress': this.walletAddress.toLowerCase (), // Your Wallet Address
+            'baseTokenAddress': market['base'], // Base token address
+            'quoteTokenAddress': market['quote'], // Quote token address
+            'side': side, // buy or sell
+            'orderAmount': this.toWei (this.amountToPrecision (symbol, amount), 'ether'), // Base token amount in wei
+        };
+        if (market['network'].toLowerCase () === 'eth' || useSwitcheoToken === undefined) {
+            useSwitcheoToken = false; // Fees can be paid in the quote currency or Switcheo
+        } else if (useSwitcheoToken) {
+            useSwitcheoToken = true;
+        }
+        if (type === 'limit') {
+            reserveRequest['price'] = this.priceToPrecision (symbol, price); // Price denominated in quote tokens (limit orders only)
+            reserveRequest['order_type'] = 'limit';
+        } else if (type === 'market') {
+            reserveRequest['order_type'] = 'market';
+        }
+        let createOrder = {
+            'blockchain': market['network'].toLowerCase (),
+            'contract_hash': this.options['contract'],
+            'order_type': reserveRequest['order_type'],
+            'quantity': reserveRequest['orderAmount'],
+            'pair': market['id'],
+            'side': side,
+            'timestamp': timestamp,
+            'use_native_tokens': useSwitcheoToken,
+        };
+        if (type === 'limit') {
+            createOrder['price'] = reserveRequest['price'];
+        } else {
+            createOrder['price'] = undefined;
+        }
+        let stableStringify = this.stringifyMessage (createOrder);
+        let hexMessage = this.toHex (stableStringify);
+        let signedMessage = this.signMessageHash (hexMessage, this.privateKey);
+        createOrder['signature'] = signedMessage;
+        createOrder['address'] = this.walletAddress.toLowerCase ();
+        let headers = {
+            'Content-type': 'application/json',
+            'Accept': 'text/plain',
+        };
+        let submitCreateOrder = await this.privatePostOrders (params, headers, createOrder);
+        let orderId = submitCreateOrder['id'];
+        let signedCreateOrder = this.signCreateOrder (submitCreateOrder, this.privateKey);
+        let submitExecuteOrder = await this.privatePostOrdersIdBroadcast ({ 'id': orderId }, headers, signedCreateOrder);
+        return submitExecuteOrder;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

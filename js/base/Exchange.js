@@ -49,6 +49,7 @@ let Web3 = undefined
     , ethAbi = undefined
     , ethUtil = undefined
     , BigNumber = undefined
+    , stableStringify = undefined
 
 try {
     const requireFunction = require;
@@ -58,6 +59,7 @@ try {
     BigNumber = requireFunction ('bignumber.js') // eslint-disable-line global-require
     // we prefer bignumber.js over BN.js
     // BN        = requireFunction ('bn.js') // eslint-disable-line global-require
+    stableStringify = requireFunction ('json-stable-stringify') // eslint-disable-line global-require
 } catch (e) {
 }
 
@@ -798,6 +800,14 @@ module.exports = class Exchange {
                 (order.timestamp >= before))
         this.orders = indexBy (orders, 'id')
         return this.orders
+    }
+
+    stringifyMessage (message) {
+        return stableStringify (message)
+    }
+
+    toHex (message) {
+        return Buffer.from (message).toString ('hex')
     }
 
     fetchOrder (id, symbol = undefined, params = {}) {

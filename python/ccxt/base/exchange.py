@@ -57,6 +57,7 @@ import time
 import uuid
 import zlib
 from decimal import Decimal
+import binascii
 
 # -----------------------------------------------------------------------------
 
@@ -79,6 +80,9 @@ try:
     # from web3.auto import w3
     from web3 import Web3, HTTPProvider
     from web3.utils.encoding import hex_encode_abi_type
+    from eth_account.messages import defunct_hash_message
+    from eth_account.account import Account
+    # from eth_utils import to_checksum_address, to_normalized_address
 except ImportError:
     Web3 = HTTPProvider = None  # web3/0x not supported in Python 2
 
@@ -350,7 +354,7 @@ class Exchange(object):
                         outer_kwargs = {'path': url, 'api': api_type, 'method': uppercase_method}
 
                         @functools.wraps(entry)
-                        def inner(_self, params=None):
+                        def inner(_self, params=None, headers=None, body=None):
                             """
                             Inner is called when a generated method (publicGetX) is called.
                             _self is a reference to self created by function.__get__(exchange, type(exchange))
@@ -359,6 +363,10 @@ class Exchange(object):
                             inner_kwargs = dict(outer_kwargs)  # avoid mutation
                             if params is not None:
                                 inner_kwargs['params'] = params
+                            if headers is not None:
+                                inner_kwargs['headers'] = headers
+                            if body is not None:
+                                inner_kwargs['body'] = body
                             return entry(_self, **inner_kwargs)
                         return inner
                     to_bind = partialer()
@@ -435,6 +443,8 @@ class Exchange(object):
         self.logger.debug("%s %s, Request: %s %s", method, url, request_headers, body)
 
         if body:
+            if isinstance(body, collections.Mapping):
+                body = json.dumps(body)
             body = body.encode()
 
         self.session.cookies.clear()
@@ -521,6 +531,14 @@ class Exchange(object):
                 return json.loads(http_response)
         except ValueError:  # superclass of JsonDecodeError (python2)
             pass
+
+    @staticmethod
+    def stringifyMessage(message):
+        return json.dumps(message, sort_keys=True, separators=(',', ':'))
+
+    @staticmethod
+    def toHex(message):
+        return binascii.hexlify(defunct_hash_message(text=message)).decode()
 
     @staticmethod
     def safe_float(dictionary, key, default_value=None):
@@ -1760,6 +1778,9 @@ class Exchange(object):
         message_hash = self.hashMessage(message)
         signature = self.signHash(message_hash[-64:], privateKey[-64:])
         return signature
+
+    def signMessageHash(self, message, private_key):
+        return binascii.hexlify(Account.signHash(message, private_key=private_key)['signature']).decode()
 
     def oath(self):
         if self.twofa is not None:
