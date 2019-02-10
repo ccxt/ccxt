@@ -294,7 +294,7 @@ The ccxt library currently supports the following 134 cryptocurrency exchange ma
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | surbitcoin         | `SurBitcoin <https://surbitcoin.com>`__                                                 |                                                                      | 1     | `API <https://blinktrade.com/docs>`__                                                               | Venezuela                                |
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
-| theocean           | `The Ocean <https://theocean.trade>`__                                                  | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | 0     | `API <https://docs.theocean.trade>`__                                                               | US                                       |
+| theocean           | `The Ocean <https://theocean.trade>`__                                                  | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | 1     | `API <https://docs.theocean.trade>`__                                                               | US                                       |
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | therock            | `TheRockTrading <https://therocktrading.com>`__                                         |                                                                      | 1     | `API <https://api.therocktrading.com/doc/v1/index.html>`__                                          | Malta                                    |
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -642,6 +642,13 @@ Sponsors
 Support this project by becoming a sponsor. Your logo will show up here with a link to your website.
 
 [`Become a sponsor <https://opencollective.com/ccxt#sponsor>`__]
+
+Supporters
+~~~~~~~~~~
+
+Support this project by becoming a supporter. Your avatar will show up here with a link to your website.
+
+[`Become a supporter <https://opencollective.com/ccxt#supporter>`__]
 
 Backers
 ~~~~~~~

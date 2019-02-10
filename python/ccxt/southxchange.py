@@ -83,7 +83,7 @@ class southxchange (Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': True,
+                'active': None,
                 'info': market,
             })
         return result
@@ -141,8 +141,8 @@ class southxchange (Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_float(ticker, 'Variation24Hr'),
-            'percentage': None,
+            'change': None,
+            'percentage': self.safe_float(ticker, 'Variation24Hr'),
             'average': None,
             'baseVolume': self.safe_float(ticker, 'Volume24Hr'),
             'quoteVolume': None,

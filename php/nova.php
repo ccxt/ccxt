@@ -19,6 +19,8 @@ class nova extends Exchange {
             'has' => array (
                 'CORS' => false,
                 'createMarketOrder' => false,
+                'createDepositAddress' => true,
+                'fetchDepositAddress' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg',
@@ -118,8 +120,8 @@ class nova extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_float($ticker, 'change24h'),
-            'percentage' => null,
+            'change' => null,
+            'percentage' => $this->safe_float($ticker, 'change24h'),
             'average' => null,
             'baseVolume' => null,
             'quoteVolume' => $this->safe_float($ticker, 'volume24h'),
@@ -187,9 +189,13 @@ class nova extends Exchange {
             'pair' => $market['id'],
         );
         $response = $this->privatePostTradePair (array_merge ($order, $params));
+        $tradeItems = $this->safe_value($response, 'tradeitems', array ());
+        $tradeItemsByType = $this->index_by($tradeItems, 'type');
+        $created = $this->safe_value($tradeItemsByType, 'created', array ());
+        $orderId = $this->safe_string($created, 'orderid');
         return array (
             'info' => $response,
-            'id' => null,
+            'id' => $orderId,
         );
     }
 
@@ -197,6 +203,40 @@ class nova extends Exchange {
         return $this->privatePostCancelorder (array_merge (array (
             'orderid' => $id,
         ), $params));
+    }
+
+    public function create_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $response = $this->privatePostGetnewdepositaddressCurrency (array_merge (array (
+            'currency' => $currency,
+        ), $params));
+        $address = $this->safe_string($response, 'address');
+        $this->check_address($address);
+        $tag = $this->safe_string($response, 'tag');
+        return array (
+            'currency' => $code,
+            'address' => $address,
+            'tag' => $tag,
+            'info' => $response,
+        );
+    }
+
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $response = $this->privatePostGetdepositaddressCurrency (array_merge (array (
+            'currency' => $currency,
+        ), $params));
+        $address = $this->safe_string($response, 'address');
+        $this->check_address($address);
+        $tag = $this->safe_string($response, 'tag');
+        return array (
+            'currency' => $code,
+            'address' => $address,
+            'tag' => $tag,
+            'info' => $response,
+        );
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

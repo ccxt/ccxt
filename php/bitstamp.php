@@ -687,6 +687,16 @@ class bitstamp extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
+        //
+        //     {
+        //         $price => '0.00008012',
+        //         currency_pair => 'XRP/BTC',
+        //         datetime => '2019-01-31 21:23:36',
+        //         $amount => '15.00000000',
+        //         type => '0',
+        //         $id => '2814205012'
+        //     }
+        //
         $id = $this->safe_string($order, 'id');
         $side = $this->safe_string($order, 'type');
         if ($side !== null) {
@@ -694,12 +704,13 @@ class bitstamp extends Exchange {
         }
         $timestamp = $this->parse8601 ($this->safe_string($order, 'datetime'));
         $symbol = null;
-        if ($market === null) {
-            if (is_array ($order) && array_key_exists ('currency_pair', $order)) {
-                $marketId = $order['currency_pair'];
-                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
-                    $market = $this->markets_by_id[$marketId];
-                }
+        $marketId = $this->safe_string($order, 'currency_pair');
+        if ($marketId !== null) {
+            $marketId = str_replace ('/', '', $marketId);
+            $marketId = strtolower ($marketId);
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+                $symbol = $market['symbol'];
             }
         }
         $amount = $this->safe_float($order, 'amount');
@@ -739,7 +750,9 @@ class bitstamp extends Exchange {
         }
         $feeCurrency = null;
         if ($market !== null) {
-            $symbol = $market['symbol'];
+            if ($symbol === null) {
+                $symbol = $market['symbol'];
+            }
             $feeCurrency = $market['quote'];
         }
         if ($cost === null) {
@@ -787,9 +800,20 @@ class bitstamp extends Exchange {
             $market = $this->market ($symbol);
         }
         $response = $this->privatePostOpenOrdersAll ($params);
+        //     array (
+        //         {
+        //             price => '0.00008012',
+        //             currency_pair => 'XRP/BTC',
+        //             datetime => '2019-01-31 21:23:36',
+        //             amount => '15.00000000',
+        //             type => '0',
+        //             id => '2814205012',
+        //         }
+        //     )
+        //
         $result = array ();
         for ($i = 0; $i < count ($response); $i++) {
-            $order = $this->parse_order($response[$i], $market, $since, $limit);
+            $order = $this->parse_order($response[$i], $market);
             $result[] = array_merge ($order, array (
                 'status' => 'open',
                 'type' => 'limit',

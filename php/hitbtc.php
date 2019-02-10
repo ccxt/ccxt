@@ -485,7 +485,7 @@ class hitbtc extends Exchange {
                 ),
             ),
             'commonCurrencies' => array (
-                'BCC' => 'BCC',
+                'BCH' => 'Bitcoin Cash',
                 'BET' => 'DAO.Casino',
                 'CAT' => 'BitClave',
                 'DRK' => 'DASH',
