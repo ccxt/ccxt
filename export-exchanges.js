@@ -5,7 +5,7 @@ const countries = require ('./countries')
 const asTable   = require ('as-table')
 const util      = require ('util')
 const execSync  = require ('child_process').execSync
-const log       = require ('ololog')
+const log       = require ('ololog').unlimited
 const ansi      = require ('ansicolor').nice
 
 // ---------------------------------------------------------------------------
@@ -20,9 +20,8 @@ let gitWikiPath = 'ccxt.wiki'
 let ccxtCertifiedBadge = '[![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification)'
 let spacing = '&nbsp;'.repeat (7)
 let logoHeading = spacing + 'logo' + spacing
-let tableHeadings = [logoHeading, 'id', 'name', 'certified', 'ver', 'doc']
-let exchangesByCountryHeading = Array.from (tableHeadings)
-exchangesByCountryHeading.splice (1, 0, 'country / region')
+let tableHeadings = [ logoHeading, 'id', 'name', 'ver', 'doc', 'certified', ]
+let exchangesByCountryHeading = [ 'country / region', ... tableHeadings ]
 
 if (!fs.existsSync (gitWikiPath)) {
     log.bright.cyan ('Checking out ccxt.wiki...')
@@ -147,21 +146,19 @@ let values = Object.values (exchanges).map (exchange => {
         '[![' + exchange.id + '](' + logo + ')](' + url + ')',
         exchange.id,
         '[' + exchange.name + '](' + url + ')',
-        exchange.certified ? ccxtCertifiedBadge : '',
         version,
         '[API](' + doc + ')',
+        exchange.certified ? ccxtCertifiedBadge : '',
         countries,
     ]
 })
 
-
 values.splice (0, 0, tableHeadings)
-
 
 function makeTable (jsonArray) {
     let table = asTable.configure ({ 'delimiter': ' | ' }) (jsonArray)
     let lines = table.split ("\n")
-    lines[1] = lines[0].replace (/[^\|]/g, '-')
+    lines.splice (1,0, lines[0].replace (/[^\|]/g, '-'))
     let headerLine = lines[1].split ('|')
     headerLine[3] = ':' + headerLine[3].slice (1, headerLine[3].length - 1) + ':'
     headerLine[4] = ':' + headerLine[4].slice (1, headerLine[4].length - 1) + ':'
