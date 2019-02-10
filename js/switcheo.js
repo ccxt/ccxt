@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, DDoSProtection, InvalidAddress, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, DDoSProtection, InvalidAddress } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -21,7 +21,7 @@ module.exports = class switcheo extends Exchange {
             'requiresWeb3': true,
             'has': {
                 'CORS': false,
-                'cancelOrder': false,
+                'cancelOrder': true,
                 'createDepositAddress': false,
                 'createOrder': false,
                 'deposit': false,
@@ -234,13 +234,6 @@ module.exports = class switcheo extends Exchange {
             throw new InvalidAddress (errorMessage);
         }
         await this.loadMarkets ();
-        const makerOrTaker = this.safeString (params, 'makerOrTaker');
-        const isMarket = (type === 'market');
-        const isMakerOrTakerUndefined = (makerOrTaker === undefined);
-        const isTaker = (makerOrTaker === 'taker');
-        if (isMarket && !isMakerOrTakerUndefined && !isTaker) {
-            throw new InvalidOrder (this.id + ' createOrder() ' + type + ' order type cannot be a ' + makerOrTaker + '. The createOrder() method of ' + type + ' type can be used with taker orders only.');
-        }
         let timestamp = this.milliseconds ();
         let market = this.market (symbol);
         let reserveRequest = {
@@ -290,6 +283,27 @@ module.exports = class switcheo extends Exchange {
         let signedCreateOrder = this.signCreateOrder (submitCreateOrder, this.privateKey);
         let submitExecuteOrder = await this.privatePostOrdersIdBroadcast ({ 'id': orderId }, headers, signedCreateOrder);
         return submitExecuteOrder;
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        let cancelRequest = {
+            'order_id': id,
+            'timestamp': this.milliseconds (),
+        };
+        let stableStringify = this.stringifyMessage (cancelRequest);
+        let hexMessage = this.toHex (stableStringify);
+        let signedMessage = this.signMessageHash (hexMessage, this.privateKey);
+        cancelRequest['signature'] = signedMessage;
+        cancelRequest['address'] = this.walletAddress.toLowerCase ();
+        let headers = {
+            'Content-type': 'application/json',
+            'Accept': 'text/plain',
+        };
+        let createCancel = await this.privatePostCancellations (params, headers, cancelRequest);
+        let cancelId = createCancel['id'];
+        let signedCancel = this.signMessageHash (createCancel['transaction']['sha256'], this.privateKey);
+        let executeCancel = await this.privatePostCancellationsIdBroadcast ({ 'id': cancelId }, headers, { 'signature': '0x' + signedCancel });
+        return executeCancel;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
