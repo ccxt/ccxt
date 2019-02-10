@@ -144,7 +144,6 @@ module.exports = class bitmex extends Exchange {
             },
             'options': {
                 'api-expires': undefined,
-                'fetchTickerQuotes': false,
             },
         });
     }
@@ -314,7 +313,10 @@ module.exports = class bitmex extends Exchange {
         let market = this.market (symbol);
         if (!market['active'])
             throw new ExchangeError (this.id + ': symbol ' + symbol + ' is delisted');
-        let request = this.extend ({
+        let request1 = this.extend ({
+            'symbol': market['id'],
+        }, params);
+        let request2 = this.extend ({
             'symbol': market['id'],
             'binSize': '1d',
             'partial': true,
@@ -323,14 +325,11 @@ module.exports = class bitmex extends Exchange {
         }, params);
         let bid = undefined;
         let ask = undefined;
-        if (this.options['fetchTickerQuotes']) {
-            let quotes = await this.publicGetQuoteBucketed (request);
-            let quotesLength = quotes.length;
-            let quote = quotes[quotesLength - 1];
-            bid = this.safeFloat (quote, 'bidPrice');
-            ask = this.safeFloat (quote, 'askPrice');
-        }
-        let tickers = await this.publicGetTradeBucketed (request);
+        let instruments = await this.publicGetInstrument (request1);
+        let instrument = instruments[0];
+        bid = this.safeFloat (instrument, 'bidPrice');
+        ask = this.safeFloat (instrument, 'askPrice');
+        let tickers = await this.publicGetTradeBucketed (request2);
         let ticker = tickers[0];
         let timestamp = this.milliseconds ();
         let open = this.safeFloat (ticker, 'open');
