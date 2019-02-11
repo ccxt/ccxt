@@ -874,6 +874,21 @@ class Exchange {
             'BCHSV' => 'BSV',
         );
 
+        $this->limits = array (
+            'cost' => array (
+                'min' => null,
+                'max' => null,
+            ),
+            'price' => array (
+                'min' => null,
+                'max' => null,
+            ),
+            'amount' => array (
+                'min' => null,
+                'max' => null,
+            ),
+        );
+
         $this->urlencode_glue = ini_get ('arg_separator.output'); // can be overrided by exchange constructor params
         $this->urlencode_glue_warning = true;
 
