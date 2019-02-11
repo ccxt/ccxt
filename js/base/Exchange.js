@@ -189,7 +189,7 @@ module.exports = class Exchange {
                 '401': AuthenticationError,
                 '511': AuthenticationError,
             },
-            // some exchanges report only 'free' on `fetchBalance` call (i.e. report no 'used' funds)
+            // some exchanges report only 'free' on `fetchBlance` call (i.e. report no 'used' funds)
             // in this case ccxt will try to infer 'used' funds from open order cache, which might be stale
             // still, some exchanges report number of open orders together with balance
             // if you set the following flag to 'true' ccxt will leave 'used' funds undefined in case of discrepancy
@@ -202,6 +202,20 @@ module.exports = class Exchange {
                 'BCHSV': 'BSV',
             },
             'precisionMode': DECIMAL_PLACES,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
         } // return
     } // describe ()
 
@@ -1185,7 +1199,7 @@ module.exports = class Exchange {
         let result = [];
         let array = Object.values (data || []);
         for (let i = 0; i < array.length; i++) {
-            result.push (this.parseLedgerItem (array[i], currency));
+            result.push (this.parseLedgerEntry (array[i], currency));
         }
         result = this.sortBy (result, 'timestamp');
         let code = (currency !== undefined) ? currency['code'] : undefined;
@@ -1571,8 +1585,22 @@ module.exports = class Exchange {
         const signature = this.signMessage (orderHash, privateKey);
         return this.extend (order, {
             'orderHash': orderHash,
-            'ecSignature': signature, // todo fix v if needed
+            'signature': this.convertECSignatureToSignatureHex(signature),
         })
+    }
+
+    convertECSignatureToSignatureHex (signature) {
+        // https://github.com/0xProject/0x-monorepo/blob/development/packages/order-utils/src/signature_utils.ts
+        let v = signature.v;
+        if (v !== 27 && v !== 28) {
+            v = v + 27;
+        }
+        const signatureBuffer = Buffer.concat ([
+            ethUtil.toBuffer (v),
+            ethUtil.toBuffer (signature.r),
+            ethUtil.toBuffer (signature.s)
+        ])
+        return '0x' + signatureBuffer.toString ('hex') + '03';
     }
 
     hashMessage (message) {
@@ -1638,29 +1666,5 @@ module.exports = class Exchange {
         } else {
             throw new ExchangeError (this.id + ' this.twofa has not been set')
         }
-    }
-
-    limit (currency = false) {
-        let limits = {
-            'amount': {
-                'min': undefined,
-                'max': undefined,
-            },
-            'price': {
-                'min': undefined,
-                'max': undefined,
-            },
-            'cost': {
-                'min': undefined,
-                'max': undefined,
-            },
-        }
-        if (currency) {
-            limits['withdraw'] = {
-                'min': undefined,
-                'max': undefined,
-            }
-        }
-        return limits;
     }
 }

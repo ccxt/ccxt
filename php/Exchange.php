@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.195';
+$version = '1.18.221';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.195';
+    const VERSION = '1.18.221';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -1179,6 +1179,7 @@ class Exchange {
         $json_response = null;
 
         if ($this->is_json_encoded_object ($result)) {
+
             $json_response = $this->parse_json ($result);
 
             if ($this->enableLastJsonResponse) {
@@ -1255,7 +1256,7 @@ class Exchange {
             }
         }
 
-        return $json_response ? $json_response : $result;
+        return isset ($json_response) ? $json_response : $result;
     }
 
     public function set_markets ($markets, $currencies = null) {
@@ -1523,7 +1524,7 @@ class Exchange {
         $array = is_array ($items) ? array_values ($items) : array ();
         $result = array ();
         foreach ($array as $item)
-            $result[] = $this->parse_ledger_item ($item, $currency);
+            $result[] = $this->parse_ledger_entry ($item, $currency);
         $result = $this->sort_by ($result, 'timestamp');
         $code = isset ($currency) ? $currency['code'] : null;
         return $this->filter_by_currency_since_limit ($result, $code, $since, $limit);
@@ -2488,31 +2489,5 @@ class Exchange {
         $code = ($hmac[$offset + 0] & 0x7F) << 24 | ($hmac[$offset + 1] & 0xFF) << 16 | ($hmac[$offset + 2] & 0xFF) << 8 | ($hmac[$offset + 3] & 0xFF);
         $otp = $code % pow(10, 6);
         return str_pad((string) $otp, 6, '0', STR_PAD_LEFT);
-    }
-
-    public static function limit ($currency = False) {
-        $limits = array (
-            'cost' => array (
-                'min' => null,
-                'max' => null,
-            ),
-            'price' => array (
-                'min' => null,
-                'max' => null,
-            ),
-            'amount' => array (
-                'min' => null,
-                'max' => null,
-            ),
-        );
-        if ($currency) {
-            $limits = array_merge ($limits, array (
-                'withdraw' => array (
-                    'min' => null,
-                    'max' => null,
-                )
-            ));
-        }
-        return $limits;
     }
 }
