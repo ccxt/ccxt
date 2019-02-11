@@ -435,7 +435,11 @@ module.exports = class Exchange {
 
             const params = { method, headers, body, timeout: this.timeout }
 
-            if (url.indexOf ('http://') < 0) {
+            if (url.indexOf ('http://') === 0) {
+                params['agent'] = this.httpAgent || null;
+            } else if (url.indexOf ('https://') === 0) {
+                params['agent'] = this.httpsAgent || this.agent || null;
+            } else {
                 params['agent'] = this.agent || null;
             }
 
