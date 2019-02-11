@@ -236,12 +236,13 @@ module.exports = class stronghold extends Exchange {
         };
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
+            const assetId = this.safeString (entry, 'id');
             const currencyId = this.safeString (entry, 'code');
             const code = this.commonCurrencyCode (currencyId);
             const precision = this.safeInteger (entry, 'displayDecimalsFull');
             result[code] = {
                 'code': code,
-                'id': currencyId,
+                'id': assetId,
                 'precision': precision,
                 'info': entry,
                 'active': undefined,
@@ -347,6 +348,9 @@ module.exports = class stronghold extends Exchange {
             let marketId = this.safeString (trade, 'marketId');
             market = this.safeValue (this.markets_by_id, marketId);
             takerOrMaker = trade['maker'] ? 'maker' : 'taker';
+        }
+        if (amount !== undefined && price !== undefined) {
+            cost = amount * price;
         }
         let symbol = undefined;
         if (market !== undefined) {
@@ -454,14 +458,6 @@ module.exports = class stronghold extends Exchange {
             throw new ArgumentsRequired (this.id + " createOrder requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
         }
         const response = await this.privatePostVenuesVenueIdAccountsAccountIdOrders (request);
-        // to be removed
-        //     const datetime = this.safeString (response, 'timestamp');
-        //     return {
-        //         'id': undefined,
-        //         'datetime': datetime,
-        //         'timestamp': this.parse8601 (datetime),
-        //         'info': response,
-        //     };
         return this.parseOrder (response, market);
     }
 
@@ -475,14 +471,6 @@ module.exports = class stronghold extends Exchange {
             throw new ArgumentsRequired (this.id + " cancelOrder requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
         }
         const response = await this.privateDeleteVenuesVenueIdAccountsAccountIdOrdersOrderId (request);
-        // to be removed
-        //     const datetime = this.safeString (response, 'timestamp');
-        //     return {
-        //         'id': id,
-        //         'datetime': datetime,
-        //         'timestamp': this.parse8601 (datetime),
-        //         'info': response,
-        //     };
         return this.parseOrder (response);
     }
 
@@ -515,6 +503,10 @@ module.exports = class stronghold extends Exchange {
         const datetime = this.safeString (order, 'placedAt');
         const amount = this.safeFloat (order, 'size');
         const filled = this.safeFloat (order, 'sizeFilled');
+        let remaining = undefined;
+        if (amount !== undefined && filled !== undefined) {
+            remaining = amount - filled;
+        }
         return {
             'id': id,
             'info': order,
@@ -524,7 +516,7 @@ module.exports = class stronghold extends Exchange {
             'side': this.safeString (order, 'side'),
             'amount': amount,
             'filled': filled,
-            'remaining': amount - filled,
+            'remaining': remaining,
             'price': this.safeFloat (order, 'price'),
         };
     }
@@ -675,9 +667,9 @@ module.exports = class stronghold extends Exchange {
         //         result: []
         //     }
         //
-        let errorCode = this.safeString (response, 'errorCode');
+        const errorCode = this.safeString (response, 'errorCode');
         if (errorCode in this.exceptions) {
-            let Exception = this.exceptions[errorCode];
+            const Exception = this.exceptions[errorCode];
             throw new Exception (this.id + ' ' + body);
         }
         const success = this.safeValue (response, 'success');
