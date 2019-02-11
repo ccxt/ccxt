@@ -365,8 +365,6 @@ module.exports = class okcoinusd extends Exchange {
                         'max': undefined,
                     },
                 },
-                'maker': 0.0015,
-                'taker': 0.0020,
             }));
         }
         if (this.has['futures']) {
@@ -385,7 +383,6 @@ module.exports = class okcoinusd extends Exchange {
                 let quote = this.commonCurrencyCode (quoteId);
                 for (let j = 0; j < this.options['contractTypes'].length; j++) {
                     let contractType = this.options['contractTypes'][j];
-                    // let id = futuresMarkets[i]['symbol'] + '__' + contractType;
                     let id = baseId.toLowerCase () + '_' + quoteId.toLowerCase () + '__' + contractType;
                     let symbol = id.toUpperCase ();
                     result.push (this.extend (this.fees['trading'], {
