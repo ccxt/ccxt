@@ -55,7 +55,7 @@ class kraken (Exchange):
                 'fetchWithdrawals': True,
                 'fetchDeposits': True,
                 'withdraw': True,
-                'fetchLedgerItem': True,
+                'fetchLedgerEntry': True,
                 'fetchLedger': True,
             },
             'marketsByAltname': {},
@@ -523,7 +523,7 @@ class kraken (Exchange):
         ohlcvs = response['result'][market['id']]
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_ledger_item(self, item, currency=None):
+    def parse_ledger_entry(self, item, currency=None):
         # {'LTFK7F-N2CUX-PNY4SX': {  refid: "TSJTGT-DT7WN-GPPQMJ",
         #                               time:  1520102320.555,
         #                               type: "trade",
@@ -566,8 +566,8 @@ class kraken (Exchange):
             'cost': self.safe_float(item, 'fee'),
             'currency': code,
         }
-        balanceBefore = None
-        balanceAfter = self.safe_float(item, 'balance')
+        before = None
+        after = self.safe_float(item, 'balance')
         return {
             'info': item,
             'id': id,
@@ -578,8 +578,8 @@ class kraken (Exchange):
             'type': type,
             'currency': code,
             'amount': amount,
-            'balanceBefore': balanceBefore,
-            'balanceAfter': balanceAfter,
+            'before': before,
+            'after': after,
             'timestamp': timestamp,
             'datetime': datetime,
             'fee': fee,
@@ -613,9 +613,9 @@ class kraken (Exchange):
             value = ledger[key]
             value['id'] = key
             items.append(value)
-        return self.parseLedger(items, currency, since, limit)
+        return self.parse_ledger(items, currency, since, limit)
 
-    def fetch_ledger_items_by_ids(self, ids, code=None, params={}):
+    def fetch_ledger_entrys_by_ids(self, ids, code=None, params={}):
         # https://www.kraken.com/features/api#query-ledgers
         self.load_markets()
         ids = ','.join(ids)
@@ -640,10 +640,10 @@ class kraken (Exchange):
             value = result[key]
             value['id'] = key
             items.append(value)
-        return self.parseLedger(items)
+        return self.parse_ledger(items)
 
-    def fetch_ledger_item(self, id, code=None, params={}):
-        items = self.fetch_ledger_items_by_ids([id], code, params)
+    def fetch_ledger_entry(self, id, code=None, params={}):
+        items = self.fetch_ledger_entrys_by_ids([id], code, params)
         return items[0]
 
     def parse_trade(self, trade, market=None):

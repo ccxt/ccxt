@@ -451,7 +451,6 @@ declare module 'ccxt' {
     export class vaultoro extends Exchange {}
     export class vbtc extends foxbit {}
     export class virwox extends Exchange {}
-    export class wex extends liqui {}
     export class xbtce extends Exchange {}
     export class yobit extends liqui {}
     export class yunbi extends acx {}

@@ -705,10 +705,13 @@ class bitstamp extends Exchange {
         $timestamp = $this->parse8601 ($this->safe_string($order, 'datetime'));
         $symbol = null;
         $marketId = $this->safe_string($order, 'currency_pair');
-        $marketId = str_replace ('/', '', $marketId);
-        $marketId = strtolower ($marketId);
-        if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
+        if ($marketId !== null) {
+            $marketId = str_replace ('/', '', $marketId);
+            $marketId = strtolower ($marketId);
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+                $symbol = $market['symbol'];
+            }
         }
         $amount = $this->safe_float($order, 'amount');
         $filled = 0.0;
@@ -747,7 +750,9 @@ class bitstamp extends Exchange {
         }
         $feeCurrency = null;
         if ($market !== null) {
-            $symbol = $market['symbol'];
+            if ($symbol === null) {
+                $symbol = $market['symbol'];
+            }
             $feeCurrency = $market['quote'];
         }
         if ($cost === null) {

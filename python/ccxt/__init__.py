@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.18.195'
+__version__ = '1.18.225'
 
 # ----------------------------------------------------------------------------
 
@@ -192,7 +192,6 @@ from ccxt.urdubit import urdubit                            # noqa: F401
 from ccxt.vaultoro import vaultoro                          # noqa: F401
 from ccxt.vbtc import vbtc                                  # noqa: F401
 from ccxt.virwox import virwox                              # noqa: F401
-from ccxt.wex import wex                                    # noqa: F401
 from ccxt.xbtce import xbtce                                # noqa: F401
 from ccxt.yobit import yobit                                # noqa: F401
 from ccxt.yunbi import yunbi                                # noqa: F401
@@ -328,7 +327,6 @@ exchanges = [
     'vaultoro',
     'vbtc',
     'virwox',
-    'wex',
     'xbtce',
     'yobit',
     'yunbi',

@@ -32,7 +32,7 @@ module.exports = class kraken extends Exchange {
                 'fetchWithdrawals': true,
                 'fetchDeposits': true,
                 'withdraw': true,
-                'fetchLedgerItem': true,
+                'fetchLedgerEntry': true,
                 'fetchLedger': true,
             },
             'marketsByAltname': {},
@@ -530,7 +530,7 @@ module.exports = class kraken extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    parseLedgerItem (item, currency = undefined) {
+    parseLedgerEntry (item, currency = undefined) {
         // { 'LTFK7F-N2CUX-PNY4SX': {   refid: "TSJTGT-DT7WN-GPPQMJ",
         //                               time:  1520102320.555,
         //                               type: "trade",
@@ -539,13 +539,13 @@ module.exports = class kraken extends Exchange {
         //                             amount: "0.1087194600",
         //                                fee: "0.0000000000",
         //                            balance: "0.2855851000"         }, ... }
-        let id = this.safeString (item, 'id');
+        const id = this.safeString (item, 'id');
         let direction = undefined;
         let account = undefined;
         let referenceId = this.safeString (item, 'refid');
         let referenceAccount = undefined;
         let type = undefined;
-        let itemType = this.safeString (item, 'type');
+        const itemType = this.safeString (item, 'type');
         if (itemType === 'trade') {
             type = 'trade';
         } else if (itemType === 'withdrawal') {
@@ -557,7 +557,7 @@ module.exports = class kraken extends Exchange {
         } else {
             throw new ExchangeError (this.id + ' unsupported ledger item type: ' + itemType);
         }
-        let code = this.safeCurrencyCode (item, 'asset', currency);
+        const code = this.safeCurrencyCode (item, 'asset', currency);
         let amount = this.safeFloat (item, 'amount');
         if (amount < 0) {
             direction = 'out';
@@ -565,19 +565,19 @@ module.exports = class kraken extends Exchange {
         } else {
             direction = 'in';
         }
-        let time = this.safeFloat (item, 'time');
+        const time = this.safeFloat (item, 'time');
         let timestamp = undefined;
         let datetime = undefined;
         if (time !== undefined) {
             timestamp = parseInt (time * 1000);
             datetime = this.iso8601 (timestamp);
         }
-        let fee = {
+        const fee = {
             'cost': this.safeFloat (item, 'fee'),
             'currency': code,
         };
-        let balanceBefore = undefined;
-        let balanceAfter = this.safeFloat (item, 'balance');
+        const before = undefined;
+        const after = this.safeFloat (item, 'balance');
         return {
             'info': item,
             'id': id,
@@ -588,8 +588,8 @@ module.exports = class kraken extends Exchange {
             'type': type,
             'currency': code,
             'amount': amount,
-            'balanceBefore': balanceBefore,
-            'balanceAfter': balanceAfter,
+            'before': before,
+            'after': after,
             'timestamp': timestamp,
             'datetime': datetime,
             'fee': fee,
@@ -630,7 +630,7 @@ module.exports = class kraken extends Exchange {
         return this.parseLedger (items, currency, since, limit);
     }
 
-    async fetchLedgerItemsByIds (ids, code = undefined, params = {}) {
+    async fetchLedgerEntrysByIds (ids, code = undefined, params = {}) {
         // https://www.kraken.com/features/api#query-ledgers
         await this.loadMarkets ();
         ids = ids.join (',');
@@ -659,8 +659,8 @@ module.exports = class kraken extends Exchange {
         return this.parseLedger (items);
     }
 
-    async fetchLedgerItem (id, code = undefined, params = {}) {
-        const items = await this.fetchLedgerItemsByIds ([ id ], code, params);
+    async fetchLedgerEntry (id, code = undefined, params = {}) {
+        const items = await this.fetchLedgerEntrysByIds ([ id ], code, params);
         return items[0];
     }
 

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.195'
+__version__ = '1.18.225'
 
 # -----------------------------------------------------------------------------
 
@@ -174,7 +174,6 @@ from ccxt.async_support.urdubit import urdubit                            # noqa
 from ccxt.async_support.vaultoro import vaultoro                          # noqa: F401
 from ccxt.async_support.vbtc import vbtc                                  # noqa: F401
 from ccxt.async_support.virwox import virwox                              # noqa: F401
-from ccxt.async_support.wex import wex                                    # noqa: F401
 from ccxt.async_support.xbtce import xbtce                                # noqa: F401
 from ccxt.async_support.yobit import yobit                                # noqa: F401
 from ccxt.async_support.yunbi import yunbi                                # noqa: F401
@@ -310,7 +309,6 @@ exchanges = [
     'vaultoro',
     'vbtc',
     'virwox',
-    'wex',
     'xbtce',
     'yobit',
     'yunbi',

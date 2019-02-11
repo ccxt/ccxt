@@ -32,7 +32,7 @@ class kraken extends Exchange {
                 'fetchWithdrawals' => true,
                 'fetchDeposits' => true,
                 'withdraw' => true,
-                'fetchLedgerItem' => true,
+                'fetchLedgerEntry' => true,
                 'fetchLedger' => true,
             ),
             'marketsByAltname' => array (),
@@ -530,7 +530,7 @@ class kraken extends Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ledger_item ($item, $currency = null) {
+    public function parse_ledger_entry ($item, $currency = null) {
         // { 'LTFK7F-N2CUX-PNY4SX' => array (   refid => "TSJTGT-DT7WN-GPPQMJ",
         //                               $time =>  1520102320.555,
         //                               $type => "trade",
@@ -576,8 +576,8 @@ class kraken extends Exchange {
             'cost' => $this->safe_float($item, 'fee'),
             'currency' => $code,
         );
-        $balanceBefore = null;
-        $balanceAfter = $this->safe_float($item, 'balance');
+        $before = null;
+        $after = $this->safe_float($item, 'balance');
         return array (
             'info' => $item,
             'id' => $id,
@@ -588,8 +588,8 @@ class kraken extends Exchange {
             'type' => $type,
             'currency' => $code,
             'amount' => $amount,
-            'balanceBefore' => $balanceBefore,
-            'balanceAfter' => $balanceAfter,
+            'before' => $before,
+            'after' => $after,
             'timestamp' => $timestamp,
             'datetime' => $datetime,
             'fee' => $fee,
@@ -627,10 +627,10 @@ class kraken extends Exchange {
             $value['id'] = $key;
             $items[] = $value;
         }
-        return $this->parseLedger ($items, $currency, $since, $limit);
+        return $this->parse_ledger($items, $currency, $since, $limit);
     }
 
-    public function fetch_ledger_items_by_ids ($ids, $code = null, $params = array ()) {
+    public function fetch_ledger_entrys_by_ids ($ids, $code = null, $params = array ()) {
         // https://www.kraken.com/features/api#query-ledgers
         $this->load_markets();
         $ids = implode (',', $ids);
@@ -656,11 +656,11 @@ class kraken extends Exchange {
             $value['id'] = $key;
             $items[] = $value;
         }
-        return $this->parseLedger ($items);
+        return $this->parse_ledger($items);
     }
 
-    public function fetch_ledger_item ($id, $code = null, $params = array ()) {
-        $items = $this->fetch_ledger_items_by_ids (array ( $id ), $code, $params);
+    public function fetch_ledger_entry ($id, $code = null, $params = array ()) {
+        $items = $this->fetch_ledger_entrys_by_ids (array ( $id ), $code, $params);
         return $items[0];
     }
 

@@ -393,12 +393,12 @@ class deribit (Exchange):
         if price is not None:
             request['price'] = price
         response = self.privatePostEdit(self.extend(request, params))
-        return self.parse_order(response['result'])
+        return self.parse_order(response['result']['order'])
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         response = self.privatePostCancel(self.extend({'orderId': id}, params))
-        return self.parse_order(response['result'])
+        return self.parse_order(response['result']['order'])
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
