@@ -288,7 +288,7 @@ module.exports = class anxpro extends Exchange {
             };
             const engineSettings = this.safeValue (market, 'engineSettings');
             const displayEnabled = this.safeValue (engineSettings, 'displayEnabled');
-            const tradingEnabled = this.safeValeu (engineSettings, 'tradingEnabled');
+            const tradingEnabled = this.safeValue (engineSettings, 'tradingEnabled');
             const active = displayEnabled && tradingEnabled;
             result.push ({
                 'id': id,
