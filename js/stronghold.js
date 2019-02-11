@@ -19,8 +19,8 @@ module.exports = class stronghold extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/52160042-98c1f300-26be-11e9-90dd-da8473944c83.jpg',
                 'api': {
-                    'public': 'https://api.stronghold.co',
-                    'private': 'https://api.stronghold.co',
+                    'public': 'https://api-development.stronghold.co',
+                    'private': 'https://api-development.stronghold.co',
                 },
                 'www': 'https://stronghold.co',
                 'doc': [
@@ -48,7 +48,7 @@ module.exports = class stronghold extends Exchange {
                 'public': {
                     'get': [
                         'utilities/time',
-                        'utilites/uuid',
+                        'utilities/uuid',
                         'venues',
                         'venues/{venueId}/assets',
                         'venues/{venueId}/markets',
@@ -73,6 +73,7 @@ module.exports = class stronghold extends Exchange {
                 'private': {
                     'get': [
                         'venues',
+                        'venues/{venueId}/accounts',
                         'venues/{venueId}/accounts/{accountId}',
                         'venues/{venueId}/custody/accounts/{accountId}/payment/{paymentId}',
                         'venues/{venueId}/accounts/{accountId}/orders',
@@ -175,14 +176,6 @@ module.exports = class stronghold extends Exchange {
                     'min': this.safeFloat (entry, 'minimumOrderSize'),
                     'max': undefined,
                 },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
             };
             const precision = {
                 'price': this.safeInteger (entry, 'displayDecimalsPrice'),
@@ -195,9 +188,9 @@ module.exports = class stronghold extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'limits': limits,
                 'precision': precision,
                 'info': entry,
+                'limits': limits,
             };
         }
         return result;
@@ -223,6 +216,24 @@ module.exports = class stronghold extends Exchange {
         //
         const data = response['result'];
         const result = {};
+        const limits = {
+            'amount': {
+                'min': undefined,
+                'max': undefined,
+            },
+            'price': {
+                'min': undefined,
+                'max': undefined,
+            },
+            'cost': {
+                'min': undefined,
+                'max': undefined,
+            },
+            'withdraw': {
+                'min': undefined,
+                'max': undefined,
+            },
+        };
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const currencyId = this.safeString (entry, 'code');
@@ -235,7 +246,7 @@ module.exports = class stronghold extends Exchange {
                 'info': entry,
                 'active': undefined,
                 'name': undefined,
-                'limits': this.limit (),
+                'limits': limits,
             };
         }
         return result;
@@ -535,7 +546,7 @@ module.exports = class stronghold extends Exchange {
             'venueId': this.options['venueId'],
             'accountId': this.options['accountId'],
         }, params);
-        if (!request['accountId']) {
+        if (!('accountId' in request)) {
             throw new ArgumentsRequired (this.id + " fetchBalance requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
         }
         const response = await this.privateGetVenuesVenueIdAccountsAccountId (request);
