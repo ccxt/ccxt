@@ -437,6 +437,8 @@ module.exports = class Exchange {
 
             if (url.indexOf ('http://') < 0) {
                 params['agent'] = this.agent || null;
+            } else if (url.indexOf ('https://') < 0) {
+                params['agent'] = this.httpsAgent || null;
             }
 
             let promise =
