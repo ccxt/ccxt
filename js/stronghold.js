@@ -433,12 +433,15 @@ module.exports = class stronghold extends Exchange {
         return {
             'id': id,
             'info': transaction,
-            'code': code,
+            'currency': code,
             'amount': amount,
             'status': status,
             'fee': fee,
             'tag': undefined,
             'type': type,
+            'updated': undefined,
+            'address': undefined,
+            'txid': undefined,
         };
     }
 
@@ -518,6 +521,10 @@ module.exports = class stronghold extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'price': this.safeFloat (order, 'price'),
+            'trades': [],
+            'lastTradeTimestamp': undefined,
+            'status': undefined,
+            'type': undefined,
         };
     }
 
