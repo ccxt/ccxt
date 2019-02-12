@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -62,6 +62,9 @@ module.exports = class anxpro extends Exchange {
                         'money/wallet/history',
                     ],
                 },
+            },
+            'httpExceptions': {
+                '403': AuthenticationError,
             },
             'fees': {
                 'trading': {
@@ -468,18 +471,18 @@ module.exports = class anxpro extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (response !== undefined) {
-            if (api === 'public') {
-                if ('result' in response)
-                    if (response['result'] === 'success')
-                        return response;
-            } else if (api === 'v3public')
-                if ('resultCode' in response)
-                    if (response['resultCode'] === 'OK')
-                        return response;
+    handleErrors (httpCode, reason, url, method, headers, body, response) {
+        if (response === undefined || response === '') {
+            return;
         }
-        throw new ExchangeError (this.id + ' ' + this.json (response));
+        const result = this.safeString (response, 'result');
+        if ((result !== undefined) && (result !== 'success')) {
+            throw new ExchangeError (this.id + ' ' + body);
+        } else {
+            const resultCode = this.safeString (response, 'resultCode');
+            if ((resultCode !== undefined) && (resultCode !== 'OK')) {
+                throw new ExchangeError (this.id + ' ' + body);
+            }
+        }
     }
 };
