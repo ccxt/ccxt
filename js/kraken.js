@@ -214,6 +214,21 @@ module.exports = class kraken extends Exchange {
                 'EGeneral:Temporary lockout': DDoSProtection,
                 'EGeneral:Permission denied': PermissionDenied,
             },
+            'currencies': {
+                'EUR': {
+                    'active': true,
+                    'funding': {
+                        'withdraw': {
+                            'active': true,
+                            'fee': 0.09,
+                        },
+                        'deposit': {
+                            'active': true,
+                            'fee': 0,
+                        },
+                    },
+                },
+            },
         });
     }
 
@@ -357,16 +372,29 @@ module.exports = class kraken extends Exchange {
             let id = ids[i];
             let currency = currencies[id];
             // todo: will need to rethink the fees
+            // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             let code = this.commonCurrencyCode (currency['altname']);
             let precision = currency['decimals'];
-            result[code] = {
+            let disabledFiatCurrencies = ['CAD', 'USD', 'JPY', 'GBP'];
+            // assumes all currencies are active except those listed above
+            let funding = {
+                'withdraw': {
+                    'active': disabledFiatCurrencies.indexOf (code) < 0,
+                    'fee': undefined,
+                },
+                'deposit': {
+                    'active': disabledFiatCurrencies.indexOf (code) < 0,
+                    'fee': undefined,
+                },
+            };
+            let item = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': code,
-                'active': true,
+                'active': funding['withdraw']['active'] && funding['deposit']['active'],
                 'fee': undefined,
                 'precision': precision,
                 'limits': {
@@ -387,7 +415,9 @@ module.exports = class kraken extends Exchange {
                         'max': Math.pow (10, precision),
                     },
                 },
+                'funding': funding,
             };
+            result[code] = this.deepExtend (item, this.currencies[code] || {});
         }
         return result;
     }
