@@ -442,6 +442,8 @@ module.exports = class stronghold extends Exchange {
             'updated': undefined,
             'address': undefined,
             'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
 
@@ -505,10 +507,17 @@ module.exports = class stronghold extends Exchange {
         const id = this.safeString (order, 'id');
         const datetime = this.safeString (order, 'placedAt');
         const amount = this.safeFloat (order, 'size');
+        const price = this.safeFloat (order, 'price');
         const filled = this.safeFloat (order, 'sizeFilled');
+        let cost = undefined;
         let remaining = undefined;
-        if (amount !== undefined && filled !== undefined) {
-            remaining = amount - filled;
+        if (amount !== undefined) {
+            if (filled !== undefined) {
+                remaining = amount - filled;
+            }
+            if (price !== undefined) {
+                cost = amount * price;
+            }
         }
         return {
             'id': id,
@@ -520,7 +529,8 @@ module.exports = class stronghold extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'price': this.safeFloat (order, 'price'),
+            'price': price,
+            'cost': cost,
             'trades': [],
             'lastTradeTimestamp': undefined,
             'status': undefined,
