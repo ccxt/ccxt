@@ -400,15 +400,16 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        let side = undefined;
+        let orderType = this.safeString (trade, 'OrderType').toLowerCase();
+        if (orderType.includes('sell')) {
+          side = 'sell';
+        } else {
+          side = 'buy';
+        }
         if ('Id' in trade) {
             // then public market trade
             let timestamp = this.parse8601 (trade['TimeStamp'] + '+00:00');
-            let side = undefined;
-            if (trade['OrderType'] === 'BUY') {
-                side = 'buy';
-            } else if (trade['OrderType'] === 'SELL') {
-                side = 'sell';
-            }
             let id = this.safeString2 (trade, 'Id', 'ID');
             let symbol = undefined;
             if (market !== undefined)
@@ -437,7 +438,7 @@ module.exports = class bittrex extends Exchange {
         } else {
             // private market, ie, MY trades
             let timestamp = this.parse8601 (trade['TimeStamp'] + '+00:00');
-            let marketInternal = this.marketsById[this.safeString (trade, 'Exchange')].symbol;
+            let marketInternal = this.marketsById[this.safeString (trade, 'Exchange')];
             let amount = this.safeFloat (trade, 'Quantity');
             let remaining = this.safeFloat (trade, 'QuantityRemaining');
             let filled = undefined;
@@ -445,13 +446,14 @@ module.exports = class bittrex extends Exchange {
                 filled = amount - remaining;
             }
             return {
-                'id': this.safeString (trade, 'OrderUuid'),
+                'id': undefined,
                 'info': trade,
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
-                'symbol': marketInternal['symbol'],
+                'symbol': marketInternal.symbol,
+                'order': this.safeString (trade, 'OrderUuid'),
                 'type': 'limit',
-                'side': this.safeString (trade, 'OrderType'),
+                'side': side,
                 'price': this.safeString (trade, 'PricePerUnit'),
                 'amount': filled,
                 'cost': this.safeString (trade, 'Price'),
