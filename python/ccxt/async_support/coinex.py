@@ -730,42 +730,34 @@ class coinex (Exchange):
         if limit is not None:
             request['Limit'] = limit
         response = await self.privateGetBalanceCoinDeposit(self.extend(request, params))
-        #
         #     {
         #         "code": 0,
-        #         "data": {
-        #             "count": 2,
-        #             "curr_page": 1,
-        #             "data": [
-        #                 {
-        #                 "actual_amount": "120.00000000",
-        #                 "actual_amount_display": "120",
-        #                 "add_explorer": "XXX",
-        #                 "amount": "120.00000000",
-        #                 "amount_display": "120",
-        #                 "coin_address": "XXXXXXXX",
-        #                 "coin_address_display": "XXXXXXXX",
-        #                 "coin_deposit_id": 1866,
-        #                 "coin_type": "USDT",
-        #                 "confirmations": 0,
-        #                 "create_time": 1539595701,
-        #                 "explorer": "",
+        #         "data": [
+        #             {
+        #                 "actual_amount": "4.65397682",
+        #                 "actual_amount_display": "4.65397682",
+        #                 "add_explorer": "https://etherscan.io/address/0x361XXXXXX",
+        #                 "amount": "4.65397682",
+        #                 "amount_display": "4.65397682",
+        #                 "coin_address": "0x36dabcdXXXXXX",
+        #                 "coin_address_display": "0x361X*****XXXXX",
+        #                 "coin_deposit_id": 966191,
+        #                 "coin_type": "ETH",
+        #                 "confirmations": 30,
+        #                 "create_time": 1531661445,
+        #                 "explorer": "https://etherscan.io/tx/0x361XXXXXX",
         #                 "remark": "",
         #                 "status": "finish",
         #                 "status_display": "finish",
-        #                 "transfer_method": "local",
-        #                 "tx_id": "",
-        #                 "tx_id_display": "XXXXXXXXXX"
-        #                 }
-        #             ],
-        #             "has_next": False,
-        #             "total": 2,
-        #             "total_page": 1
-        #             },
+        #                 "transfer_method": "onchain",
+        #                 "tx_id": "0x361XXXXXX",
+        #                 "tx_id_display": "0x361XXXXXX"
+        #             }
+        #         ],
         #         "message": "Ok"
         #     }
         #
-        return self.parseTransactions(response['data']['data'], currency, since, limit)
+        return self.parseTransactions(response['data'], currency, since, limit)
 
     def nonce(self):
         return self.milliseconds()
