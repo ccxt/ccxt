@@ -199,6 +199,7 @@ module.exports = class kraken extends Exchange {
                 'cacheDepositMethodsOnFetchDepositAddress': true, // will issue up to two calls in fetchDepositAddress
                 'depositMethods': {},
                 'delistedMarketsById': {},
+                'disabledFiatCurrencies': ['CAD', 'USD', 'JPY', 'GBP'],
             },
             'exceptions': {
                 'EAPI:Invalid key': AuthenticationError,
@@ -377,7 +378,7 @@ module.exports = class kraken extends Exchange {
             // differentiated fees for each particular method
             let code = this.commonCurrencyCode (currency['altname']);
             let precision = currency['decimals'];
-            let disabledFiatCurrencies = ['CAD', 'USD', 'JPY', 'GBP'];
+            let disabledFiatCurrencies = this.options.disabledFiatCurrencies;
             // assumes all currencies are active except those listed above
             let funding = {
                 'withdraw': {
