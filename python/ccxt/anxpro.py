@@ -141,7 +141,7 @@ class anxpro (Exchange):
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
-        raise ExchangeError(self.id + ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled')
+        raise ExchangeError(self.id + ' switched off the trades endpoint, see their docs at https://docs.anxv2.apiary.io')
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         market = self.market(symbol)

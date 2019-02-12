@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.226'
+const version = '1.18.227'
 
 Exchange.ccxtVersion = version
 
@@ -1190,7 +1190,7 @@ module.exports = class anxpro extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        throw new ExchangeError (this.id + ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled');
+        throw new ExchangeError (this.id + ' switched off the trades endpoint, see their docs at https://docs.anxv2.apiary.io');
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -4163,7 +4163,7 @@ module.exports = class bcex extends Exchange {
                 'api': 'https://www.bcex.top',
                 'www': 'https://www.bcex.top',
                 'doc': 'https://www.bcex.top/api_market/market/',
-                'fees': 'http://bcex.udesk.cn/hc/articles/57085',
+                'fees': 'https://bcex.udesk.cn/hc/articles/57085',
                 'referral': 'https://www.bcex.top/user/reg/type/2/pid/758978',
             },
             'api': {
@@ -7643,7 +7643,6 @@ module.exports = class bit2c extends Exchange {
                 'LTC/NIS': { 'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS' },
                 'ETC/NIS': { 'id': 'EtcNis', 'symbol': 'ETC/NIS', 'base': 'ETC', 'quote': 'NIS' },
                 'BTG/NIS': { 'id': 'BtgNis', 'symbol': 'BTG/NIS', 'base': 'BTG', 'quote': 'NIS' },
-                'LTC/BTC': { 'id': 'LtcBtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
                 'BSV/NIS': { 'id': 'BchSvNis', 'symbol': 'BSV/NIS', 'base': 'BSV', 'quote': 'NIS' },
             },
             'fees': {
@@ -7752,6 +7751,10 @@ module.exports = class bit2c extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostOrderCancelOrder ({ 'id': id });
+    }
+
+    nonce () {
+        return this.milliseconds ();
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -7879,7 +7882,7 @@ module.exports = class bit2c extends Exchange {
             feeCost = this.safeFloat (trade, 'feeAmount');
         } else {
             timestamp = this.safeInteger (trade, 'date') * 1000;
-            id = this.safeInteger (trade, 'tid');
+            id = this.safeString (trade, 'tid');
             price = this.safeFloat (trade, 'price');
             amount = this.safeFloat (trade, 'amount');
             side = this.safeValue (trade, 'isBid');
@@ -64544,7 +64547,7 @@ module.exports = class virwox extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766894-6da9d360-5eea-11e7-90aa-41f2711b7405.jpg',
                 'api': {
-                    'public': 'http://api.virwox.com/api/json.php',
+                    'public': 'https://api.virwox.com/api/json.php',
                     'private': 'https://www.virwox.com/api/trading.php',
                 },
                 'www': 'https://www.virwox.com',
