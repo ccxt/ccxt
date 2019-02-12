@@ -68,6 +68,8 @@ module.exports = class anxpro extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'tierBased': false,
+                    'percentage': true,
                     'maker': 0.3 / 100,
                     'taker': 0.6 / 100,
                 },
@@ -151,25 +153,25 @@ module.exports = class anxpro extends Exchange {
                 'type': type,
                 'active': active,
                 'precision': precision,
+                'fee': fee,
                 'limits': {
                     'amount': {
-                        'min': undefined, // todo fill these properly
-                        'max': undefined,
+                        'min': this.safeFloat (currency, 'minOrderSize'),
+                        'max': this.safeFloat (currency, 'maxOrderSize'),
                     },
                     'price': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.safeFloat (currency, 'minOrderValue'),
+                        'max': this.safeFloat (currency, 'maxOrderValue'),
                     },
                     'withdraw': {
                         'min': undefined,
                         'max': undefined,
                     },
                 },
-                'fee': fee,
             };
         }
         return result;
@@ -254,7 +256,9 @@ module.exports = class anxpro extends Exchange {
         //     "resultCode": "OK"
         //   }
         //
-        const currencyPairs = response['currencyStatic']['currencyPairs'];
+        const currencyStatic = this.safeValue (response, 'currencyStatic', {});
+        const currencies = this.safeValue (currencyStatic, 'currencies', {});
+        const currencyPairs = this.safeValue (currencyStatic, 'currencyPairs', {});
         const result = [];
         const ids = Object.keys (currencyPairs);
         for (let i = 0; i < ids.length; i++) {
@@ -286,8 +290,11 @@ module.exports = class anxpro extends Exchange {
             const base = this.commonCurrencyCode (baseId);
             const quote = this.commonCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const baseCurrency = this.safeValue (currencies, baseId, {});
+            const quoteCurrency = this.safeValue (currencies, quoteId, {});
             const precision = {
                 'price': this.safeInteger (market, 'priceDecimals'),
+                'amount': this.safeInteger (baseCurrency, 'decimals'),
             };
             const engineSettings = this.safeValue (market, 'engineSettings');
             const displayEnabled = this.safeValue (engineSettings, 'displayEnabled');
@@ -308,12 +315,12 @@ module.exports = class anxpro extends Exchange {
                         'max': this.safeFloat (market, 'maxOrderRate'),
                     },
                     'amount': {
-                        'min': undefined, // todo fill these properly
-                        'max': undefined,
+                        'min': this.safeFloat (baseCurrency, 'minOrderSize'),
+                        'max': this.safeFloat (baseCurrency, 'maxOrderSize'),
                     },
                     'cost': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.safeFloat (quoteCurrency, 'minOrderValue'),
+                        'max': this.safeFloat (quoteCurrency, 'maxOrderValue'),
                     },
                 },
                 'info': market,
