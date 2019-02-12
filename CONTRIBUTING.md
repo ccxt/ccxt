@@ -23,6 +23,7 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
   - **surround code and output with triple backticks: &#096;&#096;&#096;GOOD&#096;&#096;&#096;**
   - don't confuse the backtick symbol (&#096;) with the quote symbol (\'): '''BAD'''
   - don't confuse a single backtick with triple backticks: &#096;BAD&#096;
+  - **DON'T POST SCREENSHOTS OF CODE OR ERRORS, POST THE OUTPUT AND CODE IN PLAIN TEXT!**
   - paste a complete code snippet you're having difficulties with, avoid one-liners
   - paste the **full verbose output** of the failing method without your keys
   - the verbose output should include the request and response from the exchange (not just an error callstack)
