@@ -121,6 +121,7 @@ class Exchange {
         'btcturk',
         'buda',
         'bxinth',
+        'bw',
         'ccex',
         'cex',
         'chbtc',
