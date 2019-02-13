@@ -322,7 +322,7 @@ module.exports = class bitmex extends Exchange {
         const response = await this.publicGetInstrumentActiveAndIndices (this.extend (request, params));
         return this.parseTicker (response[0]);
     }
-    
+
     parseTicker (ticker, market = undefined) {
         //
         //     {                         symbol: "ETHH19",
