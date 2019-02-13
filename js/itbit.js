@@ -77,6 +77,7 @@ module.exports = class itbit extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let orderbook = await this.publicGetMarketsSymbolOrderBook (this.extend ({
             'symbol': this.marketId (symbol),
         }, params));
@@ -84,6 +85,7 @@ module.exports = class itbit extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
         let ticker = await this.publicGetMarketsSymbolTicker (this.extend ({
             'symbol': this.marketId (symbol),
         }, params));
@@ -122,6 +124,35 @@ module.exports = class itbit extends Exchange {
     }
 
     parseTrade (trade, market) {
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         timestamp: "2015-05-22T17:45:34.7570000Z",
+        //         matchNumber: "5CR1JEUBBM8J",
+        //         price: "351.45000000",
+        //         amount: "0.00010000"
+        //     }
+        //
+        // fetchMyTrades (private)
+        //
+        //     {
+        //         "orderId": "248ffda4-83a0-4033-a5bb-8929d523f59f",
+        //         "timestamp": "2015-05-11T14:48:01.9870000Z",
+        //         "instrument": "XBTUSD",
+        //         "direction": "buy",                      // buy or sell
+        //         "currency1": "XBT",                      // base currency
+        //         "currency1Amount": "0.00010000",         // order amount in base currency
+        //         "currency2": "USD",                      // quote currency
+        //         "currency2Amount": "0.0250530000000000", // order cost in quote currency
+        //         "rate": "250.53000000",
+        //         "commissionPaid": "0.00000000",   // net trade fee paid after using any available rebate balance
+        //         "commissionCurrency": "USD",
+        //         "rebatesApplied": "-0.000125265", // negative values represent amount of rebate balance used for trades removing liquidity from order book; positive values represent amount of rebate balance earned from trades adding liquidity to order book
+        //         "rebateCurrency": "USD",
+        //         "executionId": "23132"
+        //     }
+        //
         let timestamp = this.parse8601 (trade['timestamp']);
         if ('matchNumber' in trade) {
             // then this is a public request response, ie, market data
@@ -163,6 +194,7 @@ module.exports = class itbit extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         const walletId = this.safeString (params, 'walletId');
         if (walletId === undefined) {
             throw new ExchangeError (this.id + ' fetchMyTrades requires a walletId parameter');
@@ -178,6 +210,32 @@ module.exports = class itbit extends Exchange {
             request['perPage'] = limit; // default 50, max 50
         }
         const response = await this.privateGetWalletsWalletIdTrades (this.extend (request, params));
+        //
+        //     {
+        //         "totalNumberOfRecords": "2",
+        //         "currentPageNumber": "1",
+        //         "latestExecutionId": "332", // most recent execution at time of response
+        //         "recordsPerPage": "50",
+        //         "tradingHistory": [
+        //             {
+        //                 "orderId": "248ffda4-83a0-4033-a5bb-8929d523f59f",
+        //                 "timestamp": "2015-05-11T14:48:01.9870000Z",
+        //                 "instrument": "XBTUSD",
+        //                 "direction": "buy",                      // buy or sell
+        //                 "currency1": "XBT",                      // base currency
+        //                 "currency1Amount": "0.00010000",         // order amount in base currency
+        //                 "currency2": "USD",                      // quote currency
+        //                 "currency2Amount": "0.0250530000000000", // order cost in quote currency
+        //                 "rate": "250.53000000",
+        //                 "commissionPaid": "0.00000000",   // net trade fee paid after using any available rebate balance
+        //                 "commissionCurrency": "USD",
+        //                 "rebatesApplied": "-0.000125265", // negative values represent amount of rebate balance used for trades removing liquidity from order book; positive values represent amount of rebate balance earned from trades adding liquidity to order book
+        //                 "rebateCurrency": "USD",
+        //                 "executionId": "23132"
+        //             },
+        //         ],
+        //     }
+        //
         const trades = this.safeValue (response, 'tradingHistory', []);
         let market = undefined;
         if (symbol !== undefined) {
@@ -187,14 +245,31 @@ module.exports = class itbit extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        let market = this.market (symbol);
-        let response = await this.publicGetMarketsSymbolTrades (this.extend ({
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
             'symbol': market['id'],
-        }, params));
-        return this.parseTrades (response['recentTrades'], market, since, limit);
+        };
+        const response = await this.publicGetMarketsSymbolTrades (this.extend (request, params));
+        //
+        //     {
+        //         count: 3,
+        //         recentTrades: [
+        //             {
+        //                 timestamp: "2015-05-22T17:45:34.7570000Z",
+        //                 matchNumber: "5CR1JEUBBM8J",
+        //                 price: "351.45000000",
+        //                 amount: "0.00010000"
+        //             },
+        //         ]
+        //     }
+        //
+        const trades = this.safeValue (response, 'recentTrades', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchBalance (params = {}) {
+        await this.loadMarkets ();
         const response = await this.fetchWallets (params);
         const balances = response[0]['balances'];
         const result = { 'info': response };
