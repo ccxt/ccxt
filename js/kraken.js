@@ -99,7 +99,7 @@ module.exports = class kraken extends Exchange {
                     'percentage': false,
                     'withdraw': {
                         'BTC': 0.001,
-                        'ETH': 0.009,
+                        'ETH': 0.005,
                         'XRP': 0.02,
                         'XLM': 0.00002,
                         'LTC': 0.02,
@@ -116,7 +116,8 @@ module.exports = class kraken extends Exchange {
                         'BCH': 0.001,
                         'XTZ': 0.05,
                         'USD': 5, // if domestic wire
-                        'EUR': 5, // if domestic wire
+                        // 'EUR': 5, // if domestic wire
+                        'EUR': 0.009,
                         'CAD': 10, // CAD EFT Withdrawal
                         'JPY': 300, // if domestic wire
                     },
