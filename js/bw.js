@@ -216,7 +216,7 @@ module.exports = class bw extends Exchange {
         };
     }
 
-    parseSide (side) {
+    parseTradeSide (side) {
         if (side === 'bid') {
             return 'buy';
         } else if (side === 'ask') {
@@ -242,7 +242,7 @@ module.exports = class bw extends Exchange {
                 cost = amount * price;
             }
         }
-        let side = this.parseSide (trade[4]);
+        let side = this.parseTradeSide (trade[4]);
         return {
             'info': trade,
             'id': id,
