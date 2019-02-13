@@ -199,7 +199,8 @@ module.exports = class kraken extends Exchange {
                 'cacheDepositMethodsOnFetchDepositAddress': true, // will issue up to two calls in fetchDepositAddress
                 'depositMethods': {},
                 'delistedMarketsById': {},
-                'disabledFiatCurrencies': ['CAD', 'USD', 'JPY', 'GBP'],
+                // cannot withdraw/deposit these
+                'inactiveCurrencies': [ 'CAD', 'USD', 'JPY', 'GBP' ],
             },
             'exceptions': {
                 'EAPI:Invalid key': AuthenticationError,
@@ -214,21 +215,6 @@ module.exports = class kraken extends Exchange {
                 'EGeneral:Internal error': ExchangeNotAvailable,
                 'EGeneral:Temporary lockout': DDoSProtection,
                 'EGeneral:Permission denied': PermissionDenied,
-            },
-            'currencies': {
-                'EUR': {
-                    'active': true,
-                    'funding': {
-                        'withdraw': {
-                            'active': true,
-                            'fee': 0.09,
-                        },
-                        'deposit': {
-                            'active': true,
-                            'fee': 0,
-                        },
-                    },
-                },
             },
         });
     }
@@ -365,37 +351,27 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        let response = await this.publicGetAssets (params);
-        let currencies = response['result'];
-        let ids = Object.keys (currencies);
-        let result = {};
+        const response = await this.publicGetAssets (params);
+        const currencies = this.safeValue (response, 'result');
+        const ids = Object.keys (currencies);
+        const result = {};
         for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let currency = currencies[id];
+            const id = ids[i];
+            const currency = currencies[id];
             // todo: will need to rethink the fees
             // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            let code = this.commonCurrencyCode (currency['altname']);
-            let precision = currency['decimals'];
-            let disabledFiatCurrencies = this.options.disabledFiatCurrencies;
+            const code = this.commonCurrencyCode (this.safeString (currency, 'altname'));
+            const precision = this.safeInteger (currency, 'decimals');
             // assumes all currencies are active except those listed above
-            let funding = {
-                'withdraw': {
-                    'active': disabledFiatCurrencies.indexOf (code) < 0,
-                    'fee': undefined,
-                },
-                'deposit': {
-                    'active': disabledFiatCurrencies.indexOf (code) < 0,
-                    'fee': undefined,
-                },
-            };
-            let item = {
+            const active = this.inArray (code, this.options['inactiveCurrencies']);
+            result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': code,
-                'active': funding['withdraw']['active'] && funding['deposit']['active'],
+                'active': active,
                 'fee': undefined,
                 'precision': precision,
                 'limits': {
@@ -416,9 +392,7 @@ module.exports = class kraken extends Exchange {
                         'max': Math.pow (10, precision),
                     },
                 },
-                'funding': funding,
             };
-            result[code] = this.deepExtend (item, this.currencies[code] || {});
         }
         return result;
     }
