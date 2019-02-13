@@ -234,8 +234,8 @@ module.exports = class bw extends Exchange {
         let timestamp = trade[2] * 1000;
         let id = undefined;
         let orderId = undefined;
-        let amount = trade[6];
-        let price = trade[5];
+        let amount = parseFloat (trade[6]);
+        let price = parseFloat (trade[5]);
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {
