@@ -72,10 +72,6 @@ module.exports = class itbit extends Exchange {
             },
             'commonCurrencies': {
                 'XBT': 'BTC',
-                'USD': 'USD',
-                'SGD': 'SGD',
-                'EUR': 'EUR',
-                'ETH': 'ETH',
             },
         });
     }
