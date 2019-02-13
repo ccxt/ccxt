@@ -321,7 +321,7 @@ module.exports = class okcoinusd extends Exchange {
         // the following is the worst case
         let result = [];
         let spotResponse = await this.webGetSpotMarketsProducts ();
-        let spotMarkets = spotResponse.data;
+        let spotMarkets = spotResponse['data'];
         for (let i = 0; i < spotMarkets.length; i++) {
             let id = spotMarkets[i]['symbol'];
             let precision = {
@@ -330,7 +330,9 @@ module.exports = class okcoinusd extends Exchange {
             };
             let minAmount = spotMarkets[i]['minTradeSize'];
             let minPrice = Math.pow (10, -precision['price']);
-            let [baseId, quoteId] = id.split ('_');
+            let pairPairts = id.split ('_');
+            let baseId = pairPairts[0];
+            let quoteId = pairPairts[1];
             let baseIdUppercase = baseId.toUpperCase ();
             let quoteIdUppercase = quoteId.toUpperCase ();
             let base = this.commonCurrencyCode (baseIdUppercase);
@@ -369,7 +371,7 @@ module.exports = class okcoinusd extends Exchange {
         }
         if (this.has['futures']) {
             let futuresResponse = await this.webPostFuturesPcMarketFuturesCoin ();
-            let futuresMarkets = futuresResponse.data;
+            let futuresMarkets = futuresResponse['data'];
             for (let i = 0; i < futuresMarkets.length; i++) {
                 let precision = {
                     'amount': futuresMarkets[i]['maxSizeDigit'],
@@ -377,8 +379,8 @@ module.exports = class okcoinusd extends Exchange {
                 };
                 let minAmount = futuresMarkets[i]['minTradeSize'];
                 let minPrice = Math.pow (10, -precision['price']);
-                let baseId = futuresMarkets[i].symbolDesc;
-                let quoteId = futuresMarkets[i].quote.toUpperCase ();
+                let baseId = futuresMarkets[i]['symbolDesc'];
+                let quoteId = futuresMarkets[i]['quote'].toUpperCase ();
                 let base = this.commonCurrencyCode (baseId);
                 let quote = this.commonCurrencyCode (quoteId);
                 for (let j = 0; j < this.options['contractTypes'].length; j++) {
