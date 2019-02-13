@@ -20,7 +20,7 @@ module.exports = class bw extends Exchange {
                 'createOrder': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'fetchTicker': false,
+                'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchMyTrades': false,
                 'fetchTrades': true,
@@ -216,13 +216,23 @@ module.exports = class bw extends Exchange {
         };
     }
 
+    parseSide (side) {
+        if (side === 'bid') {
+            return 'buy';
+        } else if (side === 'ask') {
+            return 'sell';
+        } else {
+            return undefined;
+        }
+    }
+
     parseTrade (trade, market = undefined) {
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let timestamp = trade[2];
-        let id = timestamp;
+        let timestamp = trade[2] * 1000;
+        let id = undefined;
         let orderId = undefined;
         let amount = trade[6];
         let price = trade[5];
@@ -232,11 +242,11 @@ module.exports = class bw extends Exchange {
                 cost = amount * price;
             }
         }
-        let side = trade[4];
+        let side = this.parseSide (trade[4]);
         return {
             'info': trade,
             'id': id,
-            'timestamp': timestamp,
+            'timestamp': parseInt (timestamp),
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': undefined,
