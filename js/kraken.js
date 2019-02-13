@@ -352,6 +352,16 @@ module.exports = class kraken extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetAssets (params);
+        //
+        //     {
+        //         "error": [],
+        //         "result": {
+        //             "ADA": { "aclass": "currency", "altname": "ADA", "decimals": 8, "display_decimals": 6 },
+        //             "BCH": { "aclass": "currency", "altname": "BCH", "decimals": 10, "display_decimals": 5 },
+        //             ...
+        //         },
+        //     }
+        //
         const currencies = this.safeValue (response, 'result');
         const ids = Object.keys (currencies);
         const result = {};
