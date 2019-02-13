@@ -70,7 +70,7 @@ module.exports = class itbit extends Exchange {
                     'taker': 0.2 / 100,
                 },
             },
-            'commonCurrencies': { // gets extended/overwritten in subclasses
+            'commonCurrencies': {
                 'XBT': 'BTC',
                 'USD': 'USD',
                 'SGD': 'SGD',
