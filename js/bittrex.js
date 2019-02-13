@@ -400,12 +400,14 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let side = undefined;
-        let orderType = this.safeString (trade, 'OrderType').toLowerCase();
-        if (orderType.includes('sell')) {
-          side = 'sell';
-        } else {
-          side = 'buy';
+        let side = this.safeString2 (trade, 'OrderType', 'Type');
+        let isBuy = (side === 'LIMIT_BUY') || (side === 'BUY');
+        let isSell = (side === 'LIMIT_SELL') || (side === 'SELL');
+        if (isBuy) {
+            side = 'buy';
+        }
+        if (isSell) {
+            side = 'sell';
         }
         if ('Id' in trade) {
             // then public market trade
@@ -736,9 +738,7 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let side = this.safeString (order, 'OrderType');
-        if (side === undefined)
-            side = this.safeString (order, 'Type');
+        let side = this.safeString2 (order, 'OrderType', 'Type');
         let isBuyOrder = (side === 'LIMIT_BUY') || (side === 'BUY');
         let isSellOrder = (side === 'LIMIT_SELL') || (side === 'SELL');
         if (isBuyOrder) {
