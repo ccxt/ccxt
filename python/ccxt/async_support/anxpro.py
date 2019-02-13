@@ -74,8 +74,8 @@ class anxpro (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.3 / 100,
-                    'taker': 0.6 / 100,
+                    'maker': 0.1 / 100,
+                    'taker': 0.2 / 100,
                 },
             },
         })
