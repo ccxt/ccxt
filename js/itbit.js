@@ -187,19 +187,20 @@ module.exports = class itbit extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        let response = await this.fetchWallets ();
-        let balances = response[0]['balances'];
-        let result = { 'info': response };
-        for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];
-            let currency = this.commonCurrencies[balance['currency']];
+        const response = await this.fetchWallets (params);
+        const balances = response[0]['balances'];
+        const result = { 'info': response };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'currency')
+            const code = this.commonCurrencyCode (currencyId);
             let account = {
-                'free': parseFloat (balance['availableBalance']),
+                'free': this.safeFloat (balance, 'availableBalance'),
                 'used': 0.0,
-                'total': parseFloat (balance['totalBalance']),
+                'total': this.safeFloat (balance, 'totalBalance'),
             };
             account['used'] = account['total'] - account['free'];
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
