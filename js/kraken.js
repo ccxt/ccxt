@@ -365,13 +365,13 @@ module.exports = class kraken extends Exchange {
             const code = this.commonCurrencyCode (this.safeString (currency, 'altname'));
             const precision = this.safeInteger (currency, 'decimals');
             // assumes all currencies are active except those listed above
-            const active = this.inArray (code, this.options['inactiveCurrencies']);
+            const inactive = this.inArray (code, this.options['inactiveCurrencies']);
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': code,
-                'active': active,
+                'active': !inactive,
                 'fee': undefined,
                 'precision': precision,
                 'limits': {
