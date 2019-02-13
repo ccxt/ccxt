@@ -324,17 +324,38 @@ class bittrex extends Exchange {
 
     public function fetch_currencies ($params = array ()) {
         $response = $this->publicGetCurrencies ($params);
-        $currencies = $response['result'];
+        //
+        //     {
+        //         "success" => true,
+        //         "message" => "",
+        //         "$result" => array (
+        //             array (
+        //                 "Currency" => "BTC",
+        //                 "CurrencyLong":"Bitcoin",
+        //                 "MinConfirmation":2,
+        //                 "TxFee":0.00050000,
+        //                 "IsActive":true,
+        //                 "IsRestricted":false,
+        //                 "CoinType":"BITCOIN",
+        //                 "BaseAddress":"1N52wHoVR79PMDishab2XmRHsbekCdGquK",
+        //                 "Notice":null
+        //             ),
+        //             ...,
+        //         )
+        //     }
+        //
+        $currencies = $this->safe_value($response, 'result', array ());
         $result = array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
-            $id = $currency['Currency'];
+            $id = $this->safe_string($currency, 'Currency');
             // todo => will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $code = $this->common_currency_code($id);
             $precision = 8; // default $precision, todo => fix "magic constants"
             $address = $this->safe_value($currency, 'BaseAddress');
+            $fee = $this->safe_float($currency, 'TxFee'); // todo => redesign
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
@@ -343,7 +364,7 @@ class bittrex extends Exchange {
                 'type' => $currency['CoinType'],
                 'name' => $currency['CurrencyLong'],
                 'active' => $currency['IsActive'],
-                'fee' => $this->safe_float($currency, 'TxFee'), // todo => redesign
+                'fee' => $fee,
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
@@ -359,7 +380,7 @@ class bittrex extends Exchange {
                         'max' => null,
                     ),
                     'withdraw' => array (
-                        'min' => $currency['TxFee'],
+                        'min' => $fee,
                         'max' => pow (10, $precision),
                     ),
                 ),

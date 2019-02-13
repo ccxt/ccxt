@@ -328,17 +328,38 @@ class bittrex (Exchange):
 
     def fetch_currencies(self, params={}):
         response = self.publicGetCurrencies(params)
-        currencies = response['result']
+        #
+        #     {
+        #         "success": True,
+        #         "message": "",
+        #         "result": [
+        #             {
+        #                 "Currency": "BTC",
+        #                 "CurrencyLong":"Bitcoin",
+        #                 "MinConfirmation":2,
+        #                 "TxFee":0.00050000,
+        #                 "IsActive":true,
+        #                 "IsRestricted":false,
+        #                 "CoinType":"BITCOIN",
+        #                 "BaseAddress":"1N52wHoVR79PMDishab2XmRHsbekCdGquK",
+        #                 "Notice":null
+        #             },
+        #             ...,
+        #         ]
+        #     }
+        #
+        currencies = self.safe_value(response, 'result', [])
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
-            id = currency['Currency']
+            id = self.safe_string(currency, 'Currency')
             # todo: will need to rethink the fees
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
             code = self.common_currency_code(id)
             precision = 8  # default precision, todo: fix "magic constants"
             address = self.safe_value(currency, 'BaseAddress')
+            fee = self.safe_float(currency, 'TxFee')  # todo: redesign
             result[code] = {
                 'id': id,
                 'code': code,
@@ -347,7 +368,7 @@ class bittrex (Exchange):
                 'type': currency['CoinType'],
                 'name': currency['CurrencyLong'],
                 'active': currency['IsActive'],
-                'fee': self.safe_float(currency, 'TxFee'),  # todo: redesign
+                'fee': fee,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -363,7 +384,7 @@ class bittrex (Exchange):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': currency['TxFee'],
+                        'min': fee,
                         'max': math.pow(10, precision),
                     },
                 },
