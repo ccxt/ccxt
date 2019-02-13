@@ -123,7 +123,7 @@ module.exports = class itbit extends Exchange {
         };
     }
 
-    parseTrade (trade, market) {
+    parseTrade (trade, market = undefined) {
         //
         // fetchTrades (public)
         //
@@ -153,44 +153,60 @@ module.exports = class itbit extends Exchange {
         //         "executionId": "23132"
         //     }
         //
-        let timestamp = this.parse8601 (trade['timestamp']);
-        if ('matchNumber' in trade) {
-            // then this is a public request response, ie, market data
-            let id = trade['matchNumber'].toString ();
-            return {
-                'info': trade,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'symbol': market['symbol'],
-                'id': id,
-                'order': id,
-                'type': undefined,
-                'side': undefined,
-                'price': this.safeFloat (trade, 'price'),
-                'amount': this.safeFloat (trade, 'amount'),
+        const id = this.safeString2 (trade, 'executionId');
+        const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
+        const side = this.safeString (trade, 'direction');
+        const orderId = this.safeString (trade, 'orderId');
+        const feeCost = this.safeFloat (trade, 'commissionPaid');
+        const feeCurrencyId = this.safeString (trade, 'commisionCurrency');
+        const feeCurrency = this.commonCurrencyCode (feeCurrencyId);
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
             };
-        } else {
-            // this is a private request response, ie, MY trades
-            // note on fee from itbit:
-            // + **commissionPaid** `string` - *net trade fee paid after using any available rebate balance*
-            let fee = {
-                'cost': this.safeFloat (trade, 'commissionPaid'),
-                'currency': this.safeString (trade, 'commissionCurrency'),
-            };
-            return {
-                'info': trade,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'symbol': this.marketsById[this.safeString (trade, 'instrument')].symbol,
-                'id': this.safeString (trade, 'executionId'),
-                'order': this.safeString (trade, 'orderId'),
-                'type': undefined,
-                'side': this.safeString (trade, 'direction'),
-                'price': this.safeFloat (trade, 'rate'),
-                'amount': this.safeFloat (trade, 'currency1Amount'),
-                'fee': fee,
-            };
+        }   
+        const price = this.safeFloat2 (trade, 'price', 'rate');
+        const amount = this.safeFloat2 (trade, 'currency1Amount', 'amount');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
         }
+        let symbol = undefined;
+        const marketId = this.safeString (trade, 'instrument');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const baseId = this.safeString (trade, 'currency1');
+                const quoteId = this.safeString (trade, 'currency2');
+                const base = this.commonCurrencyCode (baseId);
+                const quote = this.commonCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if (symbol === undefined) {
+            if (market !== undefined) {
+                symbol = market['symbol'];
+            }
+        }        
+        return {
+            'info': trade,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'order': orderId,
+            'type': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        };
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
