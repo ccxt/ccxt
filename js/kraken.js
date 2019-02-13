@@ -99,7 +99,7 @@ module.exports = class kraken extends Exchange {
                     'percentage': false,
                     'withdraw': {
                         'BTC': 0.001,
-                        'ETH': 0.005,
+                        'ETH': 0.009,
                         'XRP': 0.02,
                         'XLM': 0.00002,
                         'LTC': 0.02,
