@@ -166,7 +166,7 @@ module.exports = class itbit extends Exchange {
                 'cost': feeCost,
                 'currency': feeCurrency,
             };
-        }   
+        }
         const price = this.safeFloat2 (trade, 'price', 'rate');
         const amount = this.safeFloat2 (trade, 'currency1Amount', 'amount');
         let cost = undefined;
@@ -192,7 +192,7 @@ module.exports = class itbit extends Exchange {
             if (market !== undefined) {
                 symbol = market['symbol'];
             }
-        }        
+        }
         return {
             'info': trade,
             'id': id,
