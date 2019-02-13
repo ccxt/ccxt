@@ -233,6 +233,8 @@ class poloniex (Exchange):
         }
         if limit is not None:
             request['end'] = self.sum(request['start'], limit * self.timeframes[timeframe])
+        else:
+            request['end'] = self.sum(self.seconds(), 1)
         response = self.publicGetReturnChartData(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 

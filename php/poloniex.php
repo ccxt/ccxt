@@ -221,8 +221,11 @@ class poloniex extends Exchange {
             'period' => $this->timeframes[$timeframe],
             'start' => intval ($since / 1000),
         );
-        if ($limit !== null)
+        if ($limit !== null) {
             $request['end'] = $this->sum ($request['start'], $limit * $this->timeframes[$timeframe]);
+        } else {
+            $request['end'] = $this->sum ($this->seconds (), 1);
+        }
         $response = $this->publicGetReturnChartData (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }

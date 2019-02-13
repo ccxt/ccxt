@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.235'
+const version = '1.18.236'
 
 Exchange.ccxtVersion = version
 
@@ -57299,8 +57299,11 @@ module.exports = class poloniex extends Exchange {
             'period': this.timeframes[timeframe],
             'start': parseInt (since / 1000),
         };
-        if (limit !== undefined)
+        if (limit !== undefined) {
             request['end'] = this.sum (request['start'], limit * this.timeframes[timeframe]);
+        } else {
+            request['end'] = this.sum (this.seconds (), 1);
+        }
         let response = await this.publicGetReturnChartData (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
