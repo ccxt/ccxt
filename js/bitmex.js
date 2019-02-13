@@ -149,7 +149,7 @@ module.exports = class bitmex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let markets = await this.publicGetInstrumentActiveAndIndices ();
+        let markets = await this.publicGetInstrumentActiveAndIndices (params);
         let result = [];
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
@@ -217,23 +217,25 @@ module.exports = class bitmex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetUserMargin ({ 'currency': 'all' });
-        let result = { 'info': response };
+        const request = { 'currency': 'all' };
+        const response = await this.privateGetUserMargin (this.extend (request, params));
+        const result = { 'info': response };
         for (let b = 0; b < response.length; b++) {
-            let balance = response[b];
-            let currency = balance['currency'].toUpperCase ();
-            currency = this.commonCurrencyCode (currency);
-            let account = {
+            const balance = response[b];
+            const currencyId = this.safeString (balance, 'currency');
+            currencyId = currencyId.toUpperCase ();
+            const code = this.commonCurrencyCode (currencyId);
+            const account = {
                 'free': balance['availableMargin'],
                 'used': 0.0,
                 'total': balance['marginBalance'],
             };
-            if (currency === 'BTC') {
+            if (code === 'BTC') {
                 account['free'] = account['free'] * 0.00000001;
                 account['total'] = account['total'] * 0.00000001;
             }
             account['used'] = account['total'] - account['free'];
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -317,7 +319,7 @@ module.exports = class bitmex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetInstrument (this.extend (request, params));
+        const response = await this.publicGetInstrumentActiveAndIndices (this.extend (request, params));
         return this.parseTicker (response[0]);
     }
     
