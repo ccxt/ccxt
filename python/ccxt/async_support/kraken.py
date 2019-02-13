@@ -222,6 +222,8 @@ class kraken (Exchange):
                 'cacheDepositMethodsOnFetchDepositAddress': True,  # will issue up to two calls in fetchDepositAddress
                 'depositMethods': {},
                 'delistedMarketsById': {},
+                # cannot withdraw/deposit these
+                'inactiveCurrencies': ['CAD', 'USD', 'JPY', 'GBP'],
             },
             'exceptions': {
                 'EAPI:Invalid key': AuthenticationError,
@@ -356,23 +358,36 @@ class kraken (Exchange):
 
     async def fetch_currencies(self, params={}):
         response = await self.publicGetAssets(params)
-        currencies = response['result']
+        #
+        #     {
+        #         "error": [],
+        #         "result": {
+        #             "ADA": {"aclass": "currency", "altname": "ADA", "decimals": 8, "display_decimals": 6},
+        #             "BCH": {"aclass": "currency", "altname": "BCH", "decimals": 10, "display_decimals": 5},
+        #             ...
+        #         },
+        #     }
+        #
+        currencies = self.safe_value(response, 'result')
         ids = list(currencies.keys())
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
             currency = currencies[id]
             # todo: will need to rethink the fees
+            # see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
-            code = self.common_currency_code(currency['altname'])
-            precision = currency['decimals']
+            code = self.common_currency_code(self.safe_string(currency, 'altname'))
+            precision = self.safe_integer(currency, 'decimals')
+            # assumes all currencies are active except those listed above
+            active = not self.in_array(code, self.options['inactiveCurrencies'])
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': code,
-                'active': True,
+                'active': active,
                 'fee': None,
                 'precision': precision,
                 'limits': {
