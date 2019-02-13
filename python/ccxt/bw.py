@@ -44,7 +44,7 @@ class bw (Exchange):
                 'fetchCurrencies': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/44310033-69e9e600-a3d8-11e8-873d-54d74d1bc4e4.jpg',
+                'logo': 'https://user-images.githubusercontent.com/bw.jpg',
                 'api': 'https://www.bw.com',
                 'publicapi': 'https://kline.bw.com',
                 'www': 'https://www.bw.com',
