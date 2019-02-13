@@ -253,7 +253,7 @@ module.exports = class stronghold extends Exchange {
         return result;
     }
 
-    async fetchOrderBooks (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
         const request = {
