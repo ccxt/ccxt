@@ -116,8 +116,7 @@ module.exports = class kraken extends Exchange {
                         'BCH': 0.001,
                         'XTZ': 0.05,
                         'USD': 5, // if domestic wire
-                        // 'EUR': 5, // if domestic wire
-                        'EUR': 0.009,
+                        'EUR': 5, // if domestic wire
                         'CAD': 10, // CAD EFT Withdrawal
                         'JPY': 300, // if domestic wire
                     },
