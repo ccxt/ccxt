@@ -71,6 +71,13 @@ module.exports = class itbit extends Exchange {
                     'taker': 0.2 / 100,
                 },
             },
+            'commonCurrencies': { // gets extended/overwritten in subclasses
+                'XBT': 'BTC',
+                'USD': 'USD',
+                'SGD': 'SGD',
+                'EUR': 'EUR',
+                'ETH': 'ETH',
+            },
         });
     }
 
@@ -185,7 +192,7 @@ module.exports = class itbit extends Exchange {
         let result = { 'info': response };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
-            let currency = balance['currency'];
+            let currency = this.commonCurrencies[balance['currency']];
             let account = {
                 'free': parseFloat (balance['availableBalance']),
                 'used': 0.0,
