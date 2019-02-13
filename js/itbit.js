@@ -167,14 +167,27 @@ module.exports = class itbit extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let walletIdInParams = ('walletId' in params);
-        if (!walletIdInParams)
+        const walletId = this.safeString (params, 'walletId');
+        if (walletId === undefined) {
             throw new ExchangeError (this.id + ' fetchMyTrades requires a walletId parameter');
-        let walletId = params['walletId'];
-        let response = await this.privateGetWalletsWalletIdTrades (this.extend ({
+        }
+        await this.loadMarkets ();
+        const request = {
             'walletId': walletId,
-        }, params));
-        return this.parseTrades (response.tradingHistory, undefined, since, limit);
+        };
+        if (since !== undefined) {
+            request['rangeStart'] = this.ymdhms (since, 'T');
+        }
+        if (limit !== undefined) {
+            request['perPage'] = limit; // default 50, max 50
+        }
+        const response = await this.privateGetWalletsWalletIdTrades (this.extend (request, params));
+        const trades = this.safeValue (response, 'tradingHistory', []);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
