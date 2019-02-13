@@ -323,18 +323,19 @@ module.exports = class bittrex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        let response = await this.publicGetCurrencies (params);
-        let currencies = response['result'];
-        let result = {};
+        const response = await this.publicGetCurrencies (params);
+        const currencies = this.safeValue (response, 'result', []);
+        const result = {};
         for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let id = currency['Currency'];
+            const currency = currencies[i];
+            const id = currency['Currency'];
             // todo: will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            let code = this.commonCurrencyCode (id);
-            let precision = 8; // default precision, todo: fix "magic constants"
-            let address = this.safeValue (currency, 'BaseAddress');
+            const code = this.commonCurrencyCode (id);
+            const precision = 8; // default precision, todo: fix "magic constants"
+            const address = this.safeValue (currency, 'BaseAddress');
+            const fee = this.safeFloat (currency, 'TxFee'); // todo: redesign
             result[code] = {
                 'id': id,
                 'code': code,
@@ -343,7 +344,7 @@ module.exports = class bittrex extends Exchange {
                 'type': currency['CoinType'],
                 'name': currency['CurrencyLong'],
                 'active': currency['IsActive'],
-                'fee': this.safeFloat (currency, 'TxFee'), // todo: redesign
+                'fee': fee,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -359,7 +360,7 @@ module.exports = class bittrex extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': currency['TxFee'],
+                        'min': fee,
                         'max': Math.pow (10, precision),
                     },
                 },
