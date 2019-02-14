@@ -19,11 +19,11 @@ RUN apt-get -y install nodejs
 
 # Python 2
 RUN apt-get install -y python-pip
-RUN pip2 install --upgrade setuptools requests requests[security]
+RUN pip2 install --upgrade setuptools
 
 # Python 3
 RUN apt-get install -y python3 python3-pip
-RUN pip3 install --upgrade six setuptools aiohttp wheel requests pyopenssl tox twine
+RUN pip3 install --upgrade setuptools
 
 # Copy files to workdir to run install scripts against it (will be replaced with a live-mounted volume at startup)
 RUN mkdir -p /ccxt
@@ -35,4 +35,4 @@ RUN rm -rf /ccxt/node_modules
 RUN npm install
 RUN ln -s /ccxt /usr/lib/node_modules/
 RUN echo "export NODE_PATH=/usr/lib/node_modules" >> $HOME/.bashrc
-RUN cd python && python3 setup.py install && cd ..
+RUN cd python && python3 setup.py install && python setup.py install && cd ..
