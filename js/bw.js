@@ -281,7 +281,7 @@ module.exports = class bw extends Exchange {
         }
         let response = await this.publicGetApiDataV1Entrusts (this.extend (request, params));
         let data = response['datas'];
-        let timestamp = response['timestamp'];
+        let timestamp = data['timestamp'];
         let bidsKey = 'bids';
         let asksKey = 'asks';
         let priceKey = 0;
