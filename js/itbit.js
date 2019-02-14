@@ -158,7 +158,7 @@ module.exports = class itbit extends Exchange {
         const side = this.safeString (trade, 'direction');
         const orderId = this.safeString (trade, 'orderId');
         const feeCost = this.safeFloat (trade, 'commissionPaid');
-        const feeCurrencyId = this.safeString (trade, 'commisionCurrency');
+        const feeCurrencyId = this.safeString (trade, 'commissionCurrency');
         const feeCurrency = this.commonCurrencyCode (feeCurrencyId);
         let fee = undefined;
         if (feeCost !== undefined) {
