@@ -171,7 +171,7 @@ module.exports = class bittrex extends Exchange {
                 // With Bittrex some currencies imply the "base address + tag" logic.
                 // The base address for depositing is stored on this.currencies[code]
                 // The base address identifies the exchange as the recipient
-                // while the tag identifies tha user account within the exchange
+                // while the tag identifies the user account within the exchange
                 // and the tag is retrieved with fetchDepositAddress.
                 'tag': {
                     'NXT': true, // NXT, BURST
