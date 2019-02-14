@@ -513,8 +513,8 @@ module.exports = class bw extends Exchange {
             let feedback = this.id + ' ' + body + ' url:' + url;
             let result = this.safeValue (response, 'resMsg');
             if (typeof result !== 'undefined') {
-                if (result.code !== '1') {
-                    let code = this.safeString (result, 'code');
+                let code = this.safeString (result, 'code');
+                if (code === 'undefined' || code !== '1') {
                     if (code in this.exceptions) {
                         throw new this.exceptions[code] (feedback);
                     } else {
