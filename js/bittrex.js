@@ -176,7 +176,7 @@ module.exports = class bittrex extends Exchange {
                 'tag': {
                     'NXT': true, // NXT, BURST
                     'CRYPTO_NOTE_PAYMENTID': true, // AEON, XMR
-                    'BITSHAREX': true, // BITSHAREX
+                    'BITSHAREX': true, // BTS
                     'RIPPLE': true, // XRP
                     'NEM': true, // XEM
                     'STELLAR': true, // XLM
