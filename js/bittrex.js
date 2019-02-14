@@ -165,12 +165,14 @@ module.exports = class bittrex extends Exchange {
                 'parseOrderStatus': false,
                 'hasAlreadyAuthenticatedSuccessfully': false, // a workaround for APIKEY_INVALID
                 'symbolSeparator': '-',
-                // With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP, an additional tag is usually required by exchanges
-                // currencies using the "base address + tag" logic
-                // the base address for depositing is stored on this.currencies[code]
-                // the base address identifies the exchange as the recipient
+                // With certain currencies, like
+                // AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP
+                // an additional tag / memo / payment id is usually required by exchanges.
+                // With Bittrex some currencies imply the "base address + tag" logic.
+                // The base address for depositing is stored on this.currencies[code]
+                // The base address identifies the exchange as the recipient
                 // while the tag identifies tha user account within the exchange
-                // and is is retrieved with fetchDepositAddress
+                // and the tag is retrieved with fetchDepositAddress.
                 'tag': {
                     'NXT': true, // NXT, BURST
                     'CRYPTO_NOTE_PAYMENTID': true, // AEON, XMR
