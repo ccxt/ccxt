@@ -29,6 +29,7 @@ RUN pip3 install --upgrade six setuptools aiohttp wheel requests pyopenssl tox t
 RUN mkdir -p /ccxt
 WORKDIR /ccxt
 ADD . /ccxt
+RUN rm -rf /ccxt/node_modules
 
 # Installs as a local Node & Python module, so that `require ('ccxt')` and `import ccxt` should work after that
 RUN npm install
