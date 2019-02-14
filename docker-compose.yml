@@ -20,3 +20,4 @@ services:
       - SECRET="${SECRET:-}"
       - WALLET_ADDRESS="${WALLET_ADDRESS:-}"
       - PRIVATE_KEY="${PRIVATE_KEY:-}"
+
