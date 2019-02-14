@@ -13,6 +13,7 @@
   },
   "readme": "README.md",
   "scripts": {
+    "docker": "docker-compose run --rm ccxt",
     "build": "npm run build-without-docs && npm run pandoc-all && npm run update-badges",
     "build-without-docs": "npm run export-exchanges && npm run vss && npm run check-js-syntax && npm run browserify && npm run transpile && npm run qa",
     "test": "npm run build && node run-tests",
