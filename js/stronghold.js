@@ -123,6 +123,28 @@ module.exports = class stronghold extends Exchange {
         });
     }
 
+    async fetchAccounts (params = {}) {
+        const request = {
+            'venueId': this.options['venueId'],
+        };
+        const response = await this.privateGetVenuesVenueIdAccounts (this.extend (request, params));
+        //
+        //   [ { id: '34080200-b25a-483d-a734-255d30ba324d',
+        //       venueSpecificId: '' } ... ]
+        //
+        const data = response['result'];
+        let result = {};
+        for (let i = 0; i < data.length; i += 1) {
+            const entry = data[i];
+            const accountId = entry['id'];
+            result[accountId] = {
+                'accountId': accountId,
+                'info': entry,
+            };
+        }
+        return result;
+    }
+
     async fetchTime (params = {}) {
         const response = await this.publicGetUtilitiesTime (params);
         //
@@ -664,11 +686,6 @@ module.exports = class stronghold extends Exchange {
         //         'info': response,
         //     };
         return this.parseTransaction (response);
-    }
-
-    async fetchAccounts (params) {
-        //     return await this.privatePostVenuesVenueIdAccounts (params);
-        throw new NotSupported (this.id + ' fetchAccounts is not implemented on the exchange side.');
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
