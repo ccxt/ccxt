@@ -197,6 +197,7 @@ class Exchange {
         'quoinex',
         'rightbtc',
         'southxchange',
+        'stronghold',
         'surbitcoin',
         'theocean',
         'therock',
@@ -640,6 +641,14 @@ class Exchange {
         return (gettype ($input) === 'string') &&
                 (strlen ($input) >= 2) &&
                 (($input[0] === '{') || ($input[0] === '['));
+    }
+
+    public static function is_array ($object) {
+        return is_array($object);
+    }
+
+    public static function isArray ($object) {
+        return is_array($object);
     }
 
     public static function encode ($input) {

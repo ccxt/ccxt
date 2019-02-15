@@ -43,6 +43,7 @@ module.exports = class stronghold extends Exchange {
                 'createDepositAddress': true,
                 'withdraw': true,
                 'fetchTicker': false,
+                'fetchAccounts': true,
             },
             'api': {
                 'public': {

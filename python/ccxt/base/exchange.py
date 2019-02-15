@@ -700,6 +700,10 @@ class Exchange(object):
         return needle in haystack
 
     @staticmethod
+    def is_array(object):
+        return isinstance(object, list)
+
+    @staticmethod
     def is_empty(object):
         return not object
 
