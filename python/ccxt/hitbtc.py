@@ -32,7 +32,7 @@ class hitbtc (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
-                'api': 'http://api.hitbtc.com',
+                'api': 'https://api.hitbtc.com',
                 'www': 'https://hitbtc.com',
                 'referral': 'https://hitbtc.com/?ref_id=5a5d39a65d466',
                 'doc': 'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md',
@@ -489,12 +489,13 @@ class hitbtc (Exchange):
                 },
             },
             'commonCurrencies': {
-                'BCC': 'BCC',
+                'BCH': 'Bitcoin Cash',
                 'BET': 'DAO.Casino',
                 'CAT': 'BitClave',
                 'DRK': 'DASH',
                 'EMGO': 'MGO',
                 'GET': 'Themis',
+                'HSR': 'HC',
                 'LNC': 'LinkerCoin',
                 'UNC': 'Unigame',
                 'USD': 'USDT',
@@ -505,7 +506,7 @@ class hitbtc (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetSymbols()
         result = []
         for p in range(0, len(markets['symbols'])):
@@ -643,6 +644,10 @@ class hitbtc (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        side = None
+        tradeLength = len(trade)
+        if tradeLength > 3:
+            side = trade[4]
         return {
             'info': trade,
             'id': str(trade[0]),
@@ -650,7 +655,7 @@ class hitbtc (Exchange):
             'datetime': self.iso8601(trade[3]),
             'symbol': symbol,
             'type': None,
-            'side': trade[4],
+            'side': side,
             'price': float(trade[1]),
             'amount': float(trade[2]),
         }
@@ -789,7 +794,8 @@ class hitbtc (Exchange):
         if amountDefined:
             if remainingDefined:
                 filled = amount - remaining
-                cost = price * filled
+                if price is not None:
+                    cost = price * filled
         feeCost = self.safe_float(order, 'fee')
         feeCurrency = None
         if market is not None:
@@ -875,8 +881,8 @@ class hitbtc (Exchange):
             'amount': amount,
             'address': address,
         }
-        if tag:
-            request['paymentId'] = tag
+        if tag is not None:
+            request['extra_id'] = tag
         response = self.paymentPostPayout(self.extend(request, params))
         return {
             'info': response,

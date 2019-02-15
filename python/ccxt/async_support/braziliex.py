@@ -32,6 +32,7 @@ class braziliex (Exchange):
                 'www': 'https://braziliex.com/',
                 'doc': 'https://braziliex.com/exchange/api.php',
                 'fees': 'https://braziliex.com/exchange/fees.php',
+                'referral': 'https://braziliex.com/?ref=5FE61AB6F6D67DA885BC98BA27223465',
             },
             'api': {
                 'public': {
@@ -99,16 +100,16 @@ class braziliex (Exchange):
                 'funding': {
                     'withdraw': {
                         'active': canWithdraw,
-                        'fee': currency['txWithdrawalFee'],
+                        'fee': self.safe_float(currency, 'txWithdrawalFee'),
                     },
                     'deposit': {
                         'active': canDeposit,
-                        'fee': currency['txDepositFee'],
+                        'fee': self.safe_float(currency, 'txDepositFee'),
                     },
                 },
                 'limits': {
                     'amount': {
-                        'min': currency['minAmountTrade'],
+                        'min': self.safe_float(currency, 'minAmountTrade'),
                         'max': math.pow(10, precision),
                     },
                     'price': {
@@ -120,11 +121,11 @@ class braziliex (Exchange):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': currency['MinWithdrawal'],
+                        'min': self.safe_float(currency, 'MinWithdrawal'),
                         'max': math.pow(10, precision),
                     },
                     'deposit': {
-                        'min': currency['minDeposit'],
+                        'min': self.safe_float(currency, 'minDeposit'),
                         'max': None,
                     },
                 },
@@ -132,7 +133,7 @@ class braziliex (Exchange):
             }
         return result
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         markets = await self.publicGetTicker()
         ids = list(markets.keys())
         result = []

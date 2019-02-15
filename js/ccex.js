@@ -80,7 +80,7 @@ module.exports = class ccex extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let result = {};
         let response = await this.webGetPairs ();
         let markets = response['pairs'];
@@ -159,22 +159,21 @@ module.exports = class ccex extends Exchange {
         await this.loadMarkets ();
         let orderbooks = {};
         let response = await this.publicGetFullorderbook ();
-        let types = Object.keys (response['result']);
-        for (let i = 0; i < types.length; i++) {
-            let type = types[i];
-            let bidasks = response['result'][type];
+        let sides = Object.keys (response['result']);
+        for (let i = 0; i < sides.length; i++) {
+            let side = sides[i];
+            let bidasks = response['result'][side];
             let bidasksByMarketId = this.groupBy (bidasks, 'Market');
             let marketIds = Object.keys (bidasksByMarketId);
             for (let j = 0; j < marketIds.length; j++) {
                 let marketId = marketIds[j];
-                let symbol = marketId.toUpperCase ();
-                let side = type;
-                if (symbol in this.markets_by_id) {
+                let symbol = marketId;
+                if (marketId in this.markets_by_id) {
                     let market = this.markets_by_id[symbol];
                     symbol = market['symbol'];
                 } else {
-                    let [ base, quote ] = symbol.split ('-');
-                    let invertedId = quote + '-' + base;
+                    let [ baseId, quoteId ] = symbol.split ('-');
+                    let invertedId = quoteId + '-' + baseId;
                     if (invertedId in this.markets_by_id) {
                         let market = this.markets_by_id[invertedId];
                         symbol = market['symbol'];

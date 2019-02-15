@@ -65,7 +65,7 @@ class southxchange (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetMarkets()
         result = []
         for p in range(0, len(markets)):
@@ -83,6 +83,7 @@ class southxchange (Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'active': None,
                 'info': market,
             })
         return result
@@ -140,8 +141,8 @@ class southxchange (Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_float(ticker, 'Variation24Hr'),
-            'percentage': None,
+            'change': None,
+            'percentage': self.safe_float(ticker, 'Variation24Hr'),
             'average': None,
             'baseVolume': self.safe_float(ticker, 'Volume24Hr'),
             'quoteVolume': None,
@@ -280,10 +281,12 @@ class southxchange (Exchange):
             'info': response,
         }
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
+        self.load_markets()
+        currency = self.currency(code)
         request = {
-            'currency': currency,
+            'currency': currency['id'],
             'address': address,
             'amount': amount,
         }

@@ -25,6 +25,10 @@ class uex extends Exchange {
                 'fetchOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchDepositAddress' => true,
+                'fetchDeposits' => true,
+                'fetchWithdrawals' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array (
                 '1m' => '1',
@@ -50,6 +54,7 @@ class uex extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
+                        'common/coins', // funding limits
                         'common/symbols',
                         'get_records', // ohlcvs
                         'get_ticker',
@@ -59,17 +64,21 @@ class uex extends Exchange {
                 ),
                 'private' => array (
                     'get' => array (
-                        'deposit_list',
+                        'deposit_address_list',
+                        'withdraw_address_list',
+                        'deposit_history',
+                        'withdraw_history',
                         'user/account',
                         'market', // an assoc array of market ids to corresponding prices traded most recently (prices of last trades per market)
                         'order_info',
-                        'new_order', // open orders
+                        'new_order', // a list of currently open orders
                         'all_order',
                         'all_trade',
                     ),
                     'post' => array (
                         'create_order',
                         'cancel_order',
+                        'create_withdraw',
                     ),
                 ),
             ),
@@ -164,7 +173,7 @@ class uex extends Exchange {
         );
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetCommonSymbols ();
         //
         //     { code =>   "0",
@@ -920,6 +929,232 @@ class uex extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $request = array (
+            'coin' => $currency['id'],
+        );
+        // https://github.com/UEX-OpenAPI/API_Docs_en/wiki/Query-deposit-$address-of-assigned-token
+        $response = $this->privateGetDepositAddressList (array_merge ($request, $params));
+        //
+        //     {
+        //         "$code" => "0",
+        //         "msg" => "suc",
+        //         "$data" => array (
+        //             "$addressList" => array (
+        //                 array (
+        //                     "$address" => "0x198803ef8e0df9e8812c0105421885e843e6d2e2",
+        //                     "$tag" => "",
+        //                 ),
+        //             ),
+        //         ),
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        if ($data === null) {
+            throw new InvalidAddress ($this->id . ' privateGetDepositAddressList() returned no data');
+        }
+        $addressList = $this->safe_value($data, 'addressList');
+        if ($addressList === null) {
+            throw new InvalidAddress ($this->id . ' privateGetDepositAddressList() returned no $address list');
+        }
+        $numAddresses = is_array ($addressList) ? count ($addressList) : 0;
+        if ($numAddresses < 1) {
+            throw new InvalidAddress ($this->id . ' privatePostDepositAddresses() returned no addresses');
+        }
+        $firstAddress = $addressList[0];
+        $address = $this->safe_string($firstAddress, 'address');
+        $tag = $this->safe_string($firstAddress, 'tag');
+        $this->check_address($address);
+        return array (
+            'currency' => $code,
+            'address' => $address,
+            'tag' => $tag,
+            'info' => $response,
+        );
+    }
+
+    public function fetch_transactions_by_type ($type, $code = null, $since = null, $limit = null, $params = array ()) {
+        if ($code === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchWithdrawals requires a $currency $code argument');
+        }
+        $currency = $this->currency ($code);
+        $request = array (
+            'coin' => $currency['id'],
+        );
+        if ($limit !== null) {
+            $request['pageSize'] = $limit; // default 10
+        }
+        $transactionType = ($type === 'deposit') ? 'deposit' : 'withdraw'; // instead of withdrawal...
+        $method = 'privateGet' . $this->capitalize ($transactionType) . 'History';
+        // https://github.com/UEX-OpenAPI/API_Docs_en/wiki/Query-deposit-record-of-assigned-token
+        // https://github.com/UEX-OpenAPI/API_Docs_en/wiki/Query-withdraw-record-of-assigned-token
+        $response = $this->$method (array_merge ($request, $params));
+        //
+        //     { $code =>   "0",
+        //        msg =>   "suc",
+        //       data => { depositList => array ( {     createdAt =>  1533615955000,
+        //                                       amount => "0.01",
+        //                                     updateAt =>  1533616311000,
+        //                                         txid => "0x0922fde6ab8270fe6eb31cb5a37dc732d96dc8193f81cf46c4ab29fde…",
+        //                                          tag => "",
+        //                                confirmations =>  30,
+        //                                    addressTo => "0x198803ef8e0df9e8812c0105421885e843e6d2e2",
+        //                                       status =>  1,
+        //                                         coin => "ETH"                                                           } ) } }
+        //
+        //     {
+        //         "$code" => "0",
+        //         "msg" => "suc",
+        //         "data" => {
+        //             "withdrawList" => [array (
+        //                 "updateAt" => 1540344965000,
+        //                 "createdAt" => 1539311971000,
+        //                 "status" => 0,
+        //                 "addressTo" => "tz1d7DXJXU3AKWh77gSmpP7hWTeDYs8WF18q",
+        //                 "tag" => "100128877",
+        //                 "id" => 5,
+        //                 "txid" => "",
+        //                 "fee" => 0.0,
+        //                 "amount" => "1",
+        //                 "symbol" => "XTZ"
+        //             )]
+        //         }
+        //     }
+        //
+        $transactions = $this->safe_value($response['data'], $transactionType . 'List');
+        return $this->parse_transactions_by_type ($type, $transactions, $code, $since, $limit);
+    }
+
+    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions_by_type ('deposit', $code, $since, $limit, $params);
+    }
+
+    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions_by_type ('withdrawal', $code, $since, $limit, $params);
+    }
+
+    public function parse_transactions_by_type ($type, $transactions, $code = null, $since = null, $limit = null) {
+        $result = array ();
+        for ($i = 0; $i < count ($transactions); $i++) {
+            $transaction = $this->parse_transaction (array_merge (array (
+                'type' => $type,
+            ), $transactions[$i]));
+            $result[] = $transaction;
+        }
+        return $this->filterByCurrencySinceLimit ($result, $code, $since, $limit);
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        //
+        // deposits
+        //
+        //      {     createdAt =>  1533615955000,
+        //               $amount => "0.01",
+        //             updateAt =>  1533616311000,
+        //                 $txid => "0x0922fde6ab8270fe6eb31cb5a37dc732d96dc8193f81cf46c4ab29fde…",
+        //                  $tag => "",
+        //        confirmations =>  30,
+        //            addressTo => "0x198803ef8e0df9e8812c0105421885e843e6d2e2",
+        //               $status =>  1,
+        //                 coin => "ETH"                                                           } ] } }
+        //
+        // withdrawals
+        //
+        //     {
+        //         "updateAt" => 1540344965000,
+        //         "createdAt" => 1539311971000,
+        //         "$status" => 0,
+        //         "addressTo" => "tz1d7DXJXU3AKWh77gSmpP7hWTeDYs8WF18q",
+        //         "$tag" => "100128877",
+        //         "$id" => 5,
+        //         "$txid" => "",
+        //         "fee" => 0.0,
+        //         "$amount" => "1",
+        //         "symbol" => "XTZ"
+        //     }
+        //
+        $id = $this->safe_string($transaction, 'id');
+        $txid = $this->safe_string($transaction, 'txid');
+        $timestamp = $this->safe_integer($transaction, 'createdAt');
+        $updated = $this->safe_integer($transaction, 'updateAt');
+        $code = null;
+        $currencyId = $this->safe_string_2($transaction, 'symbol', 'coin');
+        $currency = $this->safe_value($this->currencies_by_id, $currencyId);
+        if ($currency !== null) {
+            $code = $currency['code'];
+        } else {
+            $code = $this->common_currency_code($currencyId);
+        }
+        $address = $this->safe_string($transaction, 'addressTo');
+        $tag = $this->safe_string($transaction, 'tag');
+        $amount = $this->safe_float($transaction, 'amount');
+        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
+        $type = $this->safe_string($transaction, 'type'); // injected from the outside
+        $feeCost = $this->safe_float($transaction, 'fee');
+        if (($type === 'deposit') && ($feeCost === null)) {
+            $feeCost = 0;
+        }
+        return array (
+            'info' => $transaction,
+            'id' => $id,
+            'currency' => $code,
+            'amount' => $amount,
+            'address' => $address,
+            'tag' => $tag,
+            'status' => $status,
+            'type' => $type,
+            'updated' => $updated,
+            'txid' => $txid,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'fee' => array (
+                'currency' => $code,
+                'cost' => $feeCost,
+            ),
+        );
+    }
+
+    public function parse_transaction_status ($status) {
+        $statuses = array (
+            '0' => 'pending', // unaudited
+            '1' => 'ok', // audited
+            '2' => 'failed', // audit failed
+            '3' => 'pending', // "payment"
+            '4' => 'failed', // payment failed
+            '5' => 'ok',
+            '6' => 'canceled',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->load_markets();
+        $fee = $this->safe_float($params, 'fee');
+        if ($fee === null) {
+            throw new ArgumentsRequired ($this->id . 'requires a "$fee" extra parameter in its last argument');
+        }
+        $this->check_address($address);
+        $currency = $this->currency ($code);
+        $request = array (
+            'coin' => $currency['id'],
+            'address' => $address, // only supports existing addresses in your withdraw $address list
+            'amount' => $amount,
+            'fee' => $fee, // balance >= $this->sum ($amount, $fee)
+        );
+        if ($tag !== null) {
+            $request['tag'] = $tag;
+        }
+        // https://github.com/UEX-OpenAPI/API_Docs_en/wiki/Withdraw
+        $response = $this->privatePostCreateWithdraw (array_merge ($request, $params));
+        $id = null;
+        return array (
+            'info' => $response,
+            'id' => $id,
+        );
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
         if ($api === 'public') {
@@ -954,13 +1189,12 @@ class uex extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
         if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return; // fallback to default error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             //
             // array ("$code":"0","msg":"suc","data":array ())
             //

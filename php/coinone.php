@@ -222,6 +222,13 @@ class coinone extends Exchange {
     public function parse_trade ($trade, $market = null) {
         $timestamp = intval ($trade['timestamp']) * 1000;
         $symbol = ($market !== null) ? $market['symbol'] : null;
+        $is_ask = $this->safe_string($trade, 'is_ask');
+        $side = null;
+        if ($is_ask === '1') {
+            $side = 'sell';
+        } else if ($is_ask === '0') {
+            $side = 'buy';
+        }
         return array (
             'id' => null,
             'timestamp' => $timestamp,
@@ -229,7 +236,7 @@ class coinone extends Exchange {
             'order' => null,
             'symbol' => $symbol,
             'type' => null,
-            'side' => null,
+            'side' => $side,
             'price' => $this->safe_float($trade, 'price'),
             'amount' => $this->safe_float($trade, 'qty'),
             'fee' => null,
@@ -465,9 +472,8 @@ class coinone extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             if (is_array ($response) && array_key_exists ('result', $response)) {
                 $result = $response['result'];
                 if ($result !== 'success') {

@@ -13,7 +13,6 @@ except NameError:
     basestring = str  # Python 2
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -222,7 +221,7 @@ class gatecoin (Exchange):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         response = await self.publicGetReferenceCurrencyPairs()
         markets = response['currencyPairs']
         result = []
@@ -311,7 +310,9 @@ class gatecoin (Exchange):
             symbol = market['symbol']
         baseVolume = self.safe_float(ticker, 'volume')
         vwap = self.safe_float(ticker, 'vwap')
-        quoteVolume = baseVolume * vwap
+        quoteVolume = None
+        if baseVolume is not None and vwap is not None:
+            quoteVolume = baseVolume * vwap
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -372,8 +373,8 @@ class gatecoin (Exchange):
                 market = self.find_market(marketId)
         fee = None
         feeCost = self.safe_float(trade, 'feeAmount')
-        price = trade['price']
-        amount = trade['quantity']
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'quantity')
         cost = price * amount
         feeCurrency = None
         symbol = None
@@ -616,6 +617,7 @@ class gatecoin (Exchange):
         return {
             'currency': code,
             'address': address,
+            'tag': None,
             'info': response,
         }
 
@@ -631,6 +633,7 @@ class gatecoin (Exchange):
         return {
             'currency': code,
             'address': address,
+            'tag': None,
             'info': response,
         }
 
@@ -646,7 +649,7 @@ class gatecoin (Exchange):
         # not unified yet
         return await self.privatePostElectronicWalletUserWalletsDigiCurrency(self.extend(request, params))
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if len(body) < 2:
@@ -654,7 +657,6 @@ class gatecoin (Exchange):
         if body.find('You are not authorized') >= 0:
             raise PermissionDenied(body)
         if body[0] == '{':
-            response = json.loads(body)
             if 'responseStatus' in response:
                 errorCode = self.safe_string(response['responseStatus'], 'errorCode')
                 message = self.safe_string(response['responseStatus'], 'message')

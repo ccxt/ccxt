@@ -4,12 +4,15 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import BadRequest
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class bitmex (Exchange):
@@ -137,16 +140,24 @@ class bitmex (Exchange):
                 },
             },
             'exceptions': {
-                'Invalid API Key.': AuthenticationError,
-                'Access Denied': PermissionDenied,
+                'exact': {
+                    'Invalid API Key.': AuthenticationError,
+                    'Access Denied': PermissionDenied,
+                    'Duplicate clOrdID': InvalidOrder,
+                    'Signature not valid': AuthenticationError,
+                },
+                'broad': {
+                    'overloaded': ExchangeNotAvailable,
+                    'Account has insufficient Available Balance': InsufficientFunds,
+                },
             },
             'options': {
-                'fetchTickerQuotes': False,
+                'api-expires': None,
             },
         })
 
-    def fetch_markets(self):
-        markets = self.publicGetInstrumentActiveAndIndices()
+    def fetch_markets(self, params={}):
+        markets = self.publicGetInstrumentActiveAndIndices(params)
         result = []
         for p in range(0, len(markets)):
             market = markets[p]
@@ -211,22 +222,24 @@ class bitmex (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privateGetUserMargin({'currency': 'all'})
+        request = {'currency': 'all'}
+        response = self.privateGetUserMargin(self.extend(request, params))
         result = {'info': response}
         for b in range(0, len(response)):
             balance = response[b]
-            currency = balance['currency'].upper()
-            currency = self.common_currency_code(currency)
+            currencyId = self.safe_string(balance, 'currency')
+            currencyId = currencyId.upper()
+            code = self.common_currency_code(currencyId)
             account = {
                 'free': balance['availableMargin'],
                 'used': 0.0,
                 'total': balance['marginBalance'],
             }
-            if currency == 'BTC':
+            if code == 'BTC':
                 account['free'] = account['free'] * 0.00000001
                 account['total'] = account['total'] * 0.00000001
             account['used'] = account['total'] - account['free']
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
@@ -297,59 +310,165 @@ class bitmex (Exchange):
         market = self.market(symbol)
         if not market['active']:
             raise ExchangeError(self.id + ': symbol ' + symbol + ' is delisted')
-        request = self.extend({
+        request = {
             'symbol': market['id'],
-            'binSize': '1d',
-            'partial': True,
-            'count': 1,
-            'reverse': True,
-        }, params)
-        bid = None
-        ask = None
-        if self.options['fetchTickerQuotes']:
-            quotes = self.publicGetQuoteBucketed(request)
-            quotesLength = len(quotes)
-            quote = quotes[quotesLength - 1]
-            bid = self.safe_float(quote, 'bidPrice')
-            ask = self.safe_float(quote, 'askPrice')
-        tickers = self.publicGetTradeBucketed(request)
-        ticker = tickers[0]
-        timestamp = self.milliseconds()
-        open = self.safe_float(ticker, 'open')
-        close = self.safe_float(ticker, 'close')
-        change = close - open
+        }
+        response = self.publicGetInstrumentActiveAndIndices(self.extend(request, params))
+        return self.parse_ticker(response[0])
+
+    def parse_ticker(self, ticker, market=None):
+        #
+        #     {                        symbol: "ETHH19",
+        #                           rootSymbol: "ETH",
+        #                                state: "Open",
+        #                                  typ: "FFCCSX",
+        #                              listing: "2018-12-17T04:00:00.000Z",
+        #                                front: "2019-02-22T12:00:00.000Z",
+        #                               expiry: "2019-03-29T12:00:00.000Z",
+        #                               settle: "2019-03-29T12:00:00.000Z",
+        #                       relistInterval:  null,
+        #                           inverseLeg: "",
+        #                              sellLeg: "",
+        #                               buyLeg: "",
+        #                     optionStrikePcnt:  null,
+        #                    optionStrikeRound:  null,
+        #                    optionStrikePrice:  null,
+        #                     optionMultiplier:  null,
+        #                     positionCurrency: "ETH",
+        #                           underlying: "ETH",
+        #                        quoteCurrency: "XBT",
+        #                     underlyingSymbol: "ETHXBT=",
+        #                            reference: "BMEX",
+        #                      referenceSymbol: ".BETHXBT30M",
+        #                         calcInterval:  null,
+        #                      publishInterval:  null,
+        #                          publishTime:  null,
+        #                          maxOrderQty:  100000000,
+        #                             maxPrice:  10,
+        #                              lotSize:  1,
+        #                             tickSize:  0.00001,
+        #                           multiplier:  100000000,
+        #                        settlCurrency: "XBt",
+        #       underlyingToPositionMultiplier:  1,
+        #         underlyingToSettleMultiplier:  null,
+        #              quoteToSettleMultiplier:  100000000,
+        #                             isQuanto:  False,
+        #                            isInverse:  False,
+        #                           initMargin:  0.02,
+        #                          maintMargin:  0.01,
+        #                            riskLimit:  5000000000,
+        #                             riskStep:  5000000000,
+        #                                limit:  null,
+        #                               capped:  False,
+        #                                taxed:  True,
+        #                           deleverage:  True,
+        #                             makerFee:  -0.0005,
+        #                             takerFee:  0.0025,
+        #                        settlementFee:  0,
+        #                         insuranceFee:  0,
+        #                    fundingBaseSymbol: "",
+        #                   fundingQuoteSymbol: "",
+        #                 fundingPremiumSymbol: "",
+        #                     fundingTimestamp:  null,
+        #                      fundingInterval:  null,
+        #                          fundingRate:  null,
+        #                indicativeFundingRate:  null,
+        #                   rebalanceTimestamp:  null,
+        #                    rebalanceInterval:  null,
+        #                     openingTimestamp: "2019-02-13T08:00:00.000Z",
+        #                     closingTimestamp: "2019-02-13T09:00:00.000Z",
+        #                      sessionInterval: "2000-01-01T01:00:00.000Z",
+        #                       prevClosePrice:  0.03347,
+        #                       limitDownPrice:  null,
+        #                         limitUpPrice:  null,
+        #               bankruptLimitDownPrice:  null,
+        #                 bankruptLimitUpPrice:  null,
+        #                      prevTotalVolume:  1386531,
+        #                          totalVolume:  1387062,
+        #                               volume:  531,
+        #                            volume24h:  17118,
+        #                    prevTotalTurnover:  4741294246000,
+        #                        totalTurnover:  4743103466000,
+        #                             turnover:  1809220000,
+        #                          turnover24h:  57919845000,
+        #                      homeNotional24h:  17118,
+        #                   foreignNotional24h:  579.19845,
+        #                         prevPrice24h:  0.03349,
+        #                                 vwap:  0.03383564,
+        #                            highPrice:  0.03458,
+        #                             lowPrice:  0.03329,
+        #                            lastPrice:  0.03406,
+        #                   lastPriceProtected:  0.03406,
+        #                    lastTickDirection: "ZeroMinusTick",
+        #                       lastChangePcnt:  0.017,
+        #                             bidPrice:  0.03406,
+        #                             midPrice:  0.034065,
+        #                             askPrice:  0.03407,
+        #                       impactBidPrice:  0.03406,
+        #                       impactMidPrice:  0.034065,
+        #                       impactAskPrice:  0.03407,
+        #                         hasLiquidity:  True,
+        #                         openInterest:  83679,
+        #                            openValue:  285010674000,
+        #                           fairMethod: "ImpactMidPrice",
+        #                        fairBasisRate:  0,
+        #                            fairBasis:  0,
+        #                            fairPrice:  0.03406,
+        #                           markMethod: "FairPrice",
+        #                            markPrice:  0.03406,
+        #                    indicativeTaxRate:  0,
+        #                indicativeSettlePrice:  0.03406,
+        #                optionUnderlyingPrice:  null,
+        #                         settledPrice:  null,
+        #                            timestamp: "2019-02-13T08:40:30.000Z",
+        #     }
+        #
+        symbol = None
+        marketId = self.safe_string(ticker, 'symbol')
+        market = self.safe_value(self.markets_by_id, marketId, market)
+        if market is not None:
+            symbol = market['symbol']
+        timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
+        open = self.safe_float(ticker, 'prevPrice24h')
+        last = self.safe_float(ticker, 'lastPrice')
+        change = None
+        percentage = None
+        if last is not None and open is not None:
+            change = last - open
+            if open > 0:
+                percentage = change / open * 100
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': bid,
+            'high': self.safe_float(ticker, 'highPrice'),
+            'low': self.safe_float(ticker, 'lowPrice'),
+            'bid': self.safe_float(ticker, 'bidPrice'),
             'bidVolume': None,
-            'ask': ask,
+            'ask': self.safe_float(ticker, 'askPrice'),
             'askVolume': None,
             'vwap': self.safe_float(ticker, 'vwap'),
             'open': open,
-            'close': close,
-            'last': close,
+            'close': last,
+            'last': last,
             'previousClose': None,
             'change': change,
-            'percentage': change / open * 100,
-            'average': self.sum(open, close) / 2,
-            'baseVolume': self.safe_float(ticker, 'homeNotional'),
-            'quoteVolume': self.safe_float(ticker, 'foreignNotional'),
+            'percentage': percentage,
+            'average': self.sum(open, last) / 2,
+            'baseVolume': self.safe_float(ticker, 'homeNotional24h'),
+            'quoteVolume': self.safe_float(ticker, 'foreignNotional24h'),
             'info': ticker,
         }
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
-        timestamp = self.parse8601(ohlcv['timestamp']) - self.parse_timeframe(timeframe) * 1000
+        timestamp = self.parse8601(ohlcv['timestamp'])
         return [
             timestamp,
-            ohlcv['open'],
-            ohlcv['high'],
-            ohlcv['low'],
-            ohlcv['close'],
-            ohlcv['volume'],
+            self.safe_float(ohlcv, 'open'),
+            self.safe_float(ohlcv, 'high'),
+            self.safe_float(ohlcv, 'low'),
+            self.safe_float(ohlcv, 'close'),
+            self.safe_float(ohlcv, 'volume'),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -376,8 +495,7 @@ class bitmex (Exchange):
         # if since is not set, they will return candles starting from 2017-01-01
         if since is not None:
             ymdhms = self.ymdhms(since)
-            ymdhm = ymdhms[0:16]
-            request['startTime'] = ymdhm  # starting date filter for results
+            request['startTime'] = ymdhms  # starting date filter for results
         response = self.publicGetTradeBucketed(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
@@ -404,12 +522,18 @@ class bitmex (Exchange):
 
     def parse_order_status(self, status):
         statuses = {
-            'new': 'open',
-            'partiallyfilled': 'open',
-            'filled': 'closed',
-            'canceled': 'canceled',
-            'rejected': 'rejected',
-            'expired': 'expired',
+            'New': 'open',
+            'PartiallyFilled': 'open',
+            'Filled': 'closed',
+            'DoneForDay': 'open',
+            'Canceled': 'canceled',
+            'PendingCancel': 'open',
+            'PendingNew': 'open',
+            'Rejected': 'rejected',
+            'Expired': 'expired',
+            'Stopped': 'open',
+            'Untriggered': 'open',
+            'Triggered': 'open',
         }
         return self.safe_string(statuses, status, status)
 
@@ -517,10 +641,11 @@ class bitmex (Exchange):
             return True
         return False
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
-        if currency != 'BTC':
+        # currency = self.currency(code)
+        if code != 'BTC':
             raise ExchangeError(self.id + ' supoprts BTC withdrawals only, other currencies coming soon...')
         request = {
             'currency': 'XBt',  # temporarily
@@ -535,44 +660,55 @@ class bitmex (Exchange):
             'id': response['transactID'],
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if code == 429:
             raise DDoSProtection(self.id + ' ' + body)
         if code >= 400:
             if body:
                 if body[0] == '{':
-                    response = json.loads(body)
-                    if 'error' in response:
-                        if 'message' in response['error']:
-                            feedback = self.id + ' ' + self.json(response)
-                            message = self.safe_value(response['error'], 'message')
-                            exceptions = self.exceptions
-                            if message is not None:
-                                if message in exceptions:
-                                    raise exceptions[message](feedback)
-                            raise ExchangeError(feedback)
+                    error = self.safe_value(response, 'error', {})
+                    message = self.safe_string(error, 'message')
+                    feedback = self.id + ' ' + body
+                    exact = self.exceptions['exact']
+                    if message in exact:
+                        raise exact[message](feedback)
+                    broad = self.exceptions['broad']
+                    broadKey = self.findBroadlyMatchedKey(broad, message)
+                    if broadKey is not None:
+                        raise broad[broadKey](feedback)
+                    if code == 400:
+                        raise BadRequest(feedback)
+                    raise ExchangeError(feedback)  # unknown message
 
     def nonce(self):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        query = '/api' + '/' + self.version + '/' + path
+        query = '/api/' + self.version + '/' + path
         if method != 'PUT':
             if params:
                 query += '?' + self.urlencode(params)
         url = self.urls['api'] + query
         if api == 'private':
             self.check_required_credentials()
+            auth = method + query
+            expires = self.safe_integer(self.options, 'api-expires')
             nonce = str(self.nonce())
-            auth = method + query + nonce
+            headers = {
+                'Content-Type': 'application/json',
+                'api-key': self.apiKey,
+            }
+            if expires is not None:
+                expires = self.sum(self.seconds(), expires)
+                expires = str(expires)
+                auth += expires
+                headers['api-expires'] = expires
+            else:
+                auth += nonce
+                headers['api-nonce'] = nonce
             if method == 'POST' or method == 'PUT':
                 if params:
                     body = self.json(params)
                     auth += body
-            headers = {
-                'Content-Type': 'application/json',
-                'api-nonce': nonce,
-                'api-key': self.apiKey,
-                'api-signature': self.hmac(self.encode(auth), self.encode(self.secret)),
-            }
+            headers['api-signature'] = self.hmac(self.encode(auth), self.encode(self.secret))
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

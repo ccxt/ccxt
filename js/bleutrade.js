@@ -21,17 +21,34 @@ module.exports = class bleutrade extends bittrex {
                 'fetchTickers': true,
                 'fetchOrders': true,
                 'fetchClosedOrders': true,
+                'fetchOrderTrades': true,
             },
+            'hostname': 'bleutrade.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
                 'api': {
-                    'public': 'https://bleutrade.com/api',
-                    'account': 'https://bleutrade.com/api',
-                    'market': 'https://bleutrade.com/api',
+                    'public': 'https://{hostname}/api',
+                    'account': 'https://{hostname}/api',
+                    'market': 'https://{hostname}/api',
                 },
                 'www': 'https://bleutrade.com',
                 'doc': 'https://bleutrade.com/help/API',
                 'fees': 'https://bleutrade.com/help/fees_and_deadlines',
+            },
+            'api': {
+                'account': {
+                    'get': [
+                        'balance',
+                        'balances',
+                        'depositaddress',
+                        'deposithistory',
+                        'order',
+                        'orders',
+                        'orderhistory',
+                        'withdrawhistory',
+                        'withdraw',
+                    ],
+                },
             },
             'fees': {
                 'funding': {
@@ -95,58 +112,10 @@ module.exports = class bleutrade extends bittrex {
             },
             'options': {
                 'parseOrderStatus': true,
+                'disableNonce': false,
+                'symbolSeparator': '_',
             },
         });
-    }
-
-    async fetchMarkets () {
-        let markets = await this.publicGetMarkets ();
-        let result = [];
-        for (let p = 0; p < markets['result'].length; p++) {
-            let market = markets['result'][p];
-            let id = market['MarketName'];
-            let baseId = market['MarketCurrency'];
-            let quoteId = market['BaseCurrency'];
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
-            let precision = {
-                'amount': 8,
-                'price': 8,
-            };
-            let active = this.safeString (market, 'IsActive');
-            if (active === 'true') {
-                active = true;
-            } else if (active === 'false') {
-                active = false;
-            }
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': active,
-                'info': market,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': market['MinTradeSize'],
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': 0,
-                        'max': undefined,
-                    },
-                },
-            });
-        }
-        return result;
     }
 
     parseOrderStatus (status) {
@@ -188,6 +157,13 @@ module.exports = class bleutrade extends bittrex {
         return 'orderid';
     }
 
+    parseSymbol (id) {
+        let [ base, quote ] = id.split (this.options['symbolSeparator']);
+        base = this.commonCurrencyCode (base);
+        quote = this.commonCurrencyCode (quote);
+        return base + '/' + quote;
+    }
+
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
@@ -201,5 +177,162 @@ module.exports = class bleutrade extends bittrex {
         if (!orderbook)
             throw new ExchangeError (this.id + ' publicGetOrderbook() returneded no result ' + this.json (response));
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // Currently we can't set the makerOrTaker field, but if the user knows the order side then it can be
+        // determined (if the side of the trade is different to the side of the order, then the trade is maker).
+        // Similarly, the correct 'side' for the trade is that of the order.
+        // The trade fee can be set by the user, it is always 0.25% and is taken in the quote currency.
+        await this.loadMarkets ();
+        let response = await this.accountGetOrderhistory ({ 'orderid': id });
+        let trades = this.parseTrades (response['result'], undefined, since, limit);
+        let result = [];
+        for (let i = 0; i < trades.length; i++) {
+            let trade = this.extend (trades[i], {
+                'order': id,
+            });
+            result.push (trade);
+        }
+        return result;
+    }
+
+    async fetchTransactionsByType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let method = (type === 'deposit') ? 'accountGetDeposithistory' : 'accountGetWithdrawhistory';
+        let response = await this[method] (params);
+        let result = this.parseTransactions (response['result']);
+        return this.filterByCurrencySinceLimit (result, code, since, limit);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType ('deposit', code, since, limit, params);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType ('withdrawal', code, since, limit, params);
+    }
+
+    parseTrade (trade, market = undefined) {
+        let timestamp = this.parse8601 (trade['TimeStamp'] + '+00:00');
+        let side = undefined;
+        if (trade['OrderType'] === 'BUY') {
+            side = 'buy';
+        } else if (trade['OrderType'] === 'SELL') {
+            side = 'sell';
+        }
+        let id = this.safeString (trade, 'TradeID');
+        let symbol = undefined;
+        if (market !== undefined)
+            symbol = market['symbol'];
+        let cost = undefined;
+        let price = this.safeFloat (trade, 'Price');
+        let amount = this.safeFloat (trade, 'Quantity');
+        if (amount !== undefined) {
+            if (price !== undefined) {
+                cost = price * amount;
+            }
+        }
+        return {
+            'id': id,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
+        };
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        //  deposit:
+        //
+        //     {
+        //         Id: '96974373',
+        //         Coin: 'DOGE',
+        //         Amount: '12.05752192',
+        //         TimeStamp: '2017-09-29 08:10:09',
+        //         Label: 'DQqSjjhzCm3ozT4vAevMUHgv4vsi9LBkoE',
+        //     }
+        //
+        // withdrawal:
+        //
+        //     {
+        //         Id: '98009125',
+        //         Coin: 'DOGE',
+        //         Amount: '-483858.64312050',
+        //         TimeStamp: '2017-11-22 22:29:05',
+        //         Label: '483848.64312050;DJVJZ58tJC8UeUv9Tqcdtn6uhWobouxFLT;10.00000000',
+        //         TransactionId: '8563105276cf798385fee7e5a563c620fea639ab132b089ea880d4d1f4309432',
+        //     }
+        //
+        //     {
+        //         "Id": "95820181",
+        //         "Coin": "BTC",
+        //         "Amount": "-0.71300000",
+        //         "TimeStamp": "2017-07-19 17:14:24",
+        //         "Label": "0.71200000;PER9VM2txt4BTdfyWgvv3GziECRdVEPN63;0.00100000",
+        //         "TransactionId": "CANCELED"
+        //     }
+        //
+        let id = this.safeString (transaction, 'Id');
+        let amount = this.safeFloat (transaction, 'Amount');
+        let type = 'deposit';
+        if (amount < 0) {
+            amount = Math.abs (amount);
+            type = 'withdrawal';
+        }
+        let currencyId = this.safeString (transaction, 'Coin');
+        let code = undefined;
+        currency = this.safeValue (this.currencies_by_id, currencyId);
+        if (currency !== undefined) {
+            code = currency['code'];
+        } else {
+            code = this.commonCurrencyCode (currencyId);
+        }
+        let label = this.safeString (transaction, 'Label');
+        let timestamp = this.parse8601 (this.safeString (transaction, 'TimeStamp'));
+        let txid = this.safeString (transaction, 'TransactionId');
+        let address = undefined;
+        let feeCost = undefined;
+        let labelParts = label.split (';');
+        if (labelParts.length === 3) {
+            amount = labelParts[0];
+            address = labelParts[1];
+            feeCost = labelParts[2];
+        } else {
+            address = label;
+        }
+        let fee = undefined;
+        if (feeCost !== undefined)
+            fee = {
+                'currency': code,
+                'cost': feeCost,
+            };
+        let status = 'ok';
+        if (txid === 'CANCELED') {
+            txid = undefined;
+            status = 'canceled';
+        }
+        return {
+            'info': transaction,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': undefined,
+            'status': status,
+            'type': type,
+            'updated': undefined,
+            'txid': txid,
+            'fee': fee,
+        };
     }
 };

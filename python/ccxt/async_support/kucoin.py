@@ -7,7 +7,6 @@ from ccxt.async_support.base.exchange import Exchange
 import base64
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -24,8 +23,8 @@ class kucoin (Exchange):
     def describe(self):
         return self.deep_extend(super(kucoin, self).describe(), {
             'id': 'kucoin',
-            'name': 'Kucoin',
-            'countries': ['HK'],  # Hong Kong
+            'name': 'KuCoin',
+            'countries': ['SC'],  # Republic of Seychelles
             'version': 'v1',
             'rateLimit': 2000,
             'userAgent': self.userAgents['chrome'],
@@ -43,6 +42,7 @@ class kucoin (Exchange):
                 'fetchMyTrades': 'emulated',  # self method is to be deleted, see implementation and comments below
                 'fetchCurrencies': True,
                 'withdraw': True,
+                'fetchTransactions': True,
             },
             'timeframes': {
                 '1m': 1,
@@ -55,7 +55,7 @@ class kucoin (Exchange):
                 '1w': 'W',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg',
                 'api': {
                     'public': 'https://api.kucoin.com',
                     'private': 'https://api.kucoin.com',
@@ -100,6 +100,7 @@ class kucoin (Exchange):
                         'account/{coin}/balance',
                         'account/promotion/info',
                         'account/promotion/sum',
+                        'account/transfer-records',
                         'deal-orders',
                         'order/active',
                         'order/active-map',
@@ -525,7 +526,7 @@ class kucoin (Exchange):
             'cost': float(self.fee_to_precision(symbol, cost)),
         }
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         response = await self.publicGetMarketOpenSymbols()
         if self.options['adjustForTimeDifference']:
             await self.load_time_difference()
@@ -586,6 +587,93 @@ class kucoin (Exchange):
             'address': address,
             'tag': tag,
             'info': response,
+        }
+
+    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        # https://kucoinapidocs.docs.apiary.io/#reference/0/assets-operation/list-deposit-&-withdrawal-records
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchDeposits requires a currency code argument')
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+        }
+        response = await self.privateGetAccountCoinWalletRecords(self.extend(request, params))
+        return self.parseTransactions(response['data']['datas'], currency, since, limit)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        #     {
+        #         'coinType': 'ETH',
+        #         'createdAt': 1516134636000,
+        #         'amount': 2.5,
+        #         'address': '0x4cd00e7983e54add886442d3b866f95243cf9b30',
+        #         'fee': 0.0,
+        #         'outerWalletTxid': '0x820cde65b1fab0a9527a5c2466b3e7807fee45c6a81691486bf954114b12c873@0x4cd00e7983e54add886442d3b866f95243cf9b30@eth',
+        #         'remark': None,
+        #         'oid': '5a5e60ecaf2c5807eda65443',
+        #         'confirmation': 14,
+        #         'type': 'DEPOSIT',
+        #         'status': 'SUCCESS',
+        #         'updatedAt': 1516134827000
+        #     }
+        #
+        #     {
+        #         'coinType':'POLY',
+        #         'createdAt':1520696078000,
+        #         'amount':838.2247,
+        #         'address':'0x54fc433e95549e68fa362eb85c235177d94a8745',
+        #         'fee':3.0,
+        #         'outerWalletTxid':'0x055da84b7557498785d6acecf2b71d0158fec32fce246e51f5c49b79826a8481',
+        #         'remark':None,
+        #         'oid':'5aa3fb0d7bd394763bde55c1',
+        #         'confirmation':0,
+        #         'type':'WITHDRAW',
+        #         'status':'SUCCESS',
+        #         'updatedAt':1520696196000
+        #     }
+        #
+        id = self.safe_string(transaction, 'oid')
+        txid = self.safe_string(transaction, 'outerWalletTxid')
+        if txid is not None:
+            if txid.find('@') >= 0:
+                parts = txid.split('@')
+                txid = parts[0]
+        timestamp = self.safe_integer(transaction, 'createdAt')
+        code = None
+        currencyId = self.safe_string(transaction, 'coinType')
+        currency = self.safe_value(self.currencies_by_id, currencyId)
+        if currency is not None:
+            code = currency['code']
+        else:
+            code = self.common_currency_code(currencyId)
+        address = self.safe_string(transaction, 'address')
+        tag = self.safe_string(transaction, 'remark')
+        amount = self.safe_float(transaction, 'amount')
+        status = self.safe_string(transaction, 'status')
+        type = self.safe_string(transaction, 'type')
+        if type is not None:
+            # they return 'DEPOSIT' or 'WITHDRAW', ccxt used 'deposit' or 'withdrawal'
+            type = 'deposit' if (type == 'DEPOSIT') else 'withdrawal'
+        feeCost = self.safe_float(transaction, 'fee')
+        updated = self.safe_integer(transaction, 'updatedAt')
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': tag,
+            'status': status,
+            'type': type,
+            'updated': updated,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+            },
         }
 
     async def fetch_currencies(self, params={}):
@@ -688,9 +776,7 @@ class kucoin (Exchange):
             side = order['type']
         if side is not None:
             side = side.lower()
-        orderId = self.safe_string(order, 'orderOid')
-        if orderId is None:
-            orderId = self.safe_string(order, 'oid')
+        orderId = self.safe_string_2(order, 'orderOid', 'oid')
         # do not confuse trades with orders
         trades = None
         if 'dealOrders' in order:
@@ -1096,8 +1182,8 @@ class kucoin (Exchange):
                 side = 'buy'
             elif trade[1] == 'SELL':
                 side = 'sell'
-            price = trade[2]
-            amount = trade[3]
+            price = self.safe_float(trade, 2)
+            amount = self.safe_float(trade, 3)
             id = trade[5]
         else:
             timestamp = self.safe_value(trade, 'createdAt')
@@ -1170,10 +1256,6 @@ class kucoin (Exchange):
         response = await self.privateGetDealOrders(self.extend(request, params))
         return self.parse_trades(response['data']['datas'], market, since, limit)
 
-    def parse_trading_view_ohlcv(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
-        result = self.convert_trading_view_to_ohlcv(ohlcvs)
-        return self.parse_ohlcvs(result, market, timeframe, since, limit)
-
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
@@ -1214,11 +1296,16 @@ class kucoin (Exchange):
         await self.load_markets()
         currency = self.currency(code)
         self.check_address(address)
-        response = await self.privatePostAccountCoinWithdrawApply(self.extend({
+        request = {
             'coin': currency['id'],
             'amount': amount,
             'address': address,
-        }, params))
+        }
+        # they don't have the tag properly documented for currencies that require it(XLM, XRP, ...)
+        # https://www.reddit.com/r/kucoin/comments/93o92b/withdraw_of_xlm_through_api/
+        if tag is not None:
+            request['address'] += '@' + tag
+        response = await self.privatePostAccountCoinWithdrawApply(self.extend(request, params))
         return {
             'info': response,
             'id': None,
@@ -1253,7 +1340,7 @@ class kucoin (Exchange):
                 url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def throw_exception_on_error(self, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         #
         # API endpoints return the following formats
         #     {success: False, code: "ERROR", msg: "Min price:100.0"}
@@ -1269,15 +1356,15 @@ class kucoin (Exchange):
         if response['success'] is True:
             return  # not an error
         if not('code' in list(response.keys())) or not('msg' in list(response.keys())):
-            raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
-        code = self.safe_string(response, 'code')
+            raise ExchangeError(self.id + ': malformed response: ' + body)
+        responseCode = self.safe_string(response, 'code')
         message = self.safe_string(response, 'msg')
-        feedback = self.id + ' ' + self.json(response)
-        if code == 'UNAUTH':
+        feedback = self.id + ' ' + body
+        if responseCode == 'UNAUTH':
             if message == 'Invalid nonce':
                 raise InvalidNonce(feedback)
             raise AuthenticationError(feedback)
-        elif code == 'ERROR':
+        elif responseCode == 'ERROR':
             if message.find('The precision of amount') >= 0:
                 raise InvalidOrder(feedback)  # amount violates precision.amount
             if message.find('Min amount each order') >= 0:
@@ -1288,15 +1375,7 @@ class kucoin (Exchange):
                 raise InvalidOrder(feedback)  # price > limits.price.max
             if message.find('The precision of price') >= 0:
                 raise InvalidOrder(feedback)  # price violates precision.price
-        elif code == 'NO_BALANCE':
+        elif responseCode == 'NO_BALANCE':
             if message.find('Insufficient balance') >= 0:
                 raise InsufficientFunds(feedback)
-        raise ExchangeError(self.id + ': unknown response: ' + self.json(response))
-
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
-        if response is not None:
-            # JS callchain parses body beforehand
-            self.throw_exception_on_error(response)
-        elif body and(body[0] == '{'):
-            # Python/PHP callchains don't have json available at self step
-            self.throw_exception_on_error(json.loads(body))
+        raise ExchangeError(self.id + ': unknown response: ' + body)

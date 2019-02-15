@@ -12,7 +12,6 @@ try:
 except NameError:
     basestring = str  # Python 2
 import hashlib
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -122,6 +121,7 @@ class liqui (Exchange):
                 'fetchOrderMethod': 'privatePostOrderInfo',
                 'fetchMyTradesMethod': 'privatePostTradeHistory',
                 'cancelOrderMethod': 'privatePostCancelOrder',
+                'fetchTickersMaxLength': 2048,
             },
         })
 
@@ -141,7 +141,7 @@ class liqui (Exchange):
             'cost': cost,
         }
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetInfo()
         markets = response['pairs']
         keys = list(markets.keys())
@@ -299,13 +299,14 @@ class liqui (Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        ids = None
+        ids = self.ids
         if symbols is None:
-            ids = '-'.join(self.ids)
-            # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if len(ids) > 2048:
-                numIds = len(self.ids)
-                raise ExchangeError(self.id + ' has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers')
+            numIds = len(ids)
+            ids = '-'.join(ids)
+            maxLength = self.safe_integer(self.options, 'fetchTickersMaxLength', 2048)
+            # max URL length is 2048 symbols, including http schema, hostname, tld, etc...
+            if len(ids) > self.options['fetchTickersMaxLength']:
+                raise ArgumentsRequired(self.id + ' has ' + str(numIds) + ' markets exceeding max URL length for self endpoint(' + str(maxLength) + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers')
         else:
             ids = self.market_ids(symbols)
             ids = '-'.join(ids)
@@ -631,14 +632,19 @@ class liqui (Exchange):
             trades = response['return']
         return self.parse_trades(trades, market, since, limit)
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
-        response = self.privatePostWithdrawCoin(self.extend({
-            'coinName': currency,
+        currency = self.currency(code)
+        request = {
+            'coinName': currency['id'],
             'amount': float(amount),
             'address': address,
-        }, params))
+        }
+        # no docs on the tag, yet...
+        if tag is not None:
+            raise ExchangeError(self.id + ' withdraw() does not support the tag argument yet due to a lack of docs on withdrawing with tag/memo on behalf of the exchange.')
+        response = self.privatePostWithdrawCoin(self.extend(request, params))
         return {
             'info': response,
             'id': response['return']['tId'],
@@ -687,55 +693,51 @@ class liqui (Exchange):
                     }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body):
-        if not isinstance(body, basestring):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+        if not self.is_json_encoded_object(body):
             return  # fallback to default error handler
-        if len(body) < 2:
-            return  # fallback to default error handler
-        if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
-            if 'success' in response:
-                #
-                # 1 - Liqui only returns the integer 'success' key from their private API
-                #
-                #     {"success": 1, ...} httpCode == 200
-                #     {"success": 0, ...} httpCode == 200
-                #
-                # 2 - However, exchanges derived from Liqui, can return non-integers
-                #
-                #     It can be a numeric string
-                #     {"sucesss": "1", ...}
-                #     {"sucesss": "0", ...}, httpCode >= 200(can be 403, 502, etc)
-                #
-                #     Or just a string
-                #     {"success": "true", ...}
-                #     {"success": "false", ...}, httpCode >= 200
-                #
-                #     Or a boolean
-                #     {"success": True, ...}
-                #     {"success": False, ...}, httpCode >= 200
-                #
-                # 3 - Oversimplified, Python PEP8 forbids comparison operator(==) of different types
-                #
-                # 4 - We do not want to copy-paste and duplicate the code of self handler to other exchanges derived from Liqui
-                #
-                # To cover points 1, 2, 3 and 4 combined self handler should work like self:
-                #
-                success = self.safe_value(response, 'success', False)
-                if isinstance(success, basestring):
-                    if (success == 'true') or (success == '1'):
-                        success = True
-                    else:
-                        success = False
-                if not success:
-                    code = self.safe_string(response, 'code')
-                    message = self.safe_string(response, 'error')
-                    feedback = self.id + ' ' + self.json(response)
-                    exact = self.exceptions['exact']
-                    if code in exact:
-                        raise exact[code](feedback)
-                    broad = self.exceptions['broad']
-                    broadKey = self.findBroadlyMatchedKey(broad, message)
-                    if broadKey is not None:
-                        raise broad[broadKey](feedback)
-                    raise ExchangeError(feedback)  # unknown message
+        if 'success' in response:
+            #
+            # 1 - Liqui only returns the integer 'success' key from their private API
+            #
+            #     {"success": 1, ...} httpCode == 200
+            #     {"success": 0, ...} httpCode == 200
+            #
+            # 2 - However, exchanges derived from Liqui, can return non-integers
+            #
+            #     It can be a numeric string
+            #     {"sucesss": "1", ...}
+            #     {"sucesss": "0", ...}, httpCode >= 200(can be 403, 502, etc)
+            #
+            #     Or just a string
+            #     {"success": "true", ...}
+            #     {"success": "false", ...}, httpCode >= 200
+            #
+            #     Or a boolean
+            #     {"success": True, ...}
+            #     {"success": False, ...}, httpCode >= 200
+            #
+            # 3 - Oversimplified, Python PEP8 forbids comparison operator(==) of different types
+            #
+            # 4 - We do not want to copy-paste and duplicate the code of self handler to other exchanges derived from Liqui
+            #
+            # To cover points 1, 2, 3 and 4 combined self handler should work like self:
+            #
+            success = self.safe_value(response, 'success', False)
+            if isinstance(success, basestring):
+                if (success == 'true') or (success == '1'):
+                    success = True
+                else:
+                    success = False
+            if not success:
+                code = self.safe_string(response, 'code')
+                message = self.safe_string(response, 'error')
+                feedback = self.id + ' ' + self.json(response)
+                exact = self.exceptions['exact']
+                if code in exact:
+                    raise exact[code](feedback)
+                broad = self.exceptions['broad']
+                broadKey = self.findBroadlyMatchedKey(broad, message)
+                if broadKey is not None:
+                    raise broad[broadKey](feedback)
+                raise ExchangeError(feedback)  # unknown message

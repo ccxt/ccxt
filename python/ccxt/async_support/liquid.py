@@ -5,11 +5,13 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import math
-import json
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
 
 
@@ -40,10 +42,12 @@ class liquid (Exchange):
                     'https://developers.quoine.com/v2',
                 ],
                 'fees': 'https://help.liquid.com/getting-started-with-liquid/the-platform/fee-structure',
+                'referral': 'https://www.liquid.com?affiliate=SbzC62lt30976',
             },
             'api': {
                 'public': {
                     'get': [
+                        'currencies',
                         'products',
                         'products/{id}',
                         'products/{id}/price_levels',
@@ -68,6 +72,7 @@ class liquid (Exchange):
                         'trades/{id}/loans',
                         'trading_accounts',
                         'trading_accounts/{id}',
+                        'transactions',
                     ],
                     'post': [
                         'fiat_accounts',
@@ -88,31 +93,120 @@ class liquid (Exchange):
             },
             'skipJsonOnStatusCodes': [401],
             'exceptions': {
-                'messages': {
-                    'API Authentication failed': AuthenticationError,
-                    'Nonce is too small': InvalidNonce,
-                    'Order not found': OrderNotFound,
-                    'user': {
-                        'not_enough_free_balance': InsufficientFunds,
-                    },
-                    'price': {
-                        'must_be_positive': InvalidOrder,
-                    },
-                    'quantity': {
-                        'less_than_order_size': InvalidOrder,
-                    },
-                },
+                'API rate limit exceeded. Please retry after 300s': DDoSProtection,
+                'API Authentication failed': AuthenticationError,
+                'Nonce is too small': InvalidNonce,
+                'Order not found': OrderNotFound,
+                'Can not update partially filled order': InvalidOrder,
+                'Can not update non-live order': OrderNotFound,
+                'not_enough_free_balance': InsufficientFunds,
+                'must_be_positive': InvalidOrder,
+                'less_than_order_size': InvalidOrder,
             },
             'commonCurrencies': {
                 'WIN': 'WCOIN',
             },
+            'options': {
+                'cancelOrderException': True,
+            },
         })
 
-    async def fetch_markets(self):
+    async def fetch_currencies(self, params={}):
+        response = await self.publicGetCurrencies(params)
+        #
+        #     [
+        #         {
+        #             currency_type: 'fiat',
+        #             currency: 'USD',
+        #             symbol: '$',
+        #             assets_precision: 2,
+        #             quoting_precision: 5,
+        #             minimum_withdrawal: '15.0',
+        #             withdrawal_fee: 5,
+        #             minimum_fee: null,
+        #             minimum_order_quantity: null,
+        #             display_precision: 2,
+        #             depositable: True,
+        #             withdrawable: True,
+        #             discount_fee: 0.5,
+        #         },
+        #     ]
+        #
+        result = {}
+        for i in range(0, len(response)):
+            currency = response[i]
+            id = self.safe_string(currency, 'currency')
+            code = self.common_currency_code(id)
+            active = currency['depositable'] and currency['withdrawable']
+            amountPrecision = self.safe_integer(currency, 'display_precision')
+            pricePrecision = self.safe_integer(currency, 'quoting_precision')
+            precision = max(amountPrecision, pricePrecision)
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': code,
+                'active': active,
+                'fee': self.safe_float(currency, 'withdrawal_fee'),
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': math.pow(10, -amountPrecision),
+                        'max': math.pow(10, amountPrecision),
+                    },
+                    'price': {
+                        'min': math.pow(10, -pricePrecision),
+                        'max': math.pow(10, pricePrecision),
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': self.safe_float(currency, 'minimum_withdrawal'),
+                        'max': None,
+                    },
+                },
+            }
+        return result
+
+    async def fetch_markets(self, params={}):
         markets = await self.publicGetProducts()
+        #
+        #     [
+        #         {
+        #             id: '7',
+        #             product_type: 'CurrencyPair',
+        #             code: 'CASH',
+        #             name: ' CASH Trading',
+        #             market_ask: 8865.79147,
+        #             market_bid: 8853.95988,
+        #             indicator: 1,
+        #             currency: 'SGD',
+        #             currency_pair_code: 'BTCSGD',
+        #             symbol: 'S$',
+        #             btc_minimum_withdraw: null,
+        #             fiat_minimum_withdraw: null,
+        #             pusher_channel: 'product_cash_btcsgd_7',
+        #             taker_fee: 0,
+        #             maker_fee: 0,
+        #             low_market_bid: '8803.25579',
+        #             high_market_ask: '8905.0',
+        #             volume_24h: '15.85443468',
+        #             last_price_24h: '8807.54625',
+        #             last_traded_price: '8857.77206',
+        #             last_traded_quantity: '0.00590974',
+        #             quoted_currency: 'SGD',
+        #             base_currency: 'BTC',
+        #             disabled: False,
+        #         },
+        #     ]
+        #
+        currencies = await self.fetch_currencies()
+        currenciesByCode = self.index_by(currencies, 'code')
         result = []
-        for p in range(0, len(markets)):
-            market = markets[p]
+        for i in range(0, len(markets)):
+            market = markets[i]
             id = str(market['id'])
             baseId = market['base_currency']
             quoteId = market['quoted_currency']
@@ -122,32 +216,38 @@ class liquid (Exchange):
             maker = self.safe_float(market, 'maker_fee')
             taker = self.safe_float(market, 'taker_fee')
             active = not market['disabled']
-            minAmount = None
-            minPrice = None
-            if base == 'BTC':
-                minAmount = 0.001
-            elif base == 'ETH':
-                minAmount = 0.01
-            if quote == 'BTC':
-                minPrice = 0.00000001
-            elif quote == 'ETH' or quote == 'USD' or quote == 'JPY':
-                minPrice = 0.00001
-            limits = {
-                'amount': {'min': minAmount},
-                'price': {'min': minPrice},
-                'cost': {'min': None},
+            baseCurrency = self.safe_value(currenciesByCode, base)
+            quoteCurrency = self.safe_value(currenciesByCode, quote)
+            precision = {
+                'amount': 8,
+                'price': 8,
             }
+            minAmount = None
+            if baseCurrency is not None:
+                minAmount = self.safe_float(baseCurrency['info'], 'minimum_order_quantity')
+                precision['amount'] = self.safe_integer(baseCurrency['info'], 'quoting_precision')
+            minPrice = None
+            if quoteCurrency is not None:
+                precision['price'] = self.safe_integer(quoteCurrency['info'], 'display_precision')
+                minPrice = math.pow(10, -precision['price'])
+            minCost = None
             if minPrice is not None:
                 if minAmount is not None:
-                    limits['cost']['min'] = minPrice * minAmount
-            precision = {
-                'amount': None,
-                'price': None,
+                    minCost = minPrice * minAmount
+            limits = {
+                'amount': {
+                    'min': minAmount,
+                    'max': None,
+                },
+                'price': {
+                    'min': minPrice,
+                    'max': None,
+                },
+                'cost': {
+                    'min': minCost,
+                    'max': None,
+                },
             }
-            if minAmount is not None:
-                precision['amount'] = -math.log10(minAmount)
-            if minPrice is not None:
-                precision['price'] = -math.log10(minPrice)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -177,7 +277,7 @@ class liquid (Exchange):
             total = float(balance['balance'])
             account = {
                 'free': total,
-                'used': 0.0,
+                'used': None,
                 'total': total,
             }
             result[code] = account
@@ -270,6 +370,7 @@ class liquid (Exchange):
         #       created_at:  1512345678,
         #          my_side: "buy"           }
         timestamp = trade['created_at'] * 1000
+        orderId = self.safe_string(trade, 'order_id')
         # 'taker_side' gets filled for both fetchTrades and fetchMyTrades
         takerSide = self.safe_string(trade, 'taker_side')
         # 'my_side' gets filled for fetchMyTrades only and may differ from 'taker_side'
@@ -278,18 +379,26 @@ class liquid (Exchange):
         takerOrMaker = None
         if mySide is not None:
             takerOrMaker = 'taker' if (takerSide == mySide) else 'maker'
+        cost = None
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'quantity')
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
         return {
             'info': trade,
             'id': str(trade['id']),
-            'order': None,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': None,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'quantity'),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -310,8 +419,10 @@ class liquid (Exchange):
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        # the `with_details` param is undocumented - it adds the order_id to the results
         request = {
             'product_id': market['id'],
+            'with_details': True,
         }
         if limit is not None:
             request['limit'] = limit
@@ -324,10 +435,10 @@ class liquid (Exchange):
             'order_type': type,
             'product_id': self.market_id(symbol),
             'side': side,
-            'quantity': amount,
+            'quantity': self.amount_to_precision(symbol, amount),
         }
         if type == 'limit':
-            order['price'] = price
+            order['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePostOrders(self.extend(order, params))
         return self.parse_order(response)
 
@@ -338,45 +449,85 @@ class liquid (Exchange):
         }, params))
         order = self.parse_order(result)
         if order['status'] == 'closed':
-            raise OrderNotFound(self.id + ' ' + self.json(order))
+            if self.options['cancelOrderException']:
+                raise OrderNotFound(self.id + ' order closed already: ' + self.json(result))
         return order
 
+    async def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+        await self.load_markets()
+        if price is None:
+            raise ArgumentsRequired(self.id + ' editOrder requires the price argument')
+        order = {
+            'order': {
+                'quantity': self.amount_to_precision(symbol, amount),
+                'price': self.price_to_precision(symbol, price),
+            },
+        }
+        result = await self.privatePutOrdersId(self.extend({
+            'id': id,
+        }, order))
+        return self.parse_order(result)
+
+    def parse_order_status(self, status):
+        statuses = {
+            'live': 'open',
+            'filled': 'closed',
+            'cancelled': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
+
     def parse_order(self, order, market=None):
-        timestamp = order['created_at'] * 1000
+        orderId = self.safe_string(order, 'id')
+        timestamp = self.safe_integer(order, 'created_at')
+        if timestamp is not None:
+            timestamp = timestamp * 1000
         marketId = self.safe_string(order, 'product_id')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        status = None
-        if 'status' in order:
-            if order['status'] == 'live':
-                status = 'open'
-            elif order['status'] == 'filled':
-                status = 'closed'
-            elif order['status'] == 'cancelled':  # 'll' intended
-                status = 'canceled'
+        market = self.safe_value(self.markets_by_id, marketId)
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         amount = self.safe_float(order, 'quantity')
         filled = self.safe_float(order, 'filled_quantity')
         price = self.safe_float(order, 'price')
         symbol = None
+        feeCurrency = None
         if market is not None:
             symbol = market['symbol']
+            feeCurrency = market['quote']
+        type = order['order_type']
+        executedQuantity = 0
+        totalValue = 0
+        averagePrice = self.safe_float(order, 'average_price')
+        trades = None
+        if 'executions' in order:
+            trades = self.parse_trades(self.safe_value(order, 'executions', []), market)
+            numTrades = len(trades)
+            for i in range(0, numTrades):
+                # php copies values upon assignment, but not references them
+                # todo rewrite self(shortly)
+                trade = trades[i]
+                trade['order'] = orderId
+                trade['type'] = type
+                executedQuantity += trade['amount']
+                totalValue += trade['cost']
+            if not averagePrice and(numTrades > 0) and(executedQuantity > 0):
+                averagePrice = totalValue / executedQuantity
+        cost = filled * averagePrice
         return {
-            'id': str(order['id']),
+            'id': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'type': order['order_type'],
+            'type': type,
             'status': status,
             'symbol': symbol,
             'side': order['side'],
             'price': price,
             'amount': amount,
             'filled': filled,
+            'cost': cost,
             'remaining': amount - filled,
-            'trades': None,
+            'trades': trades,
             'fee': {
-                'currency': None,
+                'currency': feeCurrency,
                 'cost': self.safe_float(order, 'order_fee'),
             },
             'info': order,
@@ -427,10 +578,7 @@ class liquid (Exchange):
             'X-Quoine-API-Version': self.version,
             'Content-Type': 'application/json',
         }
-        if api == 'public':
-            if query:
-                url += '?' + self.urlencode(query)
-        else:
+        if api == 'private':
             self.check_required_credentials()
             if method == 'GET':
                 if query:
@@ -445,42 +593,48 @@ class liquid (Exchange):
                 'iat': int(math.floor(nonce / 1000)),  # issued at
             }
             headers['X-Quoine-Auth'] = self.jwt(request, self.secret)
+        else:
+            if query:
+                url += '?' + self.urlencode(query)
         url = self.urls['api'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
-        if code >= 200 and code <= 299:
+    def handle_errors(self, code, reason, url, method, headers, body, response):
+        if code >= 200 and code < 300:
             return
-        messages = self.exceptions['messages']
+        exceptions = self.exceptions
         if code == 401:
             # expected non-json response
-            if body in messages:
-                raise messages[body](self.id + ' ' + body)
+            if body in exceptions:
+                raise exceptions[body](self.id + ' ' + body)
             else:
                 return
+        if code == 429:
+            raise DDoSProtection(self.id + ' ' + body)
         if response is None:
-            if (body[0] == '{') or (body[0] == '['):
-                response = json.loads(body)
-            else:
-                return
-        feedback = self.id + ' ' + self.json(response)
-        if code == 404:
-            # {"message": "Order not found"}
-            message = self.safe_string(response, 'message')
-            if message in messages:
-                raise messages[message](feedback)
-        elif code == 422:
-            # array of error messages is returned in 'user' or 'quantity' property of 'errors' object, e.g.:
-            # {"errors": {"user": ["not_enough_free_balance"]}}
-            # {"errors": {"quantity": ["less_than_order_size"]}}
-            if 'errors' in response:
-                errors = response['errors']
-                errorTypes = ['user', 'quantity', 'price']
-                for i in range(0, len(errorTypes)):
-                    errorType = errorTypes[i]
-                    if errorType in errors:
-                        errorMessages = errors[errorType]
-                        for j in range(0, len(errorMessages)):
-                            message = errorMessages[j]
-                            if message in messages[errorType]:
-                                raise messages[errorType][message](feedback)
+            return
+        feedback = self.id + ' ' + body
+        message = self.safe_string(response, 'message')
+        errors = self.safe_value(response, 'errors')
+        if message is not None:
+            #
+            #  {"message": "Order not found"}
+            #
+            if message in exceptions:
+                raise exceptions[message](feedback)
+        elif errors is not None:
+            #
+            #  {"errors": {"user": ["not_enough_free_balance"]}}
+            #  {"errors": {"quantity": ["less_than_order_size"]}}
+            #  {"errors": {"order": ["Can not update partially filled order"]}}
+            #
+            types = list(errors.keys())
+            for i in range(0, len(types)):
+                type = types[i]
+                errorMessages = errors[type]
+                for j in range(0, len(errorMessages)):
+                    message = errorMessages[j]
+                    if message in exceptions:
+                        raise exceptions[message](feedback)
+        else:
+            raise ExchangeError(feedback)

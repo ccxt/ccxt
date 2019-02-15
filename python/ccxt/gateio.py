@@ -13,7 +13,6 @@ except NameError:
     basestring = str  # Python 2
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
@@ -44,6 +43,7 @@ class gateio (Exchange):
                 'fetchOrderTrades': True,
                 'fetchOrders': True,
                 'fetchOrder': True,
+                'fetchMyTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
@@ -57,6 +57,7 @@ class gateio (Exchange):
                     'https://gate.io/fee',
                     'https://support.gate.io/hc/en-us/articles/115003577673',
                 ],
+                'referral': 'https://www.gate.io/signup/2436035',
             },
             'api': {
                 'public': {
@@ -144,7 +145,7 @@ class gateio (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetMarketinfo()
         markets = self.safe_value(response, 'pairs')
         if not markets:
@@ -155,9 +156,9 @@ class gateio (Exchange):
             keys = list(market.keys())
             id = keys[0]
             details = market[id]
-            base, quote = id.split('_')
-            base = base.upper()
-            quote = quote.upper()
+            baseId, quoteId = id.split('_')
+            base = baseId.upper()
+            quote = quoteId.upper()
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
@@ -190,6 +191,8 @@ class gateio (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
                 'active': active,
                 'maker': details['fee'] / 100,
@@ -263,16 +266,15 @@ class gateio (Exchange):
             'info': ticker,
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if len(body) <= 0:
             return
         if body[0] != '{':
             return
-        jsonbodyParsed = json.loads(body)
-        resultString = self.safe_string(jsonbodyParsed, 'result', '')
+        resultString = self.safe_string(response, 'result', '')
         if resultString != 'false':
             return
-        errorCode = self.safe_string(jsonbodyParsed, 'code')
+        errorCode = self.safe_string(response, 'code')
         if errorCode is not None:
             exceptions = self.exceptions
             errorCodeNames = self.errorCodeNames
@@ -281,7 +283,7 @@ class gateio (Exchange):
                 if errorCode in errorCodeNames:
                     message = errorCodeNames[errorCode]
                 else:
-                    message = self.safe_string(jsonbodyParsed, 'message', '(unknown)')
+                    message = self.safe_string(response, 'message', '(unknown)')
                 raise exceptions[errorCode](message)
 
     def fetch_tickers(self, symbols=None, params={}):
@@ -528,14 +530,18 @@ class gateio (Exchange):
         response = self.privatePostTradeHistory(self.extend({'currencyPair': id}, params))
         return self.parse_trades(response['trades'], market, since, limit)
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
-        response = self.privatePostWithdraw(self.extend({
-            'currency': currency.lower(),
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
             'amount': amount,
             'address': address,  # Address must exist in you AddressBook in security settings
-        }, params))
+        }
+        if tag is not None:
+            request['address'] += ' ' + tag
+        response = self.privatePostWithdraw(self.extend(request, params))
         return {
             'info': response,
             'id': None,

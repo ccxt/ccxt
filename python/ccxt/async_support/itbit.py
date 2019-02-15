@@ -253,9 +253,9 @@ class itbit (Exchange):
         walletIdInParams = ('walletId' in list(params.keys()))
         if not walletIdInParams:
             raise ExchangeError(self.id + ' fetchOrder requires a walletId parameter')
-        return await self.privateGetWalletsWalletIdOrdersId(self.extend({
-            'id': id,
-        }, params))
+        request = {'id': id}
+        response = await self.privateGetWalletsWalletIdOrdersId(self.extend(request, params))
+        return self.parse_order(response)
 
     async def cancel_order(self, id, symbol=None, params={}):
         walletIdInParams = ('walletId' in list(params.keys()))
@@ -281,7 +281,8 @@ class itbit (Exchange):
             auth = [method, url, body, nonce, timestamp]
             message = nonce + self.json(auth).replace('\\/', '/')
             hash = self.hash(self.encode(message), 'sha256', 'binary')
-            binhash = self.binary_concat(url, hash)
+            binaryUrl = self.encode(url)
+            binhash = self.binary_concat(binaryUrl, hash)
             signature = self.hmac(binhash, self.encode(self.secret), hashlib.sha512, 'base64')
             headers = {
                 'Authorization': self.apiKey + ':' + signature,

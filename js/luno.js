@@ -13,7 +13,7 @@ module.exports = class luno extends Exchange {
             'id': 'luno',
             'name': 'luno',
             'countries': [ 'GB', 'SG', 'ZA' ],
-            'rateLimit': 10000,
+            'rateLimit': 1000,
             'version': '1',
             'has': {
                 'CORS': false,
@@ -82,7 +82,7 @@ module.exports = class luno extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetTickers ();
         let result = [];
         for (let p = 0; p < markets['tickers'].length; p++) {

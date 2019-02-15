@@ -67,7 +67,7 @@ class coinfalcon (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         response = self.publicGetMarkets()
         markets = response['data']
         result = []
@@ -135,17 +135,17 @@ class coinfalcon (Exchange):
             'change': float(ticker['change_in_24h']),
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['volume']),
-            'quoteVolume': None,
+            'baseVolume': None,
+            'quoteVolume': float(ticker['volume']),
             'info': ticker,
         }
 
     def fetch_ticker(self, symbol, params={}):
-        self.load_markets()
         tickers = self.fetch_tickers(params)
         return tickers[symbol]
 
     def fetch_tickers(self, symbols=None, params={}):
+        self.load_markets()
         response = self.publicGetMarkets()
         tickers = response['data']
         result = {}
@@ -332,7 +332,7 @@ class coinfalcon (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if code < 400:
             return
         ErrorClass = self.safe_value({

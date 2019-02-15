@@ -35,7 +35,7 @@ class coingi (Exchange):
                     'user': 'https://api.coingi.com',
                 },
                 'www': 'https://coingi.com',
-                'doc': 'http://docs.coingi.apiary.io/',
+                'doc': 'https://coingi.docs.apiary.io',
             },
             'api': {
                 'www': {
@@ -97,15 +97,8 @@ class coingi (Exchange):
             },
         })
 
-    async def fetch_markets(self):
-        response = None
-        try:
-            self.parseJsonResponse = False
-            response = await self.wwwGet()
-            self.parseJsonResponse = True
-        except Exception as e:
-            self.parseJsonResponse = True
-            raise e
+    async def fetch_markets(self, params={}):
+        response = await self.wwwGet()
         parts = response.split('do=currencyPairSelector-selectCurrencyPair" class="active">')
         currencyParts = parts[1].split('<div class="currency-pair-label">')
         result = []

@@ -1,0 +1,22 @@
+version: '2.1'
+services:
+
+  # Runs a CCXT build & test environment with all the required dependencies installed:
+  #
+  #     docker-compose run --rm ccxt
+  #
+  ccxt:
+    build:
+      context: .
+    volumes:
+      - .:/ccxt
+      - /ccxt/node_modules/ # Prevents exposing container's node_modules to the host filesystem
+    entrypoint: /bin/bash
+    stdin_open: true
+    tty: true
+    environment:
+      # NB: default values (they're blank here) — if you don't use the ${VAR:-default} syntax, Docker will be blaming about env vars not set..
+      - API_KEY="${API_KEY:-}"
+      - SECRET="${SECRET:-}"
+      - WALLET_ADDRESS="${WALLET_ADDRESS:-}"
+      - PRIVATE_KEY="${PRIVATE_KEY:-}"

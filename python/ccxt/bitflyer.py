@@ -31,7 +31,7 @@ class bitflyer (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
                 'api': 'https://api.bitflyer.jp',
                 'www': 'https://bitflyer.jp',
-                'doc': 'https://bitflyer.jp/API',
+                'doc': 'https://lightning.bitflyer.com/docs?lang=en',
             },
             'api': {
                 'public': {
@@ -51,6 +51,7 @@ class bitflyer (Exchange):
                     'get': [
                         'getpermissions',
                         'getbalance',
+                        'getbalancehistory',
                         'getcollateral',
                         'getcollateralaccounts',
                         'getaddresses',
@@ -85,7 +86,7 @@ class bitflyer (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         jp_markets = self.publicGetGetmarkets()
         us_markets = self.publicGetGetmarketsUsa()
         eu_markets = self.publicGetGetmarketsEu()
@@ -203,6 +204,8 @@ class bitflyer (Exchange):
         if order is None:
             order = self.safe_string(trade, 'child_order_acceptance_id')
         timestamp = self.parse8601(trade['exec_date'])
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'size')
         return {
             'id': str(trade['id']),
             'info': trade,
@@ -212,8 +215,8 @@ class bitflyer (Exchange):
             'order': order,
             'type': None,
             'side': side,
-            'price': trade['price'],
-            'amount': trade['size'],
+            'price': price,
+            'amount': amount,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, DDoSProtection } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -11,7 +11,7 @@ module.exports = class coinbase extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinbase',
-            'name': 'coinbase',
+            'name': 'Coinbase',
             'countries': [ 'US' ],
             'rateLimit': 400, // 10k calls per hour
             'version': 'v2',
@@ -35,6 +35,7 @@ module.exports = class coinbase extends Exchange {
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
                 'fetchOrderBook': false,
+                'fetchL2OrderBook': false,
                 'fetchOrders': false,
                 'fetchTicker': true,
                 'fetchTickers': false,
@@ -42,8 +43,10 @@ module.exports = class coinbase extends Exchange {
                 'fetchTrades': false,
                 'withdraw': false,
                 'fetchTransactions': false,
-                'fetchDeposits': false,
-                'fetchWithdrawals': false,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
+                'fetchMySells': true,
+                'fetchMyBuys': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg',
@@ -156,6 +159,268 @@ module.exports = class coinbase extends Exchange {
         let response = await this.publicGetTime ();
         let data = response['data'];
         return this.parse8601 (data['iso']);
+    }
+
+    async loadAccounts (reload = false, params = {}) {
+        if (reload) {
+            this.accounts = await this.fetchAccounts ();
+        } else {
+            if (this.accounts) {
+                return this.accounts;
+            } else {
+                this.accounts = await this.fetchAccounts ();
+                this.accountsById = this.indexBy (this.accounts, 'id');
+            }
+        }
+        return this.accounts;
+    }
+
+    async fetchAccounts (params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privateGetAccounts (params);
+        return response['data'];
+    }
+
+    async fetchMySells (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // they don't have an endpoint for all historical trades
+        const accountId = this.safeString2 (params, 'account_id', 'accountId');
+        if (accountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires an account_id or accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.');
+        }
+        await this.loadMarkets ();
+        const query = this.omit (params, [ 'account_id', 'accountId' ]);
+        const sells = await this.privateGetAccountsAccountIdSells (this.extend ({
+            'account_id': accountId,
+        }, query));
+        return this.parseTrades (sells['data'], undefined, since, limit);
+    }
+
+    async fetchMyBuys (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // they don't have an endpoint for all historical trades
+        const accountId = this.safeString2 (params, 'account_id', 'accountId');
+        if (accountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires an account_id or accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.');
+        }
+        await this.loadMarkets ();
+        const query = this.omit (params, [ 'account_id', 'accountId' ]);
+        const buys = await this.privateGetAccountsAccountIdBuys (this.extend ({
+            'account_id': accountId,
+        }, query));
+        return this.parseTrades (buys['data'], undefined, since, limit);
+    }
+
+    async fetchTransactionsWithMethod (method, code = undefined, since = undefined, limit = undefined, params = {}) {
+        const accountId = this.safeString2 (params, 'account_id', 'accountId');
+        if (accountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTransactionsWithMethod requires an account_id or accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.');
+        }
+        await this.loadMarkets ();
+        const query = this.omit (params, [ 'account_id', 'accountId' ]);
+        const response = await this[method] (this.extend ({
+            'account_id': accountId,
+        }, query));
+        return this.parseTransactions (response['data'], undefined, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsWithMethod ('privateGetAccountsAccountIdWithdrawals', code, since, limit, params);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsWithMethod ('privateGetAccountsAccountIdDeposits', code, since, limit, params);
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'created': 'pending',
+            'completed': 'ok',
+            'canceled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, market = undefined) {
+        //
+        //    DEPOSIT
+        //        id: '406176b1-92cf-598f-ab6e-7d87e4a6cac1',
+        //        status: 'completed',
+        //        payment_method: [Object],
+        //        transaction: [Object],
+        //        user_reference: 'JQKBN85B',
+        //        created_at: '2018-10-01T14:58:21Z',
+        //        updated_at: '2018-10-01T17:57:27Z',
+        //        resource: 'deposit',
+        //        resource_path: '/v2/accounts/7702be4f-de96-5f08-b13b-32377c449ecf/deposits/406176b1-92cf-598f-ab6e-7d87e4a6cac1',
+        //        committed: true,
+        //        payout_at: '2018-10-01T14:58:34Z',
+        //        instant: true,
+        //        fee: [Object],
+        //        amount: [Object],
+        //        subtotal: [Object],
+        //        hold_until: '2018-10-04T07:00:00Z',
+        //        hold_days: 3
+        //
+        //    WITHDRAWAL
+        //       {
+        //           "id": "67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //           "status": "completed",
+        //           "payment_method": {
+        //             "id": "83562370-3e5c-51db-87da-752af5ab9559",
+        //             "resource": "payment_method",
+        //             "resource_path": "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
+        //           },
+        //           "transaction": {
+        //             "id": "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
+        //             "resource": "transaction",
+        //             "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
+        //           },
+        //           "amount": {
+        //             "amount": "10.00",
+        //             "currency": "USD"
+        //           },
+        //           "subtotal": {
+        //             "amount": "10.00",
+        //             "currency": "USD"
+        //           },
+        //           "created_at": "2015-01-31T20:49:02Z",
+        //           "updated_at": "2015-02-11T16:54:02-08:00",
+        //           "resource": "withdrawal",
+        //           "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/withdrawals/67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //           "committed": true,
+        //           "fee": {
+        //             "amount": "0.00",
+        //             "currency": "USD"
+        //           },
+        //           "payout_at": "2015-02-18T16:54:00-08:00"
+        //         }
+        let amountObject = this.safeValue (transaction, 'amount', {});
+        let feeObject = this.safeValue (transaction, 'fee', {});
+        let id = this.safeString (transaction, 'id');
+        let timestamp = this.parse8601 (this.safeValue (transaction, 'created_at'));
+        let updated = this.parse8601 (this.safeValue (transaction, 'updated_at'));
+        let orderId = undefined;
+        let type = this.safeString (transaction, 'resource');
+        let amount = this.safeFloat (amountObject, 'amount');
+        let currencyId = this.safeString (amountObject, 'currency');
+        let currency = this.commonCurrencyCode (currencyId);
+        let feeCost = this.safeFloat (feeObject, 'amount');
+        let feeCurrencyId = this.safeString (feeObject, 'currency');
+        let feeCurrency = this.commonCurrencyCode (feeCurrencyId);
+        let fee = {
+            'cost': feeCost,
+            'currency': feeCurrency,
+        };
+        let status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        if (status === undefined) {
+            let committed = this.safeValue (transaction, 'committed');
+            status = committed ? 'ok' : 'pending';
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': id,
+            'order': orderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': undefined,
+            'tag': undefined,
+            'type': type,
+            'amount': amount,
+            'currency': currency,
+            'status': status,
+            'updated': updated,
+            'fee': fee,
+        };
+    }
+
+    parseTrade (trade, market = undefined) {
+        //
+        //     {
+        //       "id": "67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //       "status": "completed",
+        //       "payment_method": {
+        //         "id": "83562370-3e5c-51db-87da-752af5ab9559",
+        //         "resource": "payment_method",
+        //         "resource_path": "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
+        //       },
+        //       "transaction": {
+        //         "id": "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
+        //         "resource": "transaction",
+        //         "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
+        //       },
+        //       "amount": {
+        //         "amount": "1.00000000",
+        //         "currency": "BTC"
+        //       },
+        //       "total": {
+        //         "amount": "10.25",
+        //         "currency": "USD"
+        //       },
+        //       "subtotal": {
+        //         "amount": "10.10",
+        //         "currency": "USD"
+        //       },
+        //       "created_at": "2015-01-31T20:49:02Z",
+        //       "updated_at": "2015-02-11T16:54:02-08:00",
+        //       "resource": "buy",
+        //       "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/buys/67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //       "committed": true,
+        //       "instant": false,
+        //       "fee": {
+        //         "amount": "0.15",
+        //         "currency": "USD"
+        //       },
+        //       "payout_at": "2015-02-18T16:54:00-08:00"
+        //     }
+        //
+        let symbol = undefined;
+        let totalObject = this.safeValue (trade, 'total', {});
+        let amountObject = this.safeValue (trade, 'amount', {});
+        let subtotalObject = this.safeValue (trade, 'subtotal', {});
+        let feeObject = this.safeValue (trade, 'fee', {});
+        let id = this.safeString (trade, 'id');
+        let timestamp = this.parse8601 (this.safeValue (trade, 'created_at'));
+        if (market === undefined) {
+            let baseId = this.safeString (totalObject, 'currency');
+            let quoteId = this.safeString (amountObject, 'currency');
+            if ((baseId !== undefined) && (quoteId !== undefined)) {
+                let base = this.commonCurrencyCode (baseId);
+                let quote = this.commonCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        let orderId = undefined;
+        let side = this.safeString (trade, 'resource');
+        let type = undefined;
+        let cost = this.safeFloat (subtotalObject, 'amount');
+        let amount = this.safeFloat (amountObject, 'amount');
+        let price = undefined;
+        if (cost !== undefined) {
+            if (amount !== undefined) {
+                price = cost / amount;
+            }
+        }
+        let feeCost = this.safeFloat (feeObject, 'amount');
+        let feeCurrencyId = this.safeString (feeObject, 'currency');
+        let feeCurrency = this.commonCurrencyCode (feeCurrencyId);
+        let fee = {
+            'cost': feeCost,
+            'currency': feeCurrency,
+        };
+        return {
+            'info': trade,
+            'id': id,
+            'order': orderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        };
     }
 
     async fetchCurrencies (params = {}) {
@@ -301,13 +566,12 @@ module.exports = class coinbase extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if (typeof body !== 'string')
             return; // fallback to default error handler
         if (body.length < 2)
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
-            let response = JSON.parse (body);
             let feedback = this.id + ' ' + body;
             //
             //    {"error": "invalid_request", "error_description": "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed."}

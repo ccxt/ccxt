@@ -29,7 +29,7 @@ class bitflyer extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
                 'api' => 'https://api.bitflyer.jp',
                 'www' => 'https://bitflyer.jp',
-                'doc' => 'https://bitflyer.jp/API',
+                'doc' => 'https://lightning.bitflyer.com/docs?lang=en',
             ),
             'api' => array (
                 'public' => array (
@@ -49,6 +49,7 @@ class bitflyer extends Exchange {
                     'get' => array (
                         'getpermissions',
                         'getbalance',
+                        'getbalancehistory',
                         'getcollateral',
                         'getcollateralaccounts',
                         'getaddresses',
@@ -84,7 +85,7 @@ class bitflyer extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $jp_markets = $this->publicGetGetmarkets ();
         $us_markets = $this->publicGetGetmarketsUsa ();
         $eu_markets = $this->publicGetGetmarketsEu ();
@@ -213,6 +214,8 @@ class bitflyer extends Exchange {
         if ($order === null)
             $order = $this->safe_string($trade, 'child_order_acceptance_id');
         $timestamp = $this->parse8601 ($trade['exec_date']);
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'size');
         return array (
             'id' => (string) $trade['id'],
             'info' => $trade,
@@ -222,8 +225,8 @@ class bitflyer extends Exchange {
             'order' => $order,
             'type' => null,
             'side' => $side,
-            'price' => $trade['price'],
-            'amount' => $trade['size'],
+            'price' => $price,
+            'amount' => $amount,
         );
     }
 

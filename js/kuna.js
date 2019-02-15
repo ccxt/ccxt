@@ -56,46 +56,29 @@ module.exports = class kuna extends acx {
         });
     }
 
-    async fetchMarkets () {
-        let predefinedMarkets = [
-            { 'id': 'btcuah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'baseId': 'btc', 'quoteId': 'uah', 'precision': { 'amount': 6, 'price': 0 }, 'limits': { 'amount': { 'min': 0.000001, 'max': undefined }, 'price': { 'min': 1, 'max': undefined }, 'cost': { 'min': 0.000001, 'max': undefined }}},
-            { 'id': 'ethuah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH', 'baseId': 'eth', 'quoteId': 'uah', 'precision': { 'amount': 6, 'price': 0 }, 'limits': { 'amount': { 'min': 0.000001, 'max': undefined }, 'price': { 'min': 1, 'max': undefined }, 'cost': { 'min': 0.000001, 'max': undefined }}},
-            { 'id': 'gbguah', 'symbol': 'GBG/UAH', 'base': 'GBG', 'quote': 'UAH', 'baseId': 'gbg', 'quoteId': 'uah', 'precision': { 'amount': 3, 'price': 2 }, 'limits': { 'amount': { 'min': 0.001, 'max': undefined }, 'price': { 'min': 0.01, 'max': undefined }, 'cost': { 'min': 0.000001, 'max': undefined }}}, // Golos Gold (GBG != GOLOS)
-            { 'id': 'kunbtc', 'symbol': 'KUN/BTC', 'base': 'KUN', 'quote': 'BTC', 'baseId': 'kun', 'quoteId': 'btc', 'precision': { 'amount': 6, 'price': 6 }, 'limits': { 'amount': { 'min': 0.000001, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.000001, 'max': undefined }}},
-            { 'id': 'bchbtc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'baseId': 'bch', 'quoteId': 'btc', 'precision': { 'amount': 6, 'price': 6 }, 'limits': { 'amount': { 'min': 0.000001, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.000001, 'max': undefined }}},
-            { 'id': 'bchuah', 'symbol': 'BCH/UAH', 'base': 'BCH', 'quote': 'UAH', 'baseId': 'bch', 'quoteId': 'uah', 'precision': { 'amount': 6, 'price': 0 }, 'limits': { 'amount': { 'min': 0.000001, 'max': undefined }, 'price': { 'min': 1, 'max': undefined }, 'cost': { 'min': 0.000001, 'max': undefined }}},
-            { 'id': 'wavesuah', 'symbol': 'WAVES/UAH', 'base': 'WAVES', 'quote': 'UAH', 'baseId': 'waves', 'quoteId': 'uah', 'precision': { 'amount': 6, 'price': 0 }, 'limits': { 'amount': { 'min': 0.000001, 'max': undefined }, 'price': { 'min': 1, 'max': undefined }, 'cost': { 'min': 0.000001, 'max': undefined }}},
-            { 'id': 'arnbtc', 'symbol': 'ARN/BTC', 'base': 'ARN', 'quote': 'BTC', 'baseId': 'arn', 'quoteId': 'btc' },
-            { 'id': 'b2bbtc', 'symbol': 'B2B/BTC', 'base': 'B2B', 'quote': 'BTC', 'baseId': 'b2b', 'quoteId': 'btc' },
-            { 'id': 'evrbtc', 'symbol': 'EVR/BTC', 'base': 'EVR', 'quote': 'BTC', 'baseId': 'evr', 'quoteId': 'btc' },
-            { 'id': 'golgbg', 'symbol': 'GOL/GBG', 'base': 'GOL', 'quote': 'GBG', 'baseId': 'gol', 'quoteId': 'gbg' },
-            { 'id': 'rbtc', 'symbol': 'R/BTC', 'base': 'R', 'quote': 'BTC', 'baseId': 'r', 'quoteId': 'btc' },
-            { 'id': 'rmcbtc', 'symbol': 'RMC/BTC', 'base': 'RMC', 'quote': 'BTC', 'baseId': 'rmc', 'quoteId': 'btc' },
-        ];
+    async fetchMarkets (params = {}) {
+        const quotes = [ 'btc', 'eth', 'eurs', 'gbg', 'uah' ];
+        const pricePrecisions = {
+            'UAH': 0,
+        };
         let markets = [];
         let tickers = await this.publicGetTickers ();
-        for (let i = 0; i < predefinedMarkets.length; i++) {
-            let market = predefinedMarkets[i];
-            if (market['id'] in tickers)
-                markets.push (market);
-        }
-        let marketsById = this.indexBy (markets, 'id');
         let ids = Object.keys (tickers);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            if (!(id in marketsById)) {
-                let baseId = id.replace ('btc', '');
-                baseId = baseId.replace ('uah', '');
-                baseId = baseId.replace ('gbg', '');
-                baseId = baseId.replace ('eth', '');
-                if (baseId.length > 0) {
-                    let baseIdLength = baseId.length - 0; // a transpiler workaround
-                    let quoteId = id.slice (baseIdLength);
+            for (let j = 0; j < quotes.length; j++) {
+                let quoteId = quotes[j];
+                if (id.indexOf (quoteId) > 0) {
+                    let baseId = id.replace (quoteId, '');
                     let base = baseId.toUpperCase ();
                     let quote = quoteId.toUpperCase ();
                     base = this.commonCurrencyCode (base);
                     quote = this.commonCurrencyCode (quote);
                     let symbol = base + '/' + quote;
+                    let precision = {
+                        'amount': 6,
+                        'price': this.safeInteger (pricePrecisions, quote, 6),
+                    };
                     markets.push ({
                         'id': id,
                         'symbol': symbol,
@@ -103,20 +86,27 @@ module.exports = class kuna extends acx {
                         'quote': quote,
                         'baseId': baseId,
                         'quoteId': quoteId,
+                        'precision': precision,
+                        'limits': {
+                            'amount': {
+                                'min': Math.pow (10, -precision['amount']),
+                                'max': Math.pow (10, precision['amount']),
+                            },
+                            'price': {
+                                'min': Math.pow (10, -precision['price']),
+                                'max': Math.pow (10, precision['price']),
+                            },
+                            'cost': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                        },
                     });
+                    break;
                 }
             }
         }
         return markets;
-    }
-
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let orderBook = await this.publicGetOrderBook (this.extend ({
-            'market': market['id'],
-        }, params));
-        return this.parseOrderBook (orderBook, undefined, 'bids', 'asks', 'price', 'remaining_volume');
     }
 
     async fetchL3OrderBook (symbol, limit = undefined, params = {}) {

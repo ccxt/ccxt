@@ -115,6 +115,7 @@ class coinmarketcap (Exchange):
             'Global Tour Coin': 'Global Tour Coin',  # conflict with GTC(Game.com)
             'GuccioneCoin': 'GuccioneCoin',  # conflict with GCC(Global Cryptocurrency)
             'HarmonyCoin': 'HarmonyCoin',  # conflict with HMC(Hi Mutual Society)
+            'Harvest Masternode Coin': 'Harvest Masternode Coin',  # conflict with HC(HyperCash)
             'Hydro Protocol': 'Hydro Protocol',  # conflict with HOT(Holo)
             'Huncoin': 'Huncoin',  # conflict with HNC(Helleniccoin)
             'iCoin': 'iCoin',
@@ -133,7 +134,7 @@ class coinmarketcap (Exchange):
             return currencies[name]
         return base
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetTicker({
             'limit': 0,
         })
@@ -203,8 +204,8 @@ class coinmarketcap (Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
-            'percentage': None,
+            'change': None,
+            'percentage': change,
             'average': None,
             'baseVolume': None,
             'quoteVolume': volume,

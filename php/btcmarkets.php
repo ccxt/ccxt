@@ -41,6 +41,8 @@ class btcmarkets extends Exchange {
                         'market/{id}/tick',
                         'market/{id}/orderbook',
                         'market/{id}/trades',
+                        'v2/market/{id}/tickByTime/{timeframe}',
+                        'v2/market/{id}/trades',
                         'v2/market/active',
                     ),
                 ),
@@ -48,6 +50,11 @@ class btcmarkets extends Exchange {
                     'get' => array (
                         'account/balance',
                         'account/{id}/tradingfee',
+                        'v2/order/open',
+                        'v2/order/open/{id}',
+                        'v2/order/history/{id}',
+                        'v2/order/trade/history/{id}',
+                        'v2/transaction/history/{currency}',
                     ),
                     'post' => array (
                         'fundtransfer/withdrawCrypto',
@@ -79,7 +86,7 @@ class btcmarkets extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetV2MarketActive ();
         $result = array ();
         $markets = $response['markets'];
@@ -483,11 +490,10 @@ class btcmarkets extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (strlen ($body) < 2)
             return; // fallback to default $error handler
         if ($body[0] === '{') {
-            $response = json_decode ($body, $as_associative_array = true);
             if (is_array ($response) && array_key_exists ('success', $response)) {
                 if (!$response['success']) {
                     $error = $this->safe_string($response, 'errorCode');

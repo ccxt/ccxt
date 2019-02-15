@@ -116,6 +116,7 @@ class coinmarketcap extends Exchange {
             'Global Tour Coin' => 'Global Tour Coin', // conflict with GTC (Game.com)
             'GuccioneCoin' => 'GuccioneCoin', // conflict with GCC (Global Cryptocurrency)
             'HarmonyCoin' => 'HarmonyCoin', // conflict with HMC (Hi Mutual Society)
+            'Harvest Masternode Coin' => 'Harvest Masternode Coin', // conflict with HC (HyperCash)
             'Hydro Protocol' => 'Hydro Protocol', // conflict with HOT (Holo)
             'Huncoin' => 'Huncoin', // conflict with HNC (Helleniccoin)
             'iCoin' => 'iCoin',
@@ -135,7 +136,7 @@ class coinmarketcap extends Exchange {
         return $base;
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetTicker (array (
             'limit' => 0,
         ));
@@ -210,8 +211,8 @@ class coinmarketcap extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => null,
+            'change' => null,
+            'percentage' => $change,
             'average' => null,
             'baseVolume' => null,
             'quoteVolume' => $volume,

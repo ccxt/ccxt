@@ -23,7 +23,7 @@ class fcoin extends Exchange {
             'has' => array (
                 'CORS' => false,
                 'fetchDepositAddress' => false,
-                'fetchOHCLV' => false,
+                'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchOrder' => true,
@@ -129,7 +129,7 @@ class fcoin extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetSymbols ();
         $result = array ();
         $markets = $response['data'];
@@ -204,10 +204,10 @@ class fcoin extends Exchange {
             $index = $i * 2;
             $priceField = $this->sum ($index, $priceKey);
             $amountField = $this->sum ($index, $amountKey);
-            $result[] = [
-                $orders[$priceField],
-                $orders[$amountField],
-            ];
+            $result[] = array (
+                $this->safe_float($orders, $priceField),
+                $this->safe_float($orders, $amountField),
+            );
         }
         return $result;
     }
@@ -546,13 +546,12 @@ class fcoin extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return; // fallback to default error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             $status = $this->safe_string($response, 'status');
             if ($status !== '0') {
                 $feedback = $this->id . ' ' . $body;

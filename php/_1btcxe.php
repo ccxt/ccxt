@@ -57,7 +57,7 @@ class _1btcxe extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         return array (
             array ( 'id' => 'USD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
             array ( 'id' => 'EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
@@ -161,7 +161,7 @@ class _1btcxe extends Exchange {
             'currency' => $market['id'],
             'timeframe' => $this->timeframes[$timeframe],
         ), $params));
-        $ohlcvs = $this->omit ($response['historical-prices'], 'request_currency');
+        $ohlcvs = $this->to_array($this->omit ($response['historical-prices'], 'request_currency'));
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
@@ -183,10 +183,14 @@ class _1btcxe extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
-        $response = $this->publicGetTransactions (array_merge (array (
+        $request = array (
             'currency' => $market['id'],
-        ), $params));
-        $trades = $this->omit ($response['transactions'], 'request_currency');
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->publicGetTransactions (array_merge ($request, $params));
+        $trades = $this->to_array($this->omit ($response['transactions'], 'request_currency'));
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -210,14 +214,16 @@ class _1btcxe extends Exchange {
         return $this->privatePostOrdersCancel (array ( 'id' => $id ));
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $response = $this->privatePostWithdrawalsNew (array_merge (array (
-            'currency' => $currency,
+        $currency = $this->currency ($code);
+        $request = array (
+            'currency' => $currency['id'],
             'amount' => floatval ($amount),
             'address' => $address,
-        ), $params));
+        );
+        $response = $this->privatePostWithdrawalsNew (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => $response['result']['uuid'],

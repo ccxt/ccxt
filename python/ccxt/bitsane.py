@@ -14,7 +14,6 @@ except NameError:
 import base64
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InvalidNonce
@@ -38,8 +37,8 @@ class bitsane (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/41387105-d86bf4c6-6f8d-11e8-95ea-2fa943872955.jpg',
                 'api': 'https://bitsane.com/api',
                 'www': 'https://bitsane.com',
-                'doc': 'https://bitsane.com/info-api',
-                'fees': 'https://bitsane.com/fees',
+                'doc': 'https://bitsane.com/help/api',
+                'fees': 'https://bitsane.com/help/fees',
             },
             'api': {
                 'public': {
@@ -139,7 +138,7 @@ class bitsane (Exchange):
             }
         return result
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetAssetsPairs()
         result = []
         marketIds = list(markets.keys())
@@ -205,8 +204,8 @@ class bitsane (Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_float(ticker, 'percentChange'),
-            'percentage': None,
+            'change': None,
+            'percentage': self.safe_float(ticker, 'percentChange'),
             'average': None,
             'baseVolume': self.safe_float(ticker, 'baseVolume'),
             'quoteVolume': self.safe_float(ticker, 'quoteVolume'),
@@ -382,6 +381,7 @@ class bitsane (Exchange):
         return {
             'currency': code,
             'address': address,
+            'tag': None,
             'info': response,
         }
 
@@ -421,13 +421,12 @@ class bitsane (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if len(body) < 2:
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
             statusCode = self.safe_string(response, 'statusCode')
             if statusCode is not None:
                 if statusCode != '0':

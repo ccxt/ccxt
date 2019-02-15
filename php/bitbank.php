@@ -174,8 +174,9 @@ class bitbank extends Exchange {
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $symbol = $market['symbol'];
-        $cost = $this->cost_to_precision($symbol, $price * $amount);
+        $cost = floatval ($this->cost_to_precision($symbol, $price * $amount));
         $id = $this->safe_string($trade, 'transaction_id');
+        $takerOrMaker = $this->safe_string($trade, 'maker_taker');
         if (!$id) {
             $id = $this->safe_string($trade, 'trade_id');
         }
@@ -194,6 +195,7 @@ class bitbank extends Exchange {
             'order' => $this->safe_string($trade, 'order_id'),
             'type' => $this->safe_string($trade, 'type'),
             'side' => $trade['side'],
+            'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -516,6 +518,8 @@ class bitbank extends Exchange {
                 '70004' => 'We are unable to accept orders as the transaction is currently suspended',
                 '70005' => 'Order can not be accepted because purchase order is currently suspended',
                 '70006' => 'We can not accept orders because we are currently unsubscribed ',
+                '70009' => 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
+                '70010' => 'We are temporarily raising the minimum order quantity as the system load is now rising.',
             );
             $errorClasses = $this->exceptions;
             $code = $this->safe_string($data, 'code');

@@ -65,7 +65,7 @@ class southxchange extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetMarkets ();
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
@@ -83,6 +83,7 @@ class southxchange extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'active' => null,
                 'info' => $market,
             );
         }
@@ -145,8 +146,8 @@ class southxchange extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_float($ticker, 'Variation24Hr'),
-            'percentage' => null,
+            'change' => null,
+            'percentage' => $this->safe_float($ticker, 'Variation24Hr'),
             'average' => null,
             'baseVolume' => $this->safe_float($ticker, 'Volume24Hr'),
             'quoteVolume' => null,
@@ -298,15 +299,18 @@ class southxchange extends Exchange {
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
+        $this->load_markets();
+        $currency = $this->currency ($code);
         $request = array (
-            'currency' => $currency,
+            'currency' => $currency['id'],
             'address' => $address,
             'amount' => $amount,
         );
-        if ($tag !== null)
+        if ($tag !== null) {
             $request['address'] = $address . '|' . $tag;
+        }
         $response = $this->privatePostWithdraw (array_merge ($request, $params));
         return array (
             'info' => $response,

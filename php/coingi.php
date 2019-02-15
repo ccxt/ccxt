@@ -27,7 +27,7 @@ class coingi extends Exchange {
                     'user' => 'https://api.coingi.com',
                 ),
                 'www' => 'https://coingi.com',
-                'doc' => 'http://docs.coingi.apiary.io/',
+                'doc' => 'https://coingi.docs.apiary.io',
             ),
             'api' => array (
                 'www' => array (
@@ -90,16 +90,8 @@ class coingi extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
-        $response = null;
-        try {
-            $this->parseJsonResponse = false;
-            $response = $this->wwwGet ();
-            $this->parseJsonResponse = true;
-        } catch (Exception $e) {
-            $this->parseJsonResponse = true;
-            throw $e;
-        }
+    public function fetch_markets ($params = array ()) {
+        $response = $this->wwwGet ();
         $parts = explode ('do=currencyPairSelector-selectCurrencyPair" class="active">', $response);
         $currencyParts = explode ('<div class="currency-pair-label">', $parts[1]);
         $result = array ();

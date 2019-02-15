@@ -106,7 +106,7 @@ class btcalpha extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetPairs ();
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
@@ -170,6 +170,12 @@ class btcalpha extends Exchange {
         $amount = floatval ($trade['amount']);
         $cost = $this->cost_to_precision($symbol, $price * $amount);
         $id = $this->safe_string($trade, 'id');
+        $side = null;
+        if (is_array ($trade) && array_key_exists ('my_side', $trade)) {
+            $side = $this->safe_string($trade, 'my_side');
+        } else {
+            $side = $this->safe_string($trade, 'side');
+        }
         if (!$id)
             $id = $this->safe_string($trade, 'tid');
         return array (
@@ -179,7 +185,7 @@ class btcalpha extends Exchange {
             'id' => $id,
             'order' => $this->safe_string($trade, 'o_id'),
             'type' => 'limit',
-            'side' => $trade['type'],
+            'side' => $side,
             'price' => $price,
             'amount' => $amount,
             'cost' => floatval ($cost),
@@ -252,21 +258,28 @@ class btcalpha extends Exchange {
         return $this->parse_balance($result);
     }
 
+    public function parse_order_status ($status) {
+        $statuses = array (
+            '1' => 'open',
+            '2' => 'canceled',
+            '3' => 'closed',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
     public function parse_order ($order, $market = null) {
         $symbol = null;
         if (!$market)
             $market = $this->safe_value($this->marketsById, $order['pair']);
         if ($market)
             $symbol = $market['symbol'];
-        $timestamp = intval ($order['date'] * 1000);
+        $timestamp = $this->safe_integer($order, 'date');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
         $price = floatval ($order['price']);
         $amount = $this->safe_float($order, 'amount');
-        $status = $this->safe_string($order, 'status');
-        $statuses = array (
-            '1' => 'open',
-            '2' => 'canceled',
-            '3' => 'closed',
-        );
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $id = $this->safe_string($order, 'oid');
         if (!$id)
             $id = $this->safe_string($order, 'id');
@@ -278,7 +291,7 @@ class btcalpha extends Exchange {
             'id' => $id,
             'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
-            'status' => $this->safe_string($statuses, $status),
+            'status' => $status,
             'symbol' => $symbol,
             'type' => 'limit',
             'side' => $side,
@@ -395,7 +408,7 @@ class btcalpha extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if ($code < 400)
             return;
         if (gettype ($body) !== 'string')
@@ -403,7 +416,6 @@ class btcalpha extends Exchange {
         if (strlen ($body) < 2)
             return; // fallback to default error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             $message = $this->id . ' ' . $this->safe_value($response, 'detail', $body);
             if ($code === 401 || $code === 403) {
                 throw new AuthenticationError ($message);

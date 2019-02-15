@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.acx import acx
+import math
 from ccxt.base.errors import ArgumentsRequired
 
 
@@ -56,45 +57,29 @@ class kuna (acx):
             },
         })
 
-    async def fetch_markets(self):
-        predefinedMarkets = [
-            {'id': 'btcuah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'baseId': 'btc', 'quoteId': 'uah', 'precision': {'amount': 6, 'price': 0}, 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 1, 'max': None}, 'cost': {'min': 0.000001, 'max': None}}},
-            {'id': 'ethuah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH', 'baseId': 'eth', 'quoteId': 'uah', 'precision': {'amount': 6, 'price': 0}, 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 1, 'max': None}, 'cost': {'min': 0.000001, 'max': None}}},
-            {'id': 'gbguah', 'symbol': 'GBG/UAH', 'base': 'GBG', 'quote': 'UAH', 'baseId': 'gbg', 'quoteId': 'uah', 'precision': {'amount': 3, 'price': 2}, 'limits': {'amount': {'min': 0.001, 'max': None}, 'price': {'min': 0.01, 'max': None}, 'cost': {'min': 0.000001, 'max': None}}},  # Golos Gold(GBG != GOLOS)
-            {'id': 'kunbtc', 'symbol': 'KUN/BTC', 'base': 'KUN', 'quote': 'BTC', 'baseId': 'kun', 'quoteId': 'btc', 'precision': {'amount': 6, 'price': 6}, 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.000001, 'max': None}}},
-            {'id': 'bchbtc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'baseId': 'bch', 'quoteId': 'btc', 'precision': {'amount': 6, 'price': 6}, 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0.000001, 'max': None}}},
-            {'id': 'bchuah', 'symbol': 'BCH/UAH', 'base': 'BCH', 'quote': 'UAH', 'baseId': 'bch', 'quoteId': 'uah', 'precision': {'amount': 6, 'price': 0}, 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 1, 'max': None}, 'cost': {'min': 0.000001, 'max': None}}},
-            {'id': 'wavesuah', 'symbol': 'WAVES/UAH', 'base': 'WAVES', 'quote': 'UAH', 'baseId': 'waves', 'quoteId': 'uah', 'precision': {'amount': 6, 'price': 0}, 'limits': {'amount': {'min': 0.000001, 'max': None}, 'price': {'min': 1, 'max': None}, 'cost': {'min': 0.000001, 'max': None}}},
-            {'id': 'arnbtc', 'symbol': 'ARN/BTC', 'base': 'ARN', 'quote': 'BTC', 'baseId': 'arn', 'quoteId': 'btc'},
-            {'id': 'b2bbtc', 'symbol': 'B2B/BTC', 'base': 'B2B', 'quote': 'BTC', 'baseId': 'b2b', 'quoteId': 'btc'},
-            {'id': 'evrbtc', 'symbol': 'EVR/BTC', 'base': 'EVR', 'quote': 'BTC', 'baseId': 'evr', 'quoteId': 'btc'},
-            {'id': 'golgbg', 'symbol': 'GOL/GBG', 'base': 'GOL', 'quote': 'GBG', 'baseId': 'gol', 'quoteId': 'gbg'},
-            {'id': 'rbtc', 'symbol': 'R/BTC', 'base': 'R', 'quote': 'BTC', 'baseId': 'r', 'quoteId': 'btc'},
-            {'id': 'rmcbtc', 'symbol': 'RMC/BTC', 'base': 'RMC', 'quote': 'BTC', 'baseId': 'rmc', 'quoteId': 'btc'},
-        ]
+    async def fetch_markets(self, params={}):
+        quotes = ['btc', 'eth', 'eurs', 'gbg', 'uah']
+        pricePrecisions = {
+            'UAH': 0,
+        }
         markets = []
         tickers = await self.publicGetTickers()
-        for i in range(0, len(predefinedMarkets)):
-            market = predefinedMarkets[i]
-            if market['id'] in tickers:
-                markets.append(market)
-        marketsById = self.index_by(markets, 'id')
         ids = list(tickers.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            if not(id in list(marketsById.keys())):
-                baseId = id.replace('btc', '')
-                baseId = baseId.replace('uah', '')
-                baseId = baseId.replace('gbg', '')
-                baseId = baseId.replace('eth', '')
-                if len(baseId) > 0:
-                    baseIdLength = len(baseId) - 0  # a transpiler workaround
-                    quoteId = id[baseIdLength:]
+            for j in range(0, len(quotes)):
+                quoteId = quotes[j]
+                if id.find(quoteId) > 0:
+                    baseId = id.replace(quoteId, '')
                     base = baseId.upper()
                     quote = quoteId.upper()
                     base = self.common_currency_code(base)
                     quote = self.common_currency_code(quote)
                     symbol = base + '/' + quote
+                    precision = {
+                        'amount': 6,
+                        'price': self.safe_integer(pricePrecisions, quote, 6),
+                    }
                     markets.append({
                         'id': id,
                         'symbol': symbol,
@@ -102,16 +87,24 @@ class kuna (acx):
                         'quote': quote,
                         'baseId': baseId,
                         'quoteId': quoteId,
+                        'precision': precision,
+                        'limits': {
+                            'amount': {
+                                'min': math.pow(10, -precision['amount']),
+                                'max': math.pow(10, precision['amount']),
+                            },
+                            'price': {
+                                'min': math.pow(10, -precision['price']),
+                                'max': math.pow(10, precision['price']),
+                            },
+                            'cost': {
+                                'min': None,
+                                'max': None,
+                            },
+                        },
                     })
+                    break
         return markets
-
-    async def fetch_order_book(self, symbol, limit=None, params={}):
-        await self.load_markets()
-        market = self.market(symbol)
-        orderBook = await self.publicGetOrderBook(self.extend({
-            'market': market['id'],
-        }, params))
-        return self.parse_order_book(orderBook, None, 'bids', 'asks', 'price', 'remaining_volume')
 
     async def fetch_l3_order_book(self, symbol, limit=None, params={}):
         return self.fetch_order_book(symbol, limit, params)

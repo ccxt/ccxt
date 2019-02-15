@@ -6,7 +6,6 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 
@@ -32,7 +31,7 @@ class zaif (Exchange):
                 'api': 'https://api.zaif.jp',
                 'www': 'https://zaif.jp',
                 'doc': [
-                    'http://techbureau-api-document.readthedocs.io/ja/latest/index.html',
+                    'https://techbureau-api-document.readthedocs.io/ja/latest/index.html',
                     'https://corp.zaif.jp/api-docs',
                     'https://corp.zaif.jp/api-docs/api_links',
                     'https://www.npmjs.com/package/zaif.jp',
@@ -112,7 +111,7 @@ class zaif (Exchange):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         markets = await self.publicGetCurrencyPairsAll()
         result = []
         for p in range(0, len(markets)):
@@ -186,7 +185,9 @@ class zaif (Exchange):
         timestamp = self.milliseconds()
         vwap = ticker['vwap']
         baseVolume = ticker['volume']
-        quoteVolume = baseVolume * vwap
+        quoteVolume = None
+        if baseVolume is not None and vwap is not None:
+            quoteVolume = baseVolume * vwap
         last = ticker['last']
         return {
             'symbol': symbol,
@@ -216,6 +217,8 @@ class zaif (Exchange):
         timestamp = trade['date'] * 1000
         id = self.safe_string(trade, 'id')
         id = self.safe_string(trade, 'tid', id)
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
         if not market:
             market = self.markets_by_id[trade['currency_pair']]
         return {
@@ -226,8 +229,8 @@ class zaif (Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': side,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'price': price,
+            'amount': amount,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -330,18 +333,22 @@ class zaif (Exchange):
         response = await self.privatePostTradeHistory(self.extend(request, params))
         return self.parse_orders(response['return'], market, since, limit)
 
-    async def withdraw(self, currency, amount, address, tag=None, params={}):
+    async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         await self.load_markets()
-        if currency == 'JPY':
-            raise ExchangeError(self.id + ' does not allow ' + currency + ' withdrawals')
-        result = await self.privatePostWithdraw(self.extend({
-            'currency': currency,
+        currency = self.currency(code)
+        if code == 'JPY':
+            raise ExchangeError(self.id + ' withdraw() does not allow ' + code + ' withdrawals')
+        request = {
+            'currency': currency['id'],
             'amount': amount,
             'address': address,
-            # 'message': 'Hinot ',  # XEM only
+            # 'message': 'Hinot ',  # XEM and others
             # 'opt_fee': 0.003,  # BTC and MONA only
-        }, params))
+        }
+        if tag is not None:
+            request['message'] = tag
+        result = await self.privatePostWithdraw(self.extend(request, params))
         return {
             'info': result,
             'id': result['return']['txid'],
@@ -378,10 +385,9 @@ class zaif (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body):
-        if not self.is_json_encoded_object(body):
-            return  # fallback to default error handler
-        response = json.loads(body)
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+        if response is None:
+            return
         #
         #     {"error": "unsupported currency_pair"}
         #

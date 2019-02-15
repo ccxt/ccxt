@@ -12,8 +12,8 @@ module.exports = class kucoin extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'kucoin',
-            'name': 'Kucoin',
-            'countries': [ 'HK' ], // Hong Kong
+            'name': 'KuCoin',
+            'countries': [ 'SC' ], // Republic of Seychelles
             'version': 'v1',
             'rateLimit': 2000,
             'userAgent': this.userAgents['chrome'],
@@ -31,6 +31,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchMyTrades': 'emulated', // this method is to be deleted, see implementation and comments below
                 'fetchCurrencies': true,
                 'withdraw': true,
+                'fetchTransactions': true,
             },
             'timeframes': {
                 '1m': 1,
@@ -43,7 +44,7 @@ module.exports = class kucoin extends Exchange {
                 '1w': 'W',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg',
                 'api': {
                     'public': 'https://api.kucoin.com',
                     'private': 'https://api.kucoin.com',
@@ -88,6 +89,7 @@ module.exports = class kucoin extends Exchange {
                         'account/{coin}/balance',
                         'account/promotion/info',
                         'account/promotion/sum',
+                        'account/transfer-records',
                         'deal-orders',
                         'order/active',
                         'order/active-map',
@@ -518,7 +520,7 @@ module.exports = class kucoin extends Exchange {
         };
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetMarketOpenSymbols ();
         if (this.options['adjustForTimeDifference'])
             await this.loadTimeDifference ();
@@ -581,6 +583,100 @@ module.exports = class kucoin extends Exchange {
             'address': address,
             'tag': tag,
             'info': response,
+        };
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        // https://kucoinapidocs.docs.apiary.io/#reference/0/assets-operation/list-deposit-&-withdrawal-records
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits requires a currency code argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+        };
+        const response = await this.privateGetAccountCoinWalletRecords (this.extend (request, params));
+        return this.parseTransactions (response['data']['datas'], currency, since, limit);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        //     {
+        //         'coinType': 'ETH',
+        //         'createdAt': 1516134636000,
+        //         'amount': 2.5,
+        //         'address': '0x4cd00e7983e54add886442d3b866f95243cf9b30',
+        //         'fee': 0.0,
+        //         'outerWalletTxid': '0x820cde65b1fab0a9527a5c2466b3e7807fee45c6a81691486bf954114b12c873@0x4cd00e7983e54add886442d3b866f95243cf9b30@eth',
+        //         'remark': None,
+        //         'oid': '5a5e60ecaf2c5807eda65443',
+        //         'confirmation': 14,
+        //         'type': 'DEPOSIT',
+        //         'status': 'SUCCESS',
+        //         'updatedAt': 1516134827000
+        //     }
+        //
+        //     {
+        //         'coinType':'POLY',
+        //         'createdAt':1520696078000,
+        //         'amount':838.2247,
+        //         'address':'0x54fc433e95549e68fa362eb85c235177d94a8745',
+        //         'fee':3.0,
+        //         'outerWalletTxid':'0x055da84b7557498785d6acecf2b71d0158fec32fce246e51f5c49b79826a8481',
+        //         'remark':None,
+        //         'oid':'5aa3fb0d7bd394763bde55c1',
+        //         'confirmation':0,
+        //         'type':'WITHDRAW',
+        //         'status':'SUCCESS',
+        //         'updatedAt':1520696196000
+        //     }
+        //
+        const id = this.safeString (transaction, 'oid');
+        let txid = this.safeString (transaction, 'outerWalletTxid');
+        if (txid !== undefined) {
+            if (txid.indexOf ('@') >= 0) {
+                const parts = txid.split ('@');
+                txid = parts[0];
+            }
+        }
+        const timestamp = this.safeInteger (transaction, 'createdAt');
+        let code = undefined;
+        const currencyId = this.safeString (transaction, 'coinType');
+        currency = this.safeValue (this.currencies_by_id, currencyId);
+        if (currency !== undefined) {
+            code = currency['code'];
+        } else {
+            code = this.commonCurrencyCode (currencyId);
+        }
+        const address = this.safeString (transaction, 'address');
+        const tag = this.safeString (transaction, 'remark');
+        const amount = this.safeFloat (transaction, 'amount');
+        const status = this.safeString (transaction, 'status');
+        let type = this.safeString (transaction, 'type');
+        if (type !== undefined) {
+            // they return 'DEPOSIT' or 'WITHDRAW', ccxt used 'deposit' or 'withdrawal'
+            type = (type === 'DEPOSIT') ? 'deposit' : 'withdrawal';
+        }
+        const feeCost = this.safeFloat (transaction, 'fee');
+        const updated = this.safeInteger (transaction, 'updatedAt');
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': tag,
+            'status': status,
+            'type': type,
+            'updated': updated,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+            },
         };
     }
 
@@ -691,9 +787,7 @@ module.exports = class kucoin extends Exchange {
             side = order['type'];
         if (side !== undefined)
             side = side.toLowerCase ();
-        let orderId = this.safeString (order, 'orderOid');
-        if (orderId === undefined)
-            orderId = this.safeString (order, 'oid');
+        let orderId = this.safeString2 (order, 'orderOid', 'oid');
         // do not confuse trades with orders
         let trades = undefined;
         if ('dealOrders' in order)
@@ -1139,8 +1233,8 @@ module.exports = class kucoin extends Exchange {
             } else if (trade[1] === 'SELL') {
                 side = 'sell';
             }
-            price = trade[2];
-            amount = trade[3];
+            price = this.safeFloat (trade, 2);
+            amount = this.safeFloat (trade, 3);
             id = trade[5];
         } else {
             timestamp = this.safeValue (trade, 'createdAt');
@@ -1221,11 +1315,6 @@ module.exports = class kucoin extends Exchange {
         return this.parseTrades (response['data']['datas'], market, since, limit);
     }
 
-    parseTradingViewOHLCV (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        let result = this.convertTradingViewToOHLCV (ohlcvs);
-        return this.parseOHLCVs (result, market, timeframe, since, limit);
-    }
-
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -1269,11 +1358,17 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         this.checkAddress (address);
-        let response = await this.privatePostAccountCoinWithdrawApply (this.extend ({
+        const request = {
             'coin': currency['id'],
             'amount': amount,
             'address': address,
-        }, params));
+        };
+        // they don't have the tag properly documented for currencies that require it (XLM, XRP, ...)
+        // https://www.reddit.com/r/kucoin/comments/93o92b/withdraw_of_xlm_through_api/
+        if (tag !== undefined) {
+            request['address'] += '@' + tag;
+        }
+        let response = await this.privatePostAccountCoinWithdrawApply (this.extend (request, params));
         return {
             'info': response,
             'id': undefined,
@@ -1313,7 +1408,7 @@ module.exports = class kucoin extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    throwExceptionOnError (response) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         //
         // API endpoints return the following formats
         //     { success: false, code: "ERROR", msg: "Min price:100.0" }
@@ -1329,15 +1424,15 @@ module.exports = class kucoin extends Exchange {
         if (response['success'] === true)
             return; // not an error
         if (!('code' in response) || !('msg' in response))
-            throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
-        const code = this.safeString (response, 'code');
+            throw new ExchangeError (this.id + ': malformed response: ' + body);
+        const responseCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
-        const feedback = this.id + ' ' + this.json (response);
-        if (code === 'UNAUTH') {
+        const feedback = this.id + ' ' + body;
+        if (responseCode === 'UNAUTH') {
             if (message === 'Invalid nonce')
                 throw new InvalidNonce (feedback);
             throw new AuthenticationError (feedback);
-        } else if (code === 'ERROR') {
+        } else if (responseCode === 'ERROR') {
             if (message.indexOf ('The precision of amount') >= 0)
                 throw new InvalidOrder (feedback); // amount violates precision.amount
             if (message.indexOf ('Min amount each order') >= 0)
@@ -1348,20 +1443,10 @@ module.exports = class kucoin extends Exchange {
                 throw new InvalidOrder (feedback); // price > limits.price.max
             if (message.indexOf ('The precision of price') >= 0)
                 throw new InvalidOrder (feedback); // price violates precision.price
-        } else if (code === 'NO_BALANCE') {
+        } else if (responseCode === 'NO_BALANCE') {
             if (message.indexOf ('Insufficient balance') >= 0)
                 throw new InsufficientFunds (feedback);
         }
-        throw new ExchangeError (this.id + ': unknown response: ' + this.json (response));
-    }
-
-    handleErrors (code, reason, url, method, headers, body, response = undefined) {
-        if (response !== undefined) {
-            // JS callchain parses body beforehand
-            this.throwExceptionOnError (response);
-        } else if (body && (body[0] === '{')) {
-            // Python/PHP callchains don't have json available at this step
-            this.throwExceptionOnError (JSON.parse (body));
-        }
+        throw new ExchangeError (this.id + ': unknown response: ' + body);
     }
 };

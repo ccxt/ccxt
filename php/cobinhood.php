@@ -28,7 +28,7 @@ class cobinhood extends Exchange {
                 'createDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchWithdrawals' => true,
-                'withdraw' => false,
+                'withdraw' => true,
                 'fetchMyTrades' => true,
                 'editOrder' => true,
             ),
@@ -83,51 +83,86 @@ class cobinhood extends Exchange {
                 ),
                 'public' => array (
                     'get' => array (
+                        'market/fundingbook/precisions/{currency_id}',
+                        'market/fundingbooks/{currency_id}',
                         'market/tickers',
                         'market/currencies',
+                        'market/quote_currencies',
                         'market/trading_pairs',
+                        'market/orderbook/precisions/{trading_pair_id}',
                         'market/orderbooks/{trading_pair_id}',
                         'market/stats',
+                        'market/tickers', // fetchTickers
                         'market/tickers/{trading_pair_id}',
                         'market/trades/{trading_pair_id}',
+                        'market/trades_history/{trading_pair_id}',
+                        'market/trading_pairs',
                         'chart/candles/{trading_pair_id}',
+                        'system/time',
                     ),
                 ),
                 'private' => array (
                     'get' => array (
+                        'funding/auto_offerings',
+                        'funding/auto_offerings/{currency_id}',
+                        'funding/funding_history',
+                        'funding/fundings',
+                        'funding/loans',
+                        'funding/loans/{loan_id}',
                         'trading/orders/{order_id}',
                         'trading/orders/{order_id}/trades',
                         'trading/orders',
                         'trading/order_history',
+                        'trading/positions',
+                        'trading/positions/{trading_pair_id}',
+                        'trading/positions/{trading_pair_id}/claimable_size',
                         'trading/trades',
                         'trading/trades/{trade_id}',
                         'trading/volume',
                         'wallet/balances',
                         'wallet/ledger',
+                        'wallet/limits/withdrawal',
                         'wallet/generic_deposits',
                         'wallet/generic_deposits/{generic_deposit_id}',
                         'wallet/generic_withdrawals',
                         'wallet/generic_withdrawals/{generic_withdrawal_id}',
                         // older endpoints
                         'wallet/deposit_addresses',
+                        'wallet/deposit_addresses/iota',
                         'wallet/withdrawal_addresses',
+                        'wallet/withdrawal_frozen',
                         'wallet/withdrawals/{withdrawal_id}',
                         'wallet/withdrawals',
                         'wallet/deposits/{deposit_id}',
                         'wallet/deposits',
                     ),
+                    'patch' => array (
+                        'trading/positions/{trading_pair_id}',
+                    ),
                     'post' => array (
+                        'funding/auto_offerings',
+                        'funding/fundings',
+                        'trading/check_order',
                         'trading/orders',
                         // older endpoints
                         'wallet/deposit_addresses',
+                        'wallet/transfer',
                         'wallet/withdrawal_addresses',
                         'wallet/withdrawals',
+                        'wallet/withdrawals/fee',
                     ),
                     'put' => array (
+                        'funding/fundings/{funding_id}',
                         'trading/orders/{order_id}',
                     ),
                     'delete' => array (
+                        'funding/auto_offerings/{currency_id}',
+                        'funding/fundings/{funding_id}',
+                        'funding/loans/{loan_id}',
                         'trading/orders/{order_id}',
+                        'trading/positions/{trading_pair_id}',
+                        'wallet/generic_withdrawals/{generic_withdrawal_id}',
+                        'wallet/withdrawal_addresses/{wallet_id}',
                     ),
                 ),
             ),
@@ -146,6 +181,8 @@ class cobinhood extends Exchange {
                 'invalid_order_size' => '\\ccxt\\InvalidOrder',
                 'invalid_nonce' => '\\ccxt\\InvalidNonce',
                 'unauthorized_scope' => '\\ccxt\\PermissionDenied',
+                'invalid_address' => '\\ccxt\\InvalidAddress',
+                'parameter_error' => '\\ccxt\\OrderNotFound',
             ),
             'commonCurrencies' => array (
                 'SMT' => 'SocialMedia.Market',
@@ -202,7 +239,7 @@ class cobinhood extends Exchange {
         return $result;
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetMarketTradingPairs ();
         $markets = $response['result']['trading_pairs'];
         $result = array ();
@@ -328,7 +365,12 @@ class cobinhood extends Exchange {
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'size');
         $cost = $price * $amount;
-        $side = ($trade['maker_side'] === 'bid') ? 'sell' : 'buy';
+        // you can't determine your $side from maker/taker $side and vice versa
+        // you can't determine if your order/trade was a maker or a taker based
+        // on just the $side of your order/trade
+        // https://github.com/ccxt/ccxt/issues/4300
+        // $side = ($trade['maker_side'] === 'bid') ? 'sell' : 'buy';
+        $side = null;
         return array (
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -521,6 +563,7 @@ class cobinhood extends Exchange {
     }
 
     public function edit_order ($id, $symbol, $type, $side, $amount, $price, $params = array ()) {
+        $this->load_markets();
         $response = $this->privatePutTradingOrdersOrderId (array_merge (array (
             'order_id' => $id,
             'price' => $this->price_to_precision($symbol, $price),
@@ -532,6 +575,7 @@ class cobinhood extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->privateDeleteTradingOrdersOrderId (array_merge (array (
             'order_id' => $id,
         ), $params));
@@ -552,9 +596,20 @@ class cobinhood extends Exchange {
         $this->load_markets();
         $result = $this->privateGetTradingOrders ($params);
         $orders = $this->parse_orders($result['result']['orders'], null, $since, $limit);
-        if ($symbol !== null)
-            return $this->filter_by_symbol($orders, $symbol);
-        return $orders;
+        if ($symbol !== null) {
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
+        }
+        return $this->filter_by_since_limit($orders, $since, $limit);
+    }
+
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $result = $this->privateGetTradingOrderHistory ($params);
+        $orders = $this->parse_orders($result['result']['orders'], null, $since, $limit);
+        if ($symbol !== null) {
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
+        }
+        return $this->filter_by_since_limit($orders, $since, $limit);
     }
 
     public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -580,14 +635,20 @@ class cobinhood extends Exchange {
     public function create_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
-        $response = $this->privatePostWalletDepositAddresses (array (
+        // 'ledger_type' is required, see => https://cobinhood.github.io/api-public/#create-new-deposit-$address
+        $ledgerType = $this->safe_string($params, 'ledger_type', 'exchange');
+        $request = array (
             'currency' => $currency['id'],
-        ));
+            'ledger_type' => $ledgerType,
+        );
+        $response = $this->privatePostWalletDepositAddresses (array_merge ($request, $params));
         $address = $this->safe_string($response['result']['deposit_address'], 'address');
+        $tag = $this->safe_string($response['result']['deposit_address'], 'memo');
         $this->check_address($address);
         return array (
             'currency' => $code,
             'address' => $address,
+            'tag' => $tag,
             'info' => $response,
         );
     }
@@ -623,16 +684,20 @@ class cobinhood extends Exchange {
         );
     }
 
-    public function withdraw ($code, $amount, $address, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
-        $response = $this->privatePostWalletWithdrawals (array_merge (array (
+        $request = array (
             'currency' => $currency['id'],
             'amount' => $amount,
             'address' => $address,
-        ), $params));
+        );
+        if ($tag !== null) {
+            $request['memo'] = $tag;
+        }
+        $response = $this->privatePostWalletWithdrawals (array_merge ($request, $params));
         return array (
-            'id' => $response['result']['withdrawal_id'],
+            'id' => null,
             'info' => $response,
         );
     }
@@ -752,14 +817,13 @@ class cobinhood extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if ($code < 400 || $code >= 600) {
             return;
         }
         if ($body[0] !== '{') {
             throw new ExchangeError ($this->id . ' ' . $body);
         }
-        $response = json_decode ($body, $as_associative_array = true);
         $feedback = $this->id . ' ' . $this->json ($response);
         $errorCode = $this->safe_value($response['error'], 'error_code');
         if ($method === 'DELETE' || $method === 'GET') {

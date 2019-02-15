@@ -13,8 +13,12 @@ except NameError:
     basestring = str  # Python 2
 import base64
 import hashlib
-import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import BadRequest
+from ccxt.base.errors import InvalidAddress
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class bithumb (Exchange):
@@ -37,7 +41,7 @@ class bithumb (Exchange):
                     'private': 'https://api.bithumb.com',
                 },
                 'www': 'https://www.bithumb.com',
-                'doc': 'https://www.bithumb.com/u1/US127',
+                'doc': 'https://apidocs.bithumb.com',
             },
             'api': {
                 'public': {
@@ -76,11 +80,23 @@ class bithumb (Exchange):
                 },
             },
             'exceptions': {
-                '5100': ExchangeError,  # {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
+                'Bad Request(SSL)': BadRequest,
+                'Bad Request(Bad Method)': BadRequest,
+                'Bad Request.(Auth Data)': AuthenticationError,  # {"status": "5100", "message": "Bad Request.(Auth Data)"}
+                'Not Member': AuthenticationError,
+                'Invalid Apikey': AuthenticationError,  # {"status":"5300","message":"Invalid Apikey"}
+                'Method Not Allowed.(Access IP)': PermissionDenied,
+                'Method Not Allowed.(BTC Adress)': InvalidAddress,
+                'Method Not Allowed.(Access)': PermissionDenied,
+                'Database Fail': ExchangeNotAvailable,
+                'Invalid Parameter': BadRequest,
+                '5600': ExchangeError,
+                'Unknown Error': ExchangeError,
+                'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions': ExchangeError,  # {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetTickerAll()
         currencies = list(markets['data'].keys())
         result = []
@@ -91,13 +107,18 @@ class bithumb (Exchange):
                 base = id
                 quote = 'KRW'
                 symbol = id + '/' + quote
+                active = True
+                if isinstance(market, list):
+                    numElements = len(market)
+                    if numElements == 0:
+                        active = False
                 result.append({
                     'id': id,
                     'symbol': symbol,
                     'base': base,
                     'quote': quote,
                     'info': market,
-                    'active': True,
+                    'active': active,
                     'precision': {
                         'amount': None,
                         'price': None,
@@ -205,8 +226,10 @@ class bithumb (Exchange):
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
             ticker = tickers[id]
-            ticker['date'] = timestamp
-            result[symbol] = self.parse_ticker(ticker, market)
+            isArray = isinstance(ticker, list)
+            if not isArray:
+                ticker['date'] = timestamp
+                result[symbol] = self.parse_ticker(ticker, market)
         return result
 
     def fetch_ticker(self, symbol, params={}):
@@ -226,7 +249,7 @@ class bithumb (Exchange):
         timestamp -= 9 * 3600000  # they report UTC + 9 hours(server in list(Korean timezone.keys()))
         side = 'sell' if (trade['type'] == 'ask') else 'buy'
         return {
-            'id': None,
+            'id': self.safe_string(trade, 'cont_no'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -291,17 +314,21 @@ class bithumb (Exchange):
             'currency': params['currency'],
         })
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
+        self.load_markets()
+        currency = self.currency(code)
         request = {
             'units': amount,
             'address': address,
-            'currency': currency,
+            'currency': currency['id'],
         }
         if currency == 'XRP' or currency == 'XMR':
-            destination = ('destination' in list(params.keys()))
-            if not destination:
-                raise ExchangeError(self.id + ' ' + currency + ' withdraw requires an extra destination param')
+            destination = self.safe_string(params, 'destination')
+            if (tag is None) and(destination is None):
+                raise ExchangeError(self.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param')
+            elif tag is not None:
+                request['destination'] = tag
         response = self.privatePostTradeBtcWithdrawal(self.extend(request, params))
         return {
             'info': response,
@@ -324,7 +351,7 @@ class bithumb (Exchange):
                 'endpoint': endpoint,
             }, query))
             nonce = str(self.nonce())
-            auth = endpoint + '\0' + body + '\0' + nonce
+            auth = endpoint + "\0" + body + "\0" + nonce  # eslint-disable-line quotes
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
             signature64 = self.decode(base64.b64encode(self.encode(signature)))
             headers = {
@@ -336,18 +363,18 @@ class bithumb (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if len(body) < 2:
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
             if 'status' in response:
                 #
                 #     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
                 #
                 status = self.safe_string(response, 'status')
+                message = self.safe_string(response, 'message')
                 if status is not None:
                     if status == '0000':
                         return  # no error
@@ -355,6 +382,8 @@ class bithumb (Exchange):
                     exceptions = self.exceptions
                     if status in exceptions:
                         raise exceptions[status](feedback)
+                    elif message in exceptions:
+                        raise exceptions[message](feedback)
                     else:
                         raise ExchangeError(feedback)
 

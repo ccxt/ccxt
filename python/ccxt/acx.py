@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import json
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 
@@ -101,21 +100,36 @@ class acx (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.publicGetMarkets()
         result = []
         for p in range(0, len(markets)):
             market = markets[p]
             id = market['id']
             symbol = market['name']
-            base, quote = symbol.split('/')
+            baseId = self.safe_string(market, 'base_unit')
+            quoteId = self.safe_string(market, 'quote_unit')
+            if (baseId is None) or (quoteId is None):
+                ids = symbol.split('/')
+                baseId = ids[0].lower()
+                quoteId = ids[1].lower()
+            base = baseId.upper()
+            quote = quoteId.upper()
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
+            # todo: find out their undocumented precision and limits
+            precision = {
+                'amount': 8,
+                'price': 8,
+            }
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'precision': precision,
                 'info': market,
             })
         return result
@@ -324,14 +338,18 @@ class acx (Exchange):
             raise OrderNotFound(self.id + ' ' + self.json(order))
         return order
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
-        result = self.privatePostWithdraw(self.extend({
-            'currency': currency.lower(),
+        currency = self.currency(code)
+        # they have XRP but no docs on memo/tag
+        request = {
+            'currency': currency['id'],
             'sum': amount,
             'address': address,
-        }, params))
+        }
+        result = self.privatePostWithdraw(self.extend(request, params))
+        # withdrawal response is undocumented
         return {
             'info': result,
             'id': None,
@@ -355,7 +373,7 @@ class acx (Exchange):
         return self.urlencode(self.keysort(params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = '/api' + '/' + self.version + '/' + self.implode_params(path, params)
+        request = '/api/' + self.version + '/' + self.implode_params(path, params)
         if 'extension' in self.urls:
             request += self.urls['extension']
         query = self.omit(params, self.extract_params(path))
@@ -380,9 +398,8 @@ class acx (Exchange):
                 headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if code == 400:
-            response = json.loads(body)
             error = self.safe_value(response, 'error')
             errorCode = self.safe_string(error, 'code')
             feedback = self.id + ' ' + self.json(response)

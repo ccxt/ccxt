@@ -4,7 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import json
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 
@@ -42,37 +42,61 @@ class tidebit (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/39034921-e3acf016-4480-11e8-9945-a6086a1082fe.jpg',
                 'api': 'https://www.tidebit.com',
                 'www': 'https://www.tidebit.com',
-                'doc': 'https://www.tidebit.com/documents/api_v2',
+                'doc': [
+                    'https://www.tidebit.com/documents/api/guide',
+                    'https://www.tidebit.com/swagger/#/default',
+                ],
             },
             'api': {
                 'public': {
                     'get': [
-                        'v2/markets',  # V2MarketsJson
-                        'v2/tickers',  # V2TickersJson
-                        'v2/tickers/{market}',  # V2TickersMarketJson
-                        'v2/trades',  # V2TradesJson
-                        'v2/trades/{market}',  # V2TradesMarketJson
-                        'v2/order_book',  # V2OrderBookJson
-                        'v2/order',  # V2OrderJson
-                        'v2/k_with_pending_trades',  # V2KWithPendingTradesJson
-                        'v2/k',  # V2KJson
-                        'v2/depth',  # V2DepthJson
+                        'markets',
+                        'tickers',
+                        'tickers/{market}',
+                        'timestamp',
+                        'trades',
+                        'trades/{market}',
+                        'order_book',
+                        'order',
+                        'k_with_pending_trades',
+                        'k',
+                        'depth',
                     ],
                     'post': [],
                 },
                 'private': {
                     'get': [
-                        'v2/deposits',  # V2DepositsJson
-                        'v2/deposit_address',  # V2DepositAddressJson
-                        'v2/deposit',  # V2DepositJson
-                        'v2/members/me',  # V2MembersMeJson
-                        'v2/addresses/{address}',  # V2AddressesAddressJson
+                        'addresses/{address}',
+                        'deposits/history',
+                        'deposits/get_deposit',
+                        'deposits/deposit_address',
+                        'historys/orders',
+                        'historys/vouchers',
+                        'historys/accounts',
+                        'historys/snapshots',
+                        'linkage/get_status',
+                        'members/me',
+                        'order',
+                        'orders',
+                        'partners/orders/{id}/trades',
+                        'referral_commissions/get_undeposited',
+                        'referral_commissions/get_graph_data',
+                        'trades/my',
+                        'withdraws/bind_account_list',
+                        'withdraws/get_withdraw_account',
+                        'withdraws/fetch_bind_info',
                     ],
                     'post': [
-                        'v2/order/delete',  # V2OrderDeleteJson
-                        'v2/order',  # V2OrderJson
-                        'v2/order/multi',  # V2OrderMultiJson
-                        'v2/order/clear',  # V2OrderClearJson
+                        'deposits/deposit_cash',
+                        'favorite_markets/update',
+                        'order/delete',
+                        'orders',
+                        'orders/multi',
+                        'orders/clear',
+                        'referral_commissions/deposit',
+                        'withdraws/apply',
+                        'withdraws/bind_bank',
+                        'withdraws/bind_address',
                     ],
                 },
             },
@@ -98,7 +122,7 @@ class tidebit (Exchange):
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
         currency = self.currency(code)
-        response = self.privateGetV2DepositAddress(self.extend({
+        response = self.privateGetDepositAddress(self.extend({
             'currency': currency['id'],
         }, params))
         if 'success' in response:
@@ -112,8 +136,8 @@ class tidebit (Exchange):
                     'info': response,
                 }
 
-    def fetch_markets(self):
-        markets = self.publicGetV2Markets()
+    def fetch_markets(self, params={}):
+        markets = self.publicGetMarkets()
         result = []
         for p in range(0, len(markets)):
             market = markets[p]
@@ -135,7 +159,7 @@ class tidebit (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privateGetV2MembersMe()
+        response = self.privateGetMembersMe()
         balances = response['accounts']
         result = {'info': balances}
         for b in range(0, len(balances)):
@@ -162,7 +186,7 @@ class tidebit (Exchange):
         if limit is None:
             request['limit'] = limit  # default = 300
         request['market'] = market['id']
-        orderbook = self.publicGetV2Depth(self.extend(request, params))
+        orderbook = self.publicGetDepth(self.extend(request, params))
         timestamp = orderbook['timestamp'] * 1000
         return self.parse_order_book(orderbook, timestamp)
 
@@ -198,7 +222,7 @@ class tidebit (Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.publicGetV2Tickers(params)
+        tickers = self.publicGetTickers(params)
         ids = list(tickers.keys())
         result = {}
         for i in range(0, len(ids)):
@@ -223,7 +247,7 @@ class tidebit (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetV2TickersMarket(self.extend({
+        response = self.publicGetTickersMarket(self.extend({
             'market': market['id'],
         }, params))
         return self.parse_ticker(response, market)
@@ -246,7 +270,7 @@ class tidebit (Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetV2Trades(self.extend({
+        response = self.publicGetTrades(self.extend({
             'market': market['id'],
         }, params))
         return self.parse_trades(response, market, since, limit)
@@ -275,7 +299,7 @@ class tidebit (Exchange):
             request['timestamp'] = since
         else:
             request['timestamp'] = 1800000
-        response = self.publicGetV2K(self.extend(request, params))
+        response = self.publicGetK(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_order(self, order, market=None):
@@ -314,35 +338,44 @@ class tidebit (Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
-        order = {
+        request = {
             'market': self.market_id(symbol),
             'side': side,
             'volume': str(amount),
             'ord_type': type,
         }
         if type == 'limit':
-            order['price'] = str(price)
-        response = self.privatePostV2Order(self.extend(order, params))
+            request['price'] = str(price)
+        response = self.privatePostOrders(self.extend(request, params))
         market = self.markets_by_id[response['market']]
         return self.parse_order(response, market)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        result = self.privatePostV2OrderDelete({'id': id})
+        result = self.privatePostOrderDelete({'id': id})
         order = self.parse_order(result)
         status = order['status']
         if status == 'closed' or status == 'canceled':
             raise OrderNotFound(self.id + ' ' + self.json(order))
         return order
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
-        result = self.privatePostWithdraw(self.extend({
+        currency = self.currency(code)
+        id = self.safe_string(params, 'id')
+        if id is None:
+            raise ExchangeError(self.id + ' withdraw() requires an extra id param(withdraw account id according to withdraws/bind_account_list endpoint')
+        request = {
+            'id': id,
+            'currency_type': 'coin',  # or 'cash'
             'currency': currency.lower(),
-            'sum': amount,
-            'address': address,
-        }, params))
+            'body': amount,
+            # 'address': address,  # they don't allow withdrawing to direct addresses?
+        }
+        if tag is not None:
+            request['memo'] = tag
+        result = self.privatePostWithdrawsApply(self.extend(request, params))
         return {
             'info': result,
             'id': None,
@@ -355,7 +388,7 @@ class tidebit (Exchange):
         return self.urlencode(self.keysort(params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = '/' + 'api/' + self.implode_params(path, params) + '.json'
+        request = '/' + 'api/' + self.version + '/' + self.implode_params(path, params) + '.json'
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api'] + request
         if api == 'public':
@@ -379,9 +412,8 @@ class tidebit (Exchange):
                 headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if code == 400:
-            response = json.loads(body)
             error = self.safe_value(response, 'error')
             errorCode = self.safe_string(error, 'code')
             feedback = self.id + ' ' + self.json(response)

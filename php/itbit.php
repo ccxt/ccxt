@@ -264,11 +264,12 @@ class itbit extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $walletIdInParams = (is_array ($params) && array_key_exists ('walletId', $params));
-        if (!$walletIdInParams)
+        if (!$walletIdInParams) {
             throw new ExchangeError ($this->id . ' fetchOrder requires a walletId parameter');
-        return $this->privateGetWalletsWalletIdOrdersId (array_merge (array (
-            'id' => $id,
-        ), $params));
+        }
+        $request = array ( 'id' => $id );
+        $response = $this->privateGetWalletsWalletIdOrdersId (array_merge ($request, $params));
+        return $this->parse_order($response);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -296,7 +297,8 @@ class itbit extends Exchange {
             $auth = array ( $method, $url, $body, $nonce, $timestamp );
             $message = $nonce . str_replace ('\\/', '/', $this->json ($auth));
             $hash = $this->hash ($this->encode ($message), 'sha256', 'binary');
-            $binhash = $this->binary_concat($url, $hash);
+            $binaryUrl = $this->encode ($url);
+            $binhash = $this->binary_concat($binaryUrl, $hash);
             $signature = $this->hmac ($binhash, $this->encode ($this->secret), 'sha512', 'base64');
             $headers = array (
                 'Authorization' => $this->apiKey . ':' . $signature,

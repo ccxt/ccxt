@@ -15,6 +15,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import ROUND
 
 
 class binance (Exchange):
@@ -106,10 +107,10 @@ class binance (Exchange):
                 },
                 'public': {
                     'get': [
-                        'exchangeInfo',
                         'ping',
                         'time',
                         'depth',
+                        'trades',
                         'aggTrades',
                         'klines',
                         'ticker/24hr',
@@ -267,10 +268,11 @@ class binance (Exchange):
             },
             'commonCurrencies': {
                 'YOYO': 'YOYOW',
-                'BCC': 'BCH',
             },
             # exchange-specific options
             'options': {
+                'fetchTradesMethod': 'publicGetAggTrades',
+                'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
                 'defaultLimitOrderType': 'limit',  # or 'limit_maker'
                 'hasAlreadyAuthenticatedSuccessfully': False,
@@ -279,7 +281,10 @@ class binance (Exchange):
                 'timeDifference': 0,  # the difference between system clock and Binance clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'parseOrderToPrecision': False,  # force amounts and costs in parseOrder to precision
-                'newOrderRespType': 'RESULT',  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+                'newOrderRespType': {
+                    'market': 'FULL',  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+                    'limit': 'RESULT',  # we change it from 'ACK' by default to 'RESULT'
+                },
             },
             'exceptions': {
                 '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
@@ -306,7 +311,7 @@ class binance (Exchange):
         self.options['timeDifference'] = int(after - response['serverTime'])
         return self.options['timeDifference']
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         response = await self.publicGetExchangeInfo()
         if self.options['adjustForTimeDifference']:
             await self.load_time_difference()
@@ -347,7 +352,7 @@ class binance (Exchange):
                         'max': None,
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
+                        'min': None,
                         'max': None,
                     },
                     'cost': {
@@ -358,11 +363,18 @@ class binance (Exchange):
             }
             if 'PRICE_FILTER' in filters:
                 filter = filters['PRICE_FILTER']
+                # PRICE_FILTER reports zero values for minPrice and maxPrice
+                # since they updated filter types in November 2018
+                # https://github.com/ccxt/ccxt/issues/4286
+                # therefore limits['price']['min'] and limits['price']['max]
+                # don't have any meaningful value except None
+                #
+                #     entry['limits']['price'] = {
+                #         'min': self.safe_float(filter, 'minPrice'),
+                #         'max': self.safe_float(filter, 'maxPrice'),
+                #     }
+                #
                 entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
-                entry['limits']['price'] = {
-                    'min': self.safe_float(filter, 'minPrice'),
-                    'max': self.safe_float(filter, 'maxPrice'),
-                }
             if 'LOT_SIZE' in filters:
                 filter = filters['LOT_SIZE']
                 entry['precision']['amount'] = self.precision_from_string(filter['stepSize'])
@@ -379,16 +391,19 @@ class binance (Exchange):
         market = self.markets[symbol]
         key = 'quote'
         rate = market[takerOrMaker]
-        cost = float(self.cost_to_precision(symbol, amount * rate))
+        cost = amount * rate
+        precision = market['precision']['price']
         if side == 'sell':
             cost *= price
         else:
             key = 'base'
+            precision = market['precision']['amount']
+        cost = self.decimal_to_precision(cost, ROUND, precision, self.precisionMode)
         return {
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': float(self.fee_to_precision(symbol, cost)),
+            'cost': float(cost),
         }
 
     async def fetch_balance(self, params={}):
@@ -425,13 +440,12 @@ class binance (Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_integer(ticker, 'closeTime')
-        iso8601 = None if (timestamp is None) else self.iso8601(timestamp)
         symbol = self.find_symbol(self.safe_string(ticker, 'symbol'), market)
         last = self.safe_float(ticker, 'lastPrice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'high': self.safe_float(ticker, 'highPrice'),
             'low': self.safe_float(ticker, 'lowPrice'),
             'bid': self.safe_float(ticker, 'bidPrice'),
@@ -472,7 +486,8 @@ class binance (Exchange):
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        rawTickers = await self.publicGetTicker24hr(params)
+        method = self.options['fetchTickersMethod']
+        rawTickers = await getattr(self, method)(params)
         return self.parse_tickers(rawTickers, symbols)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
@@ -500,20 +515,61 @@ class binance (Exchange):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
-        timestampField = 'T' if ('T' in list(trade.keys())) else 'time'
-        timestamp = self.safe_integer(trade, timestampField)
-        priceField = 'p' if ('p' in list(trade.keys())) else 'price'
-        price = self.safe_float(trade, priceField)
-        amountField = 'q' if ('q' in list(trade.keys())) else 'qty'
-        amount = self.safe_float(trade, amountField)
-        idField = 'a' if ('a' in list(trade.keys())) else 'id'
-        id = self.safe_string(trade, idField)
+        #
+        # aggregate trades
+        # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
+        #
+        #     {
+        #         "a": 26129,         # Aggregate tradeId
+        #         "p": "0.01633102",  # Price
+        #         "q": "4.70443515",  # Quantity
+        #         "f": 27781,         # First tradeId
+        #         "l": 27781,         # Last tradeId
+        #         "T": 1498793709153,  # Timestamp
+        #         "m": True,          # Was the buyer the maker?
+        #         "M": True           # Was the trade the best price match?
+        #     }
+        #
+        # recent public trades and old public trades
+        # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#recent-trades-list
+        # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#old-trade-lookup-market_data
+        #
+        #     {
+        #         "id": 28457,
+        #         "price": "4.00000100",
+        #         "qty": "12.00000000",
+        #         "time": 1499865549590,
+        #         "isBuyerMaker": True,
+        #         "isBestMatch": True
+        #     }
+        #
+        # private trades
+        # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#account-trade-list-user_data
+        #
+        #     {
+        #         "symbol": "BNBBTC",
+        #         "id": 28457,
+        #         "orderId": 100234,
+        #         "price": "4.00000100",
+        #         "qty": "12.00000000",
+        #         "commission": "10.10000000",
+        #         "commissionAsset": "BNB",
+        #         "time": 1499865549590,
+        #         "isBuyer": True,
+        #         "isMaker": False,
+        #         "isBestMatch": True
+        #     }
+        #
+        timestamp = self.safe_integer_2(trade, 'T', 'time')
+        price = self.safe_float_2(trade, 'p', 'price')
+        amount = self.safe_float_2(trade, 'q', 'qty')
+        id = self.safe_string_2(trade, 'a', 'id')
         side = None
-        order = None
-        if 'orderId' in trade:
-            order = self.safe_string(trade, 'orderId')
+        order = self.safe_string(trade, 'orderId')
         if 'm' in trade:
             side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally
+        elif 'isBuyerMaker' in trade:
+            side = 'sell' if trade['isBuyerMaker'] else 'buy'
         else:
             if 'isBuyer' in trade:
                 side = 'buy' if (trade['isBuyer']) else 'sell'  # self is a True side
@@ -553,16 +609,17 @@ class binance (Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
+            # 'fromId': 123,    # ID to get aggregate trades from INCLUSIVE.
+            # 'startTime': 456,  # Timestamp in ms to get aggregate trades from INCLUSIVE.
+            # 'endTime': 789,   # Timestamp in ms to get aggregate trades until INCLUSIVE.
+            # 'limit': 500,     # default = 500, maximum = 1000
         }
-        if since is not None:
-            request['startTime'] = since
-            request['endTime'] = self.sum(since, 3600000)
+        if self.options['fetchTradesMethod'] == 'publicGetAggTrades':
+            if since is not None:
+                request['startTime'] = since
+                request['endTime'] = self.sum(since, 3600000)
         if limit is not None:
-            request['limit'] = limit
-        # 'fromId': 123,    # ID to get aggregate trades from INCLUSIVE.
-        # 'startTime': 456,  # Timestamp in ms to get aggregate trades from INCLUSIVE.
-        # 'endTime': 789,   # Timestamp in ms to get aggregate trades until INCLUSIVE.
-        # 'limit': 500,     # default = 500, maximum = 1000
+            request['limit'] = limit  # default = 500, maximum = 1000
         #
         # Caveats:
         # - default limit(500) applies only if no other parameters set, trades up
@@ -572,7 +629,37 @@ class binance (Exchange):
         # - 'tradeId' accepted and returned by self method is "aggregate" trade id
         #   which is different from actual trade id
         # - setting both fromId and time window results in error
-        response = await self.publicGetAggTrades(self.extend(request, params))
+        method = self.safe_value(self.options, 'fetchTradesMethod', 'publicGetTrades')
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # aggregate trades
+        #
+        #     [
+        #         {
+        #             "a": 26129,         # Aggregate tradeId
+        #             "p": "0.01633102",  # Price
+        #             "q": "4.70443515",  # Quantity
+        #             "f": 27781,         # First tradeId
+        #             "l": 27781,         # Last tradeId
+        #             "T": 1498793709153,  # Timestamp
+        #             "m": True,          # Was the buyer the maker?
+        #             "M": True           # Was the trade the best price match?
+        #         }
+        #     ]
+        #
+        # recent public trades and historical public trades
+        #
+        #     [
+        #         {
+        #             "id": 28457,
+        #             "price": "4.00000100",
+        #             "qty": "12.00000000",
+        #             "time": 1499865549590,
+        #             "isBuyerMaker": True,
+        #             "isBestMatch": True
+        #         }
+        #     ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     def parse_order_status(self, status):
@@ -581,6 +668,9 @@ class binance (Exchange):
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
+            'PENDING_CANCEL': 'canceling',  # currently unused
+            'REJECTED': 'rejected',
+            'EXPIRED': 'expired',
         }
         return statuses[status] if (status in list(statuses.keys())) else status
 
@@ -670,12 +760,13 @@ class binance (Exchange):
             method += 'Test'
             params = self.omit(params, 'test')
         uppercaseType = type.upper()
+        newOrderRespType = self.safe_value(self.options['newOrderRespType'], type, 'RESULT')
         order = {
             'symbol': market['id'],
             'quantity': self.amount_to_precision(symbol, amount),
             'type': uppercaseType,
             'side': side.upper(),
-            'newOrderRespType': self.options['newOrderRespType'],  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+            'newOrderRespType': newOrderRespType,  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         }
         timeInForceIsRequired = False
         priceIsRequired = False
@@ -702,6 +793,7 @@ class binance (Exchange):
             if stopPrice is None:
                 raise InvalidOrder(self.id + ' createOrder method requires a stopPrice extra param for a ' + type + ' order')
             else:
+                params = self.omit(params, 'stopPrice')
                 order['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         response = await getattr(self, method)(self.extend(order, params))
         return self.parse_order(response, market)
@@ -730,6 +822,8 @@ class binance (Exchange):
         request = {
             'symbol': market['id'],
         }
+        if since is not None:
+            request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
         response = await self.privateGetAllOrders(self.extend(request, params))
@@ -799,6 +893,23 @@ class binance (Exchange):
         if limit is not None:
             request['limit'] = limit
         response = await self.privateGetMyTrades(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "symbol": "BNBBTC",
+        #             "id": 28457,
+        #             "orderId": 100234,
+        #             "price": "4.00000100",
+        #             "qty": "12.00000000",
+        #             "commission": "10.10000000",
+        #             "commissionAsset": "BNB",
+        #             "time": 1499865549590,
+        #             "isBuyer": True,
+        #             "isMaker": False,
+        #             "isBestMatch": True
+        #         }
+        #     ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
@@ -902,8 +1013,9 @@ class binance (Exchange):
         id = self.safe_string(transaction, 'id')
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'addressTag')  # set but unused
-        if (tag is not None) and len((tag) < 1):
-            tag = None
+        if tag is not None:
+            if len(tag) < 1:
+                tag = None
         txid = self.safe_value(transaction, 'txId')
         code = None
         currencyId = self.safe_string(transaction, 'asset')
@@ -1051,7 +1163,7 @@ class binance (Exchange):
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if (code == 418) or (code == 429):
             raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
         # error response in a form: {"code": -1013, "msg": "Invalid quantity."}
@@ -1066,7 +1178,6 @@ class binance (Exchange):
                 raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use self.price_to_precision(symbol, amount) ' + body)
         if len(body) > 0:
             if body[0] == '{':
-                response = json.loads(body)
                 # check success value for wapi endpoints
                 # response in format {'msg': 'The coin does not exist.', 'success': True/false}
                 success = self.safe_value(response, 'success', True)

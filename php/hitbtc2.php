@@ -31,6 +31,9 @@ class hitbtc2 extends hitbtc {
                 'fetchMyTrades' => true,
                 'withdraw' => true,
                 'fetchOrderTrades' => false, // not implemented yet
+                'fetchDeposits' => false,
+                'fetchWithdrawals' => false,
+                'fetchTransactions' => true,
             ),
             'timeframes' => array (
                 '1m' => 'M1',
@@ -49,7 +52,10 @@ class hitbtc2 extends hitbtc {
                 'api' => 'https://api.hitbtc.com',
                 'www' => 'https://hitbtc.com',
                 'referral' => 'https://hitbtc.com/?ref_id=5a5d39a65d466',
-                'doc' => 'https://api.hitbtc.com',
+                'doc' => array (
+                    'https://api.hitbtc.com',
+                    'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv2.md',
+                ),
                 'fees' => array (
                     'https://hitbtc.com/fees-and-limits',
                     'https://support.hitbtc.com/hc/en-us/articles/115005148605-Fees-and-limits',
@@ -536,6 +542,7 @@ class hitbtc2 extends hitbtc {
                 'defaultTimeInForce' => 'FOK',
             ),
             'exceptions' => array (
+                '1003' => '\\ccxt\\PermissionDenied', // "Action is forbidden for this API key"
                 '2010' => '\\ccxt\\InvalidOrder', // "Quantity not a valid number"
                 '2011' => '\\ccxt\\InvalidOrder', // "Quantity too low"
                 '2020' => '\\ccxt\\InvalidOrder', // "Price not a valid number"
@@ -549,7 +556,7 @@ class hitbtc2 extends hitbtc {
         return $this->decimal_to_precision($fee, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetSymbol ();
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
@@ -788,6 +795,19 @@ class hitbtc2 extends hitbtc {
     }
 
     public function parse_trade ($trade, $market = null) {
+        //
+        // createMarketOrder
+        //
+        //  {       $fee => "0.0004644",
+        //           $id =>  386394956,
+        //        $price => "0.4644",
+        //     quantity => "1",
+        //    $timestamp => "2018-10-25T16:41:44.780Z" }
+        //
+        // fetchTrades ...
+        //
+        // fetchMyTrades ...
+        //
         $timestamp = $this->parse8601 ($trade['timestamp']);
         $symbol = null;
         if ($market !== null) {
@@ -816,6 +836,7 @@ class hitbtc2 extends hitbtc {
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'quantity');
         $cost = $price * $amount;
+        $side = $this->safe_string($trade, 'side');
         return array (
             'info' => $trade,
             'id' => (string) $trade['id'],
@@ -824,12 +845,122 @@ class hitbtc2 extends hitbtc {
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
             'type' => null,
-            'side' => $trade['side'],
+            'side' => $side,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
             'fee' => $fee,
         );
+    }
+
+    public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $currency = null;
+        $request = array ();
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+            $request['asset'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        $response = $this->privateGetAccountTransactions (array_merge ($request, $params));
+        return $this->parseTransactions ($response, $currency, $since, $limit);
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        //
+        //     array (
+        //         $id => 'd53ee9df-89bf-4d09-886e-849f8be64647',
+        //         index => 1044718371,
+        //         $type => 'payout',
+        //         $status => 'success',
+        //         $currency => 'ETH',
+        //         $amount => '4.522683200000000000000000',
+        //         createdAt => '2018-06-07T00:43:32.426Z',
+        //         updatedAt => '2018-06-07T00:45:36.447Z',
+        //         hash => '0x973e5683dfdf80a1fb1e0b96e19085b6489221d2ddf864daa46903c5ec283a0f',
+        //         $address => '0xC5a59b21948C1d230c8C54f05590000Eb3e1252c',
+        //         fee => '0.00958',
+        //     ),
+        //     array (
+        //         $id => 'e6c63331-467e-4922-9edc-019e75d20ba3',
+        //         index => 1044714672,
+        //         $type => 'exchangeToBank',
+        //         $status => 'success',
+        //         $currency => 'ETH',
+        //         $amount => '4.532263200000000000',
+        //         createdAt => '2018-06-07T00:42:39.543Z',
+        //         updatedAt => '2018-06-07T00:42:39.683Z',
+        //     ),
+        //     array (
+        //         $id => '3b052faa-bf97-4636-a95c-3b5260015a10',
+        //         index => 1009280164,
+        //         $type => 'bankToExchange',
+        //         $status => 'success',
+        //         $currency => 'CAS',
+        //         $amount => '104797.875800000000000000',
+        //         createdAt => '2018-05-19T02:34:36.750Z',
+        //         updatedAt => '2018-05-19T02:34:36.857Z',
+        //     ),
+        //     {
+        //         $id => 'd525249f-7498-4c81-ba7b-b6ae2037dc08',
+        //         index => 1009279948,
+        //         $type => 'payin',
+        //         $status => 'success',
+        //         $currency => 'CAS',
+        //         $amount => '104797.875800000000000000',
+        //         createdAt => '2018-05-19T02:30:16.698Z',
+        //         updatedAt => '2018-05-19T02:34:28.159Z',
+        //         hash => '0xa6530e1231de409cf1f282196ed66533b103eac1df2aa4a7739d56b02c5f0388',
+        //         $address => '0xd53ed559a6d963af7cb3f3fcd0e7ca499054db8b',
+        //     }
+        //
+        $id = $this->safe_string($transaction, 'id');
+        $timestamp = $this->parse8601 ($this->safe_string($transaction, 'createdAt'));
+        $updated = $this->parse8601 ($this->safe_string($transaction, 'updatedAt'));
+        $code = null;
+        $currencyId = $this->safe_string($transaction, 'currency');
+        if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
+            $currency = $this->currencies_by_id[$currencyId];
+            $code = $currency['code'];
+        } else {
+            $code = $this->common_currency_code($currencyId);
+        }
+        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
+        $amount = $this->safe_float($transaction, 'amount');
+        $type = $this->safe_string($transaction, 'type');
+        if ($type === 'payin') {
+            $type = 'deposit';
+        } else if ($type === 'payout') {
+            $type = 'withdrawal';
+        }
+        $address = $this->safe_string($transaction, 'address');
+        $txid = $this->safe_string($transaction, 'hash');
+        return array (
+            'info' => $transaction,
+            'id' => $id,
+            'txid' => $txid,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'address' => $address,
+            'tag' => null,
+            'type' => $type,
+            'amount' => $amount,
+            'currency' => $code,
+            'status' => $status,
+            'updated' => $updated,
+            'fee' => null,
+        );
+    }
+
+    public function parse_transaction_status ($status) {
+        $statuses = array (
+            'pending' => 'pending',
+            'failed' => 'failed',
+            'success' => 'ok',
+        );
+        return (is_array ($statuses) && array_key_exists ($status, $statuses)) ? $statuses[$status] : $status;
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
@@ -907,7 +1038,39 @@ class hitbtc2 extends hitbtc {
         return $this->parse_order($response);
     }
 
+    public function parse_order_status ($status) {
+        $statuses = array (
+            'new' => 'open',
+            'suspended' => 'open',
+            'partiallyFilled' => 'open',
+            'filled' => 'closed',
+            'canceled' => 'canceled',
+            'expired' => 'failed',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
     public function parse_order ($order, $market = null) {
+        //
+        // createMarketOrder
+        //
+        //   { clientOrderId =>   "fe36aa5e190149bf9985fb673bbb2ea0",
+        //         createdAt =>   "2018-10-25T16:41:44.780Z",
+        //       cumQuantity =>   "1",
+        //                $id =>   "66799540063",
+        //          quantity =>   "1",
+        //              $side =>   "sell",
+        //            $status =>   "$filled",
+        //            $symbol =>   "XRPUSDT",
+        //       timeInForce =>   "FOK",
+        //      tradesReport => array ( {       $fee => "0.0004644",
+        //                               $id =>  386394956,
+        //                            $price => "0.4644",
+        //                         quantity => "1",
+        //                        timestamp => "2018-10-25T16:41:44.780Z" } ),
+        //              $type =>   "$market",
+        //         updatedAt =>   "2018-10-25T16:41:44.780Z"                   }
+        //
         $created = $this->parse8601 ($this->safe_string($order, 'createdAt'));
         $updated = $this->parse8601 ($this->safe_string($order, 'updatedAt'));
         if (!$market)
@@ -915,16 +1078,7 @@ class hitbtc2 extends hitbtc {
         $symbol = $market['symbol'];
         $amount = $this->safe_float($order, 'quantity');
         $filled = $this->safe_float($order, 'cumQuantity');
-        $status = $order['status'];
-        if ($status === 'new') {
-            $status = 'open';
-        } else if ($status === 'suspended') {
-            $status = 'open';
-        } else if ($status === 'partiallyFilled') {
-            $status = 'open';
-        } else if ($status === 'filled') {
-            $status = 'closed';
-        }
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $id = (string) $order['clientOrderId'];
         $price = $this->safe_float($order, 'price');
         if ($price === null) {
@@ -941,6 +1095,45 @@ class hitbtc2 extends hitbtc {
                 }
             }
         }
+        $type = $this->safe_string($order, 'type');
+        $side = $this->safe_string($order, 'side');
+        $trades = $this->safe_value($order, 'tradesReport');
+        $fee = null;
+        $average = null;
+        if ($trades !== null) {
+            $trades = $this->parse_trades($trades, $market);
+            $feeCost = null;
+            $sumOfPrices = null;
+            $numTrades = is_array ($trades) ? count ($trades) : 0;
+            for ($i = 0; $i < $numTrades; $i++) {
+                if ($feeCost === null) {
+                    $feeCost = 0;
+                }
+                if ($sumOfPrices === null) {
+                    $sumOfPrices = 0;
+                }
+                if ($cost === null) {
+                    $cost = 0;
+                }
+                $cost .= $trades[$i]['cost'];
+                $feeCost .= $trades[$i]['fee']['cost'];
+                $sumOfPrices .= $trades[$i]['price'];
+            }
+            if (($sumOfPrices !== null) && ($numTrades > 0)) {
+                $average = $sumOfPrices / $numTrades;
+                if ($type === 'market') {
+                    if ($price === null) {
+                        $price = $average;
+                    }
+                }
+            }
+            if ($feeCost !== null) {
+                $fee = array (
+                    'cost' => $feeCost,
+                    'currency' => $market['quote'],
+                );
+            }
+        }
         return array (
             'id' => $id,
             'timestamp' => $created,
@@ -948,14 +1141,16 @@ class hitbtc2 extends hitbtc {
             'lastTradeTimestamp' => $updated,
             'status' => $status,
             'symbol' => $symbol,
-            'type' => $order['type'],
-            'side' => $order['side'],
+            'type' => $type,
+            'side' => $side,
             'price' => $price,
+            'average' => $average,
             'amount' => $amount,
             'cost' => $cost,
             'filled' => $filled,
             'remaining' => $remaining,
-            'fee' => null,
+            'fee' => $fee,
+            'trades' => $trades,
             'info' => $order,
         );
     }
@@ -1110,7 +1305,7 @@ class hitbtc2 extends hitbtc {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = '/api' . '/' . $this->version . '/';
+        $url = '/api/' . $this->version . '/';
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'public') {
             $url .= $api . '/' . $this->implode_params($path, $params);
@@ -1137,7 +1332,7 @@ class hitbtc2 extends hitbtc {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (gettype ($body) !== 'string')
             return;
         if ($code >= 400) {
@@ -1147,7 +1342,6 @@ class hitbtc2 extends hitbtc {
                 throw new ExchangeNotAvailable ($feedback);
             // array ("error":{"$code":20002,"$message":"Order not found","description":"")}
             if ($body[0] === '{') {
-                $response = json_decode ($body, $as_associative_array = true);
                 if (is_array ($response) && array_key_exists ('error', $response)) {
                     $code = $this->safe_string($response['error'], 'code');
                     $exceptions = $this->exceptions;

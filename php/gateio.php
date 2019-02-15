@@ -28,6 +28,7 @@ class gateio extends Exchange {
                 'fetchOrderTrades' => true,
                 'fetchOrders' => true,
                 'fetchOrder' => true,
+                'fetchMyTrades' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
@@ -41,6 +42,7 @@ class gateio extends Exchange {
                     'https://gate.io/fee',
                     'https://support.gate.io/hc/en-us/articles/115003577673',
                 ),
+                'referral' => 'https://www.gate.io/signup/2436035',
             ),
             'api' => array (
                 'public' => array (
@@ -129,7 +131,7 @@ class gateio extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetMarketinfo ();
         $markets = $this->safe_value($response, 'pairs');
         if (!$markets)
@@ -140,9 +142,9 @@ class gateio extends Exchange {
             $keys = is_array ($market) ? array_keys ($market) : array ();
             $id = $keys[0];
             $details = $market[$id];
-            list ($base, $quote) = explode ('_', $id);
-            $base = strtoupper ($base);
-            $quote = strtoupper ($quote);
+            list ($baseId, $quoteId) = explode ('_', $id);
+            $base = strtoupper ($baseId);
+            $quote = strtoupper ($quoteId);
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
@@ -175,6 +177,8 @@ class gateio extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'info' => $market,
                 'active' => $active,
                 'maker' => $details['fee'] / 100,
@@ -259,19 +263,18 @@ class gateio extends Exchange {
         );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (strlen ($body) <= 0) {
             return;
         }
         if ($body[0] !== '{') {
             return;
         }
-        $jsonbodyParsed = json_decode ($body, $as_associative_array = true);
-        $resultString = $this->safe_string($jsonbodyParsed, 'result', '');
+        $resultString = $this->safe_string($response, 'result', '');
         if ($resultString !== 'false') {
             return;
         }
-        $errorCode = $this->safe_string($jsonbodyParsed, 'code');
+        $errorCode = $this->safe_string($response, 'code');
         if ($errorCode !== null) {
             $exceptions = $this->exceptions;
             $errorCodeNames = $this->errorCodeNames;
@@ -280,7 +283,7 @@ class gateio extends Exchange {
                 if (is_array ($errorCodeNames) && array_key_exists ($errorCode, $errorCodeNames)) {
                     $message = $errorCodeNames[$errorCode];
                 } else {
-                    $message = $this->safe_string($jsonbodyParsed, 'message', '(unknown)');
+                    $message = $this->safe_string($response, 'message', '(unknown)');
                 }
                 throw new $exceptions[$errorCode] ($message);
             }
@@ -560,14 +563,19 @@ class gateio extends Exchange {
         return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $response = $this->privatePostWithdraw (array_merge (array (
-            'currency' => strtolower ($currency),
+        $currency = $this->currency ($code);
+        $request = array (
+            'currency' => $currency['id'],
             'amount' => $amount,
             'address' => $address, // Address must exist in you AddressBook in security settings
-        ), $params));
+        );
+        if ($tag !== null) {
+            $request['address'] .= ' ' . $tag;
+        }
+        $response = $this->privatePostWithdraw (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => null,

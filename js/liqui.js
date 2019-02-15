@@ -101,6 +101,7 @@ module.exports = class liqui extends Exchange {
                 'fetchOrderMethod': 'privatePostOrderInfo',
                 'fetchMyTradesMethod': 'privatePostTradeHistory',
                 'cancelOrderMethod': 'privatePostCancelOrder',
+                'fetchTickersMaxLength': 2048,
             },
         });
     }
@@ -123,7 +124,7 @@ module.exports = class liqui extends Exchange {
         };
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetInfo ();
         let markets = response['pairs'];
         let keys = Object.keys (markets);
@@ -296,13 +297,14 @@ module.exports = class liqui extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let ids = undefined;
+        let ids = this.ids;
         if (symbols === undefined) {
-            ids = this.ids.join ('-');
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if (ids.length > 2048) {
-                let numIds = this.ids.length;
-                throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers');
+            let numIds = ids.length;
+            ids = ids.join ('-');
+            let maxLength = this.safeInteger (this.options, 'fetchTickersMaxLength', 2048);
+            // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
+            if (ids.length > this.options['fetchTickersMaxLength']) {
+                throw new ArgumentsRequired (this.id + ' has ' + numIds.toString () + ' markets exceeding max URL length for this endpoint (' + maxLength.toString () + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers');
             }
         } else {
             ids = this.marketIds (symbols);
@@ -682,14 +684,20 @@ module.exports = class liqui extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let response = await this.privatePostWithdrawCoin (this.extend ({
-            'coinName': currency,
+        let currency = this.currency (code);
+        let request = {
+            'coinName': currency['id'],
             'amount': parseFloat (amount),
             'address': address,
-        }, params));
+        };
+        // no docs on the tag, yet...
+        if (tag !== undefined) {
+            throw new ExchangeError (this.id + ' withdraw() does not support the tag argument yet due to a lack of docs on withdrawing with tag/memo on behalf of the exchange.');
+        }
+        let response = await this.privatePostWithdrawCoin (this.extend (request, params));
         return {
             'info': response,
             'id': response['return']['tId'],
@@ -748,62 +756,57 @@ module.exports = class liqui extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body) {
-        if (typeof body !== 'string')
+    handleErrors (httpCode, reason, url, method, headers, body, response) {
+        if (!this.isJsonEncodedObject (body))
             return; // fallback to default error handler
-        if (body.length < 2)
-            return; // fallback to default error handler
-        if ((body[0] === '{') || (body[0] === '[')) {
-            let response = JSON.parse (body);
-            if ('success' in response) {
-                //
-                // 1 - Liqui only returns the integer 'success' key from their private API
-                //
-                //     { "success": 1, ... } httpCode === 200
-                //     { "success": 0, ... } httpCode === 200
-                //
-                // 2 - However, exchanges derived from Liqui, can return non-integers
-                //
-                //     It can be a numeric string
-                //     { "sucesss": "1", ... }
-                //     { "sucesss": "0", ... }, httpCode >= 200 (can be 403, 502, etc)
-                //
-                //     Or just a string
-                //     { "success": "true", ... }
-                //     { "success": "false", ... }, httpCode >= 200
-                //
-                //     Or a boolean
-                //     { "success": true, ... }
-                //     { "success": false, ... }, httpCode >= 200
-                //
-                // 3 - Oversimplified, Python PEP8 forbids comparison operator (===) of different types
-                //
-                // 4 - We do not want to copy-paste and duplicate the code of this handler to other exchanges derived from Liqui
-                //
-                // To cover points 1, 2, 3 and 4 combined this handler should work like this:
-                //
-                let success = this.safeValue (response, 'success', false);
-                if (typeof success === 'string') {
-                    if ((success === 'true') || (success === '1'))
-                        success = true;
-                    else
-                        success = false;
+        if ('success' in response) {
+            //
+            // 1 - Liqui only returns the integer 'success' key from their private API
+            //
+            //     { "success": 1, ... } httpCode === 200
+            //     { "success": 0, ... } httpCode === 200
+            //
+            // 2 - However, exchanges derived from Liqui, can return non-integers
+            //
+            //     It can be a numeric string
+            //     { "sucesss": "1", ... }
+            //     { "sucesss": "0", ... }, httpCode >= 200 (can be 403, 502, etc)
+            //
+            //     Or just a string
+            //     { "success": "true", ... }
+            //     { "success": "false", ... }, httpCode >= 200
+            //
+            //     Or a boolean
+            //     { "success": true, ... }
+            //     { "success": false, ... }, httpCode >= 200
+            //
+            // 3 - Oversimplified, Python PEP8 forbids comparison operator (===) of different types
+            //
+            // 4 - We do not want to copy-paste and duplicate the code of this handler to other exchanges derived from Liqui
+            //
+            // To cover points 1, 2, 3 and 4 combined this handler should work like this:
+            //
+            let success = this.safeValue (response, 'success', false);
+            if (typeof success === 'string') {
+                if ((success === 'true') || (success === '1'))
+                    success = true;
+                else
+                    success = false;
+            }
+            if (!success) {
+                const code = this.safeString (response, 'code');
+                const message = this.safeString (response, 'error');
+                const feedback = this.id + ' ' + this.json (response);
+                const exact = this.exceptions['exact'];
+                if (code in exact) {
+                    throw new exact[code] (feedback);
                 }
-                if (!success) {
-                    const code = this.safeString (response, 'code');
-                    const message = this.safeString (response, 'error');
-                    const feedback = this.id + ' ' + this.json (response);
-                    const exact = this.exceptions['exact'];
-                    if (code in exact) {
-                        throw new exact[code] (feedback);
-                    }
-                    const broad = this.exceptions['broad'];
-                    const broadKey = this.findBroadlyMatchedKey (broad, message);
-                    if (broadKey !== undefined) {
-                        throw new broad[broadKey] (feedback);
-                    }
-                    throw new ExchangeError (feedback); // unknown message
+                const broad = this.exceptions['broad'];
+                const broadKey = this.findBroadlyMatchedKey (broad, message);
+                if (broadKey !== undefined) {
+                    throw new broad[broadKey] (feedback);
                 }
+                throw new ExchangeError (feedback); // unknown message
             }
         }
     }

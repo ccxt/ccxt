@@ -4,7 +4,15 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 
 
@@ -66,9 +74,12 @@ class bit2c (Exchange):
             },
             'markets': {
                 'BTC/NIS': {'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS'},
-                'BCH/NIS': {'id': 'BchNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS'},
+                'ETH/NIS': {'id': 'EthNis', 'symbol': 'ETH/NIS', 'base': 'ETH', 'quote': 'NIS'},
+                'BCH/NIS': {'id': 'BchAbcNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS'},
                 'LTC/NIS': {'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS'},
+                'ETC/NIS': {'id': 'EtcNis', 'symbol': 'ETC/NIS', 'base': 'ETC', 'quote': 'NIS'},
                 'BTG/NIS': {'id': 'BtgNis', 'symbol': 'BTG/NIS', 'base': 'BTG', 'quote': 'NIS'},
+                'BSV/NIS': {'id': 'BchSvNis', 'symbol': 'BSV/NIS', 'base': 'BSV', 'quote': 'NIS'},
             },
             'fees': {
                 'trading': {
@@ -109,7 +120,9 @@ class bit2c (Exchange):
         timestamp = self.milliseconds()
         averagePrice = self.safe_float(ticker, 'av')
         baseVolume = self.safe_float(ticker, 'a')
-        quoteVolume = baseVolume * averagePrice
+        quoteVolume = None
+        if baseVolume is not None and averagePrice is not None:
+            quoteVolume = baseVolume * averagePrice
         last = self.safe_float(ticker, 'll')
         return {
             'symbol': symbol,
@@ -140,6 +153,8 @@ class bit2c (Exchange):
         response = await getattr(self, method)(self.extend({
             'pair': market['id'],
         }, params))
+        if isinstance(response, basestring):
+            raise ExchangeError(response)
         return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -276,9 +291,15 @@ class bit2c (Exchange):
             feeCost = self.safe_float(trade, 'feeAmount')
         else:
             timestamp = self.safe_integer(trade, 'date') * 1000
-            id = self.safe_integer(trade, 'tid')
+            id = self.safe_string(trade, 'tid')
             price = self.safe_float(trade, 'price')
             amount = self.safe_float(trade, 'amount')
+            side = self.safe_value(trade, 'isBid')
+            if side is not None:
+                if side:
+                    side = 'buy'
+                else:
+                    side = 'sell'
         symbol = None
         if market is not None:
             symbol = market['symbol']

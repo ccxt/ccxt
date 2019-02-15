@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -39,37 +39,61 @@ module.exports = class tidebit extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/39034921-e3acf016-4480-11e8-9945-a6086a1082fe.jpg',
                 'api': 'https://www.tidebit.com',
                 'www': 'https://www.tidebit.com',
-                'doc': 'https://www.tidebit.com/documents/api_v2',
+                'doc': [
+                    'https://www.tidebit.com/documents/api/guide',
+                    'https://www.tidebit.com/swagger/#/default',
+                ],
             },
             'api': {
                 'public': {
                     'get': [
-                        'v2/markets', // V2MarketsJson
-                        'v2/tickers', // V2TickersJson
-                        'v2/tickers/{market}', // V2TickersMarketJson
-                        'v2/trades', // V2TradesJson
-                        'v2/trades/{market}', // V2TradesMarketJson
-                        'v2/order_book', // V2OrderBookJson
-                        'v2/order', // V2OrderJson
-                        'v2/k_with_pending_trades', // V2KWithPendingTradesJson
-                        'v2/k', // V2KJson
-                        'v2/depth', // V2DepthJson
+                        'markets',
+                        'tickers',
+                        'tickers/{market}',
+                        'timestamp',
+                        'trades',
+                        'trades/{market}',
+                        'order_book',
+                        'order',
+                        'k_with_pending_trades',
+                        'k',
+                        'depth',
                     ],
                     'post': [],
                 },
                 'private': {
                     'get': [
-                        'v2/deposits', // V2DepositsJson
-                        'v2/deposit_address', // V2DepositAddressJson
-                        'v2/deposit', // V2DepositJson
-                        'v2/members/me', // V2MembersMeJson
-                        'v2/addresses/{address}', // V2AddressesAddressJson
+                        'addresses/{address}',
+                        'deposits/history',
+                        'deposits/get_deposit',
+                        'deposits/deposit_address',
+                        'historys/orders',
+                        'historys/vouchers',
+                        'historys/accounts',
+                        'historys/snapshots',
+                        'linkage/get_status',
+                        'members/me',
+                        'order',
+                        'orders',
+                        'partners/orders/{id}/trades',
+                        'referral_commissions/get_undeposited',
+                        'referral_commissions/get_graph_data',
+                        'trades/my',
+                        'withdraws/bind_account_list',
+                        'withdraws/get_withdraw_account',
+                        'withdraws/fetch_bind_info',
                     ],
                     'post': [
-                        'v2/order/delete', // V2OrderDeleteJson
-                        'v2/order', // V2OrderJson
-                        'v2/order/multi', // V2OrderMultiJson
-                        'v2/order/clear', // V2OrderClearJson
+                        'deposits/deposit_cash',
+                        'favorite_markets/update',
+                        'order/delete',
+                        'orders',
+                        'orders/multi',
+                        'orders/clear',
+                        'referral_commissions/deposit',
+                        'withdraws/apply',
+                        'withdraws/bind_bank',
+                        'withdraws/bind_address',
                     ],
                 },
             },
@@ -96,7 +120,7 @@ module.exports = class tidebit extends Exchange {
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         let currency = this.currency (code);
-        let response = await this.privateGetV2DepositAddress (this.extend ({
+        let response = await this.privateGetDepositAddress (this.extend ({
             'currency': currency['id'],
         }, params));
         if ('success' in response) {
@@ -113,8 +137,8 @@ module.exports = class tidebit extends Exchange {
         }
     }
 
-    async fetchMarkets () {
-        let markets = await this.publicGetV2Markets ();
+    async fetchMarkets (params = {}) {
+        let markets = await this.publicGetMarkets ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
@@ -138,7 +162,7 @@ module.exports = class tidebit extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetV2MembersMe ();
+        let response = await this.privateGetMembersMe ();
         let balances = response['accounts'];
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
@@ -167,7 +191,7 @@ module.exports = class tidebit extends Exchange {
         if (limit === undefined)
             request['limit'] = limit; // default = 300
         request['market'] = market['id'];
-        let orderbook = await this.publicGetV2Depth (this.extend (request, params));
+        let orderbook = await this.publicGetDepth (this.extend (request, params));
         let timestamp = orderbook['timestamp'] * 1000;
         return this.parseOrderBook (orderbook, timestamp);
     }
@@ -205,7 +229,7 @@ module.exports = class tidebit extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetV2Tickers (params);
+        let tickers = await this.publicGetTickers (params);
         let ids = Object.keys (tickers);
         let result = {};
         for (let i = 0; i < ids.length; i++) {
@@ -233,7 +257,7 @@ module.exports = class tidebit extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetV2TickersMarket (this.extend ({
+        let response = await this.publicGetTickersMarket (this.extend ({
             'market': market['id'],
         }, params));
         return this.parseTicker (response, market);
@@ -258,7 +282,7 @@ module.exports = class tidebit extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetV2Trades (this.extend ({
+        let response = await this.publicGetTrades (this.extend ({
             'market': market['id'],
         }, params));
         return this.parseTrades (response, market, since, limit);
@@ -290,7 +314,7 @@ module.exports = class tidebit extends Exchange {
         } else {
             request['timestamp'] = 1800000;
         }
-        let response = await this.publicGetV2K (this.extend (request, params));
+        let response = await this.publicGetK (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
@@ -333,23 +357,23 @@ module.exports = class tidebit extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let order = {
+        let request = {
             'market': this.marketId (symbol),
             'side': side,
             'volume': amount.toString (),
             'ord_type': type,
         };
         if (type === 'limit') {
-            order['price'] = price.toString ();
+            request['price'] = price.toString ();
         }
-        let response = await this.privatePostV2Order (this.extend (order, params));
+        let response = await this.privatePostOrders (this.extend (request, params));
         let market = this.markets_by_id[response['market']];
         return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let result = await this.privatePostV2OrderDelete ({ 'id': id });
+        let result = await this.privatePostOrderDelete ({ 'id': id });
         let order = this.parseOrder (result);
         let status = order['status'];
         if (status === 'closed' || status === 'canceled') {
@@ -358,14 +382,25 @@ module.exports = class tidebit extends Exchange {
         return order;
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let result = await this.privatePostWithdraw (this.extend ({
+        let currency = this.currency (code);
+        let id = this.safeString (params, 'id');
+        if (id === undefined) {
+            throw new ExchangeError (this.id + ' withdraw() requires an extra id param (withdraw account id according to withdraws/bind_account_list endpoint');
+        }
+        let request = {
+            'id': id,
+            'currency_type': 'coin', // or 'cash'
             'currency': currency.toLowerCase (),
-            'sum': amount,
-            'address': address,
-        }, params));
+            'body': amount,
+            // 'address': address, // they don't allow withdrawing to direct addresses?
+        };
+        if (tag !== undefined) {
+            request['memo'] = tag;
+        }
+        let result = await this.privatePostWithdrawsApply (this.extend (request, params));
         return {
             'info': result,
             'id': undefined,
@@ -381,7 +416,7 @@ module.exports = class tidebit extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/' + 'api/' + this.implodeParams (path, params) + '.json';
+        let request = '/' + 'api/' + this.version + '/' + this.implodeParams (path, params) + '.json';
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + request;
         if (api === 'public') {
@@ -409,9 +444,8 @@ module.exports = class tidebit extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if (code === 400) {
-            const response = JSON.parse (body);
             const error = this.safeValue (response, 'error');
             const errorCode = this.safeString (error, 'code');
             const feedback = this.id + ' ' + this.json (response);

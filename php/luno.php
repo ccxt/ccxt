@@ -14,7 +14,7 @@ class luno extends Exchange {
             'id' => 'luno',
             'name' => 'luno',
             'countries' => array ( 'GB', 'SG', 'ZA' ),
-            'rateLimit' => 10000,
+            'rateLimit' => 1000,
             'version' => '1',
             'has' => array (
                 'CORS' => false,
@@ -83,7 +83,7 @@ class luno extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetTickers ();
         $result = array ();
         for ($p = 0; $p < count ($markets['tickers']); $p++) {

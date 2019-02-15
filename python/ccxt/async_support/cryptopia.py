@@ -14,7 +14,6 @@ except NameError:
 import base64
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -38,6 +37,9 @@ class cryptopia (Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchMyTrades': True,
+                'fetchTransactions': False,
+                'fetchWithdrawals': True,
+                'fetchDeposits': True,
                 'fetchOHLCV': True,
                 'fetchOrder': 'emulated',
                 'fetchOrderBooks': True,
@@ -125,6 +127,8 @@ class cryptopia (Exchange):
                 'FT': 'Fabric Token',
                 'FUEL': 'FC2',  # FuelCoin != FUEL
                 'HAV': 'Havecoin',
+                'HC': 'Harvest Masternode Coin',  # != HyperCash
+                'HSR': 'HC',
                 'KARM': 'KARMA',
                 'LBTC': 'LiteBitcoin',
                 'LDC': 'LADACoin',
@@ -141,7 +145,7 @@ class cryptopia (Exchange):
             },
         })
 
-    async def fetch_markets(self):
+    async def fetch_markets(self, params={}):
         response = await self.publicGetGetTradePairs()
         result = []
         markets = response['Data']
@@ -385,6 +389,101 @@ class cryptopia (Exchange):
         response = await self.publicGetGetMarketHistoryIdHours(self.extend(request, params))
         trades = response['Data']
         return self.parse_trades(trades, market, since, limit)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # fetchWithdrawals
+        #
+        #     {
+        #         Id: 937355,
+        #         Currency: 'BTC',
+        #         TxId: '5ba7784576cee48bfb9d1524abf7bdade3de65e0f2f9cdd25f7bef2c506cf296',
+        #         Type: 'Withdraw',
+        #         Amount: 0.7,
+        #         Fee: 0,
+        #         Status: 'Complete',
+        #         Confirmations: 0,
+        #         Timestamp: '2017-10-10T18:39:03.8928376',
+        #         Address: '14KyZTusAZZGEmZzxsWf4pee7ThtA2iv2E',
+        #     }
+        #
+        # fetchDeposits
+        #     {
+        #         Id: 7833741,
+        #         Currency: 'BCH',
+        #         TxId: '0000000000000000011865af4122fe3b144e2cbeea86142e8ff2fb4107352d43',
+        #         Type: 'Deposit',
+        #         Amount: 0.0003385,
+        #         Fee: 0,
+        #         Status: 'Confirmed',
+        #         Confirmations: 6,
+        #         Timestamp: '2017-08-01T16:19:24',
+        #         Address: null
+        #     }
+        #
+        timestamp = self.parse8601(self.safe_string(transaction, 'Timestamp'))
+        code = None
+        currencyId = self.safe_string(transaction, 'Currency')
+        currency = self.safe_value(self.currencies_by_id, currencyId)
+        if currency is None:
+            code = self.common_currency_code(currencyId)
+        if currency is not None:
+            code = currency['code']
+        status = self.safe_string(transaction, 'Status')
+        txid = self.safe_string(transaction, 'TxId')
+        if status is not None:
+            status = self.parse_transaction_status(status)
+        id = self.safe_string(transaction, 'Id')
+        type = self.parse_transaction_type(self.safe_string(transaction, 'Type'))
+        amount = self.safe_float(transaction, 'Amount')
+        address = self.safe_string(transaction, 'Address')
+        feeCost = self.safe_float(transaction, 'Fee')
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': None,
+            'status': status,
+            'type': type,
+            'updated': None,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+            },
+        }
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            'Confirmed': 'ok',
+            'Complete': 'ok',
+            'Pending': 'pending',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction_type(self, type):
+        types = {
+            'Withdraw': 'withdrawal',
+            'Deposit': 'deposit',
+        }
+        return self.safe_string(types, type, type)
+
+    async def fetch_transactions_by_type(self, type, code=None, since=None, limit=None, params={}):
+        request = {
+            'type': 'Deposit' if (type == 'deposit') else 'Withdraw',
+        }
+        response = await self.privatePostGetTransactions(self.extend(request, params))
+        return self.parseTransactions(response['Data'], code, since, limit)
+
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        return await self.fetch_transactions_by_type('withdrawal', code, since, limit, params)
+
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        return await self.fetch_transactions_by_type('deposit', code, since, limit, params)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -647,12 +746,18 @@ class cryptopia (Exchange):
             'Currency': currency['id'],
         }, params))
         address = self.safe_string(response['Data'], 'BaseAddress')
-        if not address:
-            address = self.safe_string(response['Data'], 'Address')
+        tag = self.safe_string(response['Data'], 'Address')
+        if address is not None:
+            if len(address) < 1:
+                address = None
+        if address is None:
+            address = tag
+            tag = None
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
+            'tag': tag,
             'info': response,
         }
 
@@ -700,42 +805,24 @@ class cryptopia (Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    def handle_errors(self, code, reason, url, method, headers, body):
-        if not isinstance(body, basestring):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
+        if response is None:
             return  # fallback to default error handler
-        if len(body) < 2:
-            return  # fallback to default error handler
-        fixedJSONString = self.sanitize_broken_json_string(body)
-        if fixedJSONString[0] == '{':
-            response = json.loads(fixedJSONString)
-            if 'Success' in response:
-                success = self.safe_value(response, 'Success')
-                if success is not None:
-                    if not success:
-                        error = self.safe_string(response, 'Error')
-                        feedback = self.id
-                        if isinstance(error, basestring):
-                            feedback = feedback + ' ' + error
-                            if error.find('Invalid trade amount') >= 0:
-                                raise InvalidOrder(feedback)
-                            if error.find('No matching trades found') >= 0:
-                                raise OrderNotFound(feedback)
-                            if error.find('does not exist') >= 0:
-                                raise OrderNotFound(feedback)
-                            if error.find('Insufficient Funds') >= 0:
-                                raise InsufficientFunds(feedback)
-                            if error.find('Nonce has already been used') >= 0:
-                                raise InvalidNonce(feedback)
-                        else:
-                            feedback = feedback + ' ' + fixedJSONString
-                        raise ExchangeError(feedback)
-
-    def sanitize_broken_json_string(self, jsonString):
-        # sometimes cryptopia will return a unicode symbol before actual JSON string.
-        indexOfBracket = jsonString.find('{')
-        if indexOfBracket >= 0:
-            return jsonString[indexOfBracket:]
-        return jsonString
-
-    def parse_json(self, response, responseBody, url, method):
-        return super(cryptopia, self).parseJson(response, self.sanitize_broken_json_string(responseBody), url, method)
+        if 'Success' in response:
+            success = self.safe_value(response, 'Success')
+            if success is not None:
+                if not success:
+                    error = self.safe_string(response, 'Error')
+                    feedback = self.id + ' ' + body
+                    if isinstance(error, basestring):
+                        if error.find('Invalid trade amount') >= 0:
+                            raise InvalidOrder(feedback)
+                        if error.find('No matching trades found') >= 0:
+                            raise OrderNotFound(feedback)
+                        if error.find('does not exist') >= 0:
+                            raise OrderNotFound(feedback)
+                        if error.find('Insufficient Funds') >= 0:
+                            raise InsufficientFunds(feedback)
+                        if error.find('Nonce has already been used') >= 0:
+                            raise InvalidNonce(feedback)
+                    raise ExchangeError(feedback)

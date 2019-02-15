@@ -28,7 +28,7 @@ class hitbtc extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
-                'api' => 'http://api.hitbtc.com',
+                'api' => 'https://api.hitbtc.com',
                 'www' => 'https://hitbtc.com',
                 'referral' => 'https://hitbtc.com/?ref_id=5a5d39a65d466',
                 'doc' => 'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md',
@@ -485,12 +485,13 @@ class hitbtc extends Exchange {
                 ),
             ),
             'commonCurrencies' => array (
-                'BCC' => 'BCC',
+                'BCH' => 'Bitcoin Cash',
                 'BET' => 'DAO.Casino',
                 'CAT' => 'BitClave',
                 'DRK' => 'DASH',
                 'EMGO' => 'MGO',
                 'GET' => 'Themis',
+                'HSR' => 'HC',
                 'LNC' => 'LinkerCoin',
                 'UNC' => 'Unigame',
                 'USD' => 'USDT',
@@ -502,7 +503,7 @@ class hitbtc extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetSymbols ();
         $result = array ();
         for ($p = 0; $p < count ($markets['symbols']); $p++) {
@@ -650,6 +651,11 @@ class hitbtc extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $side = null;
+        $tradeLength = is_array ($trade) ? count ($trade) : 0;
+        if ($tradeLength > 3) {
+            $side = $trade[4];
+        }
         return array (
             'info' => $trade,
             'id' => (string) $trade[0],
@@ -657,7 +663,7 @@ class hitbtc extends Exchange {
             'datetime' => $this->iso8601 ($trade[3]),
             'symbol' => $symbol,
             'type' => null,
-            'side' => $trade[4],
+            'side' => $side,
             'price' => floatval ($trade[1]),
             'amount' => floatval ($trade[2]),
         );
@@ -806,7 +812,9 @@ class hitbtc extends Exchange {
         if ($amountDefined) {
             if ($remainingDefined) {
                 $filled = $amount - $remaining;
-                $cost = $price * $filled;
+                if ($price !== null) {
+                    $cost = $price * $filled;
+                }
             }
         }
         $feeCost = $this->safe_float($order, 'fee');
@@ -903,8 +911,9 @@ class hitbtc extends Exchange {
             'amount' => $amount,
             'address' => $address,
         );
-        if ($tag)
-            $request['paymentId'] = $tag;
+        if ($tag !== null) {
+            $request['extra_id'] = $tag;
+        }
         $response = $this->paymentPostPayout (array_merge ($request, $params));
         return array (
             'info' => $response,

@@ -34,7 +34,7 @@ class bcex extends Exchange {
                 'api' => 'https://www.bcex.top',
                 'www' => 'https://www.bcex.top',
                 'doc' => 'https://www.bcex.top/api_market/market/',
-                'fees' => 'http://bcex.udesk.cn/hc/articles/57085',
+                'fees' => 'https://bcex.udesk.cn/hc/articles/57085',
                 'referral' => 'https://www.bcex.top/user/reg/type/2/pid/758978',
             ),
             'api' => array (
@@ -286,7 +286,7 @@ class bcex extends Exchange {
         );
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetApiMarketGetPriceList ();
         $result = array ();
         $keys = is_array ($response) ? array_keys ($response) : array ();
@@ -655,13 +655,12 @@ class bcex extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return; // fallback to default error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             $code = $this->safe_value($response, 'code');
             if ($code !== null) {
                 if ($code !== 0) {

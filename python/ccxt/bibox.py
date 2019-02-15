@@ -13,7 +13,6 @@ except NameError:
     basestring = str  # Python 2
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -93,7 +92,7 @@ class bibox (Exchange):
                     'tierBased': False,
                     'percentage': True,
                     'taker': 0.001,
-                    'maker': 0.0,
+                    'maker': 0.001,
                 },
                 'funding': {
                     'tierBased': False,
@@ -109,6 +108,7 @@ class bibox (Exchange):
                 '2033': OrderNotFound,  # operation failednot  Orders have been completed or revoked
                 '2067': InvalidOrder,  # Does not support market orders
                 '2068': InvalidOrder,  # The number of orders can not be less than
+                '2085': InvalidOrder,  # Order quantity is too small
                 '3012': AuthenticationError,  # invalid apiKey
                 '3024': PermissionDenied,  # wrong apikey permissions
                 '3025': AuthenticationError,  # signature failed
@@ -134,7 +134,7 @@ class bibox (Exchange):
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
-            id = base + '_' + quote
+            id = baseId + '_' + quoteId
             precision = {
                 'amount': 4,
                 'price': 8,
@@ -562,6 +562,8 @@ class bibox (Exchange):
                 'account_type': 0,  # 0 - regular, 1 - margin
                 'page': 1,
                 'size': size,
+                'coin_symbol': market['baseId'],
+                'currency_symbol': market['quoteId'],
             }, params),
         })
         trades = self.safe_value(response['result'], 'items', [])
@@ -657,10 +659,9 @@ class bibox (Exchange):
         headers = {'Content-Type': 'application/json'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if len(body) > 0:
             if body[0] == '{':
-                response = json.loads(body)
                 if 'error' in response:
                     if 'code' in response['error']:
                         code = self.safe_string(response['error'], 'code')

@@ -204,6 +204,7 @@ class bitfinex extends Exchange {
                         'AID' => 8.08,
                         'MNA' => 16.617,
                         'NEC' => 1.6504,
+                        'XTZ' => 0.2,
                     ),
                     'withdraw' => array (
                         'BTC' => 0.0004,
@@ -245,6 +246,7 @@ class bitfinex extends Exchange {
                         'AID' => 8.08,
                         'MNA' => 16.617,
                         'NEC' => 1.6504,
+                        'XTZ' => 0.2,
                     ),
                 ),
             ),
@@ -252,8 +254,7 @@ class bitfinex extends Exchange {
                 'ABS' => 'ABYSS',
                 'AIO' => 'AION',
                 'ATM' => 'ATMI',
-                'BCC' => 'CST_BCC',
-                'BCU' => 'CST_BCU',
+                'BAB' => 'BCH',
                 'CTX' => 'CTXC',
                 'DAD' => 'DADI',
                 'DAT' => 'DATA',
@@ -274,7 +275,6 @@ class bitfinex extends Exchange {
                 'SPK' => 'SPANK',
                 'STJ' => 'STORJ',
                 'YYW' => 'YOYOW',
-                'USD' => 'USDT',
                 'UTN' => 'UTNP',
             ),
             'exceptions' => array (
@@ -284,7 +284,6 @@ class bitfinex extends Exchange {
                     'No such order found.' => '\\ccxt\\OrderNotFound', // ?
                     'Order price must be positive.' => '\\ccxt\\InvalidOrder', // on price <= 0
                     'Could not find a key matching the given X-BFX-APIKEY.' => '\\ccxt\\AuthenticationError',
-                    'This API key does not have permission for this action' => '\\ccxt\\AuthenticationError', // authenticated but not authorized
                     'Key price should be a decimal number, e.g. "123.456"' => '\\ccxt\\InvalidOrder', // on isNaN (price)
                     'Key amount should be a decimal number, e.g. "123.456"' => '\\ccxt\\InvalidOrder', // on isNaN (amount)
                     'ERR_RATE_LIMIT' => '\\ccxt\\DDoSProtection',
@@ -294,6 +293,7 @@ class bitfinex extends Exchange {
                     'Cannot evaluate your available balance, please try again' => '\\ccxt\\ExchangeNotAvailable',
                 ),
                 'broad' => array (
+                    'This API key does not have permission' => '\\ccxt\\PermissionDenied', // authenticated but not authorized
                     'Invalid order => not enough exchange balance for ' => '\\ccxt\\InsufficientFunds', // when buying cost is greater than the available quote currency
                     'Invalid order => minimum size for ' => '\\ccxt\\InvalidOrder', // when amount below limits.amount.min
                     'Invalid order' => '\\ccxt\\InvalidOrder', // ?
@@ -367,6 +367,7 @@ class bitfinex extends Exchange {
                     'YOYOW' => 'yoyow',
                     'ZEC' => 'zcash',
                     'ZRX' => 'zrx',
+                    'XTZ' => 'tezos',
                 ),
             ),
         ));
@@ -404,7 +405,7 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetSymbolsDetails ();
         $result = array ();
         for ($p = 0; $p < count ($markets); $p++) {
@@ -507,10 +508,9 @@ class bitfinex extends Exchange {
         $tickers = $this->publicGetTickers ($params);
         $result = array ();
         for ($i = 0; $i < count ($tickers); $i++) {
-            $ticker = $tickers[$i];
-            $parsedTicker = $this->parse_ticker($ticker);
-            $symbol = $parsedTicker['symbol'];
-            $result[$symbol] = $parsedTicker;
+            $ticker = $this->parse_ticker($tickers[$i]);
+            $symbol = $ticker['symbol'];
+            $result[$symbol] = $ticker;
         }
         return $result;
     }
@@ -768,27 +768,28 @@ class bitfinex extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function get_currency_name ($currency) {
-        if (is_array ($this->options['currencyNames']) && array_key_exists ($currency, $this->options['currencyNames']))
-            return $this->options['currencyNames'][$currency];
-        throw new NotSupported ($this->id . ' ' . $currency . ' not supported for withdrawal');
+    public function get_currency_name ($code) {
+        if (is_array ($this->options['currencyNames']) && array_key_exists ($code, $this->options['currencyNames']))
+            return $this->options['currencyNames'][$code];
+        throw new NotSupported ($this->id . ' ' . $code . ' not supported for withdrawal');
     }
 
-    public function create_deposit_address ($currency, $params = array ()) {
-        $response = $this->fetch_deposit_address ($currency, array_merge (array (
+    public function create_deposit_address ($code, $params = array ()) {
+        $response = $this->fetch_deposit_address ($code, array_merge (array (
             'renew' => 1,
         ), $params));
         $address = $this->safe_string($response, 'address');
         $this->check_address($address);
         return array (
-            'currency' => $currency,
-            'address' => $address,
             'info' => $response['info'],
+            'currency' => $code,
+            'address' => $address,
+            'tag' => null,
         );
     }
 
-    public function fetch_deposit_address ($currency, $params = array ()) {
-        $name = $this->get_currency_name ($currency);
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $name = $this->get_currency_name ($code);
         $request = array (
             'method' => $name,
             'wallet_name' => 'exchange',
@@ -803,7 +804,7 @@ class bitfinex extends Exchange {
         }
         $this->check_address($address);
         return array (
-            'currency' => $currency,
+            'currency' => $code,
             'address' => $address,
             'tag' => $tag,
             'info' => $response,
@@ -904,9 +905,9 @@ class bitfinex extends Exchange {
         return (is_array ($statuses) && array_key_exists ($status, $statuses)) ? $statuses[$status] : $status;
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
-        $name = $this->get_currency_name ($currency);
+        $name = $this->get_currency_name ($code);
         $request = array (
             'withdraw_type' => $name,
             'walletselected' => 'exchange',
@@ -974,12 +975,11 @@ class bitfinex extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (strlen ($body) < 2)
             return;
         if ($code >= 400) {
             if ($body[0] === '{') {
-                $response = json_decode ($body, $as_associative_array = true);
                 $feedback = $this->id . ' ' . $this->json ($response);
                 $message = null;
                 if (is_array ($response) && array_key_exists ('message', $response)) {

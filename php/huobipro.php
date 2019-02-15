@@ -22,6 +22,7 @@ class huobipro extends Exchange {
             'hostname' => 'api.huobi.pro',
             'has' => array (
                 'CORS' => false,
+                'fetchTickers' => true,
                 'fetchDepositAddress' => true,
                 'fetchOHLCV' => true,
                 'fetchOrder' => true,
@@ -71,6 +72,7 @@ class huobipro extends Exchange {
                         'trade', // 获取 Trade Detail 数据
                         'history/trade', // 批量获取最近的交易记录
                         'detail', // 获取 Market Detail 24小时成交量数据
+                        'tickers',
                     ),
                 ),
                 'public' => array (
@@ -97,6 +99,7 @@ class huobipro extends Exchange {
                         'margin/accounts/balance', // 借贷账户详情
                         'points/actions',
                         'points/orders',
+                        'subuser/aggregate-balance',
                     ),
                     'post' => array (
                         'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
@@ -113,6 +116,7 @@ class huobipro extends Exchange {
                         'dw/transfer-out/margin', // 借贷账户划出至现货账户
                         'margin/orders', // 申请借贷
                         'margin/orders/{id}/repay', // 归还借贷
+                        'subuser/transfer',
                     ),
                 ),
             ),
@@ -125,6 +129,7 @@ class huobipro extends Exchange {
                 ),
             ),
             'exceptions' => array (
+                'gateway-internal-error' => '\\ccxt\\ExchangeNotAvailable', // array ("status":"error","err-code":"gateway-internal-error","err-msg":"Failed to load data. Try again later.","data":null)
                 'account-frozen-balance-insufficient-error' => '\\ccxt\\InsufficientFunds', // array ("status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left => `0.0027`","data":null)
                 'invalid-amount' => '\\ccxt\\InvalidOrder', // eg "Paramemter `amount` is invalid."
                 'order-limitorder-amount-min-error' => '\\ccxt\\InvalidOrder', // limit order amount error, min => `0.001`
@@ -214,7 +219,7 @@ class huobipro extends Exchange {
         );
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $method = $this->options['fetchMarketsMethod'];
         $response = $this->$method ();
         $markets = $response['data'];
@@ -271,11 +276,10 @@ class huobipro extends Exchange {
 
     public function parse_ticker ($ticker, $market = null) {
         $symbol = null;
-        if ($market)
+        if ($market !== null) {
             $symbol = $market['symbol'];
-        $timestamp = $this->milliseconds ();
-        if (is_array ($ticker) && array_key_exists ('ts', $ticker))
-            $timestamp = $ticker['ts'];
+        }
+        $timestamp = $this->safe_integer($ticker, 'ts');
         $bid = null;
         $ask = null;
         $bidVolume = null;
@@ -300,20 +304,22 @@ class huobipro extends Exchange {
         if (($open !== null) && ($close !== null)) {
             $change = $close - $open;
             $average = $this->sum ($open, $close) / 2;
-            if (($close !== null) && ($close > 0))
+            if (($close !== null) && ($close > 0)) {
                 $percentage = ($change / $open) * 100;
+            }
         }
         $baseVolume = $this->safe_float($ticker, 'amount');
         $quoteVolume = $this->safe_float($ticker, 'vol');
         $vwap = null;
-        if ($baseVolume !== null && $quoteVolume !== null && $baseVolume > 0)
+        if ($baseVolume !== null && $quoteVolume !== null && $baseVolume > 0) {
             $vwap = $quoteVolume / $baseVolume;
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => $ticker['high'],
-            'low' => $ticker['low'],
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
             'bid' => $bid,
             'bidVolume' => $bidVolume,
             'ask' => $ask,
@@ -358,6 +364,27 @@ class huobipro extends Exchange {
             'symbol' => $market['id'],
         ), $params));
         return $this->parse_ticker($response['tick'], $market);
+    }
+
+    public function fetch_tickers ($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->marketGetTickers ($params);
+        $tickers = $response['data'];
+        $timestamp = $this->safe_integer($response, 'ts');
+        $result = array ();
+        for ($i = 0; $i < count ($tickers); $i++) {
+            $marketId = $this->safe_string($tickers[$i], 'symbol');
+            $market = $this->safe_value($this->markets_by_id, $marketId);
+            $symbol = $marketId;
+            if ($market !== null) {
+                $symbol = $market['symbol'];
+                $ticker = $this->parse_ticker($tickers[$i], $market);
+                $ticker['timestamp'] = $timestamp;
+                $ticker['datetime'] = $this->iso8601 ($timestamp);
+                $result[$symbol] = $ticker;
+            }
+        }
+        return $result;
     }
 
     public function parse_trade ($trade, $market = null) {
@@ -480,9 +507,9 @@ class huobipro extends Exchange {
         return $this->parse_ohlcvs($response['data'], $market, $timeframe, $since, $limit);
     }
 
-    public function load_accounts ($reload = false) {
+    public function load_accounts ($reload = false, $params = array ()) {
         if ($reload) {
-            $this->accounts = $this->fetch_accounts ();
+            $this->accounts = $this->fetch_accounts ($params);
         } else {
             if ($this->accounts) {
                 return $this->accounts;
@@ -494,9 +521,9 @@ class huobipro extends Exchange {
         return $this->accounts;
     }
 
-    public function fetch_accounts () {
+    public function fetch_accounts ($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetAccountAccounts ();
+        $response = $this->privateGetAccountAccounts ($params);
         return $response['data'];
     }
 
@@ -611,6 +638,23 @@ class huobipro extends Exchange {
             $request['symbol'] = $market['id'];
         }
         $response = $this->privateGetOrderOrders (array_merge ($request, $params));
+        //
+        //     { status =>   "ok",
+        //         data => array ( {                  id =>  13997833014,
+        //                                $symbol => "ethbtc",
+        //                          'account-id' =>  3398321,
+        //                                amount => "0.045000000000000000",
+        //                                 price => "0.034014000000000000",
+        //                          'created-at' =>  1545836976871,
+        //                                  type => "sell-$limit",
+        //                        'field-amount' => "0.045000000000000000",
+        //                   'field-cash-amount' => "0.001530630000000000",
+        //                          'field-fees' => "0.000003061260000000",
+        //                         'finished-at' =>  1545837948214,
+        //                                source => "spot-api",
+        //                                 state => "filled",
+        //                         'canceled-at' =>  0                      }  ) }
+        //
         return $this->parse_orders($response['data'], $market, $since, $limit);
     }
 
@@ -646,6 +690,37 @@ class huobipro extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
+        //
+        //     {                  $id =>  13997833014,
+        //                    $symbol => "ethbtc",
+        //              'account-id' =>  3398321,
+        //                    $amount => "0.045000000000000000",
+        //                     $price => "0.034014000000000000",
+        //              'created-at' =>  1545836976871,
+        //                      $type => "sell-limit",
+        //            'field-amount' => "0.045000000000000000",
+        //       'field-cash-amount' => "0.001530630000000000",
+        //              'field-fees' => "0.000003061260000000",
+        //             'finished-at' =>  1545837948214,
+        //                    source => "spot-api",
+        //                     state => "$filled",
+        //             'canceled-at' =>  0                      }
+        //
+        //     {                  $id =>  20395337822,
+        //                    $symbol => "ethbtc",
+        //              'account-id' =>  5685075,
+        //                    $amount => "0.001000000000000000",
+        //                     $price => "0.0",
+        //              'created-at' =>  1545831584023,
+        //                      $type => "buy-$market",
+        //            'field-amount' => "0.029100000000000000",
+        //       'field-cash-amount' => "0.000999788700000000",
+        //              'field-fees' => "0.000058200000000000",
+        //             'finished-at' =>  1545831584181,
+        //                    source => "spot-api",
+        //                     state => "$filled",
+        //             'canceled-at' =>  0                      }
+        //
         $id = $this->safe_string($order, 'id');
         $side = null;
         $type = null;
@@ -671,12 +746,17 @@ class huobipro extends Exchange {
         $timestamp = $this->safe_integer($order, 'created-at');
         $amount = $this->safe_float($order, 'amount');
         $filled = $this->safe_float($order, 'field-amount'); // typo in their API, $filled $amount
+        if (($type === 'market') && ($side === 'buy')) {
+            $amount = ($status === 'closed') ? $filled : null;
+        }
         $price = $this->safe_float($order, 'price');
+        if ($price === 0.0) {
+            $price = null;
+        }
         $cost = $this->safe_float($order, 'field-cash-amount'); // same typo
         $remaining = null;
         $average = null;
         if ($filled !== null) {
-            $average = 0;
             if ($amount !== null) {
                 $remaining = $amount - $filled;
             }
@@ -684,6 +764,18 @@ class huobipro extends Exchange {
             if (($cost !== null) && ($filled > 0)) {
                 $average = $cost / $filled;
             }
+        }
+        $feeCost = $this->safe_float($order, 'field-fees'); // typo in their API, $filled fees
+        $fee = null;
+        if ($feeCost !== null) {
+            $feeCurrency = null;
+            if ($market !== null) {
+                $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
+            }
+            $fee = array (
+                'cost' => $feeCost,
+                'currency' => $feeCurrency,
+            );
         }
         $result = array (
             'info' => $order,
@@ -701,7 +793,7 @@ class huobipro extends Exchange {
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
-            'fee' => null,
+            'fee' => $fee,
         );
         return $result;
     }
@@ -721,11 +813,14 @@ class huobipro extends Exchange {
                 if ($price === null) {
                     throw new InvalidOrder ($this->id . " $market buy order requires $price argument to calculate cost (total $amount of quote currency to spend for buying, $amount * $price). To switch off this warning exception and specify cost in the $amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
                 } else {
-                    $request['amount'] = $this->price_to_precision($symbol, floatval ($amount) * floatval ($price));
+                    // despite that cost = $amount * $price is in quote currency and should have quote precision
+                    // the exchange API requires the cost supplied in 'amount' to be of base precision
+                    // more about it here => https://github.com/ccxt/ccxt/pull/4395
+                    $request['amount'] = $this->amount_to_precision($symbol, floatval ($amount) * floatval ($price));
                 }
             }
         }
-        if ($type === 'limit') {
+        if ($type === 'limit' || $type === 'ioc' || $type === 'limit-maker') {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $method = $this->options['createOrderMethod'];
@@ -776,6 +871,7 @@ class huobipro extends Exchange {
         return array (
             'currency' => $code,
             'address' => $address,
+            'tag' => null,
             'info' => $response,
         );
     }
@@ -811,8 +907,9 @@ class huobipro extends Exchange {
             'amount' => $amount,
             'currency' => strtolower ($currency['id']),
         );
-        if ($tag !== null)
+        if ($tag !== null) {
             $request['addr-tag'] = $tag; // only for XRP?
+        }
         $response = $this->privatePostDwWithdrawApiCreate (array_merge ($request, $params));
         $id = null;
         if (is_array ($response) && array_key_exists ('data', $response)) {
@@ -867,13 +964,12 @@ class huobipro extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
         if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return; // fallback to default error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             if (is_array ($response) && array_key_exists ('status', $response)) {
                 //
                 //     array ("$status":"error","err-$code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min => `0.001`","data":null)

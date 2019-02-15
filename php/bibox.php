@@ -75,7 +75,7 @@ class bibox extends Exchange {
                     'tierBased' => false,
                     'percentage' => true,
                     'taker' => 0.001,
-                    'maker' => 0.0,
+                    'maker' => 0.001,
                 ),
                 'funding' => array (
                     'tierBased' => false,
@@ -91,6 +91,7 @@ class bibox extends Exchange {
                 '2033' => '\\ccxt\\OrderNotFound', // operation failed! Orders have been completed or revoked
                 '2067' => '\\ccxt\\InvalidOrder', // Does not support market orders
                 '2068' => '\\ccxt\\InvalidOrder', // The number of orders can not be less than
+                '2085' => '\\ccxt\\InvalidOrder', // Order quantity is too small
                 '3012' => '\\ccxt\\AuthenticationError', // invalid apiKey
                 '3024' => '\\ccxt\\PermissionDenied', // wrong apikey permissions
                 '3025' => '\\ccxt\\AuthenticationError', // signature failed
@@ -117,7 +118,7 @@ class bibox extends Exchange {
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $id = $base . '_' . $quote;
+            $id = $baseId . '_' . $quoteId;
             $precision = array (
                 'amount' => 4,
                 'price' => 8,
@@ -587,6 +588,8 @@ class bibox extends Exchange {
                 'account_type' => 0, // 0 - regular, 1 - margin
                 'page' => 1,
                 'size' => $size,
+                'coin_symbol' => $market['baseId'],
+                'currency_symbol' => $market['quoteId'],
             ), $params),
         ));
         $trades = $this->safe_value($response['result'], 'items', array ());
@@ -689,10 +692,9 @@ class bibox extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (strlen ($body) > 0) {
             if ($body[0] === '{') {
-                $response = json_decode ($body, $as_associative_array = true);
                 if (is_array ($response) && array_key_exists ('error', $response)) {
                     if (is_array ($response['error']) && array_key_exists ('code', $response['error'])) {
                         $code = $this->safe_string($response['error'], 'code');

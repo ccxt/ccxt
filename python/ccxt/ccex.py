@@ -81,7 +81,7 @@ class ccex (Exchange):
             },
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         result = {}
         response = self.webGetPairs()
         markets = response['pairs']
@@ -155,22 +155,21 @@ class ccex (Exchange):
         self.load_markets()
         orderbooks = {}
         response = self.publicGetFullorderbook()
-        types = list(response['result'].keys())
-        for i in range(0, len(types)):
-            type = types[i]
-            bidasks = response['result'][type]
+        sides = list(response['result'].keys())
+        for i in range(0, len(sides)):
+            side = sides[i]
+            bidasks = response['result'][side]
             bidasksByMarketId = self.group_by(bidasks, 'Market')
             marketIds = list(bidasksByMarketId.keys())
             for j in range(0, len(marketIds)):
                 marketId = marketIds[j]
-                symbol = marketId.upper()
-                side = type
-                if symbol in self.markets_by_id:
+                symbol = marketId
+                if marketId in self.markets_by_id:
                     market = self.markets_by_id[symbol]
                     symbol = market['symbol']
                 else:
-                    base, quote = symbol.split('-')
-                    invertedId = quote + '-' + base
+                    baseId, quoteId = symbol.split('-')
+                    invertedId = quoteId + '-' + baseId
                     if invertedId in self.markets_by_id:
                         market = self.markets_by_id[invertedId]
                         symbol = market['symbol']

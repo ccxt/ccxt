@@ -12,7 +12,7 @@ class coinbase extends Exchange {
     public function describe () {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'coinbase',
-            'name' => 'coinbase',
+            'name' => 'Coinbase',
             'countries' => array ( 'US' ),
             'rateLimit' => 400, // 10k calls per hour
             'version' => 'v2',
@@ -36,6 +36,7 @@ class coinbase extends Exchange {
                 'fetchOpenOrders' => false,
                 'fetchOrder' => false,
                 'fetchOrderBook' => false,
+                'fetchL2OrderBook' => false,
                 'fetchOrders' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => false,
@@ -43,8 +44,10 @@ class coinbase extends Exchange {
                 'fetchTrades' => false,
                 'withdraw' => false,
                 'fetchTransactions' => false,
-                'fetchDeposits' => false,
-                'fetchWithdrawals' => false,
+                'fetchDeposits' => true,
+                'fetchWithdrawals' => true,
+                'fetchMySells' => true,
+                'fetchMyBuys' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg',
@@ -157,6 +160,268 @@ class coinbase extends Exchange {
         $response = $this->publicGetTime ();
         $data = $response['data'];
         return $this->parse8601 ($data['iso']);
+    }
+
+    public function load_accounts ($reload = false, $params = array ()) {
+        if ($reload) {
+            $this->accounts = $this->fetch_accounts ();
+        } else {
+            if ($this->accounts) {
+                return $this->accounts;
+            } else {
+                $this->accounts = $this->fetch_accounts ();
+                $this->accountsById = $this->index_by($this->accounts, 'id');
+            }
+        }
+        return $this->accounts;
+    }
+
+    public function fetch_accounts ($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetAccounts ($params);
+        return $response['data'];
+    }
+
+    public function fetch_my_sells ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        // they don't have an endpoint for all historical trades
+        $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
+        if ($accountId === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchMyTrades requires an account_id or $accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.');
+        }
+        $this->load_markets();
+        $query = $this->omit ($params, array ( 'account_id', 'accountId' ));
+        $sells = $this->privateGetAccountsAccountIdSells (array_merge (array (
+            'account_id' => $accountId,
+        ), $query));
+        return $this->parse_trades($sells['data'], null, $since, $limit);
+    }
+
+    public function fetch_my_buys ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        // they don't have an endpoint for all historical trades
+        $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
+        if ($accountId === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchMyTrades requires an account_id or $accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.');
+        }
+        $this->load_markets();
+        $query = $this->omit ($params, array ( 'account_id', 'accountId' ));
+        $buys = $this->privateGetAccountsAccountIdBuys (array_merge (array (
+            'account_id' => $accountId,
+        ), $query));
+        return $this->parse_trades($buys['data'], null, $since, $limit);
+    }
+
+    public function fetch_transactions_with_method ($method, $code = null, $since = null, $limit = null, $params = array ()) {
+        $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
+        if ($accountId === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchTransactionsWithMethod requires an account_id or $accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.');
+        }
+        $this->load_markets();
+        $query = $this->omit ($params, array ( 'account_id', 'accountId' ));
+        $response = $this->$method (array_merge (array (
+            'account_id' => $accountId,
+        ), $query));
+        return $this->parseTransactions ($response['data'], null, $since, $limit);
+    }
+
+    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions_with_method ('privateGetAccountsAccountIdWithdrawals', $code, $since, $limit, $params);
+    }
+
+    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions_with_method ('privateGetAccountsAccountIdDeposits', $code, $since, $limit, $params);
+    }
+
+    public function parse_transaction_status ($status) {
+        $statuses = array (
+            'created' => 'pending',
+            'completed' => 'ok',
+            'canceled' => 'canceled',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction ($transaction, $market = null) {
+        //
+        //    DEPOSIT
+        //        $id => '406176b1-92cf-598f-ab6e-7d87e4a6cac1',
+        //        $status => 'completed',
+        //        payment_method => [Object],
+        //        $transaction => [Object],
+        //        user_reference => 'JQKBN85B',
+        //        created_at => '2018-10-01T14:58:21Z',
+        //        updated_at => '2018-10-01T17:57:27Z',
+        //        resource => 'deposit',
+        //        resource_path => '/v2/accounts/7702be4f-de96-5f08-b13b-32377c449ecf/deposits/406176b1-92cf-598f-ab6e-7d87e4a6cac1',
+        //        $committed => true,
+        //        payout_at => '2018-10-01T14:58:34Z',
+        //        instant => true,
+        //        $fee => [Object],
+        //        $amount => [Object],
+        //        subtotal => [Object],
+        //        hold_until => '2018-10-04T07:00:00Z',
+        //        hold_days => 3
+        //
+        //    WITHDRAWAL
+        //       {
+        //           "$id" => "67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //           "$status" => "completed",
+        //           "payment_method" => array (
+        //             "$id" => "83562370-3e5c-51db-87da-752af5ab9559",
+        //             "resource" => "payment_method",
+        //             "resource_path" => "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
+        //           ),
+        //           "$transaction" => array (
+        //             "$id" => "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
+        //             "resource" => "$transaction",
+        //             "resource_path" => "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
+        //           ),
+        //           "$amount" => array (
+        //             "$amount" => "10.00",
+        //             "$currency" => "USD"
+        //           ),
+        //           "subtotal" => array (
+        //             "$amount" => "10.00",
+        //             "$currency" => "USD"
+        //           ),
+        //           "created_at" => "2015-01-31T20:49:02Z",
+        //           "updated_at" => "2015-02-11T16:54:02-08:00",
+        //           "resource" => "withdrawal",
+        //           "resource_path" => "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/withdrawals/67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //           "$committed" => true,
+        //           "$fee" => array (
+        //             "$amount" => "0.00",
+        //             "$currency" => "USD"
+        //           ),
+        //           "payout_at" => "2015-02-18T16:54:00-08:00"
+        //         }
+        $amountObject = $this->safe_value($transaction, 'amount', array ());
+        $feeObject = $this->safe_value($transaction, 'fee', array ());
+        $id = $this->safe_string($transaction, 'id');
+        $timestamp = $this->parse8601 ($this->safe_value($transaction, 'created_at'));
+        $updated = $this->parse8601 ($this->safe_value($transaction, 'updated_at'));
+        $orderId = null;
+        $type = $this->safe_string($transaction, 'resource');
+        $amount = $this->safe_float($amountObject, 'amount');
+        $currencyId = $this->safe_string($amountObject, 'currency');
+        $currency = $this->common_currency_code($currencyId);
+        $feeCost = $this->safe_float($feeObject, 'amount');
+        $feeCurrencyId = $this->safe_string($feeObject, 'currency');
+        $feeCurrency = $this->common_currency_code($feeCurrencyId);
+        $fee = array (
+            'cost' => $feeCost,
+            'currency' => $feeCurrency,
+        );
+        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
+        if ($status === null) {
+            $committed = $this->safe_value($transaction, 'committed');
+            $status = $committed ? 'ok' : 'pending';
+        }
+        return array (
+            'info' => $transaction,
+            'id' => $id,
+            'txid' => $id,
+            'order' => $orderId,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'address' => null,
+            'tag' => null,
+            'type' => $type,
+            'amount' => $amount,
+            'currency' => $currency,
+            'status' => $status,
+            'updated' => $updated,
+            'fee' => $fee,
+        );
+    }
+
+    public function parse_trade ($trade, $market = null) {
+        //
+        //     {
+        //       "$id" => "67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //       "status" => "completed",
+        //       "payment_method" => array (
+        //         "$id" => "83562370-3e5c-51db-87da-752af5ab9559",
+        //         "resource" => "payment_method",
+        //         "resource_path" => "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
+        //       ),
+        //       "transaction" => array (
+        //         "$id" => "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
+        //         "resource" => "transaction",
+        //         "resource_path" => "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
+        //       ),
+        //       "$amount" => array (
+        //         "$amount" => "1.00000000",
+        //         "currency" => "BTC"
+        //       ),
+        //       "total" => array (
+        //         "$amount" => "10.25",
+        //         "currency" => "USD"
+        //       ),
+        //       "subtotal" => array (
+        //         "$amount" => "10.10",
+        //         "currency" => "USD"
+        //       ),
+        //       "created_at" => "2015-01-31T20:49:02Z",
+        //       "updated_at" => "2015-02-11T16:54:02-08:00",
+        //       "resource" => "buy",
+        //       "resource_path" => "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/buys/67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //       "committed" => true,
+        //       "instant" => false,
+        //       "$fee" => array (
+        //         "$amount" => "0.15",
+        //         "currency" => "USD"
+        //       ),
+        //       "payout_at" => "2015-02-18T16:54:00-08:00"
+        //     }
+        //
+        $symbol = null;
+        $totalObject = $this->safe_value($trade, 'total', array ());
+        $amountObject = $this->safe_value($trade, 'amount', array ());
+        $subtotalObject = $this->safe_value($trade, 'subtotal', array ());
+        $feeObject = $this->safe_value($trade, 'fee', array ());
+        $id = $this->safe_string($trade, 'id');
+        $timestamp = $this->parse8601 ($this->safe_value($trade, 'created_at'));
+        if ($market === null) {
+            $baseId = $this->safe_string($totalObject, 'currency');
+            $quoteId = $this->safe_string($amountObject, 'currency');
+            if (($baseId !== null) && ($quoteId !== null)) {
+                $base = $this->common_currency_code($baseId);
+                $quote = $this->common_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
+        }
+        $orderId = null;
+        $side = $this->safe_string($trade, 'resource');
+        $type = null;
+        $cost = $this->safe_float($subtotalObject, 'amount');
+        $amount = $this->safe_float($amountObject, 'amount');
+        $price = null;
+        if ($cost !== null) {
+            if ($amount !== null) {
+                $price = $cost / $amount;
+            }
+        }
+        $feeCost = $this->safe_float($feeObject, 'amount');
+        $feeCurrencyId = $this->safe_string($feeObject, 'currency');
+        $feeCurrency = $this->common_currency_code($feeCurrencyId);
+        $fee = array (
+            'cost' => $feeCost,
+            'currency' => $feeCurrency,
+        );
+        return array (
+            'info' => $trade,
+            'id' => $id,
+            'order' => $orderId,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => $fee,
+        );
     }
 
     public function fetch_currencies ($params = array ()) {
@@ -302,13 +567,12 @@ class coinbase extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return; // fallback to default error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             $feedback = $this->id . ' ' . $body;
             //
             //    array ("error" => "invalid_request", "error_description" => "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.")

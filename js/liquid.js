@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError, DDoSProtection } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -33,10 +33,12 @@ module.exports = class liquid extends Exchange {
                     'https://developers.quoine.com/v2',
                 ],
                 'fees': 'https://help.liquid.com/getting-started-with-liquid/the-platform/fee-structure',
+                'referral': 'https://www.liquid.com?affiliate=SbzC62lt30976',
             },
             'api': {
                 'public': {
                     'get': [
+                        'currencies',
                         'products',
                         'products/{id}',
                         'products/{id}/price_levels',
@@ -61,6 +63,7 @@ module.exports = class liquid extends Exchange {
                         'trades/{id}/loans',
                         'trading_accounts',
                         'trading_accounts/{id}',
+                        'transactions',
                     ],
                     'post': [
                         'fiat_accounts',
@@ -81,32 +84,123 @@ module.exports = class liquid extends Exchange {
             },
             'skipJsonOnStatusCodes': [401],
             'exceptions': {
-                'messages': {
-                    'API Authentication failed': AuthenticationError,
-                    'Nonce is too small': InvalidNonce,
-                    'Order not found': OrderNotFound,
-                    'user': {
-                        'not_enough_free_balance': InsufficientFunds,
-                    },
-                    'price': {
-                        'must_be_positive': InvalidOrder,
-                    },
-                    'quantity': {
-                        'less_than_order_size': InvalidOrder,
-                    },
-                },
+                'API rate limit exceeded. Please retry after 300s': DDoSProtection,
+                'API Authentication failed': AuthenticationError,
+                'Nonce is too small': InvalidNonce,
+                'Order not found': OrderNotFound,
+                'Can not update partially filled order': InvalidOrder,
+                'Can not update non-live order': OrderNotFound,
+                'not_enough_free_balance': InsufficientFunds,
+                'must_be_positive': InvalidOrder,
+                'less_than_order_size': InvalidOrder,
             },
             'commonCurrencies': {
                 'WIN': 'WCOIN',
             },
+            'options': {
+                'cancelOrderException': true,
+            },
         });
     }
 
-    async fetchMarkets () {
+    async fetchCurrencies (params = {}) {
+        let response = await this.publicGetCurrencies (params);
+        //
+        //     [
+        //         {
+        //             currency_type: 'fiat',
+        //             currency: 'USD',
+        //             symbol: '$',
+        //             assets_precision: 2,
+        //             quoting_precision: 5,
+        //             minimum_withdrawal: '15.0',
+        //             withdrawal_fee: 5,
+        //             minimum_fee: null,
+        //             minimum_order_quantity: null,
+        //             display_precision: 2,
+        //             depositable: true,
+        //             withdrawable: true,
+        //             discount_fee: 0.5,
+        //         },
+        //     ]
+        //
+        let result = {};
+        for (let i = 0; i < response.length; i++) {
+            let currency = response[i];
+            let id = this.safeString (currency, 'currency');
+            let code = this.commonCurrencyCode (id);
+            let active = currency['depositable'] && currency['withdrawable'];
+            let amountPrecision = this.safeInteger (currency, 'display_precision');
+            let pricePrecision = this.safeInteger (currency, 'quoting_precision');
+            let precision = Math.max (amountPrecision, pricePrecision);
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': code,
+                'active': active,
+                'fee': this.safeFloat (currency, 'withdrawal_fee'),
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -amountPrecision),
+                        'max': Math.pow (10, amountPrecision),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -pricePrecision),
+                        'max': Math.pow (10, pricePrecision),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeFloat (currency, 'minimum_withdrawal'),
+                        'max': undefined,
+                    },
+                },
+            };
+        }
+        return result;
+    }
+
+    async fetchMarkets (params = {}) {
         let markets = await this.publicGetProducts ();
+        //
+        //     [
+        //         {
+        //             id: '7',
+        //             product_type: 'CurrencyPair',
+        //             code: 'CASH',
+        //             name: ' CASH Trading',
+        //             market_ask: 8865.79147,
+        //             market_bid: 8853.95988,
+        //             indicator: 1,
+        //             currency: 'SGD',
+        //             currency_pair_code: 'BTCSGD',
+        //             symbol: 'S$',
+        //             btc_minimum_withdraw: null,
+        //             fiat_minimum_withdraw: null,
+        //             pusher_channel: 'product_cash_btcsgd_7',
+        //             taker_fee: 0,
+        //             maker_fee: 0,
+        //             low_market_bid: '8803.25579',
+        //             high_market_ask: '8905.0',
+        //             volume_24h: '15.85443468',
+        //             last_price_24h: '8807.54625',
+        //             last_traded_price: '8857.77206',
+        //             last_traded_quantity: '0.00590974',
+        //             quoted_currency: 'SGD',
+        //             base_currency: 'BTC',
+        //             disabled: false,
+        //         },
+        //     ]
+        //
+        let currencies = await this.fetchCurrencies ();
+        let currenciesByCode = this.indexBy (currencies, 'code');
         let result = [];
-        for (let p = 0; p < markets.length; p++) {
-            let market = markets[p];
+        for (let i = 0; i < markets.length; i++) {
+            let market = markets[i];
             let id = market['id'].toString ();
             let baseId = market['base_currency'];
             let quoteId = market['quoted_currency'];
@@ -116,34 +210,42 @@ module.exports = class liquid extends Exchange {
             let maker = this.safeFloat (market, 'maker_fee');
             let taker = this.safeFloat (market, 'taker_fee');
             let active = !market['disabled'];
+            let baseCurrency = this.safeValue (currenciesByCode, base);
+            let quoteCurrency = this.safeValue (currenciesByCode, quote);
+            let precision = {
+                'amount': 8,
+                'price': 8,
+            };
             let minAmount = undefined;
-            let minPrice = undefined;
-            if (base === 'BTC') {
-                minAmount = 0.001;
-            } else if (base === 'ETH') {
-                minAmount = 0.01;
+            if (baseCurrency !== undefined) {
+                minAmount = this.safeFloat (baseCurrency['info'], 'minimum_order_quantity');
+                precision['amount'] = this.safeInteger (baseCurrency['info'], 'quoting_precision');
             }
-            if (quote === 'BTC') {
-                minPrice = 0.00000001;
-            } else if (quote === 'ETH' || quote === 'USD' || quote === 'JPY') {
-                minPrice = 0.00001;
+            let minPrice = undefined;
+            if (quoteCurrency !== undefined) {
+                precision['price'] = this.safeInteger (quoteCurrency['info'], 'display_precision');
+                minPrice = Math.pow (10, -precision['price']);
+            }
+            let minCost = undefined;
+            if (minPrice !== undefined) {
+                if (minAmount !== undefined) {
+                    minCost = minPrice * minAmount;
+                }
             }
             let limits = {
-                'amount': { 'min': minAmount },
-                'price': { 'min': minPrice },
-                'cost': { 'min': undefined },
+                'amount': {
+                    'min': minAmount,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': minPrice,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': minCost,
+                    'max': undefined,
+                },
             };
-            if (minPrice !== undefined)
-                if (minAmount !== undefined)
-                    limits['cost']['min'] = minPrice * minAmount;
-            let precision = {
-                'amount': undefined,
-                'price': undefined,
-            };
-            if (minAmount !== undefined)
-                precision['amount'] = -Math.log10 (minAmount);
-            if (minPrice !== undefined)
-                precision['price'] = -Math.log10 (minPrice);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -176,7 +278,7 @@ module.exports = class liquid extends Exchange {
             let total = parseFloat (balance['balance']);
             let account = {
                 'free': total,
-                'used': 0.0,
+                'used': undefined,
                 'total': total,
             };
             result[code] = account;
@@ -283,6 +385,7 @@ module.exports = class liquid extends Exchange {
         //       created_at:  1512345678,
         //          my_side: "buy"           }
         let timestamp = trade['created_at'] * 1000;
+        let orderId = this.safeString (trade, 'order_id');
         // 'taker_side' gets filled for both fetchTrades and fetchMyTrades
         let takerSide = this.safeString (trade, 'taker_side');
         // 'my_side' gets filled for fetchMyTrades only and may differ from 'taker_side'
@@ -291,18 +394,28 @@ module.exports = class liquid extends Exchange {
         let takerOrMaker = undefined;
         if (mySide !== undefined)
             takerOrMaker = (takerSide === mySide) ? 'taker' : 'maker';
+        let cost = undefined;
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'quantity');
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
+        }
         return {
             'info': trade,
             'id': trade['id'].toString (),
-            'order': undefined,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'quantity'),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
@@ -326,8 +439,10 @@ module.exports = class liquid extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
+        // the `with_details` param is undocumented - it adds the order_id to the results
         let request = {
             'product_id': market['id'],
+            'with_details': true,
         };
         if (limit !== undefined)
             request['limit'] = limit;
@@ -341,10 +456,11 @@ module.exports = class liquid extends Exchange {
             'order_type': type,
             'product_id': this.marketId (symbol),
             'side': side,
-            'quantity': amount,
+            'quantity': this.amountToPrecision (symbol, amount),
         };
-        if (type === 'limit')
-            order['price'] = price;
+        if (type === 'limit') {
+            order['price'] = this.priceToPrecision (symbol, price);
+        }
         let response = await this.privatePostOrders (this.extend (order, params));
         return this.parseOrder (response);
     }
@@ -355,51 +471,97 @@ module.exports = class liquid extends Exchange {
             'id': id,
         }, params));
         let order = this.parseOrder (result);
-        if (order['status'] === 'closed')
-            throw new OrderNotFound (this.id + ' ' + this.json (order));
+        if (order['status'] === 'closed') {
+            if (this.options['cancelOrderException']) {
+                throw new OrderNotFound (this.id + ' order closed already: ' + this.json (result));
+            }
+        }
         return order;
     }
 
+    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (price === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder requires the price argument');
+        }
+        let order = {
+            'order': {
+                'quantity': this.amountToPrecision (symbol, amount),
+                'price': this.priceToPrecision (symbol, price),
+            },
+        };
+        let result = await this.privatePutOrdersId (this.extend ({
+            'id': id,
+        }, order));
+        return this.parseOrder (result);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'live': 'open',
+            'filled': 'closed',
+            'cancelled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrder (order, market = undefined) {
-        let timestamp = order['created_at'] * 1000;
+        let orderId = this.safeString (order, 'id');
+        let timestamp = this.safeInteger (order, 'created_at');
+        if (timestamp !== undefined) {
+            timestamp = timestamp * 1000;
+        }
         let marketId = this.safeString (order, 'product_id');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id)
-                market = this.markets_by_id[marketId];
-        }
-        let status = undefined;
-        if ('status' in order) {
-            if (order['status'] === 'live') {
-                status = 'open';
-            } else if (order['status'] === 'filled') {
-                status = 'closed';
-            } else if (order['status'] === 'cancelled') { // 'll' intended
-                status = 'canceled';
-            }
-        }
+        market = this.safeValue (this.markets_by_id, marketId);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let amount = this.safeFloat (order, 'quantity');
         let filled = this.safeFloat (order, 'filled_quantity');
         let price = this.safeFloat (order, 'price');
         let symbol = undefined;
+        let feeCurrency = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
+            feeCurrency = market['quote'];
         }
+        let type = order['order_type'];
+        let executedQuantity = 0;
+        let totalValue = 0;
+        let averagePrice = this.safeFloat (order, 'average_price');
+        let trades = undefined;
+        if ('executions' in order) {
+            trades = this.parseTrades (this.safeValue (order, 'executions', []), market);
+            let numTrades = trades.length;
+            for (let i = 0; i < numTrades; i++) {
+                // php copies values upon assignment, but not references them
+                // todo rewrite this (shortly)
+                let trade = trades[i];
+                trade['order'] = orderId;
+                trade['type'] = type;
+                executedQuantity += trade['amount'];
+                totalValue += trade['cost'];
+            }
+            if (!averagePrice && (numTrades > 0) && (executedQuantity > 0)) {
+                averagePrice = totalValue / executedQuantity;
+            }
+        }
+        let cost = filled * averagePrice;
         return {
-            'id': order['id'].toString (),
+            'id': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'type': order['order_type'],
+            'type': type,
             'status': status,
             'symbol': symbol,
             'side': order['side'],
             'price': price,
             'amount': amount,
             'filled': filled,
+            'cost': cost,
             'remaining': amount - filled,
-            'trades': undefined,
+            'trades': trades,
             'fee': {
-                'currency': undefined,
+                'currency': feeCurrency,
                 'cost': this.safeFloat (order, 'order_fee'),
             },
             'info': order,
@@ -459,10 +621,7 @@ module.exports = class liquid extends Exchange {
             'X-Quoine-API-Version': this.version,
             'Content-Type': 'application/json',
         };
-        if (api === 'public') {
-            if (Object.keys (query).length)
-                url += '?' + this.urlencode (query);
-        } else {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             if (method === 'GET') {
                 if (Object.keys (query).length)
@@ -478,52 +637,60 @@ module.exports = class liquid extends Exchange {
                 'iat': Math.floor (nonce / 1000), // issued at
             };
             headers['X-Quoine-Auth'] = this.jwt (request, this.secret);
+        } else {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
         }
         url = this.urls['api'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response = undefined) {
-        if (code >= 200 && code <= 299)
+    handleErrors (code, reason, url, method, headers, body, response) {
+        if (code >= 200 && code < 300)
             return;
-        const messages = this.exceptions['messages'];
+        const exceptions = this.exceptions;
         if (code === 401) {
             // expected non-json response
-            if (body in messages)
-                throw new messages[body] (this.id + ' ' + body);
-            else
+            if (body in exceptions) {
+                throw new exceptions[body] (this.id + ' ' + body);
+            } else {
                 return;
+            }
         }
-        if (response === undefined)
-            if ((body[0] === '{') || (body[0] === '['))
-                response = JSON.parse (body);
-            else
-                return;
-        const feedback = this.id + ' ' + this.json (response);
-        if (code === 404) {
-            // { "message": "Order not found" }
-            const message = this.safeString (response, 'message');
-            if (message in messages)
-                throw new messages[message] (feedback);
-        } else if (code === 422) {
-            // array of error messages is returned in 'user' or 'quantity' property of 'errors' object, e.g.:
-            // { "errors": { "user": ["not_enough_free_balance"] }}
-            // { "errors": { "quantity": ["less_than_order_size"] }}
-            if ('errors' in response) {
-                const errors = response['errors'];
-                const errorTypes = ['user', 'quantity', 'price'];
-                for (let i = 0; i < errorTypes.length; i++) {
-                    const errorType = errorTypes[i];
-                    if (errorType in errors) {
-                        const errorMessages = errors[errorType];
-                        for (let j = 0; j < errorMessages.length; j++) {
-                            const message = errorMessages[j];
-                            if (message in messages[errorType])
-                                throw new messages[errorType][message] (feedback);
-                        }
-                    }
+        if (code === 429) {
+            throw new DDoSProtection (this.id + ' ' + body);
+        }
+        if (response === undefined) {
+            return;
+        }
+        const feedback = this.id + ' ' + body;
+        const message = this.safeString (response, 'message');
+        const errors = this.safeValue (response, 'errors');
+        if (message !== undefined) {
+            //
+            //  { "message": "Order not found" }
+            //
+            if (message in exceptions) {
+                throw new exceptions[message] (feedback);
+            }
+        } else if (errors !== undefined) {
+            //
+            //  { "errors": { "user": ["not_enough_free_balance"] }}
+            //  { "errors": { "quantity": ["less_than_order_size"] }}
+            //  { "errors": { "order": ["Can not update partially filled order"] }}
+            //
+            const types = Object.keys (errors);
+            for (let i = 0; i < types.length; i++) {
+                const type = types[i];
+                const errorMessages = errors[type];
+                for (let j = 0; j < errorMessages.length; j++) {
+                    const message = errorMessages[j];
+                    if (message in exceptions)
+                        throw new exceptions[message] (feedback);
                 }
             }
+        } else {
+            throw new ExchangeError (feedback);
         }
     }
 };

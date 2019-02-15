@@ -12,8 +12,8 @@ class kucoin extends Exchange {
     public function describe () {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'kucoin',
-            'name' => 'Kucoin',
-            'countries' => array ( 'HK' ), // Hong Kong
+            'name' => 'KuCoin',
+            'countries' => array ( 'SC' ), // Republic of Seychelles
             'version' => 'v1',
             'rateLimit' => 2000,
             'userAgent' => $this->userAgents['chrome'],
@@ -31,6 +31,7 @@ class kucoin extends Exchange {
                 'fetchMyTrades' => 'emulated', // this method is to be deleted, see implementation and comments below
                 'fetchCurrencies' => true,
                 'withdraw' => true,
+                'fetchTransactions' => true,
             ),
             'timeframes' => array (
                 '1m' => 1,
@@ -43,7 +44,7 @@ class kucoin extends Exchange {
                 '1w' => 'W',
             ),
             'urls' => array (
-                'logo' => 'https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg',
                 'api' => array (
                     'public' => 'https://api.kucoin.com',
                     'private' => 'https://api.kucoin.com',
@@ -88,6 +89,7 @@ class kucoin extends Exchange {
                         'account/{coin}/balance',
                         'account/promotion/info',
                         'account/promotion/sum',
+                        'account/transfer-records',
                         'deal-orders',
                         'order/active',
                         'order/active-map',
@@ -518,7 +520,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_markets () {
+    public function fetch_markets ($params = array ()) {
         $response = $this->publicGetMarketOpenSymbols ();
         if ($this->options['adjustForTimeDifference'])
             $this->load_time_difference ();
@@ -584,6 +586,100 @@ class kucoin extends Exchange {
         );
     }
 
+    public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+        // https://kucoinapidocs.docs.apiary.io/#reference/0/assets-operation/list-deposit-&-withdrawal-records
+        if ($code === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchDeposits requires a $currency $code argument');
+        }
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $request = array (
+            'coin' => $currency['id'],
+        );
+        $response = $this->privateGetAccountCoinWalletRecords (array_merge ($request, $params));
+        return $this->parseTransactions ($response['data']['datas'], $currency, $since, $limit);
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        //
+        //     {
+        //         'coinType' => 'ETH',
+        //         'createdAt' => 1516134636000,
+        //         'amount' => 2.5,
+        //         'address' => '0x4cd00e7983e54add886442d3b866f95243cf9b30',
+        //         'fee' => 0.0,
+        //         'outerWalletTxid' => '0x820cde65b1fab0a9527a5c2466b3e7807fee45c6a81691486bf954114b12c873@0x4cd00e7983e54add886442d3b866f95243cf9b30@eth',
+        //         'remark' => None,
+        //         'oid' => '5a5e60ecaf2c5807eda65443',
+        //         'confirmation' => 14,
+        //         'type' => 'DEPOSIT',
+        //         'status' => 'SUCCESS',
+        //         'updatedAt' => 1516134827000
+        //     }
+        //
+        //     {
+        //         'coinType':'POLY',
+        //         'createdAt':1520696078000,
+        //         'amount':838.2247,
+        //         'address':'0x54fc433e95549e68fa362eb85c235177d94a8745',
+        //         'fee':3.0,
+        //         'outerWalletTxid':'0x055da84b7557498785d6acecf2b71d0158fec32fce246e51f5c49b79826a8481',
+        //         'remark':None,
+        //         'oid':'5aa3fb0d7bd394763bde55c1',
+        //         'confirmation':0,
+        //         'type':'WITHDRAW',
+        //         'status':'SUCCESS',
+        //         'updatedAt':1520696196000
+        //     }
+        //
+        $id = $this->safe_string($transaction, 'oid');
+        $txid = $this->safe_string($transaction, 'outerWalletTxid');
+        if ($txid !== null) {
+            if (mb_strpos ($txid, '@') !== false) {
+                $parts = explode ('@', $txid);
+                $txid = $parts[0];
+            }
+        }
+        $timestamp = $this->safe_integer($transaction, 'createdAt');
+        $code = null;
+        $currencyId = $this->safe_string($transaction, 'coinType');
+        $currency = $this->safe_value($this->currencies_by_id, $currencyId);
+        if ($currency !== null) {
+            $code = $currency['code'];
+        } else {
+            $code = $this->common_currency_code($currencyId);
+        }
+        $address = $this->safe_string($transaction, 'address');
+        $tag = $this->safe_string($transaction, 'remark');
+        $amount = $this->safe_float($transaction, 'amount');
+        $status = $this->safe_string($transaction, 'status');
+        $type = $this->safe_string($transaction, 'type');
+        if ($type !== null) {
+            // they return 'DEPOSIT' or 'WITHDRAW', ccxt used 'deposit' or 'withdrawal'
+            $type = ($type === 'DEPOSIT') ? 'deposit' : 'withdrawal';
+        }
+        $feeCost = $this->safe_float($transaction, 'fee');
+        $updated = $this->safe_integer($transaction, 'updatedAt');
+        return array (
+            'info' => $transaction,
+            'id' => $id,
+            'currency' => $code,
+            'amount' => $amount,
+            'address' => $address,
+            'tag' => $tag,
+            'status' => $status,
+            'type' => $type,
+            'updated' => $updated,
+            'txid' => $txid,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'fee' => array (
+                'currency' => $code,
+                'cost' => $feeCost,
+            ),
+        );
+    }
+
     public function fetch_currencies ($params = array ()) {
         $response = $this->publicGetMarketOpenCoins ($params);
         $currencies = $response['data'];
@@ -592,7 +688,7 @@ class kucoin extends Exchange {
             $currency = $currencies[$i];
             $id = $currency['coin'];
             // todo => will need to rethink the fees
-            // to add support for multiple withdrawal/$deposit methods and
+            // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $code = $this->common_currency_code($id);
             $precision = $currency['tradePrecision'];
@@ -691,9 +787,7 @@ class kucoin extends Exchange {
             $side = $order['type'];
         if ($side !== null)
             $side = strtolower ($side);
-        $orderId = $this->safe_string($order, 'orderOid');
-        if ($orderId === null)
-            $orderId = $this->safe_string($order, 'oid');
+        $orderId = $this->safe_string_2($order, 'orderOid', 'oid');
         // do not confuse $trades with orders
         $trades = null;
         if (is_array ($order) && array_key_exists ('dealOrders', $order))
@@ -1139,8 +1233,8 @@ class kucoin extends Exchange {
             } else if ($trade[1] === 'SELL') {
                 $side = 'sell';
             }
-            $price = $trade[2];
-            $amount = $trade[3];
+            $price = $this->safe_float($trade, 2);
+            $amount = $this->safe_float($trade, 3);
             $id = $trade[5];
         } else {
             $timestamp = $this->safe_value($trade, 'createdAt');
@@ -1221,11 +1315,6 @@ class kucoin extends Exchange {
         return $this->parse_trades($response['data']['datas'], $market, $since, $limit);
     }
 
-    public function parse_trading_view_ohlcv ($ohlcvs, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        $result = $this->convert_trading_view_to_ohlcv($ohlcvs);
-        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
-    }
-
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -1261,7 +1350,7 @@ class kucoin extends Exchange {
             'to' => $end,
         );
         $response = $this->publicGetOpenChartHistory (array_merge ($request, $params));
-        return $this->parse_trading_view_ohlcv ($response, $market, $timeframe, $since, $limit);
+        return $this->parse_trading_view_ohlcv($response, $market, $timeframe, $since, $limit);
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
@@ -1269,11 +1358,17 @@ class kucoin extends Exchange {
         $this->load_markets();
         $currency = $this->currency ($code);
         $this->check_address($address);
-        $response = $this->privatePostAccountCoinWithdrawApply (array_merge (array (
+        $request = array (
             'coin' => $currency['id'],
             'amount' => $amount,
             'address' => $address,
-        ), $params));
+        );
+        // they don't have the $tag properly documented for currencies that require it (XLM, XRP, ...)
+        // https://www.reddit.com/r/kucoin/comments/93o92b/withdraw_of_xlm_through_api/
+        if ($tag !== null) {
+            $request['address'] .= '@' . $tag;
+        }
+        $response = $this->privatePostAccountCoinWithdrawApply (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => null,
@@ -1313,7 +1408,7 @@ class kucoin extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function throw_exception_on_error ($response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         //
         // API endpoints return the following formats
         //     array ( success => false, $code => "ERROR", msg => "Min price:100.0" )
@@ -1322,22 +1417,22 @@ class kucoin extends Exchange {
         // Web OHLCV endpoint returns this:
         //     array ( s => "ok", o => array (), h => array (), l => array (), c => array (), v => array () )
         //
-        // This particular method handles API responses only
+        // This particular $method handles API responses only
         //
         if (!(is_array ($response) && array_key_exists ('success', $response)))
             return;
         if ($response['success'] === true)
             return; // not an error
         if (!(is_array ($response) && array_key_exists ('code', $response)) || !(is_array ($response) && array_key_exists ('msg', $response)))
-            throw new ExchangeError ($this->id . ' => malformed $response => ' . $this->json ($response));
-        $code = $this->safe_string($response, 'code');
+            throw new ExchangeError ($this->id . ' => malformed $response => ' . $body);
+        $responseCode = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'msg');
-        $feedback = $this->id . ' ' . $this->json ($response);
-        if ($code === 'UNAUTH') {
+        $feedback = $this->id . ' ' . $body;
+        if ($responseCode === 'UNAUTH') {
             if ($message === 'Invalid nonce')
                 throw new InvalidNonce ($feedback);
             throw new AuthenticationError ($feedback);
-        } else if ($code === 'ERROR') {
+        } else if ($responseCode === 'ERROR') {
             if (mb_strpos ($message, 'The precision of amount') !== false)
                 throw new InvalidOrder ($feedback); // amount violates precision.amount
             if (mb_strpos ($message, 'Min amount each order') !== false)
@@ -1348,20 +1443,10 @@ class kucoin extends Exchange {
                 throw new InvalidOrder ($feedback); // price > limits.price.max
             if (mb_strpos ($message, 'The precision of price') !== false)
                 throw new InvalidOrder ($feedback); // price violates precision.price
-        } else if ($code === 'NO_BALANCE') {
+        } else if ($responseCode === 'NO_BALANCE') {
             if (mb_strpos ($message, 'Insufficient balance') !== false)
                 throw new InsufficientFunds ($feedback);
         }
-        throw new ExchangeError ($this->id . ' => unknown $response => ' . $this->json ($response));
-    }
-
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
-        if ($response !== null) {
-            // JS callchain parses $body beforehand
-            $this->throw_exception_on_error($response);
-        } else if ($body && ($body[0] === '{')) {
-            // Python/PHP callchains don't have json available at this step
-            $this->throw_exception_on_error(json_decode ($body, $as_associative_array = true));
-        }
+        throw new ExchangeError ($this->id . ' => unknown $response => ' . $body);
     }
 }

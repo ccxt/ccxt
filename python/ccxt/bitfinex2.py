@@ -95,6 +95,7 @@ class bitfinex2 (bitfinex):
                     ],
                     'post': [
                         'calc/trade/avg',
+                        'calc/fx',
                     ],
                 },
                 'private': {
@@ -104,6 +105,7 @@ class bitfinex2 (bitfinex):
                         'auth/r/orders/{symbol}/new',
                         'auth/r/orders/{symbol}/hist',
                         'auth/r/order/{symbol}:{id}/trades',
+                        'auth/r/trades/hist',
                         'auth/r/trades/{symbol}/hist',
                         'auth/r/positions',
                         'auth/r/funding/offers/{symbol}',
@@ -115,6 +117,7 @@ class bitfinex2 (bitfinex):
                         'auth/r/funding/trades/{symbol}/hist',
                         'auth/r/info/margin/{key}',
                         'auth/r/info/funding/{key}',
+                        'auth/r/movements/hist',
                         'auth/r/movements/{currency}/hist',
                         'auth/r/stats/perf:{timeframe}/hist',
                         'auth/r/alerts',
@@ -122,6 +125,10 @@ class bitfinex2 (bitfinex):
                         'auth/w/alert/{type}:{symbol}:{price}/del',
                         'auth/calc/order/avail',
                         'auth/r/ledgers/{symbol}/hist',
+                        'auth/r/settings',
+                        'auth/w/settings/set',
+                        'auth/w/settings/del',
+                        'auth/r/info/user',
                     ],
                 },
             },
@@ -174,7 +181,7 @@ class bitfinex2 (bitfinex):
     def get_currency_id(self, code):
         return 'f' + code
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         markets = self.v1GetSymbolsDetails()
         result = []
         for p in range(0, len(markets)):
@@ -312,21 +319,26 @@ class bitfinex2 (bitfinex):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.publicGetTickers(self.extend({
-            'symbols': ','.join(self.ids),
-        }, params))
+        request = {}
+        if symbols is not None:
+            ids = self.market_ids(symbols)
+            request['symbols'] = ','.join(ids)
+        else:
+            request['symbols'] = 'ALL'
+        tickers = self.publicGetTickers(self.extend(request, params))
         result = {}
         for i in range(0, len(tickers)):
             ticker = tickers[i]
             id = ticker[0]
-            market = self.markets_by_id[id]
-            symbol = market['symbol']
-            result[symbol] = self.parse_ticker(ticker, market)
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+                result[symbol] = self.parse_ticker(ticker, market)
         return result
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
-        market = self.markets[symbol]
+        market = self.market(symbol)
         ticker = self.publicGetTickerSymbol(self.extend({
             'symbol': market['id'],
         }, params))
@@ -394,7 +406,7 @@ class bitfinex2 (bitfinex):
     def fetch_deposit_address(self, currency, params={}):
         raise NotSupported(self.id + ' fetchDepositAddress() not implemented yet.')
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         raise NotSupported(self.id + ' withdraw not implemented yet')
 
     def fetch_my_trades(self, symbol=None, since=None, limit=25, params={}):
@@ -429,7 +441,7 @@ class bitfinex2 (bitfinex):
             self.check_required_credentials()
             nonce = str(self.nonce())
             body = self.json(query)
-            auth = '/api' + '/' + request + nonce + body
+            auth = '/api/' + request + nonce + body
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha384)
             headers = {
                 'bfx-nonce': nonce,
