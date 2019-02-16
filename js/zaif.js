@@ -38,8 +38,8 @@ module.exports = class zaif extends Exchange {
             'fees': {
                 'trading': {
                     'percentage': true,
-                    'taker': -0.0001,
-                    'maker': -0.0005,
+                    'taker': 0.1 / 100,
+                    'maker': 0,
                 },
             },
             'api': {
@@ -98,6 +98,15 @@ module.exports = class zaif extends Exchange {
                     ],
                 },
             },
+            'options': {
+                'nonDefaultTradingFees': {
+                    'BTC/JPY': {'maker': 0, 'taker': 0},
+                    'BCH/JPY': {'maker': 0, 'taker': 0.3 / 100},
+                    'BCH/BTC': {'maker': 0, 'taker': 0.3 / 100},
+                    'PEPECASH/JPY': {'maker': 0, 'taker': 0.01 / 100},
+                    'PEPECASH/BT': {'maker': 0, 'taker': 0.01 / 100},
+                },
+            },
             'exceptions': {
                 'exact': {
                     'unsupported currency_pair': BadRequest, // {"error": "unsupported currency_pair"}
@@ -109,6 +118,8 @@ module.exports = class zaif extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        let nonDefaultTradingFees = this.options['nonDefaultTradingFees'];
+        let defaultTradingFees = this.fees['trading'];
         let markets = await this.publicGetCurrencyPairsAll ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
@@ -120,6 +131,15 @@ module.exports = class zaif extends Exchange {
                 'amount': -Math.log10 (market['item_unit_step']),
                 'price': market['aux_unit_point'],
             };
+            let taker = undefined;
+            let maker = undefined;
+            if(symbol in nonDefaultTradingFees) {
+                taker = nonDefaultTradingFees[symbol]['taker'];
+                maker = nonDefaultTradingFees[symbol]['maker'];
+            } else {
+                taker = defaultTradingFees['taker'];
+                maker = defaultTradingFees['maker'];
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -127,6 +147,8 @@ module.exports = class zaif extends Exchange {
                 'quote': quote,
                 'active': true, // can trade or not
                 'precision': precision,
+                'taker': taker,
+                'maker': maker,
                 'limits': {
                     'amount': {
                         'min': this.safeFloat (market, 'item_unit_min'),
