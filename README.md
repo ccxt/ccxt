@@ -269,7 +269,7 @@ include "ccxt.php";
 var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange classes
 ```
 
-###Docker
+### Docker
 
 Installs JavaScript / Python / PHP dependencies
 
