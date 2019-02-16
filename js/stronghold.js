@@ -128,7 +128,8 @@ module.exports = class stronghold extends Exchange {
         if (this.options['accountId'] !== undefined) {
             return this.options['accountId'];
         }
-        if (this.accounts.length > 0) {
+        const numAccounts = this.accounts.length;
+        if (numAccounts > 0) {
             return this.accounts[0]['id'];
         }
         throw new ExchangeError (this.id + ' requires an accountId.');
@@ -666,7 +667,7 @@ module.exports = class stronghold extends Exchange {
             'venueId': this.options['venueId'],
             'accountId': this.getActiveAccount (),
             'assetId': this.currencyId (code),
-            'amount': this.amountToPrecision (amount, code),
+            'amount': amount,
             'paymentMethod': paymentMethod,
             'paymentMethodDetails': {
                 'withdrawal_address': address,
