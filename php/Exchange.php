@@ -751,11 +751,24 @@ class Exchange {
         $this->orderbooks    = array ();
         $this->fees          = array ('trading' => array (), 'funding' => array ());
         $this->precision     = array ();
-        $this->limits        = array ();
         $this->orders        = array ();
         $this->trades        = array ();
         $this->transactions  = array ();
         $this->exceptions    = array ();
+        $this->limits = array (
+            'cost' => array (
+                'min' => null,
+                'max' => null,
+            ),
+            'price' => array (
+                'min' => null,
+                'max' => null,
+            ),
+            'amount' => array (
+                'min' => null,
+                'max' => null,
+            ),
+        );
         $this->httpExceptions = array (
             '422' => 'ExchangeError',
             '418' => 'DDoSProtection',

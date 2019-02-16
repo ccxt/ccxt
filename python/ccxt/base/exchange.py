@@ -138,8 +138,21 @@ class Exchange(object):
     markets_by_id = None
     currencies_by_id = None
     precision = None
-    limits = None
     exceptions = None
+    limits = {
+        'amount': {
+            'min': None,
+            'max': None,
+        },
+        'price': {
+            'min': None,
+            'max': None,
+        },
+        'cost': {
+            'min': None,
+            'max': None,
+        },
+    }
     httpExceptions = {
         '422': ExchangeError,
         '418': DDoSProtection,
@@ -221,7 +234,6 @@ class Exchange(object):
         'fetchWithdrawals': False,
         'withdraw': False,
     }
-
     precisionMode = DECIMAL_PLACES
     minFundingAddressLength = 1  # used in check_address
     substituteCommonCurrencyCodes = True
