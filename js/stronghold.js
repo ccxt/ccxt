@@ -143,17 +143,7 @@ module.exports = class stronghold extends Exchange {
         //   [ { id: '34080200-b25a-483d-a734-255d30ba324d',
         //       venueSpecificId: '' } ... ]
         //
-        const data = response['result'];
-        let result = {};
-        for (let i = 0; i < data.length; i += 1) {
-            const entry = data[i];
-            const accountId = entry['id'];
-            result[accountId] = {
-                'id': accountId,
-                'info': entry,
-            };
-        }
-        return result;
+        return response['result'];
     }
 
     async fetchTime (params = {}) {
