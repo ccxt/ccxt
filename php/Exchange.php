@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.225';
+$version = '1.18.242';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.225';
+    const VERSION = '1.18.242';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -197,7 +197,6 @@ class Exchange {
         'quoinex',
         'rightbtc',
         'southxchange',
-        'stronghold',
         'surbitcoin',
         'theocean',
         'therock',
@@ -643,14 +642,6 @@ class Exchange {
                 (($input[0] === '{') || ($input[0] === '['));
     }
 
-    public static function is_array ($object) {
-        return is_array($object);
-    }
-
-    public static function isArray ($object) {
-        return is_array($object);
-    }
-
     public static function encode ($input) {
         return $input;
     }
@@ -880,21 +871,6 @@ class Exchange {
             'DRK' => 'DASH',
             'BCHABC' => 'BCH',
             'BCHSV' => 'BSV',
-        );
-
-        $this->limits = array (
-            'cost' => array (
-                'min' => null,
-                'max' => null,
-            ),
-            'price' => array (
-                'min' => null,
-                'max' => null,
-            ),
-            'amount' => array (
-                'min' => null,
-                'max' => null,
-            ),
         );
 
         $this->urlencode_glue = ini_get ('arg_separator.output'); // can be overrided by exchange constructor params
