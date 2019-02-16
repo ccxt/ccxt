@@ -356,7 +356,7 @@ module.exports = class stronghold extends Exchange {
         let side = undefined;
         let timestamp = undefined;
         let orderId = undefined;
-        if (this.isArray (trade)) {
+        if (Array.isArray (trade)) {
             price = parseFloat (trade[0]);
             amount = parseFloat (trade[1]);
             side = trade[2];
