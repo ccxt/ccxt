@@ -14,9 +14,3 @@ services:
     entrypoint: /bin/bash
     stdin_open: true
     tty: true
-    environment:
-      # NB: default values (they're blank here) — if you don't use the ${VAR:-default} syntax, Docker will be blaming about env vars not set..
-      - API_KEY="${API_KEY:-}"
-      - SECRET="${SECRET:-}"
-      - WALLET_ADDRESS="${WALLET_ADDRESS:-}"
-      - PRIVATE_KEY="${PRIVATE_KEY:-}"
