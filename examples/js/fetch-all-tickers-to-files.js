@@ -47,7 +47,7 @@ const ccxt      = require ('ccxt')
                     const tickers = await exchange.fetchTickers ()
 
                     // make a filename from exchange id
-                    const filename = './' + exchange.id + '.json'
+                    const filename = exchange.id + '.json'
 
                     // save the response to a file
                     fs.writeFileSync (filename, JSON.stringify ({ tickers }));
