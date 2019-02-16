@@ -402,6 +402,7 @@ module.exports = class stronghold extends Exchange {
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        await this.loadAccounts ();
         const request = this.extend ({
             'venueId': this.options['venueId'],
             'accountId': this.options['accountId'],
@@ -472,6 +473,7 @@ module.exports = class stronghold extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        await this.loadAccounts ();
         const market = this.market (symbol);
         const request = this.extend ({
             'venueId': this.options['venueId'],
@@ -490,6 +492,7 @@ module.exports = class stronghold extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadAccounts ();
         const request = this.extend ({
             'venueId': this.options['venueId'],
             'accountId': this.options['accountId'],
@@ -504,6 +507,7 @@ module.exports = class stronghold extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        await this.loadAccounts ();
         const request = this.extend ({
             'venueId': this.options['venueId'],
             'accountId': this.options['accountId'],
@@ -574,6 +578,7 @@ module.exports = class stronghold extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        await this.loadAccounts ();
         const request = this.extend ({
             'venueId': this.options['venueId'],
             'accountId': this.options['accountId'],
@@ -599,6 +604,7 @@ module.exports = class stronghold extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        await this.loadAccounts ();
         const request = this.extend ({
             'venueId': this.options['venueId'],
             'accountId': this.options['accountId'],
@@ -616,6 +622,7 @@ module.exports = class stronghold extends Exchange {
 
     async createDepositAddress (code, params = {}) {
         await this.loadMarkets ();
+        await this.loadAccounts ();
         const paymentMethod = this.safeString (this.options['paymentMethods'], code);
         if (paymentMethod === undefined) {
             throw new NotSupported (this.id + ' createDepositAddress requires code to be BTC, ETH, or XLM');
@@ -650,6 +657,7 @@ module.exports = class stronghold extends Exchange {
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
+        await this.loadAccounts ();
         const paymentMethod = this.safeString (this.options['paymentMethods'], code);
         if (paymentMethod === undefined) {
             throw new NotSupported (this.id + ' withdraw requires code to be BTC, ETH, or XLM');
