@@ -124,10 +124,11 @@ module.exports = class stronghold extends Exchange {
         });
     }
 
-    getActiveAccount () {
+    async getActiveAccount () {
         if (this.options['accountId'] !== undefined) {
             return this.options['accountId'];
         }
+        await this.loadAccounts ();
         const numAccounts = this.accounts.length;
         if (numAccounts > 0) {
             return this.accounts[0]['id'];
@@ -403,10 +404,9 @@ module.exports = class stronghold extends Exchange {
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.loadAccounts ();
         const request = this.extend ({
             'venueId': this.options['venueId'],
-            'accountId': this.getActiveAccount (),
+            'accountId': await this.getActiveAccount (),
         }, params);
         if (!request['accountId']) {
             throw new ArgumentsRequired (this.id + " fetchTransactions requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
@@ -474,11 +474,10 @@ module.exports = class stronghold extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.loadAccounts ();
         const market = this.market (symbol);
         const request = this.extend ({
             'venueId': this.options['venueId'],
-            'accountId': this.getActiveAccount (),
+            'accountId': await this.getActiveAccount (),
             'marketID': market['id'],
             'type': type,
             'side': side,
@@ -493,10 +492,9 @@ module.exports = class stronghold extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        await this.loadAccounts ();
         const request = this.extend ({
             'venueId': this.options['venueId'],
-            'accountId': this.getActiveAccount (),
+            'accountId': await this.getActiveAccount (),
             'orderId': id,
         }, params);
         if (!request['accountId']) {
@@ -508,10 +506,9 @@ module.exports = class stronghold extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.loadAccounts ();
         const request = this.extend ({
             'venueId': this.options['venueId'],
-            'accountId': this.getActiveAccount (),
+            'accountId': await this.getActiveAccount (),
         }, params);
         if (!request['accountId']) {
             throw new ArgumentsRequired (this.id + " cancelOrder requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
@@ -579,10 +576,9 @@ module.exports = class stronghold extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        await this.loadAccounts ();
         const request = this.extend ({
             'venueId': this.options['venueId'],
-            'accountId': this.getActiveAccount (),
+            'accountId': await this.getActiveAccount (),
         }, params);
         if (!('accountId' in request)) {
             throw new ArgumentsRequired (this.id + " fetchBalance requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
@@ -605,10 +601,9 @@ module.exports = class stronghold extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.loadAccounts ();
         const request = this.extend ({
             'venueId': this.options['venueId'],
-            'accountId': this.getActiveAccount (),
+            'accountId': await this.getActiveAccount (),
         }, params);
         if (!request['accountId']) {
             throw new ArgumentsRequired (this.id + " fetchMyTrades requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
@@ -623,14 +618,13 @@ module.exports = class stronghold extends Exchange {
 
     async createDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        await this.loadAccounts ();
         const paymentMethod = this.safeString (this.options['paymentMethods'], code);
         if (paymentMethod === undefined) {
             throw new NotSupported (this.id + ' createDepositAddress requires code to be BTC, ETH, or XLM');
         }
         const request = this.extend ({
             'venueId': this.options['venueId'],
-            'accountId': this.getActiveAccount (),
+            'accountId': await this.getActiveAccount (),
             'assetId': this.currencyId (code),
             'paymentMethod': paymentMethod,
         }, params);
@@ -658,14 +652,13 @@ module.exports = class stronghold extends Exchange {
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.loadAccounts ();
         const paymentMethod = this.safeString (this.options['paymentMethods'], code);
         if (paymentMethod === undefined) {
             throw new NotSupported (this.id + ' withdraw requires code to be BTC, ETH, or XLM');
         }
         const request = this.extend ({
             'venueId': this.options['venueId'],
-            'accountId': this.getActiveAccount (),
+            'accountId': await this.getActiveAccount (),
             'assetId': this.currencyId (code),
             'amount': amount,
             'paymentMethod': paymentMethod,
