@@ -100,11 +100,11 @@ module.exports = class zaif extends Exchange {
             },
             'options': {
                 'nonDefaultTradingFees': {
-                    'BTC/JPY': {'maker': 0, 'taker': 0},
-                    'BCH/JPY': {'maker': 0, 'taker': 0.3 / 100},
-                    'BCH/BTC': {'maker': 0, 'taker': 0.3 / 100},
-                    'PEPECASH/JPY': {'maker': 0, 'taker': 0.01 / 100},
-                    'PEPECASH/BT': {'maker': 0, 'taker': 0.01 / 100},
+                    'BTC/JPY': { 'maker': 0, 'taker': 0 },
+                    'BCH/JPY': { 'maker': 0, 'taker': 0.3 / 100 },
+                    'BCH/BTC': { 'maker': 0, 'taker': 0.3 / 100 },
+                    'PEPECASH/JPY': { 'maker': 0, 'taker': 0.01 / 100 },
+                    'PEPECASH/BT': { 'maker': 0, 'taker': 0.01 / 100 },
                 },
             },
             'exceptions': {
@@ -133,7 +133,7 @@ module.exports = class zaif extends Exchange {
             };
             let taker = undefined;
             let maker = undefined;
-            if(symbol in nonDefaultTradingFees) {
+            if (symbol in nonDefaultTradingFees) {
                 taker = nonDefaultTradingFees[symbol]['taker'];
                 maker = nonDefaultTradingFees[symbol]['maker'];
             } else {
