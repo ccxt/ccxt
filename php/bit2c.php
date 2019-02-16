@@ -70,7 +70,6 @@ class bit2c extends Exchange {
                 'LTC/NIS' => array ( 'id' => 'LtcNis', 'symbol' => 'LTC/NIS', 'base' => 'LTC', 'quote' => 'NIS' ),
                 'ETC/NIS' => array ( 'id' => 'EtcNis', 'symbol' => 'ETC/NIS', 'base' => 'ETC', 'quote' => 'NIS' ),
                 'BTG/NIS' => array ( 'id' => 'BtgNis', 'symbol' => 'BTG/NIS', 'base' => 'BTG', 'quote' => 'NIS' ),
-                'LTC/BTC' => array ( 'id' => 'LtcBtc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
                 'BSV/NIS' => array ( 'id' => 'BchSvNis', 'symbol' => 'BSV/NIS', 'base' => 'BSV', 'quote' => 'NIS' ),
             ),
             'fees' => array (
@@ -306,7 +305,7 @@ class bit2c extends Exchange {
             $feeCost = $this->safe_float($trade, 'feeAmount');
         } else {
             $timestamp = $this->safe_integer($trade, 'date') * 1000;
-            $id = $this->safe_integer($trade, 'tid');
+            $id = $this->safe_string($trade, 'tid');
             $price = $this->safe_float($trade, 'price');
             $amount = $this->safe_float($trade, 'amount');
             $side = $this->safe_value($trade, 'isBid');

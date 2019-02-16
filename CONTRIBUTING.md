@@ -20,6 +20,7 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
 - Search for similar issues first to avoid duplicates.
 - If your issue is unique, along with a basic description of the failure, the following **IS REQUIRED**:
   - **set `exchange.verbose = true` property on the exchange instance before calling its functions or methods**
+  - **DON'T POST SCREENSHOTS OF CODE OR ERRORS, POST THE OUTPUT AND CODE IN PLAIN TEXT!**
   - **surround code and output with triple backticks: &#096;&#096;&#096;GOOD&#096;&#096;&#096;**
   - don't confuse the backtick symbol (&#096;) with the quote symbol (\'): '''BAD'''
   - don't confuse a single backtick with triple backticks: &#096;BAD&#096;
@@ -77,6 +78,20 @@ The following is a set of rules for contributing to the ccxt library codebase.
 
 ### What You Need To Have
 
+The easiest way is to use Docker to run an isolated build & test enviroment with all the dependencies installed:
+
+```
+docker-compose run --rm ccxt
+```
+
+That builds a container and opens a shell, where the `npm run build` and `node run-tests` commands should simply work out of the box.
+
+The CCXT folder is mapped inside of the container, except the `node_modules` folder — the container would have its own ephemeral copy — so that won't mess up your locally installed modules. This means that you can edit sources on your host machine using your favorite editor and build/test them in the running container.
+
+This way you can keep the build tools and processes isolated, not having to work through the painful process of installing all those dependencies to your host machine manually.
+
+If you choose the hard way, here is the list of the dependencies you will need. It may be incomplete and outdated, so you may want to look into the [`Dockerfile`](https://github.com/ccxt/ccxt/blob/master/Dockerfile) and [`.travis.yml`](https://github.com/ccxt/ccxt/blob/master/.travis.yml) scripts for the list of commands we use to install the state-of-the-art dependencies needed to build and test CCXT.
+
 - [Node.js](https://nodejs.org/en/download/) 8+
 - [Python](https://www.python.org/downloads/) 3.5.3+ and Python 2.7+
   - tox (`brew install tox` or `pip install tox`)
@@ -87,11 +102,6 @@ The following is a set of rules for contributing to the ccxt library codebase.
   - PCRE
   - bcmath (php<7.1)
 - [Pandoc](https://pandoc.org/installing.html) 1.19+
-
-Alternatively, you can use `docker` and `docker-compose` to install all dependencies in isolated environment:
-```
-  docker-compose run ccxt bash
-```
 
 ### What You Need To Know
 
