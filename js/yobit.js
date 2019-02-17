@@ -145,7 +145,6 @@ module.exports = class yobit extends liqui {
                     'invalid key': AuthenticationError,
                 },
             },
-
         });
     }
 
