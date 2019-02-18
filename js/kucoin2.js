@@ -265,6 +265,26 @@ module.exports = class kucoin2 extends Exchange {
         return result;
     }
 
+    async fetchFundingFees (codes = undefined, params = {}) {
+        const numberOfCodes = codes.length;
+        if (numberOfCodes !== 1) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingFees supports only one currency per call');
+        }
+        const currencyId = this.currencyId (codes[0]);
+        const request = {
+            'currency': currencyId,
+        };
+        const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
+        const data = response['data'];
+        let withdrawFees = {};
+        withdrawFees[codes[0]] = this.safeFloat (data, 'withdrawMinFee');
+        return {
+            'info': response,
+            'withdraw': withdrawFees,
+            'deposit': {},
+        };
+    }
+
     parseTicker (ticker, market = undefined) {
         //
         //     {
