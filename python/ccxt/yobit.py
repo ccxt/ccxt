@@ -5,9 +5,8 @@
 
 from ccxt.liqui import liqui
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
-from ccxt.base.errors import InvalidOrder
-from ccxt.base.errors import DDoSProtection
 
 
 class yobit (liqui):
@@ -142,6 +141,13 @@ class yobit (liqui):
                 'fetchOrdersRequiresSymbol': True,
                 'fetchTickersMaxLength': 512,
             },
+            'exceptions': {
+                'broad': {
+                    'Total transaction amount': ExchangeError,  # {"success": 0, "error": "Total transaction amount is less than minimal total: 0.00010000"}
+                    'Insufficient funds': InsufficientFunds,
+                    'invalid key': AuthenticationError,
+                },
+            },
         })
 
     def parse_order_status(self, status):
@@ -259,19 +265,3 @@ class yobit (liqui):
             'info': response,
             'id': None,
         }
-
-    def handle_errors(self, code, reason, url, method, headers, body, response):
-        if body[0] == '{':
-            if 'success' in response:
-                if not response['success']:
-                    if 'error_log' in response:
-                        if response['error_log'].find('Insufficient funds') >= 0:  # not enougTh is a typo inside Liqui's own API...
-                            raise InsufficientFunds(self.id + ' ' + self.json(response))
-                        elif response['error_log'] == 'Requests too often':
-                            raise DDoSProtection(self.id + ' ' + self.json(response))
-                        elif (response['error_log'] == 'not available') or (response['error_log'] == 'external service unavailable'):
-                            raise DDoSProtection(self.id + ' ' + self.json(response))
-                        elif response['error_log'] == 'Total transaction amount':
-                            # eg {"success":0,"error":"Total transaction amount is less than minimal total: 0.00010000"}
-                            raise InvalidOrder(self.id + ' ' + self.json(response))
-                    raise ExchangeError(self.id + ' ' + self.json(response))
