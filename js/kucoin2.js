@@ -252,16 +252,16 @@ module.exports = class kucoin2 extends Exchange {
     async fetchAccounts (params = {}) {
         const response = await this.privateGetAccounts (params);
         const responseData = response['data'];
-        let result = {};
+        let result = [];
         for (let i = 0; i < responseData.length; i++) {
             const entry = responseData[i];
-            const accountId = entry['type'];
-            result[accountId] = {
-                'accountId': accountId,
-                'type': accountId, // main or trade
+            const accountId = entry['id'];
+            result.push ({
+                'id': accountId,
+                'type': this.safeString (entry, 'type'), // main or trade
                 'currency': undefined,
                 'info': entry,
-            };
+            });
         }
         return result;
     }
