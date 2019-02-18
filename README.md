@@ -271,17 +271,19 @@ var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange
 
 ### Docker
 
-Installs JavaScript / Python / PHP dependencies
+You can get CCXT installed in a container along with all the supported languages and dependencies. This may be useful if you want to contribute to CCXT (e.g. run the build scripts and tests — please see the [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) document for the details on that).
+
+Using `docker-compose` (in the cloned CCXT repository):
+
+```shell
+docker-compose run --rm ccxt
+```
+
+Alternatively:
 
 ```shell
 docker build . --tag ccxt
 docker run -it ccxt
-```
-
-alternatively
-
-```shell
-docker-compose run --rm ccxt
 ```
 
 ---
