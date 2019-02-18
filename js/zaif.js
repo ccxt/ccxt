@@ -118,8 +118,6 @@ module.exports = class zaif extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let nonDefaultTradingFees = this.options['nonDefaultTradingFees'];
-        let defaultTradingFees = this.fees['trading'];
         let markets = await this.publicGetCurrencyPairsAll ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
@@ -131,15 +129,9 @@ module.exports = class zaif extends Exchange {
                 'amount': -Math.log10 (market['item_unit_step']),
                 'price': market['aux_unit_point'],
             };
-            let taker = undefined;
-            let maker = undefined;
-            if (symbol in nonDefaultTradingFees) {
-                taker = nonDefaultTradingFees[symbol]['taker'];
-                maker = nonDefaultTradingFees[symbol]['maker'];
-            } else {
-                taker = defaultTradingFees['taker'];
-                maker = defaultTradingFees['maker'];
-            }
+            const fees = this.safeValue (this.options['nonDefaultTradingFees'], symbol, this.fees['trading']);
+            const taker = fees['taker'];
+            const maker = fees['maker'];
             result.push ({
                 'id': id,
                 'symbol': symbol,
