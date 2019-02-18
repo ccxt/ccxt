@@ -436,9 +436,7 @@ declare module 'ccxt' {
     export class okex extends okcoinusd {}
     export class paymium extends Exchange {}
     export class poloniex extends Exchange {}
-    export class qryptos extends liquid {}
     export class quadrigacx extends Exchange {}
-    export class quoinex extends liquid {}
     export class rightbtc extends Exchange {}
     export class southxchange extends Exchange {}
     export class surbitcoin extends foxbit {}

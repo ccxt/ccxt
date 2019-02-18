@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.18.253'
+__version__ = '1.18.255'
 
 # ----------------------------------------------------------------------------
 
@@ -177,9 +177,7 @@ from ccxt.okcoinusd import okcoinusd                        # noqa: F401
 from ccxt.okex import okex                                  # noqa: F401
 from ccxt.paymium import paymium                            # noqa: F401
 from ccxt.poloniex import poloniex                          # noqa: F401
-from ccxt.qryptos import qryptos                            # noqa: F401
 from ccxt.quadrigacx import quadrigacx                      # noqa: F401
-from ccxt.quoinex import quoinex                            # noqa: F401
 from ccxt.rightbtc import rightbtc                          # noqa: F401
 from ccxt.southxchange import southxchange                  # noqa: F401
 from ccxt.surbitcoin import surbitcoin                      # noqa: F401
@@ -313,9 +311,7 @@ exchanges = [
     'okex',
     'paymium',
     'poloniex',
-    'qryptos',
     'quadrigacx',
-    'quoinex',
     'rightbtc',
     'southxchange',
     'surbitcoin',
