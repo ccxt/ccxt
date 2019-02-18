@@ -54,7 +54,7 @@
     "indodax":       { "skip": true },
     "itbit":         { "skip": true },
     "jubi":          { "skip": true },
-    "kucoin2":       { "skip": true },
+    "kucoin":        { "skip": true },
     "kuna":          { "skip": true },
     "lakebtc":       { "skip": true },
     "lbank":         { "skip": true },
