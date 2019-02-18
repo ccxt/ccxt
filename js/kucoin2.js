@@ -35,6 +35,7 @@ module.exports = class kucoin2 extends Exchange {
                 'createOrder': true,
                 'cancelOrder': true,
                 'fetchAccounts': true,
+                'fetchFundingFee': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg',
@@ -265,19 +266,15 @@ module.exports = class kucoin2 extends Exchange {
         return result;
     }
 
-    async fetchFundingFees (codes = undefined, params = {}) {
-        const numberOfCodes = codes.length;
-        if (numberOfCodes !== 1) {
-            throw new ArgumentsRequired (this.id + ' fetchFundingFees supports only one currency per call');
-        }
-        const currencyId = this.currencyId (codes[0]);
+    async fetchFundingFee (code, params = {}) {
+        const currencyId = this.currencyId (code);
         const request = {
             'currency': currencyId,
         };
         const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
         const data = response['data'];
         let withdrawFees = {};
-        withdrawFees[codes[0]] = this.safeFloat (data, 'withdrawMinFee');
+        withdrawFees[code] = this.safeFloat (data, 'withdrawMinFee');
         return {
             'info': response,
             'withdraw': withdrawFees,
