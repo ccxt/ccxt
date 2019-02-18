@@ -382,8 +382,9 @@ class kucoin2 extends Exchange {
         $currencyId = $this->currencyId ($code);
         $request = array ( 'currency' => $currencyId );
         $response = $this->privateGetDepositAddresses (array_merge ($request, $params));
-        $address = $this->safe_string($response, 'address');
-        $tag = $this->safe_string($response, 'memo');
+        $data = $this->safe_value($response, 'data');
+        $address = $this->safe_string($data, 'address');
+        $tag = $this->safe_string($data, 'memo');
         $this->check_address($address);
         return array (
             'info' => $response,

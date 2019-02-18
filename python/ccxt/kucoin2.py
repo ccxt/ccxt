@@ -381,8 +381,9 @@ class kucoin2 (Exchange):
         currencyId = self.currencyId(code)
         request = {'currency': currencyId}
         response = self.privateGetDepositAddresses(self.extend(request, params))
-        address = self.safe_string(response, 'address')
-        tag = self.safe_string(response, 'memo')
+        data = self.safe_value(response, 'data')
+        address = self.safe_string(data, 'address')
+        tag = self.safe_string(data, 'memo')
         self.check_address(address)
         return {
             'info': response,
