@@ -36,6 +36,7 @@ module.exports = class kucoin2 extends Exchange {
                 'cancelOrder': true,
                 'fetchAccounts': true,
                 'fetchFundingFee': true,
+                'fetchOHLCV': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg',
