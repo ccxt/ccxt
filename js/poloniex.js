@@ -1169,6 +1169,11 @@ module.exports = class poloniex extends Exchange {
         return this.marketId (symbol).toLowerCase ();
     }
 
+    _websocketOnOpen (contextId, websocketOptions) { // eslint-disable-line no-unused-vars
+        let symbolIds = {};
+        this._contextSet (contextId, 'symbolids', symbolIds);
+    }
+
     _websocketOnMessage (contextId, data) {
         let msg = JSON.parse (data);
         let channelId = msg[0];
@@ -1185,24 +1190,26 @@ module.exports = class poloniex extends Exchange {
             console.log (this.id + '._websocketOnMessage() heartbeat ' + data);
         } else {
             // if channelId is not one of the above, check if it is a marketId
-            let symbol = this.findSymbol (channelId.toString ());
-            if (symbol === channelId.toString ()) {
-                // Some error occured
-                this.emit ('err', new ExchangeError (this.id + '._websocketOnMessage() failed to get symbol for channelId: ' + channelId));
-                this.websocketClose (contextId);
+            let symbolsIds = this._contextGet (contextId, 'symbolids');
+            let channelIdStr = channelId.toString ();
+            if (channelIdStr in symbolsIds) {
+                let symbol = symbolsIds[channelIdStr];
+                this._websocketHandleOb (contextId, symbol, msg);
             } else {
-                this._websocketHandleOb (contextId, msg);
+                // Some error occured
+                this.emit ('err', new ExchangeError (this.id + '._websocketOnMessage() failed to get symbol for channelId: ' + channelIdStr));
+                this.websocketClose (contextId);
             }
         }
     }
 
-    _websocketHandleOb (contextId, data) {
+    _websocketHandleOb (contextId, symbol, data) {
         // Poloniex calls this Price Aggregated Book
         let channelId = data[0];
         let sequenceNumber = data[1];
         if (data.length > 2) {
             let orderbook = data[2];
-            let symbol = this.findSymbol (channelId.toString ());
+            // let symbol = this.findSymbol (channelId.toString ());
             let symbolData = this._contextGetSymbolData (contextId, 'ob', symbol);
             // Check if this is the first response which contains full current orderbook
             if (orderbook[0][0] === 'i') {
@@ -1344,12 +1351,15 @@ module.exports = class poloniex extends Exchange {
         symbolData['obDeltaCacheSize'] = 0;
         symbolData['obDeltaCacheSizeMax'] = this.safeInteger (params, 'obDeltaCacheSizeMax', 10);
         this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
-        //
-        let market = this.marketId (symbol);
-        //
+        // get symbol id2
+        // let market = this.marketId (symbol);
+        let market = this.findMarket (symbol);
+        let symbolsIds = this._contextGet (contextId, 'symbolids');
+        symbolsIds[market['id2']] = symbol;
+        this._contextSet (contextId, 'symbolids', symbolsIds);
         let payload = {
             'command': 'subscribe',
-            'channel': market,
+            'channel': market['id'],
         };
         let nonceStr = nonce.toString ();
         this.emit (nonceStr, true);
