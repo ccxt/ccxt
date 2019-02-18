@@ -99,7 +99,7 @@ module.exports = class zaif extends Exchange {
                 },
             },
             'options': {
-                'nonDefaultTradingFees': {
+                'fees': {
                     'BTC/JPY': { 'maker': 0, 'taker': 0 },
                     'BCH/JPY': { 'maker': 0, 'taker': 0.3 / 100 },
                     'BCH/BTC': { 'maker': 0, 'taker': 0.3 / 100 },
@@ -129,7 +129,7 @@ module.exports = class zaif extends Exchange {
                 'amount': -Math.log10 (market['item_unit_step']),
                 'price': market['aux_unit_point'],
             };
-            const fees = this.safeValue (this.options['nonDefaultTradingFees'], symbol, this.fees['trading']);
+            const fees = this.safeValue (this.options['fees'], symbol, this.fees['trading']);
             const taker = fees['taker'];
             const maker = fees['maker'];
             result.push ({
