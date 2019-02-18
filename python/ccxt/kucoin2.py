@@ -52,7 +52,7 @@ class kucoin2 (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg',
-                'referral': 'https://www.kucoin.com/?r=E5wkqe',
+                'referral': 'https://www.kucoin.com/ucenter/signup?rcode=E5wkqe',
                 'api': {
                     'public': 'https://openapi-v2.kucoin.com',
                     'private': 'https://openapi-v2.kucoin.com',
@@ -382,10 +382,13 @@ class kucoin2 (Exchange):
         request = {'currency': currencyId}
         response = self.privateGetDepositAddresses(self.extend(request, params))
         address = self.safe_string(response, 'address')
-        memo = self.safe_string(response, 'memo')
+        tag = self.safe_string(response, 'memo')
+        self.check_address(address)
         return {
+            'info': response,
+            'currency': code,
             'address': address,
-            'tag': memo,
+            'tag': tag,
         }
 
     def fetch_order_book(self, symbol, limit=None, params={}):
@@ -434,18 +437,20 @@ class kucoin2 (Exchange):
 
     def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        market = self.market(symbol)
         request = {
-            'symbol': market['id'],
             'status': status,
         }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
         if since is not None:
             request['startAt'] = since
         if limit is not None:
             request['pageSize'] = limit
         response = self.privateGetOrders(self.extend(request, params))
-        responseData = response['data']
-        orders = responseData['items']
+        responseData = self.safe_value(response, 'data', {})
+        orders = self.safe_value(responseData, 'items', [])
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -464,12 +469,6 @@ class kucoin2 (Exchange):
         response = self.privateGetOrdersOrderId(self.extend(request, params))
         responseData = response['data']
         return self.parse_order(responseData, market)
-
-    def parse_symbol(self, id):
-        quote, base = id.split(self.options['symbolSeparator'])
-        base = self.common_currency_code(base)
-        quote = self.common_currency_code(quote)
-        return base + '/' + quote
 
     def parse_order(self, order, market=None):
         #
@@ -504,19 +503,28 @@ class kucoin2 (Exchange):
         #     "createdAt": 1547026471000}
         #
         symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        else:
-            marketId = self.safe_string(order, 'symbol')
-            if marketId is not None:
-                symbol = self.parse_symbol(marketId)
+        marketId = self.safe_string(order, 'symbol')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
+            else:
+                baseId, quoteId = marketId.split('-')
+                base = self.common_currency_code(baseId)
+                quote = self.common_currency_code(quoteId)
+                symbol = base + '/' + quote
+            market = self.safe_value(self.markets_by_id, marketId)
+        if symbol is None:
+            if market is not None:
+                symbol = market['symbol']
         orderId = self.safe_string(order, 'id')
         type = self.safe_string(order, 'type')
         timestamp = self.safe_string(order, 'createdAt')
         datetime = self.iso8601(timestamp)
         price = self.safe_float(order, 'price')
         side = self.safe_string(order, 'side')
-        feeCurrency = self.safe_string(order, 'feeCurrency')
+        feeCurrencyId = self.safe_string(order, 'feeCurrency')
+        feeCurrency = self.common_currency_code(feeCurrencyId)
         fee = self.safe_float(order, 'fee')
         amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'dealSize')
@@ -545,11 +553,11 @@ class kucoin2 (Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        market = self.market(symbol)
-        marketId = market['id']
-        request = {
-            'symbol': marketId,
-        }
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
         if since is not None:
             request['startAt'] = since
         if limit is not None:
@@ -621,9 +629,19 @@ class kucoin2 (Exchange):
         #
         symbol = None
         marketId = self.safe_string(trade, 'symbol')
-        market = self.safe_value(self.markets_by_id, marketId, market)
-        if market is not None:
-            symbol = market['symbol']
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
+            else:
+                baseId, quoteId = marketId.split('-')
+                base = self.common_currency_code(baseId)
+                quote = self.common_currency_code(quoteId)
+                symbol = base + '/' + quote
+            market = self.safe_value(self.markets_by_id, marketId)
+        if symbol is None:
+            if market is not None:
+                symbol = market['symbol']
         id = self.safe_string(trade, 'tradeId')
         if id is not None:
             id = str(id)
@@ -804,7 +822,7 @@ class kucoin2 (Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         request = {
-            'type': 'main',
+            'type': 'trade',
         }
         response = self.privateGetAccounts(self.extend(request, params))
         responseData = response['data']

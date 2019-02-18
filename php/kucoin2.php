@@ -39,7 +39,7 @@ class kucoin2 extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg',
-                'referral' => 'https://www.kucoin.com/?r=E5wkqe',
+                'referral' => 'https://www.kucoin.com/ucenter/signup?rcode=E5wkqe',
                 'api' => array (
                     'public' => 'https://openapi-v2.kucoin.com',
                     'private' => 'https://openapi-v2.kucoin.com',
@@ -383,10 +383,13 @@ class kucoin2 extends Exchange {
         $request = array ( 'currency' => $currencyId );
         $response = $this->privateGetDepositAddresses (array_merge ($request, $params));
         $address = $this->safe_string($response, 'address');
-        $memo = $this->safe_string($response, 'memo');
+        $tag = $this->safe_string($response, 'memo');
+        $this->check_address($address);
         return array (
+            'info' => $response,
+            'currency' => $code,
             'address' => $address,
-            'tag' => $memo,
+            'tag' => $tag,
         );
     }
 
@@ -439,11 +442,14 @@ class kucoin2 extends Exchange {
 
     public function fetch_orders_by_status ($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
         $request = array (
-            'symbol' => $market['id'],
             'status' => $status,
         );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['symbol'] = $market['id'];
+        }
         if ($since !== null) {
             $request['startAt'] = $since;
         }
@@ -451,8 +457,8 @@ class kucoin2 extends Exchange {
             $request['pageSize'] = $limit;
         }
         $response = $this->privateGetOrders (array_merge ($request, $params));
-        $responseData = $response['data'];
-        $orders = $responseData['items'];
+        $responseData = $this->safe_value($response, 'data', array ());
+        $orders = $this->safe_value($responseData, 'items', array ());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -475,13 +481,6 @@ class kucoin2 extends Exchange {
         $response = $this->privateGetOrdersOrderId (array_merge ($request, $params));
         $responseData = $response['data'];
         return $this->parse_order($responseData, $market);
-    }
-
-    public function parse_symbol ($id) {
-        list ($quote, $base) = explode ($this->options['symbolSeparator'], $id);
-        $base = $this->common_currency_code($base);
-        $quote = $this->common_currency_code($quote);
-        return $base . '/' . $quote;
     }
 
     public function parse_order ($order, $market = null) {
@@ -517,12 +516,22 @@ class kucoin2 extends Exchange {
         //     "createdAt" => 1547026471000 }
         //
         $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        } else {
-            $marketId = $this->safe_string($order, 'symbol');
-            if ($marketId !== null) {
-                $symbol = $this->parse_symbol ($marketId);
+        $marketId = $this->safe_string($order, 'symbol');
+        if ($marketId !== null) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+                $symbol = $market['symbol'];
+            } else {
+                list ($baseId, $quoteId) = explode ('-', $marketId);
+                $base = $this->common_currency_code($baseId);
+                $quote = $this->common_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
+            $market = $this->safe_value($this->markets_by_id, $marketId);
+        }
+        if ($symbol === null) {
+            if ($market !== null) {
+                $symbol = $market['symbol'];
             }
         }
         $orderId = $this->safe_string($order, 'id');
@@ -531,7 +540,8 @@ class kucoin2 extends Exchange {
         $datetime = $this->iso8601 ($timestamp);
         $price = $this->safe_float($order, 'price');
         $side = $this->safe_string($order, 'side');
-        $feeCurrency = $this->safe_string($order, 'feeCurrency');
+        $feeCurrencyId = $this->safe_string($order, 'feeCurrency');
+        $feeCurrency = $this->common_currency_code($feeCurrencyId);
         $fee = $this->safe_float($order, 'fee');
         $amount = $this->safe_float($order, 'size');
         $filled = $this->safe_float($order, 'dealSize');
@@ -561,11 +571,12 @@ class kucoin2 extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $marketId = $market['id'];
-        $request = array (
-            'symbol' => $marketId,
-        );
+        $request = array ();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['symbol'] = $market['id'];
+        }
         if ($since !== null) {
             $request['startAt'] = $since;
         }
@@ -643,9 +654,22 @@ class kucoin2 extends Exchange {
         //
         $symbol = null;
         $marketId = $this->safe_string($trade, 'symbol');
-        $market = $this->safe_value($this->markets_by_id, $marketId, $market);
-        if ($market !== null) {
-            $symbol = $market['symbol'];
+        if ($marketId !== null) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+                $symbol = $market['symbol'];
+            } else {
+                list ($baseId, $quoteId) = explode ('-', $marketId);
+                $base = $this->common_currency_code($baseId);
+                $quote = $this->common_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
+            $market = $this->safe_value($this->markets_by_id, $marketId);
+        }
+        if ($symbol === null) {
+            if ($market !== null) {
+                $symbol = $market['symbol'];
+            }
         }
         $id = $this->safe_string($trade, 'tradeId');
         if ($id !== null) {
@@ -846,7 +870,7 @@ class kucoin2 extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $request = array (
-            'type' => 'main',
+            'type' => 'trade',
         );
         $response = $this->privateGetAccounts (array_merge ($request, $params));
         $responseData = $response['data'];
