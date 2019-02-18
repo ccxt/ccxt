@@ -438,11 +438,14 @@ module.exports = class kucoin2 extends Exchange {
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
         let request = {
-            'symbol': market['id'],
             'status': status,
         };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
         if (since !== undefined) {
             request['startAt'] = since;
         }
@@ -450,8 +453,8 @@ module.exports = class kucoin2 extends Exchange {
             request['pageSize'] = limit;
         }
         const response = await this.privateGetOrders (this.extend (request, params));
-        const responseData = response['data'];
-        const orders = responseData['items'];
+        const responseData = this.safeValue (response, 'data', {});
+        const orders = this.safeValue (responseData, 'items', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -474,13 +477,6 @@ module.exports = class kucoin2 extends Exchange {
         const response = await this.privateGetOrdersOrderId (this.extend (request, params));
         const responseData = response['data'];
         return this.parseOrder (responseData, market);
-    }
-
-    parseSymbol (id) {
-        let [ quote, base ] = id.split (this.options['symbolSeparator']);
-        base = this.commonCurrencyCode (base);
-        quote = this.commonCurrencyCode (quote);
-        return base + '/' + quote;
     }
 
     parseOrder (order, market = undefined) {
@@ -516,12 +512,22 @@ module.exports = class kucoin2 extends Exchange {
         //     "createdAt": 1547026471000 }
         //
         let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        } else {
-            const marketId = this.safeString (order, 'symbol');
-            if (marketId !== undefined) {
-                symbol = this.parseSymbol (marketId);
+        const marketId = this.safeString (order, 'symbol');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.commonCurrencyCode (baseId);
+                const quote = this.commonCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+            market = this.safeValue (this.markets_by_id, marketId);
+        }
+        if (symbol === undefined) {
+            if (market !== undefined) {
+                symbol = market['symbol'];
             }
         }
         const orderId = this.safeString (order, 'id');
@@ -530,7 +536,8 @@ module.exports = class kucoin2 extends Exchange {
         const datetime = this.iso8601 (timestamp);
         const price = this.safeFloat (order, 'price');
         const side = this.safeString (order, 'side');
-        const feeCurrency = this.safeString (order, 'feeCurrency');
+        const feeCurrencyId = this.safeString (order, 'feeCurrency');
+        const feeCurrency = this.commonCurrencyCode (feeCurrencyId);
         const fee = this.safeFloat (order, 'fee');
         const amount = this.safeFloat (order, 'size');
         const filled = this.safeFloat (order, 'dealSize');
@@ -560,11 +567,12 @@ module.exports = class kucoin2 extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const marketId = market['id'];
-        let request = {
-            'symbol': marketId,
-        };
+        let request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
         if (since !== undefined) {
             request['startAt'] = since;
         }
@@ -642,9 +650,22 @@ module.exports = class kucoin2 extends Exchange {
         //
         let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeValue (this.markets_by_id, marketId, market);
-        if (market !== undefined) {
-            symbol = market['symbol'];
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.commonCurrencyCode (baseId);
+                const quote = this.commonCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+            market = this.safeValue (this.markets_by_id, marketId);
+        }
+        if (symbol === undefined) {
+            if (market !== undefined) {
+                symbol = market['symbol'];
+            }
         }
         let id = this.safeString (trade, 'tradeId');
         if (id !== undefined) {
