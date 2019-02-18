@@ -692,6 +692,10 @@ class Exchange(BaseExchange, EventEmitter):
         websocket_conx_info = self._contextGetConnectionInfo(conxid)
         websocket_conx_info['conx'].close()
 
+    def websocketCloseAll(self):
+        for c in self.websocketContexts:
+            self.websocketClose(c)
+
     def websocketSend(self, data, conxid='default'):
         websocket_conx_info = self._contextGetConnectionInfo(conxid)
         if self.verbose:

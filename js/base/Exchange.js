@@ -2031,6 +2031,12 @@ module.exports = class Exchange extends EventEmitter{
         let websocketConxInfo = this._contextGetConnectionInfo(conxid);
         websocketConxInfo['conx'].close();
     }
+    
+    websocketCloseAll () {
+        Object.keys (this.websocketContexts).forEach ((key) => {
+            this.websocketClose (key);
+        });
+    }
 
     websocketSend (data, conxid = 'default') {
         let websocketConxInfo = this._contextGetConnectionInfo(conxid);
