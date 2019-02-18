@@ -157,12 +157,18 @@ module.exports = class bitmex extends Exchange {
             let id = market['symbol'];
             let baseId = market['underlying'];
             let quoteId = market['quoteCurrency'];
+            // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
+            // so let's take the quote currency first and then adjust if needed
+            let positionId = market['quoteCurrency'];
+            if (market['positionCurrency'])
+                positionId = market['positionCurrency'];
             let type = undefined;
             let future = false;
             let prediction = false;
             let basequote = baseId + quoteId;
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
+            let position = this.commonCurrencyCode (positionId);
             let swap = (id === basequote);
             let symbol = id;
             if (swap) {
@@ -183,6 +189,25 @@ module.exports = class bitmex extends Exchange {
                 precision['amount'] = this.precisionFromString (this.truncate_to_string (market['lotSize'], 16));
             if (market['tickSize'])
                 precision['price'] = this.precisionFromString (this.truncate_to_string (market['tickSize'], 16));
+            let limits = {
+                'amount': undefined,
+                'price': {
+                    'min': market['tickSize'],
+                    'max': market['maxPrice'],
+                },
+                'cost': undefined,
+            };
+            if (position === quote) {
+                limits['cost'] = {
+                    'min': market['lotSize'],
+                    'max': market['maxOrderQty'],
+                };
+            } else {
+                limits['amount'] = {
+                    'min': market['lotSize'],
+                    'max': market['maxOrderQty'],
+                };
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -192,16 +217,7 @@ module.exports = class bitmex extends Exchange {
                 'quoteId': quoteId,
                 'active': active,
                 'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': market['lotSize'],
-                        'max': market['maxOrderQty'],
-                    },
-                    'price': {
-                        'min': market['tickSize'],
-                        'max': market['maxPrice'],
-                    },
-                },
+                'limits': limits,
                 'taker': market['takerFee'],
                 'maker': market['makerFee'],
                 'type': type,
