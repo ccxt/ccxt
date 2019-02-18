@@ -37,6 +37,7 @@ class kucoin2 extends Exchange {
                 'cancelOrder' => true,
                 'fetchAccounts' => true,
                 'fetchFundingFee' => true,
+                'fetchOHLCV' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg',
@@ -252,16 +253,35 @@ class kucoin2 extends Exchange {
 
     public function fetch_accounts ($params = array ()) {
         $response = $this->privateGetAccounts ($params);
-        $responseData = $response['data'];
+        //
+        //     { $code =>   "200000",
+        //       $data => array ( array (   balance => "0.00009788",
+        //                 available => "0.00009788",
+        //                     holds => "0",
+        //                  currency => "BTC",
+        //                        id => "5c6a4fd399a1d81c4f9cc4d0",
+        //                      $type => "trade"                     ),
+        //               ...,
+        //               {   balance => "0.00000001",
+        //                 available => "0.00000001",
+        //                     holds => "0",
+        //                  currency => "ETH",
+        //                        id => "5c6a49ec99a1d819392e8e9f",
+        //                      $type => "trade"                     }  ) }
+        //
+        $data = $this->safe_value($response, 'data');
         $result = array ();
-        for ($i = 0; $i < count ($responseData); $i++) {
-            $entry = $responseData[$i];
-            $accountId = $entry['id'];
+        for ($i = 0; $i < count ($data); $i++) {
+            $account = $data[$i];
+            $accountId = $this->safe_string($account, 'id');
+            $currencyId = $this->safe_string($account, 'currency');
+            $code = $this->common_currency_code($currencyId);
+            $type = $this->safe_string($account, 'type');  // main or trade
             $result[] = array (
                 'id' => $accountId,
-                'type' => $this->safe_string($entry, 'type'), // main or trade
-                'currency' => null,
-                'info' => $entry,
+                'type' => $type,
+                'currency' => $code,
+                'info' => $account,
             );
         }
         return $result;

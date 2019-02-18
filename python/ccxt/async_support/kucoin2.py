@@ -50,6 +50,7 @@ class kucoin2 (Exchange):
                 'cancelOrder': True,
                 'fetchAccounts': True,
                 'fetchFundingFee': True,
+                'fetchOHLCV': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg',
@@ -258,16 +259,35 @@ class kucoin2 (Exchange):
 
     async def fetch_accounts(self, params={}):
         response = await self.privateGetAccounts(params)
-        responseData = response['data']
+        #
+        #     {code:   "200000",
+        #       data: [{  balance: "0.00009788",
+        #                 available: "0.00009788",
+        #                     holds: "0",
+        #                  currency: "BTC",
+        #                        id: "5c6a4fd399a1d81c4f9cc4d0",
+        #                      type: "trade"                     },
+        #               ...,
+        #               {  balance: "0.00000001",
+        #                 available: "0.00000001",
+        #                     holds: "0",
+        #                  currency: "ETH",
+        #                        id: "5c6a49ec99a1d819392e8e9f",
+        #                      type: "trade"                     }  ]}
+        #
+        data = self.safe_value(response, 'data')
         result = []
-        for i in range(0, len(responseData)):
-            entry = responseData[i]
-            accountId = entry['id']
+        for i in range(0, len(data)):
+            account = data[i]
+            accountId = self.safe_string(account, 'id')
+            currencyId = self.safe_string(account, 'currency')
+            code = self.common_currency_code(currencyId)
+            type = self.safe_string(account, 'type')  # main or trade
             result.append({
                 'id': accountId,
-                'type': self.safe_string(entry, 'type'),  # main or trade
-                'currency': None,
-                'info': entry,
+                'type': type,
+                'currency': code,
+                'info': account,
             })
         return result
 

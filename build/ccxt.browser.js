@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.251'
+const version = '1.18.252'
 
 Exchange.ccxtVersion = version
 
@@ -49680,6 +49680,7 @@ module.exports = class kucoin2 extends Exchange {
                 'cancelOrder': true,
                 'fetchAccounts': true,
                 'fetchFundingFee': true,
+                'fetchOHLCV': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg',
@@ -49895,16 +49896,35 @@ module.exports = class kucoin2 extends Exchange {
 
     async fetchAccounts (params = {}) {
         const response = await this.privateGetAccounts (params);
-        const responseData = response['data'];
+        //
+        //     { code:   "200000",
+        //       data: [ {   balance: "0.00009788",
+        //                 available: "0.00009788",
+        //                     holds: "0",
+        //                  currency: "BTC",
+        //                        id: "5c6a4fd399a1d81c4f9cc4d0",
+        //                      type: "trade"                     },
+        //               ...,
+        //               {   balance: "0.00000001",
+        //                 available: "0.00000001",
+        //                     holds: "0",
+        //                  currency: "ETH",
+        //                        id: "5c6a49ec99a1d819392e8e9f",
+        //                      type: "trade"                     }  ] }
+        //
+        const data = this.safeValue (response, 'data');
         let result = [];
-        for (let i = 0; i < responseData.length; i++) {
-            const entry = responseData[i];
-            const accountId = entry['id'];
+        for (let i = 0; i < data.length; i++) {
+            const account = data[i];
+            const accountId = this.safeString (account, 'id');
+            const currencyId = this.safeString (account, 'currency');
+            const code = this.commonCurrencyCode (currencyId);
+            const type = this.safeString (account, 'type');  // main or trade
             result.push ({
                 'id': accountId,
-                'type': this.safeString (entry, 'type'), // main or trade
-                'currency': undefined,
-                'info': entry,
+                'type': type,
+                'currency': code,
+                'info': account,
             });
         }
         return result;
