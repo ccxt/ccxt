@@ -10,6 +10,7 @@
     "bitforex":      { "skip": true },
     "bithumb":       { "skip": true },
     "bitibu":        { "skip": true },
+    "bitkk":         { "skip": true },
     "bitlish":       { "skip": true },
     "bitmarket":     { "skip": true },
     "bittrex":       { "skip": true },
