@@ -250,17 +250,36 @@ module.exports = class kucoin2 extends Exchange {
 
     async fetchAccounts (params = {}) {
         const response = await this.privateGetAccounts (params);
-        const responseData = response['data'];
-        let result = {};
-        for (let i = 0; i < responseData.length; i++) {
-            const entry = responseData[i];
-            const accountId = entry['type'];
-            result[accountId] = {
-                'accountId': accountId,
-                'type': accountId, // main or trade
-                'currency': undefined,
-                'info': entry,
-            };
+        //
+        //     { code:   "200000",
+        //       data: [ {   balance: "0.00009788",
+        //                 available: "0.00009788",
+        //                     holds: "0",
+        //                  currency: "BTC",
+        //                        id: "5c6a4fd399a1d81c4f9cc4d0",
+        //                      type: "trade"                     },
+        //               ...,
+        //               {   balance: "0.00000001",
+        //                 available: "0.00000001",
+        //                     holds: "0",
+        //                  currency: "ETH",
+        //                        id: "5c6a49ec99a1d819392e8e9f",
+        //                      type: "trade"                     }  ] }
+        //
+        const data = this.safeValue (response, 'data');
+        let result = [];
+        for (let i = 0; i < data.length; i++) {
+            const account = data[i];
+            const accountId = this.safeString (account, 'id');
+            const currencyId = this.safeString (account, 'currency');
+            const code = this.commonCurrencyCode (currencyId);
+            const type = this.safeString (account, 'type');  // main or trade
+            result.push ({
+                'id': accountId,
+                'type': type,
+                'currency': code,
+                'info': account,
+            });
         }
         return result;
     }
