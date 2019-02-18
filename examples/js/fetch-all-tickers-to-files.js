@@ -1,9 +1,8 @@
 "use strict";
 
-const ccxt      = require ('ccxt')
-    , log       = require ('ololog').noLocate // npm install ololog
-    , fs        = require ('fs')
-
+const ccxt = require ('ccxt')
+    , log  = require ('ololog').noLocate // npm install ololog
+    , fs   = require ('fs')
 
     // the numWorkers constant defines the number of concurrent workers
     // those aren't really threads in terms of the async environment

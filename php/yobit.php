@@ -139,6 +139,13 @@ class yobit extends liqui {
                 'fetchOrdersRequiresSymbol' => true,
                 'fetchTickersMaxLength' => 512,
             ),
+            'exceptions' => array (
+                'broad' => array (
+                    'Total transaction amount' => '\\ccxt\\ExchangeError', // array ( "success" => 0, "error" => "Total transaction amount is less than minimal total => 0.00010000")
+                    'Insufficient funds' => '\\ccxt\\InsufficientFunds',
+                    'invalid key' => '\\ccxt\\AuthenticationError',
+                ),
+            ),
         ));
     }
 
@@ -270,27 +277,5 @@ class yobit extends liqui {
             'info' => $response,
             'id' => null,
         );
-    }
-
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
-        if ($body[0] === '{') {
-            if (is_array ($response) && array_key_exists ('success', $response)) {
-                if (!$response['success']) {
-                    if (is_array ($response) && array_key_exists ('error_log', $response)) {
-                        if (mb_strpos ($response['error_log'], 'Insufficient funds') !== false) { // not enougTh is a typo inside Liqui's own API...
-                            throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
-                        } else if ($response['error_log'] === 'Requests too often') {
-                            throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
-                        } else if (($response['error_log'] === 'not available') || ($response['error_log'] === 'external service unavailable')) {
-                            throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
-                        } else if ($response['error_log'] === 'Total transaction amount') {
-                            // eg array ("success":0,"error":"Total transaction amount is less than minimal total => 0.00010000")
-                            throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
-                        }
-                    }
-                    throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-                }
-            }
-        }
     }
 }
