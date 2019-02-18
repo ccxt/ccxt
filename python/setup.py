@@ -7,7 +7,7 @@ from os import path
 import json
 import sys
 
-is_python_2 = sys.version_info < (3,0)
+is_python_2 = sys.version_info < (3, 0)
 
 here = path.abspath(path.dirname(__file__))
 root = path.dirname(here)
