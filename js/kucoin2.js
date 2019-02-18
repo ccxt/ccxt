@@ -387,12 +387,12 @@ module.exports = class kucoin2 extends Exchange {
         //       "0.018",                  //Transaction amount
         //       "0.000945" ], ... ]       //Transaction volume
         //
-        const timestamp = this.safeInteger (ohlcv, 0);
+        const timestamp = this.safeInteger (ohlcv, 0) * 1000;
         const open = this.safeFloat (ohlcv, 1);
         const close = this.safeFloat (ohlcv, 2);
         const high = this.safeFloat (ohlcv, 3);
         const low = this.safeFloat (ohlcv, 4);
-        const volume = this.safeFloat (ohlcv, 6);
+        const volume = this.safeFloat (ohlcv, 5);
         return [timestamp, open, high, low, close, volume];
     }
 
