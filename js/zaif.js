@@ -99,6 +99,7 @@ module.exports = class zaif extends Exchange {
                 },
             },
             'options': {
+                // zaif schedule defines several market-specific fees
                 'fees': {
                     'BTC/JPY': { 'maker': 0, 'taker': 0 },
                     'BCH/JPY': { 'maker': 0, 'taker': 0.3 / 100 },
