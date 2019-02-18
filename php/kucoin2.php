@@ -36,6 +36,7 @@ class kucoin2 extends Exchange {
                 'createOrder' => true,
                 'cancelOrder' => true,
                 'fetchAccounts' => true,
+                'fetchFundingFee' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg',
@@ -255,15 +256,31 @@ class kucoin2 extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($responseData); $i++) {
             $entry = $responseData[$i];
-            $accountId = $entry['type'];
-            $result[$accountId] = array (
-                'accountId' => $accountId,
-                'type' => $accountId, // main or trade
+            $accountId = $entry['id'];
+            $result[] = array (
+                'id' => $accountId,
+                'type' => $this->safe_string($entry, 'type'), // main or trade
                 'currency' => null,
                 'info' => $entry,
             );
         }
         return $result;
+    }
+
+    public function fetch_funding_fee ($code, $params = array ()) {
+        $currencyId = $this->currencyId ($code);
+        $request = array (
+            'currency' => $currencyId,
+        );
+        $response = $this->privateGetWithdrawalsQuotas (array_merge ($request, $params));
+        $data = $response['data'];
+        $withdrawFees = array ();
+        $withdrawFees[$code] = $this->safe_float($data, 'withdrawMinFee');
+        return array (
+            'info' => $response,
+            'withdraw' => $withdrawFees,
+            'deposit' => array (),
+        );
     }
 
     public function parse_ticker ($ticker, $market = null) {

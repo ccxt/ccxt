@@ -49,6 +49,7 @@ class kucoin2 (Exchange):
                 'createOrder': True,
                 'cancelOrder': True,
                 'fetchAccounts': True,
+                'fetchFundingFee': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg',
@@ -258,17 +259,32 @@ class kucoin2 (Exchange):
     def fetch_accounts(self, params={}):
         response = self.privateGetAccounts(params)
         responseData = response['data']
-        result = {}
+        result = []
         for i in range(0, len(responseData)):
             entry = responseData[i]
-            accountId = entry['type']
-            result[accountId] = {
-                'accountId': accountId,
-                'type': accountId,  # main or trade
+            accountId = entry['id']
+            result.append({
+                'id': accountId,
+                'type': self.safe_string(entry, 'type'),  # main or trade
                 'currency': None,
                 'info': entry,
-            }
+            })
         return result
+
+    def fetch_funding_fee(self, code, params={}):
+        currencyId = self.currencyId(code)
+        request = {
+            'currency': currencyId,
+        }
+        response = self.privateGetWithdrawalsQuotas(self.extend(request, params))
+        data = response['data']
+        withdrawFees = {}
+        withdrawFees[code] = self.safe_float(data, 'withdrawMinFee')
+        return {
+            'info': response,
+            'withdraw': withdrawFees,
+            'deposit': {},
+        }
 
     def parse_ticker(self, ticker, market=None):
         #
