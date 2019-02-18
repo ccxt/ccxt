@@ -35,6 +35,7 @@ module.exports = class kucoin2 extends Exchange {
                 'createOrder': true,
                 'cancelOrder': true,
                 'fetchAccounts': true,
+                'fetchFundingFee': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg',
@@ -282,6 +283,22 @@ module.exports = class kucoin2 extends Exchange {
             });
         }
         return result;
+    }
+
+    async fetchFundingFee (code, params = {}) {
+        const currencyId = this.currencyId (code);
+        const request = {
+            'currency': currencyId,
+        };
+        const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
+        const data = response['data'];
+        let withdrawFees = {};
+        withdrawFees[code] = this.safeFloat (data, 'withdrawMinFee');
+        return {
+            'info': response,
+            'withdraw': withdrawFees,
+            'deposit': {},
+        };
     }
 
     parseTicker (ticker, market = undefined) {

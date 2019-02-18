@@ -157,21 +157,25 @@ class bitmex (Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        markets = await self.publicGetInstrumentActiveAndIndices(params)
+        response = await self.publicGetInstrumentActiveAndIndices(params)
         result = []
-        for p in range(0, len(markets)):
-            market = markets[p]
+        for i in range(0, len(response)):
+            market = response[i]
             active = (market['state'] != 'Unlisted')
             id = market['symbol']
             baseId = market['underlying']
             quoteId = market['quoteCurrency']
-            type = None
-            future = False
-            prediction = False
             basequote = baseId + quoteId
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
             swap = (id == basequote)
+            # 'positionCurrency' may be empty("", as Bitmex currently returns for ETHUSD)
+            # so let's take the quote currency first and then adjust if needed
+            positionId = self.safe_string_2(market, 'positionCurrency', 'quoteCurrency')
+            type = None
+            future = False
+            prediction = False
+            position = self.common_currency_code(positionId)
             symbol = id
             if swap:
                 type = 'swap'
@@ -186,10 +190,31 @@ class bitmex (Exchange):
                 'amount': None,
                 'price': None,
             }
-            if market['lotSize']:
-                precision['amount'] = self.precision_from_string(self.truncate_to_string(market['lotSize'], 16))
-            if market['tickSize']:
-                precision['price'] = self.precision_from_string(self.truncate_to_string(market['tickSize'], 16))
+            lotSize = self.safe_float(market, 'lotSize')
+            tickSize = self.safe_float(market, 'tickSize')
+            if lotSize is not None:
+                precision['amount'] = self.precision_from_string(self.truncate_to_string(lotSize, 16))
+            if tickSize is not None:
+                precision['price'] = self.precision_from_string(self.truncate_to_string(tickSize, 16))
+            limits = {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'price': {
+                    'min': tickSize,
+                    'max': self.safe_float(market, 'maxPrice'),
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            }
+            limitField = 'cost' if (position == quote) else 'amount'
+            limits[limitField] = {
+                'min': lotSize,
+                'max': self.safe_float(market, 'maxOrderQty'),
+            }
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -199,16 +224,7 @@ class bitmex (Exchange):
                 'quoteId': quoteId,
                 'active': active,
                 'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': market['lotSize'],
-                        'max': market['maxOrderQty'],
-                    },
-                    'price': {
-                        'min': market['tickSize'],
-                        'max': market['maxPrice'],
-                    },
-                },
+                'limits': limits,
                 'taker': market['takerFee'],
                 'maker': market['makerFee'],
                 'type': type,

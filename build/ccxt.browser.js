@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.248'
+const version = '1.18.251'
 
 Exchange.ccxtVersion = version
 
@@ -12948,21 +12948,25 @@ module.exports = class bitmex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let markets = await this.publicGetInstrumentActiveAndIndices (params);
-        let result = [];
-        for (let p = 0; p < markets.length; p++) {
-            let market = markets[p];
-            let active = (market['state'] !== 'Unlisted');
-            let id = market['symbol'];
-            let baseId = market['underlying'];
-            let quoteId = market['quoteCurrency'];
+        const response = await this.publicGetInstrumentActiveAndIndices (params);
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const market = response[i];
+            const active = (market['state'] !== 'Unlisted');
+            const id = market['symbol'];
+            const baseId = market['underlying'];
+            const quoteId = market['quoteCurrency'];
+            const basequote = baseId + quoteId;
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            const swap = (id === basequote);
+            // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
+            // so let's take the quote currency first and then adjust if needed
+            const positionId = this.safeString2 (market, 'positionCurrency', 'quoteCurrency');
             let type = undefined;
             let future = false;
             let prediction = false;
-            let basequote = baseId + quoteId;
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            let swap = (id === basequote);
+            let position = this.commonCurrencyCode (positionId);
             let symbol = id;
             if (swap) {
                 type = 'swap';
@@ -12974,14 +12978,37 @@ module.exports = class bitmex extends Exchange {
                 future = true;
                 type = 'future';
             }
-            let precision = {
+            const precision = {
                 'amount': undefined,
                 'price': undefined,
             };
-            if (market['lotSize'])
-                precision['amount'] = this.precisionFromString (this.truncate_to_string (market['lotSize'], 16));
-            if (market['tickSize'])
-                precision['price'] = this.precisionFromString (this.truncate_to_string (market['tickSize'], 16));
+            const lotSize = this.safeFloat (market, 'lotSize');
+            const tickSize = this.safeFloat (market, 'tickSize');
+            if (lotSize !== undefined) {
+                precision['amount'] = this.precisionFromString (this.truncate_to_string (lotSize, 16));
+            }
+            if (tickSize !== undefined) {
+                precision['price'] = this.precisionFromString (this.truncate_to_string (tickSize, 16));
+            }
+            const limits = {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': tickSize,
+                    'max': this.safeFloat (market, 'maxPrice'),
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            };
+            const limitField = (position === quote) ? 'cost' : 'amount';
+            limits[limitField] = {
+                'min': lotSize,
+                'max': this.safeFloat (market, 'maxOrderQty'),
+            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -12991,16 +13018,7 @@ module.exports = class bitmex extends Exchange {
                 'quoteId': quoteId,
                 'active': active,
                 'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': market['lotSize'],
-                        'max': market['maxOrderQty'],
-                    },
-                    'price': {
-                        'min': market['tickSize'],
-                        'max': market['maxPrice'],
-                    },
-                },
+                'limits': limits,
                 'taker': market['takerFee'],
                 'maker': market['makerFee'],
                 'type': type,
@@ -49661,6 +49679,7 @@ module.exports = class kucoin2 extends Exchange {
                 'createOrder': true,
                 'cancelOrder': true,
                 'fetchAccounts': true,
+                'fetchFundingFee': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg',
@@ -49877,18 +49896,34 @@ module.exports = class kucoin2 extends Exchange {
     async fetchAccounts (params = {}) {
         const response = await this.privateGetAccounts (params);
         const responseData = response['data'];
-        let result = {};
+        let result = [];
         for (let i = 0; i < responseData.length; i++) {
             const entry = responseData[i];
-            const accountId = entry['type'];
-            result[accountId] = {
-                'accountId': accountId,
-                'type': accountId, // main or trade
+            const accountId = entry['id'];
+            result.push ({
+                'id': accountId,
+                'type': this.safeString (entry, 'type'), // main or trade
                 'currency': undefined,
                 'info': entry,
-            };
+            });
         }
         return result;
+    }
+
+    async fetchFundingFee (code, params = {}) {
+        const currencyId = this.currencyId (code);
+        const request = {
+            'currency': currencyId,
+        };
+        const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
+        const data = response['data'];
+        let withdrawFees = {};
+        withdrawFees[code] = this.safeFloat (data, 'withdrawMinFee');
+        return {
+            'info': response,
+            'withdraw': withdrawFees,
+            'deposit': {},
+        };
     }
 
     parseTicker (ticker, market = undefined) {
@@ -50007,8 +50042,9 @@ module.exports = class kucoin2 extends Exchange {
         const currencyId = this.currencyId (code);
         const request = { 'currency': currencyId };
         const response = await this.privateGetDepositAddresses (this.extend (request, params));
-        const address = this.safeString (response, 'address');
-        const tag = this.safeString (response, 'memo');
+        const data = this.safeValue (response, 'data');
+        const address = this.safeString (data, 'address');
+        const tag = this.safeString (data, 'memo');
         this.checkAddress (address);
         return {
             'info': response,
@@ -66253,8 +66289,8 @@ module.exports = class zaif extends Exchange {
             'fees': {
                 'trading': {
                     'percentage': true,
-                    'taker': -0.0001,
-                    'maker': -0.0005,
+                    'taker': 0.1 / 100,
+                    'maker': 0,
                 },
             },
             'api': {
@@ -66313,6 +66349,16 @@ module.exports = class zaif extends Exchange {
                     ],
                 },
             },
+            'options': {
+                // zaif schedule defines several market-specific fees
+                'fees': {
+                    'BTC/JPY': { 'maker': 0, 'taker': 0 },
+                    'BCH/JPY': { 'maker': 0, 'taker': 0.3 / 100 },
+                    'BCH/BTC': { 'maker': 0, 'taker': 0.3 / 100 },
+                    'PEPECASH/JPY': { 'maker': 0, 'taker': 0.01 / 100 },
+                    'PEPECASH/BT': { 'maker': 0, 'taker': 0.01 / 100 },
+                },
+            },
             'exceptions': {
                 'exact': {
                     'unsupported currency_pair': BadRequest, // {"error": "unsupported currency_pair"}
@@ -66335,6 +66381,9 @@ module.exports = class zaif extends Exchange {
                 'amount': -Math.log10 (market['item_unit_step']),
                 'price': market['aux_unit_point'],
             };
+            const fees = this.safeValue (this.options['fees'], symbol, this.fees['trading']);
+            const taker = fees['taker'];
+            const maker = fees['maker'];
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -66342,6 +66391,8 @@ module.exports = class zaif extends Exchange {
                 'quote': quote,
                 'active': true, // can trade or not
                 'precision': precision,
+                'taker': taker,
+                'maker': maker,
                 'limits': {
                     'amount': {
                         'min': this.safeFloat (market, 'item_unit_min'),
