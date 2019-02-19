@@ -1690,9 +1690,11 @@ module.exports = class Exchange extends EventEmitter{
             for (let symbol in events[key]) {
                 let symbolContext = events[key][symbol];
                 if ((symbolContext['subscribed']) ||(symbolContext['subscribing'])){
+                    let params = ('params' in symbolContext) ? symbolContext['params'] : {};
                     ret.push ({
                         'event': key,
                         'symbol': symbol,
+                        'params': params,
                     });
                 }
             }
@@ -1799,8 +1801,9 @@ module.exports = class Exchange extends EventEmitter{
         this.websocketContexts[conxid]['events'][event][symbol]['data'] = data;
     }
 
-    _contextSetSubscribed (conxid, event, symbol, subscribed) {
+    _contextSetSubscribed (conxid, event, symbol, subscribed, params = {}) {
         this.websocketContexts[conxid]['events'][event][symbol]['subscribed'] = subscribed;
+        this.websocketContexts[conxid]['events'][event][symbol]['params'] = params;
     }
 
     _contextIsSubscribed (conxid, event, symbol) {
@@ -1975,7 +1978,8 @@ module.exports = class Exchange extends EventEmitter{
                     }
                     if (!delayed){
                         if (action['reset-context'] === 'onreconnect') {
-                            this._websocketResetContext(conxid, conxtpl);
+                            //this._websocketResetContext(conxid, conxtpl);
+                            this._contextResetSymbol(conxid, event, symbol);
                         }
                     }
                     this._contextSetConnectionInfo (conxid, await this._websocketInitialize(conxConfig, conxid));
@@ -2011,7 +2015,7 @@ module.exports = class Exchange extends EventEmitter{
                 if (!Object.keys(this.websocketDelayedConnections).includes (conxid)){
                     this.websocketDelayedConnections[conxid] = {
                         'conxtpl': conxtpl,
-                        'reset': action['action'] != 'connect'
+                        'reset': false, //action['action'] != 'connect'
                     }
                 }
             } else {
@@ -2061,12 +2065,33 @@ module.exports = class Exchange extends EventEmitter{
     websocketClose (conxid = 'default') {
         let websocketConxInfo = this._contextGetConnectionInfo(conxid);
         websocketConxInfo['conx'].close();
+        // ensure invoke close
+        this._websocketOnClose(conxid);
     }
     
     websocketCloseAll () {
         Object.keys (this.websocketContexts).forEach ((key) => {
             this.websocketClose (key);
         });
+    }
+
+    websocketCleanContext(conxid = null){
+        if (conxid == null){
+            Object.keys (this.websocketContexts).forEach ((conxid) => {
+                this._websocketResetContext(conxid);
+            });
+        } else {
+            this._websocketResetContext(conxid);
+        }
+    }
+
+    async websocketRecoverConxid (conxid = 'default', eventSymbols = null) {
+        if (eventSymbols == null) {
+            eventSymbols = this._websocketContextGetSubscribedEventSymbols (conxid);
+        }
+        this.websocketClose (conxid);
+        this._websocketResetContext(conxid);
+        await this.websocketSubscribeAll (eventSymbols);
     }
 
     websocketSend (data, conxid = 'default') {
@@ -2115,7 +2140,7 @@ module.exports = class Exchange extends EventEmitter{
         websocketConnectionInfo['conx'].on ('err', (err) => {
             websocketConnectionInfo['auth'] = false;
             this._websocketOnError(conxid, err);
-            this._websocketResetContext (conxid);
+            // this._websocketResetContext (conxid);
             this.emit ('err', new NetworkError (err), conxid);
         });
         websocketConnectionInfo['conx'].on ('message', (data) => {
@@ -2130,7 +2155,7 @@ module.exports = class Exchange extends EventEmitter{
         websocketConnectionInfo['conx'].on ('close', () => {
             websocketConnectionInfo['auth'] = false;
             this._websocketOnClose(conxid);
-            this._websocketResetContext (conxid);
+            // this._websocketResetContext (conxid);
             this.emit ('close', conxid);
         });
 
@@ -2282,7 +2307,7 @@ module.exports = class Exchange extends EventEmitter{
                     const oid = this.nonce();// + '-' + symbol + '-ob-subscribe';
                     this.once (oid.toString(), (success, ex = null) => {
                         if (success) {
-                            this._contextSetSubscribed(conxid, event, symbol, true);
+                            this._contextSetSubscribed(conxid, event, symbol, true, params);
                             this._contextSetSubscribing(conxid, event, symbol, false);
                             resolve ();
                         } else {

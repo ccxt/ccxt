@@ -71,7 +71,7 @@ async function doSubscribe(exchange, symbols, params) {
             apiKey: apiKey,
             secret: secret,
             enableRateLimit: true,
-            verbose: true,
+            verbose: false,
             // agent: agent
           });
           exchange.on('err', (err, conxid) => {
@@ -84,12 +84,8 @@ async function doSubscribe(exchange, symbols, params) {
                     sleep(5 * 1000).then(async ()=>{
                         try {
                             if (notRecoverableError) return;
-                            console.log("subscribing again ...");
-                            exchange.websocketCleanContext(conxid);
-                            await doSubscribe (exchange, symbols, {
-                            // contract_type: 'next_week',
-                            'limit': limit,
-                            });
+                            console.log("recovering from last state...");
+                            await exchange.websocketRecoverConxid(conxid);
                         } catch (ex){
                             console.log(ex);
                         }

@@ -583,10 +583,10 @@ module.exports = class gemini extends Exchange {
                     if (parts[0] === 'bids') {
                         event = 'ob';
                     }
-                    if ((event !== undefined) && (parts[1] === 'true')) {
-                        this._contextSetSubscribed (contextId, event, symbol, true);
-                        this._contextSetSubscribing (contextId, event, symbol, false);
-                    }
+                    // if ((event !== undefined) && (parts[1] === 'true')) {
+                    //     this._contextSetSubscribed (contextId, event, symbol, true);
+                    //     this._contextSetSubscribing (contextId, event, symbol, false);
+                    // }
                 }
             }
         }

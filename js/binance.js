@@ -1491,8 +1491,8 @@ module.exports = class binance extends Exchange {
                         event = 'kline';
                     else if (event.indexOf ('24hrTicker') >= 0)
                         event = 'ticker';
-                    this._contextSetSubscribed (contextId, event, symbol, true);
-                    this._contextSetSubscribing (contextId, event, symbol, false);
+                    // this._contextSetSubscribed (contextId, event, symbol, true);
+                    // this._contextSetSubscribing (contextId, event, symbol, false);
                 }
             }
         }

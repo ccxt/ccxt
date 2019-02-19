@@ -398,9 +398,11 @@ class Exchange(BaseExchange, EventEmitter):
             for symbol in events[key]:
                 symbol_context = events[key][symbol]
                 if ((symbol_context['subscribed']) or (symbol_context['subscribing'])):
+                    params = symbol_context['params'] if ('params' in symbol_context) else {}
                     ret.append({
                         'event': key,
                         'symbol': symbol,
+                        'params': params,
                     })
         return ret
 
@@ -482,8 +484,9 @@ class Exchange(BaseExchange, EventEmitter):
     def _contextSetSymbolData(self, conxid, event, symbol, data):
         self.websocketContexts[conxid]['events'][event][symbol]['data'] = data
 
-    def _contextSetSubscribed(self, conxid, event, symbol, subscribed):
+    def _contextSetSubscribed(self, conxid, event, symbol, subscribed, params = {}):
         self.websocketContexts[conxid]['events'][event][symbol]['subscribed'] = subscribed
+        self.websocketContexts[conxid]['events'][event][symbol]['params'] = params
 
     def _contextIsSubscribed(self, conxid, event, symbol):
         return (event in self.websocketContexts[conxid]['events']) and \
@@ -632,8 +635,9 @@ class Exchange(BaseExchange, EventEmitter):
                     conx.close()
                 if not delayed:
                     if (action['reset-context'] == 'onreconnect'):
-                        self._websocket_reset_context(conxid, conxtpl)
-                self._contextSetConnectionInfo(conxid, self._websocket_initialize(conx_config, conxid))
+                        # self._websocket_reset_context(conxid, conxtpl)
+                        self._contextResetSymbol(conxid, event, symbol)
+                self._contextSetConnectionInfo(conxid, await self._websocket_initialize(conx_config, conxid))
             elif (action['action'] == 'connect'):
                 conx = self._contextGetConnection(conxid)
                 if (conx is not None):
@@ -659,21 +663,21 @@ class Exchange(BaseExchange, EventEmitter):
                 if not conxid in list(self.websocketDelayedConnections.keys()):
                     self.websocketDelayedConnections[conxid] = {
                         'conxtpl': conxtpl,
-                        'reset': action['action'] != 'connect'
+                        'reset': False, #action['action'] != 'connect'
                     }
             else:
                 await self.websocket_connect(conxid)
+
         return conxid
 
     async def _websocket_connect_delayed(self):
-        for conxid in list(self.websocketDelayedConnections.keys()):
-            try:
+        try:
+            for conxid in list(self.websocketDelayedConnections.keys()):
                 if self.websocketDelayedConnections[conxid]['reset']:
                     self._websocket_reset_context(conxid, self.websocketDelayedConnections[conxid]['conxtpl'])
                 await self.websocket_connect(conxid)
-            except:
-                pass
-        self.websocketDelayedConnections = {}
+        finally:
+            self.websocketDelayedConnections = {}
 
     async def websocket_connect(self, conxid='default'):
         print("connecting conxid:" + conxid)
@@ -713,6 +717,20 @@ class Exchange(BaseExchange, EventEmitter):
     def websocketCloseAll(self):
         for c in self.websocketContexts:
             self.websocketClose(c)
+
+    def websocketCleanContext(self, conxid = None):
+        if conxid is None:
+            for conxid in self.websocketContexts:
+                self._websocket_reset_context(conxid)
+        else:
+            self._websocket_reset_context(conxid)
+
+    async def websocketRecoverConxid (self, conxid = 'default', eventSymbols = None):
+        if eventSymbols is None:
+            eventSymbols = self._websocketContextGetSubscribedEventSymbols (conxid)
+        self.websocketClose (conxid)
+        self._websocket_reset_context(conxid)
+        await self.websocket_subscribe_all (eventSymbols)
 
     def websocketSend(self, data, conxid='default'):
         websocket_conx_info = self._contextGetConnectionInfo(conxid)
@@ -761,7 +779,7 @@ class Exchange(BaseExchange, EventEmitter):
         def websocket_connection_error(error):
             websocket_connection_info['auth'] = False
             self._websocket_on_error(conxid)
-            self._websocket_reset_context(conxid)
+            # self._websocket_reset_context(conxid)
             self.emit('err', NetworkError(error), conxid)
 
         @conx.on('message')
@@ -778,7 +796,7 @@ class Exchange(BaseExchange, EventEmitter):
         def websocket_connection_close():
             websocket_connection_info['auth'] = False
             self._websocket_on_close(conxid)
-            self._websocket_reset_context(conxid)
+            # self._websocket_reset_context(conxid)
             self.emit('close', conxid)
 
         return websocket_connection_info
@@ -878,7 +896,7 @@ class Exchange(BaseExchange, EventEmitter):
             @self.once(oidstr)
             def wait4obsubscribe(success, ex=None):
                 if success:
-                    self._contextSetSubscribed(conxid, event, symbol, True)
+                    self._contextSetSubscribed(conxid, event, symbol, True, params)
                     self._contextSetSubscribing(conxid, event, symbol, False)
                     future.done() or future.set_result(conxid)
                 else:
@@ -892,7 +910,7 @@ class Exchange(BaseExchange, EventEmitter):
         
 
     async def websocket_unsubscribe(self, event, symbol, params={}):
-        self.websocket_unsubscribe_all([{
+        await self.websocket_unsubscribe_all([{
             'event': event,
             'symbol': symbol,
             'params': params

@@ -970,6 +970,13 @@ module.exports = class cobinhood extends Exchange {
         this._contextSet (contextId, 'heartbeattimer', heartbeatTimer);
     }
 
+    _websocketOnClose (contextId) {
+        let heartbeatTimer = this._contextGet (contextId, 'heartbeattimer');
+        if (typeof heartbeatTimer !== 'undefined') {
+            this._cancelTimer (heartbeatTimer);
+        }
+    }
+
     _websocketPongTimeout (contextId) {
         let ex = new RequestTimeout (this.id + " does not received pong message after 30 seconds");
         this.emit('err', ex, contextId);
