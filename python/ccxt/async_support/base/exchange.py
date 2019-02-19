@@ -62,7 +62,7 @@ class Exchange(BaseExchange, EventEmitter):
         # async connection initialization
         self.wsconf = {}
         self.websocketContexts = {}
-        self.websocketDelayedConections = {}
+        self.websocketDelayedConnections = {}
         self.wsproxy = None
         self.cafile = config.get('cafile', certifi.where())
         self.open()
@@ -640,13 +640,13 @@ class Exchange(BaseExchange, EventEmitter):
                     self._websocket_reset_context(conxid, conxtpl)
                 if delayed:
                     # if not subscription in conxid remove from delayed
-                    if conxid in list(self.websocketDelayedConections.keys()):
-                        del self.websocketDelayedConections[conxid]
+                    if conxid in list(self.websocketDelayedConnections.keys()):
+                        del self.websocketDelayedConnections[conxid]
                 return conxid
 
             if delayed:
-                if not conxid in list(self.websocketDelayedConections.keys()):
-                    self.websocketDelayedConections[conxid] = {
+                if not conxid in list(self.websocketDelayedConnections.keys()):
+                    self.websocketDelayedConnections[conxid] = {
                         'conxtpl': conxtpl,
                         'reset': action['action'] != 'connect'
                     }
@@ -655,14 +655,14 @@ class Exchange(BaseExchange, EventEmitter):
         return conxid
 
     async def _websocket_connect_delayed(self):
-        for conxid in list(self.websocketDelayedConections.keys()):
+        for conxid in list(self.websocketDelayedConnections.keys()):
             try:
-                if self.websocketDelayedConections[conxid]['reset']:
-                    self._websocket_reset_context(conxid, self.websocketDelayedConections[conxid]['conxtpl'])
+                if self.websocketDelayedConnections[conxid]['reset']:
+                    self._websocket_reset_context(conxid, self.websocketDelayedConnections[conxid]['conxtpl'])
                 await self.websocket_connect(conxid)
             except:
                 pass
-        self.websocketDelayedConections = {}
+        self.websocketDelayedConnections = {}
 
     async def websocket_connect(self, conxid='default'):
         print("connecting conxid:" + conxid)
@@ -831,6 +831,7 @@ class Exchange(BaseExchange, EventEmitter):
             'symbol': symbol,
             'params': params
         }])
+
     async def websocket_subscribe_all(self, eventSymbols):
         # check all
         for eventSymbol in eventSymbols:

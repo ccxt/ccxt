@@ -921,6 +921,7 @@ abstract class Exchange extends CcxtEventEmitter {
             $this->react_loop = React\EventLoop\Factory::create();
         }
         $this->websocketContexts = array();
+        $this->websocketDelayedConnections = array();
         // renaming methods from camel to snake
         if (isset($this->wsconf['methodmap'])) {
             foreach($this->wsconf['methodmap'] as $m => $method) {
@@ -2767,7 +2768,7 @@ abstract class Exchange extends CcxtEventEmitter {
         }
     }
 
-    protected function _websocket_ensure_conx_active ($event, $symbol, $subscribe, $subscriptionParams=array()) {
+    protected function _websocket_ensure_conx_active ($event, $symbol, $subscribe, $subscriptionParams=array(), $delayed=false) {
         $this->load_markets();
         $ret = $this->_websocketGetConxid4Event ($event, $symbol);
         $conxid = $ret['conxid'];
@@ -2790,8 +2791,10 @@ abstract class Exchange extends CcxtEventEmitter {
                 if ($conx != null) {
                     $conx->close();
                 }
-                if ($action['reset-context'] === 'onreconnect') {
-                    $this->_websocket_reset_context($conxid);
+                if (!delayed){
+                    if ($action['reset-context'] === 'onreconnect') {
+                        $this->_websocket_reset_context($conxid);
+                    }
                 }
                 $this->_contextSetConnectionInfo ($conxid, $this->_websocket_initialize($conxConfig, $conxid));
             } else if ($action['action'] === 'connect') {
@@ -2812,6 +2815,12 @@ abstract class Exchange extends CcxtEventEmitter {
                     $conx->close();
                     $this->_websocket_reset_context($conxid);
                 }
+                if ($delayed) {
+                    // if not subscription in conxid remove from delayed
+                    if (array_key_exists($conxid, $this->websocketDelayedConnections)) {
+                        $this->omit ($this->websocketDelayedConnections, $conxid);
+                    }
+                }
                 return $conxid;
             }
             /*
@@ -2824,9 +2833,31 @@ abstract class Exchange extends CcxtEventEmitter {
                 );
             }
             */
-            $this->websocket_connect ($conxid);
+            if ($delayed) {
+                if (!array_key_exists($conxid, $this->websocketDelayedConnections)){
+                    $this->websocketDelayedConnections[$conxid] = array(
+                        'conxtpl'=> $conxtpl,
+                        'reset'=> $action['action'] != 'connect'
+                    );
+                }
+            } else {
+                $this->websocket_connect ($conxid);
+            }
         }
         return $conxid;
+    }
+
+    protected function _websocket_connect_delayed() {
+        foreach ($this->websocketDelayedConnections as $conxid => $value){
+            try {
+                if ($this->websocketDelayedConnections[$conxid]['reset']){
+                    $this->_websocketResetContext($conxid, $this->websocketDelayedConnections[$conxid]['conxtpl']);
+                }
+                Clue\React\Block\await($this->websocketConnect($conxid), $this->react_loop);
+            } catch (Exception $ex) {
+            }
+        }
+        $this->websocketDelayedConnections = array();
     }
 
     protected function websocket_connect ($conxid = 'default') {
@@ -3016,54 +3047,146 @@ abstract class Exchange extends CcxtEventEmitter {
     }
 
     public function websocket_subscribe ($event, $symbol, $params = array()) {
-        if (!$this->_websocketValidEvent($event)) {
-            throw new ExchangeError ('Not valid event ' . $event . ' for exchange ' . $this->id);
-        }
-        $conxid = $this->_websocket_ensure_conx_active ($event, $symbol, true, $params);
-        $oid = $this->nonce();// . '-' . $symbol . '-ob-subscribe';
-        $deferred = new \React\Promise\Deferred();
-        $that = $this;
-        $this->once (strval($oid), function ($success, $ex = null) use($conxid, $symbol, $that, $deferred, $event) {
-            if ($success) {
-                $that->_contextSetSubscribed($conxid, $event, $symbol, true);
-                $that->_contextSetSubscribing($conxid, $event, $symbol, false);
-                $deferred->resolve ($conxid);
-            } else {
-                $ex = ($ex != null) ? $ex : new ExchangeError ('error subscribing to ' . event . '(' . symbol . ')  in ' . $this->id);
-                $that->_contextSetSubscribed($conxid, $event, $symbol, false);
-                $that->_contextSetSubscribing($conxid, $event, $symbol, false);
-                $deferred->reject ($ex);
+        // if (!$this->_websocketValidEvent($event)) {
+        //     throw new ExchangeError ('Not valid event ' . $event . ' for exchange ' . $this->id);
+        // }
+        // $conxid = $this->_websocket_ensure_conx_active ($event, $symbol, true, $params);
+        // $oid = $this->nonce();// . '-' . $symbol . '-ob-subscribe';
+        // $deferred = new \React\Promise\Deferred();
+        // $that = $this;
+        // $this->once (strval($oid), function ($success, $ex = null) use($conxid, $symbol, $that, $deferred, $event) {
+        //     if ($success) {
+        //         $that->_contextSetSubscribed($conxid, $event, $symbol, true);
+        //         $that->_contextSetSubscribing($conxid, $event, $symbol, false);
+        //         $deferred->resolve ($conxid);
+        //     } else {
+        //         $ex = ($ex != null) ? $ex : new ExchangeError ('error subscribing to ' . event . '(' . symbol . ')  in ' . $this->id);
+        //         $that->_contextSetSubscribed($conxid, $event, $symbol, false);
+        //         $that->_contextSetSubscribing($conxid, $event, $symbol, false);
+        //         $deferred->reject ($ex);
+        //     }
+        // });
+        // $this->_contextSetSubscribing($conxid, $event, $symbol, true);
+        // $this->_websocket_subscribe ($conxid, $event, $symbol, $oid, $params);
+        // Clue\React\Block\await ($this->timeout_promise (
+        //     $deferred->promise(), 'websocket_subscribe'), $this->react_loop);
+        Clue\React\Block\await ($this->websocket_subscribe_all(array(
+            'event'=> $event,
+            'symbol'=> $symbol,
+            'params'=> $params
+        )), $this->react_loop);
+
+    }
+
+    public function websocket_subscribe_all ($eventSymbols) {
+        foreach ($eventSymbols as $eventSymbol){
+            if (!$this->_websocketValidEvent($eventSymbol['event'])) {
+                throw new ExchangeError ('Not valid event ' . $eventSymbol['event'] . ' for exchange ' . $this->id);
             }
-        });
-        $this->_contextSetSubscribing($conxid, $event, $symbol, true);
-        $this->_websocket_subscribe ($conxid, $event, $symbol, $oid, $params);
-        Clue\React\Block\await ($this->timeout_promise (
-            $deferred->promise(), 'websocket_subscribe'), $this->react_loop);
+        }
+        $conxIds = array();
+        foreach ($eventSymbols as $eventSymbol){
+            $event = $eventSymbol['event'];
+            $symbol = $eventSymbol['symbol'];
+            $params = $eventSymbol['params'];
+            $conxid = $this->_websocket_ensure_conx_active ($event, $symbol, true, $params, true);
+            $conxIds[] = $conxid;
+            $this->_contextSetSubscribing($conxid, $event, $symbol, true);
+        }
+        Clue\React\Block\await ($this->_websocket_connect_delayed(), $this->react_loop);
+
+        for($i=0;$i < count($eventSymbols); $i++){
+            $conxid = $conxIds[$i];
+            $event = $eventSymbols[$i]['event'];
+            $symbol = $eventSymbols[$i]['symbol'];
+            $params = $eventSymbols[$i]['params'];
+
+            $oid = $this->nonce();// . '-' . $symbol . '-ob-subscribe';
+            $deferred = new \React\Promise\Deferred();
+            $that = $this;
+            $this->once (strval($oid), function ($success, $ex = null) use($conxid, $symbol, $that, $deferred, $event) {
+                if ($success) {
+                    $that->_contextSetSubscribed($conxid, $event, $symbol, true);
+                    $that->_contextSetSubscribing($conxid, $event, $symbol, false);
+                    $deferred->resolve ($conxid);
+                } else {
+                    $ex = ($ex != null) ? $ex : new ExchangeError ('error subscribing to ' . event . '(' . symbol . ')  in ' . $this->id);
+                    $that->_contextSetSubscribed($conxid, $event, $symbol, false);
+                    $that->_contextSetSubscribing($conxid, $event, $symbol, false);
+                    $deferred->reject ($ex);
+                }
+            });
+        
+            $this->_websocket_subscribe ($conxid, $event, $symbol, $oid, $params);
+            Clue\React\Block\await ($this->timeout_promise (
+                $deferred->promise(), 'websocket_subscribe'), $this->react_loop);
+        }
     }
 
     public function websocket_unsubscribe ($event, $symbol, $params = array()) {
-        if (!$this->_websocketValidEvent($event)) {
-            throw new ExchangeError ('Not valid event ' . $event . ' for exchange ' . $this->id);
-        }
-        $conxid = $this->_websocket_ensure_conx_active ($event, $symbol, false);
-        $oid = $this->nonce();// . '-' . $symbol . '-ob-subscribe';
+        // if (!$this->_websocketValidEvent($event)) {
+        //     throw new ExchangeError ('Not valid event ' . $event . ' for exchange ' . $this->id);
+        // }
+        // $conxid = $this->_websocket_ensure_conx_active ($event, $symbol, false);
+        // $oid = $this->nonce();// . '-' . $symbol . '-ob-subscribe';
 
-        $deferred = new \React\Promise\Deferred();
-        $that = $this;
+        // $deferred = new \React\Promise\Deferred();
+        // $that = $this;
 
-        $this->once (strval($oid), function ($success, $ex = null) use($symbol, $that, $deferred, $conxid, $event) {
-            if ($success) {
-                $that->_contextSetSubscribed($conxid, $event, $symbol, false);
-                $that->_contextSetSubscribing($conxid, $event, $symbol, false);
-                $deferred->resolve ();
-            } else {
-                $ex = ($ex != null) ? $ex : new ExchangeError ('error unsubscribing to ' . event . '(' . symbol . ')  in ' . $this->id);
-                $deferred->reject ($ex);
+        // $this->once (strval($oid), function ($success, $ex = null) use($symbol, $that, $deferred, $conxid, $event) {
+        //     if ($success) {
+        //         $that->_contextSetSubscribed($conxid, $event, $symbol, false);
+        //         $that->_contextSetSubscribing($conxid, $event, $symbol, false);
+        //         $deferred->resolve ();
+        //     } else {
+        //         $ex = ($ex != null) ? $ex : new ExchangeError ('error unsubscribing to ' . event . '(' . symbol . ')  in ' . $this->id);
+        //         $deferred->reject ($ex);
+        //     }
+        // });
+        // $this->_websocket_unsubscribe ($conxid, $event, $symbol, $oid, $params);
+        // Clue\React\Block\await ($this->timeout_promise (
+        //     $deferred->promise(), 'websocket_unsubscribe'), $this->react_loop);
+        Clue\React\Block\await ($this->websocket_unsubscribe_all(array(
+            'event'=> $event,
+            'symbol'=> $symbol,
+            'params'=> $params
+        )), $this->react_loop);
+    }
+
+    public function websocket_unsubscribe_all ($eventSymbols) {
+        foreach ($eventSymbols as $eventSymbol){
+            if (!$this->_websocketValidEvent($eventSymbol['event'])) {
+                throw new ExchangeError ('Not valid event ' . $eventSymbol['event'] . ' for exchange ' . $this->id);
             }
-        });
-        $this->_websocket_unsubscribe ($conxid, $event, $symbol, $oid, $params);
-        Clue\React\Block\await ($this->timeout_promise (
-            $deferred->promise(), 'websocket_unsubscribe'), $this->react_loop);
+        }
+        try {
+            foreach ($eventSymbols as $eventSymbol){
+                $event = $eventSymbol['event'];
+                $symbol = $eventSymbol['symbol'];
+                $params = $eventSymbol['params'];
+                $conxid = $this->_websocket_ensure_conx_active ($event, $symbol, false, params, true);
+                $oid = $this->nonce();// . '-' . $symbol . '-ob-subscribe';
+
+                $deferred = new \React\Promise\Deferred();
+                $that = $this;
+
+                $this->once (strval($oid), function ($success, $ex = null) use($symbol, $that, $deferred, $conxid, $event) {
+                    if ($success) {
+                        $that->_contextSetSubscribed($conxid, $event, $symbol, false);
+                        $that->_contextSetSubscribing($conxid, $event, $symbol, false);
+                        $deferred->resolve ();
+                    } else {
+                        $ex = ($ex != null) ? $ex : new ExchangeError ('error unsubscribing to ' . event . '(' . symbol . ')  in ' . $this->id);
+                        $deferred->reject ($ex);
+                    }
+                });
+                $this->_websocket_unsubscribe ($conxid, $event, $symbol, $oid, $params);
+                Clue\React\Block\await ($this->timeout_promise (
+                    $deferred->promise(), 'websocket_unsubscribe'), $this->react_loop);
+            }
+        } finally {
+            Clue\React\Block\await ($this->_websocket_connect_delayed(), $this->react_loop);
+        }
     }
 
     protected function _websocket_on_open ($contextId, $websocketConexConfig) {
