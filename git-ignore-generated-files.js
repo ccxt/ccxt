@@ -36,6 +36,14 @@ for (const id of require ('./exchanges.json').ids) {
     files.push (`php/${id}.php`)
 }
 
-log.bright.cyan (`Disabling the git changes tracking for ${files.length} generated files...`)
-execSync (`git update-index --assume-unchanged ` + files.join (' '))
+if (process.argv.includes ('--unignore')) {
+
+    log.bright.green (`Re-enabling the git changes tracking for ${files.length} generated files...`)
+    execSync (`git update-index --no-assume-unchanged ` + files.join (' '))
+
+} else {
+    
+    log.bright.cyan (`Disabling the git changes tracking for ${files.length} generated files...`)
+    execSync (`git update-index --assume-unchanged ` + files.join (' '))
+}
 
