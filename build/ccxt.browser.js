@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.255'
+const version = '1.18.256'
 
 Exchange.ccxtVersion = version
 
@@ -50055,21 +50055,24 @@ module.exports = class kucoin2 extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         //
-        //   [ [ "1545904980",             //Start time of the candle cycle
-        //       "0.058",                  //opening price
-        //       "0.049",                  //closing price
-        //       "0.058",                  //highest price
-        //       "0.049",                  //lowest price
-        //       "0.018",                  //Transaction amount
-        //       "0.000945" ], ... ]       //Transaction volume
+        //     [
+        //         "1545904980",             // Start time of the candle cycle
+        //         "0.058",                  // opening price
+        //         "0.049",                  // closing price
+        //         "0.058",                  // highest price
+        //         "0.049",                  // lowest price
+        //         "0.018",                  // base volume
+        //         "0.000945",               // quote volume
+        //     ]
         //
-        const timestamp = this.safeInteger (ohlcv, 0);
-        const open = this.safeFloat (ohlcv, 1);
-        const close = this.safeFloat (ohlcv, 2);
-        const high = this.safeFloat (ohlcv, 3);
-        const low = this.safeFloat (ohlcv, 4);
-        const volume = this.safeFloat (ohlcv, 6);
-        return [timestamp, open, high, low, close, volume];
+        return [
+            parseInt (ohlcv[0]) * 1000,
+            parseFloat (ohlcv[1]),
+            parseFloat (ohlcv[3]),
+            parseFloat (ohlcv[2]),
+            parseFloat (ohlcv[4]),
+            parseFloat (ohlcv[5]),
+        ];
     }
 
     async fetchOHLCV (symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
