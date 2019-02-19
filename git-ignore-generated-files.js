@@ -24,7 +24,7 @@ const log          = require ('ololog')
 
 const files = [
 
-    'build/ccxt.browser.js'
+    'build/ccxt.browser.js',
 
     'python/test/test_decimal_to_precision.py',
     'php/test/decimal_to_precision.php',
@@ -34,7 +34,15 @@ const files = [
 
     'python/test/test.py',
 
-    // NB: Add more transpiled files here
+    'doc/FAQ.rst',
+    'doc/README.rst',
+    'doc/exchanges-by-country.rst',
+    'doc/exchanges.rst',
+    'doc/install.rst',
+    'doc/manual.rst',
+    'python/README.rst',
+
+    // NB: Add more generated files here
 ]
 
 for (const id of require ('./exchanges.json').ids) {
