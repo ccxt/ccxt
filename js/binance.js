@@ -1339,7 +1339,11 @@ module.exports = class binance extends Exchange {
         } else {
             let config = this._contextGet (contextId, 'config');
             symbolData['ob'] = this.mergeOrderBookDelta (symbolData['ob'], data, data['E'], 'b', 'a');
-            this.emit ('ob', symbol, this._cloneOrderBook (symbolData['ob'], config['ob'][symbol]['limit']));
+            if (typeof config !== 'undefined') {
+                this.emit ('ob', symbol, this._cloneOrderBook (symbolData['ob'], config['ob'][symbol]['limit']));
+            } else {
+                this.emit ('ob', symbol, this._cloneOrderBook (symbolData['ob']));
+            }
             this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
         }
     }
@@ -1424,7 +1428,11 @@ module.exports = class binance extends Exchange {
             }
             data['ob'] = response;
             data['deltas'] = [];
-            this.emit ('ob', symbol, this._cloneOrderBook (response, config['ob'][symbol]['limit']));
+            if (typeof config !== 'undefined') {
+                this.emit ('ob', symbol, this._cloneOrderBook (response, config['ob'][symbol]['limit']));
+            } else {
+                this.emit ('ob', symbol, this._cloneOrderBook (response));
+            }
             this._contextSetSymbolData (contextId, 'ob', symbol, data);
         }
     }

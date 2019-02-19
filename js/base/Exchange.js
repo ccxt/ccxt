@@ -368,6 +368,7 @@ module.exports = class Exchange extends EventEmitter{
             this.defineRestApi (this.api, 'request')
 
         this.websocketContexts = {};
+        this.websocketDelayedConnections = {};
 
         this.initRestRateLimiter ()
 
@@ -1950,7 +1951,7 @@ module.exports = class Exchange extends EventEmitter{
         }
     }
 
-    async _websocketEnsureConxActive (event, symbol, subscribe, subscriptionParams = {}) {
+    async _websocketEnsureConxActive (event, symbol, subscribe, subscriptionParams = {}, delayed = false) {
         let { conxid, conxtpl } = this._websocketGetConxid4Event (event, symbol);
         if (!(conxid in this.websocketContexts)) {
             this._websocketResetContext(conxid, conxtpl);
@@ -1972,8 +1973,10 @@ module.exports = class Exchange extends EventEmitter{
                     if (conx != null){
                         conx.close();
                     }
-                    if (action['reset-context'] === 'onreconnect') {
-                        this._websocketResetContext(conxid, conxtpl);
+                    if (!delayed){
+                        if (action['reset-context'] === 'onreconnect') {
+                            this._websocketResetContext(conxid, conxtpl);
+                        }
                     }
                     this._contextSetConnectionInfo (conxid, await this._websocketInitialize(conxConfig, conxid));
                     break;
@@ -1996,11 +1999,39 @@ module.exports = class Exchange extends EventEmitter{
                         conx.close();
                         this._websocketResetContext(conxid, conxtpl);
                     }
+                    if (delayed) {
+                        // if not subscription in conxid remove from delayed
+                        if (Object.keys(this.websocketDelayedConnections).includes (conxid)) {
+                            this.omit (this.websocketDelayedConnections, conxid);
+                        }
+                    }
                     return conxid;
             }
-            await this.websocketConnect (conxid);
+            if (delayed) {
+                if (!Object.keys(this.websocketDelayedConnections).includes (conxid)){
+                    this.websocketDelayedConnections[conxid] = {
+                        'conxtpl': conxtpl,
+                        'reset': action['action'] != 'connect'
+                    }
+                }
+            } else {
+                await this.websocketConnect (conxid);
+            }
         }
         return conxid;
+    }
+
+    async _websocketConnectDelayed() {
+        for (const conxid of Object.keys (this.websocketDelayedConnections)) {
+            try {
+                if (this.websocketDelayedConnections[conxid]['reset']){
+                    this._websocketResetContext(conxid, this.websocketDelayedConnections[conxid]['conxtpl']);
+                }
+                await this.websocketConnect(conxid);
+            } catch (ex) {
+            }
+        }
+        this.websocketDelayedConnections = {};
     }
 
     async websocketConnect (conxid = 'default') {
@@ -2185,32 +2216,87 @@ module.exports = class Exchange extends EventEmitter{
         }), 'websocketFetchOrderBook');
     }
 
-    websocketSubscribe (event, symbol, params = {}) {
+    async websocketSubscribe (event, symbol, params = {}) {
+        // let promise = new Promise (async (resolve, reject) => {
+        //     try {
+        //         if (!this._websocketValidEvent(event)) {
+        //             reject(new ExchangeError ('Not valid event ' + event + ' for exchange ' + this.id));
+        //             return;
+        //         }
+        //         let conxid = await this._websocketEnsureConxActive (event, symbol, true, params);
+        //         const oid = this.nonce();// + '-' + symbol + '-ob-subscribe';
+        //         this.once (oid.toString(), (success, ex = null) => {
+        //             if (success) {
+        //                 this._contextSetSubscribed(conxid, event, symbol, true);
+        //                 this._contextSetSubscribing(conxid, event, symbol, false);
+        //                 resolve ();
+        //             } else {
+        //                 this._contextSetSubscribed(conxid, event, symbol, false);
+        //                 this._contextSetSubscribing(conxid, event, symbol, false);
+        //                 if (ex != null) {
+        //                     reject (ex);
+        //                 } else {
+        //                     reject (new ExchangeError ('error subscribing to ' + event + '(' + symbol + ') ' + this.id));
+        //                 }
+        //             }
+        //         });
+        //         this._contextSetSubscribing(conxid, event, symbol, true);
+        //         this._websocketSubscribe (conxid, event, symbol, oid, params);
+        //     } catch (ex) {
+        //         reject (ex);
+        //     }
+        // });
+        // return this.timeoutPromise (promise, 'websocketSubscribe');
+        await this.websocketSubscribeAll([{
+            'event': event,
+            'symbol': symbol,
+            'params': params
+        }]);
+    }
+
+    async websocketSubscribeAll (eventSymbols) {
         let promise = new Promise (async (resolve, reject) => {
             try {
-                if (!this._websocketValidEvent(event)) {
-                    reject(new ExchangeError ('Not valid event ' + event + ' for exchange ' + this.id));
-                    return;
-                }
-                let conxid = await this._websocketEnsureConxActive (event, symbol, true, params);
-                const oid = this.nonce();// + '-' + symbol + '-ob-subscribe';
-                this.once (oid.toString(), (success, ex = null) => {
-                    if (success) {
-                        this._contextSetSubscribed(conxid, event, symbol, true);
-                        this._contextSetSubscribing(conxid, event, symbol, false);
-                        resolve ();
-                    } else {
-                        this._contextSetSubscribed(conxid, event, symbol, false);
-                        this._contextSetSubscribing(conxid, event, symbol, false);
-                        if (ex != null) {
-                            reject (ex);
-                        } else {
-                            reject (new ExchangeError ('error subscribing to ' + event + '(' + symbol + ') ' + this.id));
-                        }
+                for (let eventSymbol of eventSymbols){
+                    if (!this._websocketValidEvent(eventSymbol['event'])) {
+                        reject(new ExchangeError ('Not valid event ' + eventSymbol['event'] + ' for exchange ' + this.id));
+                        return;
                     }
-                });
-                this._contextSetSubscribing(conxid, event, symbol, true);
-                this._websocketSubscribe (conxid, event, symbol, oid, params);
+                }
+                let conxIds = [];
+                for (let eventSymbol of eventSymbols){ 
+                    let event = eventSymbol['event'];
+                    let symbol = eventSymbol['symbol'];
+                    let params = eventSymbol['params'];
+                    let conxid = await this._websocketEnsureConxActive (event, symbol, true, params, true);
+                    conxIds.push(conxid);
+                    this._contextSetSubscribing(conxid, event, symbol, true);
+                }
+                // prepare all conxid
+                await this._websocketConnectDelayed();
+                for (let i = 0;i<eventSymbols.length; i++){
+                    let conxid = conxIds[i];
+                    let event = eventSymbols[i]['event'];
+                    let symbol = eventSymbols[i]['symbol'];
+                    let params = eventSymbols[i]['params'];
+                    const oid = this.nonce();// + '-' + symbol + '-ob-subscribe';
+                    this.once (oid.toString(), (success, ex = null) => {
+                        if (success) {
+                            this._contextSetSubscribed(conxid, event, symbol, true);
+                            this._contextSetSubscribing(conxid, event, symbol, false);
+                            resolve ();
+                        } else {
+                            this._contextSetSubscribed(conxid, event, symbol, false);
+                            this._contextSetSubscribing(conxid, event, symbol, false);
+                            if (ex != null) {
+                                reject (ex);
+                            } else {
+                                reject (new ExchangeError ('error subscribing to ' + event + '(' + symbol + ') ' + this.id));
+                            }
+                        }
+                    });
+                    this._websocketSubscribe (conxid, event, symbol, oid, params);
+                }
             } catch (ex) {
                 reject (ex);
             }
@@ -2218,31 +2304,76 @@ module.exports = class Exchange extends EventEmitter{
         return this.timeoutPromise (promise, 'websocketSubscribe');
     }
 
-    websocketUnsubscribe (event, symbol, params = {}) {
+    async websocketUnsubscribe (event, symbol, params = {}) {
+        // let promise = new Promise (async (resolve, reject) => {
+        //     try {
+        //         if (!this._websocketValidEvent(event)) {
+        //             reject(new ExchangeError ('Not valid event ' + event + ' for exchange ' + this.id));
+        //             return;
+        //         }
+        //         let conxid = await this._websocketEnsureConxActive (event, symbol, false);
+        //         const oid = this.nonce();// + '-' + symbol + '-ob-subscribe';
+        //         this.once (oid.toString(), (success, ex = null) => {
+        //             if (success) {
+        //                 this._contextSetSubscribed(conxid, event, symbol, false);
+        //                 this._contextSetSubscribing(conxid, event, symbol, false);
+        //                 resolve ();
+        //             } else {
+        //                 if (ex != null) {
+        //                     reject (ex);
+        //                 } else {
+        //                     reject (new ExchangeError ('error unsubscribing to ' + event + '(' + symbol + ') ' + this.id));
+        //                 }
+        //             }
+        //         });
+        //         this._websocketUnsubscribe (conxid, event, symbol, oid,params);
+        //     } catch (ex) {
+        //         reject (ex);
+        //     }
+        // });
+        // return this.timeoutPromise (promise, 'websocketUnsubscribe');
+        await this.websocketUnsubscribeAll([{
+            'event': event,
+            'symbol': symbol,
+            'params': params
+        }]);
+    }
+    
+    websocketUnsubscribeAll (eventSymbols) {
         let promise = new Promise (async (resolve, reject) => {
             try {
-                if (!this._websocketValidEvent(event)) {
-                    reject(new ExchangeError ('Not valid event ' + event + ' for exchange ' + this.id));
-                    return;
-                }
-                let conxid = await this._websocketEnsureConxActive (event, symbol, false);
-                const oid = this.nonce();// + '-' + symbol + '-ob-subscribe';
-                this.once (oid.toString(), (success, ex = null) => {
-                    if (success) {
-                        this._contextSetSubscribed(conxid, event, symbol, false);
-                        this._contextSetSubscribing(conxid, event, symbol, false);
-                        resolve ();
-                    } else {
-                        if (ex != null) {
-                            reject (ex);
-                        } else {
-                            reject (new ExchangeError ('error unsubscribing to ' + event + '(' + symbol + ') ' + this.id));
-                        }
+                for (let eventSymbol of eventSymbols){
+                    if (!this._websocketValidEvent(eventSymbol['event'])) {
+                        reject(new ExchangeError ('Not valid event ' + eventSymbol['event'] + ' for exchange ' + this.id));
+                        return;
                     }
-                });
-                this._websocketUnsubscribe (conxid, event, symbol, oid,params);
+                }
+                for (let eventSymbol of eventSymbols){ 
+                    let event = eventSymbol['event'];
+                    let symbol = eventSymbol['symbol'];
+                    let params = eventSymbol['params'];
+
+                    let conxid = await this._websocketEnsureConxActive (event, symbol, false);
+                    const oid = this.nonce();// + '-' + symbol + '-ob-subscribe';
+                    this.once (oid.toString(), (success, ex = null) => {
+                        if (success) {
+                            this._contextSetSubscribed(conxid, event, symbol, false);
+                            this._contextSetSubscribing(conxid, event, symbol, false);
+                            resolve ();
+                        } else {
+                            if (ex != null) {
+                                reject (ex);
+                            } else {
+                                reject (new ExchangeError ('error unsubscribing to ' + event + '(' + symbol + ') ' + this.id));
+                            }
+                        }
+                    });
+                    this._websocketUnsubscribe (conxid, event, symbol, oid,params);
+                }
             } catch (ex) {
                 reject (ex);
+            } finally {
+                await this._websocketConnectDelayed();
             }
         });
         return this.timeoutPromise (promise, 'websocketUnsubscribe');
