@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.18.147'
+__version__ = '1.18.265'
 
 # ----------------------------------------------------------------------------
 
@@ -150,6 +150,7 @@ from ccxt.hadax import hadax                                # noqa: F401
 from ccxt.hitbtc import hitbtc                              # noqa: F401
 from ccxt.hitbtc2 import hitbtc2                            # noqa: F401
 from ccxt.huobipro import huobipro                          # noqa: F401
+from ccxt.huobiru import huobiru                            # noqa: F401
 from ccxt.ice3x import ice3x                                # noqa: F401
 from ccxt.independentreserve import independentreserve      # noqa: F401
 from ccxt.indodax import indodax                            # noqa: F401
@@ -158,6 +159,7 @@ from ccxt.jubi import jubi                                  # noqa: F401
 from ccxt.kkex import kkex                                  # noqa: F401
 from ccxt.kraken import kraken                              # noqa: F401
 from ccxt.kucoin import kucoin                              # noqa: F401
+from ccxt.kucoin2 import kucoin2                            # noqa: F401
 from ccxt.kuna import kuna                                  # noqa: F401
 from ccxt.lakebtc import lakebtc                            # noqa: F401
 from ccxt.lbank import lbank                                # noqa: F401
@@ -175,9 +177,7 @@ from ccxt.okcoinusd import okcoinusd                        # noqa: F401
 from ccxt.okex import okex                                  # noqa: F401
 from ccxt.paymium import paymium                            # noqa: F401
 from ccxt.poloniex import poloniex                          # noqa: F401
-from ccxt.qryptos import qryptos                            # noqa: F401
 from ccxt.quadrigacx import quadrigacx                      # noqa: F401
-from ccxt.quoinex import quoinex                            # noqa: F401
 from ccxt.rightbtc import rightbtc                          # noqa: F401
 from ccxt.southxchange import southxchange                  # noqa: F401
 from ccxt.surbitcoin import surbitcoin                      # noqa: F401
@@ -191,7 +191,6 @@ from ccxt.urdubit import urdubit                            # noqa: F401
 from ccxt.vaultoro import vaultoro                          # noqa: F401
 from ccxt.vbtc import vbtc                                  # noqa: F401
 from ccxt.virwox import virwox                              # noqa: F401
-from ccxt.wex import wex                                    # noqa: F401
 from ccxt.xbtce import xbtce                                # noqa: F401
 from ccxt.yobit import yobit                                # noqa: F401
 from ccxt.yunbi import yunbi                                # noqa: F401
@@ -285,6 +284,7 @@ exchanges = [
     'hitbtc',
     'hitbtc2',
     'huobipro',
+    'huobiru',
     'ice3x',
     'independentreserve',
     'indodax',
@@ -293,6 +293,7 @@ exchanges = [
     'kkex',
     'kraken',
     'kucoin',
+    'kucoin2',
     'kuna',
     'lakebtc',
     'lbank',
@@ -310,9 +311,7 @@ exchanges = [
     'okex',
     'paymium',
     'poloniex',
-    'qryptos',
     'quadrigacx',
-    'quoinex',
     'rightbtc',
     'southxchange',
     'surbitcoin',
@@ -326,7 +325,6 @@ exchanges = [
     'vaultoro',
     'vbtc',
     'virwox',
-    'wex',
     'xbtce',
     'yobit',
     'yunbi',

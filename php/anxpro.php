@@ -14,24 +14,34 @@ class anxpro extends Exchange {
             'id' => 'anxpro',
             'name' => 'ANXPro',
             'countries' => array ( 'JP', 'SG', 'HK', 'NZ' ),
-            'version' => '2',
             'rateLimit' => 1500,
             'has' => array (
                 'CORS' => false,
+                'fetchCurrencies' => true,
                 'fetchOHLCV' => false,
                 'fetchTrades' => false,
                 'withdraw' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
-                'api' => 'https://anxpro.com/api',
+                'api' => array (
+                    'public' => 'https://anxpro.com/api/2',
+                    'private' => 'https://anxpro.com/api/2',
+                    'v3public' => 'https://anxpro.com/api/3',
+                ),
                 'www' => 'https://anxpro.com',
                 'doc' => array (
-                    'http://docs.anxv2.apiary.io',
+                    'https://anxv2.docs.apiary.io',
+                    'https://anxv3.docs.apiary.io',
                     'https://anxpro.com/pages/api',
                 ),
             ),
             'api' => array (
+                'v3public' => array (
+                    'get' => array (
+                        'currencyStatic',
+                    ),
+                ),
                 'public' => array (
                     'get' => array (
                         '{currency_pair}/money/ticker',
@@ -54,30 +64,270 @@ class anxpro extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
-                'BTC/USD' => array ( 'id' => 'BTCUSD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'multiplier' => 100000, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 100000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
-                'BTC/HKD' => array ( 'id' => 'BTCHKD', 'symbol' => 'BTC/HKD', 'base' => 'BTC', 'quote' => 'HKD', 'multiplier' => 100000, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 100000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
-                'BTC/EUR' => array ( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'multiplier' => 100000, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 100000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
-                'BTC/CAD' => array ( 'id' => 'BTCCAD', 'symbol' => 'BTC/CAD', 'base' => 'BTC', 'quote' => 'CAD', 'multiplier' => 100000, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 100000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
-                'BTC/AUD' => array ( 'id' => 'BTCAUD', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD', 'multiplier' => 100000, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 100000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
-                'BTC/SGD' => array ( 'id' => 'BTCSGD', 'symbol' => 'BTC/SGD', 'base' => 'BTC', 'quote' => 'SGD', 'multiplier' => 100000, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 100000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
-                'BTC/JPY' => array ( 'id' => 'BTCJPY', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY', 'multiplier' => 100000, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 100000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
-                'BTC/GBP' => array ( 'id' => 'BTCGBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP', 'multiplier' => 100000, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 100000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
-                'BTC/NZD' => array ( 'id' => 'BTCNZD', 'symbol' => 'BTC/NZD', 'base' => 'BTC', 'quote' => 'NZD', 'multiplier' => 100000, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 100000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
-                'LTC/BTC' => array ( 'id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'multiplier' => 100000, 'limits' => array ( 'amount' => array ( 'min' => 0.1, 'max' => 10000000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
-                // delisting announced
-                'XLM/BTC' => array ( 'id' => 'STRBTC', 'symbol' => 'XLM/BTC', 'base' => 'XLM', 'quote' => 'BTC', 'multiplier' => 100000000, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 100000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
-                'OAX/BTC' => array ( 'id' => 'OAXBTC', 'symbol' => 'OAX/BTC', 'base' => 'OAX', 'quote' => 'BTC', 'multiplier' => 100000000, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 100000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
-                'XRP/BTC' => array ( 'id' => 'XRPBTC', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC', 'multiplier' => 100000000, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 100000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
-                'DOGE/BTC' => array ( 'id' => 'DOGEBTC', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC', 'multiplier' => 100000000, 'limits' => array ( 'amount' => array ( 'min' => 10000, 'max' => 10000000000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
+            'httpExceptions' => array (
+                '403' => '\\ccxt\\AuthenticationError',
             ),
             'fees' => array (
                 'trading' => array (
-                    'maker' => 0.3 / 100,
-                    'taker' => 0.6 / 100,
+                    'tierBased' => false,
+                    'percentage' => true,
+                    'maker' => 0.1 / 100,
+                    'taker' => 0.2 / 100,
                 ),
             ),
         ));
+    }
+
+    public function fetch_currencies ($params = array ()) {
+        $response = $this->v3publicGetCurrencyStatic ($params);
+        $result = array ();
+        $currencies = $response['currencyStatic']['currencies'];
+        //       "$currencies" => array (
+        //         "HKD" => array (
+        //           "decimals" => 2,
+        //           "minOrderSize" => 1.00000000,
+        //           "maxOrderSize" => 10000000000.00000000,
+        //           "displayDenominator" => 1,
+        //           "summaryDecimals" => 0,
+        //           "displayUnit" => "HKD",
+        //           "symbol" => "$",
+        //           "$type" => "FIAT",
+        //           "$engineSettings" => array (
+        //             "$depositsEnabled" => false,
+        //             "$withdrawalsEnabled" => true,
+        //             "$displayEnabled" => true,
+        //             "mobileAccessEnabled" => true
+        //           ),
+        //           "minOrderValue" => 1.00000000,
+        //           "maxOrderValue" => 10000000000.00000000,
+        //           "maxMarketOrderValue" => 36000.00000000,
+        //           "maxMarketOrderSize" => 36000.00000000,
+        //           "assetDivisibility" => 0
+        //         ),
+        //         "ETH" => array (
+        //           "decimals" => 8,
+        //           "minOrderSize" => 0.00010000,
+        //           "maxOrderSize" => 1000000000.00000000,
+        //           "$type" => "CRYPTO",
+        //           "confirmationThresholds" => array (
+        //             array ( "confosRequired" => 30, "threshold" => 0.50000000 ),
+        //             array ( "confosRequired" => 45, "threshold" => 10.00000000 ),
+        //             array ( "confosRequired" => 70 )
+        //           ),
+        //           "networkFee" => 0.00500000,
+        //           "$engineSettings" => array (
+        //             "$depositsEnabled" => true,
+        //             "$withdrawalsEnabled" => true,
+        //             "$displayEnabled" => true,
+        //             "mobileAccessEnabled" => true
+        //           ),
+        //           "minOrderValue" => 0.00010000,
+        //           "maxOrderValue" => 10000000000.00000000,
+        //           "maxMarketOrderValue" => 10000000000.00000000,
+        //           "maxMarketOrderSize" => 1000000000.00000000,
+        //           "digitalCurrencyType" => "ETHEREUM",
+        //           "assetDivisibility" => 0,
+        //           "assetIcon" => "/images/currencies/crypto/ETH.svg"
+        //         ),
+        //       ),
+        $ids = is_array ($currencies) ? array_keys ($currencies) : array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $currency = $currencies[$id];
+            $code = $this->common_currency_code($id);
+            $engineSettings = $this->safe_value($currency, 'engineSettings');
+            $depositsEnabled = $this->safe_value($engineSettings, 'depositsEnabled');
+            $withdrawalsEnabled = $this->safe_value($engineSettings, 'withdrawalsEnabled');
+            $displayEnabled = $this->safe_value($engineSettings, 'displayEnabled');
+            $active = $depositsEnabled && $withdrawalsEnabled && $displayEnabled;
+            $precision = $this->safe_integer($currency, 'decimals');
+            $fee = $this->safe_float($currency, 'networkFee');
+            $type = $this->safe_string($currency, 'type');
+            if ($type !== 'null') {
+                $type = strtolower ($type);
+            }
+            $result[$code] = array (
+                'id' => $id,
+                'code' => $code,
+                'info' => $currency,
+                'name' => $code,
+                'type' => $type,
+                'active' => $active,
+                'precision' => $precision,
+                'fee' => $fee,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => $this->safe_float($currency, 'minOrderSize'),
+                        'max' => $this->safe_float($currency, 'maxOrderSize'),
+                    ),
+                    'price' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array (
+                        'min' => $this->safe_float($currency, 'minOrderValue'),
+                        'max' => $this->safe_float($currency, 'maxOrderValue'),
+                    ),
+                    'withdraw' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_markets ($params = array ()) {
+        $response = $this->v3publicGetCurrencyStatic ($params);
+        //
+        //   {
+        //     "$currencyStatic" => array (
+        //       "$currencies" => array (
+        //         "HKD" => array (
+        //           "decimals" => 2,
+        //           "minOrderSize" => 1.00000000,
+        //           "maxOrderSize" => 10000000000.00000000,
+        //           "displayDenominator" => 1,
+        //           "summaryDecimals" => 0,
+        //           "displayUnit" => "HKD",
+        //           "$symbol" => "$",
+        //           "type" => "FIAT",
+        //           "$engineSettings" => array (
+        //             "depositsEnabled" => false,
+        //             "withdrawalsEnabled" => true,
+        //             "$displayEnabled" => true,
+        //             "mobileAccessEnabled" => true
+        //           ),
+        //           "minOrderValue" => 1.00000000,
+        //           "maxOrderValue" => 10000000000.00000000,
+        //           "maxMarketOrderValue" => 36000.00000000,
+        //           "maxMarketOrderSize" => 36000.00000000,
+        //           "assetDivisibility" => 0
+        //         ),
+        //         "ETH" => array (
+        //           "decimals" => 8,
+        //           "minOrderSize" => 0.00010000,
+        //           "maxOrderSize" => 1000000000.00000000,
+        //           "type" => "CRYPTO",
+        //           "confirmationThresholds" => array (
+        //             array ( "confosRequired" => 30, "threshold" => 0.50000000 ),
+        //             array ( "confosRequired" => 45, "threshold" => 10.00000000 ),
+        //             array ( "confosRequired" => 70 )
+        //           ),
+        //           "networkFee" => 0.00500000,
+        //           "$engineSettings" => array (
+        //             "depositsEnabled" => true,
+        //             "withdrawalsEnabled" => true,
+        //             "$displayEnabled" => true,
+        //             "mobileAccessEnabled" => true
+        //           ),
+        //           "minOrderValue" => 0.00010000,
+        //           "maxOrderValue" => 10000000000.00000000,
+        //           "maxMarketOrderValue" => 10000000000.00000000,
+        //           "maxMarketOrderSize" => 1000000000.00000000,
+        //           "digitalCurrencyType" => "ETHEREUM",
+        //           "assetDivisibility" => 0,
+        //           "assetIcon" => "/images/currencies/crypto/ETH.svg"
+        //         ),
+        //       ),
+        //       "$currencyPairs" => array (
+        //         "ETHUSD" => array (
+        //           "priceDecimals" => 5,
+        //           "$engineSettings" => array (
+        //             "$tradingEnabled" => true,
+        //             "$displayEnabled" => true,
+        //             "cancelOnly" => true,
+        //             "verifyRequired" => false,
+        //             "restrictedBuy" => false,
+        //             "restrictedSell" => false
+        //           ),
+        //           "minOrderRate" => 10.00000000,
+        //           "maxOrderRate" => 10000.00000000,
+        //           "displayPriceDecimals" => 5,
+        //           "tradedCcy" => "ETH",
+        //           "settlementCcy" => "USD",
+        //           "preferredMarket" => "ANX",
+        //           "chartEnabled" => true,
+        //           "simpleTradeEnabled" => false
+        //         ),
+        //       ),
+        //     ),
+        //     "timestamp" => "1549840691039",
+        //     "resultCode" => "OK"
+        //   }
+        //
+        $currencyStatic = $this->safe_value($response, 'currencyStatic', array ());
+        $currencies = $this->safe_value($currencyStatic, 'currencies', array ());
+        $currencyPairs = $this->safe_value($currencyStatic, 'currencyPairs', array ());
+        $result = array ();
+        $ids = is_array ($currencyPairs) ? array_keys ($currencyPairs) : array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $market = $currencyPairs[$id];
+            //
+            //     "ETHUSD" => array (
+            //       "priceDecimals" => 5,
+            //       "$engineSettings" => array (
+            //         "$tradingEnabled" => true,
+            //         "$displayEnabled" => true,
+            //         "cancelOnly" => true,
+            //         "verifyRequired" => false,
+            //         "restrictedBuy" => false,
+            //         "restrictedSell" => false
+            //       ),
+            //       "minOrderRate" => 10.00000000,
+            //       "maxOrderRate" => 10000.00000000,
+            //       "displayPriceDecimals" => 5,
+            //       "tradedCcy" => "ETH",
+            //       "settlementCcy" => "USD",
+            //       "preferredMarket" => "ANX",
+            //       "chartEnabled" => true,
+            //       "simpleTradeEnabled" => false
+            //     ),
+            //
+            $baseId = $this->safe_string($market, 'tradedCcy');
+            $quoteId = $this->safe_string($market, 'settlementCcy');
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
+            $symbol = $base . '/' . $quote;
+            $baseCurrency = $this->safe_value($currencies, $baseId, array ());
+            $quoteCurrency = $this->safe_value($currencies, $quoteId, array ());
+            $precision = array (
+                'price' => $this->safe_integer($market, 'priceDecimals'),
+                'amount' => $this->safe_integer($baseCurrency, 'decimals'),
+            );
+            $engineSettings = $this->safe_value($market, 'engineSettings');
+            $displayEnabled = $this->safe_value($engineSettings, 'displayEnabled');
+            $tradingEnabled = $this->safe_value($engineSettings, 'tradingEnabled');
+            $active = $displayEnabled && $tradingEnabled;
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'precision' => $precision,
+                'active' => $active,
+                'limits' => array (
+                    'price' => array (
+                        'min' => $this->safe_float($market, 'minOrderRate'),
+                        'max' => $this->safe_float($market, 'maxOrderRate'),
+                    ),
+                    'amount' => array (
+                        'min' => $this->safe_float($baseCurrency, 'minOrderSize'),
+                        'max' => $this->safe_float($baseCurrency, 'maxOrderSize'),
+                    ),
+                    'cost' => array (
+                        'min' => $this->safe_float($quoteCurrency, 'minOrderValue'),
+                        'max' => $this->safe_float($quoteCurrency, 'maxOrderValue'),
+                    ),
+                ),
+                'info' => $market,
+            );
+        }
+        return $result;
     }
 
     public function fetch_balance ($params = array ()) {
@@ -145,7 +395,7 @@ class anxpro extends Exchange {
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
-        throw new ExchangeError ($this->id . ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled');
+        throw new ExchangeError ($this->id . ' switched off the trades endpoint, see their docs at https://docs.anxv2.apiary.io');
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -208,8 +458,8 @@ class anxpro extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        $url = $this->urls['api'] . '/' . $this->version . '/' . $request;
-        if ($api === 'public') {
+        $url = $this->urls['api'][$api] . '/' . $request;
+        if ($api === 'public' || $api === 'v3public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -229,12 +479,18 @@ class anxpro extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if ($response !== null)
-            if (is_array ($response) && array_key_exists ('result', $response))
-                if ($response['result'] === 'success')
-                    return $response;
-        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+        if ($response === null || $response === '') {
+            return;
+        }
+        $result = $this->safe_string($response, 'result');
+        if (($result !== null) && ($result !== 'success')) {
+            throw new ExchangeError ($this->id . ' ' . $body);
+        } else {
+            $resultCode = $this->safe_string($response, 'resultCode');
+            if (($resultCode !== null) && ($resultCode !== 'OK')) {
+                throw new ExchangeError ($this->id . ' ' . $body);
+            }
+        }
     }
 }

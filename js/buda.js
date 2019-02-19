@@ -593,7 +593,7 @@ module.exports = class buda extends Exchange {
         }
         let addressPoolLength = addressPool.length;
         if (addressPoolLength < 1) {
-            throw new AddressPending (this.name + ': there are no addresses ready for receiving ' + code + ', retry again later)');
+            throw new AddressPending (this.id + ': there are no addresses ready for receiving ' + code + ', retry again later)');
         }
         let address = addressPool[0];
         return {
@@ -608,7 +608,7 @@ module.exports = class buda extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         if (this.isFiat (code))
-            throw new NotSupported (this.name + ': fiat fetchDepositAddress() for ' + code + ' is not supported');
+            throw new NotSupported (this.id + ': fiat fetchDepositAddress() for ' + code + ' is not supported');
         let response = await this.privatePostCurrenciesCurrencyReceiveAddresses (this.extend ({
             'currency': currency['id'],
         }, params));
@@ -677,7 +677,7 @@ module.exports = class buda extends Exchange {
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (code === undefined)
-            throw new ExchangeError (this.name + ': fetchDeposits() requires a currency code argument');
+            throw new ExchangeError (this.id + ': fetchDeposits() requires a currency code argument');
         let currency = this.currency (code);
         let response = await this.privateGetCurrenciesCurrencyDeposits (this.extend ({
             'currency': currency['id'],
@@ -690,7 +690,7 @@ module.exports = class buda extends Exchange {
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (code === undefined)
-            throw new ExchangeError (this.name + ': fetchDeposits() requires a currency code argument');
+            throw new ExchangeError (this.id + ': fetchDeposits() requires a currency code argument');
         let currency = this.currency (code);
         let response = await this.privateGetCurrenciesCurrencyWithdrawals (this.extend ({
             'currency': currency['id'],
@@ -758,7 +758,7 @@ module.exports = class buda extends Exchange {
         if (code >= 400) {
             let errorCode = this.safeString (response, 'code');
             let message = this.safeString (response, 'message', body);
-            let feedback = this.name + ': ' + message;
+            let feedback = this.id + ' ' + message;
             let exceptions = this.exceptions;
             if (errorCode !== undefined) {
                 if (errorCode in exceptions) {

@@ -83,6 +83,7 @@ class southxchange extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'active' => null,
                 'info' => $market,
             );
         }
@@ -145,8 +146,8 @@ class southxchange extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_float($ticker, 'Variation24Hr'),
-            'percentage' => null,
+            'change' => null,
+            'percentage' => $this->safe_float($ticker, 'Variation24Hr'),
             'average' => null,
             'baseVolume' => $this->safe_float($ticker, 'Volume24Hr'),
             'quoteVolume' => null,

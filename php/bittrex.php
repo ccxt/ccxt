@@ -52,12 +52,12 @@ class bittrex extends Exchange {
                 ),
                 'www' => 'https://bittrex.com',
                 'doc' => array (
-                    'https://bittrex.com/Home/Api',
-                    'https://www.npmjs.org/package/node.bittrex.api',
+                    'https://bittrex.github.io/api/',
+                    'https://www.npmjs.com/package/bittrex-node',
                 ),
                 'fees' => array (
-                    'https://bittrex.com/Fees',
-                    'https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-',
+                    'https://bittrex.zendesk.com/hc/en-us/articles/115003684371-BITTREX-SERVICE-FEES-AND-WITHDRAWAL-LIMITATIONS',
+                    'https://bittrex.zendesk.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-',
                 ),
             ),
             'api' => array (
@@ -165,6 +165,24 @@ class bittrex extends Exchange {
                 'parseOrderStatus' => false,
                 'hasAlreadyAuthenticatedSuccessfully' => false, // a workaround for APIKEY_INVALID
                 'symbolSeparator' => '-',
+                // With certain currencies, like
+                // AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP
+                // an additional tag / memo / payment id is usually required by exchanges.
+                // With Bittrex some currencies imply the "base address . tag" logic.
+                // The base address for depositing is stored on $this->currencies[code]
+                // The base address identifies the exchange as the recipient
+                // while the tag identifies the user account within the exchange
+                // and the tag is retrieved with fetchDepositAddress.
+                'tag' => array (
+                    'NXT' => true, // NXT, BURST
+                    'CRYPTO_NOTE_PAYMENTID' => true, // AEON, XMR
+                    'BITSHAREX' => true, // BTS
+                    'RIPPLE' => true, // XRP
+                    'NEM' => true, // XEM
+                    'STELLAR' => true, // XLM
+                    'STEEM' => true, // SBD, GOLOS
+                    'LISK' => true, // LSK
+                ),
             ),
             'commonCurrencies' => array (
                 'BITS' => 'SWIFT',
@@ -324,17 +342,38 @@ class bittrex extends Exchange {
 
     public function fetch_currencies ($params = array ()) {
         $response = $this->publicGetCurrencies ($params);
-        $currencies = $response['result'];
+        //
+        //     {
+        //         "success" => true,
+        //         "message" => "",
+        //         "$result" => array (
+        //             array (
+        //                 "Currency" => "BTC",
+        //                 "CurrencyLong":"Bitcoin",
+        //                 "MinConfirmation":2,
+        //                 "TxFee":0.00050000,
+        //                 "IsActive":true,
+        //                 "IsRestricted":false,
+        //                 "CoinType":"BITCOIN",
+        //                 "BaseAddress":"1N52wHoVR79PMDishab2XmRHsbekCdGquK",
+        //                 "Notice":null
+        //             ),
+        //             ...,
+        //         )
+        //     }
+        //
+        $currencies = $this->safe_value($response, 'result', array ());
         $result = array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
-            $id = $currency['Currency'];
+            $id = $this->safe_string($currency, 'Currency');
             // todo => will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $code = $this->common_currency_code($id);
             $precision = 8; // default $precision, todo => fix "magic constants"
             $address = $this->safe_value($currency, 'BaseAddress');
+            $fee = $this->safe_float($currency, 'TxFee'); // todo => redesign
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
@@ -343,7 +382,7 @@ class bittrex extends Exchange {
                 'type' => $currency['CoinType'],
                 'name' => $currency['CurrencyLong'],
                 'active' => $currency['IsActive'],
-                'fee' => $this->safe_float($currency, 'TxFee'), // todo => redesign
+                'fee' => $fee,
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
@@ -359,7 +398,7 @@ class bittrex extends Exchange {
                         'max' => null,
                     ),
                     'withdraw' => array (
-                        'min' => $currency['TxFee'],
+                        'min' => $fee,
                         'max' => pow (10, $precision),
                     ),
                 ),
@@ -859,15 +898,25 @@ class bittrex extends Exchange {
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
-        $response = $this->accountGetDepositaddress (array_merge (array (
+        $request = array (
             'currency' => $currency['id'],
-        ), $params));
+        );
+        $response = $this->accountGetDepositaddress (array_merge ($request, $params));
+        //
+        //     array ( "success" => false, "$message" => "ADDRESS_GENERATING", "result" => null )
+        //
+        //     { success =>    true,
+        //       $message =>   "",
+        //        result => { Currency => "INCNT",
+        //                   Address => "3PHvQt9bK21f7eVQVdJzrNPcsMzXabEA5Ha" } } }
+        //
         $address = $this->safe_string($response['result'], 'Address');
         $message = $this->safe_string($response, 'message');
-        if (!$address || $message === 'ADDRESS_GENERATING')
+        if (!$address || $message === 'ADDRESS_GENERATING') {
             throw new AddressPending ($this->id . ' the $address for ' . $code . ' is being generated (pending, not ready yet, retry again later)');
+        }
         $tag = null;
-        if (($code === 'XRP') || ($code === 'XLM') || ($code === 'LSK')) {
+        if (is_array ($this->options['tag']) && array_key_exists ($currency['type'], $this->options['tag'])) {
             $tag = $address;
             $address = $currency['address'];
         }
@@ -963,7 +1012,7 @@ class bittrex extends Exchange {
                     // Bittrex will return an ambiguous INVALID_ORDER $message
                     // upon canceling already-canceled and closed orders
                     // therefore this special case for cancelOrder
-                    // $url = 'https://bittrex.com/api/v1.1/market/$cancel?apikey=API_KEY&uuid=ORDER_UUID'
+                    // $url = 'https://bittrex.com/api/v1.1/market/cancel?apikey=API_KEY&uuid=ORDER_UUID'
                     $cancel = 'cancel';
                     $indexOfCancel = mb_strpos ($url, $cancel);
                     if ($indexOfCancel >= 0) {

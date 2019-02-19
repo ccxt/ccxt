@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -13,24 +13,34 @@ module.exports = class anxpro extends Exchange {
             'id': 'anxpro',
             'name': 'ANXPro',
             'countries': [ 'JP', 'SG', 'HK', 'NZ' ],
-            'version': '2',
             'rateLimit': 1500,
             'has': {
                 'CORS': false,
+                'fetchCurrencies': true,
                 'fetchOHLCV': false,
                 'fetchTrades': false,
                 'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
-                'api': 'https://anxpro.com/api',
+                'api': {
+                    'public': 'https://anxpro.com/api/2',
+                    'private': 'https://anxpro.com/api/2',
+                    'v3public': 'https://anxpro.com/api/3',
+                },
                 'www': 'https://anxpro.com',
                 'doc': [
-                    'http://docs.anxv2.apiary.io',
+                    'https://anxv2.docs.apiary.io',
+                    'https://anxv3.docs.apiary.io',
                     'https://anxpro.com/pages/api',
                 ],
             },
             'api': {
+                'v3public': {
+                    'get': [
+                        'currencyStatic',
+                    ],
+                },
                 'public': {
                     'get': [
                         '{currency_pair}/money/ticker',
@@ -53,30 +63,270 @@ module.exports = class anxpro extends Exchange {
                     ],
                 },
             },
-            'markets': {
-                'BTC/USD': { 'id': 'BTCUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'multiplier': 100000, 'limits': { 'amount': { 'min': 0.01, 'max': 100000 }, 'price': { 'min': undefined, 'max': undefined }, 'cost': { 'min': undefined, 'max': undefined }}},
-                'BTC/HKD': { 'id': 'BTCHKD', 'symbol': 'BTC/HKD', 'base': 'BTC', 'quote': 'HKD', 'multiplier': 100000, 'limits': { 'amount': { 'min': 0.01, 'max': 100000 }, 'price': { 'min': undefined, 'max': undefined }, 'cost': { 'min': undefined, 'max': undefined }}},
-                'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'multiplier': 100000, 'limits': { 'amount': { 'min': 0.01, 'max': 100000 }, 'price': { 'min': undefined, 'max': undefined }, 'cost': { 'min': undefined, 'max': undefined }}},
-                'BTC/CAD': { 'id': 'BTCCAD', 'symbol': 'BTC/CAD', 'base': 'BTC', 'quote': 'CAD', 'multiplier': 100000, 'limits': { 'amount': { 'min': 0.01, 'max': 100000 }, 'price': { 'min': undefined, 'max': undefined }, 'cost': { 'min': undefined, 'max': undefined }}},
-                'BTC/AUD': { 'id': 'BTCAUD', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', 'multiplier': 100000, 'limits': { 'amount': { 'min': 0.01, 'max': 100000 }, 'price': { 'min': undefined, 'max': undefined }, 'cost': { 'min': undefined, 'max': undefined }}},
-                'BTC/SGD': { 'id': 'BTCSGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD', 'multiplier': 100000, 'limits': { 'amount': { 'min': 0.01, 'max': 100000 }, 'price': { 'min': undefined, 'max': undefined }, 'cost': { 'min': undefined, 'max': undefined }}},
-                'BTC/JPY': { 'id': 'BTCJPY', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'multiplier': 100000, 'limits': { 'amount': { 'min': 0.01, 'max': 100000 }, 'price': { 'min': undefined, 'max': undefined }, 'cost': { 'min': undefined, 'max': undefined }}},
-                'BTC/GBP': { 'id': 'BTCGBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP', 'multiplier': 100000, 'limits': { 'amount': { 'min': 0.01, 'max': 100000 }, 'price': { 'min': undefined, 'max': undefined }, 'cost': { 'min': undefined, 'max': undefined }}},
-                'BTC/NZD': { 'id': 'BTCNZD', 'symbol': 'BTC/NZD', 'base': 'BTC', 'quote': 'NZD', 'multiplier': 100000, 'limits': { 'amount': { 'min': 0.01, 'max': 100000 }, 'price': { 'min': undefined, 'max': undefined }, 'cost': { 'min': undefined, 'max': undefined }}},
-                'LTC/BTC': { 'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'multiplier': 100000, 'limits': { 'amount': { 'min': 0.1, 'max': 10000000 }, 'price': { 'min': undefined, 'max': undefined }, 'cost': { 'min': undefined, 'max': undefined }}},
-                // delisting announced
-                'XLM/BTC': { 'id': 'STRBTC', 'symbol': 'XLM/BTC', 'base': 'XLM', 'quote': 'BTC', 'multiplier': 100000000, 'limits': { 'amount': { 'min': 0.01, 'max': 100000 }, 'price': { 'min': undefined, 'max': undefined }, 'cost': { 'min': undefined, 'max': undefined }}},
-                'OAX/BTC': { 'id': 'OAXBTC', 'symbol': 'OAX/BTC', 'base': 'OAX', 'quote': 'BTC', 'multiplier': 100000000, 'limits': { 'amount': { 'min': 0.01, 'max': 100000 }, 'price': { 'min': undefined, 'max': undefined }, 'cost': { 'min': undefined, 'max': undefined }}},
-                'XRP/BTC': { 'id': 'XRPBTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'multiplier': 100000000, 'limits': { 'amount': { 'min': 0.01, 'max': 100000 }, 'price': { 'min': undefined, 'max': undefined }, 'cost': { 'min': undefined, 'max': undefined }}},
-                'DOGE/BTC': { 'id': 'DOGEBTC', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC', 'multiplier': 100000000, 'limits': { 'amount': { 'min': 10000, 'max': 10000000000 }, 'price': { 'min': undefined, 'max': undefined }, 'cost': { 'min': undefined, 'max': undefined }}},
+            'httpExceptions': {
+                '403': AuthenticationError,
             },
             'fees': {
                 'trading': {
-                    'maker': 0.3 / 100,
-                    'taker': 0.6 / 100,
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': 0.1 / 100,
+                    'taker': 0.2 / 100,
                 },
             },
         });
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.v3publicGetCurrencyStatic (params);
+        const result = {};
+        const currencies = response['currencyStatic']['currencies'];
+        //       "currencies": {
+        //         "HKD": {
+        //           "decimals": 2,
+        //           "minOrderSize": 1.00000000,
+        //           "maxOrderSize": 10000000000.00000000,
+        //           "displayDenominator": 1,
+        //           "summaryDecimals": 0,
+        //           "displayUnit": "HKD",
+        //           "symbol": "$",
+        //           "type": "FIAT",
+        //           "engineSettings": {
+        //             "depositsEnabled": false,
+        //             "withdrawalsEnabled": true,
+        //             "displayEnabled": true,
+        //             "mobileAccessEnabled": true
+        //           },
+        //           "minOrderValue": 1.00000000,
+        //           "maxOrderValue": 10000000000.00000000,
+        //           "maxMarketOrderValue": 36000.00000000,
+        //           "maxMarketOrderSize": 36000.00000000,
+        //           "assetDivisibility": 0
+        //         },
+        //         "ETH": {
+        //           "decimals": 8,
+        //           "minOrderSize": 0.00010000,
+        //           "maxOrderSize": 1000000000.00000000,
+        //           "type": "CRYPTO",
+        //           "confirmationThresholds": [
+        //             { "confosRequired": 30, "threshold": 0.50000000 },
+        //             { "confosRequired": 45, "threshold": 10.00000000 },
+        //             { "confosRequired": 70 }
+        //           ],
+        //           "networkFee": 0.00500000,
+        //           "engineSettings": {
+        //             "depositsEnabled": true,
+        //             "withdrawalsEnabled": true,
+        //             "displayEnabled": true,
+        //             "mobileAccessEnabled": true
+        //           },
+        //           "minOrderValue": 0.00010000,
+        //           "maxOrderValue": 10000000000.00000000,
+        //           "maxMarketOrderValue": 10000000000.00000000,
+        //           "maxMarketOrderSize": 1000000000.00000000,
+        //           "digitalCurrencyType": "ETHEREUM",
+        //           "assetDivisibility": 0,
+        //           "assetIcon": "/images/currencies/crypto/ETH.svg"
+        //         },
+        //       },
+        const ids = Object.keys (currencies);
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const currency = currencies[id];
+            const code = this.commonCurrencyCode (id);
+            const engineSettings = this.safeValue (currency, 'engineSettings');
+            const depositsEnabled = this.safeValue (engineSettings, 'depositsEnabled');
+            const withdrawalsEnabled = this.safeValue (engineSettings, 'withdrawalsEnabled');
+            const displayEnabled = this.safeValue (engineSettings, 'displayEnabled');
+            const active = depositsEnabled && withdrawalsEnabled && displayEnabled;
+            const precision = this.safeInteger (currency, 'decimals');
+            const fee = this.safeFloat (currency, 'networkFee');
+            let type = this.safeString (currency, 'type');
+            if (type !== 'undefined') {
+                type = type.toLowerCase ();
+            }
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': code,
+                'type': type,
+                'active': active,
+                'precision': precision,
+                'fee': fee,
+                'limits': {
+                    'amount': {
+                        'min': this.safeFloat (currency, 'minOrderSize'),
+                        'max': this.safeFloat (currency, 'maxOrderSize'),
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeFloat (currency, 'minOrderValue'),
+                        'max': this.safeFloat (currency, 'maxOrderValue'),
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            };
+        }
+        return result;
+    }
+
+    async fetchMarkets (params = {}) {
+        const response = await this.v3publicGetCurrencyStatic (params);
+        //
+        //   {
+        //     "currencyStatic": {
+        //       "currencies": {
+        //         "HKD": {
+        //           "decimals": 2,
+        //           "minOrderSize": 1.00000000,
+        //           "maxOrderSize": 10000000000.00000000,
+        //           "displayDenominator": 1,
+        //           "summaryDecimals": 0,
+        //           "displayUnit": "HKD",
+        //           "symbol": "$",
+        //           "type": "FIAT",
+        //           "engineSettings": {
+        //             "depositsEnabled": false,
+        //             "withdrawalsEnabled": true,
+        //             "displayEnabled": true,
+        //             "mobileAccessEnabled": true
+        //           },
+        //           "minOrderValue": 1.00000000,
+        //           "maxOrderValue": 10000000000.00000000,
+        //           "maxMarketOrderValue": 36000.00000000,
+        //           "maxMarketOrderSize": 36000.00000000,
+        //           "assetDivisibility": 0
+        //         },
+        //         "ETH": {
+        //           "decimals": 8,
+        //           "minOrderSize": 0.00010000,
+        //           "maxOrderSize": 1000000000.00000000,
+        //           "type": "CRYPTO",
+        //           "confirmationThresholds": [
+        //             { "confosRequired": 30, "threshold": 0.50000000 },
+        //             { "confosRequired": 45, "threshold": 10.00000000 },
+        //             { "confosRequired": 70 }
+        //           ],
+        //           "networkFee": 0.00500000,
+        //           "engineSettings": {
+        //             "depositsEnabled": true,
+        //             "withdrawalsEnabled": true,
+        //             "displayEnabled": true,
+        //             "mobileAccessEnabled": true
+        //           },
+        //           "minOrderValue": 0.00010000,
+        //           "maxOrderValue": 10000000000.00000000,
+        //           "maxMarketOrderValue": 10000000000.00000000,
+        //           "maxMarketOrderSize": 1000000000.00000000,
+        //           "digitalCurrencyType": "ETHEREUM",
+        //           "assetDivisibility": 0,
+        //           "assetIcon": "/images/currencies/crypto/ETH.svg"
+        //         },
+        //       },
+        //       "currencyPairs": {
+        //         "ETHUSD": {
+        //           "priceDecimals": 5,
+        //           "engineSettings": {
+        //             "tradingEnabled": true,
+        //             "displayEnabled": true,
+        //             "cancelOnly": true,
+        //             "verifyRequired": false,
+        //             "restrictedBuy": false,
+        //             "restrictedSell": false
+        //           },
+        //           "minOrderRate": 10.00000000,
+        //           "maxOrderRate": 10000.00000000,
+        //           "displayPriceDecimals": 5,
+        //           "tradedCcy": "ETH",
+        //           "settlementCcy": "USD",
+        //           "preferredMarket": "ANX",
+        //           "chartEnabled": true,
+        //           "simpleTradeEnabled": false
+        //         },
+        //       },
+        //     },
+        //     "timestamp": "1549840691039",
+        //     "resultCode": "OK"
+        //   }
+        //
+        const currencyStatic = this.safeValue (response, 'currencyStatic', {});
+        const currencies = this.safeValue (currencyStatic, 'currencies', {});
+        const currencyPairs = this.safeValue (currencyStatic, 'currencyPairs', {});
+        const result = [];
+        const ids = Object.keys (currencyPairs);
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const market = currencyPairs[id];
+            //
+            //     "ETHUSD": {
+            //       "priceDecimals": 5,
+            //       "engineSettings": {
+            //         "tradingEnabled": true,
+            //         "displayEnabled": true,
+            //         "cancelOnly": true,
+            //         "verifyRequired": false,
+            //         "restrictedBuy": false,
+            //         "restrictedSell": false
+            //       },
+            //       "minOrderRate": 10.00000000,
+            //       "maxOrderRate": 10000.00000000,
+            //       "displayPriceDecimals": 5,
+            //       "tradedCcy": "ETH",
+            //       "settlementCcy": "USD",
+            //       "preferredMarket": "ANX",
+            //       "chartEnabled": true,
+            //       "simpleTradeEnabled": false
+            //     },
+            //
+            const baseId = this.safeString (market, 'tradedCcy');
+            const quoteId = this.safeString (market, 'settlementCcy');
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const baseCurrency = this.safeValue (currencies, baseId, {});
+            const quoteCurrency = this.safeValue (currencies, quoteId, {});
+            const precision = {
+                'price': this.safeInteger (market, 'priceDecimals'),
+                'amount': this.safeInteger (baseCurrency, 'decimals'),
+            };
+            const engineSettings = this.safeValue (market, 'engineSettings');
+            const displayEnabled = this.safeValue (engineSettings, 'displayEnabled');
+            const tradingEnabled = this.safeValue (engineSettings, 'tradingEnabled');
+            const active = displayEnabled && tradingEnabled;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'precision': precision,
+                'active': active,
+                'limits': {
+                    'price': {
+                        'min': this.safeFloat (market, 'minOrderRate'),
+                        'max': this.safeFloat (market, 'maxOrderRate'),
+                    },
+                    'amount': {
+                        'min': this.safeFloat (baseCurrency, 'minOrderSize'),
+                        'max': this.safeFloat (baseCurrency, 'maxOrderSize'),
+                    },
+                    'cost': {
+                        'min': this.safeFloat (quoteCurrency, 'minOrderValue'),
+                        'max': this.safeFloat (quoteCurrency, 'maxOrderValue'),
+                    },
+                },
+                'info': market,
+            });
+        }
+        return result;
     }
 
     async fetchBalance (params = {}) {
@@ -144,7 +394,7 @@ module.exports = class anxpro extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        throw new ExchangeError (this.id + ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled');
+        throw new ExchangeError (this.id + ' switched off the trades endpoint, see their docs at https://docs.anxv2.apiary.io');
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -207,8 +457,8 @@ module.exports = class anxpro extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'] + '/' + this.version + '/' + request;
-        if (api === 'public') {
+        let url = this.urls['api'][api] + '/' + request;
+        if (api === 'public' || api === 'v3public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -228,12 +478,18 @@ module.exports = class anxpro extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (response !== undefined)
-            if ('result' in response)
-                if (response['result'] === 'success')
-                    return response;
-        throw new ExchangeError (this.id + ' ' + this.json (response));
+    handleErrors (httpCode, reason, url, method, headers, body, response) {
+        if (response === undefined || response === '') {
+            return;
+        }
+        const result = this.safeString (response, 'result');
+        if ((result !== undefined) && (result !== 'success')) {
+            throw new ExchangeError (this.id + ' ' + body);
+        } else {
+            const resultCode = this.safeString (response, 'resultCode');
+            if ((resultCode !== undefined) && (resultCode !== 'OK')) {
+                throw new ExchangeError (this.id + ' ' + body);
+            }
+        }
     }
 };

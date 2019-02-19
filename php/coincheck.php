@@ -18,12 +18,17 @@ class coincheck extends Exchange {
             'has' => array (
                 'CORS' => false,
                 'fetchOpenOrders' => true,
+                'fetchMyTrades' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg',
                 'api' => 'https://coincheck.com/api',
                 'www' => 'https://coincheck.com',
                 'doc' => 'https://coincheck.com/documents/exchange/api',
+                'fees' => array (
+                    'https://coincheck.com/exchange/fee',
+                    'https://coincheck.com/info/fee',
+                ),
             ),
             'api' => array (
                 'public' => array (
@@ -93,6 +98,14 @@ class coincheck extends Exchange {
                 // 'XEM/BTC' => array ( 'id' => 'xem_btc', 'symbol' => 'XEM/BTC', 'base' => 'XEM', 'quote' => 'BTC', 'baseId' => 'xem', 'quoteId' => 'btc' ),
                 // 'LTC/BTC' => array ( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'baseId' => 'ltc', 'quoteId' => 'btc' ),
                 // 'DASH/BTC' => array ( 'id' => 'dash_btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC', 'baseId' => 'dash', 'quoteId' => 'btc' ),
+            ),
+            'fees' => array (
+                'trading' => array (
+                    'tierBased' => false,
+                    'percentage' => true,
+                    'maker' => 0,
+                    'taker' => 0,
+                ),
             ),
         ));
     }
@@ -233,19 +246,89 @@ class coincheck extends Exchange {
         );
     }
 
-    public function parse_trade ($trade, $market) {
-        $timestamp = $this->parse8601 ($trade['created_at']);
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = $this->parse8601 ($this->safe_string($trade, 'created_at'));
+        $id = $this->safe_string($trade, 'id');
+        $price = $this->safe_float($trade, 'rate');
+        $marketId = $this->safe_string($trade, 'pair');
+        $market = $this->safe_value($this->markets_by_id, $marketId, $market);
+        $symbol = null;
+        $baseId = null;
+        $quoteId = null;
+        if ($marketId !== null) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+                $baseId = $market['baseId'];
+                $quoteId = $market['quoteId'];
+                $symbol = $market['symbol'];
+            } else {
+                $ids = explode ('_', $marketId);
+                $baseId = $ids[0];
+                $quoteId = $ids[1];
+                $base = $this->common_currency_code($baseId);
+                $quote = $this->common_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
+        }
+        if ($symbol === null) {
+            if ($market !== null) {
+                $symbol = $market['symbol'];
+            }
+        }
+        $takerOrMaker = null;
+        $amount = null;
+        $cost = null;
+        $side = null;
+        $fee = null;
+        $orderId = null;
+        if (is_array ($trade) && array_key_exists ('liquidity', $trade)) {
+            if ($this->safe_string($trade, 'liquidity') === 'T') {
+                $takerOrMaker = 'taker';
+            } else if ($this->safe_string($trade, 'liquidity') === 'M') {
+                $takerOrMaker = 'maker';
+            }
+            $funds = $this->safe_value($trade, 'funds', array ());
+            $amount = $this->safe_float($funds, $baseId);
+            $cost = $this->safe_float($funds, $quoteId);
+            $fee = array (
+                'currency' => $this->safe_string($trade, 'fee_currency'),
+                'cost' => $this->safe_float($trade, 'fee'),
+            );
+            $side = $this->safe_string($trade, 'side');
+            $orderId = $this->safe_string($trade, 'order_id');
+        } else {
+            $amount = $this->safe_float($trade, 'amount');
+            $side = $this->safe_string($trade, 'order_type');
+        }
+        if ($cost === null) {
+            if ($amount !== null) {
+                if ($price !== null) {
+                    $cost = $amount * $price;
+                }
+            }
+        }
         return array (
-            'id' => (string) $trade['id'],
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
-            'type' => null,
-            'side' => $trade['order_type'],
-            'price' => $this->safe_float($trade, 'rate'),
-            'amount' => $this->safe_float($trade, 'amount'),
+            'id' => $id,
             'info' => $trade,
+            'datetime' => $this->iso8601 ($timestamp),
+            'timestamp' => $timestamp,
+            'symbol' => $symbol,
+            'type' => null,
+            'side' => $side,
+            'order' => $orderId,
+            'takerOrMaker' => $takerOrMaker,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => $fee,
         );
+    }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->privateGetExchangeOrdersTransactions (array_merge (array (), $params));
+        $transactions = $this->safe_value($response, 'transactions', array ());
+        return $this->parse_trades($transactions, $market, $since, $limit);
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
@@ -260,11 +343,8 @@ class coincheck extends Exchange {
             $request['limit'] = $limit;
         }
         $response = $this->publicGetTrades (array_merge ($request, $params));
-        if (is_array ($response) && array_key_exists ('success', $response))
-            if ($response['success'])
-                if ($response['data'] !== null)
-                    return $this->parse_trades($response['data'], $market, $since, $limit);
-        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        $data = $this->safe_value($response, 'data', array ());
+        return $this->parse_trades($data, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

@@ -16,6 +16,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
@@ -54,6 +55,8 @@ class kraken (Exchange):
                 'fetchWithdrawals': True,
                 'fetchDeposits': True,
                 'withdraw': True,
+                'fetchLedgerEntry': True,
+                'fetchLedger': True,
             },
             'marketsByAltname': {},
             'timeframes': {
@@ -219,6 +222,8 @@ class kraken (Exchange):
                 'cacheDepositMethodsOnFetchDepositAddress': True,  # will issue up to two calls in fetchDepositAddress
                 'depositMethods': {},
                 'delistedMarketsById': {},
+                # cannot withdraw/deposit these
+                'inactiveCurrencies': ['CAD', 'USD', 'JPY', 'GBP'],
             },
             'exceptions': {
                 'EAPI:Invalid key': AuthenticationError,
@@ -227,10 +232,12 @@ class kraken (Exchange):
                 'EService:Unavailable': ExchangeNotAvailable,
                 'EDatabase:Internal error': ExchangeNotAvailable,
                 'EService:Busy': ExchangeNotAvailable,
-                'EAPI:Rate limit exceeded': DDoSProtection,
                 'EQuery:Unknown asset': ExchangeError,
+                'EAPI:Rate limit exceeded': DDoSProtection,
+                'EOrder:Rate limit exceeded': DDoSProtection,
                 'EGeneral:Internal error': ExchangeNotAvailable,
                 'EGeneral:Temporary lockout': DDoSProtection,
+                'EGeneral:Permission denied': PermissionDenied,
             },
         })
 
@@ -351,23 +358,36 @@ class kraken (Exchange):
 
     def fetch_currencies(self, params={}):
         response = self.publicGetAssets(params)
-        currencies = response['result']
+        #
+        #     {
+        #         "error": [],
+        #         "result": {
+        #             "ADA": {"aclass": "currency", "altname": "ADA", "decimals": 8, "display_decimals": 6},
+        #             "BCH": {"aclass": "currency", "altname": "BCH", "decimals": 10, "display_decimals": 5},
+        #             ...
+        #         },
+        #     }
+        #
+        currencies = self.safe_value(response, 'result')
         ids = list(currencies.keys())
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
             currency = currencies[id]
             # todo: will need to rethink the fees
+            # see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
-            code = self.common_currency_code(currency['altname'])
-            precision = currency['decimals']
+            code = self.common_currency_code(self.safe_string(currency, 'altname'))
+            precision = self.safe_integer(currency, 'decimals')
+            # assumes all currencies are active except those listed above
+            active = not self.in_array(code, self.options['inactiveCurrencies'])
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': code,
-                'active': True,
+                'active': active,
                 'fee': None,
                 'precision': precision,
                 'limits': {
@@ -517,6 +537,129 @@ class kraken (Exchange):
         response = self.publicGetOHLC(self.extend(request, params))
         ohlcvs = response['result'][market['id']]
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
+
+    def parse_ledger_entry(self, item, currency=None):
+        # {'LTFK7F-N2CUX-PNY4SX': {  refid: "TSJTGT-DT7WN-GPPQMJ",
+        #                               time:  1520102320.555,
+        #                               type: "trade",
+        #                             aclass: "currency",
+        #                              asset: "XETH",
+        #                             amount: "0.1087194600",
+        #                                fee: "0.0000000000",
+        #                            balance: "0.2855851000"         }, ...}
+        id = self.safe_string(item, 'id')
+        direction = None
+        account = None
+        referenceId = self.safe_string(item, 'refid')
+        referenceAccount = None
+        type = None
+        itemType = self.safe_string(item, 'type')
+        if itemType == 'trade':
+            type = 'trade'
+        elif itemType == 'withdrawal':
+            type = 'transaction'
+        elif itemType == 'deposit':
+            type = 'transaction'
+        elif itemType == 'margin':
+            type = 'margin'  # ← self needs to be unified
+        else:
+            raise ExchangeError(self.id + ' unsupported ledger item type: ' + itemType)
+        code = self.safeCurrencyCode(item, 'asset', currency)
+        amount = self.safe_float(item, 'amount')
+        if amount < 0:
+            direction = 'out'
+            amount = abs(amount)
+        else:
+            direction = 'in'
+        time = self.safe_float(item, 'time')
+        timestamp = None
+        datetime = None
+        if time is not None:
+            timestamp = int(time * 1000)
+            datetime = self.iso8601(timestamp)
+        fee = {
+            'cost': self.safe_float(item, 'fee'),
+            'currency': code,
+        }
+        before = None
+        after = self.safe_float(item, 'balance')
+        return {
+            'info': item,
+            'id': id,
+            'direction': direction,
+            'account': account,
+            'referenceId': referenceId,
+            'referenceAccount': referenceAccount,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'before': before,
+            'after': after,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'fee': fee,
+        }
+
+    def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        # https://www.kraken.com/features/api#get-ledgers-info
+        self.load_markets()
+        request = {}
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['asset'] = currency['id']
+        if since is not None:
+            request['start'] = int(since / 1000)
+        response = self.privatePostLedgers(self.extend(request, params))
+        # { error: [],
+        #   result: {ledger: {'LPUAIB-TS774-UKHP7X': {  refid: "A2B4HBV-L4MDIE-JU4N3N",
+        #                                                   time:  1520103488.314,
+        #                                                   type: "withdrawal",
+        #                                                 aclass: "currency",
+        #                                                  asset: "XETH",
+        #                                                 amount: "-0.2805800000",
+        #                                                    fee: "0.0050000000",
+        #                                                balance: "0.0000051000"           },
+        ledger = response['result']['ledger']
+        keys = list(ledger.keys())
+        items = []
+        for i in range(0, len(keys)):
+            key = keys[i]
+            value = ledger[key]
+            value['id'] = key
+            items.append(value)
+        return self.parse_ledger(items, currency, since, limit)
+
+    def fetch_ledger_entrys_by_ids(self, ids, code=None, params={}):
+        # https://www.kraken.com/features/api#query-ledgers
+        self.load_markets()
+        ids = ','.join(ids)
+        request = self.extend({
+            'id': ids,
+        }, params)
+        response = self.privatePostQueryLedgers(request)
+        # { error: [],
+        #   result: {'LPUAIB-TS774-UKHP7X': {  refid: "A2B4HBV-L4MDIE-JU4N3N",
+        #                                         time:  1520103488.314,
+        #                                         type: "withdrawal",
+        #                                       aclass: "currency",
+        #                                        asset: "XETH",
+        #                                       amount: "-0.2805800000",
+        #                                          fee: "0.0050000000",
+        #                                      balance: "0.0000051000"           }} }
+        result = response['result']
+        keys = list(result.keys())
+        items = []
+        for i in range(0, len(keys)):
+            key = keys[i]
+            value = result[key]
+            value['id'] = key
+            items.append(value)
+        return self.parse_ledger(items)
+
+    def fetch_ledger_entry(self, id, code=None, params={}):
+        items = self.fetch_ledger_entrys_by_ids([id], code, params)
+        return items[0]
 
     def parse_trade(self, trade, market=None):
         timestamp = None

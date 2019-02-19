@@ -26,7 +26,7 @@ module.exports = class coingi extends Exchange {
                     'user': 'https://api.coingi.com',
                 },
                 'www': 'https://coingi.com',
-                'doc': 'http://docs.coingi.apiary.io/',
+                'doc': 'https://coingi.docs.apiary.io',
             },
             'api': {
                 'www': {

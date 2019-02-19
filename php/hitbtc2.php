@@ -12,7 +12,7 @@ class hitbtc2 extends hitbtc {
     public function describe () {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'hitbtc2',
-            'name' => 'HitBTC v2',
+            'name' => 'HitBTC',
             'countries' => array ( 'HK' ),
             'rateLimit' => 1500,
             'version' => '2',
@@ -52,7 +52,10 @@ class hitbtc2 extends hitbtc {
                 'api' => 'https://api.hitbtc.com',
                 'www' => 'https://hitbtc.com',
                 'referral' => 'https://hitbtc.com/?ref_id=5a5d39a65d466',
-                'doc' => 'https://api.hitbtc.com',
+                'doc' => array (
+                    'https://api.hitbtc.com',
+                    'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv2.md',
+                ),
                 'fees' => array (
                     'https://hitbtc.com/fees-and-limits',
                     'https://support.hitbtc.com/hc/en-us/articles/115005148605-Fees-and-limits',
@@ -862,7 +865,7 @@ class hitbtc2 extends hitbtc {
             $request['startTime'] = $since;
         }
         $response = $this->privateGetAccountTransactions (array_merge ($request, $params));
-        return $this->parseTransactions ($response);
+        return $this->parseTransactions ($response, $currency, $since, $limit);
     }
 
     public function parse_transaction ($transaction, $currency = null) {
@@ -927,6 +930,11 @@ class hitbtc2 extends hitbtc {
         $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
         $amount = $this->safe_float($transaction, 'amount');
         $type = $this->safe_string($transaction, 'type');
+        if ($type === 'payin') {
+            $type = 'deposit';
+        } else if ($type === 'payout') {
+            $type = 'withdrawal';
+        }
         $address = $this->safe_string($transaction, 'address');
         $txid = $this->safe_string($transaction, 'hash');
         return array (
@@ -1297,7 +1305,7 @@ class hitbtc2 extends hitbtc {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = '/api' . '/' . $this->version . '/';
+        $url = '/api/' . $this->version . '/';
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'public') {
             $url .= $api . '/' . $this->implode_params($path, $params);

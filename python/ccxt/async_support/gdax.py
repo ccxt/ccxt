@@ -234,7 +234,7 @@ class gdax (Exchange):
             'id': market['id'],
         }, params)
         ticker = await self.publicGetProductsIdTicker(request)
-        timestamp = self.parse8601(ticker['time'])
+        timestamp = self.parse8601(self.safe_value(ticker, 'time'))
         bid = None
         ask = None
         if 'bid' in ticker:
@@ -275,11 +275,12 @@ class gdax (Exchange):
             symbol = market['symbol']
         feeRate = None
         feeCurrency = None
+        takerOrMaker = None
         if market is not None:
             feeCurrency = market['quote']
             if 'liquidity' in trade:
-                rateType = 'taker' if (trade['liquidity'] == 'T') else 'maker'
-                feeRate = market[rateType]
+                takerOrMaker = 'taker' if (trade['liquidity'] == 'T') else 'maker'
+                feeRate = market[takerOrMaker]
         feeCost = self.safe_float(trade, 'fill_fees')
         if feeCost is None:
             feeCost = self.safe_float(trade, 'fee')
@@ -305,6 +306,7 @@ class gdax (Exchange):
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': type,
+            'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'amount': amount,
@@ -569,7 +571,7 @@ class gdax (Exchange):
         response = await self.privateGetAccountsIdTransfers(self.extend(request, params))
         for i in range(0, len(response)):
             response[i]['currency'] = code
-        return self.parseTransactions(response)
+        return self.parseTransactions(response, currency, since, limit)
 
     def parse_transaction_status(self, transaction):
         if 'canceled_at' in transaction and transaction['canceled_at']:

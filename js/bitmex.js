@@ -144,27 +144,30 @@ module.exports = class bitmex extends Exchange {
             },
             'options': {
                 'api-expires': undefined,
-                'fetchTickerQuotes': false,
             },
         });
     }
 
     async fetchMarkets (params = {}) {
-        let markets = await this.publicGetInstrumentActiveAndIndices ();
-        let result = [];
-        for (let p = 0; p < markets.length; p++) {
-            let market = markets[p];
-            let active = (market['state'] !== 'Unlisted');
-            let id = market['symbol'];
-            let baseId = market['underlying'];
-            let quoteId = market['quoteCurrency'];
+        const response = await this.publicGetInstrumentActiveAndIndices (params);
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const market = response[i];
+            const active = (market['state'] !== 'Unlisted');
+            const id = market['symbol'];
+            const baseId = market['underlying'];
+            const quoteId = market['quoteCurrency'];
+            const basequote = baseId + quoteId;
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            const swap = (id === basequote);
+            // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
+            // so let's take the quote currency first and then adjust if needed
+            const positionId = this.safeString2 (market, 'positionCurrency', 'quoteCurrency');
             let type = undefined;
             let future = false;
             let prediction = false;
-            let basequote = baseId + quoteId;
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            let swap = (id === basequote);
+            let position = this.commonCurrencyCode (positionId);
             let symbol = id;
             if (swap) {
                 type = 'swap';
@@ -176,14 +179,37 @@ module.exports = class bitmex extends Exchange {
                 future = true;
                 type = 'future';
             }
-            let precision = {
+            const precision = {
                 'amount': undefined,
                 'price': undefined,
             };
-            if (market['lotSize'])
-                precision['amount'] = this.precisionFromString (this.truncate_to_string (market['lotSize'], 16));
-            if (market['tickSize'])
-                precision['price'] = this.precisionFromString (this.truncate_to_string (market['tickSize'], 16));
+            const lotSize = this.safeFloat (market, 'lotSize');
+            const tickSize = this.safeFloat (market, 'tickSize');
+            if (lotSize !== undefined) {
+                precision['amount'] = this.precisionFromString (this.truncate_to_string (lotSize, 16));
+            }
+            if (tickSize !== undefined) {
+                precision['price'] = this.precisionFromString (this.truncate_to_string (tickSize, 16));
+            }
+            const limits = {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': tickSize,
+                    'max': this.safeFloat (market, 'maxPrice'),
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            };
+            const limitField = (position === quote) ? 'cost' : 'amount';
+            limits[limitField] = {
+                'min': lotSize,
+                'max': this.safeFloat (market, 'maxOrderQty'),
+            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -193,16 +219,7 @@ module.exports = class bitmex extends Exchange {
                 'quoteId': quoteId,
                 'active': active,
                 'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': market['lotSize'],
-                        'max': market['maxOrderQty'],
-                    },
-                    'price': {
-                        'min': market['tickSize'],
-                        'max': market['maxPrice'],
-                    },
-                },
+                'limits': limits,
                 'taker': market['takerFee'],
                 'maker': market['makerFee'],
                 'type': type,
@@ -218,23 +235,25 @@ module.exports = class bitmex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetUserMargin ({ 'currency': 'all' });
-        let result = { 'info': response };
+        const request = { 'currency': 'all' };
+        const response = await this.privateGetUserMargin (this.extend (request, params));
+        const result = { 'info': response };
         for (let b = 0; b < response.length; b++) {
-            let balance = response[b];
-            let currency = balance['currency'].toUpperCase ();
-            currency = this.commonCurrencyCode (currency);
-            let account = {
+            const balance = response[b];
+            let currencyId = this.safeString (balance, 'currency');
+            currencyId = currencyId.toUpperCase ();
+            const code = this.commonCurrencyCode (currencyId);
+            const account = {
                 'free': balance['availableMargin'],
                 'used': 0.0,
                 'total': balance['marginBalance'],
             };
-            if (currency === 'BTC') {
+            if (code === 'BTC') {
                 account['free'] = account['free'] * 0.00000001;
                 account['total'] = account['total'] * 0.00000001;
             }
             account['used'] = account['total'] - account['free'];
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -311,51 +330,161 @@ module.exports = class bitmex extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        if (!market['active'])
+        const market = this.market (symbol);
+        if (!market['active']) {
             throw new ExchangeError (this.id + ': symbol ' + symbol + ' is delisted');
-        let request = this.extend ({
-            'symbol': market['id'],
-            'binSize': '1d',
-            'partial': true,
-            'count': 1,
-            'reverse': true,
-        }, params);
-        let bid = undefined;
-        let ask = undefined;
-        if (this.options['fetchTickerQuotes']) {
-            let quotes = await this.publicGetQuoteBucketed (request);
-            let quotesLength = quotes.length;
-            let quote = quotes[quotesLength - 1];
-            bid = this.safeFloat (quote, 'bidPrice');
-            ask = this.safeFloat (quote, 'askPrice');
         }
-        let tickers = await this.publicGetTradeBucketed (request);
-        let ticker = tickers[0];
-        let timestamp = this.milliseconds ();
-        let open = this.safeFloat (ticker, 'open');
-        let close = this.safeFloat (ticker, 'close');
-        let change = close - open;
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetInstrumentActiveAndIndices (this.extend (request, params));
+        return this.parseTicker (response[0]);
+    }
+
+    parseTicker (ticker, market = undefined) {
+        //
+        //     {                         symbol: "ETHH19",
+        //                           rootSymbol: "ETH",
+        //                                state: "Open",
+        //                                  typ: "FFCCSX",
+        //                              listing: "2018-12-17T04:00:00.000Z",
+        //                                front: "2019-02-22T12:00:00.000Z",
+        //                               expiry: "2019-03-29T12:00:00.000Z",
+        //                               settle: "2019-03-29T12:00:00.000Z",
+        //                       relistInterval:  null,
+        //                           inverseLeg: "",
+        //                              sellLeg: "",
+        //                               buyLeg: "",
+        //                     optionStrikePcnt:  null,
+        //                    optionStrikeRound:  null,
+        //                    optionStrikePrice:  null,
+        //                     optionMultiplier:  null,
+        //                     positionCurrency: "ETH",
+        //                           underlying: "ETH",
+        //                        quoteCurrency: "XBT",
+        //                     underlyingSymbol: "ETHXBT=",
+        //                            reference: "BMEX",
+        //                      referenceSymbol: ".BETHXBT30M",
+        //                         calcInterval:  null,
+        //                      publishInterval:  null,
+        //                          publishTime:  null,
+        //                          maxOrderQty:  100000000,
+        //                             maxPrice:  10,
+        //                              lotSize:  1,
+        //                             tickSize:  0.00001,
+        //                           multiplier:  100000000,
+        //                        settlCurrency: "XBt",
+        //       underlyingToPositionMultiplier:  1,
+        //         underlyingToSettleMultiplier:  null,
+        //              quoteToSettleMultiplier:  100000000,
+        //                             isQuanto:  false,
+        //                            isInverse:  false,
+        //                           initMargin:  0.02,
+        //                          maintMargin:  0.01,
+        //                            riskLimit:  5000000000,
+        //                             riskStep:  5000000000,
+        //                                limit:  null,
+        //                               capped:  false,
+        //                                taxed:  true,
+        //                           deleverage:  true,
+        //                             makerFee:  -0.0005,
+        //                             takerFee:  0.0025,
+        //                        settlementFee:  0,
+        //                         insuranceFee:  0,
+        //                    fundingBaseSymbol: "",
+        //                   fundingQuoteSymbol: "",
+        //                 fundingPremiumSymbol: "",
+        //                     fundingTimestamp:  null,
+        //                      fundingInterval:  null,
+        //                          fundingRate:  null,
+        //                indicativeFundingRate:  null,
+        //                   rebalanceTimestamp:  null,
+        //                    rebalanceInterval:  null,
+        //                     openingTimestamp: "2019-02-13T08:00:00.000Z",
+        //                     closingTimestamp: "2019-02-13T09:00:00.000Z",
+        //                      sessionInterval: "2000-01-01T01:00:00.000Z",
+        //                       prevClosePrice:  0.03347,
+        //                       limitDownPrice:  null,
+        //                         limitUpPrice:  null,
+        //               bankruptLimitDownPrice:  null,
+        //                 bankruptLimitUpPrice:  null,
+        //                      prevTotalVolume:  1386531,
+        //                          totalVolume:  1387062,
+        //                               volume:  531,
+        //                            volume24h:  17118,
+        //                    prevTotalTurnover:  4741294246000,
+        //                        totalTurnover:  4743103466000,
+        //                             turnover:  1809220000,
+        //                          turnover24h:  57919845000,
+        //                      homeNotional24h:  17118,
+        //                   foreignNotional24h:  579.19845,
+        //                         prevPrice24h:  0.03349,
+        //                                 vwap:  0.03383564,
+        //                            highPrice:  0.03458,
+        //                             lowPrice:  0.03329,
+        //                            lastPrice:  0.03406,
+        //                   lastPriceProtected:  0.03406,
+        //                    lastTickDirection: "ZeroMinusTick",
+        //                       lastChangePcnt:  0.017,
+        //                             bidPrice:  0.03406,
+        //                             midPrice:  0.034065,
+        //                             askPrice:  0.03407,
+        //                       impactBidPrice:  0.03406,
+        //                       impactMidPrice:  0.034065,
+        //                       impactAskPrice:  0.03407,
+        //                         hasLiquidity:  true,
+        //                         openInterest:  83679,
+        //                            openValue:  285010674000,
+        //                           fairMethod: "ImpactMidPrice",
+        //                        fairBasisRate:  0,
+        //                            fairBasis:  0,
+        //                            fairPrice:  0.03406,
+        //                           markMethod: "FairPrice",
+        //                            markPrice:  0.03406,
+        //                    indicativeTaxRate:  0,
+        //                indicativeSettlePrice:  0.03406,
+        //                optionUnderlyingPrice:  null,
+        //                         settledPrice:  null,
+        //                            timestamp: "2019-02-13T08:40:30.000Z",
+        //     }
+        //
+        let symbol = undefined;
+        const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeValue (this.markets_by_id, marketId, market);
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
+        const open = this.safeFloat (ticker, 'prevPrice24h');
+        const last = this.safeFloat (ticker, 'lastPrice');
+        let change = undefined;
+        let percentage = undefined;
+        if (last !== undefined && open !== undefined) {
+            change = last - open;
+            if (open > 0) {
+                percentage = change / open * 100;
+            }
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': bid,
+            'high': this.safeFloat (ticker, 'highPrice'),
+            'low': this.safeFloat (ticker, 'lowPrice'),
+            'bid': this.safeFloat (ticker, 'bidPrice'),
             'bidVolume': undefined,
-            'ask': ask,
+            'ask': this.safeFloat (ticker, 'askPrice'),
             'askVolume': undefined,
             'vwap': this.safeFloat (ticker, 'vwap'),
             'open': open,
-            'close': close,
-            'last': close,
+            'close': last,
+            'last': last,
             'previousClose': undefined,
             'change': change,
-            'percentage': change / open * 100,
-            'average': this.sum (open, close) / 2,
-            'baseVolume': this.safeFloat (ticker, 'homeNotional'),
-            'quoteVolume': this.safeFloat (ticker, 'foreignNotional'),
+            'percentage': percentage,
+            'average': this.sum (open, last) / 2,
+            'baseVolume': this.safeFloat (ticker, 'homeNotional24h'),
+            'quoteVolume': this.safeFloat (ticker, 'foreignNotional24h'),
             'info': ticker,
         };
     }
@@ -364,11 +493,11 @@ module.exports = class bitmex extends Exchange {
         let timestamp = this.parse8601 (ohlcv['timestamp']);
         return [
             timestamp,
-            ohlcv['open'],
-            ohlcv['high'],
-            ohlcv['low'],
-            ohlcv['close'],
-            ohlcv['volume'],
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
         ];
     }
 
@@ -610,7 +739,7 @@ module.exports = class bitmex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let query = '/api' + '/' + this.version + '/' + path;
+        let query = '/api/' + this.version + '/' + path;
         if (method !== 'PUT')
             if (Object.keys (params).length)
                 query += '?' + this.urlencode (params);

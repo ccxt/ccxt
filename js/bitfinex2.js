@@ -11,7 +11,7 @@ module.exports = class bitfinex2 extends bitfinex {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitfinex2',
-            'name': 'Bitfinex v2',
+            'name': 'Bitfinex',
             'countries': [ 'VG' ],
             'version': 'v2',
             'certified': false,
@@ -471,7 +471,7 @@ module.exports = class bitfinex2 extends bitfinex {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             body = this.json (query);
-            let auth = '/api' + '/' + request + nonce + body;
+            let auth = '/api/' + request + nonce + body;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha384');
             headers = {
                 'bfx-nonce': nonce,

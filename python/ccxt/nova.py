@@ -20,6 +20,8 @@ class nova (Exchange):
             'has': {
                 'CORS': False,
                 'createMarketOrder': False,
+                'createDepositAddress': True,
+                'fetchDepositAddress': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg',
@@ -115,8 +117,8 @@ class nova (Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_float(ticker, 'change24h'),
-            'percentage': None,
+            'change': None,
+            'percentage': self.safe_float(ticker, 'change24h'),
             'average': None,
             'baseVolume': None,
             'quoteVolume': self.safe_float(ticker, 'volume24h'),
@@ -179,15 +181,51 @@ class nova (Exchange):
             'pair': market['id'],
         }
         response = self.privatePostTradePair(self.extend(order, params))
+        tradeItems = self.safe_value(response, 'tradeitems', [])
+        tradeItemsByType = self.index_by(tradeItems, 'type')
+        created = self.safe_value(tradeItemsByType, 'created', {})
+        orderId = self.safe_string(created, 'orderid')
         return {
             'info': response,
-            'id': None,
+            'id': orderId,
         }
 
     def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostCancelorder(self.extend({
             'orderid': id,
         }, params))
+
+    def create_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        response = self.privatePostGetnewdepositaddressCurrency(self.extend({
+            'currency': currency,
+        }, params))
+        address = self.safe_string(response, 'address')
+        self.check_address(address)
+        tag = self.safe_string(response, 'tag')
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        }
+
+    def fetch_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        response = self.privatePostGetdepositaddressCurrency(self.extend({
+            'currency': currency,
+        }, params))
+        address = self.safe_string(response, 'address')
+        self.check_address(address)
+        tag = self.safe_string(response, 'tag')
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/'

@@ -12,7 +12,7 @@ class bitfinex2 extends bitfinex {
     public function describe () {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitfinex2',
-            'name' => 'Bitfinex v2',
+            'name' => 'Bitfinex',
             'countries' => array ( 'VG' ),
             'version' => 'v2',
             'certified' => false,
@@ -472,7 +472,7 @@ class bitfinex2 extends bitfinex {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $body = $this->json ($query);
-            $auth = '/api' . '/' . $request . $nonce . $body;
+            $auth = '/api/' . $request . $nonce . $body;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha384');
             $headers = array (
                 'bfx-nonce' => $nonce,

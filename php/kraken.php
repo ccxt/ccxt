@@ -32,6 +32,8 @@ class kraken extends Exchange {
                 'fetchWithdrawals' => true,
                 'fetchDeposits' => true,
                 'withdraw' => true,
+                'fetchLedgerEntry' => true,
+                'fetchLedger' => true,
             ),
             'marketsByAltname' => array (),
             'timeframes' => array (
@@ -197,6 +199,8 @@ class kraken extends Exchange {
                 'cacheDepositMethodsOnFetchDepositAddress' => true, // will issue up to two calls in fetchDepositAddress
                 'depositMethods' => array (),
                 'delistedMarketsById' => array (),
+                // cannot withdraw/deposit these
+                'inactiveCurrencies' => array ( 'CAD', 'USD', 'JPY', 'GBP' ),
             ),
             'exceptions' => array (
                 'EAPI:Invalid key' => '\\ccxt\\AuthenticationError',
@@ -205,10 +209,12 @@ class kraken extends Exchange {
                 'EService:Unavailable' => '\\ccxt\\ExchangeNotAvailable',
                 'EDatabase:Internal error' => '\\ccxt\\ExchangeNotAvailable',
                 'EService:Busy' => '\\ccxt\\ExchangeNotAvailable',
-                'EAPI:Rate limit exceeded' => '\\ccxt\\DDoSProtection',
                 'EQuery:Unknown asset' => '\\ccxt\\ExchangeError',
+                'EAPI:Rate limit exceeded' => '\\ccxt\\DDoSProtection',
+                'EOrder:Rate limit exceeded' => '\\ccxt\\DDoSProtection',
                 'EGeneral:Internal error' => '\\ccxt\\ExchangeNotAvailable',
                 'EGeneral:Temporary lockout' => '\\ccxt\\DDoSProtection',
+                'EGeneral:Permission denied' => '\\ccxt\\PermissionDenied',
             ),
         ));
     }
@@ -346,23 +352,36 @@ class kraken extends Exchange {
 
     public function fetch_currencies ($params = array ()) {
         $response = $this->publicGetAssets ($params);
-        $currencies = $response['result'];
+        //
+        //     {
+        //         "error" => array (),
+        //         "$result" => array (
+        //             "ADA" => array ( "aclass" => "$currency", "altname" => "ADA", "decimals" => 8, "display_decimals" => 6 ),
+        //             "BCH" => array ( "aclass" => "$currency", "altname" => "BCH", "decimals" => 10, "display_decimals" => 5 ),
+        //             ...
+        //         ),
+        //     }
+        //
+        $currencies = $this->safe_value($response, 'result');
         $ids = is_array ($currencies) ? array_keys ($currencies) : array ();
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $currency = $currencies[$id];
             // todo => will need to rethink the fees
+            // see => https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            $code = $this->common_currency_code($currency['altname']);
-            $precision = $currency['decimals'];
+            $code = $this->common_currency_code($this->safe_string($currency, 'altname'));
+            $precision = $this->safe_integer($currency, 'decimals');
+            // assumes all $currencies are $active except those listed above
+            $active = !$this->in_array($code, $this->options['inactiveCurrencies']);
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
                 'info' => $currency,
                 'name' => $code,
-                'active' => true,
+                'active' => $active,
                 'fee' => null,
                 'precision' => $precision,
                 'limits' => array (
@@ -524,6 +543,140 @@ class kraken extends Exchange {
         $response = $this->publicGetOHLC (array_merge ($request, $params));
         $ohlcvs = $response['result'][$market['id']];
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_ledger_entry ($item, $currency = null) {
+        // { 'LTFK7F-N2CUX-PNY4SX' => array (   refid => "TSJTGT-DT7WN-GPPQMJ",
+        //                               $time =>  1520102320.555,
+        //                               $type => "trade",
+        //                             aclass => "$currency",
+        //                              asset => "XETH",
+        //                             $amount => "0.1087194600",
+        //                                $fee => "0.0000000000",
+        //                            balance => "0.2855851000"         ), ... }
+        $id = $this->safe_string($item, 'id');
+        $direction = null;
+        $account = null;
+        $referenceId = $this->safe_string($item, 'refid');
+        $referenceAccount = null;
+        $type = null;
+        $itemType = $this->safe_string($item, 'type');
+        if ($itemType === 'trade') {
+            $type = 'trade';
+        } else if ($itemType === 'withdrawal') {
+            $type = 'transaction';
+        } else if ($itemType === 'deposit') {
+            $type = 'transaction';
+        } else if ($itemType === 'margin') {
+            $type = 'margin'; // ← this needs to be unified
+        } else {
+            throw new ExchangeError ($this->id . ' unsupported ledger $item $type => ' . $itemType);
+        }
+        $code = $this->safeCurrencyCode ($item, 'asset', $currency);
+        $amount = $this->safe_float($item, 'amount');
+        if ($amount < 0) {
+            $direction = 'out';
+            $amount = abs ($amount);
+        } else {
+            $direction = 'in';
+        }
+        $time = $this->safe_float($item, 'time');
+        $timestamp = null;
+        $datetime = null;
+        if ($time !== null) {
+            $timestamp = intval ($time * 1000);
+            $datetime = $this->iso8601 ($timestamp);
+        }
+        $fee = array (
+            'cost' => $this->safe_float($item, 'fee'),
+            'currency' => $code,
+        );
+        $before = null;
+        $after = $this->safe_float($item, 'balance');
+        return array (
+            'info' => $item,
+            'id' => $id,
+            'direction' => $direction,
+            'account' => $account,
+            'referenceId' => $referenceId,
+            'referenceAccount' => $referenceAccount,
+            'type' => $type,
+            'currency' => $code,
+            'amount' => $amount,
+            'before' => $before,
+            'after' => $after,
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
+            'fee' => $fee,
+        );
+    }
+
+    public function fetch_ledger ($code = null, $since = null, $limit = null, $params = array ()) {
+        // https://www.kraken.com/features/api#get-ledgers-info
+        $this->load_markets();
+        $request = array ();
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+            $request['asset'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['start'] = intval ($since / 1000);
+        }
+        $response = $this->privatePostLedgers (array_merge ($request, $params));
+        // {  error => array (),
+        //   result => { $ledger => { 'LPUAIB-TS774-UKHP7X' => array (   refid => "A2B4HBV-L4MDIE-JU4N3N",
+        //                                                   time =>  1520103488.314,
+        //                                                   type => "withdrawal",
+        //                                                 aclass => "$currency",
+        //                                                  asset => "XETH",
+        //                                                 amount => "-0.2805800000",
+        //                                                    fee => "0.0050000000",
+        //                                                balance => "0.0000051000"           ),
+        $ledger = $response['result']['ledger'];
+        $keys = is_array ($ledger) ? array_keys ($ledger) : array ();
+        $items = array ();
+        for ($i = 0; $i < count ($keys); $i++) {
+            $key = $keys[$i];
+            $value = $ledger[$key];
+            $value['id'] = $key;
+            $items[] = $value;
+        }
+        return $this->parse_ledger($items, $currency, $since, $limit);
+    }
+
+    public function fetch_ledger_entrys_by_ids ($ids, $code = null, $params = array ()) {
+        // https://www.kraken.com/features/api#query-ledgers
+        $this->load_markets();
+        $ids = implode (',', $ids);
+        $request = array_merge (array (
+            'id' => $ids,
+        ), $params);
+        $response = $this->privatePostQueryLedgers ($request);
+        // {  error => array (),
+        //   $result => { 'LPUAIB-TS774-UKHP7X' => {   refid => "A2B4HBV-L4MDIE-JU4N3N",
+        //                                         time =>  1520103488.314,
+        //                                         type => "withdrawal",
+        //                                       aclass => "currency",
+        //                                        asset => "XETH",
+        //                                       amount => "-0.2805800000",
+        //                                          fee => "0.0050000000",
+        //                                      balance => "0.0000051000"           } } }
+        $result = $response['result'];
+        $keys = is_array ($result) ? array_keys ($result) : array ();
+        $items = array ();
+        for ($i = 0; $i < count ($keys); $i++) {
+            $key = $keys[$i];
+            $value = $result[$key];
+            $value['id'] = $key;
+            $items[] = $value;
+        }
+        return $this->parse_ledger($items);
+    }
+
+    public function fetch_ledger_entry ($id, $code = null, $params = array ()) {
+        $items = $this->fetch_ledger_entrys_by_ids (array ( $id ), $code, $params);
+        return $items[0];
     }
 
     public function parse_trade ($trade, $market = null) {

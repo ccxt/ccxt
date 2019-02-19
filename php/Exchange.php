@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.147';
+$version = '1.18.265';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.147';
+    const VERSION = '1.18.265';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -166,6 +166,7 @@ class Exchange {
         'hitbtc',
         'hitbtc2',
         'huobipro',
+        'huobiru',
         'ice3x',
         'independentreserve',
         'indodax',
@@ -174,6 +175,7 @@ class Exchange {
         'kkex',
         'kraken',
         'kucoin',
+        'kucoin2',
         'kuna',
         'lakebtc',
         'lbank',
@@ -191,9 +193,7 @@ class Exchange {
         'okex',
         'paymium',
         'poloniex',
-        'qryptos',
         'quadrigacx',
-        'quoinex',
         'rightbtc',
         'southxchange',
         'surbitcoin',
@@ -207,7 +207,6 @@ class Exchange {
         'vaultoro',
         'vbtc',
         'virwox',
-        'wex',
         'xbtce',
         'yobit',
         'yunbi',
@@ -902,6 +901,20 @@ class Exchange {
             $this->set_markets ($this->markets);
     }
 
+    public function set_sandbox_mode ($enabled) {
+        if ($enabled) {
+            if (array_key_exists ('test', $this->urls)) {
+                $this->urls['api_backup'] = $this->urls['api'];
+                $this->urls['api'] = $this->urls['test'];
+            } else {
+                throw new NotSupported ($this->id . " does not have a sandbox URL");
+            }
+        } else if (array_key_exists ('api_backup', $this->urls)) {
+            $this->urls['api'] = $this->urls['api_backup'];
+            unset ($this->urls['api_backup']);
+        }
+    }
+
     public function define_rest_api ($api, $method_name, $options = array ()) {
         foreach ($api as $type => $methods)
             foreach ($methods as $http_method => $paths)
@@ -1023,8 +1036,8 @@ class Exchange {
         // it's a stub function, does nothing in base code
     }
 
-    public function parse_json ($json_string) {
-        return json_decode ($json_string, $as_associative_array = true);
+    public function parse_json ($json_string, $as_associative_array = true) {
+        return json_decode ($json_string, $as_associative_array);
     }
 
     public function fetch ($url, $method = 'GET', $headers = null, $body = null) {
@@ -1164,8 +1177,8 @@ class Exchange {
         $json_response = null;
 
         if ($this->is_json_encoded_object ($result)) {
-         
-            $json_response = $this->parse_json ($result, $as_associative_array = true);
+
+            $json_response = $this->parse_json ($result);
 
             if ($this->enableLastJsonResponse) {
                 $this->last_json_response = $json_response;
@@ -1241,7 +1254,7 @@ class Exchange {
             }
         }
 
-        return $json_response ? $json_response : $result;
+        return isset ($json_response) ? $json_response : $result;
     }
 
     public function set_markets ($markets, $currencies = null) {
@@ -1316,6 +1329,23 @@ class Exchange {
         if (array_key_exists ('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'])
             $currencies = $this->fetch_currencies ();
         return $this->set_markets ($markets, $currencies);
+    }
+
+    public function loadAccounts ($reload = false, $params = array()) {
+        return $this->load_accounts ($reload, $params);
+    }
+
+    public function load_accounts ($reload = false, $params = array()) {
+        if ($reload) {
+            $this->accounts = $this->fetch_accounts ($params);
+        } else {
+            if ($this->accounts) {
+                return $this->accounts;
+            } else {
+                $this->accounts = $this->fetch_accounts ($params);
+            }
+        }
+        return $this->accounts;
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
@@ -1488,6 +1518,20 @@ class Exchange {
         return $this->parse_trades ($trades, $market, $since, $limit);
     }
 
+    public function parse_ledger ($items, $currency = null, $since = null, $limit = null) {
+        $array = is_array ($items) ? array_values ($items) : array ();
+        $result = array ();
+        foreach ($array as $item)
+            $result[] = $this->parse_ledger_entry ($item, $currency);
+        $result = $this->sort_by ($result, 'timestamp');
+        $code = isset ($currency) ? $currency['code'] : null;
+        return $this->filter_by_currency_since_limit ($result, $code, $since, $limit);
+    }
+
+    public function parseLedger ($items, $currency = null, $since = null, $limit = null) {
+        return $this->parse_ledger ($items, $currency, $since, $limit);
+    }
+
     public function parse_transactions ($transactions, $currency = null, $since = null, $limit = null) {
         $array = is_array ($transactions) ? array_values ($transactions) : array ();
         $result = array ();
@@ -1498,8 +1542,8 @@ class Exchange {
         return $this->filter_by_currency_since_limit ($result, $code, $since, $limit);
     }
 
-    public function parseTransactions ($transactions, $side, $market = null, $since = null, $limit = null) {
-        return $this->parse_transactions ($transactions, $side, $market, $since, $limit);
+    public function parseTransactions ($transactions, $currency = null, $since = null, $limit = null) {
+        return $this->parse_transactions ($transactions, $currency, $since, $limit);
     }
 
     public function parse_orders ($orders, $market = null, $since = null, $limit = null) {
@@ -1514,6 +1558,24 @@ class Exchange {
 
     public function parseOrders ($orders, $market = null, $since = null, $limit = null) {
         return $this->parse_orders ($orders, $market, $since, $limit);
+    }
+
+    public function safe_currency_code ($data, $key, $currency = null) {
+        $code = null;
+        $currency_id = $this->safe_string($data, $key);
+        if (is_array ($this->currencies_by_id) && array_key_exists ($currency_id, $this->currencies_by_id)) {
+            $currency = $this->currencies_by_id[$currency_id];
+        } else {
+            $code = $this->common_currency_code($currency_id);
+        }
+        if ($currency !== null) {
+            $code = $currency['code'];
+        }
+        return $code;
+    }
+
+    public function safeCurrencyCode ($data, $key, $currency = null) {
+        return $this->safe_currency_code ($data, $key, $currency);
     }
 
     public function filter_by_symbol ($array, $symbol = null) {

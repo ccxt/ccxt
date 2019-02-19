@@ -23,7 +23,7 @@ class coinmate extends Exchange {
                 'api' => 'https://coinmate.io/api',
                 'www' => 'https://coinmate.io',
                 'doc' => array (
-                    'http://docs.coinmate.apiary.io',
+                    'https://coinmate.docs.apiary.io',
                     'https://coinmate.io/developers',
                 ),
                 'referral' => 'https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0',

@@ -99,6 +99,7 @@ module.exports = class binance extends Exchange {
                         'ping',
                         'time',
                         'depth',
+                        'trades',
                         'aggTrades',
                         'klines',
                         'ticker/24hr',
@@ -256,10 +257,10 @@ module.exports = class binance extends Exchange {
             },
             'commonCurrencies': {
                 'YOYO': 'YOYOW',
-                'BCC': 'BCH',
             },
             // exchange-specific options
             'options': {
+                'fetchTradesMethod': 'publicGetAggTrades',
                 'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultLimitOrderType': 'limit', // or 'limit_maker'
@@ -526,20 +527,61 @@ module.exports = class binance extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestampField = ('T' in trade) ? 'T' : 'time';
-        let timestamp = this.safeInteger (trade, timestampField);
-        let priceField = ('p' in trade) ? 'p' : 'price';
-        let price = this.safeFloat (trade, priceField);
-        let amountField = ('q' in trade) ? 'q' : 'qty';
-        let amount = this.safeFloat (trade, amountField);
-        let idField = ('a' in trade) ? 'a' : 'id';
-        let id = this.safeString (trade, idField);
+        //
+        // aggregate trades
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
+        //
+        //     {
+        //         "a": 26129,         // Aggregate tradeId
+        //         "p": "0.01633102",  // Price
+        //         "q": "4.70443515",  // Quantity
+        //         "f": 27781,         // First tradeId
+        //         "l": 27781,         // Last tradeId
+        //         "T": 1498793709153, // Timestamp
+        //         "m": true,          // Was the buyer the maker?
+        //         "M": true           // Was the trade the best price match?
+        //     }
+        //
+        // recent public trades and old public trades
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#recent-trades-list
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#old-trade-lookup-market_data
+        //
+        //     {
+        //         "id": 28457,
+        //         "price": "4.00000100",
+        //         "qty": "12.00000000",
+        //         "time": 1499865549590,
+        //         "isBuyerMaker": true,
+        //         "isBestMatch": true
+        //     }
+        //
+        // private trades
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#account-trade-list-user_data
+        //
+        //     {
+        //         "symbol": "BNBBTC",
+        //         "id": 28457,
+        //         "orderId": 100234,
+        //         "price": "4.00000100",
+        //         "qty": "12.00000000",
+        //         "commission": "10.10000000",
+        //         "commissionAsset": "BNB",
+        //         "time": 1499865549590,
+        //         "isBuyer": true,
+        //         "isMaker": false,
+        //         "isBestMatch": true
+        //     }
+        //
+        let timestamp = this.safeInteger2 (trade, 'T', 'time');
+        let price = this.safeFloat2 (trade, 'p', 'price');
+        let amount = this.safeFloat2 (trade, 'q', 'qty');
+        let id = this.safeString2 (trade, 'a', 'id');
         let side = undefined;
-        let order = undefined;
-        if ('orderId' in trade)
-            order = this.safeString (trade, 'orderId');
+        let order = this.safeString (trade, 'orderId');
         if ('m' in trade) {
             side = trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
+        } else if ('isBuyerMaker' in trade) {
+            side = trade['isBuyerMaker'] ? 'sell' : 'buy';
         } else {
             if ('isBuyer' in trade)
                 side = (trade['isBuyer']) ? 'buy' : 'sell'; // this is a true side
@@ -584,17 +626,20 @@ module.exports = class binance extends Exchange {
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
+            // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
+            // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
+            // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
+            // 'limit': 500,     // default = 500, maximum = 1000
         };
-        if (since !== undefined) {
-            request['startTime'] = since;
-            request['endTime'] = this.sum (since, 3600000);
+        if (this.options['fetchTradesMethod'] === 'publicGetAggTrades') {
+            if (since !== undefined) {
+                request['startTime'] = since;
+                request['endTime'] = this.sum (since, 3600000);
+            }
         }
-        if (limit !== undefined)
-            request['limit'] = limit;
-        // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
-        // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
-        // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
-        // 'limit': 500,     // default = 500, maximum = 1000
+        if (limit !== undefined) {
+            request['limit'] = limit; // default = 500, maximum = 1000
+        }
         //
         // Caveats:
         // - default limit (500) applies only if no other parameters set, trades up
@@ -604,7 +649,37 @@ module.exports = class binance extends Exchange {
         // - 'tradeId' accepted and returned by this method is "aggregate" trade id
         //   which is different from actual trade id
         // - setting both fromId and time window results in error
-        let response = await this.publicGetAggTrades (this.extend (request, params));
+        const method = this.safeValue (this.options, 'fetchTradesMethod', 'publicGetTrades');
+        let response = await this[method] (this.extend (request, params));
+        //
+        // aggregate trades
+        //
+        //     [
+        //         {
+        //             "a": 26129,         // Aggregate tradeId
+        //             "p": "0.01633102",  // Price
+        //             "q": "4.70443515",  // Quantity
+        //             "f": 27781,         // First tradeId
+        //             "l": 27781,         // Last tradeId
+        //             "T": 1498793709153, // Timestamp
+        //             "m": true,          // Was the buyer the maker?
+        //             "M": true           // Was the trade the best price match?
+        //         }
+        //     ]
+        //
+        // recent public trades and historical public trades
+        //
+        //     [
+        //         {
+        //             "id": 28457,
+        //             "price": "4.00000100",
+        //             "qty": "12.00000000",
+        //             "time": 1499865549590,
+        //             "isBuyerMaker": true,
+        //             "isBestMatch": true
+        //         }
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -873,6 +948,23 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined)
             request['limit'] = limit;
         let response = await this.privateGetMyTrades (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "symbol": "BNBBTC",
+        //             "id": 28457,
+        //             "orderId": 100234,
+        //             "price": "4.00000100",
+        //             "qty": "12.00000000",
+        //             "commission": "10.10000000",
+        //             "commissionAsset": "BNB",
+        //             "time": 1499865549590,
+        //             "isBuyer": true,
+        //             "isMaker": false,
+        //             "isBestMatch": true
+        //         }
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 

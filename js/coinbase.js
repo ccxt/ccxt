@@ -161,7 +161,7 @@ module.exports = class coinbase extends Exchange {
         return this.parse8601 (data['iso']);
     }
 
-    async loadAccounts (reload = false) {
+    async loadAccounts (reload = false, params = {}) {
         if (reload) {
             this.accounts = await this.fetchAccounts ();
         } else {
@@ -175,9 +175,9 @@ module.exports = class coinbase extends Exchange {
         return this.accounts;
     }
 
-    async fetchAccounts () {
+    async fetchAccounts (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetAccounts ();
+        let response = await this.privateGetAccounts (params);
         return response['data'];
     }
 

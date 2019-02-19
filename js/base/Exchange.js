@@ -11,6 +11,7 @@ const {
     , values
     , deepExtend
     , extend
+    , clone
     , flatten
     , unique
     , indexBy
@@ -434,8 +435,16 @@ module.exports = class Exchange {
 
             const params = { method, headers, body, timeout: this.timeout }
 
-            if (url.indexOf ('http://') < 0) {
-                params['agent'] = this.agent || null;
+            if (this.httpAgent && url.indexOf ('http://') === 0) {
+                params['agent'] = this.httpAgent;
+            } else if (this.httpsAgent && url.indexOf ('https://') === 0) {
+                params['agent'] = this.httpsAgent;
+            } else if (this.agent) {
+                const [ protocol, ... rest ] = url.split ('//')
+                // this.agent.protocol contains a colon ('https:' or 'http:')
+                if (protocol === this.agent.protocol) {
+                    params['agent'] = this.agent;
+                }
             }
 
             let promise =
@@ -452,6 +461,19 @@ module.exports = class Exchange {
                     throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)')
                 throw e
             })
+        }
+    }
+
+    setSandboxMode (enabled) {
+        if (!!enabled) {
+            if ('test' in this.urls) {
+                this.urls['api_backup'] = clone (this.urls['api'])
+                this.urls['api'] = clone (this.urls['test'])
+            } else {
+                throw new NotSupported (this.id + ' does not have a sandbox URL')
+            }
+        } else if ('api_backup' in this.urls) {
+            this.urls['api'] = clone (this.urls['api_backup'])
         }
     }
 
@@ -722,6 +744,19 @@ module.exports = class Exchange {
             currencies = await this.fetchCurrencies ()
         }
         return this.setMarkets (markets, currencies)
+    }
+
+    async loadAccounts (reload = false, params = {}) {
+        if (reload) {
+            this.accounts = await this.fetchAccounts (params);
+        } else {
+            if (this.accounts) {
+                return this.accounts;
+            } else {
+                this.accounts = await this.fetchAccounts (params);
+            }
+        }
+        return this.accounts;
     }
 
     fetchBidsAsks (symbols = undefined, params = {}) {
@@ -1154,6 +1189,17 @@ module.exports = class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
+    parseLedger (data, currency = undefined, since = undefined, limit = undefined) {
+        let result = [];
+        let array = Object.values (data || []);
+        for (let i = 0; i < array.length; i++) {
+            result.push (this.parseLedgerEntry (array[i], currency));
+        }
+        result = this.sortBy (result, 'timestamp');
+        let code = (currency !== undefined) ? currency['code'] : undefined;
+        return this.filterByCurrencySinceLimit (result, code, since, limit);
+    }
+
     parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
         // this code is commented out temporarily to catch for exchange-specific errors
         // if (!this.isArray (orders)) {
@@ -1163,6 +1209,20 @@ module.exports = class Exchange {
         result = sortBy (result, 'timestamp')
         let symbol = (market !== undefined) ? market['symbol'] : undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
+    }
+
+    safeCurrencyCode (data, key, currency = undefined) {
+        let code = undefined;
+        let currencyId = this.safeString (data, key);
+        if (currencyId in this.currencies_by_id) {
+            currency = this.currencies_by_id[currencyId];
+        } else {
+            code = this.commonCurrencyCode (currencyId);
+        }
+        if (currency !== undefined) {
+            code = currency['code'];
+        }
+        return code;
     }
 
     filterBySymbol (array, symbol = undefined) {
@@ -1519,8 +1579,22 @@ module.exports = class Exchange {
         const signature = this.signMessage (orderHash, privateKey);
         return this.extend (order, {
             'orderHash': orderHash,
-            'ecSignature': signature, // todo fix v if needed
+            'signature': this.convertECSignatureToSignatureHex(signature),
         })
+    }
+
+    convertECSignatureToSignatureHex (signature) {
+        // https://github.com/0xProject/0x-monorepo/blob/development/packages/order-utils/src/signature_utils.ts
+        let v = signature.v;
+        if (v !== 27 && v !== 28) {
+            v = v + 27;
+        }
+        const signatureBuffer = Buffer.concat ([
+            ethUtil.toBuffer (v),
+            ethUtil.toBuffer (signature.r),
+            ethUtil.toBuffer (signature.s)
+        ])
+        return '0x' + signatureBuffer.toString ('hex') + '03';
     }
 
     hashMessage (message) {

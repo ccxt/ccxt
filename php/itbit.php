@@ -264,11 +264,12 @@ class itbit extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $walletIdInParams = (is_array ($params) && array_key_exists ('walletId', $params));
-        if (!$walletIdInParams)
+        if (!$walletIdInParams) {
             throw new ExchangeError ($this->id . ' fetchOrder requires a walletId parameter');
-        return $this->privateGetWalletsWalletIdOrdersId (array_merge (array (
-            'id' => $id,
-        ), $params));
+        }
+        $request = array ( 'id' => $id );
+        $response = $this->privateGetWalletsWalletIdOrdersId (array_merge ($request, $params));
+        return $this->parse_order($response);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {

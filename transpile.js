@@ -35,6 +35,7 @@ function regexAll (text, array) {
 }
 
 // ----------------------------------------------------------------------------
+// TODO: rewrite commonRegexes from hardcoded logic to conversion methods
 
 const commonRegexes = [
 
@@ -60,6 +61,8 @@ const commonRegexes = [
     [ /\.parseOHLCVs\s/g, '.parse_ohlcvs'],
     [ /\.parseOHLCV\s/g, '.parse_ohlcv'],
     [ /\.parseDate\s/g, '.parse_date'],
+    [ /\.parseLedgerEntry\s/g, '.parse_ledger_entry'],
+    [ /\.parseLedger\s/g, '.parse_ledger'],
     [ /\.parseTicker\s/g, '.parse_ticker'],
     [ /\.parseTimeframe\s/g, '.parse_timeframe'],
     [ /\.parseTradesData\s/g, '.parse_trades_data'],
@@ -130,6 +133,7 @@ const commonRegexes = [
     [ /\.convertOHLCVToTradingView\s/g, '.convert_ohlcv_to_trading_view'],
     [ /\.signBodyWithSecret\s/g, '.sign_body_with_secret'],
     [ /\.isJsonEncodedObject\s/g, '.is_json_encoded_object'],
+    [ /\.setSandboxMode\s/g, '.set_sandbox_mode'],
 ]
 
 // ----------------------------------------------------------------------------
@@ -533,7 +537,7 @@ function transpileJavaScriptToPHP ({ js, variables }) {
     }
 
     // append $ to all variables in the method (PHP syntax demands $ at the beginning of a variable name)
-    let phpVariablesRegexes = allVariables.map (x => [ "([^$$a-zA-Z0-9\\.\\>'_])" + x + "([^a-zA-Z0-9'_])", '$1$$' + x + '$2' ])
+    let phpVariablesRegexes = allVariables.map (x => [ "([^$$a-zA-Z0-9\\.\\>'_/])" + x + "([^a-zA-Z0-9'_/])", '$1$$' + x + '$2' ])
 
     // support for php syntax for object-pointer dereference
     // convert all $variable.property to $variable->property

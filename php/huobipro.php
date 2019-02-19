@@ -507,9 +507,9 @@ class huobipro extends Exchange {
         return $this->parse_ohlcvs($response['data'], $market, $timeframe, $since, $limit);
     }
 
-    public function load_accounts ($reload = false) {
+    public function load_accounts ($reload = false, $params = array ()) {
         if ($reload) {
-            $this->accounts = $this->fetch_accounts ();
+            $this->accounts = $this->fetch_accounts ($params);
         } else {
             if ($this->accounts) {
                 return $this->accounts;
@@ -521,9 +521,9 @@ class huobipro extends Exchange {
         return $this->accounts;
     }
 
-    public function fetch_accounts () {
+    public function fetch_accounts ($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetAccountAccounts ();
+        $response = $this->privateGetAccountAccounts ($params);
         return $response['data'];
     }
 

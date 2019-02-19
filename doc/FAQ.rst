@@ -10,12 +10,14 @@ When asking a question:
 - Use the search button for duplicates first!
 - **Post your request and response in ``verbose`` mode!** It’s written and mentioned everywhere, in the `Troubleshooting <https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting>`__ section, in the `README <https://github.com/ccxt/ccxt/blob/master/README.md>`__ and in many answers to similar questions among `previous issues <https://github.com/ccxt/ccxt/issues>`__ and `pull requests <https://github.com/ccxt/ccxt/pulls>`__. No excuses.
 - **Post your code** to reproduce the problem. Make it a complete short runnable program, don’t swallow the lines and make it as compact as you can (5-10 lines of code), including the instantation code.
+- **DON’T POST SCREENSHOTS OF CODE OR ERRORS, POST THE OUTPUT AND CODE IN PLAIN TEXT!**
 - **Surround code and output with triple backticks: \```GOOD``\`**.
 - Don’t confuse the backtick symbol (`) with the quote symbol ('): ’‘’BAD’’’
 - Don’t confuse a single backtick with triple backticks: \`BAD\`
-- **DO NOT POST YOUR ``apiKey`` AND ``secret``!** Keep them safe (remove them before posting)!
-- Post your version number of ccxt
-- Post your language version number, how do you think we can guess it otherwise?
+
+-  **DO NOT POST YOUR ``apiKey`` AND ``secret``!** Keep them safe (remove them before posting)!
+-  Post your version number of ccxt
+-  Post your language version number, how do you think we can guess it otherwise?
 
 I am calling a method and I get an error, what am I doing wrong?
 ----------------------------------------------------------------

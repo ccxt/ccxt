@@ -11,7 +11,7 @@ module.exports = class hitbtc2 extends hitbtc {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'hitbtc2',
-            'name': 'HitBTC v2',
+            'name': 'HitBTC',
             'countries': [ 'HK' ],
             'rateLimit': 1500,
             'version': '2',
@@ -51,7 +51,10 @@ module.exports = class hitbtc2 extends hitbtc {
                 'api': 'https://api.hitbtc.com',
                 'www': 'https://hitbtc.com',
                 'referral': 'https://hitbtc.com/?ref_id=5a5d39a65d466',
-                'doc': 'https://api.hitbtc.com',
+                'doc': [
+                    'https://api.hitbtc.com',
+                    'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv2.md',
+                ],
                 'fees': [
                     'https://hitbtc.com/fees-and-limits',
                     'https://support.hitbtc.com/hc/en-us/articles/115005148605-Fees-and-limits',
@@ -861,7 +864,7 @@ module.exports = class hitbtc2 extends hitbtc {
             request['startTime'] = since;
         }
         let response = await this.privateGetAccountTransactions (this.extend (request, params));
-        return this.parseTransactions (response);
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -925,7 +928,12 @@ module.exports = class hitbtc2 extends hitbtc {
         }
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const amount = this.safeFloat (transaction, 'amount');
-        const type = this.safeString (transaction, 'type');
+        let type = this.safeString (transaction, 'type');
+        if (type === 'payin') {
+            type = 'deposit';
+        } else if (type === 'payout') {
+            type = 'withdrawal';
+        }
         const address = this.safeString (transaction, 'address');
         const txid = this.safeString (transaction, 'hash');
         return {
@@ -1296,7 +1304,7 @@ module.exports = class hitbtc2 extends hitbtc {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = '/api' + '/' + this.version + '/';
+        let url = '/api/' + this.version + '/';
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             url += api + '/' + this.implodeParams (path, params);

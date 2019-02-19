@@ -373,7 +373,7 @@ class acx (Exchange):
         return self.urlencode(self.keysort(params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = '/api' + '/' + self.version + '/' + self.implode_params(path, params)
+        request = '/api/' + self.version + '/' + self.implode_params(path, params)
         if 'extension' in self.urls:
             request += self.urls['extension']
         query = self.omit(params, self.extract_params(path))
