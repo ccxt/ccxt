@@ -760,6 +760,7 @@ module.exports = class kucoin2 extends Exchange {
         let request = {
             'currency': currency,
             'address': address,
+            'amount': amount,
         };
         if (tag !== undefined) {
             request['memo'] = tag;
