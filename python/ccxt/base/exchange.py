@@ -1075,7 +1075,7 @@ class Exchange(object):
                 return self.accounts
             else:
                 self.accounts = self.fetch_accounts(params)
-        self.accountsById = self.index_by(this.accounts, 'id')
+        self.accountsById = self.index_by(self.accounts, 'id')
         return self.accounts
 
     def populate_fees(self):
