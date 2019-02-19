@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.262'
+const version = '1.18.263'
 
 Exchange.ccxtVersion = version
 
@@ -50069,8 +50069,8 @@ module.exports = class kucoin2 extends Exchange {
             parseInt (ohlcv[0]) * 1000,
             parseFloat (ohlcv[1]),
             parseFloat (ohlcv[3]),
-            parseFloat (ohlcv[2]),
             parseFloat (ohlcv[4]),
+            parseFloat (ohlcv[2]),
             parseFloat (ohlcv[5]),
         ];
     }

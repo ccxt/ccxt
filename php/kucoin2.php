@@ -394,8 +394,8 @@ class kucoin2 extends Exchange {
             intval ($ohlcv[0]) * 1000,
             floatval ($ohlcv[1]),
             floatval ($ohlcv[3]),
-            floatval ($ohlcv[2]),
             floatval ($ohlcv[4]),
+            floatval ($ohlcv[2]),
             floatval ($ohlcv[5]),
         ];
     }
