@@ -197,7 +197,7 @@ module.exports = class kucoin2 extends Exchange {
             const quoteIncrement = this.safeFloat (market, 'quoteIncrement');
             const precision = {
                 'amount': this.precisionFromString (this.safeString (market, 'baseIncrement')),
-                'price': this.precisionFromString (this.safeString (market, 'quoteIncrement')),
+                'price': this.precisionFromString (this.safeString (market, 'priceIncrement')),
             };
             const limits = {
                 'amount': {
