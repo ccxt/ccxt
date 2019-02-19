@@ -394,8 +394,8 @@ class kucoin2 extends Exchange {
             intval ($ohlcv[0]) * 1000,
             floatval ($ohlcv[1]),
             floatval ($ohlcv[3]),
-            floatval ($ohlcv[2]),
             floatval ($ohlcv[4]),
+            floatval ($ohlcv[2]),
             floatval ($ohlcv[5]),
         ];
     }
@@ -761,6 +761,7 @@ class kucoin2 extends Exchange {
         $request = array (
             'currency' => $currency,
             'address' => $address,
+            'amount' => $amount,
         );
         if ($tag !== null) {
             $request['memo'] = $tag;

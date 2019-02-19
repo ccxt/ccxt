@@ -395,8 +395,8 @@ class kucoin2 (Exchange):
             int(ohlcv[0]) * 1000,
             float(ohlcv[1]),
             float(ohlcv[3]),
-            float(ohlcv[2]),
             float(ohlcv[4]),
+            float(ohlcv[2]),
             float(ohlcv[5]),
         ]
 
@@ -726,6 +726,7 @@ class kucoin2 (Exchange):
         request = {
             'currency': currency,
             'address': address,
+            'amount': amount,
         }
         if tag is not None:
             request['memo'] = tag
