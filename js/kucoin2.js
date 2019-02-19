@@ -21,6 +21,7 @@ module.exports = class kucoin2 extends Exchange {
                 'fetchMarkets': true,
                 'fetchCurrencies': true,
                 'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchOrderBook': true,
                 'fetchOrder': true,
                 'fetchClosedOrders': true,
@@ -64,6 +65,7 @@ module.exports = class kucoin2 extends Exchange {
                     'get': [
                         'timestamp',
                         'symbols',
+                        'market/allTickers',
                         'market/orderbook/level{level}',
                         'market/histories',
                         'market/candles',
@@ -325,8 +327,23 @@ module.exports = class kucoin2 extends Exchange {
         const baseVolume = this.safeFloat (ticker, 'vol');
         const quoteVolume = this.safeFloat (ticker, 'volValue');
         let symbol = undefined;
-        if (market)
-            symbol = market['symbol'];
+        const marketId = this.safeString (ticker, 'symbol');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.commonCurrencyCode (baseId);
+                const quote = this.commonCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if (symbol === undefined) {
+            if (market !== undefined) {
+                symbol = market['symbol'];
+            }
+        }
         return {
             'symbol': symbol,
             'timestamp': undefined,
@@ -349,6 +366,38 @@ module.exports = class kucoin2 extends Exchange {
             'quoteVolume': quoteVolume,
             'info': ticker,
         };
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetMarketAllTickers (params);
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "symbol": "LOOM-BTC",
+        //                 "changeRate": "-0.0545",
+        //                 "changePrice": "-0.00000064",
+        //                 "open": "0.00001173",
+        //                 "close": "0.00001109",
+        //                 "high": "0.00001212",
+        //                 "low": "0.00001109",
+        //                 "vol": "4706.7114",
+        //                 "volValue": "0.055227432084"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = {};
+        for (let i = 0; i < data.length; i++) {
+            const ticker = this.parseTicker (data[i]);
+            const symbol = this.safeString (ticker, 'symbol');
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
+        }
+        return result;
     }
 
     async fetchTicker (symbol, params = {}) {
