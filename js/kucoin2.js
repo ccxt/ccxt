@@ -387,7 +387,7 @@ module.exports = class kucoin2 extends Exchange {
         //         "0.049",                  // lowest price
         //         "0.018",                  // base volume
         //         "0.000945",               // quote volume
-        //     ]       
+        //     ]
         //
         return [
             parseInt (ohlcv[0]) * 1000,
