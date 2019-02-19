@@ -8,7 +8,7 @@
     Once a file has been added to the repository, it cannot be ignored, all further changes will
     be tracked by Git.
 
-    There is an another mechanism that supresses the tracking of the file locally:
+    There is an another mechanism that suppresses the tracking of the file locally:
 
         git update-index --assume-unchanged <file>
 
@@ -17,7 +17,7 @@
 
 */
 
-"use strict";
+"use strict"
 
 const { execSync } = require ('child_process')
 const log          = require ('ololog')
