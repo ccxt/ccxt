@@ -726,6 +726,7 @@ class kucoin2 (Exchange):
         request = {
             'currency': currency,
             'address': address,
+            'amount': amount,
         }
         if tag is not None:
             request['memo'] = tag

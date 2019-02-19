@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.261'
+const version = '1.18.262'
 
 Exchange.ccxtVersion = version
 
@@ -50436,6 +50436,7 @@ module.exports = class kucoin2 extends Exchange {
         let request = {
             'currency': currency,
             'address': address,
+            'amount': amount,
         };
         if (tag !== undefined) {
             request['memo'] = tag;

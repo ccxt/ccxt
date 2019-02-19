@@ -761,6 +761,7 @@ class kucoin2 extends Exchange {
         $request = array (
             'currency' => $currency,
             'address' => $address,
+            'amount' => $amount,
         );
         if ($tag !== null) {
             $request['memo'] = $tag;
