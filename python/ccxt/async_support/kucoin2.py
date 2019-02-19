@@ -904,7 +904,8 @@ class kucoin2 (Exchange):
                 'KC-API-PASSPHRASE': self.password,
             }, headers)
             payload = timestamp + method + endpoint + endpart
-            headers['KC-API-SIGN'] = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
+            signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
+            headers['KC-API-SIGN'] = self.decode(signature)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response):

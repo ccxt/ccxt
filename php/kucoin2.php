@@ -957,7 +957,8 @@ class kucoin2 extends Exchange {
                 'KC-API-PASSPHRASE' => $this->password,
             ), $headers);
             $payload = $timestamp . $method . $endpoint . $endpart;
-            $headers['KC-API-SIGN'] = $this->hmac ($this->encode ($payload), $this->encode ($this->secret), 'sha256', 'base64');
+            $signature = $this->hmac ($this->encode ($payload), $this->encode ($this->secret), 'sha256', 'base64');
+            $headers['KC-API-SIGN'] = $this->decode ($signature);
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
