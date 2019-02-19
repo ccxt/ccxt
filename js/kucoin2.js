@@ -379,21 +379,23 @@ module.exports = class kucoin2 extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         //
-        //   [ [ "1545904980",             //Start time of the candle cycle
-        //       "0.058",                  //opening price
-        //       "0.049",                  //closing price
-        //       "0.058",                  //highest price
-        //       "0.049",                  //lowest price
-        //       "0.018",                  //Transaction amount
-        //       "0.000945" ], ... ]       //Transaction volume
+        //     [
+        //         "1545904980",             // Start time of the candle cycle
+        //         "0.058",                  // opening price
+        //         "0.049",                  // closing price
+        //         "0.058",                  // highest price
+        //         "0.049",                  // lowest price
+        //         "0.018",                  // base volume
+        //         "0.000945",               // quote volume
+        //     ]       
         //
         const timestamp = this.safeInteger (ohlcv, 0) * 1000;
         const open = this.safeFloat (ohlcv, 1);
         const close = this.safeFloat (ohlcv, 2);
         const high = this.safeFloat (ohlcv, 3);
         const low = this.safeFloat (ohlcv, 4);
-        const volume = this.safeFloat (ohlcv, 5);
-        return [timestamp, open, high, low, close, volume];
+        const baseVolume = this.safeFloat (ohlcv, 5);
+        return [timestamp, open, high, low, close, baseVolume];
     }
 
     async fetchOHLCV (symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
