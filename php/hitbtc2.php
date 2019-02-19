@@ -12,7 +12,7 @@ class hitbtc2 extends hitbtc {
     public function describe () {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'hitbtc2',
-            'name' => 'HitBTC v2',
+            'name' => 'HitBTC',
             'countries' => array ( 'HK' ),
             'rateLimit' => 1500,
             'version' => '2',
