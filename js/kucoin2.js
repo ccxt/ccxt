@@ -389,13 +389,14 @@ module.exports = class kucoin2 extends Exchange {
         //         "0.000945",               // quote volume
         //     ]       
         //
-        const timestamp = this.safeInteger (ohlcv, 0) * 1000;
-        const open = this.safeFloat (ohlcv, 1);
-        const close = this.safeFloat (ohlcv, 2);
-        const high = this.safeFloat (ohlcv, 3);
-        const low = this.safeFloat (ohlcv, 4);
-        const baseVolume = this.safeFloat (ohlcv, 5);
-        return [timestamp, open, high, low, close, baseVolume];
+        return [
+            parseInt (ohlcv[0]) * 1000,
+            parseFloat (ohlcv[1]),
+            parseFloat (ohlcv[3]),
+            parseFloat (ohlcv[2]),
+            parseFloat (ohlcv[4]),
+            parseFloat (ohlcv[5]),
+        ];
     }
 
     async fetchOHLCV (symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
