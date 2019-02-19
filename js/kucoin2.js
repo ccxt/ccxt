@@ -323,7 +323,10 @@ module.exports = class kucoin2 extends Exchange {
         //     }
         //
         const change = this.safeFloat (ticker, 'changePrice');
-        const percentage = this.safeFloat (ticker, 'changeRate');
+        let percentage = this.safeFloat (ticker, 'changeRate');
+        if (percentage !== undefined) {
+            percentage = percentage * 100;
+        }
         const open = this.safeFloat (ticker, 'open');
         const last = this.safeFloat (ticker, 'close');
         const high = this.safeFloat (ticker, 'high');
