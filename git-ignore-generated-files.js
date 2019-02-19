@@ -26,6 +26,14 @@ const files = [
 
     'build/ccxt.browser.js'
 
+    'python/test/test_decimal_to_precision.py',
+    'php/test/decimal_to_precision.php',
+
+    'python/test/test_exchange_datetime_functions.py',
+    'php/test/test_exchange_datetime_functions.php',
+
+    'python/test/test.py',
+
     // NB: Add more transpiled files here
 ]
 
