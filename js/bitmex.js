@@ -25,6 +25,7 @@ module.exports = class bitmex extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchMyTrades': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -328,6 +329,28 @@ module.exports = class bitmex extends Exchange {
         return this.filterBy (orders, 'status', 'closed');
     }
 
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        let request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined)
+            request['startTime'] = this.iso8601 (since);
+        if (limit !== undefined)
+            request['count'] = limit;
+        request = this.deepExtend (request, params);
+        // why the hassle? urlencode in python is kinda broken for nested dicts.
+        // E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
+        // Bitmex doesn't like that. Hence resorting to this hack.
+        if ('filter' in request)
+            request['filter'] = this.json (request['filter']);
+        let response = await this.privateGetExecutionTradeHistory (request);
+        return this.parseTrades (response, market, since, limit);
+    }
+
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -533,6 +556,33 @@ module.exports = class bitmex extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let timestamp = this.parse8601 (trade['timestamp']);
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat2 (trade, 'size', 'lastQty');
+        let id = this.safeString (trade, 'trdMatchID');
+        let order = this.safeString (trade, 'orderID');
+        let side = this.safeString (trade, 'side').toLowerCase ();
+        // price * amount doesn't work for all symbols (e.g. XBT, ETH)
+        let cost = this.safeFloat (trade, 'execCost');
+        if (cost !== undefined) {
+            cost = Math.abs (cost) / 100000000;
+        }
+        let fee = undefined;
+        if ('execComm' in trade) {
+            let feeCost = this.safeFloat (trade, 'execComm');
+            feeCost = feeCost / 100000000;
+            let currencyId = this.safeString (trade, 'currency');
+            currencyId = currencyId.toUpperCase ();
+            const feeCurrency = this.commonCurrencyCode (currencyId);
+            let feeRate = this.safeFloat (trade, 'commission');
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+                'rate': feeRate,
+            };
+        }
+        let takerOrMaker = undefined;
+        if (fee !== undefined)
+            takerOrMaker = fee['cost'] < 0 ? 'maker' : 'taker';
         let symbol = undefined;
         if (market === undefined) {
             if ('symbol' in trade)
@@ -541,16 +591,19 @@ module.exports = class bitmex extends Exchange {
         if (market)
             symbol = market['symbol'];
         return {
-            'id': trade['trdMatchID'],
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'order': undefined,
+            'id': id,
+            'order': order,
             'type': undefined,
-            'side': trade['side'].toLowerCase (),
-            'price': trade['price'],
-            'amount': trade['size'],
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'fee': fee,
         };
     }
 
