@@ -1302,7 +1302,7 @@ class Exchange {
             }, array_filter ($values, function ($market) {
                 return array_key_exists ('quote', $market);
             }));
-            $currencies = static::index_by (array_merge ($base_currencies, $quote_currencies), 'code');R
+            $currencies = static::index_by (array_merge ($base_currencies, $quote_currencies), 'code');
             $this->currencies = array_replace_recursive ($currencies, $this->currencies);
         }
         $this->currencies_by_id = static::index_by (array_values ($this->currencies), 'id');
