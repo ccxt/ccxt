@@ -729,7 +729,7 @@ class kucoin2 (Exchange):
         }
         if tag is not None:
             request['memo'] = tag
-        response = self.privatePostWithdrawal(self.extend(request, params))
+        response = self.privatePostWithdrawals(self.extend(request, params))
         #
         # {"withdrawalId": "5bffb63303aa675e8bbe18f9"}
         #

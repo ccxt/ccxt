@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.260'
+const version = '1.18.261'
 
 Exchange.ccxtVersion = version
 
@@ -50440,7 +50440,7 @@ module.exports = class kucoin2 extends Exchange {
         if (tag !== undefined) {
             request['memo'] = tag;
         }
-        const response = await this.privatePostWithdrawal (this.extend (request, params));
+        const response = await this.privatePostWithdrawals (this.extend (request, params));
         //
         // { "withdrawalId": "5bffb63303aa675e8bbe18f9" }
         //

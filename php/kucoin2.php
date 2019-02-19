@@ -765,7 +765,7 @@ class kucoin2 extends Exchange {
         if ($tag !== null) {
             $request['memo'] = $tag;
         }
-        $response = $this->privatePostWithdrawal (array_merge ($request, $params));
+        $response = $this->privatePostWithdrawals (array_merge ($request, $params));
         //
         // array ( "withdrawalId" => "5bffb63303aa675e8bbe18f9" )
         //
