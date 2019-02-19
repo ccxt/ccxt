@@ -436,22 +436,17 @@ module.exports = class kucoin2 extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
-        const request = { 'symbol': marketId, 'level': 3 };
-        const requestParams = this.extend (request, params);
-        const response = await this.publicGetMarketOrderbookLevelLevel (requestParams);
+        const request = this.extend ({ 'symbol': marketId, 'level': 2 }, params);
+        const response = await this.publicGetMarketOrderbookLevelLevel (request);
         //
         // { sequence: '1547731421688',
         //   asks: [ [ '5c419328ef83c75456bd615c', '0.9', '0.09' ], ... ],
         //   bids: [ [ '5c419328ef83c75456bd615c', '0.9', '0.09' ], ... ], }
         //
-        const responseData = response['data'];
-        const timestamp = this.safeInteger (responseData, 'sequence');
+        const data = response['data'];
+        const timestamp = this.safeInteger (data, 'sequence');
         // when requesting level-2 order book, order id won't be there
-        if (3 == requestParams.level)
-        {
-            return this.parseOrderBook (responseData, timestamp, 'bids', 'asks', 1, 2);
-        }
-        return this.parseOrderBook (responseData, timestamp, 'bids', 'asks', 0, 1);
+        return this.parseOrderBook (data, timestamp, 'bids', 'asks', request['level'] - 2, request['level'] - 1);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
