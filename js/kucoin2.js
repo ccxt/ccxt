@@ -764,7 +764,7 @@ module.exports = class kucoin2 extends Exchange {
         if (tag !== undefined) {
             request['memo'] = tag;
         }
-        const response = await this.privatePostWithdrawal (this.extend (request, params));
+        const response = await this.privatePostWithdrawals (this.extend (request, params));
         //
         // { "withdrawalId": "5bffb63303aa675e8bbe18f9" }
         //
