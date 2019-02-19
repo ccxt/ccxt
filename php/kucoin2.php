@@ -22,6 +22,7 @@ class kucoin2 extends Exchange {
                 'fetchMarkets' => true,
                 'fetchCurrencies' => true,
                 'fetchTicker' => true,
+                'fetchTickers' => true,
                 'fetchOrderBook' => true,
                 'fetchOrder' => true,
                 'fetchClosedOrders' => true,
@@ -65,6 +66,7 @@ class kucoin2 extends Exchange {
                     'get' => array (
                         'timestamp',
                         'symbols',
+                        'market/allTickers',
                         'market/orderbook/level{level}',
                         'market/histories',
                         'market/candles',
@@ -326,8 +328,23 @@ class kucoin2 extends Exchange {
         $baseVolume = $this->safe_float($ticker, 'vol');
         $quoteVolume = $this->safe_float($ticker, 'volValue');
         $symbol = null;
-        if ($market)
-            $symbol = $market['symbol'];
+        $marketId = $this->safe_string($ticker, 'symbol');
+        if ($marketId !== null) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+                $symbol = $market['symbol'];
+            } else {
+                list ($baseId, $quoteId) = explode ('-', $marketId);
+                $base = $this->common_currency_code($baseId);
+                $quote = $this->common_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
+        }
+        if ($symbol === null) {
+            if ($market !== null) {
+                $symbol = $market['symbol'];
+            }
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => null,
@@ -350,6 +367,38 @@ class kucoin2 extends Exchange {
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
+    }
+
+    public function fetch_tickers ($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->publicGetMarketAllTickers ($params);
+        //
+        //     {
+        //         "$data" => array (
+        //             {
+        //                 "$symbol" => "LOOM-BTC",
+        //                 "changeRate" => "-0.0545",
+        //                 "changePrice" => "-0.00000064",
+        //                 "open" => "0.00001173",
+        //                 "close" => "0.00001109",
+        //                 "high" => "0.00001212",
+        //                 "low" => "0.00001109",
+        //                 "vol" => "4706.7114",
+        //                 "volValue" => "0.055227432084"
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array ());
+        $result = array ();
+        for ($i = 0; $i < count ($data); $i++) {
+            $ticker = $this->parse_ticker($data[$i]);
+            $symbol = $this->safe_string($ticker, 'symbol');
+            if ($symbol !== null) {
+                $result[$symbol] = $ticker;
+            }
+        }
+        return $result;
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

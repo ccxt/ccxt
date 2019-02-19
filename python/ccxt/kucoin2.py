@@ -35,6 +35,7 @@ class kucoin2 (Exchange):
                 'fetchMarkets': True,
                 'fetchCurrencies': True,
                 'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchOrderBook': True,
                 'fetchOrder': True,
                 'fetchClosedOrders': True,
@@ -78,6 +79,7 @@ class kucoin2 (Exchange):
                     'get': [
                         'timestamp',
                         'symbols',
+                        'market/allTickers',
                         'market/orderbook/level{level}',
                         'market/histories',
                         'market/candles',
@@ -329,8 +331,19 @@ class kucoin2 (Exchange):
         baseVolume = self.safe_float(ticker, 'vol')
         quoteVolume = self.safe_float(ticker, 'volValue')
         symbol = None
-        if market:
-            symbol = market['symbol']
+        marketId = self.safe_string(ticker, 'symbol')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
+            else:
+                baseId, quoteId = marketId.split('-')
+                base = self.common_currency_code(baseId)
+                quote = self.common_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if symbol is None:
+            if market is not None:
+                symbol = market['symbol']
         return {
             'symbol': symbol,
             'timestamp': None,
@@ -353,6 +366,35 @@ class kucoin2 (Exchange):
             'quoteVolume': quoteVolume,
             'info': ticker,
         }
+
+    def fetch_tickers(self, symbols=None, params={}):
+        self.load_markets()
+        response = self.publicGetMarketAllTickers(params)
+        #
+        #     {
+        #         "data": [
+        #             {
+        #                 "symbol": "LOOM-BTC",
+        #                 "changeRate": "-0.0545",
+        #                 "changePrice": "-0.00000064",
+        #                 "open": "0.00001173",
+        #                 "close": "0.00001109",
+        #                 "high": "0.00001212",
+        #                 "low": "0.00001109",
+        #                 "vol": "4706.7114",
+        #                 "volValue": "0.055227432084"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        result = {}
+        for i in range(0, len(data)):
+            ticker = self.parse_ticker(data[i])
+            symbol = self.safe_string(ticker, 'symbol')
+            if symbol is not None:
+                result[symbol] = ticker
+        return result
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
