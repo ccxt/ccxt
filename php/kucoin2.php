@@ -380,21 +380,24 @@ class kucoin2 extends Exchange {
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         //
-        //   array ( array ( "1545904980",             //Start time of the candle cycle
-        //       "0.058",                  //opening price
-        //       "0.049",                  //closing price
-        //       "0.058",                  //highest price
-        //       "0.049",                  //lowest price
-        //       "0.018",                  //Transaction amount
-        //       "0.000945" ), ... )       //Transaction $volume
+        //     array (
+        //         "1545904980",             // Start time of the candle cycle
+        //         "0.058",                  // opening price
+        //         "0.049",                  // closing price
+        //         "0.058",                  // highest price
+        //         "0.049",                  // lowest price
+        //         "0.018",                  // base volume
+        //         "0.000945",               // quote volume
+        //     )
         //
-        $timestamp = $this->safe_integer($ohlcv, 0);
-        $open = $this->safe_float($ohlcv, 1);
-        $close = $this->safe_float($ohlcv, 2);
-        $high = $this->safe_float($ohlcv, 3);
-        $low = $this->safe_float($ohlcv, 4);
-        $volume = $this->safe_float($ohlcv, 6);
-        return [$timestamp, $open, $high, $low, $close, $volume];
+        return [
+            intval ($ohlcv[0]) * 1000,
+            floatval ($ohlcv[1]),
+            floatval ($ohlcv[3]),
+            floatval ($ohlcv[2]),
+            floatval ($ohlcv[4]),
+            floatval ($ohlcv[5]),
+        ];
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '15m', $since = null, $limit = null, $params = array ()) {

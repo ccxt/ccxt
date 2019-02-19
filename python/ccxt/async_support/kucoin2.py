@@ -381,21 +381,24 @@ class kucoin2 (Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         #
-        #   [["1545904980",             #Start time of the candle cycle
-        #       "0.058",                  #opening price
-        #       "0.049",                  #closing price
-        #       "0.058",                  #highest price
-        #       "0.049",                  #lowest price
-        #       "0.018",                  #Transaction amount
-        #       "0.000945"], ...]       #Transaction volume
+        #     [
+        #         "1545904980",             # Start time of the candle cycle
+        #         "0.058",                  # opening price
+        #         "0.049",                  # closing price
+        #         "0.058",                  # highest price
+        #         "0.049",                  # lowest price
+        #         "0.018",                  # base volume
+        #         "0.000945",               # quote volume
+        #     ]
         #
-        timestamp = self.safe_integer(ohlcv, 0)
-        open = self.safe_float(ohlcv, 1)
-        close = self.safe_float(ohlcv, 2)
-        high = self.safe_float(ohlcv, 3)
-        low = self.safe_float(ohlcv, 4)
-        volume = self.safe_float(ohlcv, 6)
-        return [timestamp, open, high, low, close, volume]
+        return [
+            int(ohlcv[0]) * 1000,
+            float(ohlcv[1]),
+            float(ohlcv[3]),
+            float(ohlcv[2]),
+            float(ohlcv[4]),
+            float(ohlcv[5]),
+        ]
 
     async def fetch_ohlcv(self, symbol, timeframe='15m', since=None, limit=None, params={}):
         await self.load_markets()
