@@ -11,7 +11,7 @@ module.exports = class bitfinex2 extends bitfinex {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitfinex2',
-            'name': 'Bitfinex',
+            'name': 'Bitfinex v2',
             'countries': [ 'VG' ],
             'version': 'v2',
             'certified': false,
@@ -435,19 +435,55 @@ module.exports = class bitfinex2 extends bitfinex {
         throw new NotSupported (this.id + ' withdraw not implemented yet');
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = 25, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = 1000, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
             'limit': limit,
-            'end': this.seconds (),
+            'end': this.milliseconds (),
         };
         if (since !== undefined)
-            request['start'] = parseInt (since / 1000);
+            request['start'] = since.getTime ();
         let response = await this.privatePostAuthRTradesSymbolHist (this.extend (request, params));
-        // return this.parseTrades (response, market, since, limit); // not implemented yet for bitfinex v2
-        return response;
+        return this.parseMyTrades (response, market);
+    }
+
+    parseMyTrades (response, market) {
+        let trades = [];
+        for (let i = 0; i < response.length; i++) {
+            let item = response[i];
+            let id = item[0];
+            // let pair = item[1];
+            let mtsCreate = item[2];
+            let orderId = item[3];
+            let execAmount = item[4];
+            let execPrice = item[5];
+            // let orderType = item[6];
+            let orderPrice = item[7];
+            let maker = item[8];
+            let fee = -item[9];
+            let feeCurrency = item[10];
+            trades.push ({
+                'id': id,
+                'timestamp': mtsCreate,
+                'datetime': this.iso8601 (mtsCreate),
+                'symbol': market['id'],
+                'order': orderId,
+                'side': undefined,
+                'type': orderPrice === null ? 'market' : 'limit',
+                'price': execPrice,
+                'amount': execAmount,
+                'takerOrMaker': maker === 1 ? 'maker' : 'taker',
+                'cost': undefined,
+                'fee': {
+                    'cost': fee,
+                    'currency': feeCurrency,
+                },
+                'info': item,
+            });
+        }
+        return trades;
     }
 
     nonce () {
