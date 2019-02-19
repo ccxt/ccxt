@@ -190,34 +190,38 @@ class kucoin2 (Exchange):
         #   baseMaxSize: '9999999',
         #   baseCurrency: 'KCS'}
         #
-        responseData = response['data']
+        data = response['data']
         result = {}
-        for i in range(0, len(responseData)):
-            entry = responseData[i]
-            id = entry['name']
-            baseId = entry['baseCurrency']
-            quoteId = entry['quoteCurrency']
+        for i in range(0, len(data)):
+            market = data[i]
+            id = market['name']
+            baseId = market['baseCurrency']
+            quoteId = market['quoteCurrency']
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
-            active = entry['enableTrading']
-            baseMax = self.safe_float(entry, 'baseMaxSize')
-            baseMin = self.safe_float(entry, 'baseMinSize')
-            quoteMax = self.safe_float(entry, 'quoteMaxSize')
-            quoteMin = self.safe_float(entry, 'quoteMinSize')
-            priceIncrement = self.safe_float(entry, 'priceIncrement')
+            active = market['enableTrading']
+            baseMaxSize = self.safe_float(market, 'baseMaxSize')
+            baseMinSize = self.safe_float(market, 'baseMinSize')
+            quoteMaxSize = self.safe_float(market, 'quoteMaxSize')
+            quoteMinSize = self.safe_float(market, 'quoteMinSize')
+            quoteIncrement = self.safe_float(market, 'quoteIncrement')
             precision = {
-                'amount': -math.log10(self.safe_float(entry, 'quoteIncrement')),
-                'price': -math.log10(priceIncrement),
+                'amount': self.precision_from_string(self.safe_string(market, 'baseIncrement')),
+                'price': self.precision_from_string(self.safe_string(market, 'quoteIncrement')),
             }
             limits = {
                 'amount': {
-                    'min': quoteMin,
-                    'max': quoteMax,
+                    'min': baseMinSize,
+                    'max': baseMaxSize,
                 },
                 'price': {
-                    'min': max(baseMin / quoteMax, priceIncrement),
-                    'max': baseMax / quoteMin,
+                    'min': max(baseMinSize / quoteMaxSize, quoteIncrement),
+                    'max': baseMaxSize / quoteMinSize,
+                },
+                'cost': {
+                    'min': quoteMinSize,
+                    'max': quoteMaxSize,
                 },
             }
             result[symbol] = {
@@ -230,7 +234,7 @@ class kucoin2 (Exchange):
                 'active': active,
                 'precision': precision,
                 'limits': limits,
-                'info': entry,
+                'info': market,
             }
         return result
 

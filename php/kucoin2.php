@@ -169,45 +169,49 @@ class kucoin2 extends Exchange {
         //
         // { quoteCurrency => 'BTC',
         //   $symbol => 'KCS-BTC',
-        //   quoteMaxSize => '9999999',
-        //   quoteIncrement => '0.000001',
-        //   baseMinSize => '0.01',
-        //   quoteMinSize => '0.00001',
+        //   $quoteMaxSize => '9999999',
+        //   $quoteIncrement => '0.000001',
+        //   $baseMinSize => '0.01',
+        //   $quoteMinSize => '0.00001',
         //   enableTrading => true,
-        //   $priceIncrement => '0.00000001',
+        //   priceIncrement => '0.00000001',
         //   name => 'KCS-BTC',
         //   baseIncrement => '0.01',
-        //   baseMaxSize => '9999999',
+        //   $baseMaxSize => '9999999',
         //   baseCurrency => 'KCS' }
         //
-        $responseData = $response['data'];
+        $data = $response['data'];
         $result = array ();
-        for ($i = 0; $i < count ($responseData); $i++) {
-            $entry = $responseData[$i];
-            $id = $entry['name'];
-            $baseId = $entry['baseCurrency'];
-            $quoteId = $entry['quoteCurrency'];
+        for ($i = 0; $i < count ($data); $i++) {
+            $market = $data[$i];
+            $id = $market['name'];
+            $baseId = $market['baseCurrency'];
+            $quoteId = $market['quoteCurrency'];
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $active = $entry['enableTrading'];
-            $baseMax = $this->safe_float($entry, 'baseMaxSize');
-            $baseMin = $this->safe_float($entry, 'baseMinSize');
-            $quoteMax = $this->safe_float($entry, 'quoteMaxSize');
-            $quoteMin = $this->safe_float($entry, 'quoteMinSize');
-            $priceIncrement = $this->safe_float($entry, 'priceIncrement');
+            $active = $market['enableTrading'];
+            $baseMaxSize = $this->safe_float($market, 'baseMaxSize');
+            $baseMinSize = $this->safe_float($market, 'baseMinSize');
+            $quoteMaxSize = $this->safe_float($market, 'quoteMaxSize');
+            $quoteMinSize = $this->safe_float($market, 'quoteMinSize');
+            $quoteIncrement = $this->safe_float($market, 'quoteIncrement');
             $precision = array (
-                'amount' => -log10 ($this->safe_float($entry, 'quoteIncrement')),
-                'price' => -log10 ($priceIncrement),
+                'amount' => $this->precision_from_string($this->safe_string($market, 'baseIncrement')),
+                'price' => $this->precision_from_string($this->safe_string($market, 'quoteIncrement')),
             );
             $limits = array (
                 'amount' => array (
-                    'min' => $quoteMin,
-                    'max' => $quoteMax,
+                    'min' => $baseMinSize,
+                    'max' => $baseMaxSize,
                 ),
                 'price' => array (
-                    'min' => max ($baseMin / $quoteMax, $priceIncrement),
-                    'max' => $baseMax / $quoteMin,
+                    'min' => max ($baseMinSize / $quoteMaxSize, $quoteIncrement),
+                    'max' => $baseMaxSize / $quoteMinSize,
+                ),
+                'cost' => array (
+                    'min' => $quoteMinSize,
+                    'max' => $quoteMaxSize,
                 ),
             );
             $result[$symbol] = array (
@@ -220,7 +224,7 @@ class kucoin2 extends Exchange {
                 'active' => $active,
                 'precision' => $precision,
                 'limits' => $limits,
-                'info' => $entry,
+                'info' => $market,
             );
         }
         return $result;

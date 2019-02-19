@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.264'
+const version = '1.18.265'
 
 Exchange.ccxtVersion = version
 
@@ -49855,34 +49855,38 @@ module.exports = class kucoin2 extends Exchange {
         //   baseMaxSize: '9999999',
         //   baseCurrency: 'KCS' }
         //
-        const responseData = response['data'];
-        let result = {};
-        for (let i = 0; i < responseData.length; i++) {
-            const entry = responseData[i];
-            const id = entry['name'];
-            const baseId = entry['baseCurrency'];
-            const quoteId = entry['quoteCurrency'];
+        const data = response['data'];
+        const result = {};
+        for (let i = 0; i < data.length; i++) {
+            const market = data[i];
+            const id = market['name'];
+            const baseId = market['baseCurrency'];
+            const quoteId = market['quoteCurrency'];
             const base = this.commonCurrencyCode (baseId);
             const quote = this.commonCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const active = entry['enableTrading'];
-            const baseMax = this.safeFloat (entry, 'baseMaxSize');
-            const baseMin = this.safeFloat (entry, 'baseMinSize');
-            const quoteMax = this.safeFloat (entry, 'quoteMaxSize');
-            const quoteMin = this.safeFloat (entry, 'quoteMinSize');
-            const priceIncrement = this.safeFloat (entry, 'priceIncrement');
+            const active = market['enableTrading'];
+            const baseMaxSize = this.safeFloat (market, 'baseMaxSize');
+            const baseMinSize = this.safeFloat (market, 'baseMinSize');
+            const quoteMaxSize = this.safeFloat (market, 'quoteMaxSize');
+            const quoteMinSize = this.safeFloat (market, 'quoteMinSize');
+            const quoteIncrement = this.safeFloat (market, 'quoteIncrement');
             const precision = {
-                'amount': -Math.log10 (this.safeFloat (entry, 'quoteIncrement')),
-                'price': -Math.log10 (priceIncrement),
+                'amount': this.precisionFromString (this.safeString (market, 'baseIncrement')),
+                'price': this.precisionFromString (this.safeString (market, 'quoteIncrement')),
             };
             const limits = {
                 'amount': {
-                    'min': quoteMin,
-                    'max': quoteMax,
+                    'min': baseMinSize,
+                    'max': baseMaxSize,
                 },
                 'price': {
-                    'min': Math.max (baseMin / quoteMax, priceIncrement),
-                    'max': baseMax / quoteMin,
+                    'min': Math.max (baseMinSize / quoteMaxSize, quoteIncrement),
+                    'max': baseMaxSize / quoteMinSize,
+                },
+                'cost': {
+                    'min': quoteMinSize,
+                    'max': quoteMaxSize,
                 },
             };
             result[symbol] = {
@@ -49895,7 +49899,7 @@ module.exports = class kucoin2 extends Exchange {
                 'active': active,
                 'precision': precision,
                 'limits': limits,
-                'info': entry,
+                'info': market,
             };
         }
         return result;
