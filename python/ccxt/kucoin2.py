@@ -158,6 +158,20 @@ class kucoin2 (Exchange):
                 '500000': ExchangeError,
                 'order_not_exist': OrderNotFound,  # {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
             },
+            'fees': {
+                'trading': {
+                    'tierBased': False,
+                    'percentage': True,
+                    'taker': 0.001,
+                    'maker': 0.001,
+                },
+                'funding': {
+                    'tierBased': False,
+                    'percentage': False,
+                    'withdraw': {},
+                    'deposit': {},
+                },
+            },
             'options': {
                 'version': 'v1',
                 'symbolSeparator': '-',
@@ -208,7 +222,7 @@ class kucoin2 (Exchange):
             quoteIncrement = self.safe_float(market, 'quoteIncrement')
             precision = {
                 'amount': self.precision_from_string(self.safe_string(market, 'baseIncrement')),
-                'price': self.precision_from_string(self.safe_string(market, 'quoteIncrement')),
+                'price': self.precision_from_string(self.safe_string(market, 'priceIncrement')),
             }
             limits = {
                 'amount': {
@@ -328,6 +342,8 @@ class kucoin2 (Exchange):
         #
         change = self.safe_float(ticker, 'changePrice')
         percentage = self.safe_float(ticker, 'changeRate')
+        if percentage is not None:
+            percentage = percentage * 100
         open = self.safe_float(ticker, 'open')
         last = self.safe_float(ticker, 'close')
         high = self.safe_float(ticker, 'high')
@@ -466,7 +482,7 @@ class kucoin2 (Exchange):
         currencyId = self.currencyId(code)
         request = {'currency': currencyId}
         response = self.privateGetDepositAddresses(self.extend(request, params))
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', {})
         address = self.safe_string(data, 'address')
         tag = self.safe_string(data, 'memo')
         self.check_address(address)
@@ -480,16 +496,20 @@ class kucoin2 (Exchange):
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         marketId = self.market_id(symbol)
-        request = {'symbol': marketId, 'level': 3}
-        response = self.publicGetMarketOrderbookLevelLevel(self.extend(request, params))
+        request = self.extend({'symbol': marketId, 'level': 2}, params)
+        response = self.publicGetMarketOrderbookLevelLevel(request)
         #
         # {sequence: '1547731421688',
         #   asks: [['5c419328ef83c75456bd615c', '0.9', '0.09'], ...],
         #   bids: [['5c419328ef83c75456bd615c', '0.9', '0.09'], ...],}
         #
-        responseData = response['data']
-        timestamp = self.safe_integer(responseData, 'sequence')
-        return self.parse_order_book(responseData, timestamp, 'bids', 'asks', 1, 2)
+        data = response['data']
+        timestamp = self.safe_integer(data, 'sequence')
+        # level can be a string such as 2_20 or 2_100
+        levelString = self.safe_string(request, 'level')
+        levelParts = levelString.split('_')
+        level = int(levelParts[0])
+        return self.parse_order_book(data, timestamp, 'bids', 'asks', level - 2, level - 1)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

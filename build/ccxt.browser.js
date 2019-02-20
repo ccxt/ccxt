@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.265'
+const version = '1.18.269'
 
 Exchange.ccxtVersion = version
 
@@ -2356,15 +2356,16 @@ module.exports = class Exchange {
 
     async loadAccounts (reload = false, params = {}) {
         if (reload) {
-            this.accounts = await this.fetchAccounts (params);
+            this.accounts = await this.fetchAccounts (params)
         } else {
             if (this.accounts) {
-                return this.accounts;
+                return this.accounts
             } else {
-                this.accounts = await this.fetchAccounts (params);
+                this.accounts = await this.fetchAccounts (params)
             }
         }
-        return this.accounts;
+        this.accountsById = this.indexBy (this.accounts, 'id')
+        return this.accounts
     }
 
     fetchBidsAsks (symbols = undefined, params = {}) {
@@ -49820,6 +49821,20 @@ module.exports = class kucoin2 extends Exchange {
                 '500000': ExchangeError,
                 'order_not_exist': OrderNotFound,  // {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
             },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'taker': 0.001,
+                    'maker': 0.001,
+                },
+                'funding': {
+                    'tierBased': false,
+                    'percentage': false,
+                    'withdraw': {},
+                    'deposit': {},
+                },
+            },
             'options': {
                 'version': 'v1',
                 'symbolSeparator': '-',
@@ -49873,7 +49888,7 @@ module.exports = class kucoin2 extends Exchange {
             const quoteIncrement = this.safeFloat (market, 'quoteIncrement');
             const precision = {
                 'amount': this.precisionFromString (this.safeString (market, 'baseIncrement')),
-                'price': this.precisionFromString (this.safeString (market, 'quoteIncrement')),
+                'price': this.precisionFromString (this.safeString (market, 'priceIncrement')),
             };
             const limits = {
                 'amount': {
@@ -49999,7 +50014,10 @@ module.exports = class kucoin2 extends Exchange {
         //     }
         //
         const change = this.safeFloat (ticker, 'changePrice');
-        const percentage = this.safeFloat (ticker, 'changeRate');
+        let percentage = this.safeFloat (ticker, 'changeRate');
+        if (percentage !== undefined) {
+            percentage = percentage * 100;
+        }
         const open = this.safeFloat (ticker, 'open');
         const last = this.safeFloat (ticker, 'close');
         const high = this.safeFloat (ticker, 'high');
@@ -50150,7 +50168,7 @@ module.exports = class kucoin2 extends Exchange {
         const currencyId = this.currencyId (code);
         const request = { 'currency': currencyId };
         const response = await this.privateGetDepositAddresses (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', {});
         const address = this.safeString (data, 'address');
         const tag = this.safeString (data, 'memo');
         this.checkAddress (address);
@@ -50165,16 +50183,20 @@ module.exports = class kucoin2 extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
-        const request = { 'symbol': marketId, 'level': 3 };
-        const response = await this.publicGetMarketOrderbookLevelLevel (this.extend (request, params));
+        const request = this.extend ({ 'symbol': marketId, 'level': 2 }, params);
+        const response = await this.publicGetMarketOrderbookLevelLevel (request);
         //
         // { sequence: '1547731421688',
         //   asks: [ [ '5c419328ef83c75456bd615c', '0.9', '0.09' ], ... ],
         //   bids: [ [ '5c419328ef83c75456bd615c', '0.9', '0.09' ], ... ], }
         //
-        const responseData = response['data'];
-        const timestamp = this.safeInteger (responseData, 'sequence');
-        return this.parseOrderBook (responseData, timestamp, 'bids', 'asks', 1, 2);
+        const data = response['data'];
+        const timestamp = this.safeInteger (data, 'sequence');
+        // level can be a string such as 2_20 or 2_100
+        const levelString = this.safeString (request, 'level');
+        const levelParts = levelString.split ('_');
+        const level = parseInt (levelParts[0]);
+        return this.parseOrderBook (data, timestamp, 'bids', 'asks', level - 2, level - 1);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -56090,7 +56112,7 @@ module.exports = class okcoinusd extends Exchange {
                 'api': {
                     'web': 'https://www.okcoin.com/v2',
                     'public': 'https://www.okcoin.com/api',
-                    'private': 'https://www.okcoin.com/api',
+                    'private': 'https://www.okcoin.com',
                 },
                 'www': 'https://www.okcoin.com',
                 'doc': [

@@ -145,6 +145,20 @@ class kucoin2 extends Exchange {
                 '500000' => '\\ccxt\\ExchangeError',
                 'order_not_exist' => '\\ccxt\\OrderNotFound',  // array ("code":"order_not_exist","msg":"order_not_exist") ¯\_(ツ)_/¯
             ),
+            'fees' => array (
+                'trading' => array (
+                    'tierBased' => false,
+                    'percentage' => true,
+                    'taker' => 0.001,
+                    'maker' => 0.001,
+                ),
+                'funding' => array (
+                    'tierBased' => false,
+                    'percentage' => false,
+                    'withdraw' => array (),
+                    'deposit' => array (),
+                ),
+            ),
             'options' => array (
                 'version' => 'v1',
                 'symbolSeparator' => '-',
@@ -198,7 +212,7 @@ class kucoin2 extends Exchange {
             $quoteIncrement = $this->safe_float($market, 'quoteIncrement');
             $precision = array (
                 'amount' => $this->precision_from_string($this->safe_string($market, 'baseIncrement')),
-                'price' => $this->precision_from_string($this->safe_string($market, 'quoteIncrement')),
+                'price' => $this->precision_from_string($this->safe_string($market, 'priceIncrement')),
             );
             $limits = array (
                 'amount' => array (
@@ -325,6 +339,9 @@ class kucoin2 extends Exchange {
         //
         $change = $this->safe_float($ticker, 'changePrice');
         $percentage = $this->safe_float($ticker, 'changeRate');
+        if ($percentage !== null) {
+            $percentage = $percentage * 100;
+        }
         $open = $this->safe_float($ticker, 'open');
         $last = $this->safe_float($ticker, 'close');
         $high = $this->safe_float($ticker, 'high');
@@ -475,7 +492,7 @@ class kucoin2 extends Exchange {
         $currencyId = $this->currencyId ($code);
         $request = array ( 'currency' => $currencyId );
         $response = $this->privateGetDepositAddresses (array_merge ($request, $params));
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array ());
         $address = $this->safe_string($data, 'address');
         $tag = $this->safe_string($data, 'memo');
         $this->check_address($address);
@@ -490,16 +507,20 @@ class kucoin2 extends Exchange {
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $marketId = $this->market_id($symbol);
-        $request = array ( 'symbol' => $marketId, 'level' => 3 );
-        $response = $this->publicGetMarketOrderbookLevelLevel (array_merge ($request, $params));
+        $request = array_merge (array ( 'symbol' => $marketId, 'level' => 2 ), $params);
+        $response = $this->publicGetMarketOrderbookLevelLevel ($request);
         //
         // { sequence => '1547731421688',
         //   asks => array ( array ( '5c419328ef83c75456bd615c', '0.9', '0.09' ), ... ),
         //   bids => array ( array ( '5c419328ef83c75456bd615c', '0.9', '0.09' ), ... ), }
         //
-        $responseData = $response['data'];
-        $timestamp = $this->safe_integer($responseData, 'sequence');
-        return $this->parse_order_book($responseData, $timestamp, 'bids', 'asks', 1, 2);
+        $data = $response['data'];
+        $timestamp = $this->safe_integer($data, 'sequence');
+        // $level can be a string such as 2_20 or 2_100
+        $levelString = $this->safe_string($request, 'level');
+        $levelParts = explode ('_', $levelString);
+        $level = intval ($levelParts[0]);
+        return $this->parse_order_book($data, $timestamp, 'bids', 'asks', $level - 2, $level - 1);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
