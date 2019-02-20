@@ -492,9 +492,13 @@ module.exports = class kucoin2 extends Exchange {
         const request = { 'currency': currencyId };
         const response = await this.privateGetDepositAddresses (this.extend (request, params));
         const data = this.safeValue (response, 'data');
-        const address = this.safeString (data, 'address');
-        const tag = this.safeString (data, 'memo');
-        this.checkAddress (address);
+        let address = undefined;
+        let tag = undefined;
+        if (data !== undefined) {
+            address = this.safeString (data, 'address');
+            this.checkAddress (address);
+            tag = this.safeString (data, 'memo');
+        }
         return {
             'info': response,
             'currency': code,
