@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.276'
+const version = '1.18.277'
 
 Exchange.ccxtVersion = version
 
@@ -50215,16 +50215,8 @@ module.exports = class kucoin2 extends Exchange {
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         const data = this.safeValue (response, 'data', {});
         let address = this.safeString (data, 'address');
-        // BCH is returned with a "prefix:", which we cut off here and only keep the address
-        if (code === 'BCH') {
-            if (address.indexOf (':') >= 0) {
-                const parts = address.split (':');
-                const numParts = parts.length;
-                if (numParts > 1) {
-                    address = parts[1];
-                }
-            }
-        }
+        // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
+        address = address.replace ('bitcoincash:', '');
         const tag = this.safeString (data, 'memo');
         this.checkAddress (address);
         return {
@@ -50244,16 +50236,8 @@ module.exports = class kucoin2 extends Exchange {
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         const data = this.safeValue (response, 'data', {});
         let address = this.safeString (data, 'address');
-        // BCH is returned with a "prefix:", which we cut off here and only keep the address
-        if (code === 'BCH') {
-            if (address.indexOf (':') >= 0) {
-                const parts = address.split (':');
-                const numParts = parts.length;
-                if (numParts > 1) {
-                    address = parts[1];
-                }
-            }
-        }
+        // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
+        address = address.replace ('bitcoincash:', '');
         const tag = this.safeString (data, 'memo');
         this.checkAddress (address);
         return {

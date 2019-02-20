@@ -487,13 +487,8 @@ class kucoin2 (Exchange):
         # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         data = self.safe_value(response, 'data', {})
         address = self.safe_string(data, 'address')
-        # BCH is returned with a "prefix:", which we cut off here and only keep the address
-        if code == 'BCH':
-            if address.find(':') >= 0:
-                parts = address.split(':')
-                numParts = len(parts)
-                if numParts > 1:
-                    address = parts[1]
+        # BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
+        address = address.replace('bitcoincash:', '')
         tag = self.safe_string(data, 'memo')
         self.check_address(address)
         return {
@@ -512,13 +507,8 @@ class kucoin2 (Exchange):
         # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         data = self.safe_value(response, 'data', {})
         address = self.safe_string(data, 'address')
-        # BCH is returned with a "prefix:", which we cut off here and only keep the address
-        if code == 'BCH':
-            if address.find(':') >= 0:
-                parts = address.split(':')
-                numParts = len(parts)
-                if numParts > 1:
-                    address = parts[1]
+        # BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
+        address = address.replace('bitcoincash:', '')
         tag = self.safe_string(data, 'memo')
         self.check_address(address)
         return {

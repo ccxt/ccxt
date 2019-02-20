@@ -497,16 +497,8 @@ class kucoin2 extends Exchange {
         // BTC array ("$code":"200000","$data":{"$address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":"")}
         $data = $this->safe_value($response, 'data', array ());
         $address = $this->safe_string($data, 'address');
-        // BCH is returned with a "prefix:", which we cut off here and only keep the $address
-        if ($code === 'BCH') {
-            if (mb_strpos ($address, ':') !== false) {
-                $parts = explode (':', $address);
-                $numParts = is_array ($parts) ? count ($parts) : 0;
-                if ($numParts > 1) {
-                    $address = $parts[1];
-                }
-            }
-        }
+        // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the $address
+        $address = str_replace ('bitcoincash:', '', $address);
         $tag = $this->safe_string($data, 'memo');
         $this->check_address($address);
         return array (
@@ -526,16 +518,8 @@ class kucoin2 extends Exchange {
         // BTC array ("$code":"200000","$data":{"$address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":"")}
         $data = $this->safe_value($response, 'data', array ());
         $address = $this->safe_string($data, 'address');
-        // BCH is returned with a "prefix:", which we cut off here and only keep the $address
-        if ($code === 'BCH') {
-            if (mb_strpos ($address, ':') !== false) {
-                $parts = explode (':', $address);
-                $numParts = is_array ($parts) ? count ($parts) : 0;
-                if ($numParts > 1) {
-                    $address = $parts[1];
-                }
-            }
-        }
+        // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the $address
+        $address = str_replace ('bitcoincash:', '', $address);
         $tag = $this->safe_string($data, 'memo');
         $this->check_address($address);
         return array (
