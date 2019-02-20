@@ -11,7 +11,7 @@ module.exports = class bitfinex2 extends bitfinex {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitfinex2',
-            'name': 'Bitfinex v2',
+            'name': 'Bitfinex',
             'countries': [ 'VG' ],
             'version': 'v2',
             'certified': false,
