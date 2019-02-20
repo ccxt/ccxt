@@ -631,15 +631,16 @@ class kucoin2 (Exchange):
         side = self.safe_string(order, 'side')
         feeCurrencyId = self.safe_string(order, 'feeCurrency')
         feeCurrency = self.common_currency_code(feeCurrencyId)
-        fee = self.safe_float(order, 'fee')
+        feeCost = self.safe_float(order, 'fee')
         amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'dealSize')
+        cost = self.safe_float(order, 'dealFunds')
         remaining = amount - filled
         # bool
         status = 'open' if order['isActive'] else 'closed'
-        fees = {
+        fee = {
             'currency': feeCurrency,
-            'cost': fee,
+            'cost': feeCost,
         }
         return {
             'id': orderId,
@@ -648,11 +649,12 @@ class kucoin2 (Exchange):
             'side': side,
             'amount': amount,
             'price': price,
+            'cost': cost,
             'filled': filled,
             'remaining': remaining,
             'timestamp': timestamp,
             'datetime': datetime,
-            'fee': fees,
+            'fee': fee,
             'status': status,
             'info': order,
         }

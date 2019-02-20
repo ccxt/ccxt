@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.271'
+const version = '1.18.272'
 
 Exchange.ccxtVersion = version
 
@@ -50359,15 +50359,16 @@ module.exports = class kucoin2 extends Exchange {
         const side = this.safeString (order, 'side');
         const feeCurrencyId = this.safeString (order, 'feeCurrency');
         const feeCurrency = this.commonCurrencyCode (feeCurrencyId);
-        const fee = this.safeFloat (order, 'fee');
+        const feeCost = this.safeFloat (order, 'fee');
         const amount = this.safeFloat (order, 'size');
         const filled = this.safeFloat (order, 'dealSize');
+        const cost = this.safeFloat (order, 'dealFunds');
         const remaining = amount - filled;
         // bool
         const status = order['isActive'] ? 'open' : 'closed';
-        let fees = {
+        let fee = {
             'currency': feeCurrency,
-            'cost': fee,
+            'cost': feeCost,
         };
         return {
             'id': orderId,
@@ -50376,11 +50377,12 @@ module.exports = class kucoin2 extends Exchange {
             'side': side,
             'amount': amount,
             'price': price,
+            'cost': cost,
             'filled': filled,
             'remaining': remaining,
             'timestamp': timestamp,
             'datetime': datetime,
-            'fee': fees,
+            'fee': fee,
             'status': status,
             'info': order,
         };
