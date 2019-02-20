@@ -325,28 +325,19 @@ module.exports = class kucoin2 extends Exchange {
     parseTicker (ticker, market = undefined) {
         //
         //     {
-        //         "symbol": "ETH-BTC",
-        //         "high": "0.1",
-        //         "vol": "3891.5909166",
-        //         "low": "0.024",
-        //         "changePrice": "0.031809",
-        //         "changeRate": "31809",
-        //         "close": "0.03181",
-        //         "volValue": "119.5545894397034",
-        //         "open": "0.000001",
+        //         'buy': '0.00001168',
+        //         'changePrice': '-0.00000018',
+        //         'changeRate': '-0.0151',
+        //         'datetime': 1550661146316,
+        //         'high': '0.0000123',
+        //         'last': '0.00001169',
+        //         'low': '0.00001159',
+        //         'sell': '0.00001182',
+        //         'symbol': 'LOOM-BTC',
+        //         'vol': '44399.5669'
         //     }
         //
-        const change = this.safeFloat (ticker, 'changePrice');
-        let percentage = this.safeFloat (ticker, 'changeRate');
-        if (percentage !== undefined) {
-            percentage = percentage * 100;
-        }
-        const open = this.safeFloat (ticker, 'open');
-        const last = this.safeFloat (ticker, 'close');
-        const high = this.safeFloat (ticker, 'high');
-        const low = this.safeFloat (ticker, 'low');
-        const baseVolume = this.safeFloat (ticker, 'vol');
-        const quoteVolume = this.safeFloat (ticker, 'volValue');
+        const last = this.safeFloat (ticker, 'last');
         let symbol = undefined;
         const marketId = this.safeString (ticker, 'symbol');
         if (marketId !== undefined) {
@@ -369,22 +360,22 @@ module.exports = class kucoin2 extends Exchange {
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
-            'high': high,
-            'low': low,
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': open,
+            'open': this.safeFloat (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
+            'change': this.safeFloat (ticker, 'changePrice'),
+            'percentage': this.safeFloat (ticker, 'changeRate'),
             'average': undefined,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'baseVolume': this.safeFloat (ticker, 'vol'),
+            'quoteVolume': this.safeFloat (ticker, 'volValue'),
             'info': ticker,
         };
     }
@@ -394,25 +385,29 @@ module.exports = class kucoin2 extends Exchange {
         const response = await this.publicGetMarketAllTickers (params);
         //
         //     {
-        //         "data": [
-        //             {
-        //                 "symbol": "LOOM-BTC",
-        //                 "changeRate": "-0.0545",
-        //                 "changePrice": "-0.00000064",
-        //                 "open": "0.00001173",
-        //                 "close": "0.00001109",
-        //                 "high": "0.00001212",
-        //                 "low": "0.00001109",
-        //                 "vol": "4706.7114",
-        //                 "volValue": "0.055227432084"
-        //             }
+        //         "code": "200000",
+        //         "data": {
+        //             "date": 1550661940645,
+        //             "ticker": [
+        //                 'buy': '0.00001168',
+        //                 'changePrice': '-0.00000018',
+        //                 'changeRate': '-0.0151',
+        //                 'datetime': 1550661146316,
+        //                 'high': '0.0000123',
+        //                 'last': '0.00001169',
+        //                 'low': '0.00001159',
+        //                 'sell': '0.00001182',
+        //                 'symbol': 'LOOM-BTC',
+        //                 'vol': '44399.5669'
+        //             },
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeValue (response, 'data', {});
+        const tickers = this.safeValue (data, 'ticker', []);
         const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const ticker = this.parseTicker (data[i]);
+        for (let i = 0; i < tickers.length; i++) {
+            const ticker = this.parseTicker (tickers[i]);
             const symbol = this.safeString (ticker, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = ticker;
@@ -432,15 +427,16 @@ module.exports = class kucoin2 extends Exchange {
         //     {
         //         "code": "200000",
         //         "data": {
-        //             "symbol": "ETH-BTC",
-        //             "high": "0.1",
-        //             "vol": "3891.5909166",
-        //             "low": "0.024",
-        //             "changePrice": "0.031809",
-        //             "changeRate": "31809",
-        //             "close": "0.03181",
-        //             "volValue": "119.5545894397034",
-        //             "open": "0.000001",
+        //             'buy': '0.00001168',
+        //             'changePrice': '-0.00000018',
+        //             'changeRate': '-0.0151',
+        //             'datetime': 1550661146316,
+        //             'high': '0.0000123',
+        //             'last': '0.00001169',
+        //             'low': '0.00001159',
+        //             'sell': '0.00001182',
+        //             'symbol': 'LOOM-BTC',
+        //             'vol': '44399.5669'
         //         },
         //     }
         //
