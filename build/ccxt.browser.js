@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.266'
+const version = '1.18.267'
 
 Exchange.ccxtVersion = version
 
@@ -2356,15 +2356,16 @@ module.exports = class Exchange {
 
     async loadAccounts (reload = false, params = {}) {
         if (reload) {
-            this.accounts = await this.fetchAccounts (params);
+            this.accounts = await this.fetchAccounts (params)
         } else {
             if (this.accounts) {
-                return this.accounts;
+                return this.accounts
             } else {
-                this.accounts = await this.fetchAccounts (params);
+                this.accounts = await this.fetchAccounts (params)
             }
         }
-        return this.accounts;
+        this.accountsById = this.indexBy (this.accounts, 'id')
+        return this.accounts
     }
 
     fetchBidsAsks (symbols = undefined, params = {}) {
