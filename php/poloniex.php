@@ -575,7 +575,7 @@ class poloniex extends Exchange {
                             $result[] = $trades[$j];
                         }
                     } else {
-                        list ($baseId, $quoteId) = explode ('_', $id);
+                        list ($quoteId, $baseId) = explode ('_', $id);
                         $base = $this->common_currency_code($baseId);
                         $quote = $this->common_currency_code($quoteId);
                         $symbol = $base . '/' . $quote;

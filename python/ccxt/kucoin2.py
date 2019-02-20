@@ -341,6 +341,9 @@ class kucoin2 (Exchange):
         #         'vol': '44399.5669'
         #     }
         #
+        percentage = self.safe_float(ticker, 'changeRate')
+        if percentage is not None:
+            percentage = percentage * 100
         last = self.safe_float(ticker, 'last')
         symbol = None
         marketId = self.safe_string(ticker, 'symbol')
@@ -372,7 +375,7 @@ class kucoin2 (Exchange):
             'last': last,
             'previousClose': None,
             'change': self.safe_float(ticker, 'changePrice'),
-            'percentage': self.safe_float(ticker, 'changeRate'),
+            'percentage': percentage,
             'average': None,
             'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': self.safe_float(ticker, 'volValue'),

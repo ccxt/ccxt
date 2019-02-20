@@ -555,7 +555,7 @@ class poloniex (Exchange):
                         for j in range(0, len(trades)):
                             result.append(trades[j])
                     else:
-                        baseId, quoteId = id.split('_')
+                        quoteId, baseId = id.split('_')
                         base = self.common_currency_code(baseId)
                         quote = self.common_currency_code(quoteId)
                         symbol = base + '/' + quote

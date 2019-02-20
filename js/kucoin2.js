@@ -337,6 +337,10 @@ module.exports = class kucoin2 extends Exchange {
         //         'vol': '44399.5669'
         //     }
         //
+        let percentage = this.safeFloat (ticker, 'changeRate');
+        if (percentage !== undefined) {
+            percentage = percentage * 100;
+        }
         const last = this.safeFloat (ticker, 'last');
         let symbol = undefined;
         const marketId = this.safeString (ticker, 'symbol');
@@ -372,7 +376,7 @@ module.exports = class kucoin2 extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': this.safeFloat (ticker, 'changePrice'),
-            'percentage': this.safeFloat (ticker, 'changeRate'),
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': this.safeFloat (ticker, 'volValue'),
@@ -652,15 +656,16 @@ module.exports = class kucoin2 extends Exchange {
         const side = this.safeString (order, 'side');
         const feeCurrencyId = this.safeString (order, 'feeCurrency');
         const feeCurrency = this.commonCurrencyCode (feeCurrencyId);
-        const fee = this.safeFloat (order, 'fee');
+        const feeCost = this.safeFloat (order, 'fee');
         const amount = this.safeFloat (order, 'size');
         const filled = this.safeFloat (order, 'dealSize');
+        const cost = this.safeFloat (order, 'dealFunds');
         const remaining = amount - filled;
         // bool
         const status = order['isActive'] ? 'open' : 'closed';
-        let fees = {
+        let fee = {
             'currency': feeCurrency,
-            'cost': fee,
+            'cost': feeCost,
         };
         return {
             'id': orderId,
@@ -669,11 +674,12 @@ module.exports = class kucoin2 extends Exchange {
             'side': side,
             'amount': amount,
             'price': price,
+            'cost': cost,
             'filled': filled,
             'remaining': remaining,
             'timestamp': timestamp,
             'datetime': datetime,
-            'fee': fees,
+            'fee': fee,
             'status': status,
             'info': order,
         };
