@@ -338,6 +338,10 @@ class kucoin2 extends Exchange {
         //         'vol' => '44399.5669'
         //     }
         //
+        $percentage = $this->safe_float($ticker, 'changeRate');
+        if ($percentage !== null) {
+            $percentage = $percentage * 100;
+        }
         $last = $this->safe_float($ticker, 'last');
         $symbol = null;
         $marketId = $this->safe_string($ticker, 'symbol');
@@ -373,7 +377,7 @@ class kucoin2 extends Exchange {
             'last' => $last,
             'previousClose' => null,
             'change' => $this->safe_float($ticker, 'changePrice'),
-            'percentage' => $this->safe_float($ticker, 'changeRate'),
+            'percentage' => $percentage,
             'average' => null,
             'baseVolume' => $this->safe_float($ticker, 'vol'),
             'quoteVolume' => $this->safe_float($ticker, 'volValue'),
