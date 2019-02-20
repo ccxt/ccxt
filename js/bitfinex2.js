@@ -500,7 +500,7 @@ module.exports = class bitfinex2 extends bitfinex {
         if (since !== undefined)
             request['start'] = since;
         let response = await this.privatePostAuthRTradesSymbolHist (this.extend (request, params));
-        return this.parseMyTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     nonce () {
