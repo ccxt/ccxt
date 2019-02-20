@@ -329,27 +329,19 @@ class kucoin2 (Exchange):
     def parse_ticker(self, ticker, market=None):
         #
         #     {
-        #         "symbol": "ETH-BTC",
-        #         "high": "0.1",
-        #         "vol": "3891.5909166",
-        #         "low": "0.024",
-        #         "changePrice": "0.031809",
-        #         "changeRate": "31809",
-        #         "close": "0.03181",
-        #         "volValue": "119.5545894397034",
-        #         "open": "0.000001",
+        #         'buy': '0.00001168',
+        #         'changePrice': '-0.00000018',
+        #         'changeRate': '-0.0151',
+        #         'datetime': 1550661146316,
+        #         'high': '0.0000123',
+        #         'last': '0.00001169',
+        #         'low': '0.00001159',
+        #         'sell': '0.00001182',
+        #         'symbol': 'LOOM-BTC',
+        #         'vol': '44399.5669'
         #     }
         #
-        change = self.safe_float(ticker, 'changePrice')
-        percentage = self.safe_float(ticker, 'changeRate')
-        if percentage is not None:
-            percentage = percentage * 100
-        open = self.safe_float(ticker, 'open')
-        last = self.safe_float(ticker, 'close')
-        high = self.safe_float(ticker, 'high')
-        low = self.safe_float(ticker, 'low')
-        baseVolume = self.safe_float(ticker, 'vol')
-        quoteVolume = self.safe_float(ticker, 'volValue')
+        last = self.safe_float(ticker, 'last')
         symbol = None
         marketId = self.safe_string(ticker, 'symbol')
         if marketId is not None:
@@ -368,22 +360,22 @@ class kucoin2 (Exchange):
             'symbol': symbol,
             'timestamp': None,
             'datetime': None,
-            'high': high,
-            'low': low,
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
-            'open': open,
+            'open': self.safe_float(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
-            'percentage': percentage,
+            'change': self.safe_float(ticker, 'changePrice'),
+            'percentage': self.safe_float(ticker, 'changeRate'),
             'average': None,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'baseVolume': self.safe_float(ticker, 'vol'),
+            'quoteVolume': self.safe_float(ticker, 'volValue'),
             'info': ticker,
         }
 
@@ -392,25 +384,29 @@ class kucoin2 (Exchange):
         response = await self.publicGetMarketAllTickers(params)
         #
         #     {
-        #         "data": [
-        #             {
-        #                 "symbol": "LOOM-BTC",
-        #                 "changeRate": "-0.0545",
-        #                 "changePrice": "-0.00000064",
-        #                 "open": "0.00001173",
-        #                 "close": "0.00001109",
-        #                 "high": "0.00001212",
-        #                 "low": "0.00001109",
-        #                 "vol": "4706.7114",
-        #                 "volValue": "0.055227432084"
-        #             }
+        #         "code": "200000",
+        #         "data": {
+        #             "date": 1550661940645,
+        #             "ticker": [
+        #                 'buy': '0.00001168',
+        #                 'changePrice': '-0.00000018',
+        #                 'changeRate': '-0.0151',
+        #                 'datetime': 1550661146316,
+        #                 'high': '0.0000123',
+        #                 'last': '0.00001169',
+        #                 'low': '0.00001159',
+        #                 'sell': '0.00001182',
+        #                 'symbol': 'LOOM-BTC',
+        #                 'vol': '44399.5669'
+        #             },
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_value(response, 'data', {})
+        tickers = self.safe_value(data, 'ticker', [])
         result = {}
-        for i in range(0, len(data)):
-            ticker = self.parse_ticker(data[i])
+        for i in range(0, len(tickers)):
+            ticker = self.parse_ticker(tickers[i])
             symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 result[symbol] = ticker
@@ -427,15 +423,16 @@ class kucoin2 (Exchange):
         #     {
         #         "code": "200000",
         #         "data": {
-        #             "symbol": "ETH-BTC",
-        #             "high": "0.1",
-        #             "vol": "3891.5909166",
-        #             "low": "0.024",
-        #             "changePrice": "0.031809",
-        #             "changeRate": "31809",
-        #             "close": "0.03181",
-        #             "volValue": "119.5545894397034",
-        #             "open": "0.000001",
+        #             'buy': '0.00001168',
+        #             'changePrice': '-0.00000018',
+        #             'changeRate': '-0.0151',
+        #             'datetime': 1550661146316,
+        #             'high': '0.0000123',
+        #             'last': '0.00001169',
+        #             'low': '0.00001159',
+        #             'sell': '0.00001182',
+        #             'symbol': 'LOOM-BTC',
+        #             'vol': '44399.5669'
         #         },
         #     }
         #
