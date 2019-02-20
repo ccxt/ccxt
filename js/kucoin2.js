@@ -496,7 +496,7 @@ module.exports = class kucoin2 extends Exchange {
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         const data = this.safeValue (response, 'data', {});
         let address = this.safeString (data, 'address');
-        // BCH is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
+        // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
         address = address.replace ('bitcoincash:', '');
         const tag = this.safeString (data, 'memo');
         this.checkAddress (address);
@@ -517,7 +517,7 @@ module.exports = class kucoin2 extends Exchange {
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         const data = this.safeValue (response, 'data', {});
         let address = this.safeString (data, 'address');
-        // BCH is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
+        // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
         address = address.replace ('bitcoincash:', '');
         const tag = this.safeString (data, 'memo');
         this.checkAddress (address);
