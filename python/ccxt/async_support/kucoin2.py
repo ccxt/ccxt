@@ -158,6 +158,20 @@ class kucoin2 (Exchange):
                 '500000': ExchangeError,
                 'order_not_exist': OrderNotFound,  # {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
             },
+            'fees': {
+                'trading': {
+                    'tierBased': False,
+                    'percentage': True,
+                    'taker': 0.001,
+                    'maker': 0.001,
+                },
+                'funding': {
+                    'tierBased': False,
+                    'percentage': False,
+                    'withdraw': {},
+                    'deposit': {},
+                },
+            },
             'options': {
                 'version': 'v1',
                 'symbolSeparator': '-',
@@ -208,7 +222,7 @@ class kucoin2 (Exchange):
             quoteIncrement = self.safe_float(market, 'quoteIncrement')
             precision = {
                 'amount': self.precision_from_string(self.safe_string(market, 'baseIncrement')),
-                'price': self.precision_from_string(self.safe_string(market, 'quoteIncrement')),
+                'price': self.precision_from_string(self.safe_string(market, 'priceIncrement')),
             }
             limits = {
                 'amount': {
@@ -328,6 +342,8 @@ class kucoin2 (Exchange):
         #
         change = self.safe_float(ticker, 'changePrice')
         percentage = self.safe_float(ticker, 'changeRate')
+        if percentage is not None:
+            percentage = percentage * 100
         open = self.safe_float(ticker, 'open')
         last = self.safe_float(ticker, 'close')
         high = self.safe_float(ticker, 'high')
@@ -466,7 +482,7 @@ class kucoin2 (Exchange):
         currencyId = self.currencyId(code)
         request = {'currency': currencyId}
         response = await self.privateGetDepositAddresses(self.extend(request, params))
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', {})
         address = self.safe_string(data, 'address')
         tag = self.safe_string(data, 'memo')
         self.check_address(address)
