@@ -28,6 +28,7 @@ class kucoin2 extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchDepositAddress' => true,
+                'createDepositAddress' => true,
                 'withdraw' => true,
                 'fetchDeposits' => true,
                 'fetchWithdrawals' => true,
@@ -487,13 +488,54 @@ class kucoin2 extends Exchange {
         return $this->parse_ohlcvs($responseData, $market, $timeframe, $since, $limit);
     }
 
+    public function create_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $currencyId = $this->currencyId ($code);
+        $request = array ( 'currency' => $currencyId );
+        $response = $this->privatePostDepositAddresses (array_merge ($request, $params));
+        // BCH array ("$code":"200000","$data":{"$address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":"")}
+        // BTC array ("$code":"200000","$data":{"$address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":"")}
+        $data = $this->safe_value($response, 'data', array ());
+        $address = $this->safe_string($data, 'address');
+        // BCH is returned with a "prefix:", which we cut off here and only keep the $address
+        if ($code === 'BCH') {
+            if (mb_strpos ($address, ':') !== false) {
+                $parts = explode (':', $address);
+                $numParts = is_array ($parts) ? count ($parts) : 0;
+                if ($numParts > 1) {
+                    $address = $parts[1];
+                }
+            }
+        }
+        $tag = $this->safe_string($data, 'memo');
+        $this->check_address($address);
+        return array (
+            'info' => $response,
+            'currency' => $code,
+            'address' => $address,
+            'tag' => $tag,
+        );
+    }
+
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $currencyId = $this->currencyId ($code);
         $request = array ( 'currency' => $currencyId );
         $response = $this->privateGetDepositAddresses (array_merge ($request, $params));
+        // BCH array ("$code":"200000","$data":{"$address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":"")}
+        // BTC array ("$code":"200000","$data":{"$address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":"")}
         $data = $this->safe_value($response, 'data', array ());
         $address = $this->safe_string($data, 'address');
+        // BCH is returned with a "prefix:", which we cut off here and only keep the $address
+        if ($code === 'BCH') {
+            if (mb_strpos ($address, ':') !== false) {
+                $parts = explode (':', $address);
+                $numParts = is_array ($parts) ? count ($parts) : 0;
+                if ($numParts > 1) {
+                    $address = $parts[1];
+                }
+            }
+        }
         $tag = $this->safe_string($data, 'memo');
         $this->check_address($address);
         return array (

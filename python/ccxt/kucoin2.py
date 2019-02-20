@@ -41,6 +41,7 @@ class kucoin2 (Exchange):
                 'fetchClosedOrders': True,
                 'fetchOpenOrders': True,
                 'fetchDepositAddress': True,
+                'createDepositAddress': True,
                 'withdraw': True,
                 'fetchDeposits': True,
                 'fetchWithdrawals': True,
@@ -477,13 +478,47 @@ class kucoin2 (Exchange):
         responseData = response['data']
         return self.parse_ohlcvs(responseData, market, timeframe, since, limit)
 
+    def create_deposit_address(self, code, params={}):
+        self.load_markets()
+        currencyId = self.currencyId(code)
+        request = {'currency': currencyId}
+        response = self.privatePostDepositAddresses(self.extend(request, params))
+        # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
+        # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
+        data = self.safe_value(response, 'data', {})
+        address = self.safe_string(data, 'address')
+        # BCH is returned with a "prefix:", which we cut off here and only keep the address
+        if code == 'BCH':
+            if address.find(':') >= 0:
+                parts = address.split(':')
+                numParts = len(parts)
+                if numParts > 1:
+                    address = parts[1]
+        tag = self.safe_string(data, 'memo')
+        self.check_address(address)
+        return {
+            'info': response,
+            'currency': code,
+            'address': address,
+            'tag': tag,
+        }
+
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
         currencyId = self.currencyId(code)
         request = {'currency': currencyId}
         response = self.privateGetDepositAddresses(self.extend(request, params))
+        # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
+        # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         data = self.safe_value(response, 'data', {})
         address = self.safe_string(data, 'address')
+        # BCH is returned with a "prefix:", which we cut off here and only keep the address
+        if code == 'BCH':
+            if address.find(':') >= 0:
+                parts = address.split(':')
+                numParts = len(parts)
+                if numParts > 1:
+                    address = parts[1]
         tag = self.safe_string(data, 'memo')
         self.check_address(address)
         return {
