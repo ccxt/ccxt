@@ -444,7 +444,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'end': this.milliseconds (),
         };
         if (since !== undefined)
-            request['start'] = since.getTime ();
+            request['start'] = since;
         let response = await this.privatePostAuthRTradesSymbolHist (this.extend (request, params));
         return this.parseMyTrades (response, market);
     }
