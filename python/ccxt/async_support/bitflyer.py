@@ -53,6 +53,7 @@ class bitflyer (Exchange):
                         'getbalance',
                         'getbalancehistory',
                         'getcollateral',
+                        'getcollateralhistory',
                         'getcollateralaccounts',
                         'getaddresses',
                         'getcoinins',

@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.274'
+const version = '1.18.275'
 
 Exchange.ccxtVersion = version
 
@@ -10631,6 +10631,7 @@ module.exports = class bitflyer extends Exchange {
                         'getbalance',
                         'getbalancehistory',
                         'getcollateral',
+                        'getcollateralhistory',
                         'getcollateralaccounts',
                         'getaddresses',
                         'getcoinins',
