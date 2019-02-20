@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.271'
+const version = '1.18.277'
 
 Exchange.ccxtVersion = version
 
@@ -10033,8 +10033,8 @@ module.exports = class bitfinex extends Exchange {
                 'nonce': nonce.toString (),
                 'request': request,
             }, query);
-            query = this.json (query);
-            query = this.encode (query);
+            body = this.json (query);
+            query = this.encode (body);
             let payload = this.stringToBase64 (query);
             let secret = this.encode (this.secret);
             let signature = this.hmac (payload, secret, 'sha384');
@@ -10631,6 +10631,7 @@ module.exports = class bitflyer extends Exchange {
                         'getbalance',
                         'getbalancehistory',
                         'getcollateral',
+                        'getcollateralhistory',
                         'getcollateralaccounts',
                         'getaddresses',
                         'getcoinins',
@@ -13133,11 +13134,26 @@ module.exports = class bitmex extends Exchange {
         if (!market['active']) {
             throw new ExchangeError (this.id + ': symbol ' + symbol + ' is delisted');
         }
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.publicGetInstrumentActiveAndIndices (this.extend (request, params));
-        return this.parseTicker (response[0]);
+        const tickers = await this.fetchTickers ([ symbol ], params);
+        const ticker = this.safeValue (tickers, symbol);
+        if (ticker === undefined) {
+            throw new ExchangeError (this.id + ' ticker symbol ' + symbol + ' not found');
+        }
+        return ticker;
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetInstrumentActiveAndIndices (params);
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const ticker = this.parseTicker (response[i]);
+            const symbol = this.safeString (ticker, 'symbol');
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
+        }
+        return result;
     }
 
     parseTicker (ticker, market = undefined) {
@@ -49730,6 +49746,7 @@ module.exports = class kucoin2 extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
                 'fetchDepositAddress': true,
+                'createDepositAddress': true,
                 'withdraw': true,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
@@ -50189,13 +50206,38 @@ module.exports = class kucoin2 extends Exchange {
         return this.parseOHLCVs (responseData, market, timeframe, since, limit);
     }
 
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currencyId = this.currencyId (code);
+        const request = { 'currency': currencyId };
+        const response = await this.privatePostDepositAddresses (this.extend (request, params));
+        // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
+        // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
+        const data = this.safeValue (response, 'data', {});
+        let address = this.safeString (data, 'address');
+        // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
+        address = address.replace ('bitcoincash:', '');
+        const tag = this.safeString (data, 'memo');
+        this.checkAddress (address);
+        return {
+            'info': response,
+            'currency': code,
+            'address': address,
+            'tag': tag,
+        };
+    }
+
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currencyId = this.currencyId (code);
         const request = { 'currency': currencyId };
         const response = await this.privateGetDepositAddresses (this.extend (request, params));
+        // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
+        // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         const data = this.safeValue (response, 'data', {});
-        const address = this.safeString (data, 'address');
+        let address = this.safeString (data, 'address');
+        // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
+        address = address.replace ('bitcoincash:', '');
         const tag = this.safeString (data, 'memo');
         this.checkAddress (address);
         return {
@@ -50359,15 +50401,16 @@ module.exports = class kucoin2 extends Exchange {
         const side = this.safeString (order, 'side');
         const feeCurrencyId = this.safeString (order, 'feeCurrency');
         const feeCurrency = this.commonCurrencyCode (feeCurrencyId);
-        const fee = this.safeFloat (order, 'fee');
+        const feeCost = this.safeFloat (order, 'fee');
         const amount = this.safeFloat (order, 'size');
         const filled = this.safeFloat (order, 'dealSize');
+        const cost = this.safeFloat (order, 'dealFunds');
         const remaining = amount - filled;
         // bool
         const status = order['isActive'] ? 'open' : 'closed';
-        let fees = {
+        let fee = {
             'currency': feeCurrency,
-            'cost': fee,
+            'cost': feeCost,
         };
         return {
             'id': orderId,
@@ -50376,11 +50419,12 @@ module.exports = class kucoin2 extends Exchange {
             'side': side,
             'amount': amount,
             'price': price,
+            'cost': cost,
             'filled': filled,
             'remaining': remaining,
             'timestamp': timestamp,
             'datetime': datetime,
-            'fee': fees,
+            'fee': fee,
             'status': status,
             'info': order,
         };

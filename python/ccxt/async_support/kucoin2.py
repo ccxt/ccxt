@@ -41,6 +41,7 @@ class kucoin2 (Exchange):
                 'fetchClosedOrders': True,
                 'fetchOpenOrders': True,
                 'fetchDepositAddress': True,
+                'createDepositAddress': True,
                 'withdraw': True,
                 'fetchDeposits': True,
                 'fetchWithdrawals': True,
@@ -477,13 +478,37 @@ class kucoin2 (Exchange):
         responseData = response['data']
         return self.parse_ohlcvs(responseData, market, timeframe, since, limit)
 
+    async def create_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currencyId = self.currencyId(code)
+        request = {'currency': currencyId}
+        response = await self.privatePostDepositAddresses(self.extend(request, params))
+        # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
+        # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
+        data = self.safe_value(response, 'data', {})
+        address = self.safe_string(data, 'address')
+        # BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
+        address = address.replace('bitcoincash:', '')
+        tag = self.safe_string(data, 'memo')
+        self.check_address(address)
+        return {
+            'info': response,
+            'currency': code,
+            'address': address,
+            'tag': tag,
+        }
+
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
         currencyId = self.currencyId(code)
         request = {'currency': currencyId}
         response = await self.privateGetDepositAddresses(self.extend(request, params))
+        # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
+        # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         data = self.safe_value(response, 'data', {})
         address = self.safe_string(data, 'address')
+        # BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
+        address = address.replace('bitcoincash:', '')
         tag = self.safe_string(data, 'memo')
         self.check_address(address)
         return {
@@ -631,15 +656,16 @@ class kucoin2 (Exchange):
         side = self.safe_string(order, 'side')
         feeCurrencyId = self.safe_string(order, 'feeCurrency')
         feeCurrency = self.common_currency_code(feeCurrencyId)
-        fee = self.safe_float(order, 'fee')
+        feeCost = self.safe_float(order, 'fee')
         amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'dealSize')
+        cost = self.safe_float(order, 'dealFunds')
         remaining = amount - filled
         # bool
         status = 'open' if order['isActive'] else 'closed'
-        fees = {
+        fee = {
             'currency': feeCurrency,
-            'cost': fee,
+            'cost': feeCost,
         }
         return {
             'id': orderId,
@@ -648,11 +674,12 @@ class kucoin2 (Exchange):
             'side': side,
             'amount': amount,
             'price': price,
+            'cost': cost,
             'filled': filled,
             'remaining': remaining,
             'timestamp': timestamp,
             'datetime': datetime,
-            'fee': fees,
+            'fee': fee,
             'status': status,
             'info': order,
         }

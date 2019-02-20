@@ -28,6 +28,7 @@ class kucoin2 extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchDepositAddress' => true,
+                'createDepositAddress' => true,
                 'withdraw' => true,
                 'fetchDeposits' => true,
                 'fetchWithdrawals' => true,
@@ -487,13 +488,38 @@ class kucoin2 extends Exchange {
         return $this->parse_ohlcvs($responseData, $market, $timeframe, $since, $limit);
     }
 
+    public function create_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $currencyId = $this->currencyId ($code);
+        $request = array ( 'currency' => $currencyId );
+        $response = $this->privatePostDepositAddresses (array_merge ($request, $params));
+        // BCH array ("$code":"200000","$data":{"$address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":"")}
+        // BTC array ("$code":"200000","$data":{"$address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":"")}
+        $data = $this->safe_value($response, 'data', array ());
+        $address = $this->safe_string($data, 'address');
+        // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the $address
+        $address = str_replace ('bitcoincash:', '', $address);
+        $tag = $this->safe_string($data, 'memo');
+        $this->check_address($address);
+        return array (
+            'info' => $response,
+            'currency' => $code,
+            'address' => $address,
+            'tag' => $tag,
+        );
+    }
+
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $currencyId = $this->currencyId ($code);
         $request = array ( 'currency' => $currencyId );
         $response = $this->privateGetDepositAddresses (array_merge ($request, $params));
+        // BCH array ("$code":"200000","$data":{"$address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":"")}
+        // BTC array ("$code":"200000","$data":{"$address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":"")}
         $data = $this->safe_value($response, 'data', array ());
         $address = $this->safe_string($data, 'address');
+        // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the $address
+        $address = str_replace ('bitcoincash:', '', $address);
         $tag = $this->safe_string($data, 'memo');
         $this->check_address($address);
         return array (
@@ -657,15 +683,16 @@ class kucoin2 extends Exchange {
         $side = $this->safe_string($order, 'side');
         $feeCurrencyId = $this->safe_string($order, 'feeCurrency');
         $feeCurrency = $this->common_currency_code($feeCurrencyId);
-        $fee = $this->safe_float($order, 'fee');
+        $feeCost = $this->safe_float($order, 'fee');
         $amount = $this->safe_float($order, 'size');
         $filled = $this->safe_float($order, 'dealSize');
+        $cost = $this->safe_float($order, 'dealFunds');
         $remaining = $amount - $filled;
         // bool
         $status = $order['isActive'] ? 'open' : 'closed';
-        $fees = array (
+        $fee = array (
             'currency' => $feeCurrency,
-            'cost' => $fee,
+            'cost' => $feeCost,
         );
         return array (
             'id' => $orderId,
@@ -674,11 +701,12 @@ class kucoin2 extends Exchange {
             'side' => $side,
             'amount' => $amount,
             'price' => $price,
+            'cost' => $cost,
             'filled' => $filled,
             'remaining' => $remaining,
             'timestamp' => $timestamp,
             'datetime' => $datetime,
-            'fee' => $fees,
+            'fee' => $fee,
             'status' => $status,
             'info' => $order,
         );

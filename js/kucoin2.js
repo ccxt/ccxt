@@ -27,6 +27,7 @@ module.exports = class kucoin2 extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
                 'fetchDepositAddress': true,
+                'createDepositAddress': true,
                 'withdraw': true,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
@@ -486,13 +487,38 @@ module.exports = class kucoin2 extends Exchange {
         return this.parseOHLCVs (responseData, market, timeframe, since, limit);
     }
 
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currencyId = this.currencyId (code);
+        const request = { 'currency': currencyId };
+        const response = await this.privatePostDepositAddresses (this.extend (request, params));
+        // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
+        // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
+        const data = this.safeValue (response, 'data', {});
+        let address = this.safeString (data, 'address');
+        // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
+        address = address.replace ('bitcoincash:', '');
+        const tag = this.safeString (data, 'memo');
+        this.checkAddress (address);
+        return {
+            'info': response,
+            'currency': code,
+            'address': address,
+            'tag': tag,
+        };
+    }
+
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currencyId = this.currencyId (code);
         const request = { 'currency': currencyId };
         const response = await this.privateGetDepositAddresses (this.extend (request, params));
+        // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
+        // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         const data = this.safeValue (response, 'data', {});
-        const address = this.safeString (data, 'address');
+        let address = this.safeString (data, 'address');
+        // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
+        address = address.replace ('bitcoincash:', '');
         const tag = this.safeString (data, 'memo');
         this.checkAddress (address);
         return {

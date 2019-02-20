@@ -335,11 +335,26 @@ class bitmex extends Exchange {
         if (!$market['active']) {
             throw new ExchangeError ($this->id . ' => $symbol ' . $symbol . ' is delisted');
         }
-        $request = array (
-            'symbol' => $market['id'],
-        );
-        $response = $this->publicGetInstrumentActiveAndIndices (array_merge ($request, $params));
-        return $this->parse_ticker($response[0]);
+        $tickers = $this->fetch_tickers(array ( $symbol ), $params);
+        $ticker = $this->safe_value($tickers, $symbol);
+        if ($ticker === null) {
+            throw new ExchangeError ($this->id . ' $ticker $symbol ' . $symbol . ' not found');
+        }
+        return $ticker;
+    }
+
+    public function fetch_tickers ($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->publicGetInstrumentActiveAndIndices ($params);
+        $result = array ();
+        for ($i = 0; $i < count ($response); $i++) {
+            $ticker = $this->parse_ticker($response[$i]);
+            $symbol = $this->safe_string($ticker, 'symbol');
+            if ($symbol !== null) {
+                $result[$symbol] = $ticker;
+            }
+        }
+        return $result;
     }
 
     public function parse_ticker ($ticker, $market = null) {
