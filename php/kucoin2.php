@@ -657,15 +657,16 @@ class kucoin2 extends Exchange {
         $side = $this->safe_string($order, 'side');
         $feeCurrencyId = $this->safe_string($order, 'feeCurrency');
         $feeCurrency = $this->common_currency_code($feeCurrencyId);
-        $fee = $this->safe_float($order, 'fee');
+        $feeCost = $this->safe_float($order, 'fee');
         $amount = $this->safe_float($order, 'size');
         $filled = $this->safe_float($order, 'dealSize');
+        $cost = $this->safe_float($order, 'dealFunds');
         $remaining = $amount - $filled;
         // bool
         $status = $order['isActive'] ? 'open' : 'closed';
-        $fees = array (
+        $fee = array (
             'currency' => $feeCurrency,
-            'cost' => $fee,
+            'cost' => $feeCost,
         );
         return array (
             'id' => $orderId,
@@ -674,11 +675,12 @@ class kucoin2 extends Exchange {
             'side' => $side,
             'amount' => $amount,
             'price' => $price,
+            'cost' => $cost,
             'filled' => $filled,
             'remaining' => $remaining,
             'timestamp' => $timestamp,
             'datetime' => $datetime,
-            'fee' => $fees,
+            'fee' => $fee,
             'status' => $status,
             'info' => $order,
         );
