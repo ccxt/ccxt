@@ -326,28 +326,19 @@ class kucoin2 extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         //
         //     {
-        //         "$symbol" => "ETH-BTC",
-        //         "$high" => "0.1",
-        //         "vol" => "3891.5909166",
-        //         "$low" => "0.024",
-        //         "changePrice" => "0.031809",
-        //         "changeRate" => "31809",
-        //         "close" => "0.03181",
-        //         "volValue" => "119.5545894397034",
-        //         "$open" => "0.000001",
+        //         'buy' => '0.00001168',
+        //         'changePrice' => '-0.00000018',
+        //         'changeRate' => '-0.0151',
+        //         'datetime' => 1550661146316,
+        //         'high' => '0.0000123',
+        //         'last' => '0.00001169',
+        //         'low' => '0.00001159',
+        //         'sell' => '0.00001182',
+        //         'symbol' => 'LOOM-BTC',
+        //         'vol' => '44399.5669'
         //     }
         //
-        $change = $this->safe_float($ticker, 'changePrice');
-        $percentage = $this->safe_float($ticker, 'changeRate');
-        if ($percentage !== null) {
-            $percentage = $percentage * 100;
-        }
-        $open = $this->safe_float($ticker, 'open');
-        $last = $this->safe_float($ticker, 'close');
-        $high = $this->safe_float($ticker, 'high');
-        $low = $this->safe_float($ticker, 'low');
-        $baseVolume = $this->safe_float($ticker, 'vol');
-        $quoteVolume = $this->safe_float($ticker, 'volValue');
+        $last = $this->safe_float($ticker, 'last');
         $symbol = null;
         $marketId = $this->safe_string($ticker, 'symbol');
         if ($marketId !== null) {
@@ -370,22 +361,22 @@ class kucoin2 extends Exchange {
             'symbol' => $symbol,
             'timestamp' => null,
             'datetime' => null,
-            'high' => $high,
-            'low' => $low,
-            'bid' => $this->safe_float($ticker, 'bid'),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'ask'),
+            'ask' => $this->safe_float($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $open,
+            'open' => $this->safe_float($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
+            'change' => $this->safe_float($ticker, 'changePrice'),
+            'percentage' => $this->safe_float($ticker, 'changeRate'),
             'average' => null,
-            'baseVolume' => $baseVolume,
-            'quoteVolume' => $quoteVolume,
+            'baseVolume' => $this->safe_float($ticker, 'vol'),
+            'quoteVolume' => $this->safe_float($ticker, 'volValue'),
             'info' => $ticker,
         );
     }
@@ -395,25 +386,29 @@ class kucoin2 extends Exchange {
         $response = $this->publicGetMarketAllTickers ($params);
         //
         //     {
+        //         "code" => "200000",
         //         "$data" => array (
-        //             {
-        //                 "$symbol" => "LOOM-BTC",
-        //                 "changeRate" => "-0.0545",
-        //                 "changePrice" => "-0.00000064",
-        //                 "open" => "0.00001173",
-        //                 "close" => "0.00001109",
-        //                 "high" => "0.00001212",
-        //                 "low" => "0.00001109",
-        //                 "vol" => "4706.7114",
-        //                 "volValue" => "0.055227432084"
-        //             }
+        //             "date" => 1550661940645,
+        //             "$ticker" => array (
+        //                 'buy' => '0.00001168',
+        //                 'changePrice' => '-0.00000018',
+        //                 'changeRate' => '-0.0151',
+        //                 'datetime' => 1550661146316,
+        //                 'high' => '0.0000123',
+        //                 'last' => '0.00001169',
+        //                 'low' => '0.00001159',
+        //                 'sell' => '0.00001182',
+        //                 'symbol' => 'LOOM-BTC',
+        //                 'vol' => '44399.5669'
+        //             ),
         //         )
         //     }
         //
         $data = $this->safe_value($response, 'data', array ());
+        $tickers = $this->safe_value($data, 'ticker', array ());
         $result = array ();
-        for ($i = 0; $i < count ($data); $i++) {
-            $ticker = $this->parse_ticker($data[$i]);
+        for ($i = 0; $i < count ($tickers); $i++) {
+            $ticker = $this->parse_ticker($tickers[$i]);
             $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $ticker;
@@ -433,15 +428,16 @@ class kucoin2 extends Exchange {
         //     {
         //         "code" => "200000",
         //         "data" => array (
-        //             "$symbol" => "ETH-BTC",
-        //             "high" => "0.1",
-        //             "vol" => "3891.5909166",
-        //             "low" => "0.024",
-        //             "changePrice" => "0.031809",
-        //             "changeRate" => "31809",
-        //             "close" => "0.03181",
-        //             "volValue" => "119.5545894397034",
-        //             "open" => "0.000001",
+        //             'buy' => '0.00001168',
+        //             'changePrice' => '-0.00000018',
+        //             'changeRate' => '-0.0151',
+        //             'datetime' => 1550661146316,
+        //             'high' => '0.0000123',
+        //             'last' => '0.00001169',
+        //             'low' => '0.00001159',
+        //             'sell' => '0.00001182',
+        //             'symbol' => 'LOOM-BTC',
+        //             'vol' => '44399.5669'
         //         ),
         //     }
         //
