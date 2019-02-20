@@ -326,11 +326,22 @@ class bitmex (Exchange):
         market = self.market(symbol)
         if not market['active']:
             raise ExchangeError(self.id + ': symbol ' + symbol + ' is delisted')
-        request = {
-            'symbol': market['id'],
-        }
-        response = await self.publicGetInstrumentActiveAndIndices(self.extend(request, params))
-        return self.parse_ticker(response[0])
+        tickers = await self.fetch_tickers([symbol], params)
+        ticker = self.safe_value(tickers, symbol)
+        if ticker is None:
+            raise ExchangeError(self.id + ' ticker symbol ' + symbol + ' not found')
+        return ticker
+
+    async def fetch_tickers(self, symbols=None, params={}):
+        await self.load_markets()
+        response = await self.publicGetInstrumentActiveAndIndices(params)
+        result = {}
+        for i in range(0, len(response)):
+            ticker = self.parse_ticker(response[i])
+            symbol = self.safe_string(ticker, 'symbol')
+            if symbol is not None:
+                result[symbol] = ticker
+        return result
 
     def parse_ticker(self, ticker, market=None):
         #
