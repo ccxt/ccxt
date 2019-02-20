@@ -121,7 +121,7 @@ class okcoinusd extends Exchange {
                 'api' => array (
                     'web' => 'https://www.okcoin.com/v2',
                     'public' => 'https://www.okcoin.com/api',
-                    'private' => 'https://www.okcoin.com/api',
+                    'private' => 'https://www.okcoin.com',
                 ),
                 'www' => 'https://www.okcoin.com',
                 'doc' => array (
