@@ -144,6 +144,20 @@ module.exports = class kucoin2 extends Exchange {
                 '500000': ExchangeError,
                 'order_not_exist': OrderNotFound,  // {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
             },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'taker': 0.001,
+                    'maker': 0.001,
+                },
+                'funding': {
+                    'tierBased': false,
+                    'percentage': false,
+                    'withdraw': {},
+                    'deposit': {},
+                },
+            },
             'options': {
                 'version': 'v1',
                 'symbolSeparator': '-',
@@ -197,7 +211,7 @@ module.exports = class kucoin2 extends Exchange {
             const quoteIncrement = this.safeFloat (market, 'quoteIncrement');
             const precision = {
                 'amount': this.precisionFromString (this.safeString (market, 'baseIncrement')),
-                'price': this.precisionFromString (this.safeString (market, 'quoteIncrement')),
+                'price': this.precisionFromString (this.safeString (market, 'priceIncrement')),
             };
             const limits = {
                 'amount': {
@@ -323,7 +337,10 @@ module.exports = class kucoin2 extends Exchange {
         //     }
         //
         const change = this.safeFloat (ticker, 'changePrice');
-        const percentage = this.safeFloat (ticker, 'changeRate');
+        let percentage = this.safeFloat (ticker, 'changeRate');
+        if (percentage !== undefined) {
+            percentage = percentage * 100;
+        }
         const open = this.safeFloat (ticker, 'open');
         const last = this.safeFloat (ticker, 'close');
         const high = this.safeFloat (ticker, 'high');
@@ -474,7 +491,7 @@ module.exports = class kucoin2 extends Exchange {
         const currencyId = this.currencyId (code);
         const request = { 'currency': currencyId };
         const response = await this.privateGetDepositAddresses (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', {});
         const address = this.safeString (data, 'address');
         const tag = this.safeString (data, 'memo');
         this.checkAddress (address);
