@@ -496,16 +496,20 @@ class kucoin2 (Exchange):
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         marketId = self.market_id(symbol)
-        request = {'symbol': marketId, 'level': 3}
-        response = await self.publicGetMarketOrderbookLevelLevel(self.extend(request, params))
+        request = self.extend({'symbol': marketId, 'level': 2}, params)
+        response = await self.publicGetMarketOrderbookLevelLevel(request)
         #
         # {sequence: '1547731421688',
         #   asks: [['5c419328ef83c75456bd615c', '0.9', '0.09'], ...],
         #   bids: [['5c419328ef83c75456bd615c', '0.9', '0.09'], ...],}
         #
-        responseData = response['data']
-        timestamp = self.safe_integer(responseData, 'sequence')
-        return self.parse_order_book(responseData, timestamp, 'bids', 'asks', 1, 2)
+        data = response['data']
+        timestamp = self.safe_integer(data, 'sequence')
+        # level can be a string such as 2_20 or 2_100
+        levelString = self.safe_string(request, 'level')
+        levelParts = levelString.split('_')
+        level = int(levelParts[0])
+        return self.parse_order_book(data, timestamp, 'bids', 'asks', level - 2, level - 1)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

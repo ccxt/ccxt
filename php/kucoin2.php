@@ -507,16 +507,20 @@ class kucoin2 extends Exchange {
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $marketId = $this->market_id($symbol);
-        $request = array ( 'symbol' => $marketId, 'level' => 3 );
-        $response = $this->publicGetMarketOrderbookLevelLevel (array_merge ($request, $params));
+        $request = array_merge (array ( 'symbol' => $marketId, 'level' => 2 ), $params);
+        $response = $this->publicGetMarketOrderbookLevelLevel ($request);
         //
         // { sequence => '1547731421688',
         //   asks => array ( array ( '5c419328ef83c75456bd615c', '0.9', '0.09' ), ... ),
         //   bids => array ( array ( '5c419328ef83c75456bd615c', '0.9', '0.09' ), ... ), }
         //
-        $responseData = $response['data'];
-        $timestamp = $this->safe_integer($responseData, 'sequence');
-        return $this->parse_order_book($responseData, $timestamp, 'bids', 'asks', 1, 2);
+        $data = $response['data'];
+        $timestamp = $this->safe_integer($data, 'sequence');
+        // $level can be a string such as 2_20 or 2_100
+        $levelString = $this->safe_string($request, 'level');
+        $levelParts = explode ('_', $levelString);
+        $level = intval ($levelParts[0]);
+        return $this->parse_order_book($data, $timestamp, 'bids', 'asks', $level - 2, $level - 1);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
