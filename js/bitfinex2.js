@@ -246,6 +246,7 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchBalance (params = {}) {
+        // this api call does not return the 'used' amount - use the v1 version instead (which also returns zero balances)
         await this.loadMarkets ();
         let response = await this.privatePostAuthRWallets ();
         let balanceType = this.safeString (params, 'type', 'exchange');
