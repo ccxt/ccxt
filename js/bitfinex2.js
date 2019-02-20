@@ -164,6 +164,24 @@ module.exports = class bitfinex2 extends bitfinex {
                     },
                 },
             },
+            'options': {
+                'orderTypes': {
+                    'MARKET': undefined,
+                    'EXCHANGE MARKET': 'market',
+                    'LIMIT': undefined,
+                    'EXCHANGE LIMIT': 'limit',
+                    'STOP': undefined,
+                    'EXCHANGE STOP': 'stopOrLoss',
+                    'TRAILING STOP': undefined,
+                    'EXCHANGE TRAILING STOP': undefined,
+                    'FOK': undefined,
+                    'EXCHANGE FOK': 'limit FOK',
+                    'STOP LIMIT': undefined,
+                    'EXCHANGE STOP LIMIT': 'limit stop',
+                    'IOC': undefined,
+                    'EXCHANGE IOC': 'limit ico',
+                },
+            },
         });
     }
 
@@ -359,22 +377,58 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     parseTrade (trade, market) {
-        let [ id, timestamp, amount, price ] = trade;
-        let side = (amount < 0) ? 'sell' : 'buy';
-        if (amount < 0) {
-            amount = -amount;
+        let symbol = market['symbol'];
+        if (trade.length > 5) {
+            // 'my' trades
+            let id = trade[0];
+            // let pair = item[1];
+            let mtsCreate = trade[2];
+            let orderId = trade[3];
+            let execAmount = trade[4];
+            let execPrice = trade[5];
+            let orderType = trade[6];
+            // let orderPrice = trade[7];
+            let maker = trade[8];
+            let fee = -trade[9];
+            let feeCurrency = trade[10];
+            let type = this.options.orderTypes[orderType];
+            return {
+                'id': id,
+                'timestamp': mtsCreate,
+                'datetime': this.iso8601 (mtsCreate),
+                'symbol': symbol,
+                'order': orderId,
+                'side': undefined,
+                'type': type,
+                'price': execPrice,
+                'amount': execAmount,
+                'takerOrMaker': maker === 1 ? 'maker' : 'taker',
+                'cost': undefined,
+                'fee': {
+                    'cost': fee,
+                    'currency': feeCurrency,
+                },
+                'info': trade,
+            };
+        } else {
+            // public trades
+            let [ id, timestamp, amount, price ] = trade;
+            let side = (amount < 0) ? 'sell' : 'buy';
+            if (amount < 0) {
+                amount = -amount;
+            }
+            return {
+                'id': id.toString (),
+                'info': trade,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'symbol': symbol,
+                'type': undefined,
+                'side': side,
+                'price': price,
+                'amount': amount,
+            };
         }
-        return {
-            'id': id.toString (),
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': side,
-            'price': price,
-            'amount': amount,
-        };
     }
 
     async fetchTrades (symbol, since = undefined, limit = 120, params = {}) {
@@ -447,43 +501,6 @@ module.exports = class bitfinex2 extends bitfinex {
             request['start'] = since;
         let response = await this.privatePostAuthRTradesSymbolHist (this.extend (request, params));
         return this.parseMyTrades (response, market);
-    }
-
-    parseMyTrades (response, market) {
-        let trades = [];
-        for (let i = 0; i < response.length; i++) {
-            let item = response[i];
-            let id = item[0];
-            // let pair = item[1];
-            let mtsCreate = item[2];
-            let orderId = item[3];
-            let execAmount = item[4];
-            let execPrice = item[5];
-            // let orderType = item[6];
-            let orderPrice = item[7];
-            let maker = item[8];
-            let fee = -item[9];
-            let feeCurrency = item[10];
-            trades.push ({
-                'id': id,
-                'timestamp': mtsCreate,
-                'datetime': this.iso8601 (mtsCreate),
-                'symbol': market['id'],
-                'order': orderId,
-                'side': undefined,
-                'type': orderPrice === null ? 'market' : 'limit',
-                'price': execPrice,
-                'amount': execAmount,
-                'takerOrMaker': maker === 1 ? 'maker' : 'taker',
-                'cost': undefined,
-                'fee': {
-                    'cost': fee,
-                    'currency': feeCurrency,
-                },
-                'info': item,
-            });
-        }
-        return trades;
     }
 
     nonce () {
