@@ -55,11 +55,13 @@ for (const id of require ('./exchanges.json').ids) {
 if (process.argv.includes ('--unignore')) {
 
     log.bright.green (`Re-enabling the git changes tracking for ${files.length} generated files...`)
-    execSync ('git update-index --no-assume-unchanged ' + files.join (' '))
+        
+    files.forEach (file => execSync ('git update-index --no-assume-unchanged ' + file))
 
 } else {
     
     log.bright.cyan (`Disabling the git changes tracking for ${files.length} generated files...`)
-    execSync ('git update-index --assume-unchanged ' + files.join (' '))
+        
+    files.forEach (file => execSync ('git update-index --assume-unchanged ' + file))
 }
 
