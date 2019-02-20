@@ -145,6 +145,20 @@ class kucoin2 extends Exchange {
                 '500000' => '\\ccxt\\ExchangeError',
                 'order_not_exist' => '\\ccxt\\OrderNotFound',  // array ("code":"order_not_exist","msg":"order_not_exist") ¯\_(ツ)_/¯
             ),
+            'fees' => array (
+                'trading' => array (
+                    'tierBased' => false,
+                    'percentage' => true,
+                    'taker' => 0.001,
+                    'maker' => 0.001,
+                ),
+                'funding' => array (
+                    'tierBased' => false,
+                    'percentage' => false,
+                    'withdraw' => array (),
+                    'deposit' => array (),
+                ),
+            ),
             'options' => array (
                 'version' => 'v1',
                 'symbolSeparator' => '-',
@@ -169,45 +183,49 @@ class kucoin2 extends Exchange {
         //
         // { quoteCurrency => 'BTC',
         //   $symbol => 'KCS-BTC',
-        //   quoteMaxSize => '9999999',
-        //   quoteIncrement => '0.000001',
-        //   baseMinSize => '0.01',
-        //   quoteMinSize => '0.00001',
+        //   $quoteMaxSize => '9999999',
+        //   $quoteIncrement => '0.000001',
+        //   $baseMinSize => '0.01',
+        //   $quoteMinSize => '0.00001',
         //   enableTrading => true,
-        //   $priceIncrement => '0.00000001',
+        //   priceIncrement => '0.00000001',
         //   name => 'KCS-BTC',
         //   baseIncrement => '0.01',
-        //   baseMaxSize => '9999999',
+        //   $baseMaxSize => '9999999',
         //   baseCurrency => 'KCS' }
         //
-        $responseData = $response['data'];
+        $data = $response['data'];
         $result = array ();
-        for ($i = 0; $i < count ($responseData); $i++) {
-            $entry = $responseData[$i];
-            $id = $entry['name'];
-            $baseId = $entry['baseCurrency'];
-            $quoteId = $entry['quoteCurrency'];
+        for ($i = 0; $i < count ($data); $i++) {
+            $market = $data[$i];
+            $id = $market['name'];
+            $baseId = $market['baseCurrency'];
+            $quoteId = $market['quoteCurrency'];
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $active = $entry['enableTrading'];
-            $baseMax = $this->safe_float($entry, 'baseMaxSize');
-            $baseMin = $this->safe_float($entry, 'baseMinSize');
-            $quoteMax = $this->safe_float($entry, 'quoteMaxSize');
-            $quoteMin = $this->safe_float($entry, 'quoteMinSize');
-            $priceIncrement = $this->safe_float($entry, 'priceIncrement');
+            $active = $market['enableTrading'];
+            $baseMaxSize = $this->safe_float($market, 'baseMaxSize');
+            $baseMinSize = $this->safe_float($market, 'baseMinSize');
+            $quoteMaxSize = $this->safe_float($market, 'quoteMaxSize');
+            $quoteMinSize = $this->safe_float($market, 'quoteMinSize');
+            $quoteIncrement = $this->safe_float($market, 'quoteIncrement');
             $precision = array (
-                'amount' => -log10 ($this->safe_float($entry, 'quoteIncrement')),
-                'price' => -log10 ($priceIncrement),
+                'amount' => $this->precision_from_string($this->safe_string($market, 'baseIncrement')),
+                'price' => $this->precision_from_string($this->safe_string($market, 'priceIncrement')),
             );
             $limits = array (
                 'amount' => array (
-                    'min' => $quoteMin,
-                    'max' => $quoteMax,
+                    'min' => $baseMinSize,
+                    'max' => $baseMaxSize,
                 ),
                 'price' => array (
-                    'min' => max ($baseMin / $quoteMax, $priceIncrement),
-                    'max' => $baseMax / $quoteMin,
+                    'min' => max ($baseMinSize / $quoteMaxSize, $quoteIncrement),
+                    'max' => $baseMaxSize / $quoteMinSize,
+                ),
+                'cost' => array (
+                    'min' => $quoteMinSize,
+                    'max' => $quoteMaxSize,
                 ),
             );
             $result[$symbol] = array (
@@ -220,7 +238,7 @@ class kucoin2 extends Exchange {
                 'active' => $active,
                 'precision' => $precision,
                 'limits' => $limits,
-                'info' => $entry,
+                'info' => $market,
             );
         }
         return $result;
@@ -321,6 +339,9 @@ class kucoin2 extends Exchange {
         //
         $change = $this->safe_float($ticker, 'changePrice');
         $percentage = $this->safe_float($ticker, 'changeRate');
+        if ($percentage !== null) {
+            $percentage = $percentage * 100;
+        }
         $open = $this->safe_float($ticker, 'open');
         $last = $this->safe_float($ticker, 'close');
         $high = $this->safe_float($ticker, 'high');
@@ -471,7 +492,7 @@ class kucoin2 extends Exchange {
         $currencyId = $this->currencyId ($code);
         $request = array ( 'currency' => $currencyId );
         $response = $this->privateGetDepositAddresses (array_merge ($request, $params));
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array ());
         $address = $this->safe_string($data, 'address');
         $tag = $this->safe_string($data, 'memo');
         $this->check_address($address);
@@ -486,16 +507,20 @@ class kucoin2 extends Exchange {
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $marketId = $this->market_id($symbol);
-        $request = array ( 'symbol' => $marketId, 'level' => 3 );
-        $response = $this->publicGetMarketOrderbookLevelLevel (array_merge ($request, $params));
+        $request = array_merge (array ( 'symbol' => $marketId, 'level' => 2 ), $params);
+        $response = $this->publicGetMarketOrderbookLevelLevel ($request);
         //
         // { sequence => '1547731421688',
         //   asks => array ( array ( '5c419328ef83c75456bd615c', '0.9', '0.09' ), ... ),
         //   bids => array ( array ( '5c419328ef83c75456bd615c', '0.9', '0.09' ), ... ), }
         //
-        $responseData = $response['data'];
-        $timestamp = $this->safe_integer($responseData, 'sequence');
-        return $this->parse_order_book($responseData, $timestamp, 'bids', 'asks', 1, 2);
+        $data = $response['data'];
+        $timestamp = $this->safe_integer($data, 'sequence');
+        // $level can be a string such as 2_20 or 2_100
+        $levelString = $this->safe_string($request, 'level');
+        $levelParts = explode ('_', $levelString);
+        $level = intval ($levelParts[0]);
+        return $this->parse_order_book($data, $timestamp, 'bids', 'asks', $level - 2, $level - 1);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

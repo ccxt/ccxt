@@ -158,6 +158,20 @@ class kucoin2 (Exchange):
                 '500000': ExchangeError,
                 'order_not_exist': OrderNotFound,  # {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
             },
+            'fees': {
+                'trading': {
+                    'tierBased': False,
+                    'percentage': True,
+                    'taker': 0.001,
+                    'maker': 0.001,
+                },
+                'funding': {
+                    'tierBased': False,
+                    'percentage': False,
+                    'withdraw': {},
+                    'deposit': {},
+                },
+            },
             'options': {
                 'version': 'v1',
                 'symbolSeparator': '-',
@@ -190,34 +204,38 @@ class kucoin2 (Exchange):
         #   baseMaxSize: '9999999',
         #   baseCurrency: 'KCS'}
         #
-        responseData = response['data']
+        data = response['data']
         result = {}
-        for i in range(0, len(responseData)):
-            entry = responseData[i]
-            id = entry['name']
-            baseId = entry['baseCurrency']
-            quoteId = entry['quoteCurrency']
+        for i in range(0, len(data)):
+            market = data[i]
+            id = market['name']
+            baseId = market['baseCurrency']
+            quoteId = market['quoteCurrency']
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
-            active = entry['enableTrading']
-            baseMax = self.safe_float(entry, 'baseMaxSize')
-            baseMin = self.safe_float(entry, 'baseMinSize')
-            quoteMax = self.safe_float(entry, 'quoteMaxSize')
-            quoteMin = self.safe_float(entry, 'quoteMinSize')
-            priceIncrement = self.safe_float(entry, 'priceIncrement')
+            active = market['enableTrading']
+            baseMaxSize = self.safe_float(market, 'baseMaxSize')
+            baseMinSize = self.safe_float(market, 'baseMinSize')
+            quoteMaxSize = self.safe_float(market, 'quoteMaxSize')
+            quoteMinSize = self.safe_float(market, 'quoteMinSize')
+            quoteIncrement = self.safe_float(market, 'quoteIncrement')
             precision = {
-                'amount': -math.log10(self.safe_float(entry, 'quoteIncrement')),
-                'price': -math.log10(priceIncrement),
+                'amount': self.precision_from_string(self.safe_string(market, 'baseIncrement')),
+                'price': self.precision_from_string(self.safe_string(market, 'priceIncrement')),
             }
             limits = {
                 'amount': {
-                    'min': quoteMin,
-                    'max': quoteMax,
+                    'min': baseMinSize,
+                    'max': baseMaxSize,
                 },
                 'price': {
-                    'min': max(baseMin / quoteMax, priceIncrement),
-                    'max': baseMax / quoteMin,
+                    'min': max(baseMinSize / quoteMaxSize, quoteIncrement),
+                    'max': baseMaxSize / quoteMinSize,
+                },
+                'cost': {
+                    'min': quoteMinSize,
+                    'max': quoteMaxSize,
                 },
             }
             result[symbol] = {
@@ -230,7 +248,7 @@ class kucoin2 (Exchange):
                 'active': active,
                 'precision': precision,
                 'limits': limits,
-                'info': entry,
+                'info': market,
             }
         return result
 
@@ -324,6 +342,8 @@ class kucoin2 (Exchange):
         #
         change = self.safe_float(ticker, 'changePrice')
         percentage = self.safe_float(ticker, 'changeRate')
+        if percentage is not None:
+            percentage = percentage * 100
         open = self.safe_float(ticker, 'open')
         last = self.safe_float(ticker, 'close')
         high = self.safe_float(ticker, 'high')
@@ -462,7 +482,7 @@ class kucoin2 (Exchange):
         currencyId = self.currencyId(code)
         request = {'currency': currencyId}
         response = self.privateGetDepositAddresses(self.extend(request, params))
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', {})
         address = self.safe_string(data, 'address')
         tag = self.safe_string(data, 'memo')
         self.check_address(address)
@@ -476,16 +496,20 @@ class kucoin2 (Exchange):
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         marketId = self.market_id(symbol)
-        request = {'symbol': marketId, 'level': 3}
-        response = self.publicGetMarketOrderbookLevelLevel(self.extend(request, params))
+        request = self.extend({'symbol': marketId, 'level': 2}, params)
+        response = self.publicGetMarketOrderbookLevelLevel(request)
         #
         # {sequence: '1547731421688',
         #   asks: [['5c419328ef83c75456bd615c', '0.9', '0.09'], ...],
         #   bids: [['5c419328ef83c75456bd615c', '0.9', '0.09'], ...],}
         #
-        responseData = response['data']
-        timestamp = self.safe_integer(responseData, 'sequence')
-        return self.parse_order_book(responseData, timestamp, 'bids', 'asks', 1, 2)
+        data = response['data']
+        timestamp = self.safe_integer(data, 'sequence')
+        # level can be a string such as 2_20 or 2_100
+        levelString = self.safe_string(request, 'level')
+        levelParts = levelString.split('_')
+        level = int(levelParts[0])
+        return self.parse_order_book(data, timestamp, 'bids', 'asks', level - 2, level - 1)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

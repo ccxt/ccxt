@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.264';
+$version = '1.18.269';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.264';
+    const VERSION = '1.18.269';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -1266,8 +1266,8 @@ class Exchange {
                 $values[$i]
             );
         }
-        $this->markets = $this->indexBy ($values, 'symbol');
-        $this->markets_by_id = $this->indexBy ($values, 'id');
+        $this->markets = static::index_by ($values, 'symbol');
+        $this->markets_by_id = static::index_by ($values, 'id');
         $this->marketsById = $this->markets_by_id;
         $this->symbols = array_keys ($this->markets);
         sort ($this->symbols);
@@ -1302,10 +1302,10 @@ class Exchange {
             }, array_filter ($values, function ($market) {
                 return array_key_exists ('quote', $market);
             }));
-            $currencies = $this->indexBy (array_merge ($base_currencies, $quote_currencies), 'code');
+            $currencies = static::index_by (array_merge ($base_currencies, $quote_currencies), 'code');
             $this->currencies = array_replace_recursive ($currencies, $this->currencies);
         }
-        $this->currencies_by_id = $this->indexBy (array_values ($this->currencies), 'id');
+        $this->currencies_by_id = static::index_by (array_values ($this->currencies), 'id');
         return $this->markets;
     }
 
@@ -1345,6 +1345,7 @@ class Exchange {
                 $this->accounts = $this->fetch_accounts ($params);
             }
         }
+        $this->accountsById = static::index_by ($this->accounts, 'id');
         return $this->accounts;
     }
 
@@ -1625,7 +1626,7 @@ class Exchange {
 
         // return all of them if no $symbols were passed in the first argument
         if ($values === null)
-            return $indexed ? $this->index_by ($objects, $key) : $objects;
+            return $indexed ? static::index_by ($objects, $key) : $objects;
 
         $result = array ();
         for ($i = 0; $i < count ($objects); $i++) {
@@ -1634,7 +1635,7 @@ class Exchange {
                 $result[] = $objects[$i];
         }
 
-        return $indexed ? $this->index_by ($result, $key) : $result;
+        return $indexed ? static::index_by ($result, $key) : $result;
     }
 
     public function filterByArray ($objects, $key, $values = null, $indexed = true) {
@@ -1667,7 +1668,7 @@ class Exchange {
     }
 
     public function purge_cached_orders ($before) {
-        $this->orders = $this->index_by (array_filter ($this->orders, function ($order) use ($before) {
+        $this->orders = static::index_by (array_filter ($this->orders, function ($order) use ($before) {
             return ($order['status'] === 'open') || ($order['timestamp'] >= $before);
         }), 'id');
         return $this->orders;
