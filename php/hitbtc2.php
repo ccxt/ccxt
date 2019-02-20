@@ -1232,6 +1232,32 @@ class hitbtc2 extends hitbtc {
         if ($limit !== null)
             $request['limit'] = $limit;
         $response = $this->privateGetHistoryTrades (array_merge ($request, $params));
+        //
+        //     array (
+        //         array (
+        //         "id" => 9535486,
+        //         "clientOrderId" => "f8dbaab336d44d5ba3ff578098a68454",
+        //         "orderId" => 816088377,
+        //         "$symbol" => "ETHBTC",
+        //         "side" => "sell",
+        //         "quantity" => "0.061",
+        //         "price" => "0.045487",
+        //         "fee" => "0.000002775",
+        //         "timestamp" => "2017-05-17T12:32:57.848Z"
+        //         ),
+        //         {
+        //         "id" => 9535437,
+        //         "clientOrderId" => "27b9bfc068b44194b1f453c7af511ed6",
+        //         "orderId" => 816088021,
+        //         "$symbol" => "ETHBTC",
+        //         "side" => "buy",
+        //         "quantity" => "0.038",
+        //         "price" => "0.046000",
+        //         "fee" => "-0.000000174",
+        //         "timestamp" => "2017-05-17T12:30:57.848Z"
+        //         }
+        //     )
+        //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
