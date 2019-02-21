@@ -1007,10 +1007,9 @@ class kucoin2 (Exchange):
             return
         #
         # bad
-        # {"code":"400100","msg":"validation.createOrder.clientOidIsRequired"}
+        #     {"code": "400100", "msg": "validation.createOrder.clientOidIsRequired"}
         # good
-        # {code: '200000',
-        #   data: {...},}
+        #     {code: '200000', data: {...}}
         #
         errorCode = self.safe_string(response, 'code')
         if errorCode in self.exceptions:
