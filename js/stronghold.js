@@ -459,10 +459,14 @@ module.exports = class stronghold extends Exchange {
         const rawStatus = this.safeString (transaction, 'status');
         const status = this.parseTransactionStatus (rawStatus);
         const feeCost = this.safeFloat (transaction, 'feeAmount');
+        let feeRate = undefined;
+        if (feeCost !== undefined) {
+            feeRate = feeCost / amount;
+        }
         const type = this.safeString (transaction, 'direction') === 'outgoing' ? 'withdraw' : 'deposit';
         const fee = {
             'cost': feeCost,
-            'rate': feeCost / amount,
+            'rate': feeRate,
         };
         return {
             'id': id,
@@ -515,7 +519,6 @@ module.exports = class stronghold extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const request = this.extend ({
             'venueId': this.options['venueId'],
             'accountId': await this.getActiveAccount (),
@@ -524,7 +527,7 @@ module.exports = class stronghold extends Exchange {
             throw new ArgumentsRequired (this.id + " cancelOrder requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
         }
         const response = await this.privateGetVenuesVenueIdAccountsAccountIdOrders (request);
-        return this.parseOrders (response['result'], market, since, limit);
+        return this.parseOrders (response['result'], undefined, since, limit);
     }
 
     parseOrder (order, market = undefined) {
@@ -535,6 +538,10 @@ module.exports = class stronghold extends Exchange {
         //   sizeFilled: '0',
         //   price: '0.10000000',
         //   placedAt: '2019-02-01T19:47:52Z' }
+        const marketId = this.safeString (order, 'marketId');
+        if (marketId !== undefined) {
+            market = this.safeValue (this.marketsById, marketId);
+        }
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
