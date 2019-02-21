@@ -904,7 +904,7 @@ module.exports = class cobinhood extends Exchange {
         if (type === 'error') {
             this.emit ('err', new ExchangeError (this.id + ' error ' + h[3] + ':' + h[4]));
         } else if (type === 'pong') {
-            let pongTimeout = this._contextGet(contextId, 'pongtimeout');
+            let pongTimeout = this._contextGet (contextId, 'pongtimeout');
             this._cancelTimeout (pongTimeout);
             this.emit ('pong');
         } else if (channel.indexOf ('order-book.') >= 0) {
@@ -978,13 +978,13 @@ module.exports = class cobinhood extends Exchange {
     }
 
     _websocketPongTimeout (contextId) {
-        let ex = new RequestTimeout (this.id + " does not received pong message after 30 seconds");
-        this.emit('err', ex, contextId);
+        let ex = new RequestTimeout (this.id + ' does not received pong message after 30 seconds');
+        this.emit ('err', ex, contextId);
     }
 
     _websocketSendHeartbeat (contextId) {
         let pongTimeout = this._setTimeout (contextId, 30000, this._websocketMethodMap ('_websocketPongTimeout'), [contextId]);
-        this._contextSet(contextId, 'pongtimeout', pongTimeout);
+        this._contextSet (contextId, 'pongtimeout', pongTimeout);
         this.websocketSendJson ({
             'action': 'ping',
         }, contextId);

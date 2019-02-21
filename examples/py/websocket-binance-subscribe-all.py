@@ -38,10 +38,10 @@ async def main(exchange, symbols, eventSymbols):
     print("subscribed: " + ','.join(symbols))
     sys.stdout.flush()
     await asyncio.sleep(10)
-    print("unsubscribe: " + ','.join(symbols[len(eventSymbols)//2 -1 :-1]))
+    print("unsubscribe: " + ','.join(symbols[len(eventSymbols) // 2 - 1: - 1]))
     sys.stdout.flush()
-    await exchange.websocket_unsubscribe_all(eventSymbols[len(eventSymbols)//2 -1 :-1])
-    print("unsubscribed: " + ','.join(symbols[len(eventSymbols)//2 -1 :-1]))
+    await exchange.websocket_unsubscribe_all(eventSymbols[len(eventSymbols) // 2 - 1: - 1])
+    print("unsubscribed: " + ','.join(symbols[len(eventSymbols) // 2 - 1: - 1]))
     await asyncio.sleep(10)
     print("unsubscribe: " + ','.join(symbols))
     sys.stdout.flush()
@@ -92,11 +92,11 @@ for i in range(2, len(sys.argv)):
         "event": "ob",
         "symbol": sys.argv[i],
         "params": {
-            'limit': limit  
+            'limit': limit
         }
     })
 
-exchange = binance2({ #getattr(ccxt, exchange_id)({
+exchange = binance2({  # getattr(ccxt, exchange_id)({
     "enableRateLimit": True,
     'verbose': False,
     'timeout': 5 * 1000,
@@ -106,7 +106,7 @@ print("simulating multiple endpoints to each symbol....")
 sys.stdout.flush()
 loop.run_until_complete(main(exchange, symbols, eventSymbols))
 
-exchange = ccxt.binance({ #getattr(ccxt, exchange_id)({
+exchange = ccxt.binance({  # getattr(ccxt, exchange_id)({
     "enableRateLimit": True,
     'verbose': False,
     'timeout': 5 * 1000,

@@ -15,6 +15,7 @@ loop = asyncio.get_event_loop()
 # import txaio
 # txaio.start_logging(level='debug')
 
+
 def chunkIt(seq, num):
     avg = len(seq) / float(num)
     out = []
@@ -25,6 +26,7 @@ def chunkIt(seq, num):
         last += avg
 
     return out
+
 
 async def main():
     if len(sys.argv) <= 2:
@@ -43,7 +45,7 @@ async def main():
             "event": "ob",
             "symbol": sys.argv[i],
             "params": {
-                'limit': limit  
+                'limit': limit
             }
         })
 
@@ -55,7 +57,6 @@ async def main():
         'timeout': 5 * 1000,
         # 'wsproxy': 'http://185.93.3.123:8080/',
     })
-
 
     @exchange.on('err')
     def websocket_error(err, conxid):  # pylint: disable=W0612
@@ -79,8 +80,8 @@ async def main():
     sys.stdout.flush()
     await asyncio.sleep(10)
 
-    chunkedSymbols = chunkIt(symbols,2)
-    chunkedEventSymbols = chunkIt(eventSymbols,2)
+    chunkedSymbols = chunkIt(symbols, 2)
+    chunkedEventSymbols = chunkIt(eventSymbols, 2)
     print("unsubscribe: " + ','.join(chunkedSymbols[1]))
     sys.stdout.flush()
     await exchange.websocket_unsubscribe_all(chunkedEventSymbols[1])
@@ -92,8 +93,6 @@ async def main():
     print("unsubscribed: " + ','.join(chunkedSymbols[0]))
     await asyncio.sleep(2)
     await exchange.close()
-
-
 
 loop.run_until_complete(main())
 # loop.run_forever()

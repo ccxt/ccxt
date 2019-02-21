@@ -1479,7 +1479,7 @@ module.exports = class binance extends Exchange {
                 let pair = stream.split ('@');
                 partsLen = pair.length;
                 if (partsLen === 2) {
-                    let symbol = this.findSymbol (pair[0].toUpperCase ());
+                    // let symbol = this.findSymbol (pair[0].toUpperCase ());
                     let event = pair[1].toLowerCase ();
                     if (event === 'depth')
                         event = 'ob';

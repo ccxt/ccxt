@@ -578,16 +578,16 @@ module.exports = class gemini extends Exchange {
                 let param = params[i];
                 parts = param.split ('=');
                 partsLen = parts.length;
-                if (partsLen > 1) {
-                    let event = undefined;
-                    if (parts[0] === 'bids') {
-                        event = 'ob';
-                    }
-                    // if ((event !== undefined) && (parts[1] === 'true')) {
-                    //     this._contextSetSubscribed (contextId, event, symbol, true);
-                    //     this._contextSetSubscribing (contextId, event, symbol, false);
-                    // }
-                }
+                // if (partsLen > 1) {
+                //     let event = undefined;
+                //     if (parts[0] === 'bids') {
+                //         event = 'ob';
+                //     }
+                //     if ((event !== undefined) && (parts[1] === 'true')) {
+                //         this._contextSetSubscribed (contextId, event, symbol, true);
+                //         this._contextSetSubscribing (contextId, event, symbol, false);
+                //     }
+                //  }
             }
         }
     }

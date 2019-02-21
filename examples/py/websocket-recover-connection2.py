@@ -90,7 +90,7 @@ async def main():
                     return
                 print("subscribing again ...")
                 sys.stdout.flush()
-                
+
                 await exchange.websocketRecoverConxid(conxid)
             except Exception as ex:
                 print(ex)

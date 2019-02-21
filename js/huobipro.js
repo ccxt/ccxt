@@ -1079,7 +1079,7 @@ module.exports = class huobipro extends Exchange {
         if (event !== 'ob') {
             throw new NotSupported ('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
         }
-        var depth = this.safeInteger (params, 'depth', 2);
+        let depth = this.safeInteger (params, 'depth', 2);
         const rawsymbol = this.marketId (symbol);
         const sendJson = {
             'unsub': 'market.' + rawsymbol + '.depth.step' + depth.toString (),

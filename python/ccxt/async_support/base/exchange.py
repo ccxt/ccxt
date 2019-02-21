@@ -484,7 +484,7 @@ class Exchange(BaseExchange, EventEmitter):
     def _contextSetSymbolData(self, conxid, event, symbol, data):
         self.websocketContexts[conxid]['events'][event][symbol]['data'] = data
 
-    def _contextSetSubscribed(self, conxid, event, symbol, subscribed, params = {}):
+    def _contextSetSubscribed(self, conxid, event, symbol, subscribed, params={}):
         self.websocketContexts[conxid]['events'][event][symbol]['subscribed'] = subscribed
         self.websocketContexts[conxid]['events'][event][symbol]['params'] = params
 
@@ -660,10 +660,10 @@ class Exchange(BaseExchange, EventEmitter):
                 return conxid
 
             if delayed:
-                if not conxid in list(self.websocketDelayedConnections.keys()):
+                if conxid not in list(self.websocketDelayedConnections.keys()):
                     self.websocketDelayedConnections[conxid] = {
                         'conxtpl': conxtpl,
-                        'reset': False, #action['action'] != 'connect'
+                        'reset': False,  # action['action'] != 'connect'
                     }
             else:
                 await self.websocket_connect(conxid)
@@ -718,19 +718,19 @@ class Exchange(BaseExchange, EventEmitter):
         for c in self.websocketContexts:
             self.websocketClose(c)
 
-    def websocketCleanContext(self, conxid = None):
+    def websocketCleanContext(self, conxid=None):
         if conxid is None:
             for conxid in self.websocketContexts:
                 self._websocket_reset_context(conxid)
         else:
             self._websocket_reset_context(conxid)
 
-    async def websocketRecoverConxid (self, conxid = 'default', eventSymbols = None):
+    async def websocketRecoverConxid(self, conxid='default', eventSymbols=None):
         if eventSymbols is None:
-            eventSymbols = self._websocketContextGetSubscribedEventSymbols (conxid)
-        self.websocketClose (conxid)
+            eventSymbols = self._websocketContextGetSubscribedEventSymbols(conxid)
+        self.websocketClose(conxid)
         self._websocket_reset_context(conxid)
-        await self.websocket_subscribe_all (eventSymbols)
+        await self.websocket_subscribe_all(eventSymbols)
 
     def websocketSend(self, data, conxid='default'):
         websocket_conx_info = self._contextGetConnectionInfo(conxid)
@@ -907,7 +907,6 @@ class Exchange(BaseExchange, EventEmitter):
             self.timeout_future(future, 'websocket_subscribe')
             self._websocket_subscribe(conxid, event, symbol, oid, params)
             await future
-        
 
     async def websocket_unsubscribe(self, event, symbol, params={}):
         await self.websocket_unsubscribe_all([{
@@ -928,8 +927,8 @@ class Exchange(BaseExchange, EventEmitter):
                 symbol = eventSymbol['symbol']
                 params = eventSymbol['params']
                 conxid = await self._websocket_ensure_conx_active(event, symbol, False, params, True)
-                #ret = self._websocketGetConxid4Event(event, symbol)
-                #conxid = ret['conxid']
+                # ret = self._websocketGetConxid4Event(event, symbol)
+                # conxid = ret['conxid']
                 oid = self.nonce()  # str(self.nonce()) + '-' + symbol + '-ob-subscribe'
                 future = asyncio.Future()
                 oidstr = str(oid)
@@ -946,7 +945,7 @@ class Exchange(BaseExchange, EventEmitter):
                 self.timeout_future(future, 'websocket_unsubscribe')
                 self._websocket_unsubscribe(conxid, event, symbol, oid, params)
                 await future
-                
+
         finally:
             await self._websocket_connect_delayed()
 
@@ -1038,7 +1037,7 @@ class Exchange(BaseExchange, EventEmitter):
 
     def gunzip(self, data):
         # return data.decode('zlib_codec').decode('utf8')
-        return zlib.decompress(data, 16+zlib.MAX_WBITS)
+        return zlib.decompress(data, 16 + zlib.MAX_WBITS)
         # return "{}"
         # return gzip.GzipFile(fileobj=StringIO(data)).read()
         # in_ = io.BytesIO()
@@ -1048,7 +1047,7 @@ class Exchange(BaseExchange, EventEmitter):
         #    gunzipped_bytes_obj = fo.read()
         # return gunzipped_bytes_obj.decode()
 
-    def inflateRaw(self, data, informat = None):
+    def inflateRaw(self, data, informat=None):
         if informat == 'base64':
             data = base64.b64decode(data, validate=True)
         try:
