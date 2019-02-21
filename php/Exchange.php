@@ -754,6 +754,7 @@ class Exchange {
         $this->trades        = array ();
         $this->transactions  = array ();
         $this->exceptions    = array ();
+        $this->accounts      = array ();
         $this->limits = array (
             'cost' => array (
                 'min' => null,
