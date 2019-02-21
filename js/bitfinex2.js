@@ -496,6 +496,7 @@ module.exports = class bitfinex2 extends bitfinex {
         let request = {
             'limit': limit,
             'end': this.milliseconds (),
+            '_bfx': 1
         };
         if (since !== undefined)
             request['start'] = since;
