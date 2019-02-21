@@ -52,22 +52,38 @@ for (const id of require ('./exchanges.json').ids) {
     files.push (`php/${id}.php`)
 }
 
-try {
+if (process.argv.includes ('--unignore')) {
 
-    if (process.argv.includes ('--unignore')) {
+    log.bright.green (`Re-enabling the git changes tracking for ${files.length} generated files...`)
+    gitUpdateIndex ('no-assume-unchanged', files)
 
-        log.bright.green (`Re-enabling the git changes tracking for ${files.length} generated files...`)
-        execSync ('git update-index --no-assume-unchanged ' + files.join (' '))
-
-    } else {
-        
-        log.bright.cyan (`Disabling the git changes tracking for ${files.length} generated files...`)
-        execSync ('git update-index --assume-unchanged ' + files.join (' '))
-    }
-
-} catch (e) {
-
-    // There is a legit case when we're not in a git repo (happens on AppVeyor)
-    if (!e.message.toLowerCase ().includes ('not a git repository')) throw e
+} else {
+    
+    log.bright.cyan (`Disabling the git changes tracking for ${files.length} generated files...`)
+    gitUpdateIndex ('assume-unchanged', files)
 }
+
+function gitUpdateIndex (command, allFiles) {
+
+    try {
+
+        // On Windows it cannot take more than 8191 characters per command, so we have to split...
+        const batchSize = process.platform === 'win32' ? 250 : Infinity
+
+        for (const files of slice (allFiles, batchSize)) {
+            execSync (`git update-index --${command} ` + files.join (' '))
+        }
+
+    } catch (e) {
+
+        // There is a legit case when we're not in a git repo (happens on AppVeyor)
+        if (!e.message.toLowerCase ().includes ('not a git repository')) throw e
+    }
+}
+
+function* slice (array, size) {
+
+    while (array.length) yield array.splice (0, size)
+}
+
 
