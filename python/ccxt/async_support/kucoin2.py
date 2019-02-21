@@ -650,7 +650,7 @@ class kucoin2 (Exchange):
                 symbol = market['symbol']
         orderId = self.safe_string(order, 'id')
         type = self.safe_string(order, 'type')
-        timestamp = self.safe_string(order, 'createdAt')
+        timestamp = self.safe_integer(order, 'createdAt')
         datetime = self.iso8601(timestamp)
         price = self.safe_float(order, 'price')
         side = self.safe_string(order, 'side')
