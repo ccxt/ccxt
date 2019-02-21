@@ -108,6 +108,8 @@ module.exports = class stronghold extends Exchange {
                     'ETH': 'ethereum',
                     'BTC': 'bitcoin',
                     'XLM': 'stellar',
+                    'XRP': 'ripple',
+                    'LTC': 'litecoin',
                 },
             },
             'exceptions': {
@@ -372,7 +374,7 @@ module.exports = class stronghold extends Exchange {
             orderId = this.safeString (trade, 'orderId');
             let marketId = this.safeString (trade, 'marketId');
             market = this.safeValue (this.markets_by_id, marketId);
-            takerOrMaker = trade['maker'] ? 'maker' : 'taker';
+            takerOrMaker = this.safeValue (trade, 'maker') === true ? 'maker' : 'taker';
         }
         if (amount !== undefined && price !== undefined) {
             cost = amount * price;
@@ -444,8 +446,15 @@ module.exports = class stronghold extends Exchange {
         //   }
         const id = this.safeString (transaction, 'id');
         const assetId = this.safeString (transaction, 'assetId');
-        const currencyId = assetId.split ('/')[0];
-        const code = this.commonCurrencyCode (currencyId);
+        let code = undefined;
+        if (assetId !== undefined) {
+            const currencyId = assetId.split ('/')[0];
+            code = this.commonCurrencyCode (currencyId);
+        } else {
+            if (currency !== undefined) {
+                code = currency['code'];
+            }
+        }
         const amount = this.safeFloat (transaction, 'amount');
         const rawStatus = this.safeString (transaction, 'status');
         const status = this.parseTransactionStatus (rawStatus);
@@ -506,6 +515,7 @@ module.exports = class stronghold extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = this.extend ({
             'venueId': this.options['venueId'],
             'accountId': await this.getActiveAccount (),
@@ -514,7 +524,7 @@ module.exports = class stronghold extends Exchange {
             throw new ArgumentsRequired (this.id + " cancelOrder requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
         }
         const response = await this.privateGetVenuesVenueIdAccountsAccountIdOrders (request);
-        return this.parseOrders (response['result'], undefined, since, limit);
+        return this.parseOrders (response['result'], market, since, limit);
     }
 
     parseOrder (order, market = undefined) {
@@ -560,6 +570,7 @@ module.exports = class stronghold extends Exchange {
             'lastTradeTimestamp': undefined,
             'status': undefined,
             'type': undefined,
+            'average': undefined,
         };
     }
 
@@ -638,14 +649,18 @@ module.exports = class stronghold extends Exchange {
         //         paymentMethod: 'bitcoin',
         //         paymentMethodInstructions: {
         //             deposit_address: 'mzMT9Cfw8JXVWK7rMonrpGfY9tt57ytHt4',
+        //             reference: 'sometimes-exists',
         //         },
         //         direction: 'deposit',
         //     }
         //
-        const address = response['result']['paymentMethodInstructions']['deposit_address'];
+        const data = response['result']['paymentMethodInstructions'];
+        const address = data['deposit_address'];
+        const tag = this.safeString (data, 'reference');
         return {
             'currency': code,
             'address': this.checkAddress (address),
+            'tag': tag,
             'info': response,
         };
     }
@@ -656,7 +671,7 @@ module.exports = class stronghold extends Exchange {
         if (paymentMethod === undefined) {
             throw new NotSupported (this.id + ' withdraw requires code to be BTC, ETH, or XLM');
         }
-        const request = this.extend ({
+        let request = this.extend ({
             'venueId': this.options['venueId'],
             'accountId': await this.getActiveAccount (),
             'assetId': this.currencyId (code),
@@ -666,6 +681,9 @@ module.exports = class stronghold extends Exchange {
                 'withdrawal_address': address,
             },
         }, params);
+        if (tag !== undefined) {
+            request['paymentMethodDetails']['reference'] = tag;
+        }
         if (!request['accountId']) {
             throw new ArgumentsRequired (this.id + " withdraw requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
         }
@@ -684,11 +702,11 @@ module.exports = class stronghold extends Exchange {
         //         "status": "pending"
         //     }
         //
-        //     return {
-        //         'id': response['result']['id'],
-        //         'info': response,
-        //     };
-        return this.parseTransaction (response);
+        const data = response['result'];
+        return {
+            'id': this.safeString (data, 'id'),
+            'info': response,
+        };
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
