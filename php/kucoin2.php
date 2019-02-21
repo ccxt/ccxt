@@ -677,7 +677,7 @@ class kucoin2 extends Exchange {
         }
         $orderId = $this->safe_string($order, 'id');
         $type = $this->safe_string($order, 'type');
-        $timestamp = $this->safe_string($order, 'createdAt');
+        $timestamp = $this->safe_integer($order, 'createdAt');
         $datetime = $this->iso8601 ($timestamp);
         $price = $this->safe_float($order, 'price');
         $side = $this->safe_string($order, 'side');
