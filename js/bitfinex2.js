@@ -382,7 +382,8 @@ module.exports = class bitfinex2 extends bitfinex {
             // 'my' trades
             let id = trade[0];
             let pair = trade[1];
-            let symbol = this.markets_by_id[pair] || pair;
+            market = this.markets_by_id[pair];
+            let symbol = market ? market['symbol'] : pair;
             let mtsCreate = trade[2];
             let orderId = trade[3];
             let execAmount = trade[4];
