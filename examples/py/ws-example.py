@@ -6,7 +6,7 @@ root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 sys.path.append(root + '/python')
 
 # import ccxt.async as ccxt  # noqa: E402
-from ccxt.base.async.websocket_connection import WebsocketConnection  # noqa: E402 pylint: disable=E0611
+from ccxt.async_support.websocket.websocket_connection import WebsocketConnection  # noqa: E402
 loop = asyncio.get_event_loop()  # type: asyncio.BaseEventLoop
 
 

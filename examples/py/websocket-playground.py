@@ -41,7 +41,7 @@ async def main():
     })
 
     @exchange.on('err')
-    def websocket_error(err, conxid = ''):  # pylint: disable=W0612
+    def websocket_error(err, conxid=''):  # pylint: disable=W0612
         print(type(err).__name__ + ":" + str(err))
         traceback.print_tb(err.__traceback__)
         traceback.print_stack()

@@ -1205,7 +1205,7 @@ module.exports = class poloniex extends Exchange {
 
     _websocketHandleOb (contextId, symbol, data) {
         // Poloniex calls this Price Aggregated Book
-        let channelId = data[0];
+        // let channelId = data[0];
         let sequenceNumber = data[1];
         if (data.length > 2) {
             let orderbook = data[2];
