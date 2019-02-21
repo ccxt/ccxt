@@ -52,16 +52,22 @@ for (const id of require ('./exchanges.json').ids) {
     files.push (`php/${id}.php`)
 }
 
-if (process.argv.includes ('--unignore')) {
+try {
 
-    log.bright.green (`Re-enabling the git changes tracking for ${files.length} generated files...`)
-        
-    files.forEach (file => execSync ('git update-index --no-assume-unchanged ' + file))
+    if (process.argv.includes ('--unignore')) {
 
-} else {
-    
-    log.bright.cyan (`Disabling the git changes tracking for ${files.length} generated files...`)
+        log.bright.green (`Re-enabling the git changes tracking for ${files.length} generated files...`)
+        execSync ('git update-index --no-assume-unchanged ' + files.join (' '))
+
+    } else {
         
-    files.forEach (file => execSync ('git update-index --assume-unchanged ' + file))
+        log.bright.cyan (`Disabling the git changes tracking for ${files.length} generated files...`)
+        execSync ('git update-index --assume-unchanged ' + files.join (' '))
+    }
+
+} catch (e) {
+
+    // There is a legit case when we're not in a git repo (happens on AppVeyor)
+    if (!e.message.toLowerCase ().includes ('not a git repository')) throw e
 }
 
