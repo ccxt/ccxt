@@ -150,21 +150,25 @@ class bitmex extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $markets = $this->publicGetInstrumentActiveAndIndices ($params);
+        $response = $this->publicGetInstrumentActiveAndIndices ($params);
         $result = array ();
-        for ($p = 0; $p < count ($markets); $p++) {
-            $market = $markets[$p];
+        for ($i = 0; $i < count ($response); $i++) {
+            $market = $response[$i];
             $active = ($market['state'] !== 'Unlisted');
             $id = $market['symbol'];
             $baseId = $market['underlying'];
             $quoteId = $market['quoteCurrency'];
-            $type = null;
-            $future = false;
-            $prediction = false;
             $basequote = $baseId . $quoteId;
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
             $swap = ($id === $basequote);
+            // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
+            // so let's take the $quote currency first and then adjust if needed
+            $positionId = $this->safe_string_2($market, 'positionCurrency', 'quoteCurrency');
+            $type = null;
+            $future = false;
+            $prediction = false;
+            $position = $this->common_currency_code($positionId);
             $symbol = $id;
             if ($swap) {
                 $type = 'swap';
@@ -180,10 +184,33 @@ class bitmex extends Exchange {
                 'amount' => null,
                 'price' => null,
             );
-            if ($market['lotSize'])
-                $precision['amount'] = $this->precision_from_string($this->truncate_to_string ($market['lotSize'], 16));
-            if ($market['tickSize'])
-                $precision['price'] = $this->precision_from_string($this->truncate_to_string ($market['tickSize'], 16));
+            $lotSize = $this->safe_float($market, 'lotSize');
+            $tickSize = $this->safe_float($market, 'tickSize');
+            if ($lotSize !== null) {
+                $precision['amount'] = $this->precision_from_string($this->truncate_to_string ($lotSize, 16));
+            }
+            if ($tickSize !== null) {
+                $precision['price'] = $this->precision_from_string($this->truncate_to_string ($tickSize, 16));
+            }
+            $limits = array (
+                'amount' => array (
+                    'min' => null,
+                    'max' => null,
+                ),
+                'price' => array (
+                    'min' => $tickSize,
+                    'max' => $this->safe_float($market, 'maxPrice'),
+                ),
+                'cost' => array (
+                    'min' => null,
+                    'max' => null,
+                ),
+            );
+            $limitField = ($position === $quote) ? 'cost' : 'amount';
+            $limits[$limitField] = array (
+                'min' => $lotSize,
+                'max' => $this->safe_float($market, 'maxOrderQty'),
+            );
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -193,16 +220,7 @@ class bitmex extends Exchange {
                 'quoteId' => $quoteId,
                 'active' => $active,
                 'precision' => $precision,
-                'limits' => array (
-                    'amount' => array (
-                        'min' => $market['lotSize'],
-                        'max' => $market['maxOrderQty'],
-                    ),
-                    'price' => array (
-                        'min' => $market['tickSize'],
-                        'max' => $market['maxPrice'],
-                    ),
-                ),
+                'limits' => $limits,
                 'taker' => $market['takerFee'],
                 'maker' => $market['makerFee'],
                 'type' => $type,
@@ -317,11 +335,26 @@ class bitmex extends Exchange {
         if (!$market['active']) {
             throw new ExchangeError ($this->id . ' => $symbol ' . $symbol . ' is delisted');
         }
-        $request = array (
-            'symbol' => $market['id'],
-        );
-        $response = $this->publicGetInstrumentActiveAndIndices (array_merge ($request, $params));
-        return $this->parse_ticker($response[0]);
+        $tickers = $this->fetch_tickers(array ( $symbol ), $params);
+        $ticker = $this->safe_value($tickers, $symbol);
+        if ($ticker === null) {
+            throw new ExchangeError ($this->id . ' $ticker $symbol ' . $symbol . ' not found');
+        }
+        return $ticker;
+    }
+
+    public function fetch_tickers ($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->publicGetInstrumentActiveAndIndices ($params);
+        $result = array ();
+        for ($i = 0; $i < count ($response); $i++) {
+            $ticker = $this->parse_ticker($response[$i]);
+            $symbol = $this->safe_string($ticker, 'symbol');
+            if ($symbol !== null) {
+                $result[$symbol] = $ticker;
+            }
+        }
+        return $result;
     }
 
     public function parse_ticker ($ticker, $market = null) {

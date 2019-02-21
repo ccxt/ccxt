@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const liqui = require ('./liqui.js');
-const { ExchangeError, InsufficientFunds, InvalidOrder, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, AuthenticationError } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -138,6 +138,13 @@ module.exports = class yobit extends liqui {
                 'fetchOrdersRequiresSymbol': true,
                 'fetchTickersMaxLength': 512,
             },
+            'exceptions': {
+                'broad': {
+                    'Total transaction amount': ExchangeError, // { "success": 0, "error": "Total transaction amount is less than minimal total: 0.00010000"}
+                    'Insufficient funds': InsufficientFunds,
+                    'invalid key': AuthenticationError,
+                },
+            },
         });
     }
 
@@ -269,27 +276,5 @@ module.exports = class yobit extends liqui {
             'info': response,
             'id': undefined,
         };
-    }
-
-    handleErrors (code, reason, url, method, headers, body, response) {
-        if (body[0] === '{') {
-            if ('success' in response) {
-                if (!response['success']) {
-                    if ('error_log' in response) {
-                        if (response['error_log'].indexOf ('Insufficient funds') >= 0) { // not enougTh is a typo inside Liqui's own API...
-                            throw new InsufficientFunds (this.id + ' ' + this.json (response));
-                        } else if (response['error_log'] === 'Requests too often') {
-                            throw new DDoSProtection (this.id + ' ' + this.json (response));
-                        } else if ((response['error_log'] === 'not available') || (response['error_log'] === 'external service unavailable')) {
-                            throw new DDoSProtection (this.id + ' ' + this.json (response));
-                        } else if (response['error_log'] === 'Total transaction amount') {
-                            // eg {"success":0,"error":"Total transaction amount is less than minimal total: 0.00010000"}
-                            throw new InvalidOrder (this.id + ' ' + this.json (response));
-                        }
-                    }
-                    throw new ExchangeError (this.id + ' ' + this.json (response));
-                }
-            }
-        }
     }
 };

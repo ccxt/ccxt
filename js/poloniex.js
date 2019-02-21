@@ -574,7 +574,7 @@ module.exports = class poloniex extends Exchange {
                             result.push (trades[j]);
                         }
                     } else {
-                        let [ baseId, quoteId ] = id.split ('_');
+                        let [ quoteId, baseId ] = id.split ('_');
                         let base = this.commonCurrencyCode (baseId);
                         let quote = this.commonCurrencyCode (quoteId);
                         let symbol = base + '/' + quote;

@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.18.242",
+  "version": "1.18.279",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 100+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "build/ccxt.browser.js",
@@ -15,7 +15,7 @@
   "scripts": {
     "docker": "docker-compose run --rm ccxt",
     "build": "npm run build-without-docs && npm run pandoc-all && npm run update-badges",
-    "build-without-docs": "npm run export-exchanges && npm run vss && npm run check-js-syntax && npm run browserify && npm run transpile && npm run qa",
+    "build-without-docs": "npm run export-exchanges && npm run git-ignore-generated-files && npm run vss && npm run check-js-syntax && npm run browserify && npm run transpile && npm run qa",
     "test": "npm run build && node run-tests",
     "fast-test": "node run-tests --js",
     "test-base": "npm run test-js-base && npm run test-python-base && npm run test-php-base",
@@ -23,6 +23,7 @@
     "test-python-base": "python python/test/test_decimal_to_precision.py",
     "test-php-base": "php -f php/test/decimal_to_precision.php",
     "export-exchanges": "node export-exchanges",
+    "git-ignore-generated-files": "node git-ignore-generated-files",
     "update-badges": "node update-badges",
     "convert-md-2-rst": "bash ./convert-md-2-rst",
     "transpile": "node transpile",

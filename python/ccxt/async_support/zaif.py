@@ -42,8 +42,8 @@ class zaif (Exchange):
             'fees': {
                 'trading': {
                     'percentage': True,
-                    'taker': -0.0001,
-                    'maker': -0.0005,
+                    'taker': 0.1 / 100,
+                    'maker': 0,
                 },
             },
             'api': {
@@ -102,6 +102,16 @@ class zaif (Exchange):
                     ],
                 },
             },
+            'options': {
+                # zaif schedule defines several market-specific fees
+                'fees': {
+                    'BTC/JPY': {'maker': 0, 'taker': 0},
+                    'BCH/JPY': {'maker': 0, 'taker': 0.3 / 100},
+                    'BCH/BTC': {'maker': 0, 'taker': 0.3 / 100},
+                    'PEPECASH/JPY': {'maker': 0, 'taker': 0.01 / 100},
+                    'PEPECASH/BT': {'maker': 0, 'taker': 0.01 / 100},
+                },
+            },
             'exceptions': {
                 'exact': {
                     'unsupported currency_pair': BadRequest,  # {"error": "unsupported currency_pair"}
@@ -123,6 +133,9 @@ class zaif (Exchange):
                 'amount': -math.log10(market['item_unit_step']),
                 'price': market['aux_unit_point'],
             }
+            fees = self.safe_value(self.options['fees'], symbol, self.fees['trading'])
+            taker = fees['taker']
+            maker = fees['maker']
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -130,6 +143,8 @@ class zaif (Exchange):
                 'quote': quote,
                 'active': True,  # can trade or not
                 'precision': precision,
+                'taker': taker,
+                'maker': maker,
                 'limits': {
                     'amount': {
                         'min': self.safe_float(market, 'item_unit_min'),

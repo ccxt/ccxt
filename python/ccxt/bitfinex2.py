@@ -16,7 +16,7 @@ class bitfinex2 (bitfinex):
     def describe(self):
         return self.deep_extend(super(bitfinex2, self).describe(), {
             'id': 'bitfinex2',
-            'name': 'Bitfinex v2',
+            'name': 'Bitfinex',
             'countries': ['VG'],
             'version': 'v2',
             'certified': False,
