@@ -383,6 +383,7 @@ module.exports = class bitfinex2 extends bitfinex {
             let id = trade[0];
             let pair = trade[1];
             market = this.markets_by_id[pair];
+            //todo: need to figure out how to map old BCH pairs
             let symbol = market ? market['symbol'] : pair;
             let mtsCreate = trade[2];
             let orderId = trade[3];
@@ -394,18 +395,21 @@ module.exports = class bitfinex2 extends bitfinex {
             let fee = -trade[9];
             let feeCurrency = trade[10];
             let type = this.options.orderTypes[orderType];
+            if (feeCurrency in this.currencies_by_id)
+                feeCurrency = this.currencies_by_id[feeCurrency]['code'];
+            let cost = execPrice * execAmount;
             return {
                 'id': id,
                 'timestamp': mtsCreate,
                 'datetime': this.iso8601 (mtsCreate),
                 'symbol': symbol,
                 'order': orderId,
-                'side': undefined,
+                'side': execAmount < 0 ? 'sell' : 'buy',
                 'type': type,
                 'price': execPrice,
                 'amount': execAmount,
                 'takerOrMaker': maker === 1 ? 'maker' : 'taker',
-                'cost': undefined,
+                'cost': cost,
                 'fee': {
                     'cost': fee,
                     'currency': feeCurrency,
