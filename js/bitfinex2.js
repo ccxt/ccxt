@@ -377,12 +377,12 @@ module.exports = class bitfinex2 extends bitfinex {
         return this.parseTicker (ticker, market);
     }
 
-    parseTrade (trade, market) {
-        let symbol = market['symbol'];
+    parseTrade (trade, market = undefined) {
         if (trade.length > 5) {
             // 'my' trades
             let id = trade[0];
-            // let pair = item[1];
+            let pair = trade[1];
+            let symbol = this.markets_by_id[pair] || pair;
             let mtsCreate = trade[2];
             let orderId = trade[3];
             let execAmount = trade[4];
@@ -413,6 +413,7 @@ module.exports = class bitfinex2 extends bitfinex {
             };
         } else {
             // public trades
+            let symbol = market['symbol'];
             let [ id, timestamp, amount, price ] = trade;
             let side = (amount < 0) ? 'sell' : 'buy';
             if (amount < 0) {
@@ -491,17 +492,22 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = 1000, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
         let request = {
-            'symbol': market['id'],
             'limit': limit,
             'end': this.milliseconds (),
         };
         if (since !== undefined)
             request['start'] = since;
-        let response = await this.privatePostAuthRTradesSymbolHist (this.extend (request, params));
-        return this.parseTrades (response, market, since, limit);
+        let response = undefined;
+        if (symbol) {
+            await this.loadMarkets ();
+            let market = this.market (symbol);
+            request['symbol'] = market['id'];
+            response = await this.privatePostAuthRTradesSymbolHist (this.extend (request, params));
+        } else {
+            response = await this.privatePostAuthRTradesHist (this.extend (request, params));
+        }
+        return this.parseTrades (response, undefined, since, limit);
     }
 
     nonce () {
