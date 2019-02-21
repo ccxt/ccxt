@@ -1072,10 +1072,9 @@ class kucoin2 extends Exchange {
         }
         //
         // bad
-        // array ("$code":"400100","msg":"validation.createOrder.clientOidIsRequired")
+        //     array ( "$code" => "400100", "msg" => "validation.createOrder.clientOidIsRequired" )
         // good
-        // { $code => '200000',
-        //   data => array (...), }
+        //     array ( $code => '200000', data => { ... )}
         //
         $errorCode = $this->safe_string($response, 'code');
         if (is_array ($this->exceptions) && array_key_exists ($errorCode, $this->exceptions)) {

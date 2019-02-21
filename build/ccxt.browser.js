@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.278'
+const version = '1.18.279'
 
 Exchange.ccxtVersion = version
 
@@ -50790,10 +50790,9 @@ module.exports = class kucoin2 extends Exchange {
         }
         //
         // bad
-        // {"code":"400100","msg":"validation.createOrder.clientOidIsRequired"}
+        //     { "code": "400100", "msg": "validation.createOrder.clientOidIsRequired" }
         // good
-        // { code: '200000',
-        //   data: {...}, }
+        //     { code: '200000', data: { ... }}
         //
         let errorCode = this.safeString (response, 'code');
         if (errorCode in this.exceptions) {
