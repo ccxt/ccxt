@@ -316,7 +316,7 @@ Incoming pull requests are automatically validated by the CI service. You can wa
 
 #### How To Build & Run Tests On Your Local Machine
 
-Before building for the first time, install Node dependencies:
+Before building for the first time, install Node dependencies (skip this step if you're running our Docker image):
 
 ```
 npm install
