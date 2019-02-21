@@ -15,7 +15,7 @@ It is intended to be used by **coders, developers, technically-skilled traders, 
 
 Current feature list:
 
--  support for many cryptocurrency exchanges - more coming soon
+-  support for many cryptocurrency exchanges — more coming soon
 -  fully implemented public and private APIs
 -  optional normalized data for cross-exchange analytics and arbitrage
 -  an out of the box unified API that is extremely easy to integrate
