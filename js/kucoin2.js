@@ -676,7 +676,7 @@ module.exports = class kucoin2 extends Exchange {
         }
         const orderId = this.safeString (order, 'id');
         const type = this.safeString (order, 'type');
-        const timestamp = this.safeString (order, 'createdAt');
+        const timestamp = this.safeInteger (order, 'createdAt');
         const datetime = this.iso8601 (timestamp);
         const price = this.safeFloat (order, 'price');
         const side = this.safeString (order, 'side');
