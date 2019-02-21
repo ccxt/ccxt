@@ -19,8 +19,8 @@ module.exports = class stronghold extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/52160042-98c1f300-26be-11e9-90dd-da8473944c83.jpg',
                 'api': {
-                    'public': 'https://api-development.stronghold.co',
-                    'private': 'https://api-development.stronghold.co',
+                    'public': 'https://api.stronghold.co',
+                    'private': 'https://api.stronghold.co',
                 },
                 'www': 'https://stronghold.co',
                 'doc': [
