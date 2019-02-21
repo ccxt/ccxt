@@ -397,7 +397,8 @@ module.exports = class bitfinex2 extends bitfinex {
             let type = this.options.orderTypes[orderType];
             if (feeCurrency in this.currencies_by_id)
                 feeCurrency = this.currencies_by_id[feeCurrency]['code'];
-            let cost = execPrice * execAmount;
+            let amount = execAmount < 0 ? -execAmount : execAmount;
+            let cost = execPrice * amount;
             return {
                 'id': id,
                 'timestamp': mtsCreate,
@@ -407,7 +408,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'side': execAmount < 0 ? 'sell' : 'buy',
                 'type': type,
                 'price': execPrice,
-                'amount': execAmount,
+                'amount': amount,
                 'takerOrMaker': maker === 1 ? 'maker' : 'taker',
                 'cost': cost,
                 'fee': {
