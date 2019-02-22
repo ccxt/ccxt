@@ -498,6 +498,7 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = 1000, params = {}) {
+        await this.loadMarkets ();
         let request = {
             'limit': limit,
             'end': this.milliseconds (),
