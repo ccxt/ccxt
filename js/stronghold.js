@@ -426,7 +426,7 @@ module.exports = class stronghold extends Exchange {
         let statuses = {
             'queued': 'pending',
         };
-        return this.safeString (statuses, status);
+        return this.safeString (statuses, status, status);
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -457,14 +457,14 @@ module.exports = class stronghold extends Exchange {
             }
         }
         const amount = this.safeFloat (transaction, 'amount');
-        const rawStatus = this.safeString (transaction, 'status');
-        const status = this.parseTransactionStatus (rawStatus);
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const feeCost = this.safeFloat (transaction, 'feeAmount');
         let feeRate = undefined;
         if (feeCost !== undefined) {
             feeRate = feeCost / amount;
         }
-        const type = this.safeString (transaction, 'direction') === 'outgoing' ? 'withdraw' : 'deposit';
+        const direction = this.safeString (transaction, 'direction');
+        const type = (direction === 'outgoing') ? 'withdraw' : 'deposit';
         const fee = {
             'cost': feeCost,
             'rate': feeRate,
