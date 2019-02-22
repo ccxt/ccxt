@@ -678,7 +678,9 @@ module.exports = class bitfinex extends Exchange {
             }
         }
         if (market !== undefined)
-            symbol = market['symbol'];
+            symbol = market['symbol'].toUpperCase ();
+        else
+            symbol = order['symbol'];
         let orderType = order['type'];
         let exchange = orderType.indexOf ('exchange ') >= 0;
         if (exchange) {
