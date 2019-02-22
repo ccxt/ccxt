@@ -186,7 +186,7 @@ module.exports = class bitfinex2 extends bitfinex {
                     'EUR': 'EUR',
                     'JPY': 'JPY',
                     'GBP': 'GBP',
-                }
+                },
             },
         });
     }
@@ -385,7 +385,7 @@ module.exports = class bitfinex2 extends bitfinex {
             let id = trade[0];
             let pair = trade[1];
             market = this.markets_by_id[pair];
-            //todo: need to figure out how to map old BCH pairs
+            // todo: need to figure out how to map old BCH pairs
             let symbol = market ? market['symbol'] : pair;
             let mtsCreate = trade[2];
             let orderId = trade[3];
@@ -506,7 +506,7 @@ module.exports = class bitfinex2 extends bitfinex {
         let request = {
             'limit': limit,
             'end': this.milliseconds (),
-            '_bfx': 1
+            '_bfx': 1,
         };
         if (since !== undefined)
             request['start'] = since;
