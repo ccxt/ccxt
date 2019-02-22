@@ -181,16 +181,18 @@ module.exports = class bitfinex2 extends bitfinex {
                     'IOC': undefined,
                     'EXCHANGE IOC': 'limit ico',
                 },
+                'fiatSymbols': {
+                    'USD': 'USD',
+                    'EUR': 'EUR',
+                    'JPY': 'JPY',
+                    'GBP': 'GBP',
+                }
             },
         });
     }
 
     isFiat (code) {
-        let fiat = {
-            'USD': 'USD',
-            'EUR': 'EUR',
-        };
-        return (code in fiat);
+        return (code in this.options.fiat);
     }
 
     getCurrencyId (code) {
