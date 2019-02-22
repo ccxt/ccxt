@@ -1302,6 +1302,14 @@ class upbit extends Exchange {
         return $this->parse_order($response);
     }
 
+    public function parse_deposit_addresses ($addresses) {
+        $result = array ();
+        for ($i = 0; $i < count ($addresses); $i++) {
+            $result[] = $this->parse_deposit_address ($addresses[$i]);
+        }
+        return $result;
+    }
+
     public function fetch_deposit_addresses ($codes = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privateGetDepositsCoinAddresses ($params);
@@ -1324,13 +1332,7 @@ class upbit extends Exchange {
         //         }
         //     )
         //
-        $result = array ();
-        for ($i = 0; $i < count ($response); $i++) {
-            $depositAddress = $this->parse_deposit_address ($response[$i]);
-            $code = $depositAddress['currency'];
-            $result[$code] = $depositAddress;
-        }
-        return $result;
+        return $this->parse_deposit_addresses ($response);
     }
 
     public function parse_deposit_address ($depositAddress, $currency = null) {
