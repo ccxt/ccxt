@@ -2589,7 +2589,7 @@ Returns ordered array `[]` of trades (most recent trade last).
 
 In order to deposit funds to an exchange you must get an address from the exchange for the currency you want to deposit there. Most of exchanges will create and manage those addresses for the user. Some exchanges will also allow the user to create new addresses for deposits. Some of exchanges require a new deposit address to be created for each new deposit.
 
-The address for depositing can be either an already existing address that was created previously with the exchange or it can be created upon request. In order to see which of the two methods are supported, check the `exchange.has['fetchDepositAddress']` and `exchange.has['createDepositAddress']` properties.
+The address for depositing can be either an already existing address that was created previously with the exchange or it can be created upon request. In order to see which of the two methods are supported, check the `exchange.has['fetchDepositAddress']` and `exchange.has['createDepositAddress']` properties. Both methods return an [address structure](#address-structure)
 
 ```JavaScript
 fetchDepositAddress (code, params = {})
@@ -2599,7 +2599,18 @@ createDepositAddress (code, params = {})
 - `code` is the unified currency code (uppercase string)
 - `params` contains optional extra overrides
 
+Some exchanges may also have a method for fetching multiple deposit addresses at once or all of them at once:
+
+```JavaScript
+fetchDepositAddresses (codes = undefined, params = {})
+```
+
+Depending on the exchange it may or may not require a list of unified currency `codes` in the first argument.
+The `fetchDepositAddresses` method returns an array of address structures.
+
 #### Address structure
+
+The address structures returned from `fetchDepositAddress`, `fetchDepositAddresses` and `createDepositAddress` look like this:
 
 ```JavaScript
 {

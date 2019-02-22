@@ -1235,6 +1235,12 @@ class upbit (Exchange):
         #
         return self.parse_order(response)
 
+    def parse_deposit_addresses(self, addresses):
+        result = []
+        for i in range(0, len(addresses)):
+            result.append(self.parse_deposit_address(addresses[i]))
+        return result
+
     async def fetch_deposit_addresses(self, codes=None, params={}):
         await self.load_markets()
         response = await self.privateGetDepositsCoinAddresses(params)
@@ -1257,12 +1263,7 @@ class upbit (Exchange):
         #         }
         #     ]
         #
-        result = {}
-        for i in range(0, len(response)):
-            depositAddress = self.parse_deposit_address(response[i])
-            code = depositAddress['currency']
-            result[code] = depositAddress
-        return result
+        return self.parse_deposit_addresses(response)
 
     def parse_deposit_address(self, depositAddress, currency=None):
         #
