@@ -13,7 +13,6 @@ const exchange = new ccxt.gdax ({
     const symbol = 'ETH/BTC'
     const params = {}
     await exchange.loadMarkets ()
-    exchange.verbose = true
     while (true) {
         const trades = await exchange.fetchTrades (symbol, undefined, undefined, params)
         if (trades.length) {
