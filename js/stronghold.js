@@ -374,7 +374,8 @@ module.exports = class stronghold extends Exchange {
             orderId = this.safeString (trade, 'orderId');
             let marketId = this.safeString (trade, 'marketId');
             market = this.safeValue (this.markets_by_id, marketId);
-            takerOrMaker = this.safeValue (trade, 'maker') === true ? 'maker' : 'taker';
+            const isMaker = this.safeValue (trade, 'maker');
+            takerOrMaker = isMaker ? 'maker' : 'taker';
         }
         if (amount !== undefined && price !== undefined) {
             cost = amount * price;
