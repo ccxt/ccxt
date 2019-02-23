@@ -831,7 +831,7 @@ class kucoin2 extends Exchange {
         $fee = array (
             'cost' => $this->safe_float($trade, 'fee'),
             'rate' => $this->safe_float($trade, 'feeRate'),
-            'feeCurrency' => $this->safe_string($trade, 'feeCurrency'),
+            'currency' => $this->safe_string($trade, 'feeCurrency'),
         );
         $type = $this->safe_string($trade, 'type');
         $cost = $this->safe_float($trade, 'funds');
