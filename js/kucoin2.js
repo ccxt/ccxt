@@ -611,6 +611,7 @@ module.exports = class kucoin2 extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         const request = {
             'orderId': id,
         };
