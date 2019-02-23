@@ -138,8 +138,21 @@ class Exchange(object):
     markets_by_id = None
     currencies_by_id = None
     precision = None
-    limits = None
     exceptions = None
+    limits = {
+        'amount': {
+            'min': None,
+            'max': None,
+        },
+        'price': {
+            'min': None,
+            'max': None,
+        },
+        'cost': {
+            'min': None,
+            'max': None,
+        },
+    }
     httpExceptions = {
         '422': ExchangeError,
         '418': DDoSProtection,
@@ -172,6 +185,7 @@ class Exchange(object):
     transactions = None
     currencies = None
     options = None  # Python does not allow to define properties in run-time with setattr
+    accounts = None
 
     requiredCredentials = {
         'apiKey': True,
@@ -221,7 +235,6 @@ class Exchange(object):
         'fetchWithdrawals': False,
         'withdraw': False,
     }
-
     precisionMode = DECIMAL_PLACES
     minFundingAddressLength = 1  # used in check_address
     substituteCommonCurrencyCodes = True
@@ -263,8 +276,7 @@ class Exchange(object):
         self.transactions = dict() if self.transactions is None else self.transactions
         self.currencies = dict() if self.currencies is None else self.currencies
         self.options = dict() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
-
-        self.decimalToPrecision = self.decimal_to_precision = decimal_to_precision
+        self.decimal_to_precision = decimal_to_precision
 
         # version = '.'.join(map(str, sys.version_info[:3]))
         # self.userAgent = {
