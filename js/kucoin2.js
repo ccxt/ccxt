@@ -830,7 +830,7 @@ module.exports = class kucoin2 extends Exchange {
         const fee = {
             'cost': this.safeFloat (trade, 'fee'),
             'rate': this.safeFloat (trade, 'feeRate'),
-            'feeCurrency': this.safeString (trade, 'feeCurrency'),
+            'currency': this.safeString (trade, 'feeCurrency'),
         };
         const type = this.safeString (trade, 'type');
         let cost = this.safeFloat (trade, 'funds');
