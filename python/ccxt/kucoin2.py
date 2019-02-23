@@ -591,6 +591,7 @@ class kucoin2 (Exchange):
         return self.fetch_orders_by_status('active', symbol, since, limit, params)
 
     def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
         request = {
             'orderId': id,
         }

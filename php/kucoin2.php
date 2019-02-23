@@ -612,6 +612,7 @@ class kucoin2 extends Exchange {
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
         $request = array (
             'orderId' => $id,
         );
