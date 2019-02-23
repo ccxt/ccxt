@@ -543,9 +543,9 @@ class kucoin2 (Exchange):
         clientOid = self.uuid()
         request = {
             'clientOid': clientOid,
-            'price': price,
+            'price': self.price_to_precision(symbol, price),
             'side': side,
-            'size': amount,
+            'size': self.amount_to_precision(symbol, amount),
             'symbol': marketId,
             'type': type,
         }

@@ -556,9 +556,9 @@ class kucoin2 extends Exchange {
         $clientOid = $this->uuid ();
         $request = array (
             'clientOid' => $clientOid,
-            'price' => $price,
+            'price' => $this->price_to_precision($symbol, $price),
             'side' => $side,
-            'size' => $amount,
+            'size' => $this->amount_to_precision($symbol, $amount),
             'symbol' => $marketId,
             'type' => $type,
         );
