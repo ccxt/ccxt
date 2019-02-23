@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.18.284'
+__version__ = '1.18.285'
 
 # ----------------------------------------------------------------------------
 
@@ -180,6 +180,7 @@ from ccxt.poloniex import poloniex                          # noqa: F401
 from ccxt.quadrigacx import quadrigacx                      # noqa: F401
 from ccxt.rightbtc import rightbtc                          # noqa: F401
 from ccxt.southxchange import southxchange                  # noqa: F401
+from ccxt.stronghold import stronghold                      # noqa: F401
 from ccxt.surbitcoin import surbitcoin                      # noqa: F401
 from ccxt.theocean import theocean                          # noqa: F401
 from ccxt.therock import therock                            # noqa: F401
@@ -314,6 +315,7 @@ exchanges = [
     'quadrigacx',
     'rightbtc',
     'southxchange',
+    'stronghold',
     'surbitcoin',
     'theocean',
     'therock',
