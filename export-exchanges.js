@@ -215,7 +215,8 @@ Object.keys (countries).forEach (code => {
                 '[' + exchange.name + '](' + url + ')',
                 version,
                 '[API](' + doc + ')',
-                exchange.certified ? ccxtCertifiedBadge : '',
+                // doesn't fit in width
+                // exchange.certified ? ccxtCertifiedBadge : '',
             ]
             result.push (entry)
         }
