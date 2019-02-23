@@ -162,20 +162,6 @@ class coinbase extends Exchange {
         return $this->parse8601 ($data['iso']);
     }
 
-    public function load_accounts ($reload = false, $params = array ()) {
-        if ($reload) {
-            $this->accounts = $this->fetch_accounts ();
-        } else {
-            if ($this->accounts) {
-                return $this->accounts;
-            } else {
-                $this->accounts = $this->fetch_accounts ();
-                $this->accountsById = $this->index_by($this->accounts, 'id');
-            }
-        }
-        return $this->accounts;
-    }
-
     public function fetch_accounts ($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetAccounts ($params);

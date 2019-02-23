@@ -170,17 +170,6 @@ class coinbase (Exchange):
         data = response['data']
         return self.parse8601(data['iso'])
 
-    async def load_accounts(self, reload=False, params={}):
-        if reload:
-            self.accounts = await self.fetch_accounts()
-        else:
-            if self.accounts:
-                return self.accounts
-            else:
-                self.accounts = await self.fetch_accounts()
-                self.accountsById = self.index_by(self.accounts, 'id')
-        return self.accounts
-
     async def fetch_accounts(self, params={}):
         await self.load_markets()
         response = await self.privateGetAccounts(params)

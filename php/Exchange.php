@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.283';
+$version = '1.18.287';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.283';
+    const VERSION = '1.18.287';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -196,6 +196,7 @@ class Exchange {
         'quadrigacx',
         'rightbtc',
         'southxchange',
+        'stronghold',
         'surbitcoin',
         'theocean',
         'therock',
@@ -750,11 +751,25 @@ class Exchange {
         $this->orderbooks    = array ();
         $this->fees          = array ('trading' => array (), 'funding' => array ());
         $this->precision     = array ();
-        $this->limits        = array ();
         $this->orders        = array ();
         $this->trades        = array ();
         $this->transactions  = array ();
         $this->exceptions    = array ();
+        $this->accounts      = array ();
+        $this->limits = array (
+            'cost' => array (
+                'min' => null,
+                'max' => null,
+            ),
+            'price' => array (
+                'min' => null,
+                'max' => null,
+            ),
+            'amount' => array (
+                'min' => null,
+                'max' => null,
+            ),
+        );
         $this->httpExceptions = array (
             '422' => 'ExchangeError',
             '418' => 'DDoSProtection',
