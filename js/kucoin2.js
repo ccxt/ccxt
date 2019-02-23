@@ -555,9 +555,9 @@ module.exports = class kucoin2 extends Exchange {
         const clientOid = this.uuid ();
         const request = {
             'clientOid': clientOid,
-            'price': price,
+            'price': this.priceToPrecision (symbol, price),
             'side': side,
-            'size': amount,
+            'size': this.amountToPrecision (symbol, amount),
             'symbol': marketId,
             'type': type,
         };
