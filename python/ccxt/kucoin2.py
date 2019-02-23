@@ -790,7 +790,7 @@ class kucoin2 (Exchange):
         fee = {
             'cost': self.safe_float(trade, 'fee'),
             'rate': self.safe_float(trade, 'feeRate'),
-            'feeCurrency': self.safe_string(trade, 'feeCurrency'),
+            'currency': self.safe_string(trade, 'feeCurrency'),
         }
         type = self.safe_string(trade, 'type')
         cost = self.safe_float(trade, 'funds')
