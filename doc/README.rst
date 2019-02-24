@@ -333,7 +333,7 @@ The library is under `MIT license <https://github.com/ccxt/ccxt/blob/master/LICE
 Install
 -------
 
-The easiest way to install the ccxt library is to use a package manager:
+The easiest way to install the CCXT library is to use a package manager:
 
 -  `ccxt in NPM <https://www.npmjs.com/package/ccxt>`__ (JavaScript / Node v7.6+)
 -  `ccxt in PyPI <https://pypi.python.org/pypi/ccxt>`__ (Python 2 and 3.5.3+)
@@ -452,7 +452,7 @@ Usage
 Intro
 ~~~~~
 
-The ccxt library consists of a public part and a private part. Anyone can use the public part immediately after installation. Public APIs provide unrestricted access to public information for all exchange markets without the need to register a user account or have an API key.
+The CCXT library consists of a public part and a private part. Anyone can use the public part immediately after installation. Public APIs provide unrestricted access to public information for all exchange markets without the need to register a user account or have an API key.
 
 Public APIs include the following:
 
@@ -480,7 +480,7 @@ Private APIs allow the following:
 
 This library implements full public and private REST APIs for all exchanges. WebSocket and FIX implementations in JavaScript, PHP, Python and other languages coming soon.
 
-The ccxt library supports both camelcase notation (preferred in JavaScript) and underscore notation (preferred in Python and PHP), therefore all methods can be called in either notation or coding style in any language.
+The CCXT library supports both camelcase notation (preferred in JavaScript) and underscore notation (preferred in Python and PHP), therefore all methods can be called in either notation or coding style in any language.
 
 ::
 
