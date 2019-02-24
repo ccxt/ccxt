@@ -543,9 +543,9 @@ class kucoin2 (Exchange):
         clientOid = self.uuid()
         request = {
             'clientOid': clientOid,
-            'price': price,
+            'price': self.price_to_precision(symbol, price),
             'side': side,
-            'size': amount,
+            'size': self.amount_to_precision(symbol, amount),
             'symbol': marketId,
             'type': type,
         }
@@ -591,6 +591,7 @@ class kucoin2 (Exchange):
         return self.fetch_orders_by_status('active', symbol, since, limit, params)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        await self.load_markets()
         request = {
             'orderId': id,
         }
@@ -790,7 +791,7 @@ class kucoin2 (Exchange):
         fee = {
             'cost': self.safe_float(trade, 'fee'),
             'rate': self.safe_float(trade, 'feeRate'),
-            'feeCurrency': self.safe_string(trade, 'feeCurrency'),
+            'currency': self.safe_string(trade, 'feeCurrency'),
         }
         type = self.safe_string(trade, 'type')
         cost = self.safe_float(trade, 'funds')

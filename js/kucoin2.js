@@ -555,9 +555,9 @@ module.exports = class kucoin2 extends Exchange {
         const clientOid = this.uuid ();
         const request = {
             'clientOid': clientOid,
-            'price': price,
+            'price': this.priceToPrecision (symbol, price),
             'side': side,
-            'size': amount,
+            'size': this.amountToPrecision (symbol, amount),
             'symbol': marketId,
             'type': type,
         };
@@ -611,6 +611,7 @@ module.exports = class kucoin2 extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         const request = {
             'orderId': id,
         };
@@ -830,7 +831,7 @@ module.exports = class kucoin2 extends Exchange {
         const fee = {
             'cost': this.safeFloat (trade, 'fee'),
             'rate': this.safeFloat (trade, 'feeRate'),
-            'feeCurrency': this.safeString (trade, 'feeCurrency'),
+            'currency': this.safeString (trade, 'feeCurrency'),
         };
         const type = this.safeString (trade, 'type');
         let cost = this.safeFloat (trade, 'funds');

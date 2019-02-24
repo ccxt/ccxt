@@ -41,10 +41,10 @@ function replaceInFile (filename, regex, replacement) {
 // ---------------------------------------------------------------------------
 
 const includedIds = fs.readFileSync ('exchanges.cfg')
-                        .toString () // Buffer → String
-                        .split ('\n') // String → Array
-                        .map (line => line.split ('#')[0].trim ()) // trim comments
-                        .filter (exchange => exchange); // filter empty lines
+    .toString () // Buffer → String
+    .split ('\n') // String → Array
+    .map (line => line.split ('#')[0].trim ()) // trim comments
+    .filter (exchange => exchange); // filter empty lines
 
 const isIncluded = (id) => ((includedIds.length === 0) || includedIds.includes (id))
 try {
@@ -56,9 +56,9 @@ try {
     log.bright.cyan ('Exporting exchanges...'.yellow)
 
     const ids = fs.readdirSync ('./js/')
-                  .filter (file => file.includes ('.js'))
-                  .map (file => file.slice (0, -3))
-                  .filter (isIncluded);
+        .filter (file => file.includes ('.js'))
+        .map (file => file.slice (0, -3))
+        .filter (isIncluded);
 
     const pad = function (string, n) {
         return (string + ' '.repeat (n)).slice (0, n)
@@ -209,13 +209,14 @@ Object.keys (countries).forEach (code => {
         }
         if (shouldInclude) {
             let entry = [
-                '[![' + exchange.id + '](' + logo + ')](' + url + ')',
                 country,
+                '[![' + exchange.id + '](' + logo + ')](' + url + ')',
                 exchange.id,
                 '[' + exchange.name + '](' + url + ')',
-                exchange.certified ? ccxtCertifiedBadge : '',
                 version,
                 '[API](' + doc + ')',
+                // doesn't fit in width
+                // exchange.certified ? ccxtCertifiedBadge : '',
             ]
             result.push (entry)
         }
@@ -262,8 +263,8 @@ const ccxtWikiFileMapping = {
 }
 
 Object.keys (ccxtWikiFileMapping)
-      .forEach (file =>
-            fs.writeFileSync (gitWikiPath + '/' + ccxtWikiFileMapping[file], fs.readFileSync (wikiPath + '/' + file)))
+    .forEach (file =>
+        fs.writeFileSync (gitWikiPath + '/' + ccxtWikiFileMapping[file], fs.readFileSync (wikiPath + '/' + file)))
 
 // ----------------------------------------------------------------------------
 

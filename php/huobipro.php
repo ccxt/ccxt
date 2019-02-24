@@ -507,20 +507,6 @@ class huobipro extends Exchange {
         return $this->parse_ohlcvs($response['data'], $market, $timeframe, $since, $limit);
     }
 
-    public function load_accounts ($reload = false, $params = array ()) {
-        if ($reload) {
-            $this->accounts = $this->fetch_accounts ($params);
-        } else {
-            if ($this->accounts) {
-                return $this->accounts;
-            } else {
-                $this->accounts = $this->fetch_accounts ();
-                $this->accountsById = $this->index_by($this->accounts, 'id');
-            }
-        }
-        return $this->accounts;
-    }
-
     public function fetch_accounts ($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetAccountAccounts ($params);
@@ -601,7 +587,7 @@ class huobipro extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $this->load_accounts ();
+        $this->loadAccounts ();
         $method = $this->options['fetchBalanceMethod'];
         $response = $this->$method (array_merge (array (
             'id' => $this->accounts[0]['id'],
@@ -800,7 +786,7 @@ class huobipro extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $this->load_accounts ();
+        $this->loadAccounts ();
         $market = $this->market ($symbol);
         $request = array (
             'account-id' => $this->accounts[0]['id'],

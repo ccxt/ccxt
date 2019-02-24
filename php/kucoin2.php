@@ -556,9 +556,9 @@ class kucoin2 extends Exchange {
         $clientOid = $this->uuid ();
         $request = array (
             'clientOid' => $clientOid,
-            'price' => $price,
+            'price' => $this->price_to_precision($symbol, $price),
             'side' => $side,
-            'size' => $amount,
+            'size' => $this->amount_to_precision($symbol, $amount),
             'symbol' => $marketId,
             'type' => $type,
         );
@@ -612,6 +612,7 @@ class kucoin2 extends Exchange {
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
         $request = array (
             'orderId' => $id,
         );
@@ -831,7 +832,7 @@ class kucoin2 extends Exchange {
         $fee = array (
             'cost' => $this->safe_float($trade, 'fee'),
             'rate' => $this->safe_float($trade, 'feeRate'),
-            'feeCurrency' => $this->safe_string($trade, 'feeCurrency'),
+            'currency' => $this->safe_string($trade, 'feeCurrency'),
         );
         $type = $this->safe_string($trade, 'type');
         $cost = $this->safe_float($trade, 'funds');
