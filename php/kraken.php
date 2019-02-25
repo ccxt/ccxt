@@ -199,6 +199,8 @@ class kraken extends Exchange {
                 'cacheDepositMethodsOnFetchDepositAddress' => true, // will issue up to two calls in fetchDepositAddress
                 'depositMethods' => array (),
                 'delistedMarketsById' => array (),
+                // cannot withdraw/deposit these
+                'inactiveCurrencies' => array ( 'CAD', 'USD', 'JPY', 'GBP' ),
             ),
             'exceptions' => array (
                 'EAPI:Invalid key' => '\\ccxt\\AuthenticationError',
@@ -350,23 +352,36 @@ class kraken extends Exchange {
 
     public function fetch_currencies ($params = array ()) {
         $response = $this->publicGetAssets ($params);
-        $currencies = $response['result'];
+        //
+        //     {
+        //         "error" => array (),
+        //         "$result" => array (
+        //             "ADA" => array ( "aclass" => "$currency", "altname" => "ADA", "decimals" => 8, "display_decimals" => 6 ),
+        //             "BCH" => array ( "aclass" => "$currency", "altname" => "BCH", "decimals" => 10, "display_decimals" => 5 ),
+        //             ...
+        //         ),
+        //     }
+        //
+        $currencies = $this->safe_value($response, 'result');
         $ids = is_array ($currencies) ? array_keys ($currencies) : array ();
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $currency = $currencies[$id];
             // todo => will need to rethink the fees
+            // see => https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            $code = $this->common_currency_code($currency['altname']);
-            $precision = $currency['decimals'];
+            $code = $this->common_currency_code($this->safe_string($currency, 'altname'));
+            $precision = $this->safe_integer($currency, 'decimals');
+            // assumes all $currencies are $active except those listed above
+            $active = !$this->in_array($code, $this->options['inactiveCurrencies']);
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
                 'info' => $currency,
                 'name' => $code,
-                'active' => true,
+                'active' => $active,
                 'fee' => null,
                 'precision' => $precision,
                 'limits' => array (

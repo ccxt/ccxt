@@ -12,7 +12,7 @@ class bitfinex2 extends bitfinex {
     public function describe () {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitfinex2',
-            'name' => 'Bitfinex v2',
+            'name' => 'Bitfinex',
             'countries' => array ( 'VG' ),
             'version' => 'v2',
             'certified' => false,

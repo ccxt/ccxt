@@ -184,6 +184,24 @@ class bittrex (Exchange):
                 'parseOrderStatus': False,
                 'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
                 'symbolSeparator': '-',
+                # With certain currencies, like
+                # AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP
+                # an additional tag / memo / payment id is usually required by exchanges.
+                # With Bittrex some currencies imply the "base address + tag" logic.
+                # The base address for depositing is stored on self.currencies[code]
+                # The base address identifies the exchange as the recipient
+                # while the tag identifies the user account within the exchange
+                # and the tag is retrieved with fetchDepositAddress.
+                'tag': {
+                    'NXT': True,  # NXT, BURST
+                    'CRYPTO_NOTE_PAYMENTID': True,  # AEON, XMR
+                    'BITSHAREX': True,  # BTS
+                    'RIPPLE': True,  # XRP
+                    'NEM': True,  # XEM
+                    'STELLAR': True,  # XLM
+                    'STEEM': True,  # SBD, GOLOS
+                    'LISK': True,  # LSK
+                },
             },
             'commonCurrencies': {
                 'BITS': 'SWIFT',
@@ -328,17 +346,38 @@ class bittrex (Exchange):
 
     def fetch_currencies(self, params={}):
         response = self.publicGetCurrencies(params)
-        currencies = response['result']
+        #
+        #     {
+        #         "success": True,
+        #         "message": "",
+        #         "result": [
+        #             {
+        #                 "Currency": "BTC",
+        #                 "CurrencyLong":"Bitcoin",
+        #                 "MinConfirmation":2,
+        #                 "TxFee":0.00050000,
+        #                 "IsActive":true,
+        #                 "IsRestricted":false,
+        #                 "CoinType":"BITCOIN",
+        #                 "BaseAddress":"1N52wHoVR79PMDishab2XmRHsbekCdGquK",
+        #                 "Notice":null
+        #             },
+        #             ...,
+        #         ]
+        #     }
+        #
+        currencies = self.safe_value(response, 'result', [])
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
-            id = currency['Currency']
+            id = self.safe_string(currency, 'Currency')
             # todo: will need to rethink the fees
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
             code = self.common_currency_code(id)
             precision = 8  # default precision, todo: fix "magic constants"
             address = self.safe_value(currency, 'BaseAddress')
+            fee = self.safe_float(currency, 'TxFee')  # todo: redesign
             result[code] = {
                 'id': id,
                 'code': code,
@@ -347,7 +386,7 @@ class bittrex (Exchange):
                 'type': currency['CoinType'],
                 'name': currency['CurrencyLong'],
                 'active': currency['IsActive'],
-                'fee': self.safe_float(currency, 'TxFee'),  # todo: redesign
+                'fee': fee,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -363,7 +402,7 @@ class bittrex (Exchange):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': currency['TxFee'],
+                        'min': fee,
                         'max': math.pow(10, precision),
                     },
                 },
@@ -813,15 +852,24 @@ class bittrex (Exchange):
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
         currency = self.currency(code)
-        response = self.accountGetDepositaddress(self.extend({
+        request = {
             'currency': currency['id'],
-        }, params))
+        }
+        response = self.accountGetDepositaddress(self.extend(request, params))
+        #
+        #     {"success": False, "message": "ADDRESS_GENERATING", "result": null}
+        #
+        #     {success:    True,
+        #       message:   "",
+        #        result: {Currency: "INCNT",
+        #                   Address: "3PHvQt9bK21f7eVQVdJzrNPcsMzXabEA5Ha"} }}
+        #
         address = self.safe_string(response['result'], 'Address')
         message = self.safe_string(response, 'message')
         if not address or message == 'ADDRESS_GENERATING':
             raise AddressPending(self.id + ' the address for ' + code + ' is being generated(pending, not ready yet, retry again later)')
         tag = None
-        if (code == 'XRP') or (code == 'XLM') or (code == 'LSK'):
+        if currency['type'] in self.options['tag']:
             tag = address
             address = currency['address']
         self.check_address(address)

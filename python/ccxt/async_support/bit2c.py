@@ -79,7 +79,6 @@ class bit2c (Exchange):
                 'LTC/NIS': {'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS'},
                 'ETC/NIS': {'id': 'EtcNis', 'symbol': 'ETC/NIS', 'base': 'ETC', 'quote': 'NIS'},
                 'BTG/NIS': {'id': 'BtgNis', 'symbol': 'BTG/NIS', 'base': 'BTG', 'quote': 'NIS'},
-                'LTC/BTC': {'id': 'LtcBtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC'},
                 'BSV/NIS': {'id': 'BchSvNis', 'symbol': 'BSV/NIS', 'base': 'BSV', 'quote': 'NIS'},
             },
             'fees': {
@@ -292,7 +291,7 @@ class bit2c (Exchange):
             feeCost = self.safe_float(trade, 'feeAmount')
         else:
             timestamp = self.safe_integer(trade, 'date') * 1000
-            id = self.safe_integer(trade, 'tid')
+            id = self.safe_string(trade, 'tid')
             price = self.safe_float(trade, 'price')
             amount = self.safe_float(trade, 'amount')
             side = self.safe_value(trade, 'isBid')

@@ -409,6 +409,7 @@ declare module 'ccxt' {
     export class hitbtc extends Exchange {}
     export class hitbtc2 extends hitbtc {}
     export class huobipro extends Exchange {}
+    export class huobiru extends huobipro {}
     export class ice3x extends Exchange {}
     export class independentreserve extends Exchange {}
     export class indodax extends Exchange {}
@@ -435,11 +436,10 @@ declare module 'ccxt' {
     export class okex extends okcoinusd {}
     export class paymium extends Exchange {}
     export class poloniex extends Exchange {}
-    export class qryptos extends liquid {}
     export class quadrigacx extends Exchange {}
-    export class quoinex extends liquid {}
     export class rightbtc extends Exchange {}
     export class southxchange extends Exchange {}
+    export class stronghold extends Exchange {}
     export class surbitcoin extends foxbit {}
     export class theocean extends Exchange {}
     export class therock extends Exchange {}
@@ -451,7 +451,6 @@ declare module 'ccxt' {
     export class vaultoro extends Exchange {}
     export class vbtc extends foxbit {}
     export class virwox extends Exchange {}
-    export class wex extends liqui {}
     export class xbtce extends Exchange {}
     export class yobit extends liqui {}
     export class yunbi extends acx {}
