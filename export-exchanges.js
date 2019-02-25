@@ -132,7 +132,7 @@ let sleep = async ms => await new Promise (resolve => setTimeout (resolve, ms))
 // ---------------------------------------------------------------------------
 // list all supported exchanges
 
-let exchangesList = values (exchanges).map (exchange => {
+let tableData = values (exchanges).map (exchange => {
     let logo = exchange.urls['logo']
     let website = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
     let url = exchange.urls.referral || website
@@ -153,7 +153,7 @@ let exchangesList = values (exchanges).map (exchange => {
     ]
 })
 
-exchangesList.splice (0, 0, tableHeadings)
+tableData.splice (0, 0, tableHeadings)
 
 function makeTable (jsonArray) {
     let table = asTable.configure ({ 'delimiter': ' | ' }) (jsonArray)
@@ -166,7 +166,7 @@ function makeTable (jsonArray) {
     return lines.map (line => '|' + line + '|').join ("\n")
 }
 
-let exchangesTable = makeTable (exchangesList)
+let exchangesTable = makeTable (tableData)
 let numExchanges = keys (exchanges).length
 let beginning = "The ccxt library currently supports the following "
 let ending = " cryptocurrency exchange markets and trading APIs:\n\n"
@@ -178,7 +178,7 @@ replaceInFile (wikiPath + '/Manual.md', allExchangesRegex, howMany)
 replaceInFile (wikiPath + '/Exchange-Markets.md', allExchangesRegex, howMany)
 
 let certifiedFieldIndex = tableHeadings.indexOf ('certified')
-let certified = exchangesList.filter ((x) => x[certifiedFieldIndex] !== '' )
+let certified = tableData.filter ((x) => x[certifiedFieldIndex] !== '' )
 let allCertifiedRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
 let certifiedTable = makeTable (certified)
 let certifiedTableReplacement = '$1' + certifiedTable + "\n"
