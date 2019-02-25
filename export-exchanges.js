@@ -121,13 +121,9 @@ for (let id in exchanges) {
     exchanges[id].verbose = verbose
 }
 
-// console.log (values (ccxt).length)
-
 var countryName = function (code) {
     return ((countries[code] !== undefined) ? countries[code] : code)
 }
-
-let sleep = async ms => await new Promise (resolve => setTimeout (resolve, ms))
 
 // ---------------------------------------------------------------------------
 // list all supported exchanges
