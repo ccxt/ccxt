@@ -24,7 +24,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                'fetchMyTrades': true,
+                'fetchMyTrades': 'emulated',
                 'fetchOHLCV': true,
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
@@ -439,68 +439,38 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let side = this.safeString2 (trade, 'OrderType', 'Type');
-        let isBuy = (side === 'LIMIT_BUY') || (side === 'BUY');
-        let isSell = (side === 'LIMIT_SELL') || (side === 'SELL');
-        if (isBuy) {
+        let timestamp = this.parse8601 (trade['TimeStamp'] + '+00:00');
+        let side = undefined;
+        if (trade['OrderType'] === 'BUY') {
             side = 'buy';
-        }
-        if (isSell) {
+        } else if (trade['OrderType'] === 'SELL') {
             side = 'sell';
         }
-        if ('Id' in trade) {
-            // then public market trade
-            let timestamp = this.parse8601 (trade['TimeStamp'] + '+00:00');
-            let id = this.safeString2 (trade, 'Id', 'ID');
-            let symbol = undefined;
-            if (market !== undefined)
-                symbol = market['symbol'];
-            let cost = undefined;
-            let price = this.safeFloat (trade, 'Price');
-            let amount = this.safeFloat (trade, 'Quantity');
-            if (amount !== undefined) {
-                if (price !== undefined) {
-                    cost = price * amount;
-                }
+        let id = this.safeString2 (trade, 'Id', 'ID');
+        let symbol = undefined;
+        if (market !== undefined)
+            symbol = market['symbol'];
+        let cost = undefined;
+        let price = this.safeFloat (trade, 'Price');
+        let amount = this.safeFloat (trade, 'Quantity');
+        if (amount !== undefined) {
+            if (price !== undefined) {
+                cost = price * amount;
             }
-            return {
-                'id': id,
-                'info': trade,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'symbol': symbol,
-                'type': 'limit',
-                'side': side,
-                'price': price,
-                'amount': amount,
-                'cost': cost,
-                'fee': undefined,
-            };
-        } else {
-            // private market, ie, MY trades
-            let timestamp = this.parse8601 (trade['TimeStamp'] + '+00:00');
-            let marketInternal = this.marketsById[this.safeString (trade, 'Exchange')];
-            let amount = this.safeFloat (trade, 'Quantity');
-            let remaining = this.safeFloat (trade, 'QuantityRemaining');
-            let filled = undefined;
-            if (amount !== undefined && remaining !== undefined) {
-                filled = amount - remaining;
-            }
-            return {
-                'id': undefined,
-                'info': trade,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'symbol': marketInternal.symbol,
-                'order': this.safeString (trade, 'OrderUuid'),
-                'type': 'limit',
-                'side': side,
-                'price': this.safeString (trade, 'PricePerUnit'),
-                'amount': filled,
-                'cost': this.safeString (trade, 'Price'),
-                'fee': this.safeString (trade, 'Commission'),
-            };
         }
+        return {
+            'id': id,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
+        };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -907,20 +877,43 @@ module.exports = class bittrex extends Exchange {
         }
         return this.parseOrder (response['result']);
     }
+    
+    orderToTrade (order) {
+        // this entire method should be moved to the base class
+        const timestamp = this.safeInteger2 (order, 'lastTradeTimestamp', 'timestamp');
+        const result = {
+            'id': this.safeString (order, 'id'),
+            'side': this.safeString (order, 'side'),
+            'order': this.safeString (order, 'id'),
+            'price': this.safeFloat (order, 'average'),
+            'amount': this.safeFloat (order, 'filled'),
+            'cost': this.safeFloat (order, 'cost'),
+            'symbol': this.safeString (order, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': this.safeValue (order, 'fee'),
+            'info': order,
+            'converted': true,
+        };
+        if ('fees' in order) {
+            result['fees'] = order['fees'];
+        }
+        return result;
+    }
+    
+    ordersToTrades (orders) {
+        // this entire method should be moved to the base class
+        const result = [];
+        for (let i = 0; i < orders.length; i++) {
+            const trade = this.orderToTrade (orders[i]);
+            result.push (trade);
+        }
+        return result;
+    }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let request = {};
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['market'] = market['id'];
-        }
-        let response = await this.accountGetOrderhistory (this.extend (request, params));
-        let trades = this.parseTrades (response['result'], market, since, limit);
-        if (symbol !== undefined)
-            return this.filterBySymbol (trades, symbol);
-        return trades;
+        const orders = await this.fetchClosedOrders (symbol, since, limit, params);
+        return this.ordersToTrades (orders);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
