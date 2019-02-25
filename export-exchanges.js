@@ -264,4 +264,25 @@ keys (ccxtWikiFileMapping)
 
 // ----------------------------------------------------------------------------
 
+log.bright ('Exporting exchange keywords to'.cyan, 'package.json'.yellow)
+
+const keywords = []
+
+for (const ex of values (exchanges)) {
+    
+    for (const url of Array.isArray (ex.urls.www) ? ex.urls.www : [ex.urls.www]) {
+        keywords.push (url.replace (/(http|https):\/\/(www\.)?/, '').replace (/\/.*/, ''))
+    }
+
+    keywords.push (ex.name)
+}
+
+const sortedUniqueKeywords = [...new Set (keywords)]
+
+log (sortedUniqueKeywords)
+
+// TODO: add package.json updating
+
+// ----------------------------------------------------------------------------
+
 log.bright.green ('Exchanges exported successfully.')
