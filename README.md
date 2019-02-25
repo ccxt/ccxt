@@ -141,7 +141,7 @@ The ccxt library currently supports the following 133 cryptocurrency exchange ma
 |[![kucoin2](https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg)](https://www.kucoin.com/ucenter/signup?rcode=E5wkqe)                        | kucoin2            | [KuCoin](https://www.kucoin.com/ucenter/signup?rcode=E5wkqe)                         | 2     | [API](https://docs.kucoin.com)                                                                   | [![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | Seychelles                              |
 |[![kuna](https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg)](https://kuna.io)                                                              | kuna               | [Kuna](https://kuna.io)                                                              | 2     | [API](https://kuna.io/documents/api)                                                             |                                                                                                                             | Ukraine                                 |
 |[![lakebtc](https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg)](https://www.lakebtc.com)                                                   | lakebtc            | [LakeBTC](https://www.lakebtc.com)                                                   | 2     | [API](https://www.lakebtc.com/s/api_v2)                                                          |                                                                                                                             | US                                      |
-|[![lbank](https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg)](https://www.lbank.info)                                                      | lbank              | [LBank](https://www.lbank.info)                                                      | 1     | [API](https://github.com/LBank-exchange/lbank-official-api-docs)                                 |                                                                                                                             | China                                   |
+|[![lbank](https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg)](https://www.lbank.info/sign-up.html?icode=7QCY&lang=en-US)                   | lbank              | [LBank](https://www.lbank.info/sign-up.html?icode=7QCY&lang=en-US)                   | 1     | [API](https://github.com/LBank-exchange/lbank-official-api-docs)                                 |                                                                                                                             | China                                   |
 |[![liqui](https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg)](https://liqui.io)                                                            | liqui              | [Liqui](https://liqui.io)                                                            | 3     | [API](https://liqui.io/api)                                                                      |                                                                                                                             | Ukraine                                 |
 |[![liquid](https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg)](https://www.liquid.com?affiliate=SbzC62lt30976)                             | liquid             | [Liquid](https://www.liquid.com?affiliate=SbzC62lt30976)                             | 2     | [API](https://developers.quoine.com)                                                             |                                                                                                                             | Japan, China, Taiwan                    |
 |[![livecoin](https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg)](https://livecoin.net/?from=Livecoin-CQ1hfx44)                             | livecoin           | [LiveCoin](https://livecoin.net/?from=Livecoin-CQ1hfx44)                             | *     | [API](https://www.livecoin.net/api?lang=en)                                                      |                                                                                                                             | US, UK, Russia                          |
@@ -185,7 +185,7 @@ The library is under [MIT license](https://github.com/ccxt/ccxt/blob/master/LICE
 
 ## Install
 
-The easiest way to install the ccxt library is to use a package manager:
+The easiest way to install the CCXT library is to use a package manager:
 
 - [ccxt in **NPM**](https://www.npmjs.com/package/ccxt) (JavaScript / Node v7.6+)
 - [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 2 and 3.5.3+)
@@ -296,7 +296,7 @@ Read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
 
 ### Intro
 
-The ccxt library consists of a public part and a private part. Anyone can use the public part immediately after installation. Public APIs provide unrestricted access to public information for all exchange markets without the need to register a user account or have an API key.
+The CCXT library consists of a public part and a private part. Anyone can use the public part immediately after installation. Public APIs provide unrestricted access to public information for all exchange markets without the need to register a user account or have an API key.
 
 Public APIs include the following:
 
@@ -324,7 +324,7 @@ Private APIs allow the following:
 
 This library implements full public and private REST APIs for all exchanges. WebSocket and FIX implementations in JavaScript, PHP, Python and other languages coming soon.
 
-The ccxt library supports both camelcase notation (preferred in JavaScript) and underscore notation (preferred in Python and PHP), therefore all methods can be called in either notation or coding style in any language.
+The CCXT library supports both camelcase notation (preferred in JavaScript) and underscore notation (preferred in Python and PHP), therefore all methods can be called in either notation or coding style in any language.
 
 ```
 // both of these notations work in JavaScript/Python/PHP
