@@ -905,8 +905,7 @@ module.exports = class bittrex extends Exchange {
         // this entire method should be moved to the base class
         const result = [];
         for (let i = 0; i < orders.length; i++) {
-            const trade = this.orderToTrade (orders[i]);
-            result.push (trade);
+            result.push (this.orderToTrade (orders[i]));
         }
         return result;
     }
