@@ -266,22 +266,18 @@ keys (ccxtWikiFileMapping)
 
 log.bright ('Exporting exchange keywords to'.cyan, 'package.json'.yellow)
 
-const keywords = []
+const packageJSON = require ('./package.json')
+const keywords = new Set (packageJSON.keywords)
 
 for (const ex of values (exchanges)) {
-    
     for (const url of Array.isArray (ex.urls.www) ? ex.urls.www : [ex.urls.www]) {
-        keywords.push (url.replace (/(http|https):\/\/(www\.)?/, '').replace (/\/.*/, ''))
+        keywords.add (url.replace (/(http|https):\/\/(www\.)?/, '').replace (/\/.*/, ''))
     }
-
-    keywords.push (ex.name)
+    keywords.add (ex.name)
 }
 
-const sortedUniqueKeywords = [...new Set (keywords)]
-
-log (sortedUniqueKeywords)
-
-// TODO: add package.json updating
+packageJSON.keywords = [...keywords]
+fs.writeFileSync ('./package.json', JSON.stringify (packageJSON, null, 2))
 
 // ----------------------------------------------------------------------------
 
