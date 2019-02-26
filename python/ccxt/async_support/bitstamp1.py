@@ -13,7 +13,7 @@ class bitstamp1 (Exchange):
     def describe(self):
         return self.deep_extend(super(bitstamp1, self).describe(), {
             'id': 'bitstamp1',
-            'name': 'Bitstamp v1',
+            'name': 'Bitstamp',
             'countries': ['GB'],
             'rateLimit': 1000,
             'version': 'v1',

@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.18.225'
+__version__ = '1.18.296'
 
 # ----------------------------------------------------------------------------
 
@@ -150,6 +150,7 @@ from ccxt.hadax import hadax                                # noqa: F401
 from ccxt.hitbtc import hitbtc                              # noqa: F401
 from ccxt.hitbtc2 import hitbtc2                            # noqa: F401
 from ccxt.huobipro import huobipro                          # noqa: F401
+from ccxt.huobiru import huobiru                            # noqa: F401
 from ccxt.ice3x import ice3x                                # noqa: F401
 from ccxt.independentreserve import independentreserve      # noqa: F401
 from ccxt.indodax import indodax                            # noqa: F401
@@ -176,11 +177,10 @@ from ccxt.okcoinusd import okcoinusd                        # noqa: F401
 from ccxt.okex import okex                                  # noqa: F401
 from ccxt.paymium import paymium                            # noqa: F401
 from ccxt.poloniex import poloniex                          # noqa: F401
-from ccxt.qryptos import qryptos                            # noqa: F401
 from ccxt.quadrigacx import quadrigacx                      # noqa: F401
-from ccxt.quoinex import quoinex                            # noqa: F401
 from ccxt.rightbtc import rightbtc                          # noqa: F401
 from ccxt.southxchange import southxchange                  # noqa: F401
+from ccxt.stronghold import stronghold                      # noqa: F401
 from ccxt.surbitcoin import surbitcoin                      # noqa: F401
 from ccxt.theocean import theocean                          # noqa: F401
 from ccxt.therock import therock                            # noqa: F401
@@ -285,6 +285,7 @@ exchanges = [
     'hitbtc',
     'hitbtc2',
     'huobipro',
+    'huobiru',
     'ice3x',
     'independentreserve',
     'indodax',
@@ -311,11 +312,10 @@ exchanges = [
     'okex',
     'paymium',
     'poloniex',
-    'qryptos',
     'quadrigacx',
-    'quoinex',
     'rightbtc',
     'southxchange',
+    'stronghold',
     'surbitcoin',
     'theocean',
     'therock',

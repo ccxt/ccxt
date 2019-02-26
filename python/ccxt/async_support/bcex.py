@@ -46,7 +46,7 @@ class bcex (Exchange):
                 'api': 'https://www.bcex.top',
                 'www': 'https://www.bcex.top',
                 'doc': 'https://www.bcex.top/api_market/market/',
-                'fees': 'http://bcex.udesk.cn/hc/articles/57085',
+                'fees': 'https://bcex.udesk.cn/hc/articles/57085',
                 'referral': 'https://www.bcex.top/user/reg/type/2/pid/758978',
             },
             'api': {

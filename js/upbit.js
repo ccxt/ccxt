@@ -493,8 +493,8 @@ module.exports = class upbit extends Exchange {
             const symbol = this.getSymbolFromMarketId (this.safeString (orderbook, 'market'));
             const timestamp = this.safeInteger (orderbook, 'timestamp');
             result[symbol] = {
-                'bids': this.parseBidsAsks (orderbook['orderbook_units'], 'bid_price', 'bid_size'),
-                'asks': this.parseBidsAsks (orderbook['orderbook_units'], 'ask_price', 'ask_size'),
+                'bids': this.sortBy (this.parseBidsAsks (orderbook['orderbook_units'], 'bid_price', 'bid_size'), 0, true),
+                'asks': this.sortBy (this.parseBidsAsks (orderbook['orderbook_units'], 'ask_price', 'ask_size'), 0),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
                 'nonce': undefined,
@@ -1301,6 +1301,14 @@ module.exports = class upbit extends Exchange {
         return this.parseOrder (response);
     }
 
+    parseDepositAddresses (addresses) {
+        const result = [];
+        for (let i = 0; i < addresses.length; i++) {
+            result.push (this.parseDepositAddress (addresses[i]));
+        }
+        return result;
+    }
+
     async fetchDepositAddresses (codes = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetDepositsCoinAddresses (params);
@@ -1323,13 +1331,7 @@ module.exports = class upbit extends Exchange {
         //         }
         //     ]
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            let depositAddress = this.parseDepositAddress (response[i]);
-            let code = depositAddress['currency'];
-            result[code] = depositAddress;
-        }
-        return result;
+        return this.parseDepositAddresses (response);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {

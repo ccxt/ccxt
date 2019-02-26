@@ -25,6 +25,10 @@ class coincheck extends Exchange {
                 'api' => 'https://coincheck.com/api',
                 'www' => 'https://coincheck.com',
                 'doc' => 'https://coincheck.com/documents/exchange/api',
+                'fees' => array (
+                    'https://coincheck.com/exchange/fee',
+                    'https://coincheck.com/info/fee',
+                ),
             ),
             'api' => array (
                 'public' => array (
@@ -94,6 +98,14 @@ class coincheck extends Exchange {
                 // 'XEM/BTC' => array ( 'id' => 'xem_btc', 'symbol' => 'XEM/BTC', 'base' => 'XEM', 'quote' => 'BTC', 'baseId' => 'xem', 'quoteId' => 'btc' ),
                 // 'LTC/BTC' => array ( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'baseId' => 'ltc', 'quoteId' => 'btc' ),
                 // 'DASH/BTC' => array ( 'id' => 'dash_btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC', 'baseId' => 'dash', 'quoteId' => 'btc' ),
+            ),
+            'fees' => array (
+                'trading' => array (
+                    'tierBased' => false,
+                    'percentage' => true,
+                    'maker' => 0,
+                    'taker' => 0,
+                ),
             ),
         ));
     }

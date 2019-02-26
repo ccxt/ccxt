@@ -153,26 +153,29 @@ class bitmex (Exchange):
             },
             'options': {
                 'api-expires': None,
-                'fetchTickerQuotes': False,
             },
         })
 
     async def fetch_markets(self, params={}):
-        markets = await self.publicGetInstrumentActiveAndIndices()
+        response = await self.publicGetInstrumentActiveAndIndices(params)
         result = []
-        for p in range(0, len(markets)):
-            market = markets[p]
+        for i in range(0, len(response)):
+            market = response[i]
             active = (market['state'] != 'Unlisted')
             id = market['symbol']
             baseId = market['underlying']
             quoteId = market['quoteCurrency']
-            type = None
-            future = False
-            prediction = False
             basequote = baseId + quoteId
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
             swap = (id == basequote)
+            # 'positionCurrency' may be empty("", as Bitmex currently returns for ETHUSD)
+            # so let's take the quote currency first and then adjust if needed
+            positionId = self.safe_string_2(market, 'positionCurrency', 'quoteCurrency')
+            type = None
+            future = False
+            prediction = False
+            position = self.common_currency_code(positionId)
             symbol = id
             if swap:
                 type = 'swap'
@@ -187,10 +190,31 @@ class bitmex (Exchange):
                 'amount': None,
                 'price': None,
             }
-            if market['lotSize']:
-                precision['amount'] = self.precision_from_string(self.truncate_to_string(market['lotSize'], 16))
-            if market['tickSize']:
-                precision['price'] = self.precision_from_string(self.truncate_to_string(market['tickSize'], 16))
+            lotSize = self.safe_float(market, 'lotSize')
+            tickSize = self.safe_float(market, 'tickSize')
+            if lotSize is not None:
+                precision['amount'] = self.precision_from_string(self.truncate_to_string(lotSize, 16))
+            if tickSize is not None:
+                precision['price'] = self.precision_from_string(self.truncate_to_string(tickSize, 16))
+            limits = {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'price': {
+                    'min': tickSize,
+                    'max': self.safe_float(market, 'maxPrice'),
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            }
+            limitField = 'cost' if (position == quote) else 'amount'
+            limits[limitField] = {
+                'min': lotSize,
+                'max': self.safe_float(market, 'maxOrderQty'),
+            }
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -200,16 +224,7 @@ class bitmex (Exchange):
                 'quoteId': quoteId,
                 'active': active,
                 'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': market['lotSize'],
-                        'max': market['maxOrderQty'],
-                    },
-                    'price': {
-                        'min': market['tickSize'],
-                        'max': market['maxPrice'],
-                    },
-                },
+                'limits': limits,
                 'taker': market['takerFee'],
                 'maker': market['makerFee'],
                 'type': type,
@@ -223,22 +238,24 @@ class bitmex (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privateGetUserMargin({'currency': 'all'})
+        request = {'currency': 'all'}
+        response = await self.privateGetUserMargin(self.extend(request, params))
         result = {'info': response}
         for b in range(0, len(response)):
             balance = response[b]
-            currency = balance['currency'].upper()
-            currency = self.common_currency_code(currency)
+            currencyId = self.safe_string(balance, 'currency')
+            currencyId = currencyId.upper()
+            code = self.common_currency_code(currencyId)
             account = {
                 'free': balance['availableMargin'],
                 'used': 0.0,
                 'total': balance['marginBalance'],
             }
-            if currency == 'BTC':
+            if code == 'BTC':
                 account['free'] = account['free'] * 0.00000001
                 account['total'] = account['total'] * 0.00000001
             account['used'] = account['total'] - account['free']
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -309,47 +326,164 @@ class bitmex (Exchange):
         market = self.market(symbol)
         if not market['active']:
             raise ExchangeError(self.id + ': symbol ' + symbol + ' is delisted')
-        request = self.extend({
-            'symbol': market['id'],
-            'binSize': '1d',
-            'partial': True,
-            'count': 1,
-            'reverse': True,
-        }, params)
-        bid = None
-        ask = None
-        if self.options['fetchTickerQuotes']:
-            quotes = await self.publicGetQuoteBucketed(request)
-            quotesLength = len(quotes)
-            quote = quotes[quotesLength - 1]
-            bid = self.safe_float(quote, 'bidPrice')
-            ask = self.safe_float(quote, 'askPrice')
-        tickers = await self.publicGetTradeBucketed(request)
-        ticker = tickers[0]
-        timestamp = self.milliseconds()
-        open = self.safe_float(ticker, 'open')
-        close = self.safe_float(ticker, 'close')
-        change = close - open
+        tickers = await self.fetch_tickers([symbol], params)
+        ticker = self.safe_value(tickers, symbol)
+        if ticker is None:
+            raise ExchangeError(self.id + ' ticker symbol ' + symbol + ' not found')
+        return ticker
+
+    async def fetch_tickers(self, symbols=None, params={}):
+        await self.load_markets()
+        response = await self.publicGetInstrumentActiveAndIndices(params)
+        result = {}
+        for i in range(0, len(response)):
+            ticker = self.parse_ticker(response[i])
+            symbol = self.safe_string(ticker, 'symbol')
+            if symbol is not None:
+                result[symbol] = ticker
+        return result
+
+    def parse_ticker(self, ticker, market=None):
+        #
+        #     {                        symbol: "ETHH19",
+        #                           rootSymbol: "ETH",
+        #                                state: "Open",
+        #                                  typ: "FFCCSX",
+        #                              listing: "2018-12-17T04:00:00.000Z",
+        #                                front: "2019-02-22T12:00:00.000Z",
+        #                               expiry: "2019-03-29T12:00:00.000Z",
+        #                               settle: "2019-03-29T12:00:00.000Z",
+        #                       relistInterval:  null,
+        #                           inverseLeg: "",
+        #                              sellLeg: "",
+        #                               buyLeg: "",
+        #                     optionStrikePcnt:  null,
+        #                    optionStrikeRound:  null,
+        #                    optionStrikePrice:  null,
+        #                     optionMultiplier:  null,
+        #                     positionCurrency: "ETH",
+        #                           underlying: "ETH",
+        #                        quoteCurrency: "XBT",
+        #                     underlyingSymbol: "ETHXBT=",
+        #                            reference: "BMEX",
+        #                      referenceSymbol: ".BETHXBT30M",
+        #                         calcInterval:  null,
+        #                      publishInterval:  null,
+        #                          publishTime:  null,
+        #                          maxOrderQty:  100000000,
+        #                             maxPrice:  10,
+        #                              lotSize:  1,
+        #                             tickSize:  0.00001,
+        #                           multiplier:  100000000,
+        #                        settlCurrency: "XBt",
+        #       underlyingToPositionMultiplier:  1,
+        #         underlyingToSettleMultiplier:  null,
+        #              quoteToSettleMultiplier:  100000000,
+        #                             isQuanto:  False,
+        #                            isInverse:  False,
+        #                           initMargin:  0.02,
+        #                          maintMargin:  0.01,
+        #                            riskLimit:  5000000000,
+        #                             riskStep:  5000000000,
+        #                                limit:  null,
+        #                               capped:  False,
+        #                                taxed:  True,
+        #                           deleverage:  True,
+        #                             makerFee:  -0.0005,
+        #                             takerFee:  0.0025,
+        #                        settlementFee:  0,
+        #                         insuranceFee:  0,
+        #                    fundingBaseSymbol: "",
+        #                   fundingQuoteSymbol: "",
+        #                 fundingPremiumSymbol: "",
+        #                     fundingTimestamp:  null,
+        #                      fundingInterval:  null,
+        #                          fundingRate:  null,
+        #                indicativeFundingRate:  null,
+        #                   rebalanceTimestamp:  null,
+        #                    rebalanceInterval:  null,
+        #                     openingTimestamp: "2019-02-13T08:00:00.000Z",
+        #                     closingTimestamp: "2019-02-13T09:00:00.000Z",
+        #                      sessionInterval: "2000-01-01T01:00:00.000Z",
+        #                       prevClosePrice:  0.03347,
+        #                       limitDownPrice:  null,
+        #                         limitUpPrice:  null,
+        #               bankruptLimitDownPrice:  null,
+        #                 bankruptLimitUpPrice:  null,
+        #                      prevTotalVolume:  1386531,
+        #                          totalVolume:  1387062,
+        #                               volume:  531,
+        #                            volume24h:  17118,
+        #                    prevTotalTurnover:  4741294246000,
+        #                        totalTurnover:  4743103466000,
+        #                             turnover:  1809220000,
+        #                          turnover24h:  57919845000,
+        #                      homeNotional24h:  17118,
+        #                   foreignNotional24h:  579.19845,
+        #                         prevPrice24h:  0.03349,
+        #                                 vwap:  0.03383564,
+        #                            highPrice:  0.03458,
+        #                             lowPrice:  0.03329,
+        #                            lastPrice:  0.03406,
+        #                   lastPriceProtected:  0.03406,
+        #                    lastTickDirection: "ZeroMinusTick",
+        #                       lastChangePcnt:  0.017,
+        #                             bidPrice:  0.03406,
+        #                             midPrice:  0.034065,
+        #                             askPrice:  0.03407,
+        #                       impactBidPrice:  0.03406,
+        #                       impactMidPrice:  0.034065,
+        #                       impactAskPrice:  0.03407,
+        #                         hasLiquidity:  True,
+        #                         openInterest:  83679,
+        #                            openValue:  285010674000,
+        #                           fairMethod: "ImpactMidPrice",
+        #                        fairBasisRate:  0,
+        #                            fairBasis:  0,
+        #                            fairPrice:  0.03406,
+        #                           markMethod: "FairPrice",
+        #                            markPrice:  0.03406,
+        #                    indicativeTaxRate:  0,
+        #                indicativeSettlePrice:  0.03406,
+        #                optionUnderlyingPrice:  null,
+        #                         settledPrice:  null,
+        #                            timestamp: "2019-02-13T08:40:30.000Z",
+        #     }
+        #
+        symbol = None
+        marketId = self.safe_string(ticker, 'symbol')
+        market = self.safe_value(self.markets_by_id, marketId, market)
+        if market is not None:
+            symbol = market['symbol']
+        timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
+        open = self.safe_float(ticker, 'prevPrice24h')
+        last = self.safe_float(ticker, 'lastPrice')
+        change = None
+        percentage = None
+        if last is not None and open is not None:
+            change = last - open
+            if open > 0:
+                percentage = change / open * 100
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': bid,
+            'high': self.safe_float(ticker, 'highPrice'),
+            'low': self.safe_float(ticker, 'lowPrice'),
+            'bid': self.safe_float(ticker, 'bidPrice'),
             'bidVolume': None,
-            'ask': ask,
+            'ask': self.safe_float(ticker, 'askPrice'),
             'askVolume': None,
             'vwap': self.safe_float(ticker, 'vwap'),
             'open': open,
-            'close': close,
-            'last': close,
+            'close': last,
+            'last': last,
             'previousClose': None,
             'change': change,
-            'percentage': change / open * 100,
-            'average': self.sum(open, close) / 2,
-            'baseVolume': self.safe_float(ticker, 'homeNotional'),
-            'quoteVolume': self.safe_float(ticker, 'foreignNotional'),
+            'percentage': percentage,
+            'average': self.sum(open, last) / 2,
+            'baseVolume': self.safe_float(ticker, 'homeNotional24h'),
+            'quoteVolume': self.safe_float(ticker, 'foreignNotional24h'),
             'info': ticker,
         }
 

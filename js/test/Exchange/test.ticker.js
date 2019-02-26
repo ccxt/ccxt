@@ -75,6 +75,7 @@ module.exports = (exchange, ticker, method, symbol) => {
         'coinmarketcap',
         'xbtce',
         'coss',
+        'okex',
 
     ].includes (exchange.id)) {
 

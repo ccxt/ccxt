@@ -233,6 +233,8 @@ class poloniex (Exchange):
         }
         if limit is not None:
             request['end'] = self.sum(request['start'], limit * self.timeframes[timeframe])
+        else:
+            request['end'] = self.sum(self.seconds(), 1)
         response = self.publicGetReturnChartData(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
@@ -553,7 +555,7 @@ class poloniex (Exchange):
                         for j in range(0, len(trades)):
                             result.append(trades[j])
                     else:
-                        baseId, quoteId = id.split('_')
+                        quoteId, baseId = id.split('_')
                         base = self.common_currency_code(baseId)
                         quote = self.common_currency_code(quoteId)
                         symbol = base + '/' + quote

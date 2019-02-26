@@ -4,7 +4,15 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class _1btcxe (Exchange):
@@ -237,6 +245,9 @@ class _1btcxe (Exchange):
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
+        if isinstance(response, basestring):
+            if response.find('Maintenance') >= 0:
+                raise ExchangeNotAvailable(self.id + ' on maintenance')
         if 'errors' in response:
             errors = []
             for e in range(0, len(response['errors'])):

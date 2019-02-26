@@ -24,6 +24,8 @@ class coinex extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchMyTrades' => true,
                 'withdraw' => true,
+                'fetchDeposits' => true,
+                'fetchWithdrawals' => true,
             ),
             'timeframes' => array (
                 '1m' => '1min',
@@ -71,6 +73,7 @@ class coinex extends Exchange {
                 'private' => array (
                     'get' => array (
                         'balance/coin/withdraw',
+                        'balance/coin/deposit',
                         'balance/info',
                         'order',
                         'order/pending',
@@ -596,6 +599,217 @@ class coinex extends Exchange {
             'info' => $response,
             'id' => $this->safe_string($response, 'coin_withdraw_id'),
         );
+    }
+
+    public function parse_transaction_status ($status) {
+        $statuses = array (
+            'audit' => 'pending',
+            'pass' => 'pending',
+            'processing' => 'pending',
+            'confirming' => 'pending',
+            'not_pass' => 'failed',
+            'cancel' => 'canceled',
+            'finish' => 'ok',
+            'fail' => 'failed',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         "actual_amount" => "120.00000000",
+        //         "actual_amount_display" => "120",
+        //         "add_explorer" => "XXX",
+        //         "$amount" => "120.00000000",
+        //         "amount_display" => "120",
+        //         "coin_address" => "XXXXXXXX",
+        //         "coin_address_display" => "XXXXXXXX",
+        //         "coin_deposit_id" => 1866,
+        //         "coin_type" => "USDT",
+        //         "confirmations" => 0,
+        //         "create_time" => 1539595701,
+        //         "explorer" => "",
+        //         "remark" => "",
+        //         "$status" => "finish",
+        //         "status_display" => "finish",
+        //         "transfer_method" => "local",
+        //         "tx_id" => "",
+        //         "tx_id_display" => "XXXXXXXXXX"
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "actual_amount" => "0.10000000",
+        //         "$amount" => "0.10000000",
+        //         "coin_address" => "15sr1VdyXQ6sVLqeJUJ1uPzLpmQtgUeBSB",
+        //         "coin_type" => "BCH",
+        //         "coin_withdraw_id" => 203,
+        //         "confirmations" => 11,
+        //         "create_time" => 1515806440,
+        //         "$status" => "finish",
+        //         "tx_fee" => "0",
+        //         "tx_id" => "896371d0e23d64d1cac65a0b7c9e9093d835affb572fec89dd4547277fbdd2f6"
+        //     }
+        //
+        $id = $this->safe_string_2($transaction, 'coin_withdraw_id', 'coin_deposit_id');
+        $address = $this->safe_string($transaction, 'coin_address');
+        $tag = $this->safe_string($transaction, 'remark'); // set but unused
+        if ($tag !== null) {
+            if (strlen ($tag) < 1) {
+                $tag = null;
+            }
+        }
+        $txid = $this->safe_value($transaction, 'tx_id');
+        if ($txid !== null) {
+            if (strlen ($txid) < 1) {
+                $txid = null;
+            }
+        }
+        $code = null;
+        $currencyId = $this->safe_string($transaction, 'coin_type');
+        if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
+            $currency = $this->currencies_by_id[$currencyId];
+        } else {
+            $code = $this->common_currency_code($currencyId);
+        }
+        if ($currency !== null) {
+            $code = $currency['code'];
+        }
+        $timestamp = $this->safe_integer($transaction, 'create_time');
+        if ($timestamp !== null) {
+            $timestamp = $timestamp * 1000;
+        }
+        $type = (is_array ($transaction) && array_key_exists ('coin_withdraw_id', $transaction)) ? 'withdraw' : 'deposit';
+        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'), $type);
+        $amount = $this->safe_float($transaction, 'amount');
+        $feeCost = $this->safe_float($transaction, 'tx_fee');
+        if ($type === 'deposit') {
+            $feeCost = 0;
+        }
+        $fee = array (
+            'cost' => $feeCost,
+            'currency' => $code,
+        );
+        return array (
+            'info' => $transaction,
+            'id' => $id,
+            'txid' => $txid,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'address' => $address,
+            'tag' => $tag,
+            'type' => $type,
+            'amount' => $amount,
+            'currency' => $code,
+            'status' => $status,
+            'updated' => null,
+            'fee' => $fee,
+        );
+    }
+
+    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+        if ($code === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchWithdrawals requires a $currency $code argument');
+        }
+        $currency = $this->currency ($code);
+        $request = array (
+            'coin_type' => $currency['id'],
+        );
+        if ($limit !== null) {
+            $request['Limit'] = $limit;
+        }
+        $response = $this->privateGetBalanceCoinWithdraw (array_merge ($request, $params));
+        //
+        //     {
+        //         "$code" => 0,
+        //         "data" => array (
+        //             array (
+        //                 "actual_amount" => "1.00000000",
+        //                 "amount" => "1.00000000",
+        //                 "coin_address" => "1KAv3pazbTk2JnQ5xTo6fpKK7p1it2RzD4",
+        //                 "coin_type" => "BCH",
+        //                 "coin_withdraw_id" => 206,
+        //                 "confirmations" => 0,
+        //                 "create_time" => 1524228297,
+        //                 "status" => "audit",
+        //                 "tx_fee" => "0",
+        //                 "tx_id" => ""
+        //             ),
+        //             array (
+        //                 "actual_amount" => "0.10000000",
+        //                 "amount" => "0.10000000",
+        //                 "coin_address" => "15sr1VdyXQ6sVLqeJUJ1uPzLpmQtgUeBSB",
+        //                 "coin_type" => "BCH",
+        //                 "coin_withdraw_id" => 203,
+        //                 "confirmations" => 11,
+        //                 "create_time" => 1515806440,
+        //                 "status" => "finish",
+        //                 "tx_fee" => "0",
+        //                 "tx_id" => "896371d0e23d64d1cac65a0b7c9e9093d835affb572fec89dd4547277fbdd2f6"
+        //             ),
+        //             {
+        //                 "actual_amount" => "0.00100000",
+        //                 "amount" => "0.00100000",
+        //                 "coin_address" => "1GVVx5UBddLKrckTprNi4VhHSymeQ8tsLF",
+        //                 "coin_type" => "BCH",
+        //                 "coin_withdraw_id" => 27,
+        //                 "confirmations" => 0,
+        //                 "create_time" => 1513933541,
+        //                 "status" => "cancel",
+        //                 "tx_fee" => "0",
+        //                 "tx_id" => ""
+        //             }
+        //         ),
+        //         "message" => "Ok"
+        //     }
+        //
+        return $this->parseTransactions ($response['data'], $currency, $since, $limit);
+    }
+
+    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+        if ($code === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchDeposits requires a $currency $code argument');
+        }
+        $currency = $this->currency ($code);
+        $request = array (
+            'coin_type' => $currency['id'],
+        );
+        if ($limit !== null) {
+            $request['Limit'] = $limit;
+        }
+        $response = $this->privateGetBalanceCoinDeposit (array_merge ($request, $params));
+        //     {
+        //         "$code" => 0,
+        //         "data" => array (
+        //             {
+        //                 "actual_amount" => "4.65397682",
+        //                 "actual_amount_display" => "4.65397682",
+        //                 "add_explorer" => "https://etherscan.io/address/0x361XXXXXX",
+        //                 "amount" => "4.65397682",
+        //                 "amount_display" => "4.65397682",
+        //                 "coin_address" => "0x36dabcdXXXXXX",
+        //                 "coin_address_display" => "0x361X*****XXXXX",
+        //                 "coin_deposit_id" => 966191,
+        //                 "coin_type" => "ETH",
+        //                 "confirmations" => 30,
+        //                 "create_time" => 1531661445,
+        //                 "explorer" => "https://etherscan.io/tx/0x361XXXXXX",
+        //                 "remark" => "",
+        //                 "status" => "finish",
+        //                 "status_display" => "finish",
+        //                 "transfer_method" => "onchain",
+        //                 "tx_id" => "0x361XXXXXX",
+        //                 "tx_id_display" => "0x361XXXXXX"
+        //             }
+        //         ),
+        //         "message" => "Ok"
+        //     }
+        //
+        return $this->parseTransactions ($response['data'], $currency, $since, $limit);
     }
 
     public function nonce () {

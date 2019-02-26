@@ -3,10 +3,10 @@
 const fs        = require ('fs')
 const countries = require ('./countries')
 const asTable   = require ('as-table')
-const util      = require ('util')
 const execSync  = require ('child_process').execSync
 const log       = require ('ololog').unlimited
 const ansi      = require ('ansicolor').nice
+const { keys, values } = Object
 
 // ---------------------------------------------------------------------------
 
@@ -41,10 +41,10 @@ function replaceInFile (filename, regex, replacement) {
 // ---------------------------------------------------------------------------
 
 const includedIds = fs.readFileSync ('exchanges.cfg')
-                        .toString () // Buffer → String
-                        .split ('\n') // String → Array
-                        .map (line => line.split ('#')[0].trim ()) // trim comments
-                        .filter (exchange => exchange); // filter empty lines
+    .toString () // Buffer → String
+    .split ('\n') // String → Array
+    .map (line => line.split ('#')[0].trim ()) // trim comments
+    .filter (exchange => exchange); // filter empty lines
 
 const isIncluded = (id) => ((includedIds.length === 0) || includedIds.includes (id))
 try {
@@ -56,9 +56,9 @@ try {
     log.bright.cyan ('Exporting exchanges...'.yellow)
 
     const ids = fs.readdirSync ('./js/')
-                  .filter (file => file.includes ('.js'))
-                  .map (file => file.slice (0, -3))
-                  .filter (isIncluded);
+        .filter (file => file.includes ('.js'))
+        .map (file => file.slice (0, -3))
+        .filter (isIncluded);
 
     const pad = function (string, n) {
         return (string + ' '.repeat (n)).slice (0, n)
@@ -121,18 +121,14 @@ for (let id in exchanges) {
     exchanges[id].verbose = verbose
 }
 
-// console.log (Object.values (ccxt).length)
-
 var countryName = function (code) {
     return ((countries[code] !== undefined) ? countries[code] : code)
 }
 
-let sleep = async ms => await new Promise (resolve => setTimeout (resolve, ms))
-
 // ---------------------------------------------------------------------------
 // list all supported exchanges
 
-let values = Object.values (exchanges).map (exchange => {
+let tableData = values (exchanges).map (exchange => {
     let logo = exchange.urls['logo']
     let website = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
     let url = exchange.urls.referral || website
@@ -153,7 +149,7 @@ let values = Object.values (exchanges).map (exchange => {
     ]
 })
 
-values.splice (0, 0, tableHeadings)
+tableData.splice (0, 0, tableHeadings)
 
 function makeTable (jsonArray) {
     let table = asTable.configure ({ 'delimiter': ' | ' }) (jsonArray)
@@ -166,8 +162,8 @@ function makeTable (jsonArray) {
     return lines.map (line => '|' + line + '|').join ("\n")
 }
 
-let exchangesTable = makeTable (values)
-let numExchanges = Object.keys (exchanges).length
+let exchangesTable = makeTable (tableData)
+let numExchanges = keys (exchanges).length
 let beginning = "The ccxt library currently supports the following "
 let ending = " cryptocurrency exchange markets and trading APIs:\n\n"
 let totalString = beginning + numExchanges + ending
@@ -178,7 +174,7 @@ replaceInFile (wikiPath + '/Manual.md', allExchangesRegex, howMany)
 replaceInFile (wikiPath + '/Exchange-Markets.md', allExchangesRegex, howMany)
 
 let certifiedFieldIndex = tableHeadings.indexOf ('certified')
-let certified = values.filter ((x) => x[certifiedFieldIndex] !== '' )
+let certified = tableData.filter ((x) => x[certifiedFieldIndex] !== '' )
 let allCertifiedRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
 let certifiedTable = makeTable (certified)
 let certifiedTableReplacement = '$1' + certifiedTable + "\n"
@@ -186,10 +182,10 @@ replaceInFile ('README.md', allCertifiedRegex, certifiedTableReplacement)
 
 
 let exchangesByCountries = []
-Object.keys (countries).forEach (code => {
+keys (countries).forEach (code => {
     let country = countries[code]
     let result = []
-    Object.keys (exchanges).forEach (id => {
+    keys (exchanges).forEach (id => {
         let exchange = exchanges[id]
         let logo = exchange.urls['logo']
         let website = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
@@ -209,13 +205,14 @@ Object.keys (countries).forEach (code => {
         }
         if (shouldInclude) {
             let entry = [
-                '[![' + exchange.id + '](' + logo + ')](' + url + ')',
                 country,
+                '[![' + exchange.id + '](' + logo + ')](' + url + ')',
                 exchange.id,
                 '[' + exchange.name + '](' + url + ')',
-                exchange.certified ? ccxtCertifiedBadge : '',
                 version,
                 '[API](' + doc + ')',
+                // doesn't fit in width
+                // exchange.certified ? ccxtCertifiedBadge : '',
             ]
             result.push (entry)
         }
@@ -249,7 +246,7 @@ fs.truncateSync (filename)
 fs.writeFileSync (filename, result)
 
 log.bright ('Exporting exchange ids to'.cyan, 'exchanges.json'.yellow)
-fs.writeFileSync ('exchanges.json', JSON.stringify ({ ids: Object.keys (exchanges) }, null, 4))
+fs.writeFileSync ('exchanges.json', JSON.stringify ({ ids: keys (exchanges) }, null, 4))
 
 // ----------------------------------------------------------------------------
 
@@ -261,9 +258,26 @@ const ccxtWikiFileMapping = {
     'Exchange-Markets-By-Country.md': 'Exchange-Markets-By-Country.md',
 }
 
-Object.keys (ccxtWikiFileMapping)
-      .forEach (file =>
-            fs.writeFileSync (gitWikiPath + '/' + ccxtWikiFileMapping[file], fs.readFileSync (wikiPath + '/' + file)))
+keys (ccxtWikiFileMapping)
+    .forEach (file =>
+        fs.writeFileSync (gitWikiPath + '/' + ccxtWikiFileMapping[file], fs.readFileSync (wikiPath + '/' + file)))
+
+// ----------------------------------------------------------------------------
+
+log.bright ('Exporting exchange keywords to'.cyan, 'package.json'.yellow)
+
+const packageJSON = require ('./package.json')
+const keywords = new Set (packageJSON.keywords)
+
+for (const ex of values (exchanges)) {
+    for (const url of Array.isArray (ex.urls.www) ? ex.urls.www : [ex.urls.www]) {
+        keywords.add (url.replace (/(http|https):\/\/(www\.)?/, '').replace (/\/.*/, ''))
+    }
+    keywords.add (ex.name)
+}
+
+packageJSON.keywords = [...keywords]
+fs.writeFileSync ('./package.json', JSON.stringify (packageJSON, null, 2))
 
 // ----------------------------------------------------------------------------
 

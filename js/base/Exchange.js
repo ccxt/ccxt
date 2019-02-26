@@ -202,6 +202,20 @@ module.exports = class Exchange {
                 'BCHSV': 'BSV',
             },
             'precisionMode': DECIMAL_PLACES,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
         } // return
     } // describe ()
 
@@ -435,8 +449,16 @@ module.exports = class Exchange {
 
             const params = { method, headers, body, timeout: this.timeout }
 
-            if (url.indexOf ('http://') < 0) {
-                params['agent'] = this.agent || null;
+            if (this.httpAgent && url.indexOf ('http://') === 0) {
+                params['agent'] = this.httpAgent;
+            } else if (this.httpsAgent && url.indexOf ('https://') === 0) {
+                params['agent'] = this.httpsAgent;
+            } else if (this.agent) {
+                const [ protocol, ... rest ] = url.split ('//')
+                // this.agent.protocol contains a colon ('https:' or 'http:')
+                if (protocol === this.agent.protocol) {
+                    params['agent'] = this.agent;
+                }
             }
 
             let promise =
@@ -740,15 +762,16 @@ module.exports = class Exchange {
 
     async loadAccounts (reload = false, params = {}) {
         if (reload) {
-            this.accounts = await this.fetchAccounts (params);
+            this.accounts = await this.fetchAccounts (params)
         } else {
             if (this.accounts) {
-                return this.accounts;
+                return this.accounts
             } else {
-                this.accounts = await this.fetchAccounts (params);
+                this.accounts = await this.fetchAccounts (params)
             }
         }
-        return this.accounts;
+        this.accountsById = this.indexBy (this.accounts, 'id')
+        return this.accounts
     }
 
     fetchBidsAsks (symbols = undefined, params = {}) {

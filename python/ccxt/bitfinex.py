@@ -915,8 +915,8 @@ class bitfinex (Exchange):
                 'nonce': str(nonce),
                 'request': request,
             }, query)
-            query = self.json(query)
-            query = self.encode(query)
+            body = self.json(query)
+            query = self.encode(body)
             payload = base64.b64encode(query)
             secret = self.encode(self.secret)
             signature = self.hmac(payload, secret, hashlib.sha384)

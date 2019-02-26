@@ -28,7 +28,7 @@ class hitbtc2 (hitbtc):
     def describe(self):
         return self.deep_extend(super(hitbtc2, self).describe(), {
             'id': 'hitbtc2',
-            'name': 'HitBTC v2',
+            'name': 'HitBTC',
             'countries': ['HK'],
             'rateLimit': 1500,
             'version': '2',
@@ -1191,6 +1191,32 @@ class hitbtc2 (hitbtc):
         if limit is not None:
             request['limit'] = limit
         response = await self.privateGetHistoryTrades(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #         "id": 9535486,
+        #         "clientOrderId": "f8dbaab336d44d5ba3ff578098a68454",
+        #         "orderId": 816088377,
+        #         "symbol": "ETHBTC",
+        #         "side": "sell",
+        #         "quantity": "0.061",
+        #         "price": "0.045487",
+        #         "fee": "0.000002775",
+        #         "timestamp": "2017-05-17T12:32:57.848Z"
+        #         },
+        #         {
+        #         "id": 9535437,
+        #         "clientOrderId": "27b9bfc068b44194b1f453c7af511ed6",
+        #         "orderId": 816088021,
+        #         "symbol": "ETHBTC",
+        #         "side": "buy",
+        #         "quantity": "0.038",
+        #         "price": "0.046000",
+        #         "fee": "-0.000000174",
+        #         "timestamp": "2017-05-17T12:30:57.848Z"
+        #         }
+        #     ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
