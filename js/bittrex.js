@@ -881,7 +881,7 @@ module.exports = class bittrex extends Exchange {
     orderToTrade (order) {
         // this entire method should be moved to the base class
         const timestamp = this.safeInteger2 (order, 'lastTradeTimestamp', 'timestamp');
-        const result = {
+        return {
             'id': this.safeString (order, 'id'),
             'side': this.safeString (order, 'side'),
             'order': this.safeString (order, 'id'),
@@ -893,12 +893,7 @@ module.exports = class bittrex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'fee': this.safeValue (order, 'fee'),
             'info': order,
-            'converted': true,
         };
-        if ('fees' in order) {
-            result['fees'] = order['fees'];
-        }
-        return result;
     }
 
     ordersToTrades (orders) {
