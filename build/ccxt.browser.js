@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.292'
+const version = '1.18.294'
 
 Exchange.ccxtVersion = version
 
@@ -199,7 +199,7 @@ module.exports = Object.assign ({ version, Exchange, exchanges: Object.keys (exc
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -448,6 +448,11 @@ module.exports = class _1btcxe extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
+        if (typeof response === 'string') {
+            if (response.indexOf ('Maintenance') >= 0) {
+                throw new ExchangeNotAvailable (this.id + ' on maintenance');
+            }
+        }
         if ('errors' in response) {
             let errors = [];
             for (let e = 0; e < response['errors'].length; e++) {
@@ -50224,7 +50229,9 @@ module.exports = class kucoin2 extends Exchange {
         const data = this.safeValue (response, 'data', {});
         let address = this.safeString (data, 'address');
         // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
-        address = address.replace ('bitcoincash:', '');
+        if (address !== undefined) {
+            address = address.replace ('bitcoincash:', '');
+        }
         const tag = this.safeString (data, 'memo');
         this.checkAddress (address);
         return {

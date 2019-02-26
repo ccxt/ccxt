@@ -2903,19 +2903,25 @@ Transaction Structure
 .. code:: javascript
 
    {
-       'info':      { ... },    // the json response from the exchange, as is
+       'info':      { ... },    // the JSON response from the exchange as is
        'id':       '123456',    // exchange-specific transaction id, string
        'txid':     '0x68bfb29821c50ca35ef3762f887fd3211e4405aba1a94e448a4f218b850358f0',
        'timestamp': 1534081184515,             // timestamp in milliseconds
        'datetime': '2018-08-12T13:39:44.515Z', // ISO8601 string of the timestamp
+       'addressFrom': '0x38b1F8644ED1Dbd5DcAedb3610301Bf5fa640D6f', // sender
        'address':  '0x02b0a9b7b4cDe774af0f8e47cb4f1c2ccdEa0806', // "from" or "to"
-       'tag':      '0x0123456789' // "tag" or "memo" or "payment_id" associated with the address
+       'addressTo': '0x304C68D441EF7EB0E2c056E836E8293BD28F8129', // receiver
+       'tagFrom', '0xabcdef', // "tag" or "memo" or "payment_id" associated with the sender
+       'tag':      '0xabcdef' // "tag" or "memo" or "payment_id" associated with the address
+       'tagTo': '0xhijgklmn', // "tag" or "memo" or "payment_id" associated with the receiver
        'type':     'deposit',   // or 'withdrawal', string
        'amount':    1.2345,     // float (does not include the fee)
        'currency': 'ETH',       // a common unified currency code, string
        'status':   'pending',   // 'ok', 'failed', 'canceled', string
-       'updated':   undefined,  // UTC timestamp in ms of most recent status change
+       'updated':   undefined,  // UTC timestamp of most recent status change in ms
+       'comment':  'a comment or message defined by the user if any',
        'fee': {                 // the entire fee structure may be undefined
+           'currency': 'ETH',   // a unified fee currency code
            'cost': 0.1234,      // float
            'rate': undefined,   // approximately, fee['cost'] / amount, float
        },
@@ -2924,9 +2930,12 @@ Transaction Structure
 Notes On Transaction Structure
 ''''''''''''''''''''''''''''''
 
+-  ``addressFrom`` or ``addressTo`` may be ``undefined/None/null``, if the exchange in question does not specify all sides of the transaction
+-  The semantics of the ``address`` field is exchange-specific. In some cases it can contain the address of the sender, in other cases it may contain the address of the receiver. The actual value depends on the exchange.
 -  The ``updated`` field is the UTC timestamp in milliseconds of the most recent change of status of that funding operation, be it ``withdrawal`` or ``deposit``. It is necessary if you want to track your changes in time, beyond a static snapshot. For example, if the exchange in question reports ``created_at`` and ``confirmed_at`` for a transaction, then the ``updated`` field will take the value of ``Math.max (created_at, confirmed_at)``, that is, the timestamp of the most recent change of the status.
--  The ``updated`` field may be undefined in certain exchange-specific cases.
+-  The ``updated`` field may be ``undefined/None/null`` in certain exchange-specific cases.
 -  The ``fee`` substructure may be missing, if not supplied within the reply coming from the exchange.
+-  The ``comment`` field may be ``undefined/None/null``, otherwise it will contain a message or note defined by the user upon creating the transaction.
 -  Be careful when handling the ``tag`` and the ``address``. The ``tag`` is **NOT an arbitrary user-defined string** of your choice! You cannot send user messages and comments in the ``tag``. The purpose of the ``tag`` field is to address your wallet properly, so it must be correct. You should only use the ``tag`` received from the exchange you’re working with, otherwise your transaction might never arrive to its destination.
 
 Deposits
