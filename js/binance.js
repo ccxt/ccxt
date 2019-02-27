@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, InvalidAddress } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -1138,7 +1138,7 @@ module.exports = class binance extends Exchange {
         }, params));
         const success = this.safeValue (response, 'success');
         if (success === undefined || !success) {
-            throw new ExchangeError (this.id + ' fetchDepositAddress returned an empty response – create the deposit address in the user settings first.');
+            throw new InvalidAddress (this.id + ' fetchDepositAddress returned an empty response – create the deposit address in the user settings first.');
         }
         const address = this.safeString (response, 'address');
         const tag = this.safeString (response, 'addressTag');
