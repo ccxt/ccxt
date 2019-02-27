@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.297'
+const version = '1.18.298'
 
 Exchange.ccxtVersion = version
 
@@ -1950,6 +1950,7 @@ module.exports = class Exchange {
         this.transactions = {}
 
         this.requiresWeb3 = false
+        this.precision = {}
 
         this.enableLastJsonResponse = true
         this.enableLastHttpResponse = true
