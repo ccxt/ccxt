@@ -1136,18 +1136,19 @@ class binance extends Exchange {
         $response = $this->wapiGetDepositAddress (array_merge (array (
             'asset' => $currency['id'],
         ), $params));
-        if (is_array ($response) && array_key_exists ('success', $response)) {
-            if ($response['success']) {
-                $address = $this->safe_string($response, 'address');
-                $tag = $this->safe_string($response, 'addressTag');
-                return array (
-                    'currency' => $code,
-                    'address' => $this->check_address($address),
-                    'tag' => $tag,
-                    'info' => $response,
-                );
-            }
+        $success = $this->safe_value($response, 'success');
+        if ($success === null || !$success) {
+            throw new InvalidAddress ($this->id . ' fetchDepositAddress returned an empty $response – create the deposit $address in the user settings first.');
         }
+        $address = $this->safe_string($response, 'address');
+        $tag = $this->safe_string($response, 'addressTag');
+        $this->check_address($address);
+        return array (
+            'currency' => $code,
+            'address' => $this->check_address($address),
+            'tag' => $tag,
+            'info' => $response,
+        );
     }
 
     public function fetch_funding_fees ($codes = null, $params = array ()) {

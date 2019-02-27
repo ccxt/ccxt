@@ -10,6 +10,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
@@ -1065,16 +1066,18 @@ class binance (Exchange):
         response = await self.wapiGetDepositAddress(self.extend({
             'asset': currency['id'],
         }, params))
-        if 'success' in response:
-            if response['success']:
-                address = self.safe_string(response, 'address')
-                tag = self.safe_string(response, 'addressTag')
-                return {
-                    'currency': code,
-                    'address': self.check_address(address),
-                    'tag': tag,
-                    'info': response,
-                }
+        success = self.safe_value(response, 'success')
+        if success is None or not success:
+            raise InvalidAddress(self.id + ' fetchDepositAddress returned an empty response – create the deposit address in the user settings first.')
+        address = self.safe_string(response, 'address')
+        tag = self.safe_string(response, 'addressTag')
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': self.check_address(address),
+            'tag': tag,
+            'info': response,
+        }
 
     async def fetch_funding_fees(self, codes=None, params={}):
         response = await self.wapiGetAssetDetail()
