@@ -43,7 +43,7 @@ class bittrex (Exchange):
                 'fetchDepositAddress': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
-                'fetchMyTrades': False,
+                'fetchMyTrades': 'emulated',
                 'fetchOHLCV': True,
                 'fetchOrder': True,
                 'fetchOpenOrders': True,
@@ -719,9 +719,7 @@ class bittrex (Exchange):
         return base + '/' + quote
 
     def parse_order(self, order, market=None):
-        side = self.safe_string(order, 'OrderType')
-        if side is None:
-            side = self.safe_string(order, 'Type')
+        side = self.safe_string_2(order, 'OrderType', 'Type')
         isBuyOrder = (side == 'LIMIT_BUY') or (side == 'BUY')
         isSellOrder = (side == 'LIMIT_SELL') or (side == 'SELL')
         if isBuyOrder:
@@ -835,6 +833,34 @@ class bittrex (Exchange):
         if not response['result']:
             raise OrderNotFound(self.id + ' order ' + id + ' not found')
         return self.parse_order(response['result'])
+
+    def order_to_trade(self, order):
+        # self entire method should be moved to the base class
+        timestamp = self.safe_integer_2(order, 'lastTradeTimestamp', 'timestamp')
+        return {
+            'id': self.safe_string(order, 'id'),
+            'side': self.safe_string(order, 'side'),
+            'order': self.safe_string(order, 'id'),
+            'price': self.safe_float(order, 'average'),
+            'amount': self.safe_float(order, 'filled'),
+            'cost': self.safe_float(order, 'cost'),
+            'symbol': self.safe_string(order, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': self.safe_value(order, 'fee'),
+            'info': order,
+        }
+
+    def orders_to_trades(self, orders):
+        # self entire method should be moved to the base class
+        result = []
+        for i in range(0, len(orders)):
+            result.append(self.order_to_trade(orders[i]))
+        return result
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        orders = self.fetch_closed_orders(symbol, since, limit, params)
+        return self.orders_to_trades(orders)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

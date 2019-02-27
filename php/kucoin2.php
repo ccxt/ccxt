@@ -145,6 +145,7 @@ class kucoin2 extends Exchange {
                 '411100' => '\\ccxt\\AccountSuspended',
                 '500000' => '\\ccxt\\ExchangeError',
                 'order_not_exist' => '\\ccxt\\OrderNotFound',  // array ("code":"order_not_exist","msg":"order_not_exist") ¯\_(ツ)_/¯
+                'order_not_exist_or_not_allow_to_cancel' => '\\ccxt\\InvalidOrder',
             ),
             'fees' => array (
                 'trading' => array (
