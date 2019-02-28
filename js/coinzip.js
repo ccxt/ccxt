@@ -116,6 +116,36 @@ module.exports = class coinzip extends Exchange {
         });
     }
 
+    async fetchTicker (symbol, params = {}) {
+        const market = symbol.toLowerCase();
+        const tickerObj = await this.publicGetApiV2TickersMarket ({ market });
+        const { at, ticker } = tickerObj;
+        const timestamp = at * 1000;
+
+        return  {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': ticker.high,
+            'low': ticker.low,
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': ticker.last,
+            'last': ticker.last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'info': tickerObj,
+        }
+    }
+
     async fetchMarkets (params = {}) {
         const markets = await this.publicGetApiV2Markets (params);
 
