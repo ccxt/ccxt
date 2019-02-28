@@ -22,7 +22,7 @@
     "test-js-base": "mocha js/test/base/test.base.js --reporter ololog/reporter",
     "test-python-base": "python python/test/test_decimal_to_precision.py",
     "test-php-base": "php -f php/test/decimal_to_precision.php",
-    "export-exchanges": "node export-exchanges",
+    "export-exchanges": "node build/export-exchanges",
     "git-ignore-generated-files": "node build/git-ignore-generated-files",
     "git-unignore-generated-files": "node build/git-ignore-generated-files --unignore",
     "update-badges": "node update-badges",
