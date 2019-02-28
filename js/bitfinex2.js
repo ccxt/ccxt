@@ -380,7 +380,7 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     parseTrade (trade, market = undefined) {
-        if (trade.length > 5) {
+        if (Array.isArray (trade) && trade.length > 5) {
             // 'my' trades
             let id = trade[0];
             let pair = trade[1];
