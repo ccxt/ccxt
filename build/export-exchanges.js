@@ -47,66 +47,60 @@ const includedIds = fs.readFileSync ('exchanges.cfg')
     .filter (exchange => exchange); // filter empty lines
 
 const isIncluded = (id) => ((includedIds.length === 0) || includedIds.includes (id))
-try {
 
-    exchanges = require ('./config').ids.filter (isIncluded)
+log.bright.cyan ('Exporting exchanges...'.yellow)
 
-} catch (e) {
+const ids = fs.readdirSync ('./js/')
+    .filter (file => file.includes ('.js'))
+    .map (file => file.slice (0, -3))
+    .filter (isIncluded);
 
-    log.bright.cyan ('Exporting exchanges...'.yellow)
-
-    const ids = fs.readdirSync ('./js/')
-        .filter (file => file.includes ('.js'))
-        .map (file => file.slice (0, -3))
-        .filter (isIncluded);
-
-    const pad = function (string, n) {
-        return (string + ' '.repeat (n)).slice (0, n)
-    };
-
-    [
-        {
-            file: './ccxt.js',
-            regex:  /(?:const|var)\s+exchanges\s+\=\s+\{[^\}]+\}/,
-            replacement: "const exchanges = {\n" + ids.map (id => pad ("    '" + id + "':", 30) + " require ('./js/" + id + ".js'),").join ("\n") + "    \n}",
-        },
-        {
-            file: './python/ccxt/__init__.py',
-            regex: /exchanges \= \[[^\]]+\]/,
-            replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
-        },
-        {
-            file: './python/ccxt/__init__.py',
-            regex: /(?:from ccxt\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
-            replacement: ids.map (id => pad ('from ccxt.' + id + ' import ' + id, 60) + '# noqa: F401').join ("\n") + "\n\nexchanges",
-        },
-        {
-            file: './python/ccxt/async_support/__init__.py',
-            regex: /(?:from ccxt\.async_support\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
-            replacement: ids.map (id => pad ('from ccxt.async_support.' + id + ' import ' + id, 74) + '# noqa: F401').join ("\n") + "\n\nexchanges",
-        },
-        {
-            file: './python/ccxt/async_support/__init__.py',
-            regex: /exchanges \= \[[^\]]+\]/,
-            replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
-        },
-        {
-            file: './php/Exchange.php',
-            regex: /public static \$exchanges \= array \([^\)]+\)/,
-            replacement: "public static $exchanges = array (\n        '" + ids.join ("',\n        '") + "',\n    )",
-        },
-
-    ].forEach (({ file, regex, replacement }) => {
-        replaceInFile (file, regex, replacement)
-    })
-
-    exchanges = {}
-    ids.forEach (id => {
-        exchanges[id] = { 'verbose': verbose, 'apiKey': '', 'secret': '' }
-    })
-
-    log.bright.green ('Base sources updated successfully.')
+const pad = function (string, n) {
+    return (string + ' '.repeat (n)).slice (0, n)
 }
+
+;[
+    {
+        file: './ccxt.js',
+        regex:  /(?:const|var)\s+exchanges\s+\=\s+\{[^\}]+\}/,
+        replacement: "const exchanges = {\n" + ids.map (id => pad ("    '" + id + "':", 30) + " require ('./js/" + id + ".js'),").join ("\n") + "    \n}",
+    },
+    {
+        file: './python/ccxt/__init__.py',
+        regex: /exchanges \= \[[^\]]+\]/,
+        replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
+    },
+    {
+        file: './python/ccxt/__init__.py',
+        regex: /(?:from ccxt\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
+        replacement: ids.map (id => pad ('from ccxt.' + id + ' import ' + id, 60) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+    },
+    {
+        file: './python/ccxt/async_support/__init__.py',
+        regex: /(?:from ccxt\.async_support\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
+        replacement: ids.map (id => pad ('from ccxt.async_support.' + id + ' import ' + id, 74) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+    },
+    {
+        file: './python/ccxt/async_support/__init__.py',
+        regex: /exchanges \= \[[^\]]+\]/,
+        replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
+    },
+    {
+        file: './php/Exchange.php',
+        regex: /public static \$exchanges \= array \([^\)]+\)/,
+        replacement: "public static $exchanges = array (\n        '" + ids.join ("',\n        '") + "',\n    )",
+    },
+
+].forEach (({ file, regex, replacement }) => {
+    replaceInFile (file, regex, replacement)
+})
+
+exchanges = {}
+ids.forEach (id => {
+    exchanges[id] = { 'verbose': verbose, 'apiKey': '', 'secret': '' }
+})
+
+log.bright.green ('Base sources updated successfully.')
 
 // ----------------------------------------------------------------------------
 // strategically placed exactly here
