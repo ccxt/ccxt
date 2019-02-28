@@ -380,67 +380,75 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     parseTrade (trade, market = undefined) {
-        if (Array.isArray (trade) && trade.length > 5) {
-            // 'my' trades
-            let id = trade[0];
-            let pair = trade[1];
-            market = this.markets_by_id[pair];
-            // todo: need to figure out how to map old BCH pairs
-            let symbol = market ? market['symbol'] : pair;
-            let mtsCreate = trade[2];
-            let orderId = trade[3];
-            let execAmount = trade[4];
-            let execPrice = trade[5];
-            let orderType = trade[6];
-            // let orderPrice = trade[7];
-            let maker = trade[8];
-            let fee = -trade[9];
-            let feeCurrency = trade[10];
-            let type = this.safeString (this.options['orderTypes'], orderType);
-            let nativeFeeCurrency = 'f' + feeCurrency;
-            // native currencies ids have a 'f' prefix, but this API returns fees without that prefix
-            if (nativeFeeCurrency in this.currencies_by_id)
-                feeCurrency = this.currencies_by_id[nativeFeeCurrency]['code'];
-            let amount = execAmount < 0 ? -execAmount : execAmount;
-            let cost = execPrice * amount;
-            return {
-                'id': id,
-                'timestamp': mtsCreate,
-                'datetime': this.iso8601 (mtsCreate),
-                'symbol': symbol,
-                'order': orderId,
-                'side': execAmount < 0 ? 'sell' : 'buy',
-                'type': type,
-                'price': execPrice,
-                'amount': amount,
-                'takerOrMaker': maker === 1 ? 'maker' : 'taker',
-                'cost': cost,
-                'fee': {
-                    'cost': fee,
-                    'currency': feeCurrency,
-                },
-                'info': trade,
-            };
-        } else {
-            // public trades
-            let symbol = market['symbol'];
-            let [ id, timestamp, amount, price ] = trade;
-            let side = (amount < 0) ? 'sell' : 'buy';
-            if (amount < 0) {
-                amount = -amount;
+        const id = trade[0].toString ();
+        let amount = undefined;
+        let cost = undefined;
+        let price = undefined;
+        let side = undefined;
+        let orderId = undefined;
+        const tradeLength = trade.length;
+        let takerOrMaker = undefined;
+        let timestamp = trade[2];
+        let type = undefined;
+        let fee = undefined;
+        let symbol = undefined;
+        if (tradeLength > 5) {
+            const marketId = trade[1];
+            if (marketId !== undefined) {
+                if (marketId in this.markets_by_id) {
+                    market = this.markets_by_id[marketId];
+                    symbol = market['symbol'];
+                } else {
+                    symbol = marketId;
+                }
             }
-            return {
-                'id': id.toString (),
-                'info': trade,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'symbol': symbol,
-                'type': undefined,
-                'side': side,
-                'price': price,
-                'amount': amount,
-            };
+            orderId = trade[3];
+            amount = trade[4];
+            price = trade[5];
+            takerOrMaker = (trade[8] === 1) ? 'maker' : 'taker';
+            const feeCost = trade[9];
+            const feeCurrency = this.commonCurrencyCode (trade[10]);
+            if (feeCost !== undefined) {
+                fee = {
+                    'cost': Math.abs (feeCost),
+                    'currency': feeCurrency,
+                };
+            }
+            const orderType = trade[6];
+            type = this.safeString (this.options['orderTypes'], orderType);
+        } else {
+            amount = trade[3];
+            price = trade[4];
         }
+        if (symbol === undefined) {
+            if (market !== undefined) {
+                symbol = market['symbol'];
+            }
+        }
+        if (amount !== undefined) {
+            side = (amount < 0) ? 'sell' : 'buy';
+            amount = Math.abs (amount);
+            if (cost === undefined) {
+                if (price !== undefined) {
+                    cost = amount * price;
+                }
+            }
+        }
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'order': orderId,
+            'side': side,
+            'type': type,
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+            'info': trade,
+        };
     }
 
     async fetchTrades (symbol, since = undefined, limit = 120, params = {}) {
