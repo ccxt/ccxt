@@ -28,7 +28,7 @@
     "update-badges": "node update-badges",
     "convert-md-2-rst": "bash ./build/convert-md-2-rst",
     "transpile": "node transpile",
-    "vss": "node vss",
+    "vss": "node build/vss",
     "qa": "npm run check-python-syntax && npm run check-php-syntax",
     "lint": "eslint",
     "check-syntax": "npm run transpile && npm run check-js-syntax && npm run check-python-syntax && npm run check-php-syntax",
