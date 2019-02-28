@@ -554,5 +554,3 @@ Thank you!
 ## Contact Us
 
 For business inquiries: info@ccxt.trade
-
-<p align="center"><img width="150" src="https://user-images.githubusercontent.com/1707/48792690-f5d81a80-ed05-11e8-9f11-6c88f501f7eb.jpg"></p>
