@@ -511,6 +511,7 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = 1000, params = {}) {
         await this.loadMarkets ();
+        let market = undefined;
         let request = {
             'limit': limit,
             'end': this.milliseconds (),
@@ -519,14 +520,14 @@ module.exports = class bitfinex2 extends bitfinex {
         if (since !== undefined)
             request['start'] = since;
         let response = undefined;
-        if (symbol) {
-            let market = this.market (symbol);
+        let method = 'privatePostAuthRTradesHist';
+        if (symbol !== undefined) {
+            market = this.market (symbol);
             request['symbol'] = market['id'];
-            response = await this.privatePostAuthRTradesSymbolHist (this.extend (request, params));
-        } else {
-            response = await this.privatePostAuthRTradesHist (this.extend (request, params));
+            method = 'privatePostAuthRTradesSymbolHist';
         }
-        return this.parseTrades (response, undefined, since, limit);
+        const response = await this[method] (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
     }
 
     nonce () {
