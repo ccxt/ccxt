@@ -396,7 +396,7 @@ module.exports = class bitfinex2 extends bitfinex {
             let maker = trade[8];
             let fee = -trade[9];
             let feeCurrency = trade[10];
-            let type = this.options.orderTypes[orderType];
+            let type = this.options['orderTypes'][orderType];
             let nativeFeeCurrency = 'f' + feeCurrency;
             // native currencies ids have a 'f' prefix, but this API returns fees without that prefix
             if (nativeFeeCurrency in this.currencies_by_id)
