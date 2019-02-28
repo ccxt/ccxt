@@ -407,14 +407,14 @@ module.exports = class bitfinex2 extends bitfinex {
         //         ...
         //     ]
         //
-        const id = trade[0].toString ();
+        const tradeLength = trade.length;
         const isPrivate = (tradeLength > 5);
+        const id = trade[0].toString ();
         let amount = trade[isPrivate ? 4 : 2];
         let cost = undefined;
         const price = trade[isPrivate ? 5 : 3];
         let side = undefined;
         let orderId = undefined;
-        const tradeLength = trade.length;
         let takerOrMaker = undefined;
         let type = undefined;
         let fee = undefined;
