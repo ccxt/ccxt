@@ -1079,11 +1079,11 @@ module.exports = class kucoin2 extends Exchange {
         // good
         //     { code: '200000', data: { ... }}
         //
-        let errorCode = this.safeString (response, 'code');
-        if (errorCode in this.exceptions) {
-            let Exception = this.exceptions[errorCode];
-            let message = this.safeString (response, 'msg', '');
-            throw new Exception (this.id + ' ' + message);
+        const errorCode = this.safeString (response, 'code');
+        const message = this.safeString (response, 'msg');
+        const ExceptionClass = this.safeValue2 (this.exceptions, message, errorCode);
+        if (ExceptionClass !== undefined) {
+            throw new ExceptionClass (this.id + ' ' + message);
         }
     }
 };
