@@ -556,14 +556,16 @@ module.exports = class kucoin2 extends Exchange {
         const marketId = this.marketId (symbol);
         // required param, cannot be used twice
         const clientOid = this.uuid ();
-        const request = {
+        let request = {
             'clientOid': clientOid,
-            'price': this.priceToPrecision (symbol, price),
             'side': side,
             'size': this.amountToPrecision (symbol, amount),
             'symbol': marketId,
             'type': type,
         };
+        if (type !== 'market') {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
         const response = await this.privatePostOrders (this.extend (request, params));
         const responseData = response['data'];
         return {
