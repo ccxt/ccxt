@@ -153,7 +153,7 @@ module.exports = class itbit extends Exchange {
         //         "executionId": "23132"
         //     }
         //
-        const id = this.safeString2 (trade, 'executionId');
+        const id = this.safeString2 (trade, 'executionId', 'matchNumber');
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const side = this.safeString (trade, 'direction');
         const orderId = this.safeString (trade, 'orderId');
