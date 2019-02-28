@@ -1,6 +1,7 @@
 ccxt.egg-info/
 ccxt.wiki/
 dist/
+build/
 examples/php/
 examples/py/
 node_modules/
