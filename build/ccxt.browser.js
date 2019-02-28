@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.305'
+const version = '1.18.306'
 
 Exchange.ccxtVersion = version
 
@@ -16067,8 +16067,8 @@ module.exports = class bittrex extends Exchange {
             let currency = this.commonCurrencyCode (id);
             let account = this.account ();
             let balance = indexed[id];
-            let free = this.safeFloat (balance, 'Available');
-            let total = this.safeFloat (balance, 'Balance');
+            let free = this.safeFloat (balance, 'Available', 0);
+            let total = this.safeFloat (balance, 'Balance', 0);
             let used = undefined;
             if (total !== undefined) {
                 if (free !== undefined) {
