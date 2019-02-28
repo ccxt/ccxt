@@ -473,7 +473,7 @@ module.exports = class bitfinex2 extends bitfinex {
         await this.loadMarkets ();
         let market = this.market (symbol);
         if (limit === undefined) {
-            limit = 100;
+            limit = 100; // required, default is 100
         }
         if (since === undefined) {
             since = this.milliseconds () - this.parseTimeframe (timeframe) * limit * 1000;
@@ -509,17 +509,19 @@ module.exports = class bitfinex2 extends bitfinex {
         throw new NotSupported (this.id + ' withdraw not implemented yet');
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = 1000, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         let request = {
-            'limit': limit,
             'end': this.milliseconds (),
             '_bfx': 1,
         };
-        if (since !== undefined)
+        if (since !== undefined) {
             request['start'] = since;
-        let response = undefined;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 5000
+        }
         let method = 'privatePostAuthRTradesHist';
         if (symbol !== undefined) {
             market = this.market (symbol);
