@@ -9,7 +9,6 @@ npm-debug.log
 config.js
 config.py
 config.php
-dist/
 ccxt.egg-info/
 tmp/
 *.pyc
