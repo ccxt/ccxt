@@ -121,7 +121,12 @@ The contents of the repository are structured as follows:
 /CONTRIBUTING.md           # this file
 /LICENSE.txt               # MIT
 /README.md                 # master markdown for GitHub, npmjs.com, npms.io, yarn and others
-/build/                    # a folder for the generated files
+/build/                    # build scripts
+/build/export-exchanges.js # used to create tables of exchanges in the docs during the build
+/build/transpile.js        # the transpilation script
+/build/update-badges.js    # a JS script to update badges in the README and in docs
+/build/vss.js              # reads single-sourced version from package.json and writes it everywhere
+/dist/                     # a folder for the generated browser bundle of CCXT
 /ccxt.js                   # entry point for the master JS version of the ccxt library
 /ccxt.php                  # entry point for the PHP version of the ccxt library
 /doc/                      # Sphinx-generated rst-docs for http://ccxt.readthedocs.io/
@@ -136,18 +141,13 @@ The contents of the repository are structured as follows:
 /python/setup.cfg          # wheels config file for the Python package
 /python/setup.py           # pip/setuptools script (build/install) for ccxt in Python
 /python/tox.ini            # tox config for Python
-/countries.js              # a list of ISO 2-letter country codes in JS for testing, not very important
 /examples/                 # self-explanatory
 /examples/js               # ...
 /examples/php              # ...
 /examples/py               # ...
 /exchanges.cfg             # custom bundle config for including only the exchanges you need
-/export-exchanges.js       # used to create tables of exchanges in the docs during the build
 /package.json              # npm package file, also used in setup.py for version single-sourcing
 /run-tests.js              # a front-end to run invididual tests of all exchanges in all languages (JS/PHP/Python)
-/transpile.js              # the transpilation script
-/update-badges.js          # a JS script to update badges in the README and in docs
-/vss.js                    # reads single-sourced version from package.json and writes it everywhere
 /wiki/                     # the source of all docs (edits go here)
 ```
 
