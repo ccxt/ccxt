@@ -46,32 +46,32 @@ module.exports = class coinzip extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        '/api/v2/markets',
-                        '/api/v2/tickers',
-                        '/api/v2/tickers/{market}',
-                        '/api/v2/order_book',
-                        '/api/v2/depth',
-                        '/api/v2/trades',
-                        '/api/v2/k',
-                        '/api/v2/k_with_pending_trades',
-                        '/api/v2/timestamp'
+                        'api/v2/markets',
+                        'api/v2/tickers',
+                        'api/v2/tickers/{market}',
+                        'api/v2/order_book',
+                        'api/v2/depth',
+                        'api/v2/trades',
+                        'api/v2/k',
+                        'api/v2/k_with_pending_trades',
+                        'api/v2/timestamp'
                     ]
                 },
                 'private': {
                     'get': [
-                        '/api/v2/members/me',
-                        '/api/v2/deposits',
-                        '/api/v2/deposit/id',
-                        '/api/v2/orders',
-                        '/api/v2/orders/{id}',
-                        '/api/v2/orders/summary',
-                        '/api/v2/trades/my',
+                        'api/v2/members/me',
+                        'api/v2/deposits',
+                        'api/v2/deposit/id',
+                        'api/v2/orders',
+                        'api/v2/orders/{id}',
+                        'api/v2/orders/summary',
+                        'api/v2/trades/my',
                     ],
                     'post': [
-                        '/api/v2/orders',
-                        '/api/v2/orders/multi',
-                        '/api/v2/orders/clear',
-                        '/api/v2/order/delete'
+                        'api/v2/orders',
+                        'api/v2/orders/multi',
+                        'api/v2/orders/clear',
+                        'api/v2/order/delete'
                     ]
                 }
             },
@@ -178,6 +178,17 @@ module.exports = class coinzip extends Exchange {
         }));
     }
 
+    async fetchOrderBook (symbol, limit = 30, params = {}) {
+        const market = symbol.toLowerCase();
+        const orderbook = await this.publicGetApiV2OrderBook (this.extend({
+            'market': market,
+            'asks_limit': limit,
+            'bids_limit': limit
+        }, params));
+
+        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'volume');
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const { apiKey, secret, urlencode, now, hmac } = this;
         const query = this.omit (params, this.extractParams (path));
@@ -197,7 +208,7 @@ module.exports = class coinzip extends Exchange {
                 return rawUrl + '?' + urlencode (sortByKey (signedQuery));
             }
 
-            return rawUrl;
+            return rawUrl + '?' + urlencode (query);
         }) (this.urls['api'], path, params, query);
 
         return { url, method, body, headers };
