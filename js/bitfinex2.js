@@ -380,7 +380,7 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     parseTrade (trade, market = undefined) {
-        if (Array.isArray (trade) && trade.length > 5) {
+        if (trade.length > 5) {
             // 'my' trades
             let id = trade[0];
             let pair = trade[1];
@@ -396,7 +396,7 @@ module.exports = class bitfinex2 extends bitfinex {
             let maker = trade[8];
             let fee = -trade[9];
             let feeCurrency = trade[10];
-            let type = this.options['orderTypes'][orderType];
+            let type = this.safeString (this.options['orderTypes'], orderType);
             let nativeFeeCurrency = 'f' + feeCurrency;
             // native currencies ids have a 'f' prefix, but this API returns fees without that prefix
             if (nativeFeeCurrency in this.currencies_by_id)
