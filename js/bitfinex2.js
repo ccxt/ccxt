@@ -417,8 +417,8 @@ module.exports = class bitfinex2 extends bitfinex {
             const orderType = trade[6];
             type = this.safeString (this.options['orderTypes'], orderType);
         } else {
-            amount = trade[3];
-            price = trade[4];
+            amount = trade[2];
+            price = trade[3];
         }
         if (symbol === undefined) {
             if (market !== undefined) {
