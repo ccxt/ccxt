@@ -421,7 +421,7 @@ module.exports = class bitfinex2 extends bitfinex {
         let type = undefined;
         let fee = undefined;
         let symbol = undefined;
-        const timestampIndex= isPrivate ? 2 : 1;
+        const timestampIndex = isPrivate ? 2 : 1;
         const timestamp = trade[timestampIndex];
         if (isPrivate) {
             const marketId = trade[1];
