@@ -275,9 +275,12 @@ class bittrex (Exchange):
             currency = self.common_currency_code(id)
             account = self.account()
             balance = indexed[id]
-            free = float(balance['Available'])
-            total = float(balance['Balance'])
-            used = total - free
+            free = self.safe_float(balance, 'Available')
+            total = self.safe_float(balance, 'Balance')
+            used = None
+            if total is not None:
+                if free is not None:
+                    used = total - free
             account['free'] = free
             account['used'] = used
             account['total'] = total
