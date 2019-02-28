@@ -519,7 +519,7 @@ module.exports = class bitfinex2 extends bitfinex {
             request['start'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 100, max 5000
+            request['limit'] = limit; // default 25, max 1000
         }
         let method = 'privatePostAuthRTradesHist';
         if (symbol !== undefined) {
