@@ -16,7 +16,6 @@ tmp/
 ccxt.sublime-workspace
 composer.*
 config.js
-convert-md-2-rst
 coverage
 exchanges.json
 ISSUE_TEMPLATE.md
