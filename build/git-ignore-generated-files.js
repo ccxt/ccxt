@@ -1,4 +1,11 @@
-/*  Preambule:
+/*
+    Usage:
+
+        npm run git-ignore-generated-files
+        npm run git-unignore-generated-files
+
+
+    Preambule:
 
         1.  Our build scripts generate a lot of files (e.g. Python and PHP code for exchanges)
         2.  We want them to be ignored from the manual commits.
@@ -16,6 +23,7 @@
     executed on each client individually. Luckily, we can easily do it, hence that script.
 
 */
+
 
 "use strict"
 
