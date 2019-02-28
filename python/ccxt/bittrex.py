@@ -275,8 +275,8 @@ class bittrex (Exchange):
             currency = self.common_currency_code(id)
             account = self.account()
             balance = indexed[id]
-            free = float(balance['Available'])
-            total = float(balance['Balance'])
+            free = float(balance.get('Available') or 0)
+            total = float(balance.get('Balance') or 0)
             used = total - free
             account['free'] = free
             account['used'] = used
