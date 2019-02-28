@@ -810,15 +810,16 @@ class hitbtc2 (hitbtc):
         #
         timestamp = self.parse8601(trade['timestamp'])
         symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        else:
-            id = trade['symbol']
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
+        marketId = self.safe_string(trade, 'symbol')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
                 symbol = market['symbol']
             else:
-                symbol = id
+                symbol = marketId
+        if symbol is None:
+            if market is not None:
+                symbol = market['symbol']
         fee = None
         feeCost = self.safe_float(trade, 'fee')
         if feeCost is not None:
@@ -1055,9 +1056,17 @@ class hitbtc2 (hitbtc):
         #
         created = self.parse8601(self.safe_string(order, 'createdAt'))
         updated = self.parse8601(self.safe_string(order, 'updatedAt'))
-        if not market:
-            market = self.markets_by_id[order['symbol']]
-        symbol = market['symbol']
+        marketId = self.safe_string(order, 'symbol')
+        symbol = None
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
+            else:
+                symbol = marketId
+        if symbol is None:
+            if market is not None:
+                symbol = market['id']
         amount = self.safe_float(order, 'quantity')
         filled = self.safe_float(order, 'cumQuantity')
         status = self.parse_order_status(self.safe_string(order, 'status'))

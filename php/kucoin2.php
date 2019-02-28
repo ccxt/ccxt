@@ -559,12 +559,14 @@ class kucoin2 extends Exchange {
         $clientOid = $this->uuid ();
         $request = array (
             'clientOid' => $clientOid,
-            'price' => $this->price_to_precision($symbol, $price),
             'side' => $side,
             'size' => $this->amount_to_precision($symbol, $amount),
             'symbol' => $marketId,
             'type' => $type,
         );
+        if ($type !== 'market') {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
         $response = $this->privatePostOrders (array_merge ($request, $params));
         $responseData = $response['data'];
         return array (
@@ -1081,10 +1083,10 @@ class kucoin2 extends Exchange {
         //     array ( $code => '200000', data => { ... )}
         //
         $errorCode = $this->safe_string($response, 'code');
-        if (is_array ($this->exceptions) && array_key_exists ($errorCode, $this->exceptions)) {
-            $Exception = $this->exceptions[$errorCode];
-            $message = $this->safe_string($response, 'msg', '');
-            throw new $Exception ($this->id . ' ' . $message);
+        $message = $this->safe_string($response, 'msg');
+        $ExceptionClass = $this->safe_value_2($this->exceptions, $message, $errorCode);
+        if ($ExceptionClass !== null) {
+            throw new $ExceptionClass ($this->id . ' ' . $message);
         }
     }
 }
