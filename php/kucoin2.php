@@ -559,12 +559,14 @@ class kucoin2 extends Exchange {
         $clientOid = $this->uuid ();
         $request = array (
             'clientOid' => $clientOid,
-            'price' => $this->price_to_precision($symbol, $price),
             'side' => $side,
             'size' => $this->amount_to_precision($symbol, $amount),
             'symbol' => $marketId,
             'type' => $type,
         );
+        if ($type !== 'market') {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
         $response = $this->privatePostOrders (array_merge ($request, $params));
         $responseData = $response['data'];
         return array (

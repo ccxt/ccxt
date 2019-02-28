@@ -545,12 +545,13 @@ class kucoin2 (Exchange):
         clientOid = self.uuid()
         request = {
             'clientOid': clientOid,
-            'price': self.price_to_precision(symbol, price),
             'side': side,
             'size': self.amount_to_precision(symbol, amount),
             'symbol': marketId,
             'type': type,
         }
+        if type != 'market':
+            request['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePostOrders(self.extend(request, params))
         responseData = response['data']
         return {
