@@ -281,9 +281,9 @@ class bittrex (Exchange):
             if total is not None:
                 if free is not None:
                     used = total - free
-            account['free'] = free
-            account['used'] = used
-            account['total'] = total
+            account['free'] = (free if free is not None else 0)
+            account['used'] = (used if used is not None else 0)
+            account['total'] = (total if total is not None else 0)
             result[currency] = account
         return self.parse_balance(result)
 
