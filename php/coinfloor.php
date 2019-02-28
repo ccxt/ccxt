@@ -61,7 +61,6 @@ class coinfloor extends Exchange {
                 'BTC/GBP' => array ( 'id' => 'XBT/GBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP', 'baseId' => 'XBT', 'quoteId' => 'GBP' ),
                 'BTC/EUR' => array ( 'id' => 'XBT/EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'XBT', 'quoteId' => 'EUR' ),
                 'BTC/USD' => array ( 'id' => 'XBT/USD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'baseId' => 'XBT', 'quoteId' => 'USD' ),
-                'BTC/PLN' => array ( 'id' => 'XBT/PLN', 'symbol' => 'BTC/PLN', 'base' => 'BTC', 'quote' => 'PLN', 'baseId' => 'XBT', 'quoteId' => 'PLN' ),
                 'BCH/GBP' => array ( 'id' => 'BCH/GBP', 'symbol' => 'BCH/GBP', 'base' => 'BCH', 'quote' => 'GBP', 'baseId' => 'BCH', 'quoteId' => 'GBP' ),
                 'ETH/GBP' => array ( 'id' => 'ETH/GBP', 'symbol' => 'ETH/GBP', 'base' => 'ETH', 'quote' => 'GBP', 'baseId' => 'ETH', 'quoteId' => 'GBP' ),
             ),
