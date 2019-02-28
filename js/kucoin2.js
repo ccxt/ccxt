@@ -144,6 +144,7 @@ module.exports = class kucoin2 extends Exchange {
                 '411100': AccountSuspended,
                 '500000': ExchangeError,
                 'order_not_exist': OrderNotFound,  // {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
+                'order_not_exist_or_not_allow_to_cancel': InvalidOrder,
             },
             'fees': {
                 'trading': {
@@ -1079,13 +1080,10 @@ module.exports = class kucoin2 extends Exchange {
         //     { code: '200000', data: { ... }}
         //
         let errorCode = this.safeString (response, 'code');
-        if (errorCode in this.exceptions) {
-            const message = this.safeString (response, 'msg', '');
-            if (message === 'order_not_exist_or_not_allow_to_cancel') {
-                throw new InvalidOrder (this.id + ' ' + message);
-            }
-            let Exception = this.exceptions[errorCode];
-            throw new Exception (this.id + ' ' + message);
+        let message = this.safeString (response, 'msg', '');
+        let ExceptionClass = this.safeValue2 (this.exceptions, message, errorCode);
+        if (ExceptionClass !== undefined) {
+            throw new ExceptionClass (this.id + ' ' + message);
         }
     }
 };
