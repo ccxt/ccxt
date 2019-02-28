@@ -189,6 +189,13 @@ module.exports = class coinzip extends Exchange {
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'volume');
     }
 
+    async fetchOHLCV (symbol, period = 1, timestamp = undefined, limit = undefined, params = {}) {
+        const market = symbol.toLowerCase();
+        const query = this.extend({ market, period, timestamp, limit}, params)
+        return await this.publicGetApiV2K(query)
+    }
+
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const { apiKey, secret, urlencode, now, hmac } = this;
         const query = this.omit (params, this.extractParams (path));
