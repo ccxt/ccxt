@@ -380,6 +380,33 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //     [
+        //         ID,
+        //         MTS, // timestamp
+        //         AMOUNT,
+        //         PRICE
+        //     ]
+        //
+        // fetchMyTrades (private)
+        //
+        //     [
+        //         ID, 
+        //         PAIR, 
+        //         MTS_CREATE, 
+        //         ORDER_ID, 
+        //         EXEC_AMOUNT, 
+        //         EXEC_PRICE, 
+        //         ORDER_TYPE, 
+        //         ORDER_PRICE, 
+        //         MAKER, 
+        //         FEE, 
+        //         FEE_CURRENCY,
+        //         ...
+        //     ]
+        //
         const id = trade[0].toString ();
         let amount = undefined;
         let cost = undefined;
@@ -467,6 +494,16 @@ module.exports = class bitfinex2 extends bitfinex {
         }
         request['sort'] = sort;
         let response = await this.publicGetTradesSymbolHist (this.extend (request, params));
+        //
+        //     [
+        //         [
+        //             ID,
+        //             MTS, // timestamp
+        //             AMOUNT,
+        //             PRICE
+        //         ]
+        //     ]
+        //
         let trades = this.sortBy (response, 1);
         return this.parseTrades (trades, market, undefined, limit);
     }
@@ -530,6 +567,25 @@ module.exports = class bitfinex2 extends bitfinex {
             method = 'privatePostAuthRTradesSymbolHist';
         }
         const response = await this[method] (this.extend (request, params));
+        //
+        //     [
+        //         [
+        //             ID, 
+        //             PAIR, 
+        //             MTS_CREATE, 
+        //             ORDER_ID, 
+        //             EXEC_AMOUNT, 
+        //             EXEC_PRICE, 
+        //             ORDER_TYPE, 
+        //             ORDER_PRICE, 
+        //             MAKER, 
+        //             FEE, 
+        //             FEE_CURRENCY,
+        //             ...
+        //         ],
+        //         ...
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
