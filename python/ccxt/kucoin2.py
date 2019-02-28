@@ -1015,7 +1015,7 @@ class kucoin2 (Exchange):
         #     {code: '200000', data: {...}}
         #
         errorCode = self.safe_string(response, 'code')
-        if errorCode in self.exceptions:
-            Exception = self.exceptions[errorCode]
-            message = self.safe_string(response, 'msg', '')
-            raise Exception(self.id + ' ' + message)
+        message = self.safe_string(response, 'msg')
+        ExceptionClass = self.safe_value_2(self.exceptions, message, errorCode)
+        if ExceptionClass is not None:
+            raise ExceptionClass(self.id + ' ' + message)

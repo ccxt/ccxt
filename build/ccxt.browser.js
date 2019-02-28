@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.304'
+const version = '1.18.305'
 
 Exchange.ccxtVersion = version
 
@@ -46154,7 +46154,7 @@ module.exports = class itbit extends Exchange {
         //         "executionId": "23132"
         //     }
         //
-        const id = this.safeString2 (trade, 'executionId');
+        const id = this.safeString2 (trade, 'executionId', 'matchNumber');
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const side = this.safeString (trade, 'direction');
         const orderId = this.safeString (trade, 'orderId');
@@ -50983,11 +50983,11 @@ module.exports = class kucoin2 extends Exchange {
         // good
         //     { code: '200000', data: { ... }}
         //
-        let errorCode = this.safeString (response, 'code');
-        if (errorCode in this.exceptions) {
-            let Exception = this.exceptions[errorCode];
-            let message = this.safeString (response, 'msg', '');
-            throw new Exception (this.id + ' ' + message);
+        const errorCode = this.safeString (response, 'code');
+        const message = this.safeString (response, 'msg');
+        const ExceptionClass = this.safeValue2 (this.exceptions, message, errorCode);
+        if (ExceptionClass !== undefined) {
+            throw new ExceptionClass (this.id + ' ' + message);
         }
     }
 };

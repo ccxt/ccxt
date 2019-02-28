@@ -154,7 +154,7 @@ class itbit extends Exchange {
         //         "executionId" => "23132"
         //     }
         //
-        $id = $this->safe_string_2($trade, 'executionId');
+        $id = $this->safe_string_2($trade, 'executionId', 'matchNumber');
         $timestamp = $this->parse8601 ($this->safe_string($trade, 'timestamp'));
         $side = $this->safe_string($trade, 'direction');
         $orderId = $this->safe_string($trade, 'orderId');
