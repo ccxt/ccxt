@@ -262,8 +262,8 @@ module.exports = class bittrex extends Exchange {
             let currency = this.commonCurrencyCode (id);
             let account = this.account ();
             let balance = indexed[id];
-            let free = this.safeFloat (balance, 'Available');
-            let total = this.safeFloat (balance, 'Balance');
+            let free = this.safeFloat (balance, 'Available', 0);
+            let total = this.safeFloat (balance, 'Balance', 0);
             let used = undefined;
             if (total !== undefined) {
                 if (free !== undefined) {
