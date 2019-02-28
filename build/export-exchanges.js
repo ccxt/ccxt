@@ -16,7 +16,7 @@ let verbose = false
 // ---------------------------------------------------------------------------
 
 let wikiPath = 'wiki'
-let gitWikiPath = 'ccxt.wiki'
+let gitWikiPath = 'build/ccxt.wiki'
 let ccxtCertifiedBadge = '[![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification)'
 let spacing = '&nbsp;'.repeat (7)
 let logoHeading = spacing + 'logo' + spacing
@@ -25,7 +25,7 @@ let exchangesByCountryHeading = [ 'country / region', ... tableHeadings ]
 
 if (!fs.existsSync (gitWikiPath)) {
     log.bright.cyan ('Checking out ccxt.wiki...')
-    execSync ('git clone https://github.com/ccxt/ccxt.wiki.git')
+    execSync ('git clone https://github.com/ccxt/ccxt.wiki.git ' + gitWikiPath)
 }
 
 // ---------------------------------------------------------------------------

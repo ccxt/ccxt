@@ -3,6 +3,7 @@
 # Please read https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support for details.
 #
 .vscode
+build/ccxt.wiki
 node_modules/
 npm-debug.log
 .DS_Store
@@ -16,7 +17,6 @@ tmp/
 coverage
 .nyc_output
 travis-keys.sh
-ccxt.wiki/
 exchanges.json
 ccxt.sublime-workspace
 .idea
