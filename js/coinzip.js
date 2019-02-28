@@ -33,8 +33,8 @@ module.exports = class coinzip extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/coinzip.logo.jpg',
-                'api': 'https://www.coinzip.co',
-                'www': 'https://www.coinzip.co',
+                'api': 'https://coinzip.co',
+                'www': 'https://coinzip.co',
                 'documents': 'https://coinzip.co/documents/api_v2'
             },
             'requiredCredentials': {
@@ -78,6 +78,38 @@ module.exports = class coinzip extends Exchange {
                 }
             }
         });
+    }
+
+    async fetchMarkets (params = {}) {
+        const markets = await this.publicGetApiV2Markets ();
+
+        return markets.map(m => ({
+            'id': m.id.toUpperCase(),
+            'symbol': m.name,
+            'base': m.base_unit.toUpperCase(),
+            'quote': m.quote_unit.toUpperCase(),
+            'baseId': m.base_unit,
+            'quoteId': m.quote_unit,
+            'info': m,
+            'precision': {
+                'amount': 8,
+                'price': 8,
+            },
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            }
+        }));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
