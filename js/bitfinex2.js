@@ -520,7 +520,6 @@ module.exports = class bitfinex2 extends bitfinex {
             request['start'] = since;
         let response = undefined;
         if (symbol) {
-            await this.loadMarkets ();
             let market = this.market (symbol);
             request['symbol'] = market['id'];
             response = await this.privatePostAuthRTradesSymbolHist (this.extend (request, params));
