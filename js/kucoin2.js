@@ -1023,7 +1023,7 @@ module.exports = class kucoin2 extends Exchange {
         };
         const response = await this.privateGetAccounts (this.extend (request, params));
         const responseData = response['data'];
-        constkucoin2  result = { 'info': responseData };
+        const result = { 'info': responseData };
         for (let i = 0; i < responseData.length; i++) {
             const entry = responseData[i];
             const currencyId = entry['currency'];
