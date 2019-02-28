@@ -161,7 +161,7 @@ The module entry points are:
 - `./python/__init__.py` for the Python pip package
 - `./python/async/__init__.py` for the Python 3.5.3+ ccxt.async_support subpackage
 - `./ccxt.js` for the Node.js npm package
-- `./build/ccxt.browser.js` for the browser bundle
+- `./dist/ccxt.browser.js` for the browser bundle
 - `./ccxt.php` for PHP
 
 Generated versions and docs are transpiled from the source `ccxt.js` file and files in `./js/` by the `npm run build` command.

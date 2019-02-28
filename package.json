@@ -3,7 +3,7 @@
   "version": "1.18.292",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 100+ exchanges",
   "main": "./ccxt.js",
-  "unpkg": "build/ccxt.browser.js",
+  "unpkg": "dist/ccxt.browser.js",
   "engines": {
     "node": ">=7.6.0"
   },
@@ -34,7 +34,7 @@
     "check-js-syntax": "eslint 'js/*.js'",
     "check-python-syntax": "cd python && tox -e qa && cd ..",
     "check-php-syntax": "php -f php/test/syntax.php",
-    "browserify": "browserify ./ccxt.browser.js > ./build/ccxt.browser.js",
+    "browserify": "browserify ./ccxt.browser.js > ./dist/ccxt.browser.js",
     "pandoc-all": "npm run pandoc-python-readme && npm run pandoc-doc-readme && npm run pandoc-doc-faq && npm run pandoc-doc-manual && npm run pandoc-doc-install && npm run pandoc-doc-exchanges && npm run pandoc-doc-exchanges-by-country",
     "pandoc-python-readme": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=python/README.rst README.md",
     "pandoc-doc-readme": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/README.rst README.md",

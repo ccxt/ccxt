@@ -24,7 +24,7 @@ const log          = require ('ololog')
 
 const files = [
 
-    'build/ccxt.browser.js',
+    'dist/ccxt.browser.js',
 
     'python/test/test_decimal_to_precision.py',
     'php/test/decimal_to_precision.php',
