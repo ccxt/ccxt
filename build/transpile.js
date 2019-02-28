@@ -11,7 +11,7 @@ const fs   = require ('fs')
     , log  = require ('ololog')
     , ansi = require ('ansicolor').nice
     , errors = require ('./js/base/errors.js')
-    , { unCamelCase, capitalize } = require ('./js/base/functions.js')
+    , { unCamelCase } = require ('./js/base/functions.js')
     , { precisionConstants } = require ('./js/base/functions/number.js')
 
 // ---------------------------------------------------------------------------
