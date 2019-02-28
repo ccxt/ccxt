@@ -18,11 +18,13 @@ module.exports = class coinzip extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchBalance': true,
+                'fetchCurrencies': false,
                 'fetchMarkets': true,
                 'createOrder': true,
                 'cancelOrder': true,
                 'fetchTicker': true,
                 'fetchOHLCV': true,
+                'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchMyTrades': true,
                 'fetchTrades': true,
@@ -80,8 +82,42 @@ module.exports = class coinzip extends Exchange {
         });
     }
 
+    async fetchTickers (params = {}) {
+        const tickers = await this.publicGetApiV2Tickers (params);
+        return Object.keys(tickers).map(k => {
+            const { at, ticker } = tickers[k];
+            const symbol = k.toUpperCase();
+            const timestamp = at * 1000;
+
+            return {
+                [symbol]: {
+                    'symbol': symbol,
+                    'timestamp': timestamp,
+                    'datetime': this.iso8601 (timestamp),
+                    'high': ticker.high,
+                    'low': ticker.low,
+                    'bid': undefined,
+                    'bidVolume': undefined,
+                    'ask': undefined,
+                    'askVolume': undefined,
+                    'vwap': undefined,
+                    'open': undefined,
+                    'close': ticker.last,
+                    'last': ticker.last,
+                    'previousClose': undefined,
+                    'change': undefined,
+                    'percentage': undefined,
+                    'average': undefined,
+                    'baseVolume': undefined,
+                    'quoteVolume': undefined,
+                    'info': tickers[k],
+                }
+            }
+        });
+    }
+
     async fetchMarkets (params = {}) {
-        const markets = await this.publicGetApiV2Markets ();
+        const markets = await this.publicGetApiV2Markets (params);
 
         return markets.map(m => ({
             'id': m.id.toUpperCase(),
