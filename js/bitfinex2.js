@@ -393,16 +393,16 @@ module.exports = class bitfinex2 extends bitfinex {
         // fetchMyTrades (private)
         //
         //     [
-        //         ID, 
-        //         PAIR, 
-        //         MTS_CREATE, 
-        //         ORDER_ID, 
-        //         EXEC_AMOUNT, 
-        //         EXEC_PRICE, 
-        //         ORDER_TYPE, 
-        //         ORDER_PRICE, 
-        //         MAKER, 
-        //         FEE, 
+        //         ID,
+        //         PAIR,
+        //         MTS_CREATE,
+        //         ORDER_ID,
+        //         EXEC_AMOUNT,
+        //         EXEC_PRICE,
+        //         ORDER_TYPE,
+        //         ORDER_PRICE,
+        //         MAKER,
+        //         FEE,
         //         FEE_CURRENCY,
         //         ...
         //     ]
@@ -566,16 +566,16 @@ module.exports = class bitfinex2 extends bitfinex {
         //
         //     [
         //         [
-        //             ID, 
-        //             PAIR, 
-        //             MTS_CREATE, 
-        //             ORDER_ID, 
-        //             EXEC_AMOUNT, 
-        //             EXEC_PRICE, 
-        //             ORDER_TYPE, 
-        //             ORDER_PRICE, 
-        //             MAKER, 
-        //             FEE, 
+        //             ID,
+        //             PAIR,
+        //             MTS_CREATE,
+        //             ORDER_ID,
+        //             EXEC_AMOUNT,
+        //             EXEC_PRICE,
+        //             ORDER_TYPE,
+        //             ORDER_PRICE,
+        //             MAKER,
+        //             FEE,
         //             FEE_CURRENCY,
         //             ...
         //         ],
