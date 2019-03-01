@@ -500,9 +500,13 @@ module.exports = class gdax extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id = undefined, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privateDeleteOrdersId ({ 'id': id });
+        if (id === undefined) {
+            return await this.privateDeleteOrders ();
+        } else {
+            return await this.privateDeleteOrdersId ({ 'id': id });
+        }
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
