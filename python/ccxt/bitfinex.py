@@ -622,6 +622,7 @@ class bitfinex (Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         orderType = type
+        # todo: support more order types(“exchange stop” / “exchange trailing-stop” / “exchange fill-or-kill”)
         if (type == 'limit') or (type == 'market'):
             orderType = 'exchange ' + type
         amount = self.amount_to_precision(symbol, amount)

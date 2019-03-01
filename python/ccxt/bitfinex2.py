@@ -169,14 +169,34 @@ class bitfinex2 (bitfinex):
                     },
                 },
             },
+            'options': {
+                'orderTypes': {
+                    'MARKET': None,
+                    'EXCHANGE MARKET': 'market',
+                    'LIMIT': None,
+                    'EXCHANGE LIMIT': 'limit',
+                    'STOP': None,
+                    'EXCHANGE STOP': 'stopOrLoss',
+                    'TRAILING STOP': None,
+                    'EXCHANGE TRAILING STOP': None,
+                    'FOK': None,
+                    'EXCHANGE FOK': 'limit FOK',
+                    'STOP LIMIT': None,
+                    'EXCHANGE STOP LIMIT': 'limit stop',
+                    'IOC': None,
+                    'EXCHANGE IOC': 'limit ico',
+                },
+                'fiat': {
+                    'USD': 'USD',
+                    'EUR': 'EUR',
+                    'JPY': 'JPY',
+                    'GBP': 'GBP',
+                },
+            },
         })
 
     def is_fiat(self, code):
-        fiat = {
-            'USD': 'USD',
-            'EUR': 'EUR',
-        }
-        return(code in list(fiat.keys()))
+        return(code in list(self.options['fiat'].keys()))
 
     def get_currency_id(self, code):
         return 'f' + code
@@ -228,6 +248,7 @@ class bitfinex2 (bitfinex):
         return result
 
     def fetch_balance(self, params={}):
+        # self api call does not return the 'used' amount - use the v1 version instead(which also returns zero balances)
         self.load_markets()
         response = self.privatePostAuthRWallets()
         balanceType = self.safe_string(params, 'type', 'exchange')
@@ -344,36 +365,118 @@ class bitfinex2 (bitfinex):
         }, params))
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market):
-        id, timestamp, amount, price = trade
-        side = 'sell' if (amount < 0) else 'buy'
-        if amount < 0:
-            amount = -amount
+    def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public)
+        #
+        #     [
+        #         ID,
+        #         MTS,  # timestamp
+        #         AMOUNT,
+        #         PRICE
+        #     ]
+        #
+        # fetchMyTrades(private)
+        #
+        #     [
+        #         ID,
+        #         PAIR,
+        #         MTS_CREATE,
+        #         ORDER_ID,
+        #         EXEC_AMOUNT,
+        #         EXEC_PRICE,
+        #         ORDER_TYPE,
+        #         ORDER_PRICE,
+        #         MAKER,
+        #         FEE,
+        #         FEE_CURRENCY,
+        #         ...
+        #     ]
+        #
+        tradeLength = len(trade)
+        isPrivate = (tradeLength > 5)
+        id = str(trade[0])
+        amountIndex = 4 if isPrivate else 2
+        amount = trade[amountIndex]
+        cost = None
+        priceIndex = 5 if isPrivate else 3
+        price = trade[priceIndex]
+        side = None
+        orderId = None
+        takerOrMaker = None
+        type = None
+        fee = None
+        symbol = None
+        timestampIndex = 2 if isPrivate else 1
+        timestamp = trade[timestampIndex]
+        if isPrivate:
+            marketId = trade[1]
+            if marketId is not None:
+                if marketId in self.markets_by_id:
+                    market = self.markets_by_id[marketId]
+                    symbol = market['symbol']
+                else:
+                    symbol = marketId
+            orderId = trade[3]
+            takerOrMaker = 'maker' if (trade[8] == 1) else 'taker'
+            feeCost = trade[9]
+            feeCurrency = self.common_currency_code(trade[10])
+            if feeCost is not None:
+                fee = {
+                    'cost': abs(feeCost),
+                    'currency': feeCurrency,
+                }
+            orderType = trade[6]
+            type = self.safe_string(self.options['orderTypes'], orderType)
+        if symbol is None:
+            if market is not None:
+                symbol = market['symbol']
+        if amount is not None:
+            side = 'sell' if (amount < 0) else 'buy'
+            amount = abs(amount)
+            if cost is None:
+                if price is not None:
+                    cost = amount * price
         return {
-            'id': str(id),
-            'info': trade,
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
-            'type': None,
+            'symbol': symbol,
+            'order': orderId,
             'side': side,
+            'type': type,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
+            'cost': cost,
+            'fee': fee,
+            'info': trade,
         }
 
-    def fetch_trades(self, symbol, since=None, limit=120, params={}):
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         sort = '-1'
         request = {
             'symbol': market['id'],
-            'limit': limit,  # default = max = 120
         }
         if since is not None:
             request['start'] = since
             sort = '1'
+        if limit is not None:
+            request['limit'] = limit  # default 120, max 5000
         request['sort'] = sort
         response = self.publicGetTradesSymbolHist(self.extend(request, params))
+        #
+        #     [
+        #         [
+        #             ID,
+        #             MTS,  # timestamp
+        #             AMOUNT,
+        #             PRICE
+        #         ]
+        #     ]
+        #
         trades = self.sort_by(response, 1)
         return self.parse_trades(trades, market, None, limit)
 
@@ -381,15 +484,15 @@ class bitfinex2 (bitfinex):
         self.load_markets()
         market = self.market(symbol)
         if limit is None:
-            limit = 100
+            limit = 100  # default 100, max 5000
         if since is None:
             since = self.milliseconds() - self.parse_timeframe(timeframe) * limit * 1000
         request = {
             'symbol': market['id'],
             'timeframe': self.timeframes[timeframe],
             'sort': 1,
-            'limit': limit,
             'start': since,
+            'limit': limit,
         }
         response = self.publicGetCandlesTradeTimeframeSymbolHist(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
@@ -409,19 +512,43 @@ class bitfinex2 (bitfinex):
     def withdraw(self, code, amount, address, tag=None, params={}):
         raise NotSupported(self.id + ' withdraw not implemented yet')
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=25, params={}):
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        market = self.market(symbol)
+        market = None
         request = {
-            'symbol': market['id'],
-            'limit': limit,
-            'end': self.seconds(),
+            'end': self.milliseconds(),
+            '_bfx': 1,
         }
         if since is not None:
-            request['start'] = int(since / 1000)
-        response = self.privatePostAuthRTradesSymbolHist(self.extend(request, params))
-        # return self.parse_trades(response, market, since, limit)  # not implemented yet for bitfinex v2
-        return response
+            request['start'] = since
+        if limit is not None:
+            request['limit'] = limit  # default 25, max 1000
+        method = 'privatePostAuthRTradesHist'
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+            method = 'privatePostAuthRTradesSymbolHist'
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        #     [
+        #         [
+        #             ID,
+        #             PAIR,
+        #             MTS_CREATE,
+        #             ORDER_ID,
+        #             EXEC_AMOUNT,
+        #             EXEC_PRICE,
+        #             ORDER_TYPE,
+        #             ORDER_PRICE,
+        #             MAKER,
+        #             FEE,
+        #             FEE_CURRENCY,
+        #             ...
+        #         ],
+        #         ...
+        #     ]
+        #
+        return self.parse_trades(response, market, since, limit)
 
     def nonce(self):
         return self.milliseconds()
