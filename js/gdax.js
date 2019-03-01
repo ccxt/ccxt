@@ -506,7 +506,7 @@ module.exports = class gdax extends Exchange {
     }
 
     async cancelAllOrders (params = {}) {
-        return await this.privateDeleteOrders ();
+        return await this.privateDeleteOrders (params);
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
