@@ -232,8 +232,8 @@ class kucoin2 (Exchange):
                     'max': baseMaxSize,
                 },
                 'price': {
-                    'min': max(baseMinSize / quoteMaxSize, quoteIncrement),
-                    'max': baseMaxSize / quoteMinSize,
+                    'min': max(quoteMinSize / baseMinSize, quoteIncrement),
+                    'max': quoteMaxSize / baseMinSize,
                 },
                 'cost': {
                     'min': quoteMinSize,
