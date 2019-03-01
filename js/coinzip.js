@@ -35,7 +35,8 @@ module.exports = class coinzip extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/coinzip.logo.jpg',
-                'api': 'https://coinzip.co',
+                // 'api': 'https://coinzip.co',
+                'api': 'http://localhost:3000',
                 'www': 'https://coinzip.co',
                 'documents': 'https://coinzip.co/documents/api_v2'
             },
@@ -83,11 +84,15 @@ module.exports = class coinzip extends Exchange {
     }
 
     async fetchTickers (params = {}) {
+        await this.loadMarkets ();
         const tickers = await this.publicGetApiV2Tickers (params);
-        return Object.keys(tickers).map(k => {
+        return Object.keys(tickers).reduce((obj, k) => {
             const { at, ticker } = tickers[k];
-            const symbol = k.toUpperCase ();
             const timestamp = at * 1000;
+            const { symbol } = Object
+                .keys (this.markets)
+                .map (m => this.markets[m])
+                .find (m => m.id === k.toUpperCase ());
 
             return {
                 [symbol]: {
@@ -113,7 +118,7 @@ module.exports = class coinzip extends Exchange {
                     'info': tickers[k],
                 }
             }
-        });
+        }, {});
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -203,7 +208,7 @@ module.exports = class coinzip extends Exchange {
             'limit': limit
         }, params));
 
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (trades, symbol, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
