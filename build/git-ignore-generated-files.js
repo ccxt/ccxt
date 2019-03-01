@@ -53,7 +53,7 @@ const files = [
     // NB: Add more generated files here
 ]
 
-for (const id of require ('./exchanges.json').ids) {
+for (const id of require ('../exchanges.json').ids) {
 
     files.push (`python/ccxt/${id}.py`)
     files.push (`python/ccxt/async_support/${id}.py`)
