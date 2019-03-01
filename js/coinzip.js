@@ -86,7 +86,7 @@ module.exports = class coinzip extends Exchange {
         const tickers = await this.publicGetApiV2Tickers (params);
         return Object.keys(tickers).map(k => {
             const { at, ticker } = tickers[k];
-            const symbol = k.toUpperCase();
+            const symbol = k.toUpperCase ();
             const timestamp = at * 1000;
 
             return {
@@ -117,7 +117,7 @@ module.exports = class coinzip extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
-        const market = symbol.toLowerCase();
+        const market = symbol.replace ('/', '').toLowerCase ();
         const tickerObj = await this.publicGetApiV2TickersMarket ({ market });
         const { at, ticker } = tickerObj;
         const timestamp = at * 1000;
@@ -150,10 +150,10 @@ module.exports = class coinzip extends Exchange {
         const markets = await this.publicGetApiV2Markets (params);
 
         return markets.map(m => ({
-            'id': m.id.toUpperCase(),
+            'id': m.id.toUpperCase (),
             'symbol': m.name,
-            'base': m.base_unit.toUpperCase(),
-            'quote': m.quote_unit.toUpperCase(),
+            'base': m.base_unit.toUpperCase (),
+            'quote': m.quote_unit.toUpperCase (),
             'baseId': m.base_unit,
             'quoteId': m.quote_unit,
             'info': m,
@@ -179,8 +179,8 @@ module.exports = class coinzip extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = 30, params = {}) {
-        const market = symbol.toLowerCase();
-        const orderbook = await this.publicGetApiV2OrderBook (this.extend({
+        const market = symbol.replace ('/', '').toLowerCase ();
+        const orderbook = await this.publicGetApiV2OrderBook (this.extend ({
             'market': market,
             'asks_limit': limit,
             'bids_limit': limit
@@ -190,16 +190,42 @@ module.exports = class coinzip extends Exchange {
     }
 
     async fetchOHLCV (symbol, period = 1, timestamp = undefined, limit = undefined, params = {}) {
-        const market = symbol.toLowerCase();
-        const query = this.extend({ market, period, timestamp, limit}, params)
+        const market = symbol.replace ('/', '').toLowerCase ();
+        const query = this.extend ({ market, period, timestamp, limit}, params)
         return await this.publicGetApiV2K(query)
     }
 
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        const market = symbol.replace ('/', '').toLowerCase ();
+        const trades = await this.publicGetApiV2Trades (this.extend ({
+            'market': market,
+            'timestamp': since,
+            'limit': limit
+        }, params));
+
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    parseTrade (trade, market = undefined) {
+        const timestamp = this.parse8601 (trade['created_at']);
+        return {
+            'id': trade.id.toString (),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market,
+            'type': undefined,
+            'side': trade.side || undefined,
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'volume'),
+            'cost': this.safeFloat (trade, 'funds'),
+            'info': trade,
+        };
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const { apiKey, secret, urlencode, now, hmac } = this;
         const query = this.omit (params, this.extractParams (path));
-        const sortByKey = (data => Object.keys(data).sort().reduce((obj, k) => {
+        const sortByKey = (data => Object.keys(data).sort ().reduce((obj, k) => {
             obj[k] = data[k];
             return obj;
         }, {}));
