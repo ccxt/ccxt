@@ -20,6 +20,7 @@ module.exports = class gdax extends Exchange {
                 'fetchOHLCV': true,
                 'deposit': true,
                 'withdraw': true,
+                'fetchAccounts': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
@@ -625,6 +626,7 @@ module.exports = class gdax extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {};
+        // will rewrite for this.accounts
         if (!('id' in params)) {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a currency code argument if no id specified in params');
