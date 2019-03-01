@@ -138,6 +138,7 @@ module.exports = class gdax extends Exchange {
                     'invalid signature': AuthenticationError,
                     'Invalid Passphrase': AuthenticationError,
                     'Invalid order id': InvalidOrder,
+                    'Order already done': InvalidOrder,
                 },
                 'broad': {
                     'Order already done': OrderNotFound,
