@@ -1,7 +1,7 @@
 "use strict";
 
 const fs = require ('fs')
-const ccxt = require ('./ccxt')
+const ccxt = require ('../ccxt')
 const log  = require ('ololog')
 const ansi = require ('ansicolor').nice
 

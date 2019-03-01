@@ -25,7 +25,7 @@
     "export-exchanges": "node build/export-exchanges",
     "git-ignore-generated-files": "node build/git-ignore-generated-files",
     "git-unignore-generated-files": "node build/git-ignore-generated-files --unignore",
-    "update-badges": "node update-badges",
+    "update-badges": "node build/update-badges",
     "convert-md-2-rst": "bash build/convert-md-2-rst",
     "transpile": "node build/transpile",
     "vss": "node build/vss",
