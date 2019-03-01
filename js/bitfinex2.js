@@ -507,9 +507,12 @@ module.exports = class bitfinex2 extends bitfinex {
         return this.parseTrades (trades, market, undefined, limit);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 100, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
+        if (limit === undefined) {
+            limit = 100; // default 100, max 5000
+        }
         if (since === undefined) {
             since = this.milliseconds () - this.parseTimeframe (timeframe) * limit * 1000;
         }
@@ -518,10 +521,8 @@ module.exports = class bitfinex2 extends bitfinex {
             'timeframe': this.timeframes[timeframe],
             'sort': 1,
             'start': since,
+            'limit': limit,
         };
-        if (limit === undefined) {
-            request['limit'] = limit; // default 100, max 5000
-        }
         let response = await this.publicGetCandlesTradeTimeframeSymbolHist (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
