@@ -586,7 +586,7 @@ module.exports = class gdax extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {};
-        if(!('id' in params)) {
+        if (!('id' in params)) {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a currency code argument if no id specified in params');
             }
