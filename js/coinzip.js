@@ -35,8 +35,7 @@ module.exports = class coinzip extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/coinzip.logo.jpg',
-                // 'api': 'https://coinzip.co',
-                'api': 'http://localhost:3000',
+                'api': 'https://coinzip.co',
                 'www': 'https://coinzip.co',
                 'documents': 'https://coinzip.co/documents/api_v2'
             },
@@ -74,10 +73,6 @@ module.exports = class coinzip extends Exchange {
                         'api/v2/orders/clear',
                         'api/v2/order/delete'
                     ]
-                }
-            },
-            'fees': {
-                'trading': {
                 }
             }
         });
@@ -227,29 +222,74 @@ module.exports = class coinzip extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const { apiKey, secret, urlencode, now, hmac } = this;
-        const query = this.omit (params, this.extractParams (path));
-        const sortByKey = (data => Object.keys(data).sort ().reduce((obj, k) => {
-            obj[k] = data[k];
+    async fetchBalance (params = {}) {
+        const { accounts: balances } = await this.privateGetApiV2MembersMe ();
+        const mappedBalances = balances.reduce((obj, { balance, locked, currency }) => {
+            const free = parseFloat (balance);
+            const used = parseFloat (locked);
+
+            obj[currency.toUpperCase()] = {
+                free,
+                used,
+                total: this.sum (free, used)
+            };
+
             return obj;
-        }, {}));
-        const url = ((apiURL, path, params, query) => {
-            const rawUrl = `${ apiURL }/${ this.implodeParams (path, params) }`;
+        }, {});
+        const result = {
+            info: balances,
+            ...mappedBalances
+        };
 
-            if (api === 'private') {
-                const tonce = now ();
-                const extendedQuery = sortByKey ({ 'access_key': apiKey, 'tonce': tonce, ...query });
-                const signature = hmac (`${method}|${path}|${urlencode (extendedQuery)}`, secret);
-                const signedQuery = { ...extendedQuery, signature };
+        return this.parseBalance (result);
+    }
 
-                return rawUrl + '?' + urlencode (sortByKey (signedQuery));
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let request = '/' + this.implodeParams (path, params);
+        if ('extension' in this.urls)
+            request += this.urls['extension'];
+        let query = this.omit (params, this.extractParams (path));
+        let url = this.urls['api'] + request;
+        if (api === 'public') {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
             }
+        } else {
+            this.checkRequiredCredentials ();
+            let nonce = this.now ();
+            let query = this.encodeParams (this.extend ({
+                'access_key': this.apiKey,
+                'tonce': nonce,
+            }, params));
+            let auth = method + '|' + request + '|' + query;
+            let signed = this.hmac (this.encode (auth), this.encode (this.secret));
+            let suffix = query + '&signature=' + signed;
+            if (method === 'GET') {
+                url += '?' + suffix;
+            } else {
+                body = suffix;
+                headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+            }
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
 
-            return rawUrl + '?' + urlencode (query);
-        }) (this.urls['api'], path, params, query);
-
-        return { url, method, body, headers };
+    encodeParams (params) {
+        if ('orders' in params) {
+            let orders = params['orders'];
+            let query = this.urlencode (this.keysort (this.omit (params, 'orders')));
+            for (let i = 0; i < orders.length; i++) {
+                let order = orders[i];
+                let keys = Object.keys (order);
+                for (let k = 0; k < keys.length; k++) {
+                    let key = keys[k];
+                    let value = order[key];
+                    query += '&orders%5B%5D%5B' + key + '%5D=' + value.toString ();
+                }
+            }
+            return query;
+        }
+        return this.urlencode (this.keysort (params));
     }
 };
 
