@@ -357,7 +357,7 @@ node run-tests --python3 kraken # test Kraken with Python 3, requires 'npm run b
 
 #### How to Generate Files For A New Exchange
 
-This is only to run tests on your enviroment to ensure the new exchange you have created works as its supposed too. When you are ready to contribute to CCXT with your new Exchange, make sure that you create a Pull request with only your the .js file included! PHP and Python files are automatically generated when your pull request is merged.
+This is only to run tests on your enviroment to ensure the new Exchange you have created works as its supposed too. When you are ready to contribute to CCXT with your new Exchange, make sure that you create a Pull request with only the .js file included! PHP and Python files are automatically generated when or if your pull request is merged.
 
 Start by Building a Clean Repo as described here:
 - https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-build--run-tests-on-your-local-machine
@@ -380,7 +380,7 @@ Next step is to run export-exchanges:
 npm run export-exchanges
 ```
 
-Files for mygreatexchange.js is now generated. Save your time and run syntax check on PHP and Python files by running:
+Files for mygreatexchange.js is now generated. Save your time by running syntax checks on PHP and Python files:
 
 ```
 npm run qa
