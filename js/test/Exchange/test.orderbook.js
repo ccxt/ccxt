@@ -42,15 +42,18 @@ module.exports = (exchange, orderbook, method, symbol) => {
     const bids = orderbook.bids
     const asks = orderbook.asks
 
-    for (let i = 1; i < bids.length; i++) {
-        // debugger;
-        assert (bids[i][0] <= bids[i - 1][0])
+    for (let i = 0; i < bids.length; i++) {
+        if (bids.length > (i + 1)) {
+            assert (bids[i][0] >= bids[i + 1][0])
+        }
         assert (typeof bids[i][0] === 'number')
         assert (typeof bids[i][1] === 'number')
     }
 
-    for (let i = 1; i < asks.length; i++) {
-        assert (asks[i][0] >= asks[i - 1][0])
+    for (let i = 0; i < asks.length; i++) {
+        if (asks.length > (i + 1)) {
+            assert (asks[i][0] <= asks[i + 1][0])
+        }
         assert (typeof asks[i][0] === 'number')
         assert (typeof asks[i][1] === 'number')
     }
@@ -60,6 +63,7 @@ module.exports = (exchange, orderbook, method, symbol) => {
         'coinmarketcap',
         'xbtce',
         'coinsecure',
+        'upbit', // an orderbook might have a 0-price ask occasionally
 
     ].includes (exchange.id)) {
 

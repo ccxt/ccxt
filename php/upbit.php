@@ -494,8 +494,8 @@ class upbit extends Exchange {
             $symbol = $this->get_symbol_from_market_id ($this->safe_string($orderbook, 'market'));
             $timestamp = $this->safe_integer($orderbook, 'timestamp');
             $result[$symbol] = array (
-                'bids' => $this->parse_bids_asks($orderbook['orderbook_units'], 'bid_price', 'bid_size'),
-                'asks' => $this->parse_bids_asks($orderbook['orderbook_units'], 'ask_price', 'ask_size'),
+                'bids' => $this->sort_by($this->parse_bids_asks($orderbook['orderbook_units'], 'bid_price', 'bid_size'), 0, true),
+                'asks' => $this->sort_by($this->parse_bids_asks($orderbook['orderbook_units'], 'ask_price', 'ask_size'), 0),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601 ($timestamp),
                 'nonce' => null,

@@ -24,7 +24,7 @@ class bittrex extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
-                'fetchMyTrades' => false,
+                'fetchMyTrades' => 'emulated',
                 'fetchOHLCV' => true,
                 'fetchOrder' => true,
                 'fetchOpenOrders' => true,
@@ -262,9 +262,14 @@ class bittrex extends Exchange {
             $currency = $this->common_currency_code($id);
             $account = $this->account ();
             $balance = $indexed[$id];
-            $free = floatval ($balance['Available']);
-            $total = floatval ($balance['Balance']);
-            $used = $total - $free;
+            $free = $this->safe_float($balance, 'Available', 0);
+            $total = $this->safe_float($balance, 'Balance', 0);
+            $used = null;
+            if ($total !== null) {
+                if ($free !== null) {
+                    $used = $total - $free;
+                }
+            }
             $account['free'] = $free;
             $account['used'] = $used;
             $account['total'] = $total;
@@ -747,9 +752,7 @@ class bittrex extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        $side = $this->safe_string($order, 'OrderType');
-        if ($side === null)
-            $side = $this->safe_string($order, 'Type');
+        $side = $this->safe_string_2($order, 'OrderType', 'Type');
         $isBuyOrder = ($side === 'LIMIT_BUY') || ($side === 'BUY');
         $isSellOrder = ($side === 'LIMIT_SELL') || ($side === 'SELL');
         if ($isBuyOrder) {
@@ -878,6 +881,38 @@ class bittrex extends Exchange {
             throw new OrderNotFound ($this->id . ' order ' . $id . ' not found');
         }
         return $this->parse_order($response['result']);
+    }
+
+    public function order_to_trade ($order) {
+        // this entire method should be moved to the base class
+        $timestamp = $this->safe_integer_2($order, 'lastTradeTimestamp', 'timestamp');
+        return array (
+            'id' => $this->safe_string($order, 'id'),
+            'side' => $this->safe_string($order, 'side'),
+            'order' => $this->safe_string($order, 'id'),
+            'price' => $this->safe_float($order, 'average'),
+            'amount' => $this->safe_float($order, 'filled'),
+            'cost' => $this->safe_float($order, 'cost'),
+            'symbol' => $this->safe_string($order, 'symbol'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'fee' => $this->safe_value($order, 'fee'),
+            'info' => $order,
+        );
+    }
+
+    public function orders_to_trades ($orders) {
+        // this entire method should be moved to the base class
+        $result = array ();
+        for ($i = 0; $i < count ($orders); $i++) {
+            $result[] = $this->order_to_trade ($orders[$i]);
+        }
+        return $result;
+    }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $orders = $this->fetch_closed_orders ($symbol, $since, $limit, $params);
+        return $this->orders_to_trades ($orders);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {

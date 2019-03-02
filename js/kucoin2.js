@@ -144,6 +144,7 @@ module.exports = class kucoin2 extends Exchange {
                 '411100': AccountSuspended,
                 '500000': ExchangeError,
                 'order_not_exist': OrderNotFound,  // {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
+                'order_not_exist_or_not_allow_to_cancel': InvalidOrder,
             },
             'fees': {
                 'trading': {
@@ -220,8 +221,8 @@ module.exports = class kucoin2 extends Exchange {
                     'max': baseMaxSize,
                 },
                 'price': {
-                    'min': Math.max (baseMinSize / quoteMaxSize, quoteIncrement),
-                    'max': baseMaxSize / quoteMinSize,
+                    'min': Math.max (quoteMinSize / baseMinSize, quoteIncrement),
+                    'max': quoteMaxSize / baseMinSize,
                 },
                 'cost': {
                     'min': quoteMinSize,
@@ -253,7 +254,7 @@ module.exports = class kucoin2 extends Exchange {
         //   currency: 'KCS' }
         //
         const responseData = response['data'];
-        let result = {};
+        const result = {};
         for (let i = 0; i < responseData.length; i++) {
             const entry = responseData[i];
             const id = this.safeString (entry, 'name');
@@ -290,7 +291,7 @@ module.exports = class kucoin2 extends Exchange {
         //                      type: "trade"                     }  ] }
         //
         const data = this.safeValue (response, 'data');
-        let result = [];
+        const result = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
             const accountId = this.safeString (account, 'id');
@@ -474,7 +475,7 @@ module.exports = class kucoin2 extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        let request = {
+        const request = {
             'symbol': marketId,
             'endAt': this.seconds (), // required param
             'type': this.timeframes[timeframe],
@@ -518,7 +519,9 @@ module.exports = class kucoin2 extends Exchange {
         const data = this.safeValue (response, 'data', {});
         let address = this.safeString (data, 'address');
         // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
-        address = address.replace ('bitcoincash:', '');
+        if (address !== undefined) {
+            address = address.replace ('bitcoincash:', '');
+        }
         const tag = this.safeString (data, 'memo');
         this.checkAddress (address);
         return {
@@ -555,12 +558,14 @@ module.exports = class kucoin2 extends Exchange {
         const clientOid = this.uuid ();
         const request = {
             'clientOid': clientOid,
-            'price': this.priceToPrecision (symbol, price),
             'side': side,
             'size': this.amountToPrecision (symbol, amount),
             'symbol': marketId,
             'type': type,
         };
+        if (type !== 'market') {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
         const response = await this.privatePostOrders (this.extend (request, params));
         const responseData = response['data'];
         return {
@@ -582,7 +587,7 @@ module.exports = class kucoin2 extends Exchange {
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'status': status,
         };
         let market = undefined;
@@ -714,7 +719,7 @@ module.exports = class kucoin2 extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {};
+        const request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -735,7 +740,7 @@ module.exports = class kucoin2 extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request = {
+        const request = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
@@ -860,7 +865,7 @@ module.exports = class kucoin2 extends Exchange {
         await this.loadMarkets ();
         this.checkAddress (address);
         const currency = this.currencyId (code);
-        let request = {
+        const request = {
             'currency': currency,
             'address': address,
             'amount': amount,
@@ -954,7 +959,7 @@ module.exports = class kucoin2 extends Exchange {
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {};
+        const request = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -984,7 +989,7 @@ module.exports = class kucoin2 extends Exchange {
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {};
+        const request = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -1018,7 +1023,7 @@ module.exports = class kucoin2 extends Exchange {
         };
         const response = await this.privateGetAccounts (this.extend (request, params));
         const responseData = response['data'];
-        let result = { 'info': responseData };
+        const result = { 'info': responseData };
         for (let i = 0; i < responseData.length; i++) {
             const entry = responseData[i];
             const currencyId = entry['currency'];
@@ -1076,11 +1081,11 @@ module.exports = class kucoin2 extends Exchange {
         // good
         //     { code: '200000', data: { ... }}
         //
-        let errorCode = this.safeString (response, 'code');
-        if (errorCode in this.exceptions) {
-            let Exception = this.exceptions[errorCode];
-            let message = this.safeString (response, 'msg', '');
-            throw new Exception (this.id + ' ' + message);
+        const errorCode = this.safeString (response, 'code');
+        const message = this.safeString (response, 'msg');
+        const ExceptionClass = this.safeValue2 (this.exceptions, message, errorCode);
+        if (ExceptionClass !== undefined) {
+            throw new ExceptionClass (this.id + ' ' + message);
         }
     }
 };

@@ -158,6 +158,7 @@ class kucoin2 (Exchange):
                 '411100': AccountSuspended,
                 '500000': ExchangeError,
                 'order_not_exist': OrderNotFound,  # {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
+                'order_not_exist_or_not_allow_to_cancel': InvalidOrder,
             },
             'fees': {
                 'trading': {
@@ -231,8 +232,8 @@ class kucoin2 (Exchange):
                     'max': baseMaxSize,
                 },
                 'price': {
-                    'min': max(baseMinSize / quoteMaxSize, quoteIncrement),
-                    'max': baseMaxSize / quoteMinSize,
+                    'min': max(quoteMinSize / baseMinSize, quoteIncrement),
+                    'max': quoteMaxSize / baseMinSize,
                 },
                 'cost': {
                     'min': quoteMinSize,
@@ -508,7 +509,8 @@ class kucoin2 (Exchange):
         data = self.safe_value(response, 'data', {})
         address = self.safe_string(data, 'address')
         # BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
-        address = address.replace('bitcoincash:', '')
+        if address is not None:
+            address = address.replace('bitcoincash:', '')
         tag = self.safe_string(data, 'memo')
         self.check_address(address)
         return {
@@ -543,12 +545,13 @@ class kucoin2 (Exchange):
         clientOid = self.uuid()
         request = {
             'clientOid': clientOid,
-            'price': self.price_to_precision(symbol, price),
             'side': side,
             'size': self.amount_to_precision(symbol, amount),
             'symbol': marketId,
             'type': type,
         }
+        if type != 'market':
+            request['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePostOrders(self.extend(request, params))
         responseData = response['data']
         return {
@@ -1013,7 +1016,7 @@ class kucoin2 (Exchange):
         #     {code: '200000', data: {...}}
         #
         errorCode = self.safe_string(response, 'code')
-        if errorCode in self.exceptions:
-            Exception = self.exceptions[errorCode]
-            message = self.safe_string(response, 'msg', '')
-            raise Exception(self.id + ' ' + message)
+        message = self.safe_string(response, 'msg')
+        ExceptionClass = self.safe_value_2(self.exceptions, message, errorCode)
+        if ExceptionClass is not None:
+            raise ExceptionClass(self.id + ' ' + message)

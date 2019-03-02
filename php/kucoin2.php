@@ -145,6 +145,7 @@ class kucoin2 extends Exchange {
                 '411100' => '\\ccxt\\AccountSuspended',
                 '500000' => '\\ccxt\\ExchangeError',
                 'order_not_exist' => '\\ccxt\\OrderNotFound',  // array ("code":"order_not_exist","msg":"order_not_exist") ¯\_(ツ)_/¯
+                'order_not_exist_or_not_allow_to_cancel' => '\\ccxt\\InvalidOrder',
             ),
             'fees' => array (
                 'trading' => array (
@@ -221,8 +222,8 @@ class kucoin2 extends Exchange {
                     'max' => $baseMaxSize,
                 ),
                 'price' => array (
-                    'min' => max ($baseMinSize / $quoteMaxSize, $quoteIncrement),
-                    'max' => $baseMaxSize / $quoteMinSize,
+                    'min' => max ($quoteMinSize / $baseMinSize, $quoteIncrement),
+                    'max' => $quoteMaxSize / $baseMinSize,
                 ),
                 'cost' => array (
                     'min' => $quoteMinSize,
@@ -519,7 +520,9 @@ class kucoin2 extends Exchange {
         $data = $this->safe_value($response, 'data', array ());
         $address = $this->safe_string($data, 'address');
         // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the $address
-        $address = str_replace ('bitcoincash:', '', $address);
+        if ($address !== null) {
+            $address = str_replace ('bitcoincash:', '', $address);
+        }
         $tag = $this->safe_string($data, 'memo');
         $this->check_address($address);
         return array (
@@ -556,12 +559,14 @@ class kucoin2 extends Exchange {
         $clientOid = $this->uuid ();
         $request = array (
             'clientOid' => $clientOid,
-            'price' => $this->price_to_precision($symbol, $price),
             'side' => $side,
             'size' => $this->amount_to_precision($symbol, $amount),
             'symbol' => $marketId,
             'type' => $type,
         );
+        if ($type !== 'market') {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
         $response = $this->privatePostOrders (array_merge ($request, $params));
         $responseData = $response['data'];
         return array (
@@ -1078,10 +1083,10 @@ class kucoin2 extends Exchange {
         //     array ( $code => '200000', data => { ... )}
         //
         $errorCode = $this->safe_string($response, 'code');
-        if (is_array ($this->exceptions) && array_key_exists ($errorCode, $this->exceptions)) {
-            $Exception = $this->exceptions[$errorCode];
-            $message = $this->safe_string($response, 'msg', '');
-            throw new $Exception ($this->id . ' ' . $message);
+        $message = $this->safe_string($response, 'msg');
+        $ExceptionClass = $this->safe_value_2($this->exceptions, $message, $errorCode);
+        if ($ExceptionClass !== null) {
+            throw new $ExceptionClass ($this->id . ' ' . $message);
         }
     }
 }

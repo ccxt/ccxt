@@ -253,6 +253,11 @@ class _1btcxe extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        if (gettype ($response) === 'string') {
+            if (mb_strpos ($response, 'Maintenance') !== false) {
+                throw new ExchangeNotAvailable ($this->id . ' on maintenance');
+            }
+        }
         if (is_array ($response) && array_key_exists ('errors', $response)) {
             $errors = array ();
             for ($e = 0; $e < count ($response['errors']); $e++) {
