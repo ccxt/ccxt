@@ -79,7 +79,7 @@ class gemini extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
-                    'taker' => 0.01,
+                    'taker' => 0.035,
                     'maker' => 0.01,
                 ),
             ),
