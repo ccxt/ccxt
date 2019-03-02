@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cd ccxt.wiki
+cd ../ccxt.wiki
 cp ../wiki/* .
 git config --global user.email "travis@travis-ci.org"
 git config --global user.name "Travis CI"
