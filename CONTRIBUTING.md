@@ -355,7 +355,7 @@ node run-tests --python3 kraken # test Kraken with Python 3, requires 'npm run b
 
 ```UNDER CONSTRUCTION```
 
-#### How to Generate New Exchange
+#### How to Generate Files For A New Exchange
 
 Build a Clean Repo as described here:
 - https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-build--run-tests-on-your-local-machine
