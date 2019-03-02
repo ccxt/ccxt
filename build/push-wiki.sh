@@ -11,4 +11,4 @@ git commit -a -m ${COMMIT_MESSAGE}
 git remote remove origin
 git remote add origin https://${GITHUB_TOKEN}@github.com/ccxt/ccxt.wiki.git
 git push origin HEAD:master
-cd ..
+cd ../..
