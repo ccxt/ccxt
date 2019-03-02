@@ -266,7 +266,7 @@ keys (ccxtWikiFileMapping)
 
 log.bright ('Exporting exchange keywords to'.cyan, 'package.json'.yellow)
 
-const packageJSON = require ('./package.json')
+const packageJSON = require ('../package.json')
 const keywords = new Set (packageJSON.keywords)
 
 for (const ex of values (exchanges)) {
