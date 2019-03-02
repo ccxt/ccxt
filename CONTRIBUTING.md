@@ -357,7 +357,9 @@ node run-tests --python3 kraken # test Kraken with Python 3, requires 'npm run b
 
 #### How to Generate Files For A New Exchange
 
-Build a Clean Repo as described here:
+This is only to run tests on your enviroment to ensure the new exchange you have created works as its supposed too. When you are ready to contribute to CCXT with your new Exchange, make sure that you create a Pull request with only your the .js file included! PHP and Python files are automatically generated when your pull request is merged.
+
+Start by Building a Clean Repo as described here:
 - https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-build--run-tests-on-your-local-machine
 
 Upload the new exchange.js file to /js folder in CCXT:
