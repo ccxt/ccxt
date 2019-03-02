@@ -355,6 +355,35 @@ node run-tests --python3 kraken # test Kraken with Python 3, requires 'npm run b
 
 ```UNDER CONSTRUCTION```
 
+#### How to Generate New Exchange
+
+Build a Clean Repo as described here:
+- https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-build--run-tests-on-your-local-machine
+
+Upload the new exchange.js file to /js folder in CCXT:
+
+```
+cp /home/user/custom/mygreatexchange.js /home/user/ccxt/js
+```
+
+To build PHP/Python files for your new exchange you need to run transpile command:
+
+```
+npm run transpile
+```
+
+Next step is to run export-exchanges:
+
+```
+npm run export-exchanges
+```
+
+Files for mygreatexchange.js is now generated. Save your time and run syntax check on PHP and Python files by running:
+
+```
+npm run qa
+```
+
 ## Financial contributions
 
 We also welcome financial contributions in full transparency on our [open collective](https://opencollective.com/ccxt).
