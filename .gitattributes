@@ -1,5 +1,5 @@
 *.* text eol=lf
-ccxt/exchanges.py linguis-generated=true
+ccxt/exchanges.py linguist-generated=true
 ccxt/async/exchanges.py linguist-generated=true
 ccxt/async/__init__.py linguist-generated=false
 ccxt/async/exchange.py linguist-generated=false
