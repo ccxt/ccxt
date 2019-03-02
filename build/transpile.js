@@ -1,12 +1,18 @@
+// ---------------------------------------------------------------------------
+// Usage:
+//
+//      npm run transpile
+// ---------------------------------------------------------------------------
+
 "use strict";
 
 const fs   = require ('fs')
     , path = require ('path')
     , log  = require ('ololog')
     , ansi = require ('ansicolor').nice
-    , errors = require ('./js/base/errors.js')
-    , { unCamelCase, capitalize } = require ('./js/base/functions.js')
-    , { precisionConstants } = require ('./js/base/functions/number.js')
+    , errors = require ('../js/base/errors.js')
+    , { unCamelCase } = require ('../js/base/functions.js')
+    , { precisionConstants } = require ('../js/base/functions/number.js')
 
 // ---------------------------------------------------------------------------
 
@@ -716,7 +722,7 @@ function transpileDerivedExchangeFile (folder, filename) {
 function transpileDerivedExchangeFiles (folder, pattern = '.js') {
 
     // exchanges.json accounts for ids included in exchanges.cfg
-    const ids = require ('./exchanges.json').ids;
+    const ids = require ('../exchanges.json').ids;
 
     const classNames = fs.readdirSync (folder)
         .filter (file => file.includes (pattern) && ids.includes (path.basename (file, pattern)))

@@ -153,7 +153,7 @@ class itbit (Exchange):
         #         "executionId": "23132"
         #     }
         #
-        id = self.safe_string_2(trade, 'executionId')
+        id = self.safe_string_2(trade, 'executionId', 'matchNumber')
         timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
         side = self.safe_string(trade, 'direction')
         orderId = self.safe_string(trade, 'orderId')

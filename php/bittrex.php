@@ -262,9 +262,14 @@ class bittrex extends Exchange {
             $currency = $this->common_currency_code($id);
             $account = $this->account ();
             $balance = $indexed[$id];
-            $free = floatval ($balance['Available']);
-            $total = floatval ($balance['Balance']);
-            $used = $total - $free;
+            $free = $this->safe_float($balance, 'Available', 0);
+            $total = $this->safe_float($balance, 'Balance', 0);
+            $used = null;
+            if ($total !== null) {
+                if ($free !== null) {
+                    $used = $total - $free;
+                }
+            }
             $account['free'] = $free;
             $account['used'] = $used;
             $account['total'] = $total;

@@ -799,7 +799,7 @@ class hitbtc2 extends hitbtc {
         // createMarketOrder
         //
         //  {       $fee => "0.0004644",
-        //           $id =>  386394956,
+        //           id =>  386394956,
         //        $price => "0.4644",
         //     quantity => "1",
         //    $timestamp => "2018-10-25T16:41:44.780Z" }
@@ -810,15 +810,18 @@ class hitbtc2 extends hitbtc {
         //
         $timestamp = $this->parse8601 ($trade['timestamp']);
         $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        } else {
-            $id = $trade['symbol'];
-            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$id];
+        $marketId = $this->safe_string($trade, 'symbol');
+        if ($marketId !== null) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
                 $symbol = $market['symbol'];
             } else {
-                $symbol = $id;
+                $symbol = $marketId;
+            }
+        }
+        if ($symbol === null) {
+            if ($market !== null) {
+                $symbol = $market['symbol'];
             }
         }
         $fee = null;
@@ -1073,9 +1076,21 @@ class hitbtc2 extends hitbtc {
         //
         $created = $this->parse8601 ($this->safe_string($order, 'createdAt'));
         $updated = $this->parse8601 ($this->safe_string($order, 'updatedAt'));
-        if (!$market)
-            $market = $this->markets_by_id[$order['symbol']];
-        $symbol = $market['symbol'];
+        $marketId = $this->safe_string($order, 'symbol');
+        $symbol = null;
+        if ($marketId !== null) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+                $symbol = $market['symbol'];
+            } else {
+                $symbol = $marketId;
+            }
+        }
+        if ($symbol === null) {
+            if ($market !== null) {
+                $symbol = $market['id'];
+            }
+        }
         $amount = $this->safe_float($order, 'quantity');
         $filled = $this->safe_float($order, 'cumQuantity');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));

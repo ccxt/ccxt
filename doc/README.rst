@@ -482,7 +482,7 @@ This library implements full public and private REST APIs for all exchanges. Web
 
 The CCXT library supports both camelcase notation (preferred in JavaScript) and underscore notation (preferred in Python and PHP), therefore all methods can be called in either notation or coding style in any language.
 
-::
+.. code:: javascript
 
    // both of these notations work in JavaScript/Python/PHP
    exchange.methodName ()  // camelcase pseudocode

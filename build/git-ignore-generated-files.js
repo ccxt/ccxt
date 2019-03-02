@@ -1,4 +1,11 @@
-/*  Preambule:
+/*
+    Usage:
+
+        npm run git-ignore-generated-files
+        npm run git-unignore-generated-files
+
+
+    Preambule:
 
         1.  Our build scripts generate a lot of files (e.g. Python and PHP code for exchanges)
         2.  We want them to be ignored from the manual commits.
@@ -17,6 +24,7 @@
 
 */
 
+
 "use strict"
 
 const { execSync } = require ('child_process')
@@ -24,7 +32,7 @@ const log          = require ('ololog')
 
 const files = [
 
-    'build/ccxt.browser.js',
+    'dist/ccxt.browser.js',
 
     'python/test/test_decimal_to_precision.py',
     'php/test/decimal_to_precision.php',
@@ -45,7 +53,7 @@ const files = [
     // NB: Add more generated files here
 ]
 
-for (const id of require ('./exchanges.json').ids) {
+for (const id of require ('../exchanges.json').ids) {
 
     files.push (`python/ccxt/${id}.py`)
     files.push (`python/ccxt/async_support/${id}.py`)

@@ -632,6 +632,7 @@ class bitfinex extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $orderType = $type;
+        // todo => support more $order types (“exchange stop” / “exchange trailing-stop” / “exchange fill-or-kill”)
         if (($type === 'limit') || ($type === 'market'))
             $orderType = 'exchange ' . $type;
         $amount = $this->amount_to_precision($symbol, $amount);

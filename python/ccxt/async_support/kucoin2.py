@@ -232,8 +232,8 @@ class kucoin2 (Exchange):
                     'max': baseMaxSize,
                 },
                 'price': {
-                    'min': max(baseMinSize / quoteMaxSize, quoteIncrement),
-                    'max': baseMaxSize / quoteMinSize,
+                    'min': max(quoteMinSize / baseMinSize, quoteIncrement),
+                    'max': quoteMaxSize / baseMinSize,
                 },
                 'cost': {
                     'min': quoteMinSize,
@@ -545,12 +545,13 @@ class kucoin2 (Exchange):
         clientOid = self.uuid()
         request = {
             'clientOid': clientOid,
-            'price': self.price_to_precision(symbol, price),
             'side': side,
             'size': self.amount_to_precision(symbol, amount),
             'symbol': marketId,
             'type': type,
         }
+        if type != 'market':
+            request['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePostOrders(self.extend(request, params))
         responseData = response['data']
         return {
@@ -1015,7 +1016,7 @@ class kucoin2 (Exchange):
         #     {code: '200000', data: {...}}
         #
         errorCode = self.safe_string(response, 'code')
-        if errorCode in self.exceptions:
-            Exception = self.exceptions[errorCode]
-            message = self.safe_string(response, 'msg', '')
-            raise Exception(self.id + ' ' + message)
+        message = self.safe_string(response, 'msg')
+        ExceptionClass = self.safe_value_2(self.exceptions, message, errorCode)
+        if ExceptionClass is not None:
+            raise ExceptionClass(self.id + ' ' + message)
