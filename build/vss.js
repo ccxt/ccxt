@@ -1,18 +1,19 @@
+// ---------------------------------------------------------------------------
+// Usage:
+//
+//      npm run vss
+// ---------------------------------------------------------------------------
+
 "use strict";
 
-const fs        = require ('fs')
-const ccxt      = require ('./ccxt')
-const countries = require ('./countries')
-const asTable   = require ('as-table')
-const util      = require ('util')
-const log       = require ('ololog')
-const ansi      = require ('ansicolor').nice
+const fs           = require ('fs')
+const log          = require ('ololog')
+const ansi         = require ('ansicolor').nice
+const { execSync } = require ('child_process')
 
 //-----------------------------------------------------------------------------
 
-let packageJSON = fs.readFileSync ('./package.json', 'utf8')
-let config = JSON.parse (packageJSON);
-let version = config.version
+let { version } = require ('../package.json')
 
 //-----------------------------------------------------------------------------
 
@@ -48,9 +49,7 @@ vss ('./python/ccxt/async_support/base/exchange.py', /\_\_version\_\_ \= \'[^\']
 
 //-----------------------------------------------------------------------------
 
-fs.writeFileSync ('./python/package.json', fs.readFileSync ('./package.json'));
-fs.writeFileSync ('./python/LICENSE.txt', fs.readFileSync ('./LICENSE.txt'));
-fs.writeFileSync ('./python/keys.json', fs.readFileSync ('./keys.json'));
+execSync ('cp ./package.json ./LICENSE.txt ./keys.json ./python/')
 
 //-----------------------------------------------------------------------------
 
