@@ -1,5 +1,8 @@
 #!/bin/sh
 
+echo "Pushing to ccxt.wiki"
+pwd
+
 cd ../ccxt.wiki
 cp ../wiki/* .
 git config --global user.email "travis@travis-ci.org"
