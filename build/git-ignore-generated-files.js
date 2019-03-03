@@ -61,8 +61,17 @@ for (const id of require ('../exchanges.json').ids) {
 }
 
 // Filter untracked files (otherwise "git update-index" would fail)
-const untrackedFiles = new Set (execSync ('git ls-files --others --exclude-standard').toString ().split ('\n').filter (s => s.length))
-files = files.filter (f => !untrackedFiles.has (f))
+try {
+    const untrackedFiles = new Set (execSync ('git ls-files --others --exclude-standard').toString ().split ('\n').filter (s => s.length))
+    files = files.filter (f => !untrackedFiles.has (f))
+
+} catch (e) {
+    
+    // There is a legit case when we're not in a git repo (happens on AppVeyor)
+    if (!e.message.toLowerCase ().includes ('not a git repository')) {
+        log.bright.red (e)
+    }
+}
 
 if (process.argv.includes ('--unignore')) {
 
