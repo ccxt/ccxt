@@ -1,8 +1,8 @@
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // Usage:
 //
 //      npm run export-exchanges
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 "use strict";
 
@@ -12,29 +12,21 @@ const asTable   = require ('as-table')
 const execSync  = require ('child_process').execSync
 const log       = require ('ololog').unlimited
 const ansi      = require ('ansicolor').nice
-const { keys, values } = Object
+const { keys, values, entries } = Object
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
-let exchanges
-let verbose = false
+const wikiPath = 'wiki'
+const gitWikiPath = 'build/ccxt.wiki'
 
-// ---------------------------------------------------------------------------
-
-let wikiPath = 'wiki'
-let gitWikiPath = 'build/ccxt.wiki'
-let ccxtCertifiedBadge = '[![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification)'
-let spacing = '&nbsp;'.repeat (7)
-let logoHeading = spacing + 'logo' + spacing
-let tableHeadings = [ logoHeading, 'id', 'name', 'ver', 'doc', 'certified', ]
-let exchangesByCountryHeading = [ 'country / region', ... tableHeadings ]
+// ----------------------------------------------------------------------------
 
 if (!fs.existsSync (gitWikiPath)) {
     log.bright.cyan ('Checking out ccxt.wiki...')
     execSync ('git clone https://github.com/ccxt/ccxt.wiki.git ' + gitWikiPath)
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 function replaceInFile (filename, regex, replacement) {
     log.bright.cyan ('Exporting exchanges →', filename.yellow)
@@ -44,7 +36,7 @@ function replaceInFile (filename, regex, replacement) {
     fs.writeFileSync (filename, newContents)
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 const includedIds = fs.readFileSync ('exchanges.cfg')
     .toString () // Buffer → String
@@ -101,54 +93,65 @@ const pad = function (string, n) {
     replaceInFile (file, regex, replacement)
 })
 
-exchanges = {}
-ids.forEach (id => {
-    exchanges[id] = { 'verbose': verbose, 'apiKey': '', 'secret': '' }
-})
-
 log.bright.green ('Base sources updated successfully.')
 
 // ----------------------------------------------------------------------------
-// strategically placed exactly here
+// strategically placed exactly here (we can require it AFTER the export)
 
 const ccxt = require ('../ccxt.js')
 
 // ----------------------------------------------------------------------------
+// create exchanges
 
-for (let id in exchanges) {
-    ccxt[id].prototype.checkRequiredDependencies = () => {}
-    exchanges[id] = new (ccxt)[id] (exchanges[id])
-    exchanges[id].verbose = verbose
-}
+const checkRequiredDependencies = () => {} // ← suppress it ↓
+const createExchange = id => new (ccxt)[id] ({ checkRequiredDependencies })
+const exchanges = ccxt.indexBy (ids.map (createExchange), 'id')
 
-var countryName = function (code) {
-    return ((countries[code] !== undefined) ? countries[code] : code)
-}
+// ----------------------------------------------------------------------------
+// TODO: REWRITE THIS ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// markup constants and helper functions
+
+const countryName = (code) => countries[code] || code
+
+const ccxtCertifiedBadge = '[![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification)'
+const logoHeading = '&nbsp;'.repeat (7) + 'logo' + '&nbsp;'.repeat (7)
+const tableHeadings = [ logoHeading, 'id', 'name', 'ver', 'doc', 'certified', ]
+const exchangesByCountryHeading = [ 'country / region', ... tableHeadings ]
+
+// ----------------------------------------------------------------------------
 // list all supported exchanges
 
-let tableData = values (exchanges).map (exchange => {
-    let logo = exchange.urls['logo']
-    let website = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
-    let url = exchange.urls.referral || website
-    let countries = Array.isArray (exchange.countries) ? exchange.countries.map (countryName).join (', ') : countryName (exchange.countries)
-    let doc = Array.isArray (exchange.urls.doc) ? exchange.urls.doc[0] : exchange.urls.doc
-    let version = exchange.version ? exchange.version : '\*'
-    let matches = version.match (/[^0-9]*([0-9].*)/)
-    if (matches)
-        version = matches[1];
-    return [
-        '[![' + exchange.id + '](' + logo + ')](' + url + ')',
-        exchange.id,
-        '[' + exchange.name + '](' + url + ')',
-        version,
-        '[API](' + doc + ')',
-        exchange.certified ? ccxtCertifiedBadge : '',
-        countries,
-    ]
-})
+const exchangesNotListedInDocs = [
+    // KuCoin v1 is deprecated, 'kucoin2' renamed to 'kucoin', 'kucoin2' to be removed on 2019-03-30
+    'kucoin2',
+]
 
+let tableData = values (exchanges)
+    .filter (exchange => !exchangesNotListedInDocs.includes (exchange.id))
+    .map (exchange => {
+        let logo = exchange.urls['logo']
+        let website = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
+        let url = exchange.urls.referral || website
+        let countries = Array.isArray (exchange.countries) ? exchange.countries.map (countryName).join (', ') : countryName (exchange.countries)
+        let doc = Array.isArray (exchange.urls.doc) ? exchange.urls.doc[0] : exchange.urls.doc
+        let version = exchange.version ? exchange.version : '\*'
+        let matches = version.match (/[^0-9]*([0-9].*)/)
+        if (matches)
+            version = matches[1];
+        return [
+            '[![' + exchange.id + '](' + logo + ')](' + url + ')',
+            exchange.id,
+            '[' + exchange.name + '](' + url + ')',
+            version,
+            '[API](' + doc + ')',
+            exchange.certified ? ccxtCertifiedBadge : '',
+            countries,
+        ]
+    })
+
+// prepend the table header
 tableData.splice (0, 0, tableHeadings)
 
 function makeTable (jsonArray) {
@@ -245,12 +248,15 @@ let filename = wikiPath + '/Exchange-Markets-By-Country.md'
 fs.truncateSync (filename)
 fs.writeFileSync (filename, result)
 
+// TODO: REWRITE THIS ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
+// ----------------------------------------------------------------------------
+
 log.bright ('Exporting exchange ids to'.cyan, 'exchanges.json'.yellow)
 fs.writeFileSync ('exchanges.json', JSON.stringify ({ ids: keys (exchanges) }, null, 4))
 
 // ----------------------------------------------------------------------------
 
-const ccxtWikiFileMapping = {
+const ccxtWikiFiles = {
     'README.md': 'Home.md',
     'Install.md': 'Install.md',
     'Manual.md': 'Manual.md',
@@ -258,9 +264,9 @@ const ccxtWikiFileMapping = {
     'Exchange-Markets-By-Country.md': 'Exchange-Markets-By-Country.md',
 }
 
-keys (ccxtWikiFileMapping)
-    .forEach (file =>
-        fs.writeFileSync (gitWikiPath + '/' + ccxtWikiFileMapping[file], fs.readFileSync (wikiPath + '/' + file)))
+for (const [ sourceFile, destinationFile ] of entries (ccxtWikiFiles)) {
+    fs.writeFileSync (gitWikiPath + '/' + destinationFile, fs.readFileSync (wikiPath + '/' + sourceFile))
+}
 
 // ----------------------------------------------------------------------------
 
