@@ -7,7 +7,7 @@ const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFund
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class kucoin2 extends Exchange {
+module.exports = class kucoin extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'kucoin',
