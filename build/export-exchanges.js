@@ -138,8 +138,9 @@ let tableData = values (exchanges)
         let doc = Array.isArray (exchange.urls.doc) ? exchange.urls.doc[0] : exchange.urls.doc
         let version = exchange.version ? exchange.version : '\*'
         let matches = version.match (/[^0-9]*([0-9].*)/)
-        if (matches)
+        if (matches) {
             version = matches[1];
+        }
         return [
             '[![' + exchange.id + '](' + logo + ')](' + url + ')',
             exchange.id,
