@@ -103,8 +103,10 @@ const ccxt = require ('../ccxt.js')
 // ----------------------------------------------------------------------------
 // create exchanges
 
-const checkRequiredDependencies = () => {} // ← suppress it ↓
-const createExchange = id => new (ccxt)[id] ({ checkRequiredDependencies })
+const createExchange = (id) => {
+    ccxt[id].prototype.checkRequiredDependencies = () => {} // suppress it
+    return new (ccxt)[id] ()
+}
 const exchanges = ccxt.indexBy (ids.map (createExchange), 'id')
 
 // ----------------------------------------------------------------------------
