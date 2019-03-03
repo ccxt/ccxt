@@ -89,7 +89,12 @@ function gitUpdateIndex (command, allFiles) {
     } catch (e) {
 
         // There is a legit case when we're not in a git repo (happens on AppVeyor)
-        if (!e.message.toLowerCase ().includes ('not a git repository')) throw e
+        if (!e.message.toLowerCase ().includes ('not a git repository')) {
+
+            // do not fail here, as it is not a critical step in the build process (better to let it complete the build)...
+            log.red (e.message)
+            log.bright.yellow.warn (e)
+        }
     }
 }
 
