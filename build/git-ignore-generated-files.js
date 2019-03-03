@@ -79,7 +79,7 @@ function gitUpdateIndex (command, allFiles) {
         const batchSize = process.platform === 'win32' ? 250 : Infinity
 
         for (const files of slice (allFiles, batchSize)) {
-            execSync (`git update-index --ignore-missing --${command} ` + files.join (' '))
+            execSync (`git update-index --${command} ` + files.join (' '))
         }
 
     } catch (e) {
