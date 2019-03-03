@@ -30,7 +30,7 @@
 const { execSync } = require ('child_process')
 const log          = require ('ololog')
 
-const files = [
+let files = [
 
     'dist/ccxt.browser.js',
 
@@ -59,6 +59,10 @@ for (const id of require ('../exchanges.json').ids) {
     files.push (`python/ccxt/async_support/${id}.py`)
     files.push (`php/${id}.php`)
 }
+
+// Filter untracked files (otherwise "git update-index" would fail)
+const untrackedFiles = new Set (execSync ('git ls-files --others --exclude-standard').toString ().split ('\n').filter (s => s.length))
+files = files.filter (f => !untrackedFiles.has (f))
 
 if (process.argv.includes ('--unignore')) {
 
