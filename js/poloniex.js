@@ -242,7 +242,7 @@ module.exports = class poloniex extends Exchange {
             let symbol = base + '/' + quote;
             let minCost = this.safeFloat (this.options['limits']['cost']['min'], quote, 0.0);
             let precision = {
-                'amount': 6,
+                'amount': 8,
                 'price': 8,
             };
             result.push (this.extend (this.fees['trading'], {
