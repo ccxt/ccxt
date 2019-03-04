@@ -65,7 +65,7 @@ module.exports = class coinzip extends Exchange {
                         'api/v2/deposits',
                         'api/v2/deposit/id',
                         'api/v2/orders',
-                        'api/v2/orders/{id}',
+                        'api/v2/order',
                         'api/v2/orders/summary',
                         'api/v2/trades/my',
                     ],
@@ -248,6 +248,14 @@ module.exports = class coinzip extends Exchange {
         };
 
         return this.parseBalance (result);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetApiV2Order (this.extend ({
+            'id': parseInt (id),
+        }, params));
+        return this.parseOrder (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
