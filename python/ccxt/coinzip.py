@@ -191,6 +191,25 @@ class coinzip (Exchange):
         response = self.publicGetK(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privateGetMembersMe()
+        balances = response['accounts']
+        result = {'info': balances}
+        for b in range(0, len(balances)):
+            balance = balances[b]
+            currency = balance['currency']
+            uppercase = currency.upper()
+            account = {
+                'free': float(balance['balance']),
+                'used': float(balance['locked']),
+                'total': 0.0,
+            }
+            account['total'] = self.sum(account['free'], account['used'])
+            result[uppercase] = account
+        return self.parse_balance(result)
+
+
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
