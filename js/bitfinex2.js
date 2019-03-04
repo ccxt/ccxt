@@ -179,7 +179,7 @@ module.exports = class bitfinex2 extends bitfinex {
                     'STOP LIMIT': undefined,
                     'EXCHANGE STOP LIMIT': 'limit stop',
                     'IOC': undefined,
-                    'EXCHANGE IOC': 'limit ico',
+                    'EXCHANGE IOC': 'limit ioc',
                 },
                 'fiat': {
                     'USD': 'USD',
