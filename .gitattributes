@@ -1,5 +1,5 @@
 *.* text eol=lf
-python/php/test/** linguist-generated=true
+php/test/** linguist-generated=true
 python/ccxt/*.py linguist-generated=true
 python/ccxt/exchanges.py linguist-generated=true
 python/ccxt/async/exchanges.py linguist-generated=true
