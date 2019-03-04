@@ -712,6 +712,8 @@ class hitbtc2 (hitbtc):
             'symbol': market['id'],
             'period': self.timeframes[timeframe],
         }
+        if since is not None:
+            request['from'] = self.iso8601(since)
         if limit is not None:
             request['limit'] = limit
         response = await self.publicGetCandlesSymbol(self.extend(request, params))

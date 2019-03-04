@@ -45,7 +45,7 @@ class bcex (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/43362240-21c26622-92ee-11e8-9464-5801ec526d77.jpg',
                 'api': 'https://www.bcex.top',
                 'www': 'https://www.bcex.top',
-                'doc': 'https://www.bcex.top/api_market/market/',
+                'doc': 'https://github.com/BCEX-TECHNOLOGY-LIMITED/API_Docs/wiki/Interface',
                 'fees': 'https://bcex.udesk.cn/hc/articles/57085',
                 'referral': 'https://www.bcex.top/user/reg/type/2/pid/758978',
             },
