@@ -5,6 +5,8 @@ node_modules/
 python/
 php/
 tmp/
+doc/
+wiki/
 .tox/
 .DS_Store
 .nyc_output
