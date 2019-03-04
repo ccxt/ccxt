@@ -1,8 +1,6 @@
 ccxt.egg-info/
-# dist/
 build/
-examples/php/
-examples/py/
+examples/
 node_modules/
 python/
 php/
@@ -10,6 +8,8 @@ tmp/
 .tox/
 .DS_Store
 .nyc_output
+.travis.yml
+appveyor.yml
 *.php
 *.py
 *.pyc
@@ -20,5 +20,11 @@ coverage
 exchanges.json
 ISSUE_TEMPLATE.md
 keys.local.json
+keys.json
 npm-debug.log
 travis-keys.sh
+run-tests.js
+Dockerfile
+docker-compose.yml
+phpunit.xml.dist
+setup.cfg
