@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const { InsufficientFunds, OrderNotFound, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -256,6 +256,52 @@ module.exports = class coinzip extends Exchange {
             'id': parseInt (id),
         }, params));
         return this.parseOrder (response);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined)
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+
+        const market = symbol.replace ('/', '').toLowerCase ();
+        const response = await this.privateGetApiV2Orders (this.extend ({
+            'market': market,
+            'timestamp': since,
+            'limit': limit,
+			'state': 'all'
+        }, params));
+
+
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined)
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+
+        const market = symbol.replace ('/', '').toLowerCase ();
+        const response = await this.privateGetApiV2Orders (this.extend ({
+            'market': market,
+            'timestamp': since,
+            'limit': limit,
+			'state': 'wait'
+        }, params));
+
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined)
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+
+        const market = symbol.replace ('/', '').toLowerCase ();
+        const response = await this.privateGetApiV2Orders (this.extend ({
+            'market': market,
+            'timestamp': since,
+            'limit': limit,
+			'state': 'done'
+        }, params));
+
+        return this.parseOrders (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
