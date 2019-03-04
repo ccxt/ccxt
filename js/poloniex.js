@@ -240,8 +240,6 @@ module.exports = class poloniex extends Exchange {
             const base = this.commonCurrencyCode (baseId);
             const quote = this.commonCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const limits = this.extend (this.limits);
-            const precision = this.extend (this.precision);
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -250,8 +248,6 @@ module.exports = class poloniex extends Exchange {
                 'base': base,
                 'quote': quote,
                 'active': market['isFrozen'] !== '1',
-                'precision': precision,
-                'limits': limits,
                 'info': market,
             }));
         }
