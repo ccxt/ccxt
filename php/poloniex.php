@@ -113,7 +113,7 @@ class poloniex extends Exchange {
             ),
             'limits' => array (
                 'amount' => array (
-                    'min' => 0.00000001,
+                    'min' => 0.000001,
                     'max' => 1000000000,
                 ),
                 'price' => array (
@@ -241,11 +241,6 @@ class poloniex extends Exchange {
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $minCost = $this->safe_float($this->options['limits']['cost']['min'], $quote, 0.0);
-            $precision = array (
-                'amount' => 6,
-                'price' => 8,
-            );
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -254,21 +249,6 @@ class poloniex extends Exchange {
                 'base' => $base,
                 'quote' => $quote,
                 'active' => $market['isFrozen'] !== '1',
-                'precision' => $precision,
-                'limits' => array (
-                    'amount' => array (
-                        'min' => pow (10, -$precision['amount']),
-                        'max' => null,
-                    ),
-                    'price' => array (
-                        'min' => pow (10, -$precision['price']),
-                        'max' => null,
-                    ),
-                    'cost' => array (
-                        'min' => $minCost,
-                        'max' => null,
-                    ),
-                ),
                 'info' => $market,
             ));
         }

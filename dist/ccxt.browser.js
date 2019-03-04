@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.326'
+const version = '1.18.327'
 
 Exchange.ccxtVersion = version
 
@@ -56497,7 +56497,7 @@ module.exports = class poloniex extends Exchange {
             },
             'limits': {
                 'amount': {
-                    'min': 0.00000001,
+                    'min': 0.000001,
                     'max': 1000000000,
                 },
                 'price': {
@@ -56615,21 +56615,16 @@ module.exports = class poloniex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let markets = await this.publicGetReturnTicker ();
-        let keys = Object.keys (markets);
-        let result = [];
+        const markets = await this.publicGetReturnTicker ();
+        const keys = Object.keys (markets);
+        const result = [];
         for (let p = 0; p < keys.length; p++) {
-            let id = keys[p];
-            let market = markets[id];
-            let [ quoteId, baseId ] = id.split ('_');
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
-            let minCost = this.safeFloat (this.options['limits']['cost']['min'], quote, 0.0);
-            let precision = {
-                'amount': 6,
-                'price': 8,
-            };
+            const id = keys[p];
+            const market = markets[id];
+            const [ quoteId, baseId ] = id.split ('_');
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -56638,21 +56633,6 @@ module.exports = class poloniex extends Exchange {
                 'base': base,
                 'quote': quote,
                 'active': market['isFrozen'] !== '1',
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': Math.pow (10, -precision['amount']),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': minCost,
-                        'max': undefined,
-                    },
-                },
                 'info': market,
             }));
         }
