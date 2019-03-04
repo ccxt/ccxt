@@ -88,6 +88,7 @@ class binance (Exchange):
                 'wapi': {
                     'post': [
                         'withdraw',
+                        'sub-account/transfer',
                     ],
                     'get': [
                         'depositHistory',
@@ -95,9 +96,13 @@ class binance (Exchange):
                         'depositAddress',
                         'accountStatus',
                         'systemStatus',
+                        'apiTradingStatus',
                         'userAssetDribbletLog',
                         'tradeFee',
                         'assetDetail',
+                        'sub-account/list',
+                        'sub-account/transfer/history',
+                        'sub-account/assets',
                     ],
                 },
                 'v3': {

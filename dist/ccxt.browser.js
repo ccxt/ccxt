@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.330'
+const version = '1.18.331'
 
 Exchange.ccxtVersion = version
 
@@ -6615,6 +6615,7 @@ module.exports = class binance extends Exchange {
                 'wapi': {
                     'post': [
                         'withdraw',
+                        'sub-account/transfer',
                     ],
                     'get': [
                         'depositHistory',
@@ -6622,9 +6623,13 @@ module.exports = class binance extends Exchange {
                         'depositAddress',
                         'accountStatus',
                         'systemStatus',
+                        'apiTradingStatus',
                         'userAssetDribbletLog',
                         'tradeFee',
                         'assetDetail',
+                        'sub-account/list',
+                        'sub-account/transfer/history',
+                        'sub-account/assets',
                     ],
                 },
                 'v3': {

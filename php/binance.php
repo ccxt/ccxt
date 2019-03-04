@@ -76,6 +76,7 @@ class binance extends Exchange {
                 'wapi' => array (
                     'post' => array (
                         'withdraw',
+                        'sub-account/transfer',
                     ),
                     'get' => array (
                         'depositHistory',
@@ -83,9 +84,13 @@ class binance extends Exchange {
                         'depositAddress',
                         'accountStatus',
                         'systemStatus',
+                        'apiTradingStatus',
                         'userAssetDribbletLog',
                         'tradeFee',
                         'assetDetail',
+                        'sub-account/list',
+                        'sub-account/transfer/history',
+                        'sub-account/assets',
                     ),
                 ),
                 'v3' => array (
