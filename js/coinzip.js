@@ -35,10 +35,22 @@ module.exports = class coinzip extends Exchange {
                 'deposit': false,
                 'withdraw': false
             },
+            'timeframes': {
+                '1m': '1',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '2h': '120',
+                '4h': '240',
+                '12h': '720',
+                '1d': '1440',
+                '3d': '4320',
+                '1w': '10080',
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/coinzip.logo.jpg',
-                // 'api': 'https://coinzip.co',
-                'api': 'http://localhost:3000',
+				'api': 'https://coinzip.co',
                 'www': 'https://coinzip.co',
                 'documents': 'https://coinzip.co/documents/api_v2'
             },
