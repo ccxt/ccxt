@@ -264,11 +264,21 @@ module.exports = class coinzip extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const result = await this.privatePostApiV2OrderDelete ({ 'id': id });
+        const order  = this.parseOrder (result);
+        if (order.status === 'closed' || order.status === 'canceled') {
+            throw new OrderNotFound (this.id + ' ' + this.json (order));
+        }
+        return order;
+    }
+
     parseOrder (order, market = undefined) {
         const status = (() => {
             if (order.state === 'done') return 'closed';
             if (order.state === 'wait') return 'open';
-            return 'cancelled';
+            return 'canceled';
         })();
         const symbol = (() => {
             if (market !== undefined) return market.symbol;
