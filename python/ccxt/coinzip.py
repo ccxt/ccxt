@@ -52,8 +52,7 @@ class coinzip (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/coinzip.logo.jpg',
-                #  'api': 'https://coinzip.co',
-                'api': 'http://localhost:3000',
+                'api': 'https://coinzip.co',
                 'www': 'https://coinzip.co',
                 'documents': 'https://coinzip.co/documents/api_v2'
             },
