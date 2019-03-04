@@ -704,6 +704,9 @@ module.exports = class hitbtc2 extends hitbtc {
             'symbol': market['id'],
             'period': this.timeframes[timeframe],
         };
+        if (since !== undefined) {
+            request['from'] = this.iso8601 (since);
+        }
         if (limit !== undefined)
             request['limit'] = limit;
         let response = await this.publicGetCandlesSymbol (this.extend (request, params));
