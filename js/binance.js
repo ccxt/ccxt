@@ -13,7 +13,7 @@ module.exports = class binance extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'binance',
             'name': 'Binance',
-            'countries': [ 'JP' ], // Japan
+            'countries': [ 'JP', 'MT' ], // Japan, Malta
             'rateLimit': 500,
             'certified': true,
             // new metainfo interface
