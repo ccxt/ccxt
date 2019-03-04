@@ -176,6 +176,29 @@ class coinzip (Exchange):
         timestamp = orderbook['timestamp'] * 1000
         return self.parse_order_book(orderbook, timestamp)
 
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        if limit is None:
+            limit = 500  # default is 30
+        request = {
+            'market': market['id'],
+            'period': self.timeframes[timeframe],
+            'limit': limit,
+        }
+        if since is not None:
+            request['timestamp'] = since
+        response = self.publicGetK(self.extend(request, params))
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        response = self.publicGetTrades(self.extend({
+            'market': market['id'],
+        }, params))
+        return self.parse_trades(response, market, since, limit)
+
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['at'] * 1000
         ticker = ticker['ticker']
@@ -238,6 +261,31 @@ class coinzip (Exchange):
             'trades': None,
             'fee': None,
             'info': order,
+        }
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        return [
+            ohlcv[0] * 1000,
+            ohlcv[1],
+            ohlcv[2],
+            ohlcv[3],
+            ohlcv[4],
+            ohlcv[5],
+        ]
+
+    def parse_trade(self, trade, market=None):
+        timestamp = self.parse8601(trade['created_at'])
+        return {
+            'id': str(trade['id']),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': None,
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'volume'),
+            'cost': self.safe_float(trade, 'funds'),
+            'info': trade,
         }
 
     def nonce(self):
