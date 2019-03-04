@@ -26,8 +26,6 @@ Current feature list:
 
 ## See Also
 
-Nomics API - 
-
 - <sub>[![Nomics API](https://user-images.githubusercontent.com/1294454/50313498-99ab1680-04bc-11e9-9f78-6cfe6790bf97.png)](https://nomics.com)</sub>&nbsp; **[Nomics API](https://p.nomics.com/cryptocurrency-bitcoin-api)** &nbsp;– &nbsp;enterprise-grade crypto market data API for your fund, smart contract, or app.
 
 <!--
