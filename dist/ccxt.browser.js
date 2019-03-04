@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.329'
+const version = '1.18.330'
 
 Exchange.ccxtVersion = version
 
@@ -9149,7 +9149,7 @@ module.exports = class bitfinex extends Exchange {
                 'api': 'https://api.bitfinex.com',
                 'www': 'https://www.bitfinex.com',
                 'doc': [
-                    'https://bitfinex.readme.io/v1/docs',
+                    'https://docs.bitfinex.com/v1/docs',
                     'https://github.com/bitfinexcom/bitfinex-api-node',
                 ],
             },
@@ -10156,7 +10156,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'api': 'https://api.bitfinex.com',
                 'www': 'https://www.bitfinex.com',
                 'doc': [
-                    'https://bitfinex.readme.io/v2/docs',
+                    'https://docs.bitfinex.com/v2/docs/',
                     'https://github.com/bitfinexcom/bitfinex-api-node',
                 ],
                 'fees': 'https://www.bitfinex.com/fees',
@@ -10236,12 +10236,12 @@ module.exports = class bitfinex2 extends bitfinex {
                 },
                 'funding': {
                     'withdraw': {
-                        'BTC': 0.0005,
-                        'BCH': 0.0005,
-                        'ETH': 0.01,
-                        'EOS': 0.1,
+                        'BTC': 0.0004,
+                        'BCH': 0.0001,
+                        'ETH': 0.00135,
+                        'EOS': 0.0,
                         'LTC': 0.001,
-                        'OMG': 0.1,
+                        'OMG': 0.15097,
                         'IOT': 0.0,
                         'NEO': 0.0,
                         'ETC': 0.01,
@@ -10250,19 +10250,19 @@ module.exports = class bitfinex2 extends bitfinex {
                         'ZEC': 0.001,
                         'BTG': 0.0,
                         'DASH': 0.01,
-                        'XMR': 0.04,
+                        'XMR': 0.0001,
                         'QTM': 0.01,
-                        'EDO': 0.5,
-                        'DAT': 1.0,
-                        'AVT': 0.5,
-                        'SAN': 0.1,
+                        'EDO': 0.23687,
+                        'DAT': 9.8858,
+                        'AVT': 1.1251,
+                        'SAN': 0.35977,
                         'USDT': 5.0,
-                        'SPK': 9.2784,
-                        'BAT': 9.0883,
-                        'GNT': 8.2881,
-                        'SNT': 14.303,
-                        'QASH': 3.2428,
-                        'YYW': 18.055,
+                        'SPK': 16.971,
+                        'BAT': 1.1209,
+                        'GNT': 2.8789,
+                        'SNT': 9.0848,
+                        'QASH': 1.726,
+                        'YYW': 7.9464,
                     },
                 },
             },
@@ -10281,7 +10281,7 @@ module.exports = class bitfinex2 extends bitfinex {
                     'STOP LIMIT': undefined,
                     'EXCHANGE STOP LIMIT': 'limit stop',
                     'IOC': undefined,
-                    'EXCHANGE IOC': 'limit ico',
+                    'EXCHANGE IOC': 'limit ioc',
                 },
                 'fiat': {
                     'USD': 'USD',
@@ -16061,7 +16061,7 @@ module.exports = class bittrex extends Exchange {
                     'tierBased': false,
                     'percentage': false,
                     'withdraw': {
-                        'BTC': 0.001,
+                        'BTC': 0.0005,
                         'LTC': 0.01,
                         'DOGE': 2,
                         'VTC': 0.02,
@@ -16069,8 +16069,14 @@ module.exports = class bittrex extends Exchange {
                         'FTC': 0.2,
                         'RDD': 2,
                         'NXT': 2,
-                        'DASH': 0.002,
+                        'DASH': 0.05,
                         'POT': 0.002,
+                        'BLK': 0.02,
+                        'EMC2': 0.2,
+                        'XMY': 0.2,
+                        'GLD': 0.0002,
+                        'SLR': 0.2,
+                        'GRS': 0.2,
                     },
                     'deposit': {
                         'BTC': 0,
@@ -16083,6 +16089,12 @@ module.exports = class bittrex extends Exchange {
                         'NXT': 0,
                         'DASH': 0,
                         'POT': 0,
+                        'BLK': 0,
+                        'EMC2': 0,
+                        'XMY': 0,
+                        'GLD': 0,
+                        'SLR': 0,
+                        'GRS': 0,
                     },
                 },
             },
