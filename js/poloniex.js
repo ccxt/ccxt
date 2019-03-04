@@ -241,7 +241,7 @@ module.exports = class poloniex extends Exchange {
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let minCost = this.safeFloat (this.options['limits']['cost']['min'], quote, 0.0);
-            let precision = this.extend (precision);
+            let precision = this.extend (this.precision);
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
