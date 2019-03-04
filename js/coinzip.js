@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, DDoSProtection } = require ('./base/errors');
+const { InsufficientFunds, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -32,6 +32,8 @@ module.exports = class coinzip extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'deposit': false,
+                'withdraw': false
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/coinzip.logo.jpg',
@@ -74,7 +76,11 @@ module.exports = class coinzip extends Exchange {
                         'api/v2/order/delete'
                     ]
                 }
-            }
+            },
+            'exceptions': {
+                '2002': InsufficientFunds,
+                '2003': OrderNotFound,
+            },
         });
     }
 
@@ -242,6 +248,51 @@ module.exports = class coinzip extends Exchange {
         };
 
         return this.parseBalance (result);
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const order = {
+            market: this.marketId (symbol).toLowerCase (),
+            volume: amount.toString (),
+            ord_type: type,
+            side,
+            ...((type === 'limit') && { price: price.toString () })
+        }
+        const response = await this.privatePostApiV2Orders (this.extend (order, params));
+        const market = this.markets_by_id[response['market']];
+        return this.parseOrder (response, market);
+    }
+
+    parseOrder (order, market = undefined) {
+        const status = (() => {
+            if (order.state === 'done') return 'closed';
+            if (order.state === 'wait') return 'open';
+            return 'cancelled';
+        })();
+        const symbol = (() => {
+            if (market !== undefined) return market.symbol;
+            const marketId = order.market.toUpperCase ();
+            return this.markets_by_id[marketId]['symbol'];
+        })();
+        const timestamp = this.parse8601 (order['created_at']);
+        return {
+            'id': order.id.toString (),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'symbol': symbol,
+            'type': order.ord_type,
+            'side': order.side,
+            'price': this.safeFloat (order, 'price'),
+            'amount': this.safeFloat (order, 'volume'),
+            'filled': this.safeFloat (order, 'executed_volume'),
+            'remaining': this.safeFloat (order, 'remaining_volume'),
+            'trades': undefined,
+            'fee': undefined,
+            'info': order,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
