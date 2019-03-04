@@ -1,13 +1,4 @@
 *.* text eol=lf
 php/test/*.php linguist-generated=true
 python/ccxt/*.py linguist-generated=true
-python/ccxt/exchanges.py linguist-generated=true
-python/ccxt/async/exchanges.py linguist-generated=true
-python/ccxt/async/__init__.py linguist-generated=false
-python/ccxt/async/exchange.py linguist-generated=false
 python/ccxt/__init__.py linguist-generated=false
-python/ccxt/errors.py linguist-generated=false
-python/ccxt/exchange.py linguist-generated=false
-python/ccxt/version.py linguist-generated=false
-ccxt.js linguist-generated=false
-ccxt.php linguist-generated=false
