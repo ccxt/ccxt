@@ -61,32 +61,32 @@ module.exports = class coinzip extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'api/v2/markets',
-                        'api/v2/tickers',
-                        'api/v2/tickers/{market}',
-                        'api/v2/order_book',
-                        'api/v2/depth',
-                        'api/v2/trades',
-                        'api/v2/k',
-                        'api/v2/k_with_pending_trades',
-                        'api/v2/timestamp'
+                        'markets',
+                        'tickers',
+                        'tickers/{market}',
+                        'order_book',
+                        'depth',
+                        'trades',
+                        'k',
+                        'k_with_pending_trades',
+                        'timestamp'
                     ]
                 },
                 'private': {
                     'get': [
-                        'api/v2/members/me',
-                        'api/v2/deposits',
-                        'api/v2/deposit/id',
-                        'api/v2/orders',
-                        'api/v2/order',
-                        'api/v2/orders/summary',
-                        'api/v2/trades/my',
+                        'members/me',
+                        'deposits',
+                        'deposit/id',
+                        'orders',
+                        'order',
+                        'orders/summary',
+                        'trades/my',
                     ],
                     'post': [
-                        'api/v2/orders',
-                        'api/v2/orders/multi',
-                        'api/v2/orders/clear',
-                        'api/v2/order/delete'
+                        'orders',
+                        'orders/multi',
+                        'orders/clear',
+                        'order/delete'
                     ]
                 }
             },
@@ -99,7 +99,7 @@ module.exports = class coinzip extends Exchange {
 
     async fetchTickers (params = {}) {
         await this.loadMarkets ();
-        const tickers = await this.publicGetApiV2Tickers (params);
+        const tickers = await this.publicGetTickers (params);
         return Object.keys(tickers).reduce((obj, k) => {
             const { at, ticker } = tickers[k];
             const timestamp = at * 1000;
@@ -140,7 +140,7 @@ module.exports = class coinzip extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchTicker requires a symbol argument');
 
         const market = symbol.replace ('/', '').toLowerCase ();
-        const tickerObj = await this.publicGetApiV2TickersMarket ({ market });
+        const tickerObj = await this.publicGetTickersMarket ({ market });
         const { at, ticker } = tickerObj;
         const timestamp = at * 1000;
 
@@ -169,7 +169,7 @@ module.exports = class coinzip extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const markets = await this.publicGetApiV2Markets (params);
+        const markets = await this.publicGetMarkets (params);
 
         return markets.map(m => ({
             'id': m.id.toUpperCase (),
@@ -205,7 +205,7 @@ module.exports = class coinzip extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrderBook requires a symbol argument');
 
         const market = symbol.replace ('/', '').toLowerCase ();
-        const orderbook = await this.publicGetApiV2OrderBook (this.extend ({
+        const orderbook = await this.publicGetOrderBook (this.extend ({
             'market': market,
             'asks_limit': limit,
             'bids_limit': limit
@@ -220,7 +220,7 @@ module.exports = class coinzip extends Exchange {
 
         const market = symbol.replace ('/', '').toLowerCase ();
         const query = this.extend ({ market, period, timestamp, limit}, params)
-        return await this.publicGetApiV2K(query)
+        return await this.publicGetK(query)
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -228,7 +228,7 @@ module.exports = class coinzip extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchTrades requires a symbol argument');
 
         const market = symbol.replace ('/', '').toLowerCase ();
-        const trades = await this.publicGetApiV2Trades (this.extend ({
+        const trades = await this.publicGetTrades (this.extend ({
             'market': market,
             'timestamp': since,
             'limit': limit
@@ -242,7 +242,7 @@ module.exports = class coinzip extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
 
         const market = symbol.replace ('/', '').toLowerCase ();
-        const response = await this.privateGetApiV2TradesMy (this.extend ({
+        const response = await this.privateGetTradesMy (this.extend ({
             'market': market,
             'timestamp': since,
             'limit': limit
@@ -252,7 +252,7 @@ module.exports = class coinzip extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        const { accounts: balances } = await this.privateGetApiV2MembersMe ();
+        const { accounts: balances } = await this.privateGetMembersMe ();
         const mappedBalances = balances.reduce((obj, { balance, locked, currency }) => {
             const free = parseFloat (balance);
             const used = parseFloat (locked);
@@ -275,7 +275,7 @@ module.exports = class coinzip extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetApiV2Order (this.extend ({
+        const response = await this.privateGetOrder (this.extend ({
             'id': parseInt (id),
         }, params));
         return this.parseOrder (response);
@@ -286,7 +286,7 @@ module.exports = class coinzip extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
 
         const market = symbol.replace ('/', '').toLowerCase ();
-        const response = await this.privateGetApiV2Orders (this.extend ({
+        const response = await this.privateGetOrders (this.extend ({
             'market': market,
             'timestamp': since,
             'limit': limit,
@@ -302,7 +302,7 @@ module.exports = class coinzip extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
 
         const market = symbol.replace ('/', '').toLowerCase ();
-        const response = await this.privateGetApiV2Orders (this.extend ({
+        const response = await this.privateGetOrders (this.extend ({
             'market': market,
             'timestamp': since,
             'limit': limit,
@@ -317,7 +317,7 @@ module.exports = class coinzip extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
 
         const market = symbol.replace ('/', '').toLowerCase ();
-        const response = await this.privateGetApiV2Orders (this.extend ({
+        const response = await this.privateGetOrders (this.extend ({
             'market': market,
             'timestamp': since,
             'limit': limit,
@@ -339,14 +339,14 @@ module.exports = class coinzip extends Exchange {
             side,
             ...((type === 'limit') && { price: price.toString () })
         }
-        const response = await this.privatePostApiV2Orders (this.extend (order, params));
+        const response = await this.privatePostOrders (this.extend (order, params));
         const market = this.markets_by_id[response['market']];
         return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const result = await this.privatePostApiV2OrderDelete ({ 'id': id });
+        const result = await this.privatePostOrderDelete ({ 'id': id });
         const order  = this.parseOrder (result);
         if (order.status === 'closed' || order.status === 'canceled') {
             throw new OrderNotFound (this.id + ' ' + this.json (order));
@@ -403,7 +403,7 @@ module.exports = class coinzip extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/' + this.implodeParams (path, params);
+        let request = '/api/' + this.version + '/' + this.implodeParams (path, params);
         if ('extension' in this.urls)
             request += this.urls['extension'];
         let query = this.omit (params, this.extractParams (path));
