@@ -218,6 +218,27 @@ class coinzip (Exchange):
         }, params))
         return self.parse_trades(response, market, since, limit)
 
+    def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        response = self.privateGetOrder(self.extend({
+            'id': int(id),
+        }, params))
+        return self.parse_order(response)
+
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
+        self.load_markets()
+        order = {
+            'market': self.market_id(symbol),
+            'side': side,
+            'volume': str(amount),
+            'ord_type': type,
+        }
+        if type == 'limit':
+            order['price'] = str(price)
+        response = self.privatePostOrders(self.extend(order, params))
+        market = self.markets_by_id[response['market']]
+        return self.parse_order(response, market)
+
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['at'] * 1000
         ticker = ticker['ticker']
