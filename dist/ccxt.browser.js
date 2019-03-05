@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.338'
+const version = '1.18.339'
 
 Exchange.ccxtVersion = version
 
@@ -1070,6 +1070,9 @@ module.exports = class anxpro extends Exchange {
                 'fetchCurrencies': true,
                 'fetchOHLCV': false,
                 'fetchTrades': false,
+                'fetchOpenOrders': true,
+                'fetchDepositAddress': true,
+                'createDepositAddress': false,
                 'withdraw': true,
             },
             'urls': {
@@ -1448,6 +1451,145 @@ module.exports = class anxpro extends Exchange {
         throw new ExchangeError (this.id + ' switched off the trades endpoint, see their docs at https://docs.anxv2.apiary.io');
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        const request = {
+            'currency_pair': market['id'],
+        };
+        // ANXPro will return all symbol pairs regardless of what is specified in request
+        const response = await this.privatePostCurrencyPairMoneyOrders (this.extend (request, params));
+        //
+        //     {
+        //         "result": "success",
+        //         "data": [
+        //             {
+        //                 "oid": "e74305c7-c424-4fbc-a8a2-b41d8329deb0",
+        //                 "currency": "HKD",
+        //                 "item": "BTC",
+        //                 "type": "offer",
+        //                 "amount": {
+        //                     "currency": "BTC",
+        //                     "display": "10.00000000 BTC",
+        //                     "display_short": "10.00 BTC",
+        //                     "value": "10.00000000",
+        //                     "value_int": "1000000000"
+        //                 },
+        //                 "effective_amount": {
+        //                     "currency": "BTC",
+        //                     "display": "10.00000000 BTC",
+        //                     "display_short": "10.00 BTC",
+        //                     "value": "10.00000000",
+        //                     "value_int": "1000000000"
+        //                 },
+        //                 "price": {
+        //                     "currency": "HKD",
+        //                     "display": "412.34567 HKD",
+        //                     "display_short": "412.35 HKD",
+        //                     "value": "412.34567",
+        //                     "value_int": "41234567"
+        //                 },
+        //                 "status": "open",
+        //                 "date": 1393411075000,
+        //                 "priority": 1393411075000000,
+        //                 "actions": []
+        //             },
+        //            ...
+        //         ]
+        //     }
+        //
+        return this.parseOrders (this.safeValue (response, 'data', {}), symbol, since, limit);
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        //     {
+        //       "oid": "e74305c7-c424-4fbc-a8a2-b41d8329deb0",
+        //       "currency": "HKD",
+        //       "item": "BTC",
+        //       "type": "offer",  <-- bid/offer
+        //       "amount": {
+        //         "currency": "BTC",
+        //         "display": "10.00000000 BTC",
+        //         "display_short": "10.00 BTC",
+        //         "value": "10.00000000",
+        //         "value_int": "1000000000"
+        //       },
+        //       "effective_amount": {
+        //         "currency": "BTC",
+        //         "display": "10.00000000 BTC",
+        //         "display_short": "10.00 BTC",
+        //         "value": "10.00000000",
+        //         "value_int": "1000000000"
+        //       },
+        //       "price": {
+        //         "currency": "HKD",
+        //         "display": "412.34567 HKD",
+        //         "display_short": "412.35 HKD",
+        //         "value": "412.34567",
+        //         "value_int": "41234567"
+        //       },
+        //       "status": "open",
+        //       "date": 1393411075000,
+        //       "priority": 1393411075000000,
+        //       "actions": []
+        //     }
+        //
+        let id = this.safeString (order, 'oid');
+        let status = this.safeString (order, 'status');
+        let timestamp = this.safeInteger (order, 'date');
+        const baseId = this.safeString (order, 'item');
+        const quoteId = this.safeString (order, 'currency');
+        const marketId = baseId + '/' + quoteId;
+        market = this.safeValue (this.markets_by_id, marketId);
+        let symbol = undefined;
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+        }
+        let amount_info = this.safeValue (order, 'amount', {});
+        let effective_info = this.safeValue (order, 'effective_amount', {});
+        let price_info = this.safeValue (order, 'price', {});
+        let remaining = this.safeFloat (effective_info, 'value');
+        let amount = this.safeFloat (amount_info, 'volume');
+        let price = this.safeFloat (price_info, 'value');
+        let filled = undefined;
+        let cost = undefined;
+        if (typeof amount !== 'undefined') {
+            if (typeof remaining !== 'undefined') {
+                filled = amount - remaining;
+                cost = price * filled;
+            }
+        }
+        let orderType = 'limit';
+        let side = this.safeString (order, 'type');
+        if (side === 'offer') {
+            side = 'sell';
+        } else {
+            side = 'buy';
+        }
+        let fee = undefined;
+        let trades = undefined; // todo parse trades
+        let lastTradeTimestamp = undefined;
+        return {
+            'info': order,
+            'id': id,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'type': orderType,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'remaining': remaining,
+            'filled': filled,
+            'status': status,
+            'fee': fee,
+            'trades': trades,
+        };
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let market = this.market (symbol);
         let order = {
@@ -1498,6 +1640,23 @@ module.exports = class anxpro extends Exchange {
         return {
             'info': response,
             'id': response['data']['transactionId'],
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let request = {
+            'currency': currency['id'],
+        };
+        let response = await this.privatePostMoneyCurrencyAddress (this.extend (request, params));
+        let result = response['data'];
+        let address = this.safeString (result, 'addr');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'info': response,
         };
     }
 
@@ -35561,6 +35720,8 @@ module.exports = class dsx extends liqui {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': false,
                 'fetchOrderBooks': false,
+                'createDepositAddress': true,
+                'fetchDepositAddress': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
@@ -35728,6 +35889,32 @@ module.exports = class dsx extends liqui {
         return this.parseBalance (result);
     }
 
+    async createDepositAddress (code, params = {}) {
+        const request = {
+            'new': 1,
+        };
+        const response = await this.fetchDepositAddress (code, this.extend (request, params));
+        return response;
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.dwapiPostDepositCryptoaddress (this.extend (request, params));
+        const result = this.safeValue (response, 'return', {});
+        const address = this.safeString (result, 'address');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': undefined, // not documented in DSX API
+            'info': response,
+        };
+    }
+
     parseTicker (ticker, market = undefined) {
         //
         //   {    high:  0.03492,
@@ -35882,6 +36069,89 @@ module.exports = class dsx extends liqui {
             '7': 'canceled', // Rejected
         };
         return this.safeString (statuses, status, status);
+    }
+
+    parseTrade (trade, market = undefined) {
+        // { "pair": "btcusd",
+        //   "type": "buy",
+        //   "volume": 0.0595,
+        //   "rate": 9750,
+        //   "orderId": 77149299,
+        //   "timestamp": 1519612317,
+        //   "commission": 0.00020825,
+        //   "commissionCurrency": "btc" }
+        // #####
+        // {  "amount" : 0.0128,
+        //    "price" : 6483.99000,
+        //    "timestamp" : 1540334614,
+        //    "tid" : 35684364,
+        //    "type" : "ask" }
+        //
+        let timestamp = this.safeInteger (trade, 'timestamp');
+        if (timestamp !== undefined) {
+            timestamp = timestamp * 1000;
+        }
+        let side = this.safeString (trade, 'type');
+        if (side === 'ask') {
+            side = 'sell';
+        } else if (side === 'bid') {
+            side = 'buy';
+        }
+        let price = this.safeFloat2 (trade, 'rate', 'price');
+        let id = this.safeString2 (trade, 'trade_id', 'tid');
+        let order = this.safeString (trade, 'orderId');
+        if ('pair' in trade) {
+            let marketId = this.safeString (trade, 'pair');
+            market = this.safeValue (this.markets_by_id, marketId, market);
+        }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        let amount = this.safeFloat2 (trade, 'amount', 'volume');
+        let type = 'limit'; // all trades are still limit trades
+        let takerOrMaker = undefined;
+        let fee = undefined;
+        let feeCost = this.safeFloat (trade, 'commission');
+        if (feeCost !== undefined) {
+            let feeCurrencyId = this.safeString (trade, 'commissionCurrency');
+            feeCurrencyId = feeCurrencyId.toUpperCase ();
+            let feeCurrency = this.safeValue (this.currencies_by_id, feeCurrencyId);
+            let feeCurrencyCode = undefined;
+            if (feeCurrency !== undefined) {
+                feeCurrencyCode = feeCurrency['code'];
+            } else {
+                feeCurrencyCode = this.commonCurrencyCode (feeCurrencyId);
+            }
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
+        let isYourOrder = this.safeValue (trade, 'is_your_order');
+        if (isYourOrder !== undefined) {
+            takerOrMaker = 'taker';
+            if (isYourOrder) {
+                takerOrMaker = 'maker';
+            }
+            if (fee === undefined) {
+                fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
+            }
+        }
+        return {
+            'id': id,
+            'order': order,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'amount': amount,
+            'fee': fee,
+            'info': trade,
+        };
     }
 
     parseOrder (order, market = undefined) {
@@ -36040,7 +36310,7 @@ module.exports = class dsx extends liqui {
             // 'endId': 321, // Decimal, ID of the last order of the selection
             // 'order': 'ASC', // String, Order in which orders shown. Possible values are "ASC" — from first to last, "DESC" — from last to first.
         };
-        const response = await this.privatePostHistoryOrders (this.extend (request, params));
+        const response = await this.privatePostOrders (this.extend (request, params));
         //
         //     {
         //       "success": 1,
@@ -36058,7 +36328,7 @@ module.exports = class dsx extends liqui {
         //       }
         //     }
         //
-        return this.parseOrdersById (this.safeValue (response, 'return', {}));
+        return this.parseOrdersById (this.safeValue (response, 'return', {}), symbol, since, limit);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -36087,7 +36357,47 @@ module.exports = class dsx extends liqui {
         //       }
         //     }
         //
-        return this.parseOrdersById (this.safeValue (response, 'return', {}));
+        return this.parseOrdersById (this.safeValue (response, 'return', {}), symbol, since, limit);
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][api];
+        let query = this.omit (params, this.extractParams (path));
+        if (api === 'private' || api === 'dwapi') {
+            url += this.getPrivatePath (path, params);
+            this.checkRequiredCredentials ();
+            let nonce = this.nonce ();
+            body = this.urlencode (this.extend ({
+                'nonce': nonce,
+                'method': path,
+            }, query));
+            let signature = this.signBodyWithSecret (body);
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Key': this.apiKey,
+                'Sign': signature,
+            };
+        } else if (api === 'public') {
+            url += this.getVersionString () + '/' + this.implodeParams (path, params);
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
+        } else {
+            url += '/' + this.implodeParams (path, params);
+            if (method === 'GET') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            } else {
+                if (Object.keys (query).length) {
+                    body = this.json (query);
+                    headers = {
+                        'Content-Type': 'application/json',
+                    };
+                }
+            }
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
 
