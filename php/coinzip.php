@@ -51,8 +51,7 @@ class coinzip extends Exchange {
             ),
             'urls' => array (
                 'logo' =>  'https://user-images.githubusercontent.com/coinzip.logo.jpg',
-                // 'api' =>  'https://coinzip.co',
-                'api' =>  'http://localhost:3000',
+                'api' =>  'https://coinzip.co',
                 'www' =>  'https://coinzip.co',
                 'documents' =>  'https://coinzip.co/documents/api_v2',
             ),
@@ -97,5 +96,202 @@ class coinzip extends Exchange {
                 '2003' => '\\ccxt\\OrderNotFound',
             ),
         ));
+    }
+
+    public function fetch_markets ($params = array ()) {
+        $markets = $this->publicGetMarkets ();
+        $result = array ();
+        for ($p = 0; $p < count ($markets); $p++) {
+            $market = $markets[$p];
+            $id = $market['id'];
+            $symbol = $market['name'];
+            $baseId = $this->safe_string($market, 'base_unit');
+            $quoteId = $this->safe_string($market, 'quote_unit');
+            if (($baseId === null) || ($quoteId === null)) {
+                $ids = explode ('/', $symbol);
+                $baseId = strtolower ($ids[0]);
+                $quoteId = strtolower ($ids[1]);
+            }
+            $base = strtoupper ($baseId);
+            $quote = strtoupper ($quoteId);
+            $base = $this->common_currency_code($base);
+            $quote = $this->common_currency_code($quote);
+            // todo => find out their undocumented $precision and limits
+            $precision = array (
+                'amount' => 8,
+                'price' => 8,
+            );
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'precision' => $precision,
+                'info' => $market,
+            );
+        }
+        return $result;
+    }
+
+    public function parse_ticker ($ticker, $market = null) {
+        $timestamp = $ticker['at'] * 1000;
+        $ticker = $ticker['ticker'];
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
+        $last = $this->safe_float($ticker, 'last');
+        return array (
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'buy'),
+            'bidVolume' => null,
+            'ask' => $this->safe_float($ticker, 'sell'),
+            'askVolume' => null,
+            'vwap' => null,
+            'open' => $this->safe_float($ticker, 'open'),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => $this->safe_float($ticker, 'vol'),
+            'quoteVolume' => null,
+            'info' => $ticker,
+        );
+    }
+
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = $this->parse8601 ($trade['created_at']);
+        return array (
+            'id' => (string) $trade['id'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $market['symbol'],
+            'type' => null,
+            'side' => null,
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'volume'),
+            'cost' => $this->safe_float($trade, 'funds'),
+            'info' => $trade,
+        );
+    }
+
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        return [
+            $ohlcv[0] * 1000,
+            $ohlcv[1],
+            $ohlcv[2],
+            $ohlcv[3],
+            $ohlcv[4],
+            $ohlcv[5],
+        ];
+    }
+
+    public function parse_order ($order, $market = null) {
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        } else {
+            $marketId = $order['market'];
+            $symbol = $this->markets_by_id[$marketId]['symbol'];
+        }
+        $timestamp = $this->parse8601 ($order['created_at']);
+        $state = $order['state'];
+        $status = null;
+        if ($state === 'done') {
+            $status = 'closed';
+        } else if ($state === 'wait') {
+            $status = 'open';
+        } else if ($state === 'cancel') {
+            $status = 'canceled';
+        }
+        return array (
+            'id' => (string) $order['id'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
+            'status' => $status,
+            'symbol' => $symbol,
+            'type' => $order['ord_type'],
+            'side' => $order['side'],
+            'price' => $this->safe_float($order, 'price'),
+            'amount' => $this->safe_float($order, 'volume'),
+            'filled' => $this->safe_float($order, 'executed_volume'),
+            'remaining' => $this->safe_float($order, 'remaining_volume'),
+            'trades' => null,
+            'fee' => null,
+            'info' => $order,
+        );
+    }
+
+    public function nonce () {
+        return $this->milliseconds ();
+    }
+
+    public function encode_params ($params) {
+        if (is_array ($params) && array_key_exists ('orders', $params)) {
+            $orders = $params['orders'];
+            $query = $this->urlencode ($this->keysort ($this->omit ($params, 'orders')));
+            for ($i = 0; $i < count ($orders); $i++) {
+                $order = $orders[$i];
+                $keys = is_array ($order) ? array_keys ($order) : array ();
+                for ($k = 0; $k < count ($keys); $k++) {
+                    $key = $keys[$k];
+                    $value = $order[$key];
+                    $query .= '&$orders%5B%5D%5B' . $key . '%5D=' . (string) $value;
+                }
+            }
+            return $query;
+        }
+        return $this->urlencode ($this->keysort ($params));
+    }
+
+    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
+        if (is_array ($this->urls) && array_key_exists ('extension', $this->urls))
+            $request .= $this->urls['extension'];
+        $query = $this->omit ($params, $this->extract_params($path));
+        $url = $this->urls['api'] . $request;
+        if ($api === 'public') {
+            if ($query) {
+                $url .= '?' . $this->urlencode ($query);
+            }
+        } else {
+            $this->check_required_credentials();
+            $nonce = (string) $this->nonce ();
+            $query = $this->encode_params (array_merge (array (
+                'access_key' => $this->apiKey,
+                'tonce' => $nonce,
+            ), $params));
+            $auth = $method . '|' . $request . '|' . $query;
+            $signed = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
+            $suffix = $query . '&signature=' . $signed;
+            if ($method === 'GET') {
+                $url .= '?' . $suffix;
+            } else {
+                $body = $suffix;
+                $headers = array ( 'Content-Type' => 'application/x-www-form-urlencoded' );
+            }
+        }
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+        if ($code === 400) {
+            $error = $this->safe_value($response, 'error');
+            $errorCode = $this->safe_string($error, 'code');
+            $feedback = $this->id . ' ' . $this->json ($response);
+            $exceptions = $this->exceptions;
+            if (is_array ($exceptions) && array_key_exists ($errorCode, $exceptions)) {
+                throw new $exceptions[$errorCode] ($feedback);
+            }
+            // fallback to default $error handler
+        }
     }
 }
