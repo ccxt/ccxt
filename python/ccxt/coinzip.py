@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import ArgumentsRequired
 
 
 class coinzip (Exchange):
@@ -157,6 +158,8 @@ class coinzip (Exchange):
         return result
 
     def fetch_ticker(self, symbol, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetch_ticker requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         response = self.publicGetTickersMarket(self.extend({
@@ -165,6 +168,8 @@ class coinzip (Exchange):
         return self.parse_ticker(response, market)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetch_order_book requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -177,6 +182,8 @@ class coinzip (Exchange):
         return self.parse_order_book(orderbook, timestamp)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetch_ohlcv requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         if limit is None:
@@ -210,6 +217,8 @@ class coinzip (Exchange):
         return self.parse_balance(result)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetch_trades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         response = self.publicGetTrades(self.extend({
@@ -224,7 +233,26 @@ class coinzip (Exchange):
         }, params))
         return self.parse_order(response)
 
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetch_orders requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
+            'state': 'all'
+        }
+        if since is not None:
+            request['timestamp'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = self.privateGetOrders(self.extend(request, params))
+
+        return self.parse_orders(response, market, since, limit)
+
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' create_order requires a symbol argument')
         self.load_markets()
         order = {
             'market': self.market_id(symbol),
@@ -239,6 +267,8 @@ class coinzip (Exchange):
         return self.parse_order(response, market)
 
     def cancel_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancel_order requires a id argument')
         self.load_markets()
         result = self.privatePostOrderDelete({'id': id})
         order = self.parse_order(result)
