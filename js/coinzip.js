@@ -50,7 +50,7 @@ module.exports = class coinzip extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/coinzip.logo.jpg',
-                'api': 'https://www..coinzip.co',
+                'api': 'https://www.coinzip.co',
                 'www': 'https://www.coinzip.co',
                 'documents': 'https://staging.coinzip.co/documents/api_v2'
             },
