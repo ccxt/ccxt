@@ -571,7 +571,7 @@ module.exports = class bitmex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.parse8601 (trade['timestamp']);
+        let timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat2 (trade, 'size', 'lastQty');
         let id = this.safeString (trade, 'trdMatchID');
@@ -609,15 +609,6 @@ module.exports = class bitmex extends Exchange {
             } else {
                 symbol = marketId;
             }
-        }
-        if (market === undefined) {
-
-            if ('symbol' in trade)
-                market = this.markets_by_id[trade['symbol']];
-        }
-        if (symbol === undefined)
-        if (market) {
-            symbol = market['symbol'];
         }
         return {
             'info': trade,
@@ -678,9 +669,11 @@ module.exports = class bitmex extends Exchange {
             }
         }
         let cost = undefined;
-        if (price !== undefined)
-            if (filled !== undefined)
+        if (price !== undefined) {
+            if (filled !== undefined) {
                 cost = price * filled;
+            }
+        }
         let result = {
             'info': order,
             'id': order['orderID'].toString (),
@@ -707,10 +700,12 @@ module.exports = class bitmex extends Exchange {
         let request = {
             'symbol': market['id'],
         };
-        if (since !== undefined)
+        if (since !== undefined) {
             request['startTime'] = this.iso8601 (since);
-        if (limit !== undefined)
+        }
+        if (limit !== undefined) {
             request['count'] = limit;
+        }
         let response = await this.publicGetTrade (this.extend (request, params));
         //
         //     [
