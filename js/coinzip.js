@@ -50,9 +50,9 @@ module.exports = class coinzip extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/coinzip.logo.jpg',
-				'api': 'https://www.coinzip.co',
-                'www': 'https://www.coinzip.co',
-                'documents': 'https://coinzip.co/documents/api_v2'
+				'api': 'https://staging.coinzip.co',
+                'www': 'https://staging.coinzip.co',
+                'documents': 'https://staging.coinzip.co/documents/api_v2'
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -108,30 +108,30 @@ module.exports = class coinzip extends Exchange {
                 .map (m => this.markets[m])
                 .find (m => m.id === k.toUpperCase ());
 
-            return {
-                [symbol]: {
-                    'symbol': symbol,
-                    'timestamp': timestamp,
-                    'datetime': this.iso8601 (timestamp),
-                    'high': ticker.high,
-                    'low': ticker.low,
-                    'bid': undefined,
-                    'bidVolume': undefined,
-                    'ask': undefined,
-                    'askVolume': undefined,
-                    'vwap': undefined,
-                    'open': undefined,
-                    'close': ticker.last,
-                    'last': ticker.last,
-                    'previousClose': undefined,
-                    'change': undefined,
-                    'percentage': undefined,
-                    'average': undefined,
-                    'baseVolume': undefined,
-                    'quoteVolume': undefined,
-                    'info': tickers[k],
-                }
+            obj[symbol] = {
+                'symbol': symbol,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'high': this.safeFloat (ticker, 'high'),
+                'low': this.safeFloat (ticker, 'low'),
+                'bid': this.safeFloat (ticker, 'buy'),
+                'bidVolume': undefined,
+                'ask': this.safeFloat (ticker, 'sell'),
+                'askVolume': undefined,
+                'vwap': undefined,
+                'open':  this.safeFloat (ticker, 'open'),
+                'close': ticker.last,
+                'last': ticker.last,
+                'previousClose': undefined,
+                'change': undefined,
+                'percentage': undefined,
+                'average': undefined,
+                'baseVolume': this.safeFloat (ticker, 'vol'),
+                'quoteVolume': undefined,
+                'info': tickers[k],
             }
+
+            return obj;
         }, {});
     }
 
@@ -148,21 +148,21 @@ module.exports = class coinzip extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': ticker.high,
-            'low': ticker.low,
-            'bid': undefined,
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': undefined,
+            'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open':  this.safeFloat (ticker, 'open'),
             'close': ticker.last,
             'last': ticker.last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
+            'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': tickerObj,
         }
