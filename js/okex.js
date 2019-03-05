@@ -25,7 +25,10 @@ module.exports = class okex extends okcoinusd {
                     'private': 'https://www.okex.com/api',
                 },
                 'www': 'https://www.okex.com',
-                'doc': 'https://github.com/okcoin-okex/API-docs-OKEx.com',
+                'doc': [
+                    'https://github.com/okcoin-okex/API-docs-OKEx.com',
+                    'https://www.okex.com/docs/en/',
+                ],
                 'fees': 'https://www.okex.com/pages/products/fees.html',
             },
             'commonCurrencies': {
@@ -66,11 +69,11 @@ module.exports = class okex extends okcoinusd {
         // the following is the worst case
         for (let i = 0; i < markets.length; i++) {
             if (markets[i]['spot']) {
-                markets[i]['maker'] = 0.0015;
-                markets[i]['taker'] = 0.0020;
+                markets[i]['maker'] = 0.0010;
+                markets[i]['taker'] = 0.0015;
             } else {
-                markets[i]['maker'] = 0.0003;
-                markets[i]['taker'] = 0.0005;
+                markets[i]['maker'] = 0.0002;
+                markets[i]['taker'] = 0.0003;
             }
         }
         return markets;
