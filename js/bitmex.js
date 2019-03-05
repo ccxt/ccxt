@@ -349,6 +349,7 @@ module.exports = class bitmex extends Exchange {
             request['filter'] = this.json (request['filter']);
         }
         let response = await this.privateGetExecutionTradeHistory (request);
+        console.log (response); process.exit ();
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -571,6 +572,26 @@ module.exports = class bitmex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         timestamp: '2018-08-28T00:00:02.735Z',
+        //         symbol: 'XBTUSD',
+        //         side: 'Buy',
+        //         size: 2000,
+        //         price: 6906.5,
+        //         tickDirection: 'PlusTick',
+        //         trdMatchID: 'b9a42432-0a46-6a2f-5ecc-c32e9ca4baf8',
+        //         grossValue: 28958000,
+        //         homeNotional: 0.28958,
+        //         foreignNotional: 2000
+        //     }
+        //
+        // fetchMyTrades (private)
+        //
+        //     ...
+        //
         let timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat2 (trade, 'size', 'lastQty');
@@ -603,7 +624,7 @@ module.exports = class bitmex extends Exchange {
         let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
         if (marketId !== undefined) {
-            if (marketId in this.markets_by_id[marketId]) {
+            if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
                 symbol = market['symbol'];
             } else {
