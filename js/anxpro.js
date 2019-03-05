@@ -198,15 +198,6 @@ module.exports = class anxpro extends Exchange {
         return this.parseOrders (this.safeValue (response, 'data', {}), symbol, since, limit);
     }
 
-    parseOrders (orders, symbol = undefined, since = undefined, limit = undefined) {
-        let result = [];
-        for (let i = 0; i < orders.length; i++) {
-            let order = this.parseOrder (orders[i]);
-            result.push (order);
-        }
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
-    }
-
     parseOrder (order, market = undefined) {
         //
         //     {
