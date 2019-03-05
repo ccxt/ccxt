@@ -50,8 +50,8 @@ module.exports = class coinzip extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/coinzip.logo.jpg',
-				'api': 'https://staging.coinzip.co',
-                'www': 'https://staging.coinzip.co',
+                'api': 'https://www..coinzip.co',
+                'www': 'https://www.coinzip.co',
                 'documents': 'https://staging.coinzip.co/documents/api_v2'
             },
             'requiredCredentials': {
@@ -123,12 +123,12 @@ module.exports = class coinzip extends Exchange {
                 'close': ticker.last,
                 'last': ticker.last,
                 'previousClose': undefined,
-                'change': undefined,
+                'change': this.safeFloat (ticker, 'change'),
                 'percentage': undefined,
                 'average': undefined,
                 'baseVolume': this.safeFloat (ticker, 'vol'),
                 'quoteVolume': undefined,
-                'info': tickers[k],
+                'info': ticker,
             }
 
             return obj;
@@ -164,7 +164,7 @@ module.exports = class coinzip extends Exchange {
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': undefined,
-            'info': tickerObj,
+            'info': ticker,
         }
     }
 
@@ -214,13 +214,17 @@ module.exports = class coinzip extends Exchange {
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'volume');
     }
 
-    async fetchOHLCV (symbol, period = 1, timestamp = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 500, params = {}) {
         if (symbol === undefined)
             throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a symbol argument');
 
         const market = symbol.replace ('/', '').toLowerCase ();
-        const query = this.extend ({ market, period, timestamp, limit}, params)
-        return await this.publicGetK(query)
+        const period = this.timeframes[timeframe];
+        const timestamp = since;
+        const query = this.extend ({ market, period, timestamp, limit}, params);
+        const response =  await this.publicGetK(query);
+
+        return this.parseOHLCVs (response, market, period, timestamp, limit);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -352,6 +356,17 @@ module.exports = class coinzip extends Exchange {
             throw new OrderNotFound (this.id + ' ' + this.json (order));
         }
         return order;
+    }
+
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        return [
+            ohlcv[0] * 1000,
+            ohlcv[1],
+            ohlcv[2],
+            ohlcv[3],
+            ohlcv[4],
+            ohlcv[5],
+        ];
     }
 
     parseTrade (trade, market = undefined) {
