@@ -209,7 +209,6 @@ class coinzip (Exchange):
             result[uppercase] = account
         return self.parse_balance(result)
 
-
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -238,6 +237,15 @@ class coinzip (Exchange):
         response = self.privatePostOrders(self.extend(order, params))
         market = self.markets_by_id[response['market']]
         return self.parse_order(response, market)
+
+    def cancel_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        result = self.privatePostOrderDelete({'id': id})
+        order = self.parse_order(result)
+        status = order['status']
+        if status == 'closed' or status == 'canceled':
+            raise OrderNotFound(self.id + ' ' + self.json(order))
+        return order
 
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['at'] * 1000
