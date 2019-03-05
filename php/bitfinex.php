@@ -55,7 +55,7 @@ class bitfinex extends Exchange {
                 'api' => 'https://api.bitfinex.com',
                 'www' => 'https://www.bitfinex.com',
                 'doc' => array (
-                    'https://bitfinex.readme.io/v1/docs',
+                    'https://docs.bitfinex.com/v1/docs',
                     'https://github.com/bitfinexcom/bitfinex-api-node',
                 ),
             ),

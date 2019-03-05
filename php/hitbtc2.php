@@ -705,6 +705,9 @@ class hitbtc2 extends hitbtc {
             'symbol' => $market['id'],
             'period' => $this->timeframes[$timeframe],
         );
+        if ($since !== null) {
+            $request['from'] = $this->iso8601 ($since);
+        }
         if ($limit !== null)
             $request['limit'] = $limit;
         $response = $this->publicGetCandlesSymbol (array_merge ($request, $params));

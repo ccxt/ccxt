@@ -30,7 +30,7 @@
 const { execSync } = require ('child_process')
 const log          = require ('ololog')
 
-const files = [
+let files = [
 
     'dist/ccxt.browser.js',
 
@@ -60,6 +60,19 @@ for (const id of require ('../exchanges.json').ids) {
     files.push (`php/${id}.php`)
 }
 
+// Filter untracked files (otherwise "git update-index" would fail)
+try {
+    const untrackedFiles = new Set (execSync ('git ls-files --others --exclude-standard').toString ().split ('\n').filter (s => s.length))
+    files = files.filter (f => !untrackedFiles.has (f))
+
+} catch (e) {
+    
+    // There is a legit case when we're not in a git repo (happens on AppVeyor)
+    if (!e.message.toLowerCase ().includes ('not a git repository')) {
+        log.bright.red (e)
+    }
+}
+
 if (process.argv.includes ('--unignore')) {
 
     log.bright.green (`Re-enabling the git changes tracking for ${files.length} generated files...`)
@@ -85,7 +98,12 @@ function gitUpdateIndex (command, allFiles) {
     } catch (e) {
 
         // There is a legit case when we're not in a git repo (happens on AppVeyor)
-        if (!e.message.toLowerCase ().includes ('not a git repository')) throw e
+        if (!e.message.toLowerCase ().includes ('not a git repository')) {
+
+            // do not fail here, as it is not a critical step in the build process (better to let it complete the build)...
+            log.red (e.message)
+            log.bright.yellow.warn (e)
+        }
     }
 }
 

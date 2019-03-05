@@ -4,18 +4,20 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import base64
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
+from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.decimal_to_precision import ROUND
-from ccxt.base.decimal_to_precision import TRUNCATE
 
 
 class kucoin (Exchange):
@@ -24,1107 +26,345 @@ class kucoin (Exchange):
         return self.deep_extend(super(kucoin, self).describe(), {
             'id': 'kucoin',
             'name': 'KuCoin',
-            'countries': ['SC'],  # Republic of Seychelles
-            'version': 'v1',
-            'rateLimit': 2000,
-            'userAgent': self.userAgents['chrome'],
+            'countries': ['SC'],
+            'rateLimit': 334,
+            'version': 'v2',
+            'certified': True,
+            'comment': 'Platform 2.0',
             'has': {
-                'CORS': False,
-                'cancelOrders': True,
-                'createMarketOrder': False,
-                'fetchDepositAddress': True,
+                'fetchMarkets': True,
+                'fetchCurrencies': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
-                'fetchOHLCV': True,  # see the method implementation below
+                'fetchOrderBook': True,
                 'fetchOrder': True,
-                'fetchOrders': False,
                 'fetchClosedOrders': True,
                 'fetchOpenOrders': True,
-                'fetchMyTrades': 'emulated',  # self method is to be deleted, see implementation and comments below
-                'fetchCurrencies': True,
+                'fetchDepositAddress': True,
+                'createDepositAddress': True,
                 'withdraw': True,
-                'fetchTransactions': True,
-            },
-            'timeframes': {
-                '1m': 1,
-                '5m': 5,
-                '15m': 15,
-                '30m': 30,
-                '1h': 60,
-                '8h': 480,
-                '1d': 'D',
-                '1w': 'W',
+                'fetchDeposits': True,
+                'fetchWithdrawals': True,
+                'fetchBalance': True,
+                'fetchTrades': True,
+                'fetchMyTrades': True,
+                'createOrder': True,
+                'cancelOrder': True,
+                'fetchAccounts': True,
+                'fetchFundingFee': True,
+                'fetchOHLCV': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg',
+                'referral': 'https://www.kucoin.com/ucenter/signup?rcode=E5wkqe',
                 'api': {
-                    'public': 'https://api.kucoin.com',
-                    'private': 'https://api.kucoin.com',
-                    'kitchen': 'https://kitchen.kucoin.com',
-                    'kitchen-2': 'https://kitchen-2.kucoin.com',
+                    'public': 'https://openapi-v2.kucoin.com',
+                    'private': 'https://openapi-v2.kucoin.com',
+                },
+                'test': {
+                    'public': 'https://openapi-sandbox.kucoin.com',
+                    'private': 'https://openapi-sandbox.kucoin.com',
                 },
                 'www': 'https://www.kucoin.com',
-                'referral': 'https://www.kucoin.com/ucenter/signup?rcode=E5wkqe',
-                'doc': 'https://kucoinapidocs.docs.apiary.io',
-                'fees': 'https://news.kucoin.com/en/fee',
+                'doc': [
+                    'https://docs.kucoin.com',
+                ],
+            },
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': True,
+                'password': True,
             },
             'api': {
-                'kitchen': {
-                    'get': [
-                        'open/chart/history',
-                    ],
-                },
                 'public': {
                     'get': [
-                        'open/chart/config',
-                        'open/chart/history',
-                        'open/chart/symbol',
-                        'open/currencies',
-                        'open/deal-orders',
-                        'open/kline',
-                        'open/lang-list',
-                        'open/orders',
-                        'open/orders-buy',
-                        'open/orders-sell',
-                        'open/tick',
-                        'market/open/coin-info',
-                        'market/open/coins',
-                        'market/open/coins-trending',
-                        'market/open/symbols',
+                        'timestamp',
+                        'symbols',
+                        'market/allTickers',
+                        'market/orderbook/level{level}',
+                        'market/histories',
+                        'market/candles',
+                        'market/stats',
+                        'currencies',
+                        'currencies/{currency}',
+                    ],
+                    'post': [
+                        'bullet-public',
                     ],
                 },
                 'private': {
                     'get': [
-                        'account/balance',
-                        'account/{coin}/wallet/address',
-                        'account/{coin}/wallet/records',
-                        'account/{coin}/balance',
-                        'account/promotion/info',
-                        'account/promotion/sum',
-                        'account/transfer-records',
-                        'deal-orders',
-                        'order/active',
-                        'order/active-map',
-                        'order/dealt',
-                        'order/detail',
-                        'referrer/descendant/count',
-                        'user/info',
+                        'accounts',
+                        'accounts/{accountId}',
+                        'accounts/{accountId}/ledgers',
+                        'accounts/{accountId}/holds',
+                        'deposit-addresses',
+                        'deposits',
+                        'withdrawals',
+                        'withdrawals/quotas',
+                        'orders',
+                        'orders/{orderId}',
+                        'fills',
                     ],
                     'post': [
-                        'account/{coin}/withdraw/apply',
-                        'account/{coin}/withdraw/cancel',
-                        'account/promotion/draw',
-                        'cancel-order',
-                        'order',
-                        'order/cancel-all',
-                        'user/change-lang',
+                        'accounts',
+                        'accounts/inner-transfer',
+                        'deposit-addresses',
+                        'withdrawals',
+                        'orders',
+                        'bullet-private',
+                    ],
+                    'delete': [
+                        'withdrawals/{withdrawalId}',
+                        'orders/{orderId}',
                     ],
                 },
             },
+            'timeframes': {
+                '1m': '1min',
+                '3m': '3min',
+                '5m': '5min',
+                '15m': '15min',
+                '30m': '30min',
+                '1h': '1hour',
+                '2h': '2hour',
+                '4h': '4hour',
+                '6h': '6hour',
+                '8h': '8hour',
+                '12h': '12hour',
+                '1d': '1day',
+                '1w': '1week',
+            },
+            'exceptions': {
+                '400': BadRequest,
+                '401': AuthenticationError,
+                '403': NotSupported,
+                '404': NotSupported,
+                '405': NotSupported,
+                '429': DDoSProtection,
+                '500': ExchangeError,
+                '503': ExchangeNotAvailable,
+                '200004': InsufficientFunds,
+                '300000': InvalidOrder,
+                '400001': AuthenticationError,
+                '400002': InvalidNonce,
+                '400003': AuthenticationError,
+                '400004': AuthenticationError,
+                '400005': AuthenticationError,
+                '400006': AuthenticationError,
+                '400007': AuthenticationError,
+                '400008': NotSupported,
+                '400100': ArgumentsRequired,
+                '411100': AccountSuspended,
+                '500000': ExchangeError,
+                'order_not_exist': OrderNotFound,  # {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
+                'order_not_exist_or_not_allow_to_cancel': InvalidOrder,
+            },
             'fees': {
                 'trading': {
-                    'maker': 0.001,
+                    'tierBased': False,
+                    'percentage': True,
                     'taker': 0.001,
+                    'maker': 0.001,
                 },
                 'funding': {
                     'tierBased': False,
                     'percentage': False,
-                    'withdraw': {
-                        'ABT': 2.0,
-                        'ACAT': 10.0,
-                        'ACT': 1.0,
-                        'ADB': 10.0,
-                        'AGI': 40.0,
-                        'AION': 3.5,
-                        'AIX': 2.0,
-                        'AMB': 10.0,
-                        'AOA': 20.0,
-                        'APH': 3.0,
-                        'ARN': 6.0,
-                        'ARY': 10.0,
-                        'AXP': 25.0,
-                        'BAX': 1000.0,
-                        'BCD': 1.0,
-                        'BCH': 0.0005,
-                        'BCPT': 20.0,
-                        'BHC': 1.0,
-                        'BNTY': 50.0,
-                        'BOS': 1.0,
-                        'BPT': 5.0,
-                        'BRD': 3.0,
-                        'BTC': 0.0005,
-                        'BTG': 0.01,
-                        'BTM': 5.0,
-                        'BU': 0.5,
-                        'CAG': 2.0,
-                        'CAN': 1.0,
-                        'CAPP': 20.0,
-                        'CAT': 20.0,
-                        'CBC': 5.0,
-                        'CHP': 25.0,
-                        'CHSB': 70.0,
-                        'COFI': 5.0,
-                        'COSM': 50.0,
-                        'COV': 3.0,
-                        'CPC': 10.0,
-                        'CS': 3.0,
-                        'CV': 30.0,
-                        'CVC': 12.0,
-                        'CXO': 30.0,
-                        'DACC': 800.0,
-                        'DADI': 6.0,
-                        'DAG': 80.0,
-                        'DASH': 0.002,
-                        'DAT': 20.0,
-                        'DATX': 70.0,
-                        'DBC': 1.0,
-                        'DCC': 60.0,
-                        'DCR': 0.01,
-                        'DEB': 7.0,
-                        'DENT': 700.0,
-                        'DGB': 0.5,
-                        'DNA': 3.0,
-                        'DOCK': 100.0,
-                        'DRGN': 1.0,
-                        'DTA': 100.0,
-                        'EBTC': 3.0,
-                        'EDR': 20.0,
-                        'EGT': 200.0,
-                        'ELA': 0.1,
-                        'ELEC': 32.0,
-                        'ELF': 4.0,
-                        'ELIX': 3.0,
-                        'ENJ': 40.0,
-                        'EOS': 0.5,
-                        'ETC': 0.01,
-                        'ETH': 0.01,
-                        'ETN': 50.0,
-                        'EXY': 3.0,
-                        'FLIXX': 10.0,
-                        'FOTA': 1.0,
-                        'GAS': 0.0,
-                        'GAT': 140.0,
-                        'GLA': 4.0,
-                        'GO': 1.0,
-                        'GVT': 0.3,
-                        'HAT': 0.5,
-                        'HAV': 5.0,
-                        'HKN': 0.5,
-                        'HPB': 0.5,
-                        'HSR': 0.01,
-                        'HST': 2.0,
-                        'IHT': 20.0,
-                        'ING': 3.0,
-                        'INS': 5.0,
-                        'IOST': 100.0,
-                        'IOTX': 150.0,
-                        'ITC': 1.0,
-                        'J8T': 30.0,
-                        'JNT': 5.0,
-                        'KCS': 0.5,
-                        'KEY': 200.0,
-                        'KICK': 35.0,
-                        'KNC': 3.5,
-                        'LA': 5.0,
-                        'LALA': 50.0,
-                        'LEND': 130.0,
-                        'LOC': 3.0,
-                        'LOCI': 4.0,
-                        'LOOM': 10.0,
-                        'LTC': 0.001,
-                        'LYM': 20.0,
-                        'MAN': 2.0,
-                        'MANA': 15.0,
-                        'MOBI': 30.0,
-                        'MOD': 2.0,
-                        'MTH': 75.0,
-                        'MTN': 10.0,
-                        'MVP': 100.0,
-                        'MWAT': 20.0,
-                        'NEBL': 0.1,
-                        'NEO': 0.0,
-                        'NULS': 1.0,
-                        'NUSD': 2.0,
-                        'OCN': 100.0,
-                        'OLT': 3.0,
-                        'OMG': 0.4,
-                        'OMX': 50.0,
-                        'ONION': 0.1,
-                        'ONT': 1.0,
-                        'OPEN': 15.0,
-                        'PARETO': 40.0,
-                        'PAY': 0.5,
-                        'PBL': 5.0,
-                        'PLAY': 40.0,
-                        'POLL': 0.5,
-                        'POLY': 10.0,
-                        'POWR': 8.0,
-                        'PPT': 0.3,
-                        'PRL': 1.0,
-                        'PURA': 0.5,
-                        'QKC': 50.0,
-                        'QLC': 1.0,
-                        'QSP': 45.0,
-                        'QTUM': 0.1,
-                        'R': 2.0,
-                        'RDN': 5.0,
-                        'REQ': 40.0,
-                        'RHOC': 2.0,
-                        'RPX': 1.0,
-                        'SHL': 4.0,
-                        'SNC': 10.0,
-                        'SNM': 30.0,
-                        'SNOV': 20.0,
-                        'SNT': 20.0,
-                        'SOUL': 4.0,
-                        'SPF': 10.0,
-                        'SPHTX': 8.0,
-                        'SRN': 5.0,
-                        'STK': 20.0,
-                        'SUB': 12.0,
-                        'TEL': 500.0,
-                        'TFL': 1.0,
-                        'TIME': 0.1,
-                        'TIO': 5.0,
-                        'TKY': 10.0,
-                        'TMT': 50.0,
-                        'TNC': 1.0,
-                        'TOMO': 1.0,
-                        'TRAC': 14.0,
-                        'TRX': 1.0,
-                        'UKG': 5.0,
-                        'USDT': 3.2,
-                        'USE': 900.0,
-                        'UT': 0.1,
-                        'UTK': 10.0,
-                        'VEN': 2.0,
-                        'WAN': 0.7,
-                        'WAX': 8.0,
-                        'WPR': 80.0,
-                        'WTC': 0.5,
-                        'XAS': 0.5,
-                        'XLM': 0.01,
-                        'XLR': 0.1,
-                        'XRB': 0.05,
-                        'ZIL': 50.0,
-                        'ZINC': 30.0,
-                        'ZPT': 1.0,
-                        'ZRX': 2.0,
-                        'ePRX': 1000,
-                    },
+                    'withdraw': {},
                     'deposit': {},
                 },
             },
-            # exchange-specific options
             'options': {
-                'fetchOrderBookWarning': True,  # raises a warning on null response in fetchOrderBook
-                'timeDifference': 0,  # the difference between system clock and Kucoin clock
-                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
-                'limits': {
-                    'amount': {
-                        'min': {
-                            'ABT': 1,
-                            'ACAT': 1,
-                            'ACT': 1,
-                            'ADB': 1,
-                            'AGI': 10,
-                            'AION': 1,
-                            'AIX': 1,
-                            'AMB': 1,
-                            'AOA': 1,
-                            'APH': 1,
-                            'ARN': 1,
-                            'ARY': 1,
-                            'AXPR': 1,
-                            'BAX': 1,
-                            'BCD': 0.001,
-                            'BCH': 0.00001,
-                            'BCPT': 1,
-                            'BNTY': 1,
-                            'BOS': 1,
-                            'BPT': 1,
-                            'BRD': 1,
-                            'BTC': 0.00001,
-                            'BTG': 0.001,
-                            'BTM': 1,
-                            'CAG': 1,
-                            'CanYaCoin': 1,
-                            'CAPP': 1,
-                            'CAT': 1,
-                            'CBC': 1,
-                            'CHP': 1,
-                            'CHSB': 1,
-                            'COFI': 1,
-                            'COV': 1,
-                            'CPC': 1,
-                            'CS': 1,
-                            'CV': 10,
-                            'CVC': 0.1,
-                            'CXO': 1,
-                            'DACC': 1,
-                            'DADI': 1,
-                            'DAG': 1,
-                            'DASH': 0.01,
-                            'DAT': 1,
-                            'DATX': 1,
-                            'DBC': 1,
-                            'DCC': 1,
-                            'DEB': 1,
-                            'DENT': 1,
-                            'DGB': 1,
-                            'DNA': 1,
-                            'DOCK': 1,
-                            'DRGN': 1,
-                            'DTA': 1,
-                            'EBTC': 1,
-                            'EDR': 1,
-                            'EGT': 1,
-                            'ELA': 1,
-                            'ELEC': 1,
-                            'ELF': 1,
-                            'ELIX': 1,
-                            'ENJ': 1,
-                            'EOS': 0.1,
-                            'ETC': 0.1,
-                            'ETH': 0.00001,
-                            'ETN': 1,
-                            'EXY': 1,
-                            'FLIXX': 0.1,
-                            'FOTA': 1,
-                            'GAS': 0.1,
-                            'GAT': 1,
-                            'GLA': 1,
-                            'GO': 1,
-                            'GVT': 0.1,
-                            'HAV': 1,
-                            'HKN': 1,
-                            'HPB': 1,
-                            'HSR': 0.0001,
-                            'HST': 0.1,
-                            'IHT': 1,
-                            'ING': 1,
-                            'INS': 1,
-                            'IOST': 1,
-                            'IOTX': 1,
-                            'ITC': 1,
-                            'J8T': 1,
-                            'JNT': 1,
-                            'KCS': 1,
-                            'KEY': 1,
-                            'KICK': 1,
-                            'KNC': 0.001,
-                            'LA': 1,
-                            'LALA': 1,
-                            'LEND': 1,
-                            'LOCI': 1,
-                            'LOOM': 1,
-                            'LTC': 1,
-                            'LYM': 1,
-                            'MAN': 1,
-                            'MANA': 1,
-                            'MOBI': 1,
-                            'MOD': 0.1,
-                            'MTH': 1,
-                            'MTN': 1,
-                            'MWAT': 1,
-                            'NANO': 0.1,
-                            'NEBL': 0.1,
-                            'NEO': 0.01,
-                            'NULS': 0.1,
-                            'NUSD': 1,
-                            'OCN': 10,
-                            'OLT': 1,
-                            'OMG': 0.1,
-                            'OMX': 1,
-                            'ONION': 1,
-                            'ONT': 1,
-                            'OPEN': 1,
-                            'PARETO': 1,
-                            'PAY': 0.1,
-                            'PBL': 1,
-                            'PHX': 1,
-                            'PLAY': 1,
-                            'POLL': 1,
-                            'POLY': 1,
-                            'POWR': 0.1,
-                            'PPT': 0.1,
-                            'PRL': 1,
-                            'PURA': 0.1,
-                            'QKC': 1,
-                            'QLC': 1,
-                            'QSP': 0.1,
-                            'QTUM': 0.1,
-                            'R': 1,
-                            'RDN': 1,
-                            'REQ': 1,
-                            'RHOC': 1,
-                            'RPX': 1,
-                            'SHL': 1,
-                            'SNC': 1,
-                            'SNM': 1,
-                            'SNOV': 1,
-                            'SNT': 0.1,
-                            'SOUL': 1,
-                            'SPF': 1,
-                            'SPHTX': 1,
-                            'SRN': 1,
-                            'STK': 1,
-                            'SUB': 0.1,
-                            'TEL': 10,
-                            'TFD': 1,
-                            'TFL': 1,
-                            'TIME': 1,
-                            'TIO': 1,
-                            'TKY': 1,
-                            'TMT': 1,
-                            'TNC': 1,
-                            'TOMO': 1,
-                            'TRAC': 1,
-                            'UKG': 1,
-                            'UTK': 1,
-                            'WAN': 1,
-                            'WAX': 1,
-                            'WPR': 1,
-                            'WTC': 0.1,
-                            'XAS': 0.1,
-                            'XLM': 1,
-                            'XLR': 1,
-                            'ZIL': 1,
-                            'ZINC': 1,
-                            'ZPT': 1,
-                        },
-                    },
-                },
-            },
-            'commonCurrencies': {
-                'CAN': 'CanYaCoin',
-                'XRB': 'NANO',
+                'version': 'v1',
+                'symbolSeparator': '-',
             },
         })
 
     def nonce(self):
-        return self.milliseconds() - self.options['timeDifference']
+        return self.milliseconds()
 
     def load_time_difference(self):
-        response = self.publicGetOpenTick()
+        response = self.publicGetTimestamp()
         after = self.milliseconds()
-        self.options['timeDifference'] = int(after - response['timestamp'])
+        kucoinTime = self.safe_integer(response, 'data')
+        self.options['timeDifference'] = int(after - kucoinTime)
         return self.options['timeDifference']
 
-    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
-        market = self.markets[symbol]
-        key = 'quote'
-        rate = market[takerOrMaker]
-        cost = float(self.cost_to_precision(symbol, amount * rate))
-        if side == 'sell':
-            cost *= price
-        else:
-            key = 'base'
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': float(self.fee_to_precision(symbol, cost)),
-        }
-
     def fetch_markets(self, params={}):
-        response = self.publicGetMarketOpenSymbols()
-        if self.options['adjustForTimeDifference']:
-            self.load_time_difference()
-        markets = response['data']
-        result = []
-        for i in range(0, len(markets)):
-            market = markets[i]
-            id = market['symbol']
-            baseId = market['coinType']
-            quoteId = market['coinTypePair']
+        response = self.publicGetSymbols(params)
+        #
+        # {quoteCurrency: 'BTC',
+        #   symbol: 'KCS-BTC',
+        #   quoteMaxSize: '9999999',
+        #   quoteIncrement: '0.000001',
+        #   baseMinSize: '0.01',
+        #   quoteMinSize: '0.00001',
+        #   enableTrading: True,
+        #   priceIncrement: '0.00000001',
+        #   name: 'KCS-BTC',
+        #   baseIncrement: '0.01',
+        #   baseMaxSize: '9999999',
+        #   baseCurrency: 'KCS'}
+        #
+        data = response['data']
+        result = {}
+        for i in range(0, len(data)):
+            market = data[i]
+            id = market['name']
+            baseId = market['baseCurrency']
+            quoteId = market['quoteCurrency']
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
+            active = market['enableTrading']
+            baseMaxSize = self.safe_float(market, 'baseMaxSize')
+            baseMinSize = self.safe_float(market, 'baseMinSize')
+            quoteMaxSize = self.safe_float(market, 'quoteMaxSize')
+            quoteMinSize = self.safe_float(market, 'quoteMinSize')
+            quoteIncrement = self.safe_float(market, 'quoteIncrement')
             precision = {
-                'amount': 8,
-                'price': 8,
+                'amount': self.precision_from_string(self.safe_string(market, 'baseIncrement')),
+                'price': self.precision_from_string(self.safe_string(market, 'priceIncrement')),
             }
-            defaultMinAmount = math.pow(10, -precision['amount'])
-            minAmount = self.safe_float(self.options['limits']['amount']['min'], base, defaultMinAmount)
-            active = market['trading']
-            result.append({
+            limits = {
+                'amount': {
+                    'min': baseMinSize,
+                    'max': baseMaxSize,
+                },
+                'price': {
+                    'min': max(quoteMinSize / baseMinSize, quoteIncrement),
+                    'max': quoteMaxSize / baseMinSize,
+                },
+                'cost': {
+                    'min': quoteMinSize,
+                    'max': quoteMaxSize,
+                },
+            }
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
-                'base': base,
-                'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'base': base,
+                'quote': quote,
                 'active': active,
-                'taker': self.safe_float(market, 'feeRate'),
-                'maker': self.safe_float(market, 'feeRate'),
-                'info': market,
                 'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': minAmount,
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
+                'limits': limits,
+                'info': market,
+            }
+        return result
+
+    def fetch_currencies(self, params={}):
+        response = self.publicGetCurrencies(params)
+        #
+        # {precision: 10,
+        #   name: 'KCS',
+        #   fullName: 'KCS shares',
+        #   currency: 'KCS'}
+        #
+        responseData = response['data']
+        result = {}
+        for i in range(0, len(responseData)):
+            entry = responseData[i]
+            id = self.safe_string(entry, 'name')
+            name = entry['fullName']
+            code = self.common_currency_code(id)
+            precision = self.safe_integer(entry, 'precision')
+            result[code] = {
+                'id': id,
+                'name': name,
+                'code': code,
+                'precision': precision,
+                'info': entry,
+            }
+        return result
+
+    def fetch_accounts(self, params={}):
+        response = self.privateGetAccounts(params)
+        #
+        #     {code:   "200000",
+        #       data: [{  balance: "0.00009788",
+        #                 available: "0.00009788",
+        #                     holds: "0",
+        #                  currency: "BTC",
+        #                        id: "5c6a4fd399a1d81c4f9cc4d0",
+        #                      type: "trade"                     },
+        #               ...,
+        #               {  balance: "0.00000001",
+        #                 available: "0.00000001",
+        #                     holds: "0",
+        #                  currency: "ETH",
+        #                        id: "5c6a49ec99a1d819392e8e9f",
+        #                      type: "trade"                     }  ]}
+        #
+        data = self.safe_value(response, 'data')
+        result = []
+        for i in range(0, len(data)):
+            account = data[i]
+            accountId = self.safe_string(account, 'id')
+            currencyId = self.safe_string(account, 'currency')
+            code = self.common_currency_code(currencyId)
+            type = self.safe_string(account, 'type')  # main or trade
+            result.append({
+                'id': accountId,
+                'type': type,
+                'currency': code,
+                'info': account,
             })
         return result
 
-    def fetch_deposit_address(self, code, params={}):
-        self.load_markets()
-        currency = self.currency(code)
-        response = self.privateGetAccountCoinWalletAddress(self.extend({
-            'coin': currency['id'],
-        }, params))
+    def fetch_funding_fee(self, code, params={}):
+        currencyId = self.currencyId(code)
+        request = {
+            'currency': currencyId,
+        }
+        response = self.privateGetWithdrawalsQuotas(self.extend(request, params))
         data = response['data']
-        address = self.safe_string(data, 'address')
-        self.check_address(address)
-        tag = self.safe_string(data, 'userOid')
+        withdrawFees = {}
+        withdrawFees[code] = self.safe_float(data, 'withdrawMinFee')
         return {
-            'currency': code,
-            'address': address,
-            'tag': tag,
             'info': response,
+            'withdraw': withdrawFees,
+            'deposit': {},
         }
-
-    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
-        # https://kucoinapidocs.docs.apiary.io/#reference/0/assets-operation/list-deposit-&-withdrawal-records
-        if code is None:
-            raise ArgumentsRequired(self.id + ' fetchDeposits requires a currency code argument')
-        self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'coin': currency['id'],
-        }
-        response = self.privateGetAccountCoinWalletRecords(self.extend(request, params))
-        return self.parseTransactions(response['data']['datas'], currency, since, limit)
-
-    def parse_transaction(self, transaction, currency=None):
-        #
-        #     {
-        #         'coinType': 'ETH',
-        #         'createdAt': 1516134636000,
-        #         'amount': 2.5,
-        #         'address': '0x4cd00e7983e54add886442d3b866f95243cf9b30',
-        #         'fee': 0.0,
-        #         'outerWalletTxid': '0x820cde65b1fab0a9527a5c2466b3e7807fee45c6a81691486bf954114b12c873@0x4cd00e7983e54add886442d3b866f95243cf9b30@eth',
-        #         'remark': None,
-        #         'oid': '5a5e60ecaf2c5807eda65443',
-        #         'confirmation': 14,
-        #         'type': 'DEPOSIT',
-        #         'status': 'SUCCESS',
-        #         'updatedAt': 1516134827000
-        #     }
-        #
-        #     {
-        #         'coinType':'POLY',
-        #         'createdAt':1520696078000,
-        #         'amount':838.2247,
-        #         'address':'0x54fc433e95549e68fa362eb85c235177d94a8745',
-        #         'fee':3.0,
-        #         'outerWalletTxid':'0x055da84b7557498785d6acecf2b71d0158fec32fce246e51f5c49b79826a8481',
-        #         'remark':None,
-        #         'oid':'5aa3fb0d7bd394763bde55c1',
-        #         'confirmation':0,
-        #         'type':'WITHDRAW',
-        #         'status':'SUCCESS',
-        #         'updatedAt':1520696196000
-        #     }
-        #
-        id = self.safe_string(transaction, 'oid')
-        txid = self.safe_string(transaction, 'outerWalletTxid')
-        if txid is not None:
-            if txid.find('@') >= 0:
-                parts = txid.split('@')
-                txid = parts[0]
-        timestamp = self.safe_integer(transaction, 'createdAt')
-        code = None
-        currencyId = self.safe_string(transaction, 'coinType')
-        currency = self.safe_value(self.currencies_by_id, currencyId)
-        if currency is not None:
-            code = currency['code']
-        else:
-            code = self.common_currency_code(currencyId)
-        address = self.safe_string(transaction, 'address')
-        tag = self.safe_string(transaction, 'remark')
-        amount = self.safe_float(transaction, 'amount')
-        status = self.safe_string(transaction, 'status')
-        type = self.safe_string(transaction, 'type')
-        if type is not None:
-            # they return 'DEPOSIT' or 'WITHDRAW', ccxt used 'deposit' or 'withdrawal'
-            type = 'deposit' if (type == 'DEPOSIT') else 'withdrawal'
-        feeCost = self.safe_float(transaction, 'fee')
-        updated = self.safe_integer(transaction, 'updatedAt')
-        return {
-            'info': transaction,
-            'id': id,
-            'currency': code,
-            'amount': amount,
-            'address': address,
-            'tag': tag,
-            'status': status,
-            'type': type,
-            'updated': updated,
-            'txid': txid,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'fee': {
-                'currency': code,
-                'cost': feeCost,
-            },
-        }
-
-    def fetch_currencies(self, params={}):
-        response = self.publicGetMarketOpenCoins(params)
-        currencies = response['data']
-        result = {}
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            id = currency['coin']
-            # todo: will need to rethink the fees
-            # to add support for multiple withdrawal/deposit methods and
-            # differentiated fees for each particular method
-            code = self.common_currency_code(id)
-            precision = currency['tradePrecision']
-            deposit = currency['enableDeposit']
-            withdraw = currency['enableWithdraw']
-            active = (deposit and withdraw)
-            defaultMinAmount = math.pow(10, -precision)
-            minAmount = self.safe_float(self.options['limits']['amount']['min'], code, defaultMinAmount)
-            result[code] = {
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': currency['name'],
-                'active': active,
-                'fee': currency['withdrawMinFee'],  # todo: redesign
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': minAmount,
-                        'max': math.pow(10, precision),
-                    },
-                    'price': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': currency['withdrawMinAmount'],
-                        'max': math.pow(10, precision),
-                    },
-                },
-            }
-        return result
-
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privateGetAccountBalance(self.extend({
-        }, params))
-        balances = response['data']
-        result = {'info': balances}
-        indexed = self.index_by(balances, 'coinType')
-        keys = list(indexed.keys())
-        for i in range(0, len(keys)):
-            id = keys[i]
-            currency = self.common_currency_code(id)
-            account = self.account()
-            balance = indexed[id]
-            used = float(balance['freezeBalance'])
-            free = float(balance['balance'])
-            total = self.sum(free, used)
-            account['free'] = free
-            account['used'] = used
-            account['total'] = total
-            result[currency] = account
-        return self.parse_balance(result)
-
-    def fetch_order_book(self, symbol, limit=None, params={}):
-        self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-        }
-        if limit is not None:
-            request['limit'] = limit
-        response = self.publicGetOpenOrders(self.extend(request, params))
-        orderbook = None
-        timestamp = None
-        # sometimes kucoin returns self:
-        # {"success":true,"code":"OK","msg":"Operation succeeded.","timestamp":xxxxxxxxxxxxx,"data":null}
-        if not('data' in list(response.keys())) or not response['data']:
-            if self.options['fetchOrderBookWarning']:
-                raise ExchangeError(self.id + " fetchOrderBook returned an null reply. Set exchange.options['fetchOrderBookWarning'] = False to silence self warning")
-            orderbook = {
-                'BUY': [],
-                'SELL': [],
-            }
-        else:
-            orderbook = response['data']
-            timestamp = self.safe_integer(response, 'timestamp')
-            timestamp = self.safe_integer(response['data'], 'timestamp', timestamp)
-        return self.parse_order_book(orderbook, timestamp, 'BUY', 'SELL')
-
-    def parse_order(self, order, market=None):
-        side = self.safe_value(order, 'direction')
-        if side is None:
-            side = order['type']
-        if side is not None:
-            side = side.lower()
-        orderId = self.safe_string_2(order, 'orderOid', 'oid')
-        # do not confuse trades with orders
-        trades = None
-        if 'dealOrders' in order:
-            trades = self.safe_value(order['dealOrders'], 'datas')
-        if trades is not None:
-            trades = self.parse_trades(trades, market)
-            for i in range(0, len(trades)):
-                trades[i]['side'] = side
-                trades[i]['order'] = orderId
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        else:
-            symbol = order['coinType'] + '/' + order['coinTypePair']
-        timestamp = self.safe_value(order, 'createdAt')
-        remaining = self.safe_float(order, 'pendingAmount')
-        status = None
-        if 'status' in order:
-            status = order['status']
-        else:
-            if self.safe_value(order, 'isActive', True):
-                status = 'open'
-            else:
-                status = 'closed'
-        filled = self.safe_float(order, 'dealAmount')
-        amount = self.safe_float(order, 'amount')
-        cost = self.safe_float(order, 'dealValue')
-        if cost is None:
-            cost = self.safe_float(order, 'dealValueTotal')
-        if status is None:
-            if remaining is not None:
-                if remaining > 0:
-                    status = 'open'
-                else:
-                    status = 'closed'
-        if filled is None:
-            if status is not None:
-                if status == 'closed':
-                    filled = self.safe_float(order, 'amount')
-        elif filled == 0.0:
-            if trades is not None:
-                cost = 0
-                for i in range(0, len(trades)):
-                    filled += trades[i]['amount']
-                    cost += trades[i]['cost']
-        # kucoin price and amount fields have varying names
-        # thus the convoluted spaghetti code below
-        price = None
-        if filled is not None:
-            # if the order was filled at least for some part
-            if filled > 0.0:
-                price = self.safe_float(order, 'price')
-                if price is None:
-                    price = self.safe_float(order, 'dealPrice')
-                if price is None:
-                    price = self.safe_float(order, 'dealPriceAverage')
-            else:
-                # it's an open order, not filled yet, use the initial price
-                price = self.safe_float(order, 'orderPrice')
-                if price is None:
-                    price = self.safe_float(order, 'price')
-            if price is not None:
-                if cost is None:
-                    cost = price * filled
-            if amount is None:
-                if remaining is not None:
-                    amount = self.sum(filled, remaining)
-            elif remaining is None:
-                remaining = amount - filled
-        if status == 'open':
-            if (cost is None) or (cost == 0.0):
-                if price is not None:
-                    if amount is not None:
-                        cost = amount * price
-        feeCurrency = None
-        if market is not None:
-            feeCurrency = market['quote'] if (side == 'sell') else market['base']
-        else:
-            feeCurrencyField = 'coinTypePair' if (side == 'sell') else 'coinType'
-            feeCurrency = self.safe_string(order, feeCurrencyField)
-            if feeCurrency is not None:
-                if feeCurrency in self.currencies_by_id:
-                    feeCurrency = self.currencies_by_id[feeCurrency]['code']
-        feeCost = self.safe_float(order, 'fee')
-        fee = {
-            'cost': self.safe_float(order, 'feeTotal', feeCost),
-            'rate': self.safe_float(order, 'feeRate'),
-            'currency': feeCurrency,
-        }
-        result = {
-            'info': order,
-            'id': orderId,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
-            'symbol': symbol,
-            'type': 'limit',
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'filled': filled,
-            'remaining': remaining,
-            'status': status,
-            'fee': fee,
-            'trades': trades,
-        }
-        return result
-
-    def fetch_order(self, id, symbol=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
-        orderType = self.safe_value(params, 'type')
-        if orderType is None:
-            raise ExchangeError(self.id + ' fetchOrder requires a type parameter("BUY" or "SELL")')
-        self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-            'type': orderType,
-            'orderOid': id,
-        }
-        response = self.privateGetOrderDetail(self.extend(request, params))
-        if not response['data']:
-            raise OrderNotFound(self.id + ' ' + self.json(response))
-        #
-        # the caching part to be removed
-        #
-        #     order = self.parse_order(response['data'], market)
-        #     orderId = order['id']
-        #     if orderId in self.orders:
-        #         order['status'] = self.orders[orderId]['status']
-        #     self.orders[orderId] = order
-        #
-        return self.parse_order(response['data'], market)
-
-    def parse_orders_by_status(self, orders, market, since, limit, status):
-        result = []
-        for i in range(0, len(orders)):
-            order = self.parse_order(self.extend(orders[i], {
-                'status': status,
-            }), market)
-            result.append(order)
-        symbol = market['symbol'] if (market is not None) else None
-        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
-
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        self.load_markets()
-        marketId = None
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            marketId = market['id']
-        else:
-            marketId = ''
-        request = {
-            'symbol': marketId,
-        }
-        response = self.privateGetOrderActiveMap(self.extend(request, params))
-        sell = self.safe_value(response['data'], 'SELL')
-        if sell is None:
-            sell = []
-        buy = self.safe_value(response['data'], 'BUY')
-        if buy is None:
-            buy = []
-        orders = self.array_concat(sell, buy)
-        #
-        # the caching part to be removed
-        #
-        #     for i in range(0, len(orders)):
-        #         order = self.parse_order(self.extend(orders[i], {
-        #             'status': 'open',
-        #         }), market)
-        #         orderId = order['id']
-        #         if orderId in self.orders:
-        #             if self.orders[orderId]['status'] != 'open':
-        #                 order['status'] = self.orders[orderId]['status']
-        #         self.orders[order['id']] = order
-        #     }
-        #     openOrders = self.filter_by(self.orders, 'status', 'open')
-        #     return self.filter_by_symbol_since_limit(openOrders, symbol, since, limit)
-        #
-        return self.parse_orders_by_status(orders, market, since, limit, 'open')
-
-    def fetch_closed_orders(self, symbol=None, since=None, limit=20, params={}):
-        request = {}
-        self.load_markets()
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
-        if since is not None:
-            request['since'] = since
-        if limit is not None:
-            request['limit'] = limit
-        response = self.privateGetOrderDealt(self.extend(request, params))
-        orders = response['data']['datas']
-        #
-        # the caching part to be removed
-        #
-        #     for i in range(0, len(orders)):
-        #         order = self.parse_order(self.extend(orders[i], {
-        #             'status': 'closed',
-        #         }), market)
-        #         orderId = order['id']
-        #         if orderId in self.orders:
-        #             if self.orders[orderId]['status'] == 'canceled':
-        #                 order['status'] = self.orders[orderId]['status']
-        #         self.orders[order['id']] = order
-        #     }
-        #     closedOrders = self.filter_by(self.orders, 'status', 'closed')
-        #     return self.filter_by_symbol_since_limit(closedOrders, symbol, since, limit)
-        #
-        return self.parse_orders_by_status(orders, market, since, limit, 'closed')
-
-    def price_to_precision(self, symbol, price):
-        market = self.market(symbol)
-        code = market['quote']
-        return self.decimal_to_precision(price, ROUND, self.currencies[code]['precision'], self.precisionMode)
-
-    def amount_to_precision(self, symbol, amount):
-        market = self.market(symbol)
-        code = market['base']
-        return self.decimal_to_precision(amount, TRUNCATE, self.currencies[code]['precision'], self.precisionMode)
-
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
-        if type != 'limit':
-            raise ExchangeError(self.id + ' allows limit orders only')
-        self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-            'type': side.upper(),
-            'price': self.price_to_precision(symbol, price),
-            'amount': self.amount_to_precision(symbol, amount),
-        }
-        price = float(price)
-        amount = float(amount)
-        cost = price * amount
-        response = self.privatePostOrder(self.extend(request, params))
-        orderId = self.safe_string(response['data'], 'orderOid')
-        timestamp = self.safe_integer(response, 'timestamp')
-        order = {
-            'info': response,
-            'id': orderId,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
-            'symbol': market['symbol'],
-            'type': type,
-            'side': side,
-            'amount': amount,
-            'filled': None,
-            'remaining': None,
-            'price': price,
-            'cost': cost,
-            'status': 'open',
-            'fee': None,
-            'trades': None,
-        }
-        self.orders[orderId] = order
-        return order
-
-    def cancel_orders(self, symbol=None, params={}):
-        # https://kucoinapidocs.docs.apiary.io/#reference/0/trading/cancel-all-orders
-        # docs say symbol is required, but it seems to be optional
-        # you can cancel all orders, or filter by symbol or type or both
-        request = {}
-        if symbol is not None:
-            self.load_markets()
-            market = self.market(symbol)
-            request['symbol'] = market['id']
-        if 'type' in params:
-            request['type'] = params['type'].upper()
-            params = self.omit(params, 'type')
-        #
-        # the caching part to be removed
-        #
-        #     response = self.privatePostOrderCancelAll(self.extend(request, params))
-        #     openOrders = self.filter_by(self.orders, 'status', 'open')
-        #     for i in range(0, len(openOrders)):
-        #         order = openOrders[i]
-        #         orderId = order['id']
-        #         self.orders[orderId]['status'] = 'canceled'
-        #     }
-        #     return response
-        #
-        return self.privatePostOrderCancelAll(self.extend(request, params))
-
-    def cancel_order(self, id, symbol=None, params={}):
-        if symbol is None:
-            raise ExchangeError(self.id + ' cancelOrder requires a symbol')
-        self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-            'orderOid': id,
-        }
-        if 'type' in params:
-            request['type'] = params['type'].upper()
-            params = self.omit(params, 'type')
-        else:
-            raise ExchangeError(self.id + ' cancelOrder requires parameter type=["BUY"|"SELL"]')
-        #
-        # the caching part to be removed
-        #
-        #     response = self.privatePostCancelOrder(self.extend(request, params))
-        #     if id in self.orders:
-        #         self.orders[id]['status'] = 'canceled'
-        #     else:
-        #         # store it in cache for further references
-        #         timestamp = self.milliseconds()
-        #         side = request['type'].lower()
-        #         self.orders[id] = {
-        #             'id': id,
-        #             'timestamp': timestamp,
-        #             'datetime': self.iso8601(timestamp),
-        #             'type': None,
-        #             'side': side,
-        #             'symbol': symbol,
-        #             'status': 'canceled',
-        #         }
-        #     }
-        #     return response
-        #
-        return self.privatePostCancelOrder(self.extend(request, params))
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = ticker['datetime']
+        #
+        #     {
+        #         'buy': '0.00001168',
+        #         'changePrice': '-0.00000018',
+        #         'changeRate': '-0.0151',
+        #         'datetime': 1550661146316,
+        #         'high': '0.0000123',
+        #         'last': '0.00001169',
+        #         'low': '0.00001159',
+        #         'sell': '0.00001182',
+        #         'symbol': 'LOOM-BTC',
+        #         'vol': '44399.5669'
+        #     }
+        #
+        percentage = self.safe_float(ticker, 'changeRate')
+        if percentage is not None:
+            percentage = percentage * 100
+        last = self.safe_float(ticker, 'last')
         symbol = None
-        if market is None:
-            marketId = ticker['coinType'] + '-' + ticker['coinTypePair']
+        marketId = self.safe_string(ticker, 'symbol')
+        if marketId is not None:
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
-        # TNC coin doesn't have changerate for some reason
-        change = self.safe_float(ticker, 'change')
-        last = self.safe_float(ticker, 'lastDealPrice')
-        open = None
-        if last is not None:
-            if change is not None:
-                open = last - change
-        changePercentage = self.safe_float(ticker, 'changeRate')
-        if market is not None:
-            symbol = market['symbol']
+                symbol = market['symbol']
+            else:
+                baseId, quoteId = marketId.split('-')
+                base = self.common_currency_code(baseId)
+                quote = self.common_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if symbol is None:
+            if market is not None:
+                symbol = market['symbol']
         return {
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'buy'),
@@ -1132,12 +372,12 @@ class kucoin (Exchange):
             'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
-            'open': open,
+            'open': self.safe_float(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
-            'percentage': changePercentage,
+            'change': self.safe_float(ticker, 'changePrice'),
+            'percentage': percentage,
             'average': None,
             'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': self.safe_float(ticker, 'volValue'),
@@ -1146,236 +386,637 @@ class kucoin (Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        response = self.publicGetMarketOpenSymbols(params)
-        tickers = response['data']
+        response = self.publicGetMarketAllTickers(params)
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "date": 1550661940645,
+        #             "ticker": [
+        #                 'buy': '0.00001168',
+        #                 'changePrice': '-0.00000018',
+        #                 'changeRate': '-0.0151',
+        #                 'datetime': 1550661146316,
+        #                 'high': '0.0000123',
+        #                 'last': '0.00001169',
+        #                 'low': '0.00001159',
+        #                 'sell': '0.00001182',
+        #                 'symbol': 'LOOM-BTC',
+        #                 'vol': '44399.5669'
+        #             },
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        tickers = self.safe_value(data, 'ticker', [])
         result = {}
-        for t in range(0, len(tickers)):
-            ticker = self.parse_ticker(tickers[t])
-            symbol = ticker['symbol']
-            result[symbol] = ticker
+        for i in range(0, len(tickers)):
+            ticker = self.parse_ticker(tickers[i])
+            symbol = self.safe_string(ticker, 'symbol')
+            if symbol is not None:
+                result[symbol] = ticker
         return result
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetOpenTick(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
-        ticker = response['data']
-        return self.parse_ticker(ticker, market)
+        }
+        response = self.publicGetMarketStats(self.extend(request, params))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             'buy': '0.00001168',
+        #             'changePrice': '-0.00000018',
+        #             'changeRate': '-0.0151',
+        #             'datetime': 1550661146316,
+        #             'high': '0.0000123',
+        #             'last': '0.00001169',
+        #             'low': '0.00001159',
+        #             'sell': '0.00001182',
+        #             'symbol': 'LOOM-BTC',
+        #             'vol': '44399.5669'
+        #         },
+        #     }
+        #
+        return self.parse_ticker(response['data'], market)
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        #
+        #     [
+        #         "1545904980",             # Start time of the candle cycle
+        #         "0.058",                  # opening price
+        #         "0.049",                  # closing price
+        #         "0.058",                  # highest price
+        #         "0.049",                  # lowest price
+        #         "0.018",                  # base volume
+        #         "0.000945",               # quote volume
+        #     ]
+        #
+        return [
+            int(ohlcv[0]) * 1000,
+            float(ohlcv[1]),
+            float(ohlcv[3]),
+            float(ohlcv[4]),
+            float(ohlcv[2]),
+            float(ohlcv[5]),
+        ]
+
+    def fetch_ohlcv(self, symbol, timeframe='15m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        marketId = market['id']
+        request = {
+            'symbol': marketId,
+            'endAt': self.seconds(),  # required param
+            'type': self.timeframes[timeframe],
+        }
+        if since is not None:
+            request['startAt'] = int(math.floor(since / 1000))
+        response = self.publicGetMarketCandles(self.extend(request, params))
+        responseData = response['data']
+        return self.parse_ohlcvs(responseData, market, timeframe, since, limit)
+
+    def create_deposit_address(self, code, params={}):
+        self.load_markets()
+        currencyId = self.currencyId(code)
+        request = {'currency': currencyId}
+        response = self.privatePostDepositAddresses(self.extend(request, params))
+        # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
+        # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
+        data = self.safe_value(response, 'data', {})
+        address = self.safe_string(data, 'address')
+        # BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
+        address = address.replace('bitcoincash:', '')
+        tag = self.safe_string(data, 'memo')
+        self.check_address(address)
+        return {
+            'info': response,
+            'currency': code,
+            'address': address,
+            'tag': tag,
+        }
+
+    def fetch_deposit_address(self, code, params={}):
+        self.load_markets()
+        currencyId = self.currencyId(code)
+        request = {'currency': currencyId}
+        response = self.privateGetDepositAddresses(self.extend(request, params))
+        # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
+        # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
+        data = self.safe_value(response, 'data', {})
+        address = self.safe_string(data, 'address')
+        # BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
+        if address is not None:
+            address = address.replace('bitcoincash:', '')
+        tag = self.safe_string(data, 'memo')
+        self.check_address(address)
+        return {
+            'info': response,
+            'currency': code,
+            'address': address,
+            'tag': tag,
+        }
+
+    def fetch_order_book(self, symbol, limit=None, params={}):
+        self.load_markets()
+        marketId = self.market_id(symbol)
+        request = self.extend({'symbol': marketId, 'level': 2}, params)
+        response = self.publicGetMarketOrderbookLevelLevel(request)
+        #
+        # {sequence: '1547731421688',
+        #   asks: [['5c419328ef83c75456bd615c', '0.9', '0.09'], ...],
+        #   bids: [['5c419328ef83c75456bd615c', '0.9', '0.09'], ...],}
+        #
+        data = response['data']
+        timestamp = self.safe_integer(data, 'sequence')
+        # level can be a string such as 2_20 or 2_100
+        levelString = self.safe_string(request, 'level')
+        levelParts = levelString.split('_')
+        level = int(levelParts[0])
+        return self.parse_order_book(data, timestamp, 'bids', 'asks', level - 2, level - 1)
+
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
+        self.load_markets()
+        marketId = self.market_id(symbol)
+        # required param, cannot be used twice
+        clientOid = self.uuid()
+        request = {
+            'clientOid': clientOid,
+            'side': side,
+            'size': self.amount_to_precision(symbol, amount),
+            'symbol': marketId,
+            'type': type,
+        }
+        if type != 'market':
+            request['price'] = self.price_to_precision(symbol, price)
+        response = self.privatePostOrders(self.extend(request, params))
+        responseData = response['data']
+        return {
+            'id': responseData['orderId'],
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'status': 'open',
+            'clientOid': clientOid,
+            'info': responseData,
+        }
+
+    def cancel_order(self, id, symbol=None, params={}):
+        request = {'orderId': id}
+        response = self.privateDeleteOrdersOrderId(self.extend(request, params))
+        return response
+
+    def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {
+            'status': status,
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if since is not None:
+            request['startAt'] = since
+        if limit is not None:
+            request['pageSize'] = limit
+        response = self.privateGetOrders(self.extend(request, params))
+        responseData = self.safe_value(response, 'data', {})
+        orders = self.safe_value(responseData, 'items', [])
+        return self.parse_orders(orders, market, since, limit)
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders_by_status('done', symbol, since, limit, params)
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders_by_status('active', symbol, since, limit, params)
+
+    def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        request = {
+            'orderId': id,
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        response = self.privateGetOrdersOrderId(self.extend(request, params))
+        responseData = response['data']
+        return self.parse_order(responseData, market)
+
+    def parse_order(self, order, market=None):
+        #
+        #   {"id": "5c35c02703aa673ceec2a168",
+        #     "symbol": "BTC-USDT",
+        #     "opType": "DEAL",
+        #     "type": "limit",
+        #     "side": "buy",
+        #     "price": "10",
+        #     "size": "2",
+        #     "funds": "0",
+        #     "dealFunds": "0.166",
+        #     "dealSize": "2",
+        #     "fee": "0",
+        #     "feeCurrency": "USDT",
+        #     "stp": "",
+        #     "stop": "",
+        #     "stopTriggered": False,
+        #     "stopPrice": "0",
+        #     "timeInForce": "GTC",
+        #     "postOnly": False,
+        #     "hidden": False,
+        #     "iceberge": False,
+        #     "visibleSize": "0",
+        #     "cancelAfter": 0,
+        #     "channel": "IOS",
+        #     "clientOid": "",
+        #     "remark": "",
+        #     "tags": "",
+        #     "isActive": False,
+        #     "cancelExist": False,
+        #     "createdAt": 1547026471000}
+        #
+        symbol = None
+        marketId = self.safe_string(order, 'symbol')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
+            else:
+                baseId, quoteId = marketId.split('-')
+                base = self.common_currency_code(baseId)
+                quote = self.common_currency_code(quoteId)
+                symbol = base + '/' + quote
+            market = self.safe_value(self.markets_by_id, marketId)
+        if symbol is None:
+            if market is not None:
+                symbol = market['symbol']
+        orderId = self.safe_string(order, 'id')
+        type = self.safe_string(order, 'type')
+        timestamp = self.safe_integer(order, 'createdAt')
+        datetime = self.iso8601(timestamp)
+        price = self.safe_float(order, 'price')
+        side = self.safe_string(order, 'side')
+        feeCurrencyId = self.safe_string(order, 'feeCurrency')
+        feeCurrency = self.common_currency_code(feeCurrencyId)
+        feeCost = self.safe_float(order, 'fee')
+        amount = self.safe_float(order, 'size')
+        filled = self.safe_float(order, 'dealSize')
+        cost = self.safe_float(order, 'dealFunds')
+        remaining = amount - filled
+        # bool
+        status = 'open' if order['isActive'] else 'closed'
+        fee = {
+            'currency': feeCurrency,
+            'cost': feeCost,
+        }
+        return {
+            'id': orderId,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'amount': amount,
+            'price': price,
+            'cost': cost,
+            'filled': filled,
+            'remaining': remaining,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'fee': fee,
+            'status': status,
+            'info': order,
+        }
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if since is not None:
+            request['startAt'] = since
+        if limit is not None:
+            request['pageSize'] = limit
+        response = self.privateGetFills(self.extend(request, params))
+        data = self.safe_value(response, 'data', {})
+        trades = self.safe_value(data, 'items', [])
+        return self.parse_trades(trades, market, since, limit)
+
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        if since is not None:
+            request['startAt'] = int(math.floor(since / 1000))
+        if limit is not None:
+            request['pageSize'] = limit
+        response = self.publicGetMarketHistories(self.extend(request, params))
+        #     {
+        #         "code": "200000",
+        #         "data": [
+        #             {
+        #                 "sequence": "1548764654235",
+        #                 "side": "sell",
+        #                 "size":"0.6841354",
+        #                 "price":"0.03202",
+        #                 "time":1548848575203567174
+        #             }
+        #         ]
+        #     }
+        #
+        trades = self.safe_value(response, 'data', [])
+        return self.parse_trades(trades, market, since, limit)
 
     def parse_trade(self, trade, market=None):
-        id = None
-        order = None
-        info = trade
-        timestamp = None
-        type = None
-        side = None
-        price = None
-        cost = None
-        amount = None
-        fee = None
-        if isinstance(trade, list):
-            timestamp = trade[0]
-            type = 'limit'
-            if trade[1] == 'BUY':
-                side = 'buy'
-            elif trade[1] == 'SELL':
-                side = 'sell'
-            price = self.safe_float(trade, 2)
-            amount = self.safe_float(trade, 3)
-            id = trade[5]
-        else:
-            timestamp = self.safe_value(trade, 'createdAt')
-            order = self.safe_string(trade, 'orderOid')
-            id = self.safe_string(trade, 'oid')
-            side = self.safe_string(trade, 'direction')
-            if side is not None:
-                side = side.lower()
-            price = self.safe_float(trade, 'dealPrice')
-            amount = self.safe_float(trade, 'amount')
-            cost = self.safe_float(trade, 'dealValue')
-            feeCurrency = None
-            if side is not None:
-                if market is not None:
-                    feeCurrency = market['quote'] if (side == 'sell') else market['base']
-                else:
-                    feeCurrencyField = 'coinTypePair' if (side == 'sell') else 'coinType'
-                    feeCurrency = self.safe_string(order, feeCurrencyField)
-                    if feeCurrency is not None:
-                        if feeCurrency in self.currencies_by_id:
-                            feeCurrency = self.currencies_by_id[feeCurrency]['code']
-            fee = {
-                'rate': self.safe_float(trade, 'feeRate'),
-                'cost': self.safe_float(trade, 'fee'),
-                'currency': feeCurrency,
-            }
+        #
+        # fetchTrades(public)
+        #
+        #     {
+        #         "sequence": "1548764654235",
+        #         "side": "sell",
+        #         "size":"0.6841354",
+        #         "price":"0.03202",
+        #         "time":1548848575203567174
+        #     }
+        #
+        # fetchMyTrades(private)
+        #
+        #     {
+        #         "symbol":"BTC-USDT",
+        #         "tradeId":"5c35c02709e4f67d5266954e",
+        #         "orderId":"5c35c02703aa673ceec2a168",
+        #         "counterOrderId":"5c1ab46003aa676e487fa8e3",
+        #         "side":"buy",
+        #         "liquidity":"taker",
+        #         "forceTaker":true,
+        #         "price":"0.083",
+        #         "size":"0.8424304",
+        #         "funds":"0.0699217232",
+        #         "fee":"0",
+        #         "feeRate":"0",
+        #         "feeCurrency":"USDT",
+        #         "stop":"",
+        #         "type":"limit",
+        #         "createdAt":1547026472000
+        #     }
+        #
         symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 'symbol')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
+            else:
+                baseId, quoteId = marketId.split('-')
+                base = self.common_currency_code(baseId)
+                quote = self.common_currency_code(quoteId)
+                symbol = base + '/' + quote
+            market = self.safe_value(self.markets_by_id, marketId)
+        if symbol is None:
+            if market is not None:
+                symbol = market['symbol']
+        id = self.safe_string(trade, 'tradeId')
+        if id is not None:
+            id = str(id)
+        orderId = self.safe_string(trade, 'orderId')
+        amount = self.safe_float(trade, 'size')
+        timestamp = self.safe_integer(trade, 'time')
+        if timestamp is not None:
+            timestamp = int(timestamp / 1000000)
+        else:
+            timestamp = self.safe_integer(trade, 'createdAt')
+        price = self.safe_float(trade, 'price')
+        side = self.safe_string(trade, 'side')
+        fee = {
+            'cost': self.safe_float(trade, 'fee'),
+            'rate': self.safe_float(trade, 'feeRate'),
+            'currency': self.safe_string(trade, 'feeCurrency'),
+        }
+        type = self.safe_string(trade, 'type')
+        cost = self.safe_float(trade, 'funds')
+        if amount is not None:
+            if price is not None:
+                cost = amount * price
         return {
+            'info': trade,
             'id': id,
-            'order': order,
-            'info': info,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
-            'cost': cost,
             'amount': amount,
+            'cost': cost,
             'fee': fee,
         }
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
-        self.load_markets()
-        if limit is None:
-            limit = 100  # default to 100 even if it was explicitly set to None by the user
-        market = self.market(symbol)
-        response = self.publicGetOpenDealOrders(self.extend({
-            'symbol': market['id'],
-            'limit': limit,
-        }, params))
-        return self.parse_trades(response['data'], market, since, limit)
-
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        # todo: self method is deprecated and to be deleted shortly
-        # it improperly mimics fetchMyTrades with closed orders
-        # kucoin does not have any means of fetching personal trades at all
-        # self will effectively simplify current convoluted implementations of parseOrder and parseTrade
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades is deprecated and requires a symbol argument')
-        self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-        }
-        if limit is not None:
-            request['limit'] = limit
-        response = self.privateGetDealOrders(self.extend(request, params))
-        return self.parse_trades(response['data']['datas'], market, since, limit)
-
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        self.load_markets()
-        market = self.market(symbol)
-        end = self.seconds()
-        resolution = self.timeframes[timeframe]
-        # convert 'resolution' to minutes in order to calculate 'from' later
-        minutes = resolution
-        if minutes == 'D':
-            if limit is None:
-                limit = 30  # 30 days, 1 month
-            minutes = 1440
-        elif minutes == 'W':
-            if limit is None:
-                limit = 52  # 52 weeks, 1 year
-            minutes = 10080
-        elif limit is None:
-            # last 1440 periods, whatever the duration of the period is
-            # for 1m it equals 1 day(24 hours)
-            # for 5m it equals 5 days
-            # ...
-            limit = 1440
-        start = end - limit * minutes * 60
-        # if 'since' has been supplied by user
-        if since is not None:
-            start = int(since / 1000)  # convert milliseconds to seconds
-            end = min(end, self.sum(start, limit * minutes * 60))
-        request = {
-            'symbol': market['id'],
-            'resolution': resolution,
-            'from': start,
-            'to': end,
-        }
-        response = self.publicGetOpenChartHistory(self.extend(request, params))
-        return self.parse_trading_view_ohlcv(response, market, timeframe, since, limit)
-
     def withdraw(self, code, amount, address, tag=None, params={}):
-        self.check_address(address)
         self.load_markets()
-        currency = self.currency(code)
         self.check_address(address)
+        currency = self.currencyId(code)
         request = {
-            'coin': currency['id'],
-            'amount': amount,
+            'currency': currency,
             'address': address,
+            'amount': amount,
         }
-        # they don't have the tag properly documented for currencies that require it(XLM, XRP, ...)
-        # https://www.reddit.com/r/kucoin/comments/93o92b/withdraw_of_xlm_through_api/
         if tag is not None:
-            request['address'] += '@' + tag
-        response = self.privatePostAccountCoinWithdrawApply(self.extend(request, params))
+            request['memo'] = tag
+        response = self.privatePostWithdrawals(self.extend(request, params))
+        #
+        # {"withdrawalId": "5bffb63303aa675e8bbe18f9"}
+        #
+        responseData = response['data']
         return {
-            'info': response,
-            'id': None,
+            'id': self.safe_string(responseData, 'withdrawalId'),
+            'info': responseData,
         }
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            'SUCCESS': 'ok',
+            'PROCESSING': 'ok',
+            'FAILURE': 'failed',
+        }
+        return self.safe_string(statuses, status)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # Deposits
+        #   {"address": "0x5f047b29041bcfdbf0e4478cdfa753a336ba6989",
+        #     "memo": "5c247c8a03aa677cea2a251d",
+        #     "amount": 1,
+        #     "fee": 0.0001,
+        #     "currency": "KCS",
+        #     "isInner": False,
+        #     "walletTxId": "5bbb57386d99522d9f954c5a@test004",
+        #     "status": "SUCCESS",
+        #     "createdAt": 1544178843000,
+        #     "updatedAt": 1544178891000}
+        # Withdrawals
+        #   {"id": "5c2dc64e03aa675aa263f1ac",
+        #     "address": "0x5bedb060b8eb8d823e2414d82acce78d38be7fe9",
+        #     "memo": "",
+        #     "currency": "ETH",
+        #     "amount": 1.0000000,
+        #     "fee": 0.0100000,
+        #     "walletTxId": "3e2414d82acce78d38be7fe9",
+        #     "isInner": False,
+        #     "status": "FAILURE",
+        #     "createdAt": 1546503758000,
+        #     "updatedAt": 1546504603000}
+        #
+        code = None
+        currencyId = self.safe_string(transaction, 'currency')
+        currency = self.safe_value(self.currencies_by_id, currencyId)
+        if currency is not None:
+            code = currency['code']
+        else:
+            code = self.common_currency_code(currencyId)
+        address = self.safe_string(transaction, 'address')
+        amount = self.safe_float(transaction, 'amount')
+        txid = self.safe_string(transaction, 'walletTxId')
+        type = txid is 'withdrawal' if None else 'deposit'
+        rawStatus = self.safe_string(transaction, 'status')
+        status = self.parse_transaction_status(rawStatus)
+        fees = {
+            'cost': self.safe_float(transaction, 'fee'),
+        }
+        if fees['cost'] is not None and amount is not None:
+            fees['rate'] = fees['cost'] / amount
+        tag = self.safe_string(transaction, 'memo')
+        timestamp = self.safe_integer_2(transaction, 'updatedAt', 'createdAt')
+        datetime = self.iso8601(timestamp)
+        return {
+            'address': address,
+            'tag': tag,
+            'currency': code,
+            'amount': amount,
+            'txid': txid,
+            'type': type,
+            'status': status,
+            'fee': fees,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'info': transaction,
+        }
+
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {}
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if since is not None:
+            request['startAt'] = since
+        if limit is not None:
+            request['pageSize'] = limit
+        response = self.privateGetDeposits(self.extend(request, params))
+        #
+        # paginated
+        # {code: '200000',
+        #   data:
+        #    {totalNum: 0,
+        #      totalPage: 0,
+        #      pageSize: 10,
+        #      currentPage: 1,
+        #      items: [...]
+        #     }}
+        #
+        responseData = response['data']['items']
+        return self.parseTransactions(responseData, currency, since, limit)
+
+    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {}
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if since is not None:
+            request['startAt'] = since
+        if limit is not None:
+            request['pageSize'] = limit
+        response = self.privateGetWithdrawals(self.extend(request, params))
+        #
+        # paginated
+        # {code: '200000',
+        #   data:
+        #    {totalNum: 0,
+        #      totalPage: 0,
+        #      pageSize: 10,
+        #      currentPage: 1,
+        #      items: [...]} }
+        #
+        responseData = response['data']['items']
+        return self.parseTransactions(responseData, currency, since, limit)
+
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        request = {
+            'type': 'trade',
+        }
+        response = self.privateGetAccounts(self.extend(request, params))
+        responseData = response['data']
+        result = {'info': responseData}
+        for i in range(0, len(responseData)):
+            entry = responseData[i]
+            currencyId = entry['currency']
+            code = self.common_currency_code(currencyId)
+            account = {}
+            account['total'] = self.safe_float(entry, 'balance', 0)
+            account['free'] = self.safe_float(entry, 'available', 0)
+            account['used'] = self.safe_float(entry, 'holds', 0)
+            result[code] = account
+        return self.parse_balance(result)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        endpoint = '/' + self.version + '/' + self.implode_params(path, params)
-        url = self.urls['api'][api] + endpoint
+        #
+        # the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
+        #                                †                 ↑
+        #
+        endpoint = '/api/' + self.options['version'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
+        endpart = ''
+        headers = headers is not headers if None else {}
+        if query:
+            if method != 'GET':
+                body = self.json(query)
+                endpart = body
+                headers['Content-Type'] = 'application/json'
+            else:
+                endpoint += '?' + self.urlencode(query)
+        url = self.urls['api'][api] + endpoint
         if api == 'private':
             self.check_required_credentials()
-            # their nonce is always a calibrated synched milliseconds-timestamp
-            nonce = self.nonce()
-            queryString = ''
-            nonce = str(nonce)
-            if query:
-                queryString = self.rawencode(self.keysort(query))
-                url += '?' + queryString
-                if method != 'GET':
-                    body = queryString
-            auth = endpoint + '/' + nonce + '/' + queryString
-            payload = base64.b64encode(self.encode(auth))
-            # payload should be "encoded" as returned from stringToBase64
-            signature = self.hmac(payload, self.encode(self.secret), hashlib.sha256)
-            headers = {
+            timestamp = str(self.nonce())
+            headers = self.extend({
                 'KC-API-KEY': self.apiKey,
-                'KC-API-NONCE': nonce,
-                'KC-API-SIGNATURE': signature,
-            }
-        else:
-            if query:
-                url += '?' + self.urlencode(query)
+                'KC-API-TIMESTAMP': timestamp,
+                'KC-API-PASSPHRASE': self.password,
+            }, headers)
+            payload = timestamp + method + endpoint + endpart
+            signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
+            headers['KC-API-SIGN'] = self.decode(signature)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response):
-        #
-        # API endpoints return the following formats
-        #     {success: False, code: "ERROR", msg: "Min price:100.0"}
-        #     {success: True,  code: "OK",    msg: "Operation succeeded."}
-        #
-        # Web OHLCV endpoint returns self:
-        #     {s: "ok", o: [], h: [], l: [], c: [], v: []}
-        #
-        # This particular method handles API responses only
-        #
-        if not('success' in list(response.keys())):
+        if not response:
             return
-        if response['success'] is True:
-            return  # not an error
-        if not('code' in list(response.keys())) or not('msg' in list(response.keys())):
-            raise ExchangeError(self.id + ': malformed response: ' + body)
-        responseCode = self.safe_string(response, 'code')
+        #
+        # bad
+        #     {"code": "400100", "msg": "validation.createOrder.clientOidIsRequired"}
+        # good
+        #     {code: '200000', data: {...}}
+        #
+        errorCode = self.safe_string(response, 'code')
         message = self.safe_string(response, 'msg')
-        feedback = self.id + ' ' + body
-        if responseCode == 'UNAUTH':
-            if message == 'Invalid nonce':
-                raise InvalidNonce(feedback)
-            raise AuthenticationError(feedback)
-        elif responseCode == 'ERROR':
-            if message.find('The precision of amount') >= 0:
-                raise InvalidOrder(feedback)  # amount violates precision.amount
-            if message.find('Min amount each order') >= 0:
-                raise InvalidOrder(feedback)  # amount < limits.amount.min
-            if message.find('Min price:') >= 0:
-                raise InvalidOrder(feedback)  # price < limits.price.min
-            if message.find('Max price:') >= 0:
-                raise InvalidOrder(feedback)  # price > limits.price.max
-            if message.find('The precision of price') >= 0:
-                raise InvalidOrder(feedback)  # price violates precision.price
-        elif responseCode == 'NO_BALANCE':
-            if message.find('Insufficient balance') >= 0:
-                raise InsufficientFunds(feedback)
-        raise ExchangeError(self.id + ': unknown response: ' + body)
+        ExceptionClass = self.safe_value_2(self.exceptions, message, errorCode)
+        if ExceptionClass is not None:
+            raise ExceptionClass(self.id + ' ' + message)

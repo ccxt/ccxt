@@ -25,7 +25,7 @@ class binance (Exchange):
         return self.deep_extend(super(binance, self).describe(), {
             'id': 'binance',
             'name': 'Binance',
-            'countries': ['JP'],  # Japan
+            'countries': ['JP', 'MT'],  # Japan, Malta
             'rateLimit': 500,
             'certified': True,
             # new metainfo interface
@@ -88,6 +88,7 @@ class binance (Exchange):
                 'wapi': {
                     'post': [
                         'withdraw',
+                        'sub-account/transfer',
                     ],
                     'get': [
                         'depositHistory',
@@ -95,9 +96,13 @@ class binance (Exchange):
                         'depositAddress',
                         'accountStatus',
                         'systemStatus',
+                        'apiTradingStatus',
                         'userAssetDribbletLog',
                         'tradeFee',
                         'assetDetail',
+                        'sub-account/list',
+                        'sub-account/transfer/history',
+                        'sub-account/assets',
                     ],
                 },
                 'v3': {

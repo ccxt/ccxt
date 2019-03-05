@@ -26,6 +26,7 @@ class bitmex extends Exchange {
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchMyTrades' => true,
             ),
             'timeframes' => array (
                 '1m' => '1m',
@@ -144,7 +145,9 @@ class bitmex extends Exchange {
                 ),
             ),
             'options' => array (
-                'api-expires' => null,
+                // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
+                // https://github.com/ccxt/ccxt/issues/4789
+                'api-expires' => 5, // in seconds
             ),
         ));
     }
@@ -327,6 +330,82 @@ class bitmex extends Exchange {
         // Bitmex barfs if you set 'open' => false in the filter...
         $orders = $this->fetch_orders($symbol, $since, $limit, $params);
         return $this->filter_by($orders, 'status', 'closed');
+    }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        $request = array ();
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null)
+            $request['startTime'] = $this->iso8601 ($since);
+        if ($limit !== null)
+            $request['count'] = $limit;
+        $request = array_replace_recursive ($request, $params);
+        // why the hassle? urlencode in python is kinda broken for nested dicts.
+        // E.g. self.urlencode(array ("filter" => array ("open" => True))) will return "filter=array ('open':+True)"
+        // Bitmex doesn't like that. Hence resorting to this hack.
+        if (is_array ($request) && array_key_exists ('filter', $request)) {
+            $request['filter'] = $this->json ($request['filter']);
+        }
+        $response = $this->privateGetExecutionTradeHistory ($request);
+        //
+        //     array (
+        //         {
+        //             "execID" => "string",
+        //             "orderID" => "string",
+        //             "clOrdID" => "string",
+        //             "clOrdLinkID" => "string",
+        //             "account" => 0,
+        //             "$symbol" => "string",
+        //             "side" => "string",
+        //             "lastQty" => 0,
+        //             "lastPx" => 0,
+        //             "underlyingLastPx" => 0,
+        //             "lastMkt" => "string",
+        //             "lastLiquidityInd" => "string",
+        //             "simpleOrderQty" => 0,
+        //             "orderQty" => 0,
+        //             "price" => 0,
+        //             "displayQty" => 0,
+        //             "stopPx" => 0,
+        //             "pegOffsetValue" => 0,
+        //             "pegPriceType" => "string",
+        //             "currency" => "string",
+        //             "settlCurrency" => "string",
+        //             "execType" => "string",
+        //             "ordType" => "string",
+        //             "timeInForce" => "string",
+        //             "execInst" => "string",
+        //             "contingencyType" => "string",
+        //             "exDestination" => "string",
+        //             "ordStatus" => "string",
+        //             "triggered" => "string",
+        //             "workingIndicator" => true,
+        //             "ordRejReason" => "string",
+        //             "simpleLeavesQty" => 0,
+        //             "leavesQty" => 0,
+        //             "simpleCumQty" => 0,
+        //             "cumQty" => 0,
+        //             "avgPx" => 0,
+        //             "commission" => 0,
+        //             "tradePublishIndicator" => "string",
+        //             "multiLegReportingType" => "string",
+        //             "text" => "string",
+        //             "trdMatchID" => "string",
+        //             "execCost" => 0,
+        //             "execComm" => 0,
+        //             "homeNotional" => 0,
+        //             "foreignNotional" => 0,
+        //             "transactTime" => "2019-03-05T12:47:02.762Z",
+        //             "timestamp" => "2019-03-05T12:47:02.762Z"
+        //         }
+        //     )
+        //
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
@@ -548,25 +627,127 @@ class bitmex extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->parse8601 ($trade['timestamp']);
-        $symbol = null;
-        if ($market === null) {
-            if (is_array ($trade) && array_key_exists ('symbol', $trade))
-                $market = $this->markets_by_id[$trade['symbol']];
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         $timestamp => '2018-08-28T00:00:02.735Z',
+        //         $symbol => 'XBTUSD',
+        //         $side => 'Buy',
+        //         size => 2000,
+        //         $price => 6906.5,
+        //         tickDirection => 'PlusTick',
+        //         trdMatchID => 'b9a42432-0a46-6a2f-5ecc-c32e9ca4baf8',
+        //         grossValue => 28958000,
+        //         homeNotional => 0.28958,
+        //         foreignNotional => 2000
+        //     }
+        //
+        // fetchMyTrades (private)
+        //
+        //     {
+        //         "execID" => "string",
+        //         "orderID" => "string",
+        //         "clOrdID" => "string",
+        //         "clOrdLinkID" => "string",
+        //         "account" => 0,
+        //         "$symbol" => "string",
+        //         "$side" => "string",
+        //         "lastQty" => 0,
+        //         "lastPx" => 0,
+        //         "underlyingLastPx" => 0,
+        //         "lastMkt" => "string",
+        //         "lastLiquidityInd" => "string",
+        //         "simpleOrderQty" => 0,
+        //         "orderQty" => 0,
+        //         "$price" => 0,
+        //         "displayQty" => 0,
+        //         "stopPx" => 0,
+        //         "pegOffsetValue" => 0,
+        //         "pegPriceType" => "string",
+        //         "currency" => "string",
+        //         "settlCurrency" => "string",
+        //         "execType" => "string",
+        //         "ordType" => "string",
+        //         "timeInForce" => "string",
+        //         "execInst" => "string",
+        //         "contingencyType" => "string",
+        //         "exDestination" => "string",
+        //         "ordStatus" => "string",
+        //         "triggered" => "string",
+        //         "workingIndicator" => true,
+        //         "ordRejReason" => "string",
+        //         "simpleLeavesQty" => 0,
+        //         "leavesQty" => 0,
+        //         "simpleCumQty" => 0,
+        //         "cumQty" => 0,
+        //         "avgPx" => 0,
+        //         "commission" => 0,
+        //         "tradePublishIndicator" => "string",
+        //         "multiLegReportingType" => "string",
+        //         "text" => "string",
+        //         "trdMatchID" => "string",
+        //         "execCost" => 0,
+        //         "execComm" => 0,
+        //         "homeNotional" => 0,
+        //         "foreignNotional" => 0,
+        //         "transactTime" => "2019-03-05T12:47:02.762Z",
+        //         "$timestamp" => "2019-03-05T12:47:02.762Z"
+        //     }
+        //
+        $timestamp = $this->parse8601 ($this->safe_string($trade, 'timestamp'));
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float_2($trade, 'size', 'lastQty');
+        $id = $this->safe_string($trade, 'trdMatchID');
+        $order = $this->safe_string($trade, 'orderID');
+        $side = strtolower ($this->safe_string($trade, 'side'));
+        // $price * $amount doesn't work for all symbols (e.g. XBT, ETH)
+        $cost = $this->safe_float($trade, 'execCost');
+        if ($cost !== null) {
+            $cost = abs ($cost) / 100000000;
         }
-        if ($market)
-            $symbol = $market['symbol'];
+        $fee = null;
+        if (is_array ($trade) && array_key_exists ('execComm', $trade)) {
+            $feeCost = $this->safe_float($trade, 'execComm');
+            $feeCost = $feeCost / 100000000;
+            $currencyId = $this->safe_string($trade, 'currency');
+            $currencyId = strtoupper ($currencyId);
+            $feeCurrency = $this->common_currency_code($currencyId);
+            $feeRate = $this->safe_float($trade, 'commission');
+            $fee = array (
+                'cost' => $feeCost,
+                'currency' => $feeCurrency,
+                'rate' => $feeRate,
+            );
+        }
+        $takerOrMaker = null;
+        if ($fee !== null) {
+            $takerOrMaker = $fee['cost'] < 0 ? 'maker' : 'taker';
+        }
+        $symbol = null;
+        $marketId = $this->safe_string($trade, 'symbol');
+        if ($marketId !== null) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+                $symbol = $market['symbol'];
+            } else {
+                $symbol = $marketId;
+            }
+        }
         return array (
-            'id' => $trade['trdMatchID'],
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'order' => null,
+            'id' => $id,
+            'order' => $order,
             'type' => null,
-            'side' => strtolower ($trade['side']),
-            'price' => $trade['price'],
-            'amount' => $trade['size'],
+            'takerOrMaker' => $takerOrMaker,
+            'side' => $side,
+            'price' => $price,
+            'cost' => $cost,
+            'amount' => $amount,
+            'fee' => $fee,
         );
     }
 
@@ -612,9 +793,11 @@ class bitmex extends Exchange {
             }
         }
         $cost = null;
-        if ($price !== null)
-            if ($filled !== null)
+        if ($price !== null) {
+            if ($filled !== null) {
                 $cost = $price * $filled;
+            }
+        }
         $result = array (
             'info' => $order,
             'id' => (string) $order['orderID'],
@@ -641,12 +824,42 @@ class bitmex extends Exchange {
         $request = array (
             'symbol' => $market['id'],
         );
-        if ($since !== null)
+        if ($since !== null) {
             $request['startTime'] = $this->iso8601 ($since);
-        if ($limit !== null)
+        }
+        if ($limit !== null) {
             $request['count'] = $limit;
+        }
         $response = $this->publicGetTrade (array_merge ($request, $params));
-        return $this->parse_trades($response, $market);
+        //
+        //     array (
+        //         array (
+        //             timestamp => '2018-08-28T00:00:02.735Z',
+        //             $symbol => 'XBTUSD',
+        //             side => 'Buy',
+        //             size => 2000,
+        //             price => 6906.5,
+        //             tickDirection => 'PlusTick',
+        //             trdMatchID => 'b9a42432-0a46-6a2f-5ecc-c32e9ca4baf8',
+        //             grossValue => 28958000,
+        //             homeNotional => 0.28958,
+        //             foreignNotional => 2000
+        //         ),
+        //         array (
+        //             timestamp => '2018-08-28T00:00:03.778Z',
+        //             $symbol => 'XBTUSD',
+        //             side => 'Sell',
+        //             size => 1000,
+        //             price => 6906,
+        //             tickDirection => 'MinusTick',
+        //             trdMatchID => '0d4f1682-5270-a800-569b-4a0eb92db97c',
+        //             grossValue => 14480000,
+        //             homeNotional => 0.1448,
+        //             foreignNotional => 1000
+        //         ),
+        //     )
+        //
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

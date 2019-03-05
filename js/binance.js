@@ -13,7 +13,7 @@ module.exports = class binance extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'binance',
             'name': 'Binance',
-            'countries': [ 'JP' ], // Japan
+            'countries': [ 'JP', 'MT' ], // Japan, Malta
             'rateLimit': 500,
             'certified': true,
             // new metainfo interface
@@ -76,6 +76,7 @@ module.exports = class binance extends Exchange {
                 'wapi': {
                     'post': [
                         'withdraw',
+                        'sub-account/transfer',
                     ],
                     'get': [
                         'depositHistory',
@@ -83,9 +84,13 @@ module.exports = class binance extends Exchange {
                         'depositAddress',
                         'accountStatus',
                         'systemStatus',
+                        'apiTradingStatus',
                         'userAssetDribbletLog',
                         'tradeFee',
                         'assetDetail',
+                        'sub-account/list',
+                        'sub-account/transfer/history',
+                        'sub-account/assets',
                     ],
                 },
                 'v3': {
