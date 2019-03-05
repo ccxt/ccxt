@@ -349,7 +349,59 @@ module.exports = class bitmex extends Exchange {
             request['filter'] = this.json (request['filter']);
         }
         let response = await this.privateGetExecutionTradeHistory (request);
-        console.log (response); process.exit ();
+        //
+        //     [
+        //         {
+        //             "execID": "string",
+        //             "orderID": "string",
+        //             "clOrdID": "string",
+        //             "clOrdLinkID": "string",
+        //             "account": 0,
+        //             "symbol": "string",
+        //             "side": "string",
+        //             "lastQty": 0,
+        //             "lastPx": 0,
+        //             "underlyingLastPx": 0,
+        //             "lastMkt": "string",
+        //             "lastLiquidityInd": "string",
+        //             "simpleOrderQty": 0,
+        //             "orderQty": 0,
+        //             "price": 0,
+        //             "displayQty": 0,
+        //             "stopPx": 0,
+        //             "pegOffsetValue": 0,
+        //             "pegPriceType": "string",
+        //             "currency": "string",
+        //             "settlCurrency": "string",
+        //             "execType": "string",
+        //             "ordType": "string",
+        //             "timeInForce": "string",
+        //             "execInst": "string",
+        //             "contingencyType": "string",
+        //             "exDestination": "string",
+        //             "ordStatus": "string",
+        //             "triggered": "string",
+        //             "workingIndicator": true,
+        //             "ordRejReason": "string",
+        //             "simpleLeavesQty": 0,
+        //             "leavesQty": 0,
+        //             "simpleCumQty": 0,
+        //             "cumQty": 0,
+        //             "avgPx": 0,
+        //             "commission": 0,
+        //             "tradePublishIndicator": "string",
+        //             "multiLegReportingType": "string",
+        //             "text": "string",
+        //             "trdMatchID": "string",
+        //             "execCost": 0,
+        //             "execComm": 0,
+        //             "homeNotional": 0,
+        //             "foreignNotional": 0,
+        //             "transactTime": "2019-03-05T12:47:02.762Z",
+        //             "timestamp": "2019-03-05T12:47:02.762Z"
+        //         }
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -590,7 +642,55 @@ module.exports = class bitmex extends Exchange {
         //
         // fetchMyTrades (private)
         //
-        //     ...
+        //     {
+        //         "execID": "string",
+        //         "orderID": "string",
+        //         "clOrdID": "string",
+        //         "clOrdLinkID": "string",
+        //         "account": 0,
+        //         "symbol": "string",
+        //         "side": "string",
+        //         "lastQty": 0,
+        //         "lastPx": 0,
+        //         "underlyingLastPx": 0,
+        //         "lastMkt": "string",
+        //         "lastLiquidityInd": "string",
+        //         "simpleOrderQty": 0,
+        //         "orderQty": 0,
+        //         "price": 0,
+        //         "displayQty": 0,
+        //         "stopPx": 0,
+        //         "pegOffsetValue": 0,
+        //         "pegPriceType": "string",
+        //         "currency": "string",
+        //         "settlCurrency": "string",
+        //         "execType": "string",
+        //         "ordType": "string",
+        //         "timeInForce": "string",
+        //         "execInst": "string",
+        //         "contingencyType": "string",
+        //         "exDestination": "string",
+        //         "ordStatus": "string",
+        //         "triggered": "string",
+        //         "workingIndicator": true,
+        //         "ordRejReason": "string",
+        //         "simpleLeavesQty": 0,
+        //         "leavesQty": 0,
+        //         "simpleCumQty": 0,
+        //         "cumQty": 0,
+        //         "avgPx": 0,
+        //         "commission": 0,
+        //         "tradePublishIndicator": "string",
+        //         "multiLegReportingType": "string",
+        //         "text": "string",
+        //         "trdMatchID": "string",
+        //         "execCost": 0,
+        //         "execComm": 0,
+        //         "homeNotional": 0,
+        //         "foreignNotional": 0,
+        //         "transactTime": "2019-03-05T12:47:02.762Z",
+        //         "timestamp": "2019-03-05T12:47:02.762Z"
+        //     }
         //
         let timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         let price = this.safeFloat (trade, 'price');
