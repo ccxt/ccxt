@@ -226,6 +226,16 @@ class coinzip (Exchange):
         }, params))
         return self.parse_trades(response, market, since, limit)
 
+    def fetch_my_trades(self, symbol, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetch_trades requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        response = self.privateGetTradesMy(self.extend({
+            'market': market['id'],
+        }, params))
+        return self.parse_trades(response, market, since, limit)
+
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
         response = self.privateGetOrder(self.extend({
@@ -241,6 +251,40 @@ class coinzip (Exchange):
         request = {
             'market': market['id'],
             'state': 'all'
+        }
+        if since is not None:
+            request['timestamp'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = self.privateGetOrders(self.extend(request, params))
+
+        return self.parse_orders(response, market, since, limit)
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetch_orders requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
+            'state': 'wait'
+        }
+        if since is not None:
+            request['timestamp'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = self.privateGetOrders(self.extend(request, params))
+
+        return self.parse_orders(response, market, since, limit)
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetch_orders requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
+            'state': 'done'
         }
         if since is not None:
             request['timestamp'] = since
