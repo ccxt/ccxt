@@ -244,29 +244,22 @@ module.exports = class anxpro extends Exchange {
         let id = this.safeString (order, 'oid');
         let status = this.safeString (order, 'status');
         let timestamp = this.safeInteger (order, 'date');
-        let marketId = this.safeString (order, 'item') + '/' + this.safeString (order, 'currency');
-        market = this.safeValue (this.markets_by_id, marketId, market);
+        const baseId = this.safeString (order, 'item');
+        const quoteId = this.safeString (order, 'currency');
+        const marketId = baseId + '/' + quoteId;
+        market = this.safeValue (this.markets_by_id, marketId);
         let symbol = undefined;
-        let remaining = undefined;
-        let amount = undefined;
-        let price = undefined;
-        let filled = undefined;
-        let cost = undefined;
         if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         }
-        let amount_info = this.safeValue (order, 'amount', []);
-        let effective_info = this.safeValue (order, 'effective_amount', []);
-        let price_info = this.safeValue (order, 'price', []);
-        if (typeof amount_info !== 'undefined') {
-            amount = this.safeFloat (amount_info, 'volume');
-        }
-        if (typeof effective_info !== 'undefined') {
-            remaining = this.safeFloat (effective_info, 'value');
-        }
-        if (typeof price_info !== 'undefined') {
-            price = this.safeFloat (price_info, 'value');
-        }
+        let amount_info = this.safeValue (order, 'amount', {});
+        let effective_info = this.safeValue (order, 'effective_amount', {});
+        let price_info = this.safeValue (order, 'price', {});
+        let remaining = this.safeFloat (effective_info, 'value');
+        let amount = this.safeFloat (amount_info, 'volume');
+        let price = this.safeFloat (price_info, 'value');
+        let filled = undefined;
+        let cost = undefined;
         if (typeof amount !== 'undefined') {
             if (typeof remaining !== 'undefined') {
                 filled = amount - remaining;
@@ -281,7 +274,7 @@ module.exports = class anxpro extends Exchange {
             side = 'buy';
         }
         let fee = undefined;
-        let trades = undefined;
+        let trades = undefined; // todo parse trades
         let lastTradeTimestamp = undefined;
         return {
             'info': order,
