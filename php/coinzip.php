@@ -209,6 +209,17 @@ class coinzip extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
+    public function fetch_my_trades ($symbol = NULL, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null)
+            throw new ArgumentsRequired ($this->id . ' fetchOrders requires a $symbol argument');
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $response = $this->privateGetTradesMy (array_merge (array (
+            'market' => $market['id'],
+        ), $params));
+        return $this->parse_trades($response, $market, $since, $limit);
+    }
+
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetMembersMe ();
