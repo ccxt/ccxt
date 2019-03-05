@@ -29,6 +29,7 @@ class gdax extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchMyTrades' => true,
                 'fetchTransactions' => true,
+                'cancelAllOrders' => true,
             ),
             'timeframes' => array (
                 '1m' => 60,
