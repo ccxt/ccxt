@@ -27,7 +27,6 @@ module.exports = class anxpro extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
                 'api': 'https://anxpro.com/api',
-                'test': 'https://private-anon-4203fc0d0f-anxv2.apiary-mock.com/api',
                 'www': 'https://anxpro.com',
                 'doc': [
                     'http://docs.anxv2.apiary.io',
@@ -155,43 +154,46 @@ module.exports = class anxpro extends Exchange {
         const request = {
             'currency_pair': market['id'],
         };
-        // ANXPro will return all symbol pairs irregardless of what is specified in request
+        // ANXPro will return all symbol pairs regardless of what is specified in request
         const response = await this.privatePostCurrencyPairMoneyOrders (this.extend (request, params));
         //
-        // {
-        //   "result": "success",
-        //   "data": [
         //     {
-        //       "oid": "e74305c7-c424-4fbc-a8a2-b41d8329deb0",
-        //       "currency": "HKD",
-        //       "item": "BTC",
-        //       "type": "offer",
-        //       "amount": {
-        //         "currency": "BTC",
-        //         "display": "10.00000000 BTC",
-        //         "display_short": "10.00 BTC",
-        //         "value": "10.00000000",
-        //         "value_int": "1000000000"
-        //       },
-        //       "effective_amount": {
-        //         "currency": "BTC",
-        //         "display": "10.00000000 BTC",
-        //         "display_short": "10.00 BTC",
-        //         "value": "10.00000000",
-        //         "value_int": "1000000000"
-        //       },
-        //       "price": {
-        //         "currency": "HKD",
-        //         "display": "412.34567 HKD",
-        //         "display_short": "412.35 HKD",
-        //         "value": "412.34567",
-        //         "value_int": "41234567"
-        //       },
-        //       "status": "open",
-        //       "date": 1393411075000,
-        //       "priority": 1393411075000000,
-        //       "actions": []
-        //     },...]}
+        //         "result": "success",
+        //         "data": [
+        //             {
+        //                 "oid": "e74305c7-c424-4fbc-a8a2-b41d8329deb0",
+        //                 "currency": "HKD",
+        //                 "item": "BTC",
+        //                 "type": "offer",
+        //                 "amount": {
+        //                     "currency": "BTC",
+        //                     "display": "10.00000000 BTC",
+        //                     "display_short": "10.00 BTC",
+        //                     "value": "10.00000000",
+        //                     "value_int": "1000000000"
+        //                 },
+        //                 "effective_amount": {
+        //                     "currency": "BTC",
+        //                     "display": "10.00000000 BTC",
+        //                     "display_short": "10.00 BTC",
+        //                     "value": "10.00000000",
+        //                     "value_int": "1000000000"
+        //                 },
+        //                 "price": {
+        //                     "currency": "HKD",
+        //                     "display": "412.34567 HKD",
+        //                     "display_short": "412.35 HKD",
+        //                     "value": "412.34567",
+        //                     "value_int": "41234567"
+        //                 },
+        //                 "status": "open",
+        //                 "date": 1393411075000,
+        //                 "priority": 1393411075000000,
+        //                 "actions": []
+        //             },
+        //            ...
+        //         ]
+        //     }
         //
         return this.parseOrders (this.safeValue (response, 'data', {}), symbol, since, limit);
     }
