@@ -624,28 +624,24 @@ module.exports = class gdax extends Exchange {
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let request = {};
-        // will rewrite for this.accounts
-        if (!('id' in params)) {
+        await this.loadAccounts ();
+        let currency = undefined;
+        let id = this.safeString (params, 'id'); // account id
+        if (id === undefined) {
             if (code === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a currency code argument if no id specified in params');
+                throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a currency code argument if no account id specified in params');
             }
-            let accountId = undefined;
-            let accounts = await this.privateGetAccounts ();
-            for (let i = 0; i < accounts.length; i++) {
-                let account = accounts[i];
-                // todo: use unified common currencies below
-                if (account['currency'] === currency['id']) {
-                    accountId = account['id'];
-                    break;
-                }
-            }
-            if (accountId === undefined) {
+            currency = this.currency (code);
+            const accountsByCurrencyCode = this.indexBy (this.accounts, 'currency');
+            const account = this.safeValue (accountsByCurrencyCode, code);
+            if (account === undefined) {
                 throw new ExchangeError (this.id + ' fetchTransactions() could not find account id for ' + code);
             }
-            request['id'] = accountId;
+            id = account['id'];
         }
+        const request = {
+            'id': id,
+        };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
