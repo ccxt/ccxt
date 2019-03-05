@@ -828,15 +828,14 @@ class Exchange {
 
         // API methods metainfo
         $this->has = array (
-            'CORS' => false,
-            'publicAPI' => true,
-            'privateAPI' => true,
+            'cancelAllOrders' => false,
             'cancelOrder' => true,
             'cancelOrders' => false,
+            'CORS' => false,
             'createDepositAddress' => false,
-            'createOrder' => true,
-            'createMarketOrder' => true,
             'createLimitOrder' => true,
+            'createMarketOrder' => true,
+            'createOrder' => true,
             'deposit' => false,
             'fetchBalance' => true,
             'fetchClosedOrders' => false,
@@ -845,6 +844,7 @@ class Exchange {
             'fetchDeposits' => false,
             'fetchFundingFees' => false,
             'fetchL2OrderBook' => true,
+            'fetchLedger' => false,
             'fetchMarkets' => true,
             'fetchMyTrades' => false,
             'fetchOHLCV' => 'emulated',
@@ -860,6 +860,8 @@ class Exchange {
             'fetchTradingLimits' => false,
             'fetchTransactions' => false,
             'fetchWithdrawals' => false,
+            'privateAPI' => true,
+            'publicAPI' => true,
             'withdraw' => false,
         );
 

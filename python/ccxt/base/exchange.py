@@ -200,15 +200,14 @@ class Exchange(object):
 
     # API method metainfo
     has = {
-        'publicAPI': True,
-        'privateAPI': True,
-        'CORS': False,
+        'cancelAllOrders': False,
         'cancelOrder': True,
         'cancelOrders': False,
+        'CORS': False,
         'createDepositAddress': False,
-        'createOrder': True,
-        'createMarketOrder': True,
         'createLimitOrder': True,
+        'createMarketOrder': True,
+        'createOrder': True,
         'deposit': False,
         'editOrder': 'emulated',
         'fetchBalance': True,
@@ -218,6 +217,7 @@ class Exchange(object):
         'fetchDeposits': False,
         'fetchFundingFees': False,
         'fetchL2OrderBook': True,
+        'fetchLedger': False,
         'fetchMarkets': True,
         'fetchMyTrades': False,
         'fetchOHLCV': 'emulated',
@@ -233,6 +233,8 @@ class Exchange(object):
         'fetchTradingLimits': False,
         'fetchTransactions': False,
         'fetchWithdrawals': False,
+        'privateAPI': True,
+        'publicAPI': True,
         'withdraw': False,
     }
     precisionMode = DECIMAL_PLACES
