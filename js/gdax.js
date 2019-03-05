@@ -29,7 +29,6 @@ module.exports = class gdax extends Exchange {
                 'fetchMyTrades': true,
                 'fetchTransactions': true,
                 'cancelAllOrders': true,
-                'fetchAccounts': true,
             },
             'timeframes': {
                 '1m': 60,
