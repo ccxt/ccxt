@@ -25,6 +25,7 @@ module.exports = class bitmex extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchMyTrades': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -645,6 +646,22 @@ module.exports = class bitmex extends Exchange {
         if (limit !== undefined)
             request['count'] = limit;
         let response = await this.publicGetTrade (this.extend (request, params));
+        return this.parseTrades (response, market);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        let request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined)
+            request['startTime'] = this.iso8601 (since);
+        if (limit !== undefined)
+            request['count'] = limit;
+        let response = await this.privateGetExecutionTradeHistory (this.extend (request, params));
         return this.parseTrades (response, market);
     }
 
