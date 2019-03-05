@@ -135,6 +135,80 @@ class coinzip extends Exchange {
         return $result;
     }
 
+    public function fetch_tickers ($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $tickers = $this->publicGetTickers ($params);
+        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
+        $result = array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $market = null;
+            $symbol = $id;
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
+            } else {
+                $base = mb_substr ($id, 0, 3);
+                $quote = mb_substr ($id, 3, 6);
+                $base = strtoupper ($base);
+                $quote = strtoupper ($quote);
+                $base = $this->common_currency_code($base);
+                $quote = $this->common_currency_code($quote);
+                $symbol = $base . '/' . $quote;
+            }
+            $ticker = $tickers[$id];
+            $result[$symbol] = $this->parse_ticker($ticker, $market);
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTickersMarket (array_merge (array (
+            'market' => $market['id'],
+        ), $params));
+        return $this->parse_ticker($response, $market);
+    }
+
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'market' => $market['id'],
+        );
+        if ($limit !== null)
+            $request['limit'] = $limit; // default = 300
+        $orderbook = $this->publicGetDepth (array_merge ($request, $params));
+        $timestamp = $orderbook['timestamp'] * 1000;
+        return $this->parse_order_book($orderbook, $timestamp);
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        if ($limit === null)
+            $limit = 500; // default is 30
+        $request = array (
+            'market' => $market['id'],
+            'period' => $this->timeframes[$timeframe],
+            'limit' => $limit,
+        );
+        if ($since !== null)
+            $request['timestamp'] = $since;
+        $response = $this->publicGetK (array_merge ($request, $params));
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+    }
+
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTrades (array_merge (array (
+            'market' => $market['id'],
+        ), $params));
+        return $this->parse_trades($response, $market, $since, $limit);
+    }
+
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $ticker['at'] * 1000;
         $ticker = $ticker['ticker'];
