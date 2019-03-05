@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.334'
+const version = '1.18.335'
 
 Exchange.ccxtVersion = version
 
@@ -13111,7 +13111,9 @@ module.exports = class bitmex extends Exchange {
                 },
             },
             'options': {
-                'api-expires': undefined,
+                // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
+                // https://github.com/ccxt/ccxt/issues/4789
+                'api-expires': 5, // in seconds
             },
         });
     }

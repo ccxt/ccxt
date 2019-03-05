@@ -145,7 +145,9 @@ class bitmex extends Exchange {
                 ),
             ),
             'options' => array (
-                'api-expires' => null,
+                // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
+                // https://github.com/ccxt/ccxt/issues/4789
+                'api-expires' => 5, // in seconds
             ),
         ));
     }
