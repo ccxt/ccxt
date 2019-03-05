@@ -345,8 +345,9 @@ module.exports = class bitmex extends Exchange {
         // why the hassle? urlencode in python is kinda broken for nested dicts.
         // E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
         // Bitmex doesn't like that. Hence resorting to this hack.
-        if ('filter' in request)
+        if ('filter' in request) {
             request['filter'] = this.json (request['filter']);
+        }
         let response = await this.privateGetExecutionTradeHistory (request);
         return this.parseTrades (response, market, since, limit);
     }
@@ -596,15 +597,28 @@ module.exports = class bitmex extends Exchange {
             };
         }
         let takerOrMaker = undefined;
-        if (fee !== undefined)
+        if (fee !== undefined) {
             takerOrMaker = fee['cost'] < 0 ? 'maker' : 'taker';
+        }
         let symbol = undefined;
+        const marketId = this.safeString (trade, 'symbol');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id[marketId]) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                symbol = marketId;
+            }
+        }
         if (market === undefined) {
+
             if ('symbol' in trade)
                 market = this.markets_by_id[trade['symbol']];
         }
-        if (market)
+        if (symbol === undefined)
+        if (market) {
             symbol = market['symbol'];
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -698,23 +712,35 @@ module.exports = class bitmex extends Exchange {
         if (limit !== undefined)
             request['count'] = limit;
         let response = await this.publicGetTrade (this.extend (request, params));
-        return this.parseTrades (response, market);
-    }
-
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        let request = {};
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
-        if (since !== undefined)
-            request['startTime'] = this.iso8601 (since);
-        if (limit !== undefined)
-            request['count'] = limit;
-        let response = await this.privateGetExecutionTradeHistory (this.extend (request, params));
-        return this.parseTrades (response, market);
+        //
+        //     [
+        //         {
+        //             timestamp: '2018-08-28T00:00:02.735Z',
+        //             symbol: 'XBTUSD',
+        //             side: 'Buy',
+        //             size: 2000,
+        //             price: 6906.5,
+        //             tickDirection: 'PlusTick',
+        //             trdMatchID: 'b9a42432-0a46-6a2f-5ecc-c32e9ca4baf8',
+        //             grossValue: 28958000,
+        //             homeNotional: 0.28958,
+        //             foreignNotional: 2000
+        //         },
+        //         {
+        //             timestamp: '2018-08-28T00:00:03.778Z',
+        //             symbol: 'XBTUSD',
+        //             side: 'Sell',
+        //             size: 1000,
+        //             price: 6906,
+        //             tickDirection: 'MinusTick',
+        //             trdMatchID: '0d4f1682-5270-a800-569b-4a0eb92db97c',
+        //             grossValue: 14480000,
+        //             homeNotional: 0.1448,
+        //             foreignNotional: 1000
+        //         },
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
