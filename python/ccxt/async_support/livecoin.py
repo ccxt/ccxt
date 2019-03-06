@@ -40,6 +40,7 @@ class livecoin (Exchange):
                 'CORS': False,
                 'fetchTickers': True,
                 'fetchCurrencies': True,
+                'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchOrders': True,
                 'fetchOrder': True,

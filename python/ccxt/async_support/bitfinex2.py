@@ -36,6 +36,7 @@ class bitfinex2 (bitfinex):
                 'fetchOpenOrders': False,
                 'fetchOrder': True,
                 'fetchTickers': True,
+                'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'withdraw': True,
             },

@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.342'
+const version = '1.18.343'
 
 Exchange.ccxtVersion = version
 
@@ -1895,6 +1895,7 @@ module.exports = class Exchange {
                 'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTradingLimits': false,
                 'fetchTransactions': false,
@@ -2892,6 +2893,17 @@ module.exports = class Exchange {
 
     fetchTotalBalance (params = {}) {
         return this.fetchPartialBalance ('total', params)
+    }
+
+    async fetchTradingFees (params = {}) {
+        throw new NotSupported (this.id + ' fetchTradingFees not supported yet')
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        if (!this.has['fetchTradingFees']) {
+            throw new NotSupported (this.id + ' fetchTradingFee not supported yet')
+        }
+        return await this.fetchTradingFees (params)
     }
 
     async loadTradingLimits (symbols = undefined, reload = false, params = {}) {
@@ -9284,6 +9296,7 @@ module.exports = class bitfinex extends Exchange {
                 'deposit': true,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
+                'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchFundingFees': true,
                 'fetchMyTrades': true,
@@ -10321,6 +10334,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'fetchOpenOrders': false,
                 'fetchOrder': true,
                 'fetchTickers': true,
+                'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'withdraw': true,
             },
@@ -32748,6 +32762,7 @@ module.exports = class crex24 extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'withdraw': true,
+                'fetchTradingFee': false, // actually, true, but will be implemented later
                 'fetchTradingFees': false, // actually, true, but will be implemented later
                 'fetchFundingFees': false,
                 'fetchDeposits': true,
@@ -36502,6 +36517,7 @@ module.exports = class ethfinex extends bitfinex {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchTickers': true,
+                'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'withdraw': true,
             },
@@ -36563,6 +36579,7 @@ module.exports = class exmo extends Exchange {
                 'fetchMyTrades': true,
                 'fetchTickers': true,
                 'withdraw': true,
+                'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchFundingFees': true,
                 'fetchCurrencies': true,
@@ -43182,7 +43199,7 @@ module.exports = class hitbtc extends Exchange {
 // ---------------------------------------------------------------------------
 
 const hitbtc = require ('./hitbtc');
-const { PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
+const { PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 // ---------------------------------------------------------------------------
 
@@ -43212,7 +43229,7 @@ module.exports = class hitbtc2 extends hitbtc {
                 'fetchDeposits': false,
                 'fetchWithdrawals': false,
                 'fetchTransactions': true,
-                'fetchTradingFees': true,
+                'fetchTradingFee': true,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -43844,12 +43861,8 @@ module.exports = class hitbtc2 extends hitbtc {
         return result;
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFee (symbol, params = {}) {
         await this.loadMarkets ();
-        const symbol = this.safeString (params, 'symbol');
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTradingFees requires a symbol parameter');
-        }
         const market = this.market (symbol);
         const request = this.extend ({
             'symbol': market['id'],
@@ -48028,6 +48041,7 @@ module.exports = class kraken extends Exchange {
             'has': {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
+                'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'CORS': false,
                 'fetchCurrencies': true,
@@ -53037,6 +53051,7 @@ module.exports = class livecoin extends Exchange {
                 'CORS': false,
                 'fetchTickers': true,
                 'fetchCurrencies': true,
+                'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchOrders': true,
                 'fetchOrder': true,
@@ -53719,6 +53734,7 @@ module.exports = class luno extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': true,
+                'fetchTradingFee': true,
                 'fetchTradingFees': true,
             },
             'urls': {
@@ -57099,6 +57115,7 @@ module.exports = class poloniex extends Exchange {
                 'fetchOrderStatus': 'emulated', // no endpoint for status of a single open-or-closed order (just for open orders only)
                 'fetchOrderTrades': true, // true endpoint for trades of a single open or closed order
                 'fetchTickers': true,
+                'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': 'emulated', // but almost true )

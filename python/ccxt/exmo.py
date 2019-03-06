@@ -43,6 +43,7 @@ class exmo (Exchange):
                 'fetchMyTrades': True,
                 'fetchTickers': True,
                 'withdraw': True,
+                'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchFundingFees': True,
                 'fetchCurrencies': True,

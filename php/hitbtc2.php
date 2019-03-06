@@ -34,7 +34,7 @@ class hitbtc2 extends hitbtc {
                 'fetchDeposits' => false,
                 'fetchWithdrawals' => false,
                 'fetchTransactions' => true,
-                'fetchTradingFees' => true,
+                'fetchTradingFee' => true,
             ),
             'timeframes' => array (
                 '1m' => 'M1',
@@ -666,12 +666,8 @@ class hitbtc2 extends hitbtc {
         return $result;
     }
 
-    public function fetch_trading_fees ($params = array ()) {
+    public function fetch_trading_fee ($symbol, $params = array ()) {
         $this->load_markets();
-        $symbol = $this->safe_string($params, 'symbol');
-        if ($symbol === null) {
-            throw new ArgumentsRequired ($this->id . ' fetchTradingFees requires a $symbol parameter');
-        }
         $market = $this->market ($symbol);
         $request = array_merge (array (
             'symbol' => $market['id'],
