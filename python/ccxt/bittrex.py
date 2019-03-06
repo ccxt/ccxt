@@ -212,7 +212,8 @@ class bittrex (Exchange):
                     'NEM': True,  # XEM
                     'STELLAR': True,  # XLM
                     'STEEM': True,  # SBD, GOLOS
-                    'LISK': True,  # LSK
+                    # https://github.com/ccxt/ccxt/issues/4794
+                    # 'LISK': True,  # LSK
                 },
             },
             'commonCurrencies': {
