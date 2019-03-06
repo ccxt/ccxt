@@ -8,7 +8,7 @@ namespace ccxt;
 use Exception as Exception; // a common import
 
 class coinzip extends Exchange {
-  
+
     public function describe () {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'coinzip',
@@ -50,7 +50,7 @@ class coinzip extends Exchange {
                 '1w' => '10080',
             ),
             'urls' => array (
-                'logo' =>  'https://user-images.githubusercontent.com/coinzip.logo.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/786083/53869301-ecfc2200-4032-11e9-80bc-42eda484076f.png',
                 'api' =>  'https://coinzip.co',
                 'www' =>  'https://coinzip.co',
                 'documents' =>  'https://coinzip.co/documents/api_v2',
