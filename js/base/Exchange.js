@@ -122,6 +122,7 @@ module.exports = class Exchange {
                 'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTradingLimits': false,
                 'fetchTransactions': false,
@@ -1119,6 +1120,17 @@ module.exports = class Exchange {
 
     fetchTotalBalance (params = {}) {
         return this.fetchPartialBalance ('total', params)
+    }
+
+    async fetchTradingFees (params = {}) {
+        throw new NotSupported (this.id + ' fetchTradingFees not supported yet')
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        if (!this.has['fetchTradingFees']) {
+            throw new NotSupported (this.id + ' fetchTradingFee not supported yet')
+        }
+        return await this.fetchTradingFees (params)
     }
 
     async loadTradingLimits (symbols = undefined, reload = false, params = {}) {

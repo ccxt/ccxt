@@ -856,6 +856,7 @@ class Exchange {
             'fetchTicker' => true,
             'fetchTickers' => false,
             'fetchTrades' => true,
+            'fetchTradingFee' => false,
             'fetchTradingFees' => false,
             'fetchTradingLimits' => false,
             'fetchTransactions' => false,
@@ -967,12 +968,12 @@ class Exchange {
 
     public function underscore ($camelcase) {
         // todo: write conversion fooBar10OHLCV2Candles → foo_bar10_ohlcv2_candles
-        throw new NotSupported ($this->id . ' underscore() not implemented yet');
+        throw new NotSupported ($this->id . ' underscore() not supported yet');
     }
 
     public function camelcase ($underscore) {
         // todo: write conversion foo_bar10_ohlcv2_candles → fooBar10OHLCV2Candles
-        throw new NotSupported ($this->id . ' camelcase() not implemented yet');
+        throw new NotSupported ($this->id . ' camelcase() not supported yet');
     }
 
     public static function hash ($request, $type = 'md5', $digest = 'hex') {
@@ -1023,7 +1024,7 @@ class Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        throw new NotSupported ($this->id . ' sign() not implemented yet');
+        throw new NotSupported ($this->id . ' sign() not supported yet');
     }
 
     public function fetch2 ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -1491,6 +1492,17 @@ class Exchange {
         return $this->fetch_total_balance ($params);
     }
 
+    public function fetch_trading_fees ($params = array ()) {
+        throw new NotSupported ($this->id . ' fetch_trading_fees not supported yet');
+    }
+
+    public function fetch_trading_fee ($symbol, $params = array ()) {
+        if (!$this->has['fetchTradingFees']) {
+            throw new NotSupported ($this->id . ' fetch_trading_fee not supported yet');
+        }
+        return $this->fetch_trading_fees($params);
+    }
+
     public function load_trading_limits ($symbols = null, $reload = false, $params = array ()) {
         if ($this->has['fetchTradingLimits']) {
             if ($reload || !(is_array ($this->options) && array_key_exists ('limitsLoaded', $this->options))) {
@@ -1696,7 +1708,7 @@ class Exchange {
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
-        throw new NotSupported ($this->id . ' fetch_order() not implemented yet');
+        throw new NotSupported ($this->id . ' fetch_order() not supported yet');
     }
 
     public function fetchOrder ($id, $symbol = null, $params = array ()) {
@@ -1704,7 +1716,7 @@ class Exchange {
     }
 
     public function fetch_order_trades ($id, $symbol = null, $params = array ()) {
-        throw new NotSupported ($this->id . ' fetch_order_trades() not implemented yet');
+        throw new NotSupported ($this->id . ' fetch_order_trades() not supported yet');
     }
 
     public function fetchOrderTrades ($id, $symbol = null, $params = array ()) {
@@ -1712,7 +1724,7 @@ class Exchange {
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        throw new NotSupported ($this->id . ' fetch_orders() not implemented yet');
+        throw new NotSupported ($this->id . ' fetch_orders() not supported yet');
     }
 
     public function fetchOrders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1720,7 +1732,7 @@ class Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        throw new NotSupported ($this->id . ' fetch_open_orders() not implemented yet');
+        throw new NotSupported ($this->id . ' fetch_open_orders() not supported yet');
     }
 
     public function fetchOpenOrders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1728,7 +1740,7 @@ class Exchange {
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        throw new NotSupported ($this->id . ' fetch_closed_orders() not implemented yet');
+        throw new NotSupported ($this->id . ' fetch_closed_orders() not supported yet');
     }
 
     public function fetchClosedOrders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1736,7 +1748,7 @@ class Exchange {
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        throw new NotSupported ($this->id . ' fetch_my_trades() not implemented yet');
+        throw new NotSupported ($this->id . ' fetch_my_trades() not supported yet');
     }
 
     public function fetchMyTrades ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1748,7 +1760,7 @@ class Exchange {
     }
 
     public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
-        throw new NotSupported ($this->id . ' fetch_transactions() not implemented yet');
+        throw new NotSupported ($this->id . ' fetch_transactions() not supported yet');
     }
 
     public function fetchDeposits ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1756,7 +1768,7 @@ class Exchange {
     }
 
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
-        throw new NotSupported ($this->id . ' fetch_deposits() not implemented yet');
+        throw new NotSupported ($this->id . ' fetch_deposits() not supported yet');
     }
 
     public function fetchWithdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1764,7 +1776,7 @@ class Exchange {
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
-        throw new NotSupported ($this->id . ' fetch_withdrawals() not implemented yet');
+        throw new NotSupported ($this->id . ' fetch_withdrawals() not supported yet');
     }
 
     public function fetchDepositAddress ($code, $params = array ()) {
@@ -1772,7 +1784,7 @@ class Exchange {
     }
 
     public function fetch_deposit_address ($code, $params = array ()) {
-        throw new NotSupported ($this->id . ' fetch_deposit_address() not implemented yet');
+        throw new NotSupported ($this->id . ' fetch_deposit_address() not supported yet');
     }
 
     public function fetch_markets ($params = array()) {
@@ -1804,7 +1816,7 @@ class Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
-        throw new NotSupported ($this->id . ' fetch_balance() not implemented yet');
+        throw new NotSupported ($this->id . ' fetch_balance() not supported yet');
     }
 
     public function fetchOrderBook ($symbol, $limit = null, $params = array ()) {
@@ -1821,7 +1833,7 @@ class Exchange {
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         if (!$this->has['fetchTrades'])
-            throw new NotSupported ($this->$id . ' fetch_ohlcv() not implemented yet');
+            throw new NotSupported ($this->$id . ' fetch_ohlcv() not supported yet');
         $this->load_markets ();
         $trades = $this->fetch_trades ($symbol, $since, $limit, $params);
         return $this->build_ohlcv ($trades, $timeframe, $since, $limit);
@@ -1884,7 +1896,7 @@ class Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        throw new NotSupported ($this->id . ' cancel_order() not supported or not implemented yet');
+        throw new NotSupported ($this->id . ' cancel_order() not supported or not supported yet');
     }
 
     public function edit_order ($id, $symbol, $type, $side, $amount, $price, $params = array ()) {
@@ -1916,7 +1928,7 @@ class Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        throw new NotSupported ($this->id . ' create_order() not implemented yet');
+        throw new NotSupported ($this->id . ' create_order() not supported yet');
     }
 
     public function create_limit_order ($symbol, $side, $amount, $price, $params = array ()) {

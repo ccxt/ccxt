@@ -229,6 +229,7 @@ class Exchange(object):
         'fetchTicker': True,
         'fetchTickers': False,
         'fetchTrades': True,
+        'fetchTradingFee': False,
         'fetchTradingFees': False,
         'fetchTradingLimits': False,
         'fetchTransactions': False,
@@ -1155,10 +1156,10 @@ class Exchange(object):
         }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
-        self.raise_error(NotSupported, details='create_order() not implemented yet')
+        self.raise_error(NotSupported, details='create_order() not supported yet')
 
     def cancel_order(self, id, symbol=None, params={}):
-        self.raise_error(NotSupported, details='cancel_order() not implemented yet')
+        self.raise_error(NotSupported, details='cancel_order() not supported yet')
 
     def fetch_bids_asks(self, symbols=None, params={}):
         self.raise_error(NotSupported, details='API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now')
@@ -1177,31 +1178,31 @@ class Exchange(object):
         return self.orders
 
     def fetch_order(self, id, symbol=None, params={}):
-        self.raise_error(NotSupported, details='fetch_order() is not implemented yet')
+        self.raise_error(NotSupported, details='fetch_order() is not supported yet')
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        self.raise_error(NotSupported, details='fetch_orders() is not implemented yet')
+        self.raise_error(NotSupported, details='fetch_orders() is not supported yet')
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        self.raise_error(NotSupported, details='fetch_open_orders() is not implemented yet')
+        self.raise_error(NotSupported, details='fetch_open_orders() is not supported yet')
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        self.raise_error(NotSupported, details='fetch_closed_orders() is not implemented yet')
+        self.raise_error(NotSupported, details='fetch_closed_orders() is not supported yet')
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        self.raise_error(NotSupported, details='fetch_my_trades() is not implemented yet')
+        self.raise_error(NotSupported, details='fetch_my_trades() is not supported yet')
 
     def fetch_order_trades(self, id, symbol=None, params={}):
-        self.raise_error(NotSupported, details='fetch_order_trades() is not implemented yet')
+        self.raise_error(NotSupported, details='fetch_order_trades() is not supported yet')
 
     def fetch_transactions(self, symbol=None, since=None, limit=None, params={}):
-        self.raise_error(NotSupported, details='fetch_transactions() is not implemented yet')
+        self.raise_error(NotSupported, details='fetch_transactions() is not supported yet')
 
     def fetch_deposits(self, symbol=None, since=None, limit=None, params={}):
-        self.raise_error(NotSupported, details='fetch_deposits() is not implemented yet')
+        self.raise_error(NotSupported, details='fetch_deposits() is not supported yet')
 
     def fetch_withdrawals(self, symbol=None, since=None, limit=None, params={}):
-        self.raise_error(NotSupported, details='fetch_withdrawals() is not implemented yet')
+        self.raise_error(NotSupported, details='fetch_withdrawals() is not supported yet')
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return ohlcv[0:6] if isinstance(ohlcv, list) else ohlcv
@@ -1276,6 +1277,14 @@ class Exchange(object):
     def fetch_total_balance(self, params={}):
         return self.fetch_partial_balance('total', params)
 
+    def fetch_trading_fees(self, params={}):
+        self.raise_error(NotSupported, details='fetch_trading_fees() not supported yet')
+
+    def fetch_trading_fee(self, symbol, params={}):
+        if not self.has['fetchTradingFees']:
+            self.raise_error(NotSupported, details='fetch_trading_fee() not supported yet')
+        return self.fetch_trading_fees(params)
+
     def load_trading_limits(self, symbols=None, reload=False, params={}):
         if self.has['fetchTradingLimits']:
             if reload or not('limitsLoaded' in list(self.options.keys())):
@@ -1288,7 +1297,7 @@ class Exchange(object):
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         if not self.has['fetchTrades']:
-            self.raise_error(NotSupported, details='fetch_ohlcv() not implemented yet')
+            self.raise_error(NotSupported, details='fetch_ohlcv() not supported yet')
         self.load_markets()
         trades = self.fetch_trades(symbol, since, limit, params)
         return self.build_ohlcv(trades, timeframe, since, limit)

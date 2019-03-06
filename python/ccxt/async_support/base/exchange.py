@@ -274,6 +274,14 @@ class Exchange(BaseExchange):
         await self.cancel_order(id, symbol)
         return await self.create_order(symbol, *args)
 
+    async def fetch_trading_fees(self, params={}):
+        self.raise_error(NotSupported, details='fetch_trading_fees() not supported yet')
+
+    async def fetch_trading_fee(self, symbol, params={}):
+        if not self.has['fetchTradingFees']:
+            self.raise_error(NotSupported, details='fetch_trading_fee() not supported yet')
+        return await self.fetch_trading_fees(params)
+
     async def load_trading_limits(self, symbols=None, reload=False, params={}):
         if self.has['fetchTradingLimits']:
             if reload or not('limitsLoaded' in list(self.options.keys())):
