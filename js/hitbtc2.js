@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const hitbtc = require ('./hitbtc');
-const { PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
+const { PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, NotSupported } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 // ---------------------------------------------------------------------------
 
@@ -33,7 +33,7 @@ module.exports = class hitbtc2 extends hitbtc {
                 'fetchDeposits': false,
                 'fetchWithdrawals': false,
                 'fetchTransactions': true,
-                'fetchTradingFees': true,
+                'fetchTradingFee': true,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -665,12 +665,8 @@ module.exports = class hitbtc2 extends hitbtc {
         return result;
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFee (symbol, params = {}) {
         await this.loadMarkets ();
-        const symbol = this.safeString (params, 'symbol');
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTradingFees requires a symbol parameter');
-        }
         const market = this.market (symbol);
         const request = this.extend ({
             'symbol': market['id'],
