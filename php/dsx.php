@@ -23,6 +23,8 @@ class dsx extends liqui {
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => false,
                 'fetchOrderBooks' => false,
+                'createDepositAddress' => true,
+                'fetchDepositAddress' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
@@ -190,6 +192,32 @@ class dsx extends liqui {
         return $this->parse_balance($result);
     }
 
+    public function create_deposit_address ($code, $params = array ()) {
+        $request = array (
+            'new' => 1,
+        );
+        $response = $this->fetch_deposit_address ($code, array_merge ($request, $params));
+        return $response;
+    }
+
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $request = array (
+            'currency' => $currency['id'],
+        );
+        $response = $this->dwapiPostDepositCryptoaddress (array_merge ($request, $params));
+        $result = $this->safe_value($response, 'return', array ());
+        $address = $this->safe_string($result, 'address');
+        $this->check_address($address);
+        return array (
+            'currency' => $code,
+            'address' => $address,
+            'tag' => null, // not documented in DSX API
+            'info' => $response,
+        );
+    }
+
     public function parse_ticker ($ticker, $market = null) {
         //
         //   {    high =>  0.03492,
@@ -344,6 +372,89 @@ class dsx extends liqui {
             '7' => 'canceled', // Rejected
         );
         return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_trade ($trade, $market = null) {
+        // { "pair" => "btcusd",
+        //   "$type" => "buy",
+        //   "volume" => 0.0595,
+        //   "rate" => 9750,
+        //   "orderId" => 77149299,
+        //   "$timestamp" => 1519612317,
+        //   "commission" => 0.00020825,
+        //   "commissionCurrency" => "btc" }
+        // #####
+        // {  "$amount" : 0.0128,
+        //    "$price" : 6483.99000,
+        //    "$timestamp" : 1540334614,
+        //    "tid" : 35684364,
+        //    "$type" : "ask" }
+        //
+        $timestamp = $this->safe_integer($trade, 'timestamp');
+        if ($timestamp !== null) {
+            $timestamp = $timestamp * 1000;
+        }
+        $side = $this->safe_string($trade, 'type');
+        if ($side === 'ask') {
+            $side = 'sell';
+        } else if ($side === 'bid') {
+            $side = 'buy';
+        }
+        $price = $this->safe_float_2($trade, 'rate', 'price');
+        $id = $this->safe_string_2($trade, 'trade_id', 'tid');
+        $order = $this->safe_string($trade, 'orderId');
+        if (is_array ($trade) && array_key_exists ('pair', $trade)) {
+            $marketId = $this->safe_string($trade, 'pair');
+            $market = $this->safe_value($this->markets_by_id, $marketId, $market);
+        }
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
+        $amount = $this->safe_float_2($trade, 'amount', 'volume');
+        $type = 'limit'; // all trades are still limit trades
+        $takerOrMaker = null;
+        $fee = null;
+        $feeCost = $this->safe_float($trade, 'commission');
+        if ($feeCost !== null) {
+            $feeCurrencyId = $this->safe_string($trade, 'commissionCurrency');
+            $feeCurrencyId = strtoupper ($feeCurrencyId);
+            $feeCurrency = $this->safe_value($this->currencies_by_id, $feeCurrencyId);
+            $feeCurrencyCode = null;
+            if ($feeCurrency !== null) {
+                $feeCurrencyCode = $feeCurrency['code'];
+            } else {
+                $feeCurrencyCode = $this->common_currency_code($feeCurrencyId);
+            }
+            $fee = array (
+                'cost' => $feeCost,
+                'currency' => $feeCurrencyCode,
+            );
+        }
+        $isYourOrder = $this->safe_value($trade, 'is_your_order');
+        if ($isYourOrder !== null) {
+            $takerOrMaker = 'taker';
+            if ($isYourOrder) {
+                $takerOrMaker = 'maker';
+            }
+            if ($fee === null) {
+                $fee = $this->calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker);
+            }
+        }
+        return array (
+            'id' => $id,
+            'order' => $order,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'takerOrMaker' => $takerOrMaker,
+            'price' => $price,
+            'amount' => $amount,
+            'fee' => $fee,
+            'info' => $trade,
+        );
     }
 
     public function parse_order ($order, $market = null) {
@@ -502,7 +613,7 @@ class dsx extends liqui {
             // 'endId' => 321, // Decimal, ID of the last order of the selection
             // 'order' => 'ASC', // String, Order in which orders shown. Possible values are "ASC" — from first to last, "DESC" — from last to first.
         );
-        $response = $this->privatePostHistoryOrders (array_merge ($request, $params));
+        $response = $this->privatePostOrders (array_merge ($request, $params));
         //
         //     {
         //       "success" => 1,
@@ -520,7 +631,7 @@ class dsx extends liqui {
         //       }
         //     }
         //
-        return $this->parse_orders_by_id ($this->safe_value($response, 'return', array ()));
+        return $this->parse_orders_by_id ($this->safe_value($response, 'return', array ()), $symbol, $since, $limit);
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -549,6 +660,46 @@ class dsx extends liqui {
         //       }
         //     }
         //
-        return $this->parse_orders_by_id ($this->safe_value($response, 'return', array ()));
+        return $this->parse_orders_by_id ($this->safe_value($response, 'return', array ()), $symbol, $since, $limit);
+    }
+
+    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'][$api];
+        $query = $this->omit ($params, $this->extract_params($path));
+        if ($api === 'private' || $api === 'dwapi') {
+            $url .= $this->get_private_path ($path, $params);
+            $this->check_required_credentials();
+            $nonce = $this->nonce ();
+            $body = $this->urlencode (array_merge (array (
+                'nonce' => $nonce,
+                'method' => $path,
+            ), $query));
+            $signature = $this->sign_body_with_secret($body);
+            $headers = array (
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Key' => $this->apiKey,
+                'Sign' => $signature,
+            );
+        } else if ($api === 'public') {
+            $url .= $this->get_version_string() . '/' . $this->implode_params($path, $params);
+            if ($query) {
+                $url .= '?' . $this->urlencode ($query);
+            }
+        } else {
+            $url .= '/' . $this->implode_params($path, $params);
+            if ($method === 'GET') {
+                if ($query) {
+                    $url .= '?' . $this->urlencode ($query);
+                }
+            } else {
+                if ($query) {
+                    $body = $this->json ($query);
+                    $headers = array (
+                        'Content-Type' => 'application/json',
+                    );
+                }
+            }
+        }
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

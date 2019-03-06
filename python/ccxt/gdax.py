@@ -38,6 +38,7 @@ class gdax (Exchange):
                 'fetchDepositAddress': True,
                 'fetchMyTrades': True,
                 'fetchTransactions': True,
+                'cancelAllOrders': True,
             },
             'timeframes': {
                 '1m': 60,

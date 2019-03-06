@@ -125,7 +125,7 @@ class okcoinusd extends Exchange {
                 ),
                 'www' => 'https://www.okcoin.com',
                 'doc' => array (
-                    'https://www.okcoin.com/rest_getStarted.html',
+                    'https://www.okcoin.com/docs/en/',
                     'https://www.npmjs.com/package/okcoin.com',
                 ),
             ),
