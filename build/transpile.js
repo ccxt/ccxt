@@ -97,6 +97,7 @@ const commonRegexes = [
     [ /\.marketId\s/g, '.market_id'],
     [ /\.fetchFundingFees\s/g, '.fetch_funding_fees'],
     [ /\.fetchTradingFees\s/g, '.fetch_trading_fees'],
+    [ /\.fetchTradingFee\s/g, '.fetch_trading_fee'],
     [ /\.fetchFees\s/g, '.fetch_fees'],
     [ /\.fetchL2OrderBook\s/g, '.fetch_l2_order_book'],
     [ /\.fetchOrderBook\s/g, '.fetch_order_book'],
