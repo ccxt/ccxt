@@ -34,6 +34,7 @@ class hitbtc2 extends hitbtc {
                 'fetchDeposits' => false,
                 'fetchWithdrawals' => false,
                 'fetchTransactions' => true,
+                'fetchTradingFees' => true,
             ),
             'timeframes' => array (
                 '1m' => 'M1',
@@ -80,6 +81,7 @@ class hitbtc2 extends hitbtc {
                         'order', // List your current open orders
                         'order/{clientOrderId}', // Get a single order by clientOrderId
                         'trading/balance', // Get trading balance
+                        'trading/fee/all', // Get trading fee rate
                         'trading/fee/{symbol}', // Get trading fee rate
                         'history/trades', // Get historical trades
                         'history/order', // Get historical orders
@@ -662,6 +664,30 @@ class hitbtc2 extends hitbtc {
             );
         }
         return $result;
+    }
+
+    public function fetch_trading_fees ($params = array ()) {
+        $this->load_markets();
+        $symbol = $this->safe_string($params, 'symbol');
+        if ($symbol === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchTradingFees requires a $symbol parameter');
+        }
+        $market = $this->market ($symbol);
+        $request = array_merge (array (
+            'symbol' => $market['id'],
+        ), $this->omit ($params, 'symbol'));
+        $response = $this->privateGetTradingFeeSymbol ($request);
+        //
+        //     {
+        //         takeLiquidityRate => '0.001',
+        //         provideLiquidityRate => '-0.0001'
+        //     }
+        //
+        return array (
+            'info' => $response,
+            'maker' => $this->safe_float($response, 'provideLiquidityRate'),
+            'taker' => $this->safe_float($response, 'takeLiquidityRate'),
+        );
     }
 
     public function fetch_balance ($params = array ()) {

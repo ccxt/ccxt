@@ -15,6 +15,7 @@ import base64
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -50,6 +51,7 @@ class hitbtc2 (hitbtc):
                 'fetchDeposits': False,
                 'fetchWithdrawals': False,
                 'fetchTransactions': True,
+                'fetchTradingFees': True,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -96,6 +98,7 @@ class hitbtc2 (hitbtc):
                         'order',  # List your current open orders
                         'order/{clientOrderId}',  # Get a single order by clientOrderId
                         'trading/balance',  # Get trading balance
+                        'trading/fee/all',  # Get trading fee rate
                         'trading/fee/{symbol}',  # Get trading fee rate
                         'history/trades',  # Get historical trades
                         'history/order',  # Get historical orders
@@ -673,6 +676,28 @@ class hitbtc2 (hitbtc):
                 },
             }
         return result
+
+    async def fetch_trading_fees(self, params={}):
+        await self.load_markets()
+        symbol = self.safe_string(params, 'symbol')
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchTradingFees requires a symbol parameter')
+        market = self.market(symbol)
+        request = self.extend({
+            'symbol': market['id'],
+        }, self.omit(params, 'symbol'))
+        response = await self.privateGetTradingFeeSymbol(request)
+        #
+        #     {
+        #         takeLiquidityRate: '0.001',
+        #         provideLiquidityRate: '-0.0001'
+        #     }
+        #
+        return {
+            'info': response,
+            'maker': self.safe_float(response, 'provideLiquidityRate'),
+            'taker': self.safe_float(response, 'takeLiquidityRate'),
+        }
 
     async def fetch_balance(self, params={}):
         await self.load_markets()

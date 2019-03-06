@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.341'
+const version = '1.18.342'
 
 Exchange.ccxtVersion = version
 
@@ -43182,7 +43182,7 @@ module.exports = class hitbtc extends Exchange {
 // ---------------------------------------------------------------------------
 
 const hitbtc = require ('./hitbtc');
-const { PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 // ---------------------------------------------------------------------------
 
@@ -43212,6 +43212,7 @@ module.exports = class hitbtc2 extends hitbtc {
                 'fetchDeposits': false,
                 'fetchWithdrawals': false,
                 'fetchTransactions': true,
+                'fetchTradingFees': true,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -43258,6 +43259,7 @@ module.exports = class hitbtc2 extends hitbtc {
                         'order', // List your current open orders
                         'order/{clientOrderId}', // Get a single order by clientOrderId
                         'trading/balance', // Get trading balance
+                        'trading/fee/all', // Get trading fee rate
                         'trading/fee/{symbol}', // Get trading fee rate
                         'history/trades', // Get historical trades
                         'history/order', // Get historical orders
@@ -43840,6 +43842,30 @@ module.exports = class hitbtc2 extends hitbtc {
             };
         }
         return result;
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const symbol = this.safeString (params, 'symbol');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTradingFees requires a symbol parameter');
+        }
+        const market = this.market (symbol);
+        const request = this.extend ({
+            'symbol': market['id'],
+        }, this.omit (params, 'symbol'));
+        const response = await this.privateGetTradingFeeSymbol (request);
+        //
+        //     {
+        //         takeLiquidityRate: '0.001',
+        //         provideLiquidityRate: '-0.0001'
+        //     }
+        //
+        return {
+            'info': response,
+            'maker': this.safeFloat (response, 'provideLiquidityRate'),
+            'taker': this.safeFloat (response, 'takeLiquidityRate'),
+        };
     }
 
     async fetchBalance (params = {}) {
