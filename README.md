@@ -28,7 +28,7 @@ Current feature list:
 
 - <sub>[![Nomics API](https://user-images.githubusercontent.com/1294454/50313498-99ab1680-04bc-11e9-9f78-6cfe6790bf97.png)](https://nomics.com)</sub>&nbsp; **[Nomics API](https://p.nomics.com/cryptocurrency-bitcoin-api)** &nbsp;– &nbsp;enterprise-grade crypto market data API for your fund, smart contract, or app.
 - <sub>[![TokenTax](https://user-images.githubusercontent.com/1294454/50313499-9a43ad00-04bc-11e9-9448-131107005133.png)](https://tokentax.us)</sub>&nbsp; **[TokenTax](https://tokentax.us)** &nbsp;– &nbsp;the easiest way to report your cryptocurrency capital gains and income taxes.
-- <sub>[![Kaiko](https://user-images.githubusercontent.com/1294454/50313497-99ab1680-04bc-11e9-94cb-a6cdefb543b7.png)](https://kaiko.com)</sub>&nbsp; **[Kaiko](https://kaiko.com)** &nbsp;– &nbsp;the leading provider of institutional grade cryptocurrency market data.
+- <sub>[![Kaiko](https://user-images.githubusercontent.com/1294454/53874955-92ec6400-4014-11e9-9762-fae9b960a25e.png)](https://kaiko.com)</sub>&nbsp; **[Kaiko](https://kaiko.com)** &nbsp;– &nbsp;the leading provider of institutional grade cryptocurrency market data.
 
 <!-- - <sub>[![Gilded](https://user-images.githubusercontent.com/1294454/50313497-99ab1680-04bc-11e9-94cb-a6cdefb543b7.png)](https://gilded.finance)</sub>&nbsp; **[Gilded](https://gilded.finance)** &nbsp;– &nbsp;the leading provider of institutional grade cryptocurrency market data. -->
 
