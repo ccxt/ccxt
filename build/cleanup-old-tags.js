@@ -41,7 +41,7 @@ for (const tags of tagsByMajor) {
 
     for (const { tag, patch } of tags) {
 
-        if ((parseInt (patch) % 100) === 0) {
+        if ((parseInt (patch) % 10) === 0) {
             log.green ('Preserving', tag)
 
         } else {
