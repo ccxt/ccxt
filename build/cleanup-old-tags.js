@@ -22,7 +22,7 @@ const tags = execSync ('git tag').toString ().split ('\n').filter (s => s).map (
 
 const tagsByMajor = values (groupBy (tags, 'key')).sort ((a, b) => a[0].key - b[0].key)
 
-// Preserve all tags for first 3 major versions
+// Preserve all tags for first 3 minor versions
 
 for (let i = 0; i < 3; i++) {
 
