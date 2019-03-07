@@ -142,6 +142,7 @@ class Exchange {
         'coinone',
         'coinspot',
         'cointiger',
+        'coinzip',
         'coolcoin',
         'coss',
         'crex24',
