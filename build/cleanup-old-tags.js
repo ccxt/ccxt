@@ -52,4 +52,11 @@ for (const tags of tagsByMajor) {
 
 log.bright.red ('Deleting', tagsToDelete.length, 'tags...')
 
-// TODO
+if (!process.argv.includes ('--paper')) {
+
+    for (const tag of tagsToDelete) {
+
+        log.dim ('Deleting', tag)
+        execSync (`git tag -d ${tag} && git push origin :refs/tags/${tag}`)
+    }
+}
