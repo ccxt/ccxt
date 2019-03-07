@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InsufficientFunds, OrderNotFound, ArgumentsRequired } = require ('./base/errors');
+const { InsufficientFunds, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -22,7 +22,6 @@ module.exports = class coinzip extends Exchange {
                 'fetchMarkets': true,
                 'createOrder': true,
                 'cancelOrder': true,
-                'fetchTicker': true,
                 'fetchOHLCV': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -33,7 +32,7 @@ module.exports = class coinzip extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'deposit': false,
-                'withdraw': false
+                'withdraw': false,
             },
             'timeframes': {
                 '1m': '1',
@@ -52,11 +51,11 @@ module.exports = class coinzip extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/786083/53869301-ecfc2200-4032-11e9-80bc-42eda484076f.png',
                 'api': 'https://www.coinzip.co',
                 'www': 'https://www.coinzip.co',
-                'documents': 'https://www.coinzip.co/documents/api_v2'
+                'documents': 'https://www.coinzip.co/documents/api_v2',
             },
             'requiredCredentials': {
                 'apiKey': true,
-                'secret': true
+                'secret': true,
             },
             'api': {
                 'public': {
@@ -69,8 +68,8 @@ module.exports = class coinzip extends Exchange {
                         'trades',
                         'k',
                         'k_with_pending_trades',
-                        'timestamp'
-                    ]
+                        'timestamp',
+                    ],
                 },
                 'private': {
                     'get': [
@@ -86,9 +85,9 @@ module.exports = class coinzip extends Exchange {
                         'orders',
                         'orders/multi',
                         'orders/clear',
-                        'order/delete'
-                    ]
-                }
+                        'order/delete',
+                    ],
+                },
             },
             'exceptions': {
                 '2002': InsufficientFunds,
@@ -97,54 +96,84 @@ module.exports = class coinzip extends Exchange {
         });
     }
 
-    async fetchTickers (params = {}) {
-        await this.loadMarkets ();
-        const tickers = await this.publicGetTickers (params);
-        return Object.keys(tickers).reduce((obj, k) => {
-            const { at, ticker } = tickers[k];
-            const timestamp = at * 1000;
-            const { symbol } = Object
-                .keys (this.markets)
-                .map (m => this.markets[m])
-                .find (m => m.id === k.toUpperCase ());
-
-            obj[symbol] = {
-                'symbol': symbol,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'high': this.safeFloat (ticker, 'high'),
-                'low': this.safeFloat (ticker, 'low'),
-                'bid': this.safeFloat (ticker, 'buy'),
-                'bidVolume': undefined,
-                'ask': this.safeFloat (ticker, 'sell'),
-                'askVolume': undefined,
-                'vwap': undefined,
-                'open':  this.safeFloat (ticker, 'open'),
-                'close': ticker.last,
-                'last': ticker.last,
-                'previousClose': undefined,
-                'change': this.safeFloat (ticker, 'change'),
-                'percentage': undefined,
-                'average': undefined,
-                'baseVolume': this.safeFloat (ticker, 'vol'),
-                'quoteVolume': undefined,
-                'info': ticker,
+    async fetchMarkets (params = {}) {
+        let markets = await this.publicGetMarkets ();
+        let result = [];
+        for (let p = 0; p < markets.length; p++) {
+            let market = markets[p];
+            let id = market['id'];
+            let symbol = market['name'];
+            let baseId = this.safeString (market, 'base_unit');
+            let quoteId = this.safeString (market, 'quote_unit');
+            if ((baseId === undefined) || (quoteId === undefined)) {
+                let ids = symbol.split ('/');
+                baseId = ids[0].toLowerCase ();
+                quoteId = ids[1].toLowerCase ();
             }
-
-            return obj;
-        }, {});
+            let base = baseId.toUpperCase ();
+            let quote = quoteId.toUpperCase ();
+            base = this.commonCurrencyCode (base);
+            quote = this.commonCurrencyCode (quote);
+            // todo: find out their undocumented precision and limits
+            let precision = {
+                'amount': 8,
+                'price': 8,
+            };
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'precision': precision,
+                'info': market,
+            });
+        }
+        return result;
     }
 
-    async fetchTicker (symbol, params = {}) {
-        if (symbol === undefined)
-            throw new ArgumentsRequired (this.id + ' fetchTicker requires a symbol argument');
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privateGetMembersMe ();
+        let balances = response['accounts'];
+        let result = { 'info': balances };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];
+            let currency = balance['currency'];
+            let uppercase = currency.toUpperCase ();
+            let account = {
+                'free': parseFloat (balance['balance']),
+                'used': parseFloat (balance['locked']),
+                'total': 0.0,
+            };
+            account['total'] = this.sum (account['free'], account['used']);
+            result[uppercase] = account;
+        }
+        return this.parseBalance (result);
+    }
 
-        const market = symbol.replace ('/', '').toLowerCase ();
-        const tickerObj = await this.publicGetTickersMarket ({ market });
-        const { at, ticker } = tickerObj;
-        const timestamp = at * 1000;
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'market': market['id'],
+        };
+        if (limit !== undefined)
+            request['limit'] = limit; // default = 300
+        let orderbook = await this.publicGetDepth (this.extend (request, params));
+        let timestamp = orderbook['timestamp'] * 1000;
+        return this.parseOrderBook (orderbook, timestamp);
+    }
 
-        return  {
+    parseTicker (ticker, market = undefined) {
+        let timestamp = ticker['at'] * 1000;
+        ticker = ticker['ticker'];
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
+        let last = this.safeFloat (ticker, 'last');
+        return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -155,9 +184,9 @@ module.exports = class coinzip extends Exchange {
             'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open':  this.safeFloat (ticker, 'open'),
-            'close': ticker.last,
-            'last': ticker.last,
+            'open': this.safeFloat (ticker, 'open'),
+            'close': last,
+            'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
@@ -165,197 +194,68 @@ module.exports = class coinzip extends Exchange {
             'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
-        }
+        };
     }
 
-    async fetchMarkets (params = {}) {
-        const markets = await this.publicGetMarkets (params);
-
-        return markets.map(m => ({
-            'id': m.id.toUpperCase (),
-            'symbol': m.name,
-            'base': m.base_unit.toUpperCase (),
-            'quote': m.quote_unit.toUpperCase (),
-            'baseId': m.base_unit,
-            'quoteId': m.quote_unit,
-            'info': m,
-            'precision': {
-                'amount': 8,
-                'price': 8,
-            },
-            'limits': {
-                'amount': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let tickers = await this.publicGetTickers (params);
+        let ids = Object.keys (tickers);
+        let result = {};
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let market = undefined;
+            let symbol = id;
+            if (id in this.markets_by_id) {
+                market = this.markets_by_id[id];
+                symbol = market['symbol'];
+            } else {
+                let base = id.slice (0, 3);
+                let quote = id.slice (3, 6);
+                base = base.toUpperCase ();
+                quote = quote.toUpperCase ();
+                base = this.commonCurrencyCode (base);
+                quote = this.commonCurrencyCode (quote);
+                symbol = base + '/' + quote;
             }
-        }));
+            let ticker = tickers[id];
+            result[symbol] = this.parseTicker (ticker, market);
+        }
+        return result;
     }
 
-    async fetchOrderBook (symbol, limit = 30, params = {}) {
-        if (symbol === undefined)
-            throw new ArgumentsRequired (this.id + ' fetchOrderBook requires a symbol argument');
-
-        const market = symbol.replace ('/', '').toLowerCase ();
-        const orderbook = await this.publicGetOrderBook (this.extend ({
-            'market': market,
-            'asks_limit': limit,
-            'bids_limit': limit
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.publicGetTickersMarket (this.extend ({
+            'market': market['id'],
         }, params));
-
-        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'volume');
+        return this.parseTicker (response, market);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 500, params = {}) {
-        if (symbol === undefined)
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a symbol argument');
-
-        const market = symbol.replace ('/', '').toLowerCase ();
-        const period = this.timeframes[timeframe];
-        const timestamp = since;
-        const query = this.extend ({ market, period, timestamp, limit}, params);
-        const response =  await this.publicGetK(query);
-
-        return this.parseOHLCVs (response, market, period, timestamp, limit);
+    parseTrade (trade, market = undefined) {
+        let timestamp = this.parse8601 (trade['created_at']);
+        return {
+            'id': trade['id'].toString (),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': undefined,
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'volume'),
+            'cost': this.safeFloat (trade, 'funds'),
+            'info': trade,
+        };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined)
-            throw new ArgumentsRequired (this.id + ' fetchTrades requires a symbol argument');
-
-        const market = symbol.replace ('/', '').toLowerCase ();
-        const trades = await this.publicGetTrades (this.extend ({
-            'market': market,
-            'timestamp': since,
-            'limit': limit
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.publicGetTrades (this.extend ({
+            'market': market['id'],
         }, params));
-
-        return this.parseTrades (trades, symbol, since, limit);
-    }
-
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined)
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
-
-        const market = symbol.replace ('/', '').toLowerCase ();
-        const response = await this.privateGetTradesMy (this.extend ({
-            'market': market,
-            'timestamp': since,
-            'limit': limit
-		}, params));
-
         return this.parseTrades (response, market, since, limit);
-    }
-
-    async fetchBalance (params = {}) {
-        const { accounts: balances } = await this.privateGetMembersMe ();
-        const mappedBalances = balances.reduce((obj, { balance, locked, currency }) => {
-            const free = parseFloat (balance);
-            const used = parseFloat (locked);
-
-            obj[currency.toUpperCase()] = {
-                free,
-                used,
-                total: this.sum (free, used)
-            };
-
-            return obj;
-        }, {});
-        const result = {
-            info: balances,
-            ...mappedBalances
-        };
-
-        return this.parseBalance (result);
-    }
-
-    async fetchOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetOrder (this.extend ({
-            'id': parseInt (id),
-        }, params));
-        return this.parseOrder (response);
-    }
-
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined)
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
-
-        const market = symbol.replace ('/', '').toLowerCase ();
-        const response = await this.privateGetOrders (this.extend ({
-            'market': market,
-            'timestamp': since,
-            'limit': limit,
-			'state': 'all'
-        }, params));
-
-
-        return this.parseOrders (response, market, since, limit);
-    }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined)
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
-
-        const market = symbol.replace ('/', '').toLowerCase ();
-        const response = await this.privateGetOrders (this.extend ({
-            'market': market,
-            'timestamp': since,
-            'limit': limit,
-			'state': 'wait'
-        }, params));
-
-        return this.parseOrders (response, market, since, limit);
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined)
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
-
-        const market = symbol.replace ('/', '').toLowerCase ();
-        const response = await this.privateGetOrders (this.extend ({
-            'market': market,
-            'timestamp': since,
-            'limit': limit,
-			'state': 'done'
-        }, params));
-
-        return this.parseOrders (response, market, since, limit);
-    }
-
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (symbol === undefined)
-            throw new ArgumentsRequired (this.id + ' createOrder requires a symbol argument');
-
-        await this.loadMarkets ();
-        const order = {
-            market: this.marketId (symbol).toLowerCase (),
-            volume: amount.toString (),
-            ord_type: type,
-            side,
-            ...((type === 'limit') && { price: price.toString () })
-        }
-        const response = await this.privatePostOrders (this.extend (order, params));
-        const market = this.markets_by_id[response['market']];
-        return this.parseOrder (response, market);
-    }
-
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        const result = await this.privatePostOrderDelete ({ 'id': id });
-        const order  = this.parseOrder (result);
-        if (order.status === 'closed' || order.status === 'canceled') {
-            throw new OrderNotFound (this.id + ' ' + this.json (order));
-        }
-        return order;
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
@@ -369,44 +269,49 @@ module.exports = class coinzip extends Exchange {
         ];
     }
 
-    parseTrade (trade, market = undefined) {
-        const timestamp = this.parse8601 (trade['created_at']);
-        return {
-            'id': trade.id.toString (),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market,
-            'type': undefined,
-            'side': trade.side || undefined,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'volume'),
-            'cost': this.safeFloat (trade, 'funds'),
-            'info': trade,
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        if (limit === undefined)
+            limit = 500; // default is 30
+        let request = {
+            'market': market['id'],
+            'period': this.timeframes[timeframe],
+            'limit': limit,
         };
+        if (since !== undefined)
+            request['timestamp'] = since;
+        let response = await this.publicGetK (this.extend (request, params));
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-
     parseOrder (order, market = undefined) {
-        const status = (() => {
-            if (order.state === 'done') return 'closed';
-            if (order.state === 'wait') return 'open';
-            return 'canceled';
-        })();
-        const symbol = (() => {
-            if (market !== undefined) return market.symbol;
-            const marketId = order.market.toUpperCase ();
-            return this.markets_by_id[marketId]['symbol'];
-        })();
-        const timestamp = this.parse8601 (order['created_at']);
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        } else {
+            let marketId = order['market'];
+            symbol = this.markets_by_id[marketId]['symbol'];
+        }
+        let timestamp = this.parse8601 (order['created_at']);
+        let state = order['state'];
+        let status = undefined;
+        if (state === 'done') {
+            status = 'closed';
+        } else if (state === 'wait') {
+            status = 'open';
+        } else if (state === 'cancel') {
+            status = 'canceled';
+        }
         return {
-            'id': order.id.toString (),
+            'id': order['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
-            'type': order.ord_type,
-            'side': order.side,
+            'type': order['ord_type'],
+            'side': order['side'],
             'price': this.safeFloat (order, 'price'),
             'amount': this.safeFloat (order, 'volume'),
             'filled': this.safeFloat (order, 'executed_volume'),
@@ -415,6 +320,74 @@ module.exports = class coinzip extends Exchange {
             'fee': undefined,
             'info': order,
         };
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privateGetOrder (this.extend ({
+            'id': parseInt (id),
+        }, params));
+        return this.parseOrder (response);
+    }
+
+    async fetchOrders (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetOrders (this.extend ({
+            'market': this.marketId (symbol),
+            'timestamp': since,
+            'limit': limit,
+            'state': 'all',
+        }, params));
+        return this.parseOrders (response, symbol, since, limit);
+    }
+
+    async fetchOpenOrders (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetOrders (this.extend ({
+            'market': this.marketId (symbol),
+            'timestamp': since,
+            'limit': limit,
+            'state': 'wait',
+        }, params));
+        return this.parseOrders (response, symbol, since, limit);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetOrders (this.extend ({
+            'market': this.marketId (symbol),
+            'timestamp': since,
+            'limit': limit,
+            'state': 'done',
+        }, params));
+        return this.parseOrders (response, symbol, since, limit);
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        let order = {
+            'market': this.marketId (symbol),
+            'side': side,
+            'volume': amount.toString (),
+            'ord_type': type,
+        };
+        if (type === 'limit') {
+            order['price'] = price.toString ();
+        }
+        let response = await this.privatePostOrders (this.extend (order, params));
+        let market = this.markets_by_id[response['market']];
+        return this.parseOrder (response, market);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let result = await this.privatePostOrderDelete ({ 'id': id });
+        let order = this.parseOrder (result);
+        let status = order['status'];
+        if (status === 'closed' || status === 'canceled') {
+            throw new OrderNotFound (this.id + ' ' + this.json (order));
+        }
+        return order;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
