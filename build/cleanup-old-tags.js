@@ -22,13 +22,13 @@ const tags = execSync ('git tag').toString ().split ('\n').filter (s => s).map (
     }
 })
 
-const tagsByMajor = values (groupBy (tags, 'key')).sort ((a, b) => a[0].key - b[0].key)
+const tagsByMajorMinor = values (groupBy (tags, 'key')).sort ((a, b) => a[0].key - b[0].key)
 
 // Preserve all tags for first 3 minor versions
 
 for (let i = 0; i < 3; i++) {
 
-    const tags = tagsByMajor.pop ()
+    const tags = tagsByMajorMinor.pop ()
 
     log.green.bright ('Preserving', tags[0].tag, '...', tags[tags.length - 1].tag)
 }
@@ -37,7 +37,7 @@ for (let i = 0; i < 3; i++) {
 
 let tagsToDelete = []
 
-for (const tags of tagsByMajor) {
+for (const tags of tagsByMajorMinor) {
 
     for (const { tag, patch } of tags) {
 
