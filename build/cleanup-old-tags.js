@@ -8,7 +8,7 @@ const assert       = require ('assert')
 
 const tags = execSync ('git tag').toString ().split ('\n').filter (s => s).map (t => {
 
-    const [major, minor, patch] = t.split ('.').map (Number)
+    const [major, minor, patch] = t.replace ('v', '').split ('.').map (Number)
 
     assert (major < 100)
     assert (minor < 100)
@@ -16,7 +16,9 @@ const tags = execSync ('git tag').toString ().split ('\n').filter (s => s).map (
     return {
         key: (major * 100) + minor,
         tag: t,
-        major, minor, patch
+        major,
+        minor,
+        patch,
     }
 })
 
@@ -31,7 +33,7 @@ for (let i = 0; i < 3; i++) {
     log.green.bright ('Preserving', tags[0].tag, '...', tags[tags.length - 1].tag)
 }
 
-// For older versions, leave only "round" numbered versions (1/10th) 
+// For older versions, leave only "round" numbered versions (1/10th)
 
 let tagsToDelete = []
 
@@ -39,7 +41,7 @@ for (const tags of tagsByMajor) {
 
     for (const { tag, patch } of tags) {
 
-        if (String (patch).replace (/([^0]+)0+/, '$1').length == 1) {
+        if ((parseInt (patch) % 100) === 0) {
             log.green ('Preserving', tag)
 
         } else {
