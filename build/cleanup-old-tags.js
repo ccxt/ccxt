@@ -2,7 +2,7 @@
 
 const { execSync } = require ('child_process')
 const log          = require ('ololog').noLocate
-const { groupBy }  = require ('ccxt')
+const { groupBy }  = require ('../ccxt.js')
 const { values }   = Object
 const assert       = require ('assert')
 
