@@ -15,7 +15,6 @@ import base64
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -51,7 +50,7 @@ class hitbtc2 (hitbtc):
                 'fetchDeposits': False,
                 'fetchWithdrawals': False,
                 'fetchTransactions': True,
-                'fetchTradingFees': True,
+                'fetchTradingFee': True,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -677,11 +676,8 @@ class hitbtc2 (hitbtc):
             }
         return result
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fee(self, symbol, params={}):
         await self.load_markets()
-        symbol = self.safe_string(params, 'symbol')
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchTradingFees requires a symbol parameter')
         market = self.market(symbol)
         request = self.extend({
             'symbol': market['id'],

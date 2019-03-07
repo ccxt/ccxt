@@ -30,6 +30,7 @@ class crex24 extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'withdraw' => true,
+                'fetchTradingFee' => false, // actually, true, but will be implemented later
                 'fetchTradingFees' => false, // actually, true, but will be implemented later
                 'fetchFundingFees' => false,
                 'fetchDeposits' => true,

@@ -43,6 +43,7 @@ class kraken (Exchange):
             'has': {
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
+                'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'CORS': False,
                 'fetchCurrencies': True,
