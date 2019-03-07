@@ -114,8 +114,8 @@ module.exports = class hitbtc2 extends hitbtc {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': -0.01 / 100,
-                    'taker': 0.1 / 100,
+                    'maker': 0.1 / 100,
+                    'taker': 0.2 / 100,
                 },
                 'funding': {
                     'tierBased': false,
