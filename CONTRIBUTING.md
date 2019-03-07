@@ -234,7 +234,7 @@ If the transpiling process finishes successfully, but generates incorrect Python
 - do everything with base class methods only (for example, use `this.json ()` for converting objects to json).
 - always put a semicolon `;` at the end of each statement, as in PHP/C-style
 - all associative keys must be single-quoted strings everywhere, `array['good'], array.bad`
-- all local variables should be declared with the `let` keyword
+- variables should be declared with `const` or `let` keywords semantically (no `var`!)
 
 And structurally:
 
