@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.348'
+const version = '1.18.349'
 
 Exchange.ccxtVersion = version
 
@@ -57325,6 +57325,11 @@ module.exports = class poloniex extends Exchange {
             const base = this.commonCurrencyCode (baseId);
             const quote = this.commonCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const limits = this.extend (this.limits, {
+                'cost': {
+                    'min': this.safeValue (this.options['limits']['cost']['min'][quote]),
+                },
+            });
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -57333,6 +57338,7 @@ module.exports = class poloniex extends Exchange {
                 'base': base,
                 'quote': quote,
                 'active': market['isFrozen'] !== '1',
+                'limits': limits,
                 'info': market,
             }));
         }
