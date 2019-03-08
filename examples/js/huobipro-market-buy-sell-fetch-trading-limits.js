@@ -82,7 +82,7 @@ log.green ('CCXT', ccxt.version)
         log[color] ('The cost is below minimum:', cost, '<', min)
     } else if ((max !== undefined) && (cost > max)) {
         log[color] ('The cost is above maximum:', cost, '>', max)
-    } else if (createMarketBuyOrderRequiresPrice) {
+    } else {
         color = 'green'
     }
 
