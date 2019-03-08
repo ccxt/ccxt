@@ -54,6 +54,13 @@ log.bright.red ('Deleting', tagsToDelete.length, 'tags...')
 
 if (!process.argv.includes ('--paper')) {
 
+/*  If it happens on a CI server, we don't want it to fail the build because of a super
+    long execution time (one tag deletion takes ~5 sec...), hence that limit here                 */
+
+    if (process.argv.includes ('--limit')) {
+        tagsToDelete = tagsToDelete.slice (-500)
+    }
+
     for (const tag of tagsToDelete) {
 
         log.dim ('Deleting', tag)
