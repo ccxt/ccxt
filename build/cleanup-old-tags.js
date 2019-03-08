@@ -29,8 +29,10 @@ const tagsByMajorMinor = values (groupBy (tags, 'key')).sort ((a, b) => a[0].key
 for (let i = 0; i < 3; i++) {
 
     const tags = tagsByMajorMinor.pop ()
-
-    log.green.bright ('Preserving', tags[0].tag, '...', tags[tags.length - 1].tag)
+    
+    if (tags) {
+        log.green.bright ('Preserving', tags[0].tag, '...', tags[tags.length - 1].tag)
+    }
 }
 
 // For older versions, leave only "round" numbered versions (1/10th)
