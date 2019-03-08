@@ -14,6 +14,12 @@ const ccxt = require ('../../ccxt')
     , options = { createMarketBuyOrderRequiresPrice }
     , exchange = new ccxt.huobipro ({ enableRateLimit, options })
 
+// This is an example that demonstrates the issues discussed here:
+// https://github.com/ccxt/ccxt/issues/564
+// https://github.com/ccxt/ccxt/issues/3427
+// https://github.com/ccxt/ccxt/issues/3460
+// https://github.com/ccxt/ccxt/issues/4799
+
 log.green ('CCXT', ccxt.version)
 
 ;(async () => {
