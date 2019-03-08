@@ -155,6 +155,7 @@ const exchanges = {
     'okcoincny':               require ('./js/okcoincny.js'),
     'okcoinusd':               require ('./js/okcoinusd.js'),
     'okex':                    require ('./js/okex.js'),
+    'okex3':                   require ('./js/okex3.js'),
     'paymium':                 require ('./js/paymium.js'),
     'poloniex':                require ('./js/poloniex.js'),
     'quadrigacx':              require ('./js/quadrigacx.js'),

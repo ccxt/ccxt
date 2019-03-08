@@ -157,6 +157,7 @@ from ccxt.async_support.nova import nova                                  # noqa
 from ccxt.async_support.okcoincny import okcoincny                        # noqa: F401
 from ccxt.async_support.okcoinusd import okcoinusd                        # noqa: F401
 from ccxt.async_support.okex import okex                                  # noqa: F401
+from ccxt.async_support.okex3 import okex3                                # noqa: F401
 from ccxt.async_support.paymium import paymium                            # noqa: F401
 from ccxt.async_support.poloniex import poloniex                          # noqa: F401
 from ccxt.async_support.quadrigacx import quadrigacx                      # noqa: F401
@@ -292,6 +293,7 @@ exchanges = [
     'okcoincny',
     'okcoinusd',
     'okex',
+    'okex3',
     'paymium',
     'poloniex',
     'quadrigacx',
