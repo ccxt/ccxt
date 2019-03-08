@@ -24,6 +24,7 @@ module.exports = class tokenomy extends Exchange {
                 'fetchMyTrades': false,
                 'fetchCurrencies': false,
                 'withdraw': true,
+                'fetchMarkets': true,
             },
             'version': '1.8', // as of 9 April 2018
             'urls': {
@@ -39,9 +40,11 @@ module.exports = class tokenomy extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'summaries',
                         '{pair}/ticker',
                         '{pair}/trades',
                         '{pair}/depth',
+                        'market_info',
                     ],
                 },
                 'private': {
@@ -57,20 +60,6 @@ module.exports = class tokenomy extends Exchange {
                         'withdrawCoin',
                     ],
                 },
-            },
-            'markets': {
-                // HARDCODING IS DEPRECATED
-                // but they don't have a corresponding endpoint in their API
-                'BTS/BTC': { 'id': 'bts_btc', 'symbol': 'BTS/BTC', 'base': 'BTS', 'quote': 'BTC', 'baseId': 'bts', 'quoteId': 'btc', 'precision': { 'amount': 8, 'price': 8 }, 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
-                'DASH/BTC': { 'id': 'drk_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'drk', 'quoteId': 'btc', 'precision': { 'amount': 8, 'price': 6 }, 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
-                'DOGE/BTC': { 'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC', 'baseId': 'doge', 'quoteId': 'btc', 'precision': { 'amount': 8, 'price': 8 }, 'limits': { 'amount': { 'min': 1, 'max': undefined }}},
-                'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc', 'precision': { 'amount': 8, 'price': 5 }, 'limits': { 'amount': { 'min': 0.001, 'max': undefined }}},
-                'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc', 'precision': { 'amount': 8, 'price': 6 }, 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
-                'NXT/BTC': { 'id': 'nxt_btc', 'symbol': 'NXT/BTC', 'base': 'NXT', 'quote': 'BTC', 'baseId': 'nxt', 'quoteId': 'btc', 'precision': { 'amount': 8, 'price': 8 }, 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
-                'TEN/BTC': { 'id': 'ten_btc', 'symbol': 'TEN/BTC', 'base': 'TEN', 'quote': 'BTC', 'baseId': 'ten', 'quoteId': 'btc', 'precision': { 'amount': 8, 'price': 8 }, 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
-                'XEM/BTC': { 'id': 'nem_btc', 'symbol': 'XEM/BTC', 'base': 'XEM', 'quote': 'BTC', 'baseId': 'nem', 'quoteId': 'btc', 'precision': { 'amount': 8, 'price': 8 }, 'limits': { 'amount': { 'min': 1, 'max': undefined }}},
-                'XLM/BTC': { 'id': 'str_btc', 'symbol': 'XLM/BTC', 'base': 'XLM', 'quote': 'BTC', 'baseId': 'str', 'quoteId': 'btc', 'precision': { 'amount': 8, 'price': 8 }, 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
-                'XRP/BTC': { 'id': 'xrp_btc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'xrp', 'quoteId': 'btc', 'precision': { 'amount': 8, 'price': 8 }, 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
             },
             'fees': {
                 'trading': {
@@ -102,10 +91,15 @@ module.exports = class tokenomy extends Exchange {
         return this.parseBalance (result);
     }
 
+    async fetchMarkets (params = {}) {
+        let markets = await this.publicGetMarketInfo ();
+        return markets;
+    }
+
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+        const marketId = symbol.replace ('/', '_').toLowerCase ();
         let orderbook = await this.publicGetPairDepth (this.extend ({
-            'pair': this.marketId (symbol),
+            'pair': marketId,
         }, params));
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell');
     }
@@ -113,13 +107,14 @@ module.exports = class tokenomy extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
+        const marketId = symbol.replace ('/', '_').toLowerCase ();
         let response = await this.publicGetPairTicker (this.extend ({
-            'pair': market['id'],
+            'pair': marketId,
         }, params));
         let ticker = response['ticker'];
-        let timestamp = this.safeFloat (ticker, 'server_time') * 1000;
-        let baseVolume = 'vol_' + market['baseId'].toLowerCase ();
-        let quoteVolume = 'vol_' + market['quoteId'].toLowerCase ();
+        let timestamp = this.safeFloat (response, 'server_time') * 1000;
+        let baseVolume = 'vol_' + market['base'].toLowerCase ();
+        let quoteVolume = 'vol_' + market['quote'].toLowerCase ();
         let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -163,8 +158,9 @@ module.exports = class tokenomy extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
+        const marketId = symbol.replace ('/', '_').toLowerCase ();
         let response = await this.publicGetPairTrades (this.extend ({
-            'pair': market['id'],
+            'pair': marketId,
         }, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -211,7 +207,7 @@ module.exports = class tokenomy extends Exchange {
         let average = undefined;
         if (filled)
             average = cost / filled;
-        let timestamp = parseInt (order['submit_time']);
+        let timestamp = parseInt (order['submit_time']) * 1000;
         let fee = undefined;
         let result = {
             'info': order,
@@ -239,8 +235,9 @@ module.exports = class tokenomy extends Exchange {
             throw new ExchangeError (this.id + ' fetchOrder requires a symbol');
         await this.loadMarkets ();
         let market = this.market (symbol);
+        let marketId = symbol.replace ('/', '_').toLowerCase ();
         let response = await this.privatePostGetOrder (this.extend ({
-            'pair': market['id'],
+            'pair': marketId,
             'order_id': id,
         }, params));
         let orders = response['return'];
@@ -252,12 +249,19 @@ module.exports = class tokenomy extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         let request = {};
+        let marketId = '';
         if (symbol !== undefined) {
+            marketId = symbol.replace ('/', '_').toLowerCase ();
             market = this.market (symbol);
-            request['pair'] = market['id'];
+            request['pair'] = marketId;
         }
         let response = await this.privatePostOpenOrders (this.extend (request, params));
-        let rawOrders = response['return']['orders'];
+        let rawOrders = undefined;
+        if (marketId !== '') {
+            rawOrders = response['return']['orders'][marketId];
+        } else {
+            rawOrders = response['return']['orders'];
+        }
         // { success: 1, return: { orders: null }} if no orders
         if (!rawOrders)
             return [];
@@ -283,9 +287,11 @@ module.exports = class tokenomy extends Exchange {
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
+        let marketId = '';
         if (symbol !== undefined) {
+            marketId = symbol.replace ('/', '_').toLowerCase ();
             market = this.market (symbol);
-            request['pair'] = market['id'];
+            request['pair'] = marketId;
         }
         let response = await this.privatePostOrderHistory (this.extend (request, params));
         let orders = this.parseOrders (response['return']['orders'], market, since, limit);
@@ -301,21 +307,19 @@ module.exports = class tokenomy extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let order = {
-            'pair': market['id'],
+            'pair': symbol.replace ('/', '_').toLowerCase (),
             'type': side,
             'price': price,
         };
-        let currency = market['baseId'];
-        if (side === 'buy') {
-            order[market['quoteId']] = amount * price;
-        } else {
-            order[market['baseId']] = amount;
+        let currency = market['base'].toLowerCase ();
+        if (side !== 'buy') {
+            order[currency] = amount;
         }
         order[currency] = amount;
         let result = await this.privatePostTrade (this.extend (order, params));
         return {
             'info': result,
-            'id': result['return']['order_id'].toString (),
+            'id': result['order_id'].toString (),
         };
     }
 
@@ -326,10 +330,9 @@ module.exports = class tokenomy extends Exchange {
         if (side === undefined)
             throw new ExchangeError (this.id + ' cancelOrder requires an extra "side" param');
         await this.loadMarkets ();
-        let market = this.market (symbol);
         return await this.privatePostCancelOrder (this.extend ({
             'order_id': id,
-            'pair': market['id'],
+            'pair': symbol.replace ('/', '_').toLowerCase (),
             'type': params['side'],
         }, params));
     }
@@ -346,7 +349,7 @@ module.exports = class tokenomy extends Exchange {
         // Alternatively:
         // let requestId = this.uuid ();
         let request = {
-            'currency': currency['id'],
+            'currency': currency['id'].toLowerCase (),
             'withdraw_amount': amount,
             'withdraw_address': address,
             'request_id': requestId.toString (),
@@ -386,7 +389,7 @@ module.exports = class tokenomy extends Exchange {
             this.checkRequiredCredentials ();
             body = this.urlencode (this.extend ({
                 'method': path,
-                'nonce': this.nonce (),
+                'nonce': this.nonce () * 1000,
             }, params));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -412,10 +415,15 @@ module.exports = class tokenomy extends Exchange {
             return; // no 'success' property on public responses
         if (response['success'] === 1) {
             // { success: 1, return: { orders: [] }}
-            if (!('return' in response))
-                throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
-            else
+            if (!('return' in response)) {
+                if (typeof response['order_id'] !== 'undefined' || typeof response['status'] !== 'undefined') {
+                    return;
+                } else {
+                    throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
+                }
+            } else {
                 return;
+            }
         }
         let message = response['error'];
         let feedback = this.id + ' ' + this.json (response);
