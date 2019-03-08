@@ -2,7 +2,7 @@
 
 const ccxt = require ('../../ccxt')
     , log = require ('ololog').unlimited.handleNodeErrors ()
-    , { NotSupported, InvalidOrder } = ccxt
+    , { NotSupported } = ccxt
     , enableRateLimit = true
     , symbol = 'ADA/BTC'
     , side = 'buy'
@@ -70,8 +70,8 @@ log.green ('CCXT', ccxt.version)
     const min = info[typeSide + '-order-must-greater-than']
     const max = info[typeSide + '-order-must-less-than']
 
-    // huobipro requires the amount in quote currency for sell orders
-    // huobipro requires the cost in quote currency for buy orders
+    // huobipro requires the amount in quote currency for market sell orders
+    // huobipro requires the cost in quote currency for market buy orders
     // cost = amount * price
 
     const cost = createMarketBuyOrderRequiresPrice ? (amount * price) : amount
