@@ -33,6 +33,7 @@ module.exports = class poloniex extends Exchange {
                 'fetchOrderStatus': 'emulated', // no endpoint for status of a single open-or-closed order (just for open orders only)
                 'fetchOrderTrades': true, // true endpoint for trades of a single open or closed order
                 'fetchTickers': true,
+                'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': 'emulated', // but almost true )
@@ -240,6 +241,11 @@ module.exports = class poloniex extends Exchange {
             const base = this.commonCurrencyCode (baseId);
             const quote = this.commonCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const limits = this.extend (this.limits, {
+                'cost': {
+                    'min': this.safeValue (this.options['limits']['cost']['min'][quote]),
+                },
+            });
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -248,6 +254,7 @@ module.exports = class poloniex extends Exchange {
                 'base': base,
                 'quote': quote,
                 'active': market['isFrozen'] !== '1',
+                'limits': limits,
                 'info': market,
             }));
         }

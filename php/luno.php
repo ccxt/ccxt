@@ -24,6 +24,7 @@ class luno extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchMyTrades' => true,
+                'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
             ),
             'urls' => array (

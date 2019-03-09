@@ -20,6 +20,9 @@ class anxpro extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchOHLCV' => false,
                 'fetchTrades' => false,
+                'fetchOpenOrders' => true,
+                'fetchDepositAddress' => true,
+                'createDepositAddress' => false,
                 'withdraw' => true,
             ),
             'urls' => array (
@@ -398,6 +401,145 @@ class anxpro extends Exchange {
         throw new ExchangeError ($this->id . ' switched off the trades endpoint, see their docs at https://docs.anxv2.apiary.io');
     }
 
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'currency_pair' => $market['id'],
+        );
+        // ANXPro will return all $symbol pairs regardless of what is specified in $request
+        $response = $this->privatePostCurrencyPairMoneyOrders (array_merge ($request, $params));
+        //
+        //     {
+        //         "result" => "success",
+        //         "data" => array (
+        //             array (
+        //                 "oid" => "e74305c7-c424-4fbc-a8a2-b41d8329deb0",
+        //                 "currency" => "HKD",
+        //                 "item" => "BTC",
+        //                 "type" => "offer",
+        //                 "amount" => array (
+        //                     "currency" => "BTC",
+        //                     "display" => "10.00000000 BTC",
+        //                     "display_short" => "10.00 BTC",
+        //                     "value" => "10.00000000",
+        //                     "value_int" => "1000000000"
+        //                 ),
+        //                 "effective_amount" => array (
+        //                     "currency" => "BTC",
+        //                     "display" => "10.00000000 BTC",
+        //                     "display_short" => "10.00 BTC",
+        //                     "value" => "10.00000000",
+        //                     "value_int" => "1000000000"
+        //                 ),
+        //                 "price" => array (
+        //                     "currency" => "HKD",
+        //                     "display" => "412.34567 HKD",
+        //                     "display_short" => "412.35 HKD",
+        //                     "value" => "412.34567",
+        //                     "value_int" => "41234567"
+        //                 ),
+        //                 "status" => "open",
+        //                 "date" => 1393411075000,
+        //                 "priority" => 1393411075000000,
+        //                 "actions" => array ()
+        //             ),
+        //            ...
+        //         )
+        //     }
+        //
+        return $this->parse_orders($this->safe_value($response, 'data', array ()), $symbol, $since, $limit);
+    }
+
+    public function parse_order ($order, $market = null) {
+        //
+        //     {
+        //       "oid" => "e74305c7-c424-4fbc-a8a2-b41d8329deb0",
+        //       "currency" => "HKD",
+        //       "item" => "BTC",
+        //       "type" => "offer",  <-- bid/offer
+        //       "$amount" => array (
+        //         "currency" => "BTC",
+        //         "display" => "10.00000000 BTC",
+        //         "display_short" => "10.00 BTC",
+        //         "value" => "10.00000000",
+        //         "value_int" => "1000000000"
+        //       ),
+        //       "effective_amount" => array (
+        //         "currency" => "BTC",
+        //         "display" => "10.00000000 BTC",
+        //         "display_short" => "10.00 BTC",
+        //         "value" => "10.00000000",
+        //         "value_int" => "1000000000"
+        //       ),
+        //       "$price" => array (
+        //         "currency" => "HKD",
+        //         "display" => "412.34567 HKD",
+        //         "display_short" => "412.35 HKD",
+        //         "value" => "412.34567",
+        //         "value_int" => "41234567"
+        //       ),
+        //       "$status" => "open",
+        //       "date" => 1393411075000,
+        //       "priority" => 1393411075000000,
+        //       "actions" => array ()
+        //     }
+        //
+        $id = $this->safe_string($order, 'oid');
+        $status = $this->safe_string($order, 'status');
+        $timestamp = $this->safe_integer($order, 'date');
+        $baseId = $this->safe_string($order, 'item');
+        $quoteId = $this->safe_string($order, 'currency');
+        $marketId = $baseId . '/' . $quoteId;
+        $market = $this->safe_value($this->markets_by_id, $marketId);
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
+        $amount_info = $this->safe_value($order, 'amount', array ());
+        $effective_info = $this->safe_value($order, 'effective_amount', array ());
+        $price_info = $this->safe_value($order, 'price', array ());
+        $remaining = $this->safe_float($effective_info, 'value');
+        $amount = $this->safe_float($amount_info, 'volume');
+        $price = $this->safe_float($price_info, 'value');
+        $filled = null;
+        $cost = null;
+        if ($amount !== null) {
+            if ($remaining !== null) {
+                $filled = $amount - $remaining;
+                $cost = $price * $filled;
+            }
+        }
+        $orderType = 'limit';
+        $side = $this->safe_string($order, 'type');
+        if ($side === 'offer') {
+            $side = 'sell';
+        } else {
+            $side = 'buy';
+        }
+        $fee = null;
+        $trades = null; // todo parse $trades
+        $lastTradeTimestamp = null;
+        return array (
+            'info' => $order,
+            'id' => $id,
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => $lastTradeTimestamp,
+            'type' => $orderType,
+            'side' => $side,
+            'price' => $price,
+            'cost' => $cost,
+            'amount' => $amount,
+            'remaining' => $remaining,
+            'filled' => $filled,
+            'status' => $status,
+            'fee' => $fee,
+            'trades' => $trades,
+        );
+    }
+
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $market = $this->market ($symbol);
         $order = array (
@@ -448,6 +590,23 @@ class anxpro extends Exchange {
         return array (
             'info' => $response,
             'id' => $response['data']['transactionId'],
+        );
+    }
+
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $request = array (
+            'currency' => $currency['id'],
+        );
+        $response = $this->privatePostMoneyCurrencyAddress (array_merge ($request, $params));
+        $result = $response['data'];
+        $address = $this->safe_string($result, 'addr');
+        $this->check_address($address);
+        return array (
+            'currency' => $code,
+            'address' => $address,
+            'info' => $response,
         );
     }
 

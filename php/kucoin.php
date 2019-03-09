@@ -144,8 +144,9 @@ class kucoin extends Exchange {
                 '400100' => '\\ccxt\\ArgumentsRequired',
                 '411100' => '\\ccxt\\AccountSuspended',
                 '500000' => '\\ccxt\\ExchangeError',
-                'order_not_exist' => '\\ccxt\\OrderNotFound',  // array ("code":"order_not_exist","msg":"order_not_exist") ¯\_(ツ)_/¯
-                'order_not_exist_or_not_allow_to_cancel' => '\\ccxt\\InvalidOrder',
+                'order_not_exist' => '\\ccxt\\OrderNotFound', // array ("code":"order_not_exist","msg":"order_not_exist") ¯\_(ツ)_/¯
+                'order_not_exist_or_not_allow_to_cancel' => '\\ccxt\\InvalidOrder', // array ("code":"400100","msg":"order_not_exist_or_not_allow_to_cancel")
+                'Order size below the minimum requirement.' => '\\ccxt\\InvalidOrder', // array ("code":"400100","msg":"Order size below the minimum requirement.")
             ),
             'fees' => array (
                 'trading' => array (

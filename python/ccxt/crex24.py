@@ -42,6 +42,7 @@ class crex24 (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'withdraw': True,
+                'fetchTradingFee': False,  # actually, True, but will be implemented later
                 'fetchTradingFees': False,  # actually, True, but will be implemented later
                 'fetchFundingFees': False,
                 'fetchDeposits': True,

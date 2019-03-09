@@ -34,6 +34,7 @@ class poloniex extends Exchange {
                 'fetchOrderStatus' => 'emulated', // no endpoint for status of a single open-or-closed order (just for open orders only)
                 'fetchOrderTrades' => true, // true endpoint for trades of a single open or closed order
                 'fetchTickers' => true,
+                'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => 'emulated', // but almost true )
@@ -241,6 +242,11 @@ class poloniex extends Exchange {
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            $limits = array_merge ($this->limits, array (
+                'cost' => array (
+                    'min' => $this->safe_value($this->options['limits']['cost']['min'][$quote]),
+                ),
+            ));
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -249,6 +255,7 @@ class poloniex extends Exchange {
                 'base' => $base,
                 'quote' => $quote,
                 'active' => $market['isFrozen'] !== '1',
+                'limits' => $limits,
                 'info' => $market,
             ));
         }

@@ -48,6 +48,7 @@ class poloniex (Exchange):
                 'fetchOrderStatus': 'emulated',  # no endpoint for status of a single open-or-closed order(just for open orders only)
                 'fetchOrderTrades': True,  # True endpoint for trades of a single open or closed order
                 'fetchTickers': True,
+                'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': 'emulated',  # but almost True )
@@ -249,6 +250,11 @@ class poloniex (Exchange):
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
+            limits = self.extend(self.limits, {
+                'cost': {
+                    'min': self.safe_value(self.options['limits']['cost']['min'][quote]),
+                },
+            })
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -257,6 +263,7 @@ class poloniex (Exchange):
                 'base': base,
                 'quote': quote,
                 'active': market['isFrozen'] != '1',
+                'limits': limits,
                 'info': market,
             }))
         return result

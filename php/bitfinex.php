@@ -24,6 +24,7 @@ class bitfinex extends Exchange {
                 'deposit' => true,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
+                'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchFundingFees' => true,
                 'fetchMyTrades' => true,
@@ -398,6 +399,28 @@ class bitfinex extends Exchange {
     public function fetch_trading_fees ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostSummary ($params);
+        //
+        //     {
+        //         time => '2019-02-20T15:50:19.152000Z',
+        //         trade_vol_30d => array (
+        //             {
+        //                 curr => 'Total (USD)',
+        //                 vol => 0,
+        //                 vol_maker => 0,
+        //                 vol_BFX => 0,
+        //                 vol_BFX_maker => 0,
+        //                 vol_ETHFX => 0,
+        //                 vol_ETHFX_maker => 0
+        //             }
+        //         ),
+        //         fees_funding_30d => array (),
+        //         fees_funding_total_30d => 0,
+        //         fees_trading_30d => array (),
+        //         fees_trading_total_30d => 0,
+        //         maker_fee => 0.001,
+        //         taker_fee => 0.002
+        //     }
+        //
         return array (
             'info' => $response,
             'maker' => $this->safe_float($response, 'maker_fee'),

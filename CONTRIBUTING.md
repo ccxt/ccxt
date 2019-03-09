@@ -234,7 +234,7 @@ If the transpiling process finishes successfully, but generates incorrect Python
 - do everything with base class methods only (for example, use `this.json ()` for converting objects to json).
 - always put a semicolon `;` at the end of each statement, as in PHP/C-style
 - all associative keys must be single-quoted strings everywhere, `array['good'], array.bad`
-- all local variables should be declared with the `let` keyword
+- variables should be declared with `const` or `let` keywords semantically (no `var`!)
 
 And structurally:
 
@@ -353,9 +353,23 @@ node run-tests --php bitfinex   # test Bitfinex with PHP
 node run-tests --python3 kraken # test Kraken with Python 3, requires 'npm run build'
 ```
 
-```UNDER CONSTRUCTION```
+## Committing Changes To The Repository
 
-## Financial contributions
+The build process generates many changes in the transpiled exchange files, e.g. for Python and PHP. **You should NOT commit them to GitHub, commit only the base (JS) file changes please**.
+
+You can hide the changes in the generated files by running this command (after that, the generated files are no longer marked as changed):
+
+```
+npm run git-ignore-generated-files
+```
+
+Previously we had that command implemented as a final build step, but it caused problems with subsequent `git pull` and also branch selection commands (when a conflict occured in those files that have been marked as ignored). So if you experience an issue with that, you can un-ignore those files by executing:
+
+```
+npm run git-unignore-generated-files
+```
+
+## Financial Contributions
 
 We also welcome financial contributions in full transparency on our [open collective](https://opencollective.com/ccxt).
 Anyone can file an expense. If the expense makes sense for the development of the community, it will be "merged" in the ledger of our open collective by the core contributors and the person who filed the expense will be reimbursed.

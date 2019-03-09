@@ -24,6 +24,8 @@ class dsx (liqui):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': False,
                 'fetchOrderBooks': False,
+                'createDepositAddress': True,
+                'fetchDepositAddress': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
@@ -186,6 +188,30 @@ class dsx (liqui):
             result[code] = account
         return self.parse_balance(result)
 
+    async def create_deposit_address(self, code, params={}):
+        request = {
+            'new': 1,
+        }
+        response = await self.fetch_deposit_address(code, self.extend(request, params))
+        return response
+
+    async def fetch_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = await self.dwapiPostDepositCryptoaddress(self.extend(request, params))
+        result = self.safe_value(response, 'return', {})
+        address = self.safe_string(result, 'address')
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'tag': None,  # not documented in DSX API
+            'info': response,
+        }
+
     def parse_ticker(self, ticker, market=None):
         #
         #   {   high:  0.03492,
@@ -329,6 +355,79 @@ class dsx (liqui):
             '7': 'canceled',  # Rejected
         }
         return self.safe_string(statuses, status, status)
+
+    def parse_trade(self, trade, market=None):
+        # {"pair": "btcusd",
+        #   "type": "buy",
+        #   "volume": 0.0595,
+        #   "rate": 9750,
+        #   "orderId": 77149299,
+        #   "timestamp": 1519612317,
+        #   "commission": 0.00020825,
+        #   "commissionCurrency": "btc"}
+        #  #####
+        # { "amount" : 0.0128,
+        #    "price" : 6483.99000,
+        #    "timestamp" : 1540334614,
+        #    "tid" : 35684364,
+        #    "type" : "ask"}
+        #
+        timestamp = self.safe_integer(trade, 'timestamp')
+        if timestamp is not None:
+            timestamp = timestamp * 1000
+        side = self.safe_string(trade, 'type')
+        if side == 'ask':
+            side = 'sell'
+        elif side == 'bid':
+            side = 'buy'
+        price = self.safe_float_2(trade, 'rate', 'price')
+        id = self.safe_string_2(trade, 'trade_id', 'tid')
+        order = self.safe_string(trade, 'orderId')
+        if 'pair' in trade:
+            marketId = self.safe_string(trade, 'pair')
+            market = self.safe_value(self.markets_by_id, marketId, market)
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        amount = self.safe_float_2(trade, 'amount', 'volume')
+        type = 'limit'  # all trades are still limit trades
+        takerOrMaker = None
+        fee = None
+        feeCost = self.safe_float(trade, 'commission')
+        if feeCost is not None:
+            feeCurrencyId = self.safe_string(trade, 'commissionCurrency')
+            feeCurrencyId = feeCurrencyId.upper()
+            feeCurrency = self.safe_value(self.currencies_by_id, feeCurrencyId)
+            feeCurrencyCode = None
+            if feeCurrency is not None:
+                feeCurrencyCode = feeCurrency['code']
+            else:
+                feeCurrencyCode = self.common_currency_code(feeCurrencyId)
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            }
+        isYourOrder = self.safe_value(trade, 'is_your_order')
+        if isYourOrder is not None:
+            takerOrMaker = 'taker'
+            if isYourOrder:
+                takerOrMaker = 'maker'
+            if fee is None:
+                fee = self.calculate_fee(symbol, type, side, amount, price, takerOrMaker)
+        return {
+            'id': id,
+            'order': order,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'amount': amount,
+            'fee': fee,
+            'info': trade,
+        }
 
     def parse_order(self, order, market=None):
         #
@@ -474,7 +573,7 @@ class dsx (liqui):
             # 'endId': 321,  # Decimal, ID of the last order of the selection
             # 'order': 'ASC',  # String, Order in which orders shown. Possible values are "ASC" — from first to last, "DESC" — from last to first.
         }
-        response = await self.privatePostHistoryOrders(self.extend(request, params))
+        response = await self.privatePostOrders(self.extend(request, params))
         #
         #     {
         #       "success": 1,
@@ -492,7 +591,7 @@ class dsx (liqui):
         #       }
         #     }
         #
-        return self.parse_orders_by_id(self.safe_value(response, 'return', {}))
+        return self.parse_orders_by_id(self.safe_value(response, 'return', {}), symbol, since, limit)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -520,4 +619,38 @@ class dsx (liqui):
         #       }
         #     }
         #
-        return self.parse_orders_by_id(self.safe_value(response, 'return', {}))
+        return self.parse_orders_by_id(self.safe_value(response, 'return', {}), symbol, since, limit)
+
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        url = self.urls['api'][api]
+        query = self.omit(params, self.extract_params(path))
+        if api == 'private' or api == 'dwapi':
+            url += self.get_private_path(path, params)
+            self.check_required_credentials()
+            nonce = self.nonce()
+            body = self.urlencode(self.extend({
+                'nonce': nonce,
+                'method': path,
+            }, query))
+            signature = self.sign_body_with_secret(body)
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Key': self.apiKey,
+                'Sign': signature,
+            }
+        elif api == 'public':
+            url += self.get_version_string() + '/' + self.implode_params(path, params)
+            if query:
+                url += '?' + self.urlencode(query)
+        else:
+            url += '/' + self.implode_params(path, params)
+            if method == 'GET':
+                if query:
+                    url += '?' + self.urlencode(query)
+            else:
+                if query:
+                    body = self.json(query)
+                    headers = {
+                        'Content-Type': 'application/json',
+                    }
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}

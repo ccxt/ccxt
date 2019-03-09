@@ -34,6 +34,7 @@ class hitbtc2 extends hitbtc {
                 'fetchDeposits' => false,
                 'fetchWithdrawals' => false,
                 'fetchTransactions' => true,
+                'fetchTradingFee' => true,
             ),
             'timeframes' => array (
                 '1m' => 'M1',
@@ -80,6 +81,7 @@ class hitbtc2 extends hitbtc {
                         'order', // List your current open orders
                         'order/{clientOrderId}', // Get a single order by clientOrderId
                         'trading/balance', // Get trading balance
+                        'trading/fee/all', // Get trading fee rate
                         'trading/fee/{symbol}', // Get trading fee rate
                         'history/trades', // Get historical trades
                         'history/order', // Get historical orders
@@ -113,8 +115,8 @@ class hitbtc2 extends hitbtc {
                 'trading' => array (
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => -0.01 / 100,
-                    'taker' => 0.1 / 100,
+                    'maker' => 0.1 / 100,
+                    'taker' => 0.2 / 100,
                 ),
                 'funding' => array (
                     'tierBased' => false,
@@ -662,6 +664,26 @@ class hitbtc2 extends hitbtc {
             );
         }
         return $result;
+    }
+
+    public function fetch_trading_fee ($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array_merge (array (
+            'symbol' => $market['id'],
+        ), $this->omit ($params, 'symbol'));
+        $response = $this->privateGetTradingFeeSymbol ($request);
+        //
+        //     {
+        //         takeLiquidityRate => '0.001',
+        //         provideLiquidityRate => '-0.0001'
+        //     }
+        //
+        return array (
+            'info' => $response,
+            'maker' => $this->safe_float($response, 'provideLiquidityRate'),
+            'taker' => $this->safe_float($response, 'takeLiquidityRate'),
+        );
     }
 
     public function fetch_balance ($params = array ()) {
