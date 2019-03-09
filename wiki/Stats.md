@@ -36,8 +36,8 @@
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/ccxt/ccxt.svg)
 ![GitHub repo size in bytes](https://img.shields.io/github/repo-size/ccxt/ccxt.svg)
 ![GitHub contributors](https://img.shields.io/github/contributors/ccxt/ccxt.svg)
-![GitHub weekly commit activity](https://img.shields.io/github/commit-activity/w/ccxt/ccxt.svg)
-![GitHub yearly commit activity](https://img.shields.io/github/commit-activity/y/ccxt/ccxt.svg)
+<!-- ![GitHub weekly commit activity](https://img.shields.io/github/commit-activity/w/ccxt/ccxt.svg) -->
+<!-- ![GitHub yearly commit activity](https://img.shields.io/github/commit-activity/y/ccxt/ccxt.svg) -->
 
 ### GitHub Search Hits
 
