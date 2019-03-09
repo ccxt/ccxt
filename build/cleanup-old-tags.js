@@ -29,8 +29,10 @@ const tagsByMajorMinor = values (groupBy (tags, 'key')).sort ((a, b) => a[0].key
 for (let i = 0; i < 3; i++) {
 
     const tags = tagsByMajorMinor.pop ()
-
-    log.green.bright ('Preserving', tags[0].tag, '...', tags[tags.length - 1].tag)
+    
+    if (tags) {
+        log.green.bright ('Preserving', tags[0].tag, '...', tags[tags.length - 1].tag)
+    }
 }
 
 // For older versions, leave only "round" numbered versions (1/10th)
@@ -53,6 +55,13 @@ for (const tags of tagsByMajorMinor) {
 log.bright.red ('Deleting', tagsToDelete.length, 'tags...')
 
 if (!process.argv.includes ('--paper')) {
+
+/*  If it happens on a CI server, we don't want it to fail the build because of a super
+    long execution time (one tag deletion takes ~5 sec...), hence that limit here                 */
+
+    if (process.argv.includes ('--limit')) {
+        tagsToDelete = tagsToDelete.slice (-500)
+    }
 
     for (const tag of tagsToDelete) {
 
