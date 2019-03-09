@@ -1371,13 +1371,13 @@ module.exports = class hitbtc2 extends hitbtc {
 
     async transferToExchange (code, amount, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let request = {
+        const currency = this.currency (code);
+        const request = {
             'currency': currency['id'],
             'amount': parseFloat (amount),
             'type': 'bankToExchange',
         };
-        let response = await this.privatePostAccountTransfer (this.extend (request, params));
+        const response = await this.privatePostAccountTransfer (this.extend (request, params));
         return {
             'info': response,
             'id': response['id'],
@@ -1386,13 +1386,13 @@ module.exports = class hitbtc2 extends hitbtc {
 
     async transferToBank (code, amount, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let request = {
+        const currency = this.currency (code);
+        const request = {
             'currency': currency['id'],
             'amount': parseFloat (amount),
             'type': 'exchangeToBank',
         };
-        let response = await this.privatePostAccountTransfer (this.extend (request, params));
+        const response = await this.privatePostAccountTransfer (this.extend (request, params));
         return {
             'info': response,
             'id': response['id'],
