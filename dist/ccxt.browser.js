@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.352'
+const version = '1.18.353'
 
 Exchange.ccxtVersion = version
 
@@ -64104,13 +64104,14 @@ module.exports = class upbit extends Exchange {
             // new metainfo interface
             'has': {
                 'CORS': true,
-                'fetchOrderBooks': true,
+                'createDepositAddress': true,
                 'createMarketOrder': false,
                 'fetchDepositAddress': true,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': false,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
+                'fetchOrderBooks': true,
                 'fetchOpenOrders': true,
                 'fetchOrders': false,
                 'fetchTickers': true,
