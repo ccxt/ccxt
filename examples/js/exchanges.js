@@ -3,7 +3,6 @@
 const ccxt      = require ('../../ccxt.js')
 const countries = require ('../../build/countries.js')
 const asTable   = require ('as-table')
-const util      = require ('util')
 const log       = require ('ololog').configure ({ locate: false })
 
 require ('ansicolor').nice
