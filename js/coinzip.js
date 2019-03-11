@@ -330,7 +330,7 @@ module.exports = class coinzip extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOrders (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetOrders (this.extend ({
             'market': this.marketId (symbol),
@@ -341,7 +341,7 @@ module.exports = class coinzip extends Exchange {
         return this.parseOrders (response, symbol, since, limit);
     }
 
-    async fetchOpenOrders (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetOrders (this.extend ({
             'market': this.marketId (symbol),

@@ -1,6 +1,6 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /*  A entry point for the browser bundle version. This gets compiled by:
-
+        
         browserify --debug ./ccxt.browser.js > ./dist/ccxt.browser.js
  */
 
@@ -114,7 +114,6 @@ const exchanges = {
     'coinone':                 require ('./js/coinone.js'),
     'coinspot':                require ('./js/coinspot.js'),
     'cointiger':               require ('./js/cointiger.js'),
-    'coinzip':                 require ('./js/coinzip.js'),
     'coolcoin':                require ('./js/coolcoin.js'),
     'coss':                    require ('./js/coss.js'),
     'crex24':                  require ('./js/crex24.js'),
@@ -186,7 +185,7 @@ const exchanges = {
     'yobit':                   require ('./js/yobit.js'),
     'yunbi':                   require ('./js/yunbi.js'),
     'zaif':                    require ('./js/zaif.js'),
-    'zb':                      require ('./js/zb.js'),
+    'zb':                      require ('./js/zb.js'),    
 }
 
 //-----------------------------------------------------------------------------
@@ -3682,7 +3681,7 @@ const totp = (secret) => {
         otp = (otp).substr (otp.length - 6, 6)
         return otp
     }
-
+    
     return getOTP (secret)
 }
 

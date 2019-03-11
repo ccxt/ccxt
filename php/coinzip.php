@@ -13,28 +13,27 @@ class coinzip extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'coinzip',
             'name' => 'Coinzip',
-            'countries' => array ( 'PHP', 'KR', 'JP', 'SG', 'AU' ),
+            'countries' => ['PH', 'KR', 'JP', 'SG', 'AU'],
             'rateLimit' => 400,
             'version' => 'v2',
             'has' => array (
-                'CORS' =>  false,
-                'fetchBalance' =>  true,
-                'fetchCurrencies' =>  false,
-                'fetchMarkets' =>  true,
-                'createOrder' =>  true,
-                'cancelOrder' =>  true,
-                'fetchTicker' =>  true,
-                'fetchOHLCV' =>  true,
-                'fetchTicker' =>  true,
-                'fetchTickers' =>  true,
-                'fetchMyTrades' =>  true,
-                'fetchTrades' =>  true,
-                'fetchOrder' =>  true,
-                'fetchOrders' =>  true,
-                'fetchOpenOrders' =>  true,
-                'fetchClosedOrders' =>  true,
-                'deposit' =>  false,
-                'withdraw' =>  false,
+                'CORS' => false,
+                'fetchBalance' => true,
+                'fetchCurrencies' => false,
+                'fetchMarkets' => true,
+                'createOrder' => true,
+                'cancelOrder' => true,
+                'fetchOHLCV' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchMyTrades' => true,
+                'fetchTrades' => true,
+                'fetchOrder' => true,
+                'fetchOrders' => true,
+                'fetchOpenOrders' => true,
+                'fetchClosedOrders' => true,
+                'deposit' => false,
+                'withdraw' => false,
             ),
             'timeframes' => array (
                 '1m' => '1',
@@ -51,13 +50,13 @@ class coinzip extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/786083/53869301-ecfc2200-4032-11e9-80bc-42eda484076f.png',
-                'api' =>  'https://www.coinzip.co',
-                'www' =>  'https://www.coinzip.co',
-                'documents' =>  'https://www.coinzip.co/documents/api_v2',
+                'api' => 'https://www.coinzip.co',
+                'www' => 'https://www.coinzip.co',
+                'documents' => 'https://www.coinzip.co/documents/api_v2',
             ),
             'requiredCredentials' => array (
-                'apiKey' =>  true,
-                'secret' =>  true,
+                'apiKey' => true,
+                'secret' => true,
             ),
             'api' => array (
                 'public' => array (
@@ -135,6 +134,70 @@ class coinzip extends Exchange {
         return $result;
     }
 
+    public function fetch_balance ($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetMembersMe ();
+        $balances = $response['accounts'];
+        $result = array ( 'info' => $balances );
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];
+            $currency = $balance['currency'];
+            $uppercase = strtoupper ($currency);
+            $account = array (
+                'free' => floatval ($balance['balance']),
+                'used' => floatval ($balance['locked']),
+                'total' => 0.0,
+            );
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$uppercase] = $account;
+        }
+        return $this->parse_balance($result);
+    }
+
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'market' => $market['id'],
+        );
+        if ($limit !== null)
+            $request['limit'] = $limit; // default = 300
+        $orderbook = $this->publicGetDepth (array_merge ($request, $params));
+        $timestamp = $orderbook['timestamp'] * 1000;
+        return $this->parse_order_book($orderbook, $timestamp);
+    }
+
+    public function parse_ticker ($ticker, $market = null) {
+        $timestamp = $ticker['at'] * 1000;
+        $ticker = $ticker['ticker'];
+        $symbol = null;
+        if ($market)
+            $symbol = $market['symbol'];
+        $last = $this->safe_float($ticker, 'last');
+        return array (
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'buy'),
+            'bidVolume' => null,
+            'ask' => $this->safe_float($ticker, 'sell'),
+            'askVolume' => null,
+            'vwap' => null,
+            'open' => $this->safe_float($ticker, 'open'),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => $this->safe_float($ticker, 'vol'),
+            'quoteVolume' => null,
+            'info' => $ticker,
+        );
+    }
+
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $tickers = $this->publicGetTickers ($params);
@@ -171,198 +234,6 @@ class coinzip extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $market = $this->market ($symbol);
-        $request = array (
-            'market' => $market['id'],
-        );
-        if ($limit !== null)
-            $request['limit'] = $limit; // default = 300
-        $orderbook = $this->publicGetDepth (array_merge ($request, $params));
-        $timestamp = $orderbook['timestamp'] * 1000;
-        return $this->parse_order_book($orderbook, $timestamp);
-    }
-
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $market = $this->market ($symbol);
-        if ($limit === null)
-            $limit = 500; // default is 30
-        $request = array (
-            'market' => $market['id'],
-            'period' => $this->timeframes[$timeframe],
-            'limit' => $limit,
-        );
-        if ($since !== null)
-            $request['timestamp'] = $since;
-        $response = $this->publicGetK (array_merge ($request, $params));
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
-    }
-
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $market = $this->market ($symbol);
-        $response = $this->publicGetTrades (array_merge (array (
-            'market' => $market['id'],
-        ), $params));
-        return $this->parse_trades($response, $market, $since, $limit);
-    }
-
-    public function fetch_my_trades ($symbol = NULL, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null)
-            throw new ArgumentsRequired ($this->id . ' fetchOrders requires a $symbol argument');
-        $this->load_markets();
-        $market = $this->market ($symbol);
-        $response = $this->privateGetTradesMy (array_merge (array (
-            'market' => $market['id'],
-        ), $params));
-        return $this->parse_trades($response, $market, $since, $limit);
-    }
-
-    public function fetch_balance ($params = array ()) {
-        $this->load_markets();
-        $response = $this->privateGetMembersMe ();
-        $balances = $response['accounts'];
-        $result = array ( 'info' => $balances );
-        for ($b = 0; $b < count ($balances); $b++) {
-            $balance = $balances[$b];
-            $currency = $balance['currency'];
-            $uppercase = strtoupper ($currency);
-            $account = array (
-                'free' => floatval ($balance['balance']),
-                'used' => floatval ($balance['locked']),
-                'total' => 0.0,
-            );
-            $account['total'] = $this->sum ($account['free'], $account['used']);
-            $result[$uppercase] = $account;
-        }
-        return $this->parse_balance($result);
-    }
-
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
-        $this->load_markets();
-        $response = $this->privateGetOrder (array_merge (array (
-            'id' => intval ($id),
-        ), $params));
-        return $this->parse_order($response);
-    }
-
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null)
-            throw new ArgumentsRequired ($this->id . ' fetchOrders requires a $symbol argument');
-        $this->load_markets();
-        $market = $this->market ($symbol);
-        $request = array (
-            'market' => $market['id'],
-            'state' => 'all',
-        );
-        if ($since !== null) {
-            $request['timestamp'] = $since;
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = $this->privateGetOrders (array_merge ($request, $params));
-        return $this->parse_orders($response, $market, $since, $limit);
-    }
-
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null)
-            throw new ArgumentsRequired ($this->id . ' fetchOrders requires a $symbol argument');
-        $this->load_markets();
-        $market = $this->market ($symbol);
-        $request = array (
-            'market' => $market['id'],
-            'state' => 'wait',
-        );
-        if ($since !== null) {
-            $request['timestamp'] = $since;
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = $this->privateGetOrders (array_merge ($request, $params));
-        return $this->parse_orders($response, $market, $since, $limit);
-    }
-
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null)
-            throw new ArgumentsRequired ($this->id . ' fetchOrders requires a $symbol argument');
-        $this->load_markets();
-        $market = $this->market ($symbol);
-        $request = array (
-            'market' => $market['id'],
-            'state' => 'done',
-        );
-        if ($since !== null) {
-            $request['timestamp'] = $since;
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = $this->privateGetOrders (array_merge ($request, $params));
-        return $this->parse_orders($response, $market, $since, $limit);
-    }
-
-    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $this->load_markets();
-        $order = array (
-            'market' => $this->market_id($symbol),
-            'side' => $side,
-            'volume' => (string) $amount,
-            'ord_type' => $type,
-        );
-        if ($type === 'limit') {
-            $order['price'] = (string) $price;
-        }
-        $response = $this->privatePostOrders (array_merge ($order, $params));
-        $market = $this->markets_by_id[$response['market']];
-        return $this->parse_order($response, $market);
-    }
-
-    public function cancel_order ($id, $symbol = null, $params = array ()) {
-        $this->load_markets();
-        $result = $this->privatePostOrderDelete (array ( 'id' => $id ));
-        $order = $this->parse_order($result);
-        $status = $order['status'];
-        if ($status === 'closed' || $status === 'canceled') {
-            throw new OrderNotFound ($this->id . ' ' . $this->json ($order));
-        }
-        return $order;
-    }
-
-    public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $ticker['at'] * 1000;
-        $ticker = $ticker['ticker'];
-        $symbol = null;
-        if ($market)
-            $symbol = $market['symbol'];
-        $last = $this->safe_float($ticker, 'last');
-        return array (
-            'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'buy'),
-            'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'sell'),
-            'askVolume' => null,
-            'vwap' => null,
-            'open' => $this->safe_float($ticker, 'open'),
-            'close' => $last,
-            'last' => $last,
-            'previousClose' => null,
-            'change' => null,
-            'percentage' => null,
-            'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'vol'),
-            'quoteVolume' => null,
-            'info' => $ticker,
-        );
-    }
-
     public function parse_trade ($trade, $market = null) {
         $timestamp = $this->parse8601 ($trade['created_at']);
         return array (
@@ -379,6 +250,15 @@ class coinzip extends Exchange {
         );
     }
 
+    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTrades (array_merge (array (
+            'market' => $market['id'],
+        ), $params));
+        return $this->parse_trades($response, $market, $since, $limit);
+    }
+
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         return [
             $ohlcv[0] * 1000,
@@ -388,6 +268,22 @@ class coinzip extends Exchange {
             $ohlcv[4],
             $ohlcv[5],
         ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        if ($limit === null)
+            $limit = 500; // default is 30
+        $request = array (
+            'market' => $market['id'],
+            'period' => $this->timeframes[$timeframe],
+            'limit' => $limit,
+        );
+        if ($since !== null)
+            $request['timestamp'] = $since;
+        $response = $this->publicGetK (array_merge ($request, $params));
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
     public function parse_order ($order, $market = null) {
@@ -427,8 +323,102 @@ class coinzip extends Exchange {
         );
     }
 
-    public function nonce () {
-        return $this->milliseconds ();
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetOrder (array_merge (array (
+            'id' => intval ($id),
+        ), $params));
+        return $this->parse_order($response);
+    }
+
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetOrders (array_merge (array (
+            'market' => $this->market_id($symbol),
+            'timestamp' => $since,
+            'limit' => $limit,
+            'state' => 'all',
+        ), $params));
+        return $this->parse_orders($response, $symbol, $since, $limit);
+    }
+
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetOrders (array_merge (array (
+            'market' => $this->market_id($symbol),
+            'timestamp' => $since,
+            'limit' => $limit,
+            'state' => 'wait',
+        ), $params));
+        return $this->parse_orders($response, $symbol, $since, $limit);
+    }
+
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetOrders (array_merge (array (
+            'market' => $this->market_id($symbol),
+            'timestamp' => $since,
+            'limit' => $limit,
+            'state' => 'done',
+        ), $params));
+        return $this->parse_orders($response, $symbol, $since, $limit);
+    }
+
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $this->load_markets();
+        $order = array (
+            'market' => $this->market_id($symbol),
+            'side' => $side,
+            'volume' => (string) $amount,
+            'ord_type' => $type,
+        );
+        if ($type === 'limit') {
+            $order['price'] = (string) $price;
+        }
+        $response = $this->privatePostOrders (array_merge ($order, $params));
+        $market = $this->markets_by_id[$response['market']];
+        return $this->parse_order($response, $market);
+    }
+
+    public function cancel_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $result = $this->privatePostOrderDelete (array ( 'id' => $id ));
+        $order = $this->parse_order($result);
+        $status = $order['status'];
+        if ($status === 'closed' || $status === 'canceled') {
+            throw new OrderNotFound ($this->id . ' ' . $this->json ($order));
+        }
+        return $order;
+    }
+
+    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
+        if (is_array ($this->urls) && array_key_exists ('extension', $this->urls))
+            $request .= $this->urls['extension'];
+        $query = $this->omit ($params, $this->extract_params($path));
+        $url = $this->urls['api'] . $request;
+        if ($api === 'public') {
+            if ($query) {
+                $url .= '?' . $this->urlencode ($query);
+            }
+        } else {
+            $this->check_required_credentials();
+            $nonce = $this->now ();
+            $query = $this->encode_params (array_merge (array (
+                'access_key' => $this->apiKey,
+                'tonce' => $nonce,
+            ), $params));
+            $auth = $method . '|' . $request . '|' . $query;
+            $signed = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
+            $suffix = $query . '&signature=' . $signed;
+            if ($method === 'GET') {
+                $url .= '?' . $suffix;
+            } else {
+                $body = $suffix;
+                $headers = array ( 'Content-Type' => 'application/x-www-form-urlencoded' );
+            }
+        }
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function encode_params ($params) {
@@ -447,48 +437,5 @@ class coinzip extends Exchange {
             return $query;
         }
         return $this->urlencode ($this->keysort ($params));
-    }
-
-    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
-        if (is_array ($this->urls) && array_key_exists ('extension', $this->urls))
-            $request .= $this->urls['extension'];
-        $query = $this->omit ($params, $this->extract_params($path));
-        $url = $this->urls['api'] . $request;
-        if ($api === 'public') {
-            if ($query) {
-                $url .= '?' . $this->urlencode ($query);
-            }
-        } else {
-            $this->check_required_credentials();
-            $nonce = (string) $this->nonce ();
-            $query = $this->encode_params (array_merge (array (
-                'access_key' => $this->apiKey,
-                'tonce' => $nonce,
-            ), $params));
-            $auth = $method . '|' . $request . '|' . $query;
-            $signed = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
-            $suffix = $query . '&signature=' . $signed;
-            if ($method === 'GET') {
-                $url .= '?' . $suffix;
-            } else {
-                $body = $suffix;
-                $headers = array ( 'Content-Type' => 'application/x-www-form-urlencoded' );
-            }
-        }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
-
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
-        if ($code === 400) {
-            $error = $this->safe_value($response, 'error');
-            $errorCode = $this->safe_string($error, 'code');
-            $feedback = $this->id . ' ' . $this->json ($response);
-            $exceptions = $this->exceptions;
-            if (is_array ($exceptions) && array_key_exists ($errorCode, $exceptions)) {
-                throw new $exceptions[$errorCode] ($feedback);
-            }
-            // fallback to default $error handler
-        }
     }
 }

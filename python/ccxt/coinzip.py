@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import ArgumentsRequired
 
 
 class coinzip (Exchange):
@@ -25,7 +24,6 @@ class coinzip (Exchange):
                 'fetchMarkets': True,
                 'createOrder': True,
                 'cancelOrder': True,
-                'fetchTicker': True,
                 'fetchOHLCV': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -36,7 +34,7 @@ class coinzip (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'deposit': False,
-                'withdraw': False
+                'withdraw': False,
             },
             'timeframes': {
                 '1m': '1',
@@ -55,11 +53,11 @@ class coinzip (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/786083/53869301-ecfc2200-4032-11e9-80bc-42eda484076f.png',
                 'api': 'https://www.coinzip.co',
                 'www': 'https://www.coinzip.co',
-                'documents': 'https://www.coinzip.co/documents/api_v2'
+                'documents': 'https://www.coinzip.co/documents/api_v2',
             },
             'requiredCredentials': {
                 'apiKey': True,
-                'secret': True
+                'secret': True,
             },
             'api': {
                 'public': {
@@ -72,8 +70,8 @@ class coinzip (Exchange):
                         'trades',
                         'k',
                         'k_with_pending_trades',
-                        'timestamp'
-                    ]
+                        'timestamp',
+                    ],
                 },
                 'private': {
                     'get': [
@@ -89,9 +87,9 @@ class coinzip (Exchange):
                         'orders',
                         'orders/multi',
                         'orders/clear',
-                        'order/delete'
-                    ]
-                }
+                        'order/delete',
+                    ],
+                },
             },
             'exceptions': {
                 '2002': InsufficientFunds,
@@ -133,71 +131,6 @@ class coinzip (Exchange):
             })
         return result
 
-    def fetch_tickers(self, symbols=None, params={}):
-        self.load_markets()
-        tickers = self.publicGetTickers(params)
-        ids = list(tickers.keys())
-        result = {}
-        for i in range(0, len(ids)):
-            id = ids[i]
-            market = None
-            symbol = id
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
-            else:
-                base = id[0:3]
-                quote = id[3:6]
-                base = base.upper()
-                quote = quote.upper()
-                base = self.common_currency_code(base)
-                quote = self.common_currency_code(quote)
-                symbol = base + '/' + quote
-            ticker = tickers[id]
-            result[symbol] = self.parse_ticker(ticker, market)
-        return result
-
-    def fetch_ticker(self, symbol, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetch_ticker requires a symbol argument')
-        self.load_markets()
-        market = self.market(symbol)
-        response = self.publicGetTickersMarket(self.extend({
-            'market': market['id'],
-        }, params))
-        return self.parse_ticker(response, market)
-
-    def fetch_order_book(self, symbol, limit=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetch_order_book requires a symbol argument')
-        self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'market': market['id'],
-        }
-        if limit is not None:
-            request['limit'] = limit  # default = 300
-        orderbook = self.publicGetDepth(self.extend(request, params))
-        timestamp = orderbook['timestamp'] * 1000
-        return self.parse_order_book(orderbook, timestamp)
-
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetch_ohlcv requires a symbol argument')
-        self.load_markets()
-        market = self.market(symbol)
-        if limit is None:
-            limit = 500  # default is 30
-        request = {
-            'market': market['id'],
-            'period': self.timeframes[timeframe],
-            'limit': limit,
-        }
-        if since is not None:
-            request['timestamp'] = since
-        response = self.publicGetK(self.extend(request, params))
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
-
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privateGetMembersMe()
@@ -216,110 +149,17 @@ class coinzip (Exchange):
             result[uppercase] = account
         return self.parse_balance(result)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetch_trades requires a symbol argument')
-        self.load_markets()
-        market = self.market(symbol)
-        response = self.publicGetTrades(self.extend({
-            'market': market['id'],
-        }, params))
-        return self.parse_trades(response, market, since, limit)
-
-    def fetch_my_trades(self, symbol, since=None, limit=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetch_trades requires a symbol argument')
-        self.load_markets()
-        market = self.market(symbol)
-        response = self.privateGetTradesMy(self.extend({
-            'market': market['id'],
-        }, params))
-        return self.parse_trades(response, market, since, limit)
-
-    def fetch_order(self, id, symbol=None, params={}):
-        self.load_markets()
-        response = self.privateGetOrder(self.extend({
-            'id': int(id),
-        }, params))
-        return self.parse_order(response)
-
-    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetch_orders requires a symbol argument')
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
             'market': market['id'],
-            'state': 'all'
         }
-        if since is not None:
-            request['timestamp'] = since
         if limit is not None:
-            request['limit'] = limit
-        response = self.privateGetOrders(self.extend(request, params))
-
-        return self.parse_orders(response, market, since, limit)
-
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetch_orders requires a symbol argument')
-        self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'market': market['id'],
-            'state': 'wait'
-        }
-        if since is not None:
-            request['timestamp'] = since
-        if limit is not None:
-            request['limit'] = limit
-        response = self.privateGetOrders(self.extend(request, params))
-
-        return self.parse_orders(response, market, since, limit)
-
-    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetch_orders requires a symbol argument')
-        self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'market': market['id'],
-            'state': 'done'
-        }
-        if since is not None:
-            request['timestamp'] = since
-        if limit is not None:
-            request['limit'] = limit
-        response = self.privateGetOrders(self.extend(request, params))
-
-        return self.parse_orders(response, market, since, limit)
-
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' create_order requires a symbol argument')
-        self.load_markets()
-        order = {
-            'market': self.market_id(symbol),
-            'side': side,
-            'volume': str(amount),
-            'ord_type': type,
-        }
-        if type == 'limit':
-            order['price'] = str(price)
-        response = self.privatePostOrders(self.extend(order, params))
-        market = self.markets_by_id[response['market']]
-        return self.parse_order(response, market)
-
-    def cancel_order(self, id, symbol=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancel_order requires a id argument')
-        self.load_markets()
-        result = self.privatePostOrderDelete({'id': id})
-        order = self.parse_order(result)
-        status = order['status']
-        if status == 'closed' or status == 'canceled':
-            raise OrderNotFound(self.id + ' ' + self.json(order))
-        return order
+            request['limit'] = limit  # default = 300
+        orderbook = self.publicGetDepth(self.extend(request, params))
+        timestamp = orderbook['timestamp'] * 1000
+        return self.parse_order_book(orderbook, timestamp)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['at'] * 1000
@@ -350,6 +190,86 @@ class coinzip (Exchange):
             'quoteVolume': None,
             'info': ticker,
         }
+
+    def fetch_tickers(self, symbols=None, params={}):
+        self.load_markets()
+        tickers = self.publicGetTickers(params)
+        ids = list(tickers.keys())
+        result = {}
+        for i in range(0, len(ids)):
+            id = ids[i]
+            market = None
+            symbol = id
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+            else:
+                base = id[0:3]
+                quote = id[3:6]
+                base = base.upper()
+                quote = quote.upper()
+                base = self.common_currency_code(base)
+                quote = self.common_currency_code(quote)
+                symbol = base + '/' + quote
+            ticker = tickers[id]
+            result[symbol] = self.parse_ticker(ticker, market)
+        return result
+
+    def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        response = self.publicGetTickersMarket(self.extend({
+            'market': market['id'],
+        }, params))
+        return self.parse_ticker(response, market)
+
+    def parse_trade(self, trade, market=None):
+        timestamp = self.parse8601(trade['created_at'])
+        return {
+            'id': str(trade['id']),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'type': None,
+            'side': None,
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'volume'),
+            'cost': self.safe_float(trade, 'funds'),
+            'info': trade,
+        }
+
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        response = self.publicGetTrades(self.extend({
+            'market': market['id'],
+        }, params))
+        return self.parse_trades(response, market, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        return [
+            ohlcv[0] * 1000,
+            ohlcv[1],
+            ohlcv[2],
+            ohlcv[3],
+            ohlcv[4],
+            ohlcv[5],
+        ]
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        if limit is None:
+            limit = 500  # default is 30
+        request = {
+            'market': market['id'],
+            'period': self.timeframes[timeframe],
+            'limit': limit,
+        }
+        if since is not None:
+            request['timestamp'] = since
+        response = self.publicGetK(self.extend(request, params))
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_order(self, order, market=None):
         symbol = None
@@ -385,47 +305,65 @@ class coinzip (Exchange):
             'info': order,
         }
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
-        return [
-            ohlcv[0] * 1000,
-            ohlcv[1],
-            ohlcv[2],
-            ohlcv[3],
-            ohlcv[4],
-            ohlcv[5],
-        ]
+    def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        response = self.privateGetOrder(self.extend({
+            'id': int(id),
+        }, params))
+        return self.parse_order(response)
 
-    def parse_trade(self, trade, market=None):
-        timestamp = self.parse8601(trade['created_at'])
-        return {
-            'id': str(trade['id']),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
-            'type': None,
-            'side': None,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'volume'),
-            'cost': self.safe_float(trade, 'funds'),
-            'info': trade,
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        response = self.privateGetOrders(self.extend({
+            'market': self.market_id(symbol),
+            'timestamp': since,
+            'limit': limit,
+            'state': 'all',
+        }, params))
+        return self.parse_orders(response, symbol, since, limit)
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        response = self.privateGetOrders(self.extend({
+            'market': self.market_id(symbol),
+            'timestamp': since,
+            'limit': limit,
+            'state': 'wait',
+        }, params))
+        return self.parse_orders(response, symbol, since, limit)
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        response = self.privateGetOrders(self.extend({
+            'market': self.market_id(symbol),
+            'timestamp': since,
+            'limit': limit,
+            'state': 'done',
+        }, params))
+        return self.parse_orders(response, symbol, since, limit)
+
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
+        self.load_markets()
+        order = {
+            'market': self.market_id(symbol),
+            'side': side,
+            'volume': str(amount),
+            'ord_type': type,
         }
+        if type == 'limit':
+            order['price'] = str(price)
+        response = self.privatePostOrders(self.extend(order, params))
+        market = self.markets_by_id[response['market']]
+        return self.parse_order(response, market)
 
-    def nonce(self):
-        return self.milliseconds()
-
-    def encode_params(self, params):
-        if 'orders' in params:
-            orders = params['orders']
-            query = self.urlencode(self.keysort(self.omit(params, 'orders')))
-            for i in range(0, len(orders)):
-                order = orders[i]
-                keys = list(order.keys())
-                for k in range(0, len(keys)):
-                    key = keys[k]
-                    value = order[key]
-                    query += '&orders%5B%5D%5B' + key + '%5D=' + str(value)
-            return query
-        return self.urlencode(self.keysort(params))
+    def cancel_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        result = self.privatePostOrderDelete({'id': id})
+        order = self.parse_order(result)
+        status = order['status']
+        if status == 'closed' or status == 'canceled':
+            raise OrderNotFound(self.id + ' ' + self.json(order))
+        return order
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/api/' + self.version + '/' + self.implode_params(path, params)
@@ -438,7 +376,7 @@ class coinzip (Exchange):
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
-            nonce = str(self.nonce())
+            nonce = self.now()
             query = self.encode_params(self.extend({
                 'access_key': self.apiKey,
                 'tonce': nonce,
@@ -453,12 +391,16 @@ class coinzip (Exchange):
                 headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
-        if code == 400:
-            error = self.safe_value(response, 'error')
-            errorCode = self.safe_string(error, 'code')
-            feedback = self.id + ' ' + self.json(response)
-            exceptions = self.exceptions
-            if errorCode in exceptions:
-                raise exceptions[errorCode](feedback)
-            # fallback to default error handler
+    def encode_params(self, params):
+        if 'orders' in params:
+            orders = params['orders']
+            query = self.urlencode(self.keysort(self.omit(params, 'orders')))
+            for i in range(0, len(orders)):
+                order = orders[i]
+                keys = list(order.keys())
+                for k in range(0, len(keys)):
+                    key = keys[k]
+                    value = order[key]
+                    query += '&orders%5B%5D%5B' + key + '%5D=' + str(value)
+            return query
+        return self.urlencode(self.keysort(params))
