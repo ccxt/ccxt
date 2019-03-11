@@ -244,7 +244,7 @@ class poloniex extends Exchange {
             $symbol = $base . '/' . $quote;
             $limits = array_merge ($this->limits, array (
                 'cost' => array (
-                    'min' => $this->safe_value($this->options['limits']['cost']['min'][$quote]),
+                    'min' => $this->safe_value($this->options['limits']['cost']['min'], $quote),
                 ),
             ));
             $result[] = array_merge ($this->fees['trading'], array (

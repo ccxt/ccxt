@@ -19,13 +19,14 @@ module.exports = class upbit extends Exchange {
             // new metainfo interface
             'has': {
                 'CORS': true,
-                'fetchOrderBooks': true,
+                'createDepositAddress': true,
                 'createMarketOrder': false,
                 'fetchDepositAddress': true,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': false,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
+                'fetchOrderBooks': true,
                 'fetchOpenOrders': true,
                 'fetchOrders': false,
                 'fetchTickers': true,

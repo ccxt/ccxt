@@ -27,13 +27,14 @@ class upbit (Exchange):
             # new metainfo interface
             'has': {
                 'CORS': True,
-                'fetchOrderBooks': True,
+                'createDepositAddress': True,
                 'createMarketOrder': False,
                 'fetchDepositAddress': True,
                 'fetchClosedOrders': True,
                 'fetchMyTrades': False,
                 'fetchOHLCV': True,
                 'fetchOrder': True,
+                'fetchOrderBooks': True,
                 'fetchOpenOrders': True,
                 'fetchOrders': False,
                 'fetchTickers': True,
