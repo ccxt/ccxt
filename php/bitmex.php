@@ -977,20 +977,14 @@ class bitmex extends Exchange {
             $this->check_required_credentials();
             $auth = $method . $query;
             $expires = $this->safe_integer($this->options, 'api-expires');
-            $nonce = (string) $this->nonce ();
             $headers = array (
                 'Content-Type' => 'application/json',
                 'api-key' => $this->apiKey,
             );
-            if ($expires !== null) {
-                $expires = $this->sum ($this->seconds (), $expires);
-                $expires = (string) $expires;
-                $auth .= $expires;
-                $headers['api-expires'] = $expires;
-            } else {
-                $auth .= $nonce;
-                $headers['api-nonce'] = $nonce;
-            }
+            $expires = $this->sum ($this->seconds (), $expires);
+            $expires = (string) $expires;
+            $auth .= $expires;
+            $headers['api-expires'] = $expires;
             if ($method === 'POST' || $method === 'PUT') {
                 if ($params) {
                     $body = $this->json ($params);
