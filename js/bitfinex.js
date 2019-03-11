@@ -682,6 +682,10 @@ module.exports = class bitfinex extends Exchange {
         return await this.privatePostOrderCancel ({ 'order_id': parseInt (id) });
     }
 
+    async cancelAllOrders (params = {}) {
+        return await this.privatePostOrderCancelAll (params);
+    }
+
     parseOrder (order, market = undefined) {
         let side = order['side'];
         let open = order['is_live'];
