@@ -922,19 +922,14 @@ class bitmex (Exchange):
             self.check_required_credentials()
             auth = method + query
             expires = self.safe_integer(self.options, 'api-expires')
-            nonce = str(self.nonce())
             headers = {
                 'Content-Type': 'application/json',
                 'api-key': self.apiKey,
             }
-            if expires is not None:
-                expires = self.sum(self.seconds(), expires)
-                expires = str(expires)
-                auth += expires
-                headers['api-expires'] = expires
-            else:
-                auth += nonce
-                headers['api-nonce'] = nonce
+            expires = self.sum(self.seconds(), expires)
+            expires = str(expires)
+            auth += expires
+            headers['api-expires'] = expires
             if method == 'POST' or method == 'PUT':
                 if params:
                     body = self.json(params)
