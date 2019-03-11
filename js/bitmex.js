@@ -976,20 +976,14 @@ module.exports = class bitmex extends Exchange {
             this.checkRequiredCredentials ();
             let auth = method + query;
             let expires = this.safeInteger (this.options, 'api-expires');
-            let nonce = this.nonce ().toString ();
             headers = {
                 'Content-Type': 'application/json',
                 'api-key': this.apiKey,
             };
-            if (expires !== undefined) {
-                expires = this.sum (this.seconds (), expires);
-                expires = expires.toString ();
-                auth += expires;
-                headers['api-expires'] = expires;
-            } else {
-                auth += nonce;
-                headers['api-nonce'] = nonce;
-            }
+            expires = this.sum (this.seconds (), expires);
+            expires = expires.toString ();
+            auth += expires;
+            headers['api-expires'] = expires;
             if (method === 'POST' || method === 'PUT') {
                 if (Object.keys (params).length) {
                     body = this.json (params);
