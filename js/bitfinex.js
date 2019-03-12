@@ -658,12 +658,11 @@ module.exports = class bitfinex extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderType = this.safeString (this.options['orderTypes'], type, type);
-        let order = {
+        const order = {
             'symbol': this.marketId (symbol),
             'side': side,
             'amount': this.amountToPrecision (symbol, amount),
-            'type': orderType,
+            'type': this.safeString (this.options['orderTypes'], type, type),
             'ocoorder': false,
             'buy_price_oco': 0,
             'sell_price_oco': 0,
@@ -679,21 +678,25 @@ module.exports = class bitfinex extends Exchange {
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderType = this.safeString (this.options['orderTypes'], type, type);
-        let order = {
+        const order = {
             'id': id,
         };
-        if (price !== undefined)
+        if (price !== undefined) {
             order['price'] = this.priceToPrecision (symbol, price);
-        if (amount !== undefined)
+        }
+        if (amount !== undefined) {
             order['amount'] = this.amountToPrecision (symbol, amount);
-        if (symbol !== undefined)
+        }
+        if (symbol !== undefined) {
             order['symbol'] = this.marketId (symbol);
-        if (side !== undefined)
+        }
+        if (side !== undefined) {
             order['side'] = side;
-        if (orderType !== undefined)
-            order['type'] = orderType;
-        let result = await this.privatePostOrderCancelReplace (this.extend (order, params));
+        }
+        if (type !== undefined) {
+            order['type'] = this.safeString (this.options['orderTypes'], type, type);
+        }
+        const result = await this.privatePostOrderCancelReplace (this.extend (order, params));
         return this.parseOrder (result);
     }
 
