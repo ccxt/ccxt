@@ -186,6 +186,7 @@ let testExchange = async exchange => {
     let symbol = exchange.symbols[0]
     let symbols = [
         'BTC/USD',
+        'BTC/USDT',
         'BTC/CNY',
         'BTC/EUR',
         'BTC/ETH',
