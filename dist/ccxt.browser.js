@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.357'
+const version = '1.18.359'
 
 Exchange.ccxtVersion = version
 
@@ -9642,6 +9642,10 @@ module.exports = class bitfinex extends Exchange {
                     'ZRX': 'zrx',
                     'XTZ': 'tezos',
                 },
+                'orderTypes': {
+                    'limit': 'exchange limit',
+                    'market': 'exchange market',
+                },
             },
         });
     }
@@ -9926,16 +9930,11 @@ module.exports = class bitfinex extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderType = type;
-        // todo: support more order types (“exchange stop” / “exchange trailing-stop” / “exchange fill-or-kill”)
-        if ((type === 'limit') || (type === 'market'))
-            orderType = 'exchange ' + type;
-        amount = this.amountToPrecision (symbol, amount);
-        let order = {
+        const order = {
             'symbol': this.marketId (symbol),
-            'amount': amount,
             'side': side,
-            'type': orderType,
+            'amount': this.amountToPrecision (symbol, amount),
+            'type': this.safeString (this.options['orderTypes'], type, type),
             'ocoorder': false,
             'buy_price_oco': 0,
             'sell_price_oco': 0,
@@ -9949,9 +9948,37 @@ module.exports = class bitfinex extends Exchange {
         return this.parseOrder (result);
     }
 
+    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const order = {
+            'order_id': id,
+        };
+        if (price !== undefined) {
+            order['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (amount !== undefined) {
+            order['amount'] = this.amountToPrecision (symbol, amount);
+        }
+        if (symbol !== undefined) {
+            order['symbol'] = this.marketId (symbol);
+        }
+        if (side !== undefined) {
+            order['side'] = side;
+        }
+        if (type !== undefined) {
+            order['type'] = this.safeString (this.options['orderTypes'], type, type);
+        }
+        const result = await this.privatePostOrderCancelReplace (this.extend (order, params));
+        return this.parseOrder (result);
+    }
+
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostOrderCancel ({ 'order_id': parseInt (id) });
+    }
+
+    async cancelAllOrders (params = {}) {
+        return await this.privatePostOrderCancelAll (params);
     }
 
     parseOrder (order, market = undefined) {
@@ -31522,9 +31549,14 @@ module.exports = class cointiger extends huobipro {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        if (!this.password) {
-            throw new AuthenticationError (this.id + ' createOrder requires exchange.password to be set to user trading password (not login password!)');
-        }
+        //
+        // obsolete since v2
+        // https://github.com/ccxt/ccxt/issues/4815
+        //
+        //     if (!this.password) {
+        //         throw new AuthenticationError (this.id + ' createOrder requires exchange.password to be set to user trading password (not login password!)');
+        //     }
+        //
         this.checkRequiredCredentials ();
         let market = this.market (symbol);
         let orderType = (type === 'limit') ? 1 : 2;
@@ -31533,7 +31565,7 @@ module.exports = class cointiger extends huobipro {
             'side': side.toUpperCase (),
             'type': orderType,
             'volume': this.amountToPrecision (symbol, amount),
-            'capital_password': this.password,
+            // 'capital_password': this.password, // obsolete since v2, https://github.com/ccxt/ccxt/issues/4815
         };
         if ((type === 'market') && (side === 'buy')) {
             if (price === undefined) {
@@ -31550,14 +31582,20 @@ module.exports = class cointiger extends huobipro {
                 order['price'] = this.priceToPrecision (symbol, price);
             }
         }
-        let response = await this.privatePostOrder (this.extend (order, params));
+        let response = await this.v2PostOrder (this.extend (order, params));
         //
-        //     { "order_id":34343 }
+        //     {
+        //         "code": "0",
+        //         "msg": "suc",
+        //         "data": {
+        //             "order_id": 481
+        //         }
+        //     }
         //
-        let timestamp = this.milliseconds ();
+        const timestamp = this.milliseconds ();
         return {
             'info': response,
-            'id': response['data']['order_id'].toString (),
+            'id': this.safeString (response['data'], 'order_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
