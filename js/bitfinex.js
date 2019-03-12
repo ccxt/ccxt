@@ -653,29 +653,12 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        let order = this.prepareOrder (symbol, type, side, amount, price);
-        let result = await this.privatePostOrderNew (this.extend (order, params));
-        return this.parseOrder (result);
-    }
-
-    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
-        let order = this.prepareOrder (symbol, type, side, amount, price);
-        order['id'] = id;
-        let result = await this.privatePostOrderCancelReplace (this.extend (order, params));
-        return this.parseOrder (result);
-    }
-
-    async prepareOrder (symbol, type, side, amount, price = undefined) {
         await this.loadMarkets ();
-        let orderType = type;
-        // todo: support more order types (“exchange stop” / “exchange trailing-stop” / “exchange fill-or-kill”)
-        if ((type === 'limit') || (type === 'market'))
-            orderType = 'exchange ' + type;
-        amount = this.amountToPrecision (symbol, amount);
+        let orderType = this.translateOrderType (type);
         let order = {
             'symbol': this.marketId (symbol),
-            'amount': amount,
             'side': side,
+            'amount': this.amountToPrecision (symbol, amount),
             'type': orderType,
             'ocoorder': false,
             'buy_price_oco': 0,
@@ -686,7 +669,37 @@ module.exports = class bitfinex extends Exchange {
         } else {
             order['price'] = this.priceToPrecision (symbol, price);
         }
-        return order;
+        let result = await this.privatePostOrderNew (this.extend (order, params));
+        return this.parseOrder (result);
+    }
+
+    async editOrder (id, symbol = undefined, type = undefined, side = undefined, amount = undefined, price = undefined, params = {}) {
+        if (id === undefined)
+            throw new ArgumentsRequired (this.id + ' editOrder requires an id argument');
+        await this.loadMarkets ();
+        let orderType = this.translateOrderType (type);
+        let order = {
+            'id': id,
+        };
+        if (price !== undefined)
+            order['price'] = this.priceToPrecision (symbol, price);
+        if (amount !== undefined)
+            order['amount'] = this.amountToPrecision (symbol, amount);
+        if (symbol !== undefined)
+            order['symbol'] = this.marketId (symbol);
+        if (side !== undefined)
+            order['side'] = side;
+        if (orderType !== undefined)
+            order['type'] = orderType;
+        let result = await this.privatePostOrderCancelReplace (this.extend (order, params));
+        return this.parseOrder (result);
+    }
+
+    translateOrderType (type) {
+        // todo: support more order types (“exchange stop” / “exchange trailing-stop” / “exchange fill-or-kill”)
+        if (type === 'limit' || type === 'market')
+            return 'exchange ' + type;
+        return type;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
