@@ -400,7 +400,7 @@ module.exports = class dsx extends liqui {
             side = 'buy';
         }
         let price = this.safeFloat2 (trade, 'rate', 'price');
-        let id = this.safeString2 (trade, 'trade_id', 'tid');
+        let id = this.safeString2 (trade, 'id');
         let order = this.safeString (trade, 'orderId');
         if ('pair' in trade) {
             let marketId = this.safeString (trade, 'pair');
