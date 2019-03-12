@@ -291,3 +291,14 @@ class Exchange(BaseExchange):
                     self.markets[symbol] = self.deep_extend(self.markets[symbol], response[symbol])
                 self.options['limitsLoaded'] = self.milliseconds()
         return self.markets
+
+    async def load_accounts(self, reload=False, params={}):
+        if reload:
+            self.accounts = await self.fetch_accounts(params)
+        else:
+            if self.accounts:
+                return self.accounts
+            else:
+                self.accounts = await self.fetch_accounts(params)
+        self.accountsById = self.index_by(self.accounts, 'id')
+        return self.accounts
