@@ -370,6 +370,10 @@ class bitfinex extends Exchange {
                     'ZRX' => 'zrx',
                     'XTZ' => 'tezos',
                 ),
+                'orderTypes' => array (
+                    'limit' => 'exchange limit',
+                    'market' => 'exchange market',
+                ),
             ),
         ));
     }
@@ -654,16 +658,11 @@ class bitfinex extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $orderType = $type;
-        // todo => support more $order types (“exchange stop” / “exchange trailing-stop” / “exchange fill-or-kill”)
-        if (($type === 'limit') || ($type === 'market'))
-            $orderType = 'exchange ' . $type;
-        $amount = $this->amount_to_precision($symbol, $amount);
         $order = array (
             'symbol' => $this->market_id($symbol),
-            'amount' => $amount,
             'side' => $side,
-            'type' => $orderType,
+            'amount' => $this->amount_to_precision($symbol, $amount),
+            'type' => $this->safe_string($this->options['orderTypes'], $type, $type),
             'ocoorder' => false,
             'buy_price_oco' => 0,
             'sell_price_oco' => 0,
@@ -677,9 +676,37 @@ class bitfinex extends Exchange {
         return $this->parse_order($result);
     }
 
+    public function edit_order ($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+        $this->load_markets();
+        $order = array (
+            'order_id' => $id,
+        );
+        if ($price !== null) {
+            $order['price'] = $this->price_to_precision($symbol, $price);
+        }
+        if ($amount !== null) {
+            $order['amount'] = $this->amount_to_precision($symbol, $amount);
+        }
+        if ($symbol !== null) {
+            $order['symbol'] = $this->market_id($symbol);
+        }
+        if ($side !== null) {
+            $order['side'] = $side;
+        }
+        if ($type !== null) {
+            $order['type'] = $this->safe_string($this->options['orderTypes'], $type, $type);
+        }
+        $result = $this->privatePostOrderCancelReplace (array_merge ($order, $params));
+        return $this->parse_order($result);
+    }
+
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         return $this->privatePostOrderCancel (array ( 'order_id' => intval ($id) ));
+    }
+
+    public function cancel_all_orders ($params = array ()) {
+        return $this->privatePostOrderCancelAll ($params);
     }
 
     public function parse_order ($order, $market = null) {
