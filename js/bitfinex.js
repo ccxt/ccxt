@@ -674,8 +674,6 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async editOrder (id, symbol = undefined, type = undefined, side = undefined, amount = undefined, price = undefined, params = {}) {
-        if (id === undefined)
-            throw new ArgumentsRequired (this.id + ' editOrder requires an id argument');
         await this.loadMarkets ();
         let orderType = this.translateOrderType (type);
         let order = {
