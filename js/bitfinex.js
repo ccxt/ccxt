@@ -370,6 +370,10 @@ module.exports = class bitfinex extends Exchange {
                     'ZRX': 'zrx',
                     'XTZ': 'tezos',
                 },
+                'orderTypes': {
+                    'limit': 'exchange limit',
+                    'market': 'exchange market',
+                },
             },
         });
     }
@@ -654,7 +658,7 @@ module.exports = class bitfinex extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderType = this.translateOrderType (type);
+        let orderType = this.safeString (this.options['orderTypes'], type, type);
         let order = {
             'symbol': this.marketId (symbol),
             'side': side,
@@ -675,7 +679,7 @@ module.exports = class bitfinex extends Exchange {
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderType = this.translateOrderType (type);
+        let orderType = this.safeString (this.options['orderTypes'], type, type);
         let order = {
             'id': id,
         };
@@ -691,13 +695,6 @@ module.exports = class bitfinex extends Exchange {
             order['type'] = orderType;
         let result = await this.privatePostOrderCancelReplace (this.extend (order, params));
         return this.parseOrder (result);
-    }
-
-    translateOrderType (type) {
-        // todo: support more order types (“exchange stop” / “exchange trailing-stop” / “exchange fill-or-kill”)
-        if (type === 'limit' || type === 'market')
-            return 'exchange ' + type;
-        return type;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
