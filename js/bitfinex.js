@@ -658,7 +658,7 @@ module.exports = class bitfinex extends Exchange {
         return this.parseOrder (result);
     }
 
-    async replaceOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
         let order = this.prepareOrder (symbol, type, side, amount, price);
         order['id'] = id;
         let result = await this.privatePostOrderCancelReplace (this.extend (order, params));
