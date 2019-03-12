@@ -451,6 +451,7 @@ module.exports = class dsx extends liqui {
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
+            'cost': price * amount,
             'fee': fee,
             'info': trade,
         };
