@@ -802,7 +802,9 @@ class huobipro extends Exchange {
                     // despite that cost = $amount * $price is in quote currency and should have quote precision
                     // the exchange API requires the cost supplied in 'amount' to be of base precision
                     // more about it here => https://github.com/ccxt/ccxt/pull/4395
-                    $request['amount'] = $this->amount_to_precision($symbol, floatval ($amount) * floatval ($price));
+                    // we use priceToPrecision instead of amountToPrecision here
+                    // because in this case the $amount is in the quote currency
+                    $request['amount'] = $this->price_to_precision($symbol, floatval ($amount) * floatval ($price));
                 }
             }
         }
