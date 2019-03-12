@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AddressPending, AuthenticationError, ExchangeError, InsufficientFunds, InvalidNonce, OrderNotFound } = require ('./base/errors');
+const { AddressPending, AuthenticationError, DDoSProtection, ExchangeError, InsufficientFunds, InvalidNonce, OrderNotFound } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -163,6 +163,7 @@ module.exports = class boaexchange extends Exchange {
                 'Address is Pending': AddressPending,
                 'Insufficient Funds': InsufficientFunds,
                 'Order Not Found': OrderNotFound,
+                'Too Many Requests': DDoSProtection,
             },
             'options': {
                 'hasEmptyMarkets': true,
@@ -264,7 +265,7 @@ module.exports = class boaexchange extends Exchange {
 
     async fetchClosedOrders (symbol = undefined, since = 0, limit = 0, params = {}) {
         await this.loadMarkets ();
-        let request = { 'mine': true };
+        let request = { 'market': symbol, 'begin': since, 'limit': limit, 'status': 'closed' };
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -272,9 +273,7 @@ module.exports = class boaexchange extends Exchange {
         }
         let response = await this.v1GetOrders (this.extend (request, params));
         let orders = this.parseOrders (response['data'], market, since, limit);
-        if (symbol !== undefined)
-            return this.filterBySymbol (orders, symbol);
-        return orders;
+        return this.filterBySymbol (orders, symbol);
     }
 
     async fetchCurrencies (params = {}) {
@@ -285,7 +284,7 @@ module.exports = class boaexchange extends Exchange {
 
     async fetchDeposits (code = undefined, since = 0, limit = 0, params = {}) {
         await this.loadMarkets ();
-        const request = {};
+        const request = { 'limit': limit, 'page': since };
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -378,6 +377,8 @@ module.exports = class boaexchange extends Exchange {
         let request = {
             'period': this.timeframes[timeframe],
             'label': market['id'],
+            'begin': since,
+            'limit': limit,
         };
         let response = await this.v1GetMarketsLabelOhlcv (this.extend (request, params));
         if ('data' in response) {
@@ -434,6 +435,7 @@ module.exports = class boaexchange extends Exchange {
         let response = await this.v1GetMarketsLabelOrderbook (this.extend ({
             'label': this.marketId (symbol),
             'side': type,
+            'limit': limit,
         }, params));
         let orderbook = response['data'];
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 0, 1);
@@ -452,7 +454,6 @@ module.exports = class boaexchange extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.v1GetMarkets (this.extend ({
-            'market': symbols,
         }, params));
         let tickers = response['data'];
         let result = {};
@@ -480,6 +481,8 @@ module.exports = class boaexchange extends Exchange {
         let market = this.market (symbol);
         let response = await this.v1GetTradesAll (this.extend ({
             'market': market['id'],
+            'limit': limit,
+            'page': since,
         }, params));
         if ('data' in response) {
             if (response['data'] !== undefined) {
@@ -510,7 +513,7 @@ module.exports = class boaexchange extends Exchange {
 
     async fetchWithdrawals (code = undefined, since = 0, limit = 0, params = {}) {
         await this.loadMarkets ();
-        const request = {};
+        const request = { 'limit': limit, 'page': since };
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -1037,7 +1040,7 @@ module.exports = class boaexchange extends Exchange {
                 const message = errors[0];
                 if (message in this.exceptions)
                     throw new this.exceptions[message] (feedback);
-                throw new ExchangeError (this.id + ': (URL: ' + url + ') an error occoured: ' + this.json (errors));
+                throw new ExchangeError (this.id + ' an error occoured: ' + this.json (errors));
             }
             if (data === undefined)
                 throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
