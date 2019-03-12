@@ -673,7 +673,7 @@ module.exports = class bitfinex extends Exchange {
         return this.parseOrder (result);
     }
 
-    async editOrder (id, symbol = undefined, type = undefined, side = undefined, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
         let orderType = this.translateOrderType (type);
         let order = {
