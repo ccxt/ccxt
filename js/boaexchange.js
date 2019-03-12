@@ -38,7 +38,7 @@ module.exports = class boaexchange extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
                 'fetchL2OrderBook': true,
-                'fetchLedger': false,
+                'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -54,6 +54,8 @@ module.exports = class boaexchange extends Exchange {
                 'fetchTradingLimits': false,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
+                'transferToExchange': true,
+                'transfer': true,
                 'withdraw': true,
             },
             'hostname': 'boaexchange.com',
@@ -98,6 +100,7 @@ module.exports = class boaexchange extends Exchange {
                         'coin/{label}',
                         'deposits',
                         'deposits/{depositId}',
+                        'ledger',
                         'markets',
                         'markets/{label}',
                         'markets/{label}/ohlcv',
@@ -319,6 +322,21 @@ module.exports = class boaexchange extends Exchange {
         return this.parseDepositAddresses (response);
     }
 
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {
+            'page': since,
+            'limit': limit,
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
+        }
+        const response = await this.v1GetLedger (this.extend (request, params));
+        return this.parseLedgerEntries (response['data'], currency);
+    }
+
     async fetchMarkets (params = {}) {
         const response = await this.v1GetMarkets ();
         return this.parseMarkets (response['data']);
@@ -477,6 +495,22 @@ module.exports = class boaexchange extends Exchange {
         }
         const response = await this.v1GetWithdraws (this.extend (request, params));
         return this.parseWithdrawals (response['data'], currency);
+    }
+
+    async transfer (code, amount, accountFrom = undefined, accountTo = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let request = {
+            'to': accountTo,
+            'coin': currency.name,
+            'from': accountFrom,
+            'amount': this.parseFloat (amount),
+        };
+        let response = await this.v1GeAccountTransfer (this.extend (request, params));
+        return {
+            'info': response,
+            'id': undefined,
+        };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -691,6 +725,46 @@ module.exports = class boaexchange extends Exchange {
             results.push (this.parseMarket (markets[i]));
         }
         return results;
+    }
+
+    parseLedgerEntries (entries, currency = undefined) {
+        let results = [];
+        for (let i = 0; i < entries.length; i++) {
+            results.push (this.parseLedgerEntry (entries[i], currency));
+        }
+        return results;
+    }
+
+    parseLedgerEntry (entry, currency = undefined) {
+        let direction = undefined;
+        const id = this.safeString (entry, 'id');
+        let type = this.safeString (entry, 'ledger_type');
+        const code = this.safeCurrencyCode (entry['currency'], 'code', currency);
+        let amount = this.safeFloat (entry, 'amount');
+        if (amount < 0) {
+            direction = 'out';
+        } else {
+            direction = 'in';
+        }
+        return {
+            'info': entry,
+            'id': id,
+            'direction': direction,
+            'account': undefined,
+            'referenceId': undefined,
+            'referenceAccount': undefined,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'before': undefined,
+            'after': {
+                'free': this.safeFloat (entry, 'amount'),
+                'used': this.safeFloat (entry, 'held_ledger'),
+            },
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fee': undefined,
+        };
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
