@@ -663,6 +663,25 @@ class dsx extends liqui {
         return $this->parse_orders_by_id ($this->safe_value($response, 'return', array ()), $symbol, $since, $limit);
     }
 
+    public function parse_trades ($trades, $market = null, $since = null, $limit = null) {
+        $result = array ();
+        if (gettype ($trades) === 'array' && count (array_filter (array_keys ($trades), 'is_string')) == 0) {
+            for ($i = 0; $i < count ($trades); $i++) {
+                $result[] = $this->parse_trade($trades[$i], $market);
+            }
+        } else {
+            $ids = is_array ($trades) ? array_keys ($trades) : array ();
+            for ($i = 0; $i < count ($ids); $i++) {
+                $id = $ids[$i];
+                $trade = $this->parse_trade($trades[$id], $market);
+                $result[] = array_merge ($trade, array ( 'id' => $id ));
+            }
+        }
+        $result = $this->sort_by($result, 'timestamp');
+        $symbol = ($market !== null) ? $market['symbol'] : null;
+        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         $query = $this->omit ($params, $this->extract_params($path));
