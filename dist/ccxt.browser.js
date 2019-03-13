@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.360'
+const version = '1.18.361'
 
 Exchange.ccxtVersion = version
 
@@ -36476,6 +36476,25 @@ module.exports = class dsx extends liqui {
         //     }
         //
         return this.parseOrdersById (this.safeValue (response, 'return', {}), symbol, since, limit);
+    }
+
+    parseTrades (trades, market = undefined, since = undefined, limit = undefined) {
+        let result = [];
+        if (Array.isArray (trades)) {
+            for (let i = 0; i < trades.length; i++) {
+                result.push (this.parseTrade (trades[i], market));
+            }
+        } else {
+            const ids = Object.keys (trades);
+            for (let i = 0; i < ids.length; i++) {
+                const id = ids[i];
+                const trade = this.parseTrade (trades[id], market);
+                result.push (this.extend (trade, { 'id': id }));
+            }
+        }
+        result = this.sortBy (result, 'timestamp');
+        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
