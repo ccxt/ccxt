@@ -568,6 +568,8 @@ module.exports = class kraken extends Exchange {
             type = 'transaction';
         } else if (itemType === 'deposit') {
             type = 'transaction';
+        } else if (itemType === 'transfer') {
+            type = 'transaction';
         } else if (itemType === 'margin') {
             type = 'margin'; // ← this needs to be unified
         } else {
