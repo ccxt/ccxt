@@ -37,6 +37,8 @@ module.exports = class boaexchange extends Exchange {
                 'fetchDeposits': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
+                'fetchFundingFees': true,
+                'fetchFundingLimits': true,
                 'fetchL2OrderBook': true,
                 'fetchLedger': true,
                 'fetchMarkets': true,
@@ -49,9 +51,10 @@ module.exports = class boaexchange extends Exchange {
                 'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchTradingFee': false,
-                'fetchTradingFees': false,
-                'fetchTradingLimits': false,
+                'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': true,
+                'fetchTradingLimits': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'transferToExchange': true,
@@ -97,12 +100,15 @@ module.exports = class boaexchange extends Exchange {
                         'balances/{label}',
                         'chat',
                         'coins',
-                        'coin/{label}',
+                        'coins/{label}',
+                        'coins/{label}/limits',
                         'deposits',
                         'deposits/{depositId}',
                         'ledger',
                         'markets',
                         'markets/{label}',
+                        'markets/{label}/fees',
+                        'markets/{label}/limits',
                         'markets/{label}/ohlcv',
                         'markets/{label}/orderbook',
                         'news',
@@ -321,6 +327,52 @@ module.exports = class boaexchange extends Exchange {
         return this.parseDepositAddresses (response);
     }
 
+    async fetchFundingFees (codes = undefined, params = {}) {
+        //  by default it will try load withdrawal fees of all currencies (with separate requests)
+        //  however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
+        await this.loadMarkets ();
+        let withdrawFees = {};
+        let info = {};
+        if (codes === undefined)
+            codes = Object.keys (this.currencies);
+        for (let i = 0; i < codes.length; i++) {
+            let code = codes[i];
+            let currency = this.currency (code);
+            let request = { 'label': currency['id'] };
+            let response = await this.v1GetCoinsLabel (request);
+            withdrawFees[code] = this.safeFloat (response['data'], 'tx_fee');
+        }
+        return {
+            'withdraw': withdrawFees,
+            'deposit': {},
+            'info': info,
+        };
+    }
+
+    async fetchFundingLimits (symbols = undefined, params = {}) {
+        // this method should not be called directly, use loadTradingLimits () instead
+        // by default it will try load withdrawal fees of all currencies (with separate requests, sequentially)
+        // however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
+        await this.loadMarkets ();
+        if (symbols === undefined) {
+            symbols = this.symbols;
+        }
+        let result = {};
+        for (let i = 0; i < symbols.length; i++) {
+            let symbol = symbols[i];
+            result[symbol] = await this.fetchFundingLimitsById (this.marketId (symbol), params);
+        }
+        return result;
+    }
+
+    async fetchFundingLimitsById (id, params = {}) {
+        let request = {
+            'symbol': id,
+        };
+        let response = await this.v1GetCoinsLabelLimits (this.extend (request, params));
+        return this.parseFundingLimits (this.safeValue (response, 'data', {}));
+    }
+
     async fetchLedger (code = undefined, since = 0, limit = 0, params = {}) {
         await this.loadMarkets ();
         let request = {
@@ -476,6 +528,19 @@ module.exports = class boaexchange extends Exchange {
         return result;
     }
 
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        let market_key = Object.keys (this.markets)[0];
+        let market = this.markets[market_key];
+        params['label'] = market['id'];
+        let response = await this.v1GetMarketsLabelFees (params);
+        return {
+            'info': response,
+            'maker': this.safeFloat (response['data'], 'fees') - this.safeFloat (response['data'], 'rebates'),
+            'taker': this.safeFloat (response['data'], 'fees'),
+        };
+    }
+
     async fetchTrades (symbol, since = 0, limit = 0, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -503,6 +568,30 @@ module.exports = class boaexchange extends Exchange {
             }
         }
         throw new ExchangeError (this.id + ' fetchTrades() returned undefined response');
+    }
+
+    async fetchTradingLimits (symbols = undefined, params = {}) {
+        // this method should not be called directly, use loadTradingLimits () instead
+        // by default it will try load withdrawal fees of all currencies (with separate requests, sequentially)
+        // however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
+        await this.loadMarkets ();
+        if (symbols === undefined) {
+            symbols = this.symbols;
+        }
+        let result = {};
+        for (let i = 0; i < symbols.length; i++) {
+            let symbol = symbols[i];
+            result[symbol] = await this.fetchTradingLimitsById (this.marketId (symbol), params);
+        }
+        return result;
+    }
+
+    async fetchTradingLimitsById (id, params = {}) {
+        let request = {
+            'symbol': id,
+        };
+        let response = await this.v1GetMarketsLabelLimits (this.extend (request, params));
+        return this.parseTradingLimits (this.safeValue (response, 'data', {}));
     }
 
     async fetchTransactions (symbol = undefined, since = 0, limit = 0, params = {}) {
@@ -704,53 +793,12 @@ module.exports = class boaexchange extends Exchange {
         return results;
     }
 
-    parseMarket (market) {
-        let id = market['id'];
-        let baseId = market['coin_market']['code'];
-        let quoteId = market['coin_traded']['code'];
-        let base = this.commonCurrencyCode (baseId);
-        let quote = this.commonCurrencyCode (quoteId);
-        let symbol = base + '/' + quote;
-        let pricePrecision = 8;
-        if (quote in this.options['pricePrecisionByCode'])
-            pricePrecision = this.options['pricePrecisionByCode'][quote];
-        let precision = {
-            'amount': 8,
-            'price': pricePrecision,
-        };
-        let paused = this.safeValue (market, 'paused', false);
-        if (paused === 'false' || !paused) {
-            paused = true;
-        }
+    parseFundingLimits (limits, symbol = undefined, params = {}) {
         return {
-            'id': id,
-            'symbol': symbol,
-            'base': base,
-            'quote': quote,
-            'baseId': baseId,
-            'quoteId': quoteId,
-            'active': !paused,
-            'info': market,
-            'precision': precision,
-            'limits': {
-                'amount': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'price': {
-                    'min': Math.pow (10, -precision['price']),
-                    'max': undefined,
-                },
-            },
+            'info': limits,
+            'min': this.safeFloat (limits['min']),
+            'max': this.safeFloat (limits['max']),
         };
-    }
-
-    parseMarkets (markets) {
-        let results = [];
-        for (let i = 0; i < markets.length; i++) {
-            results.push (this.parseMarket (markets[i]));
-        }
-        return results;
     }
 
     parseLedgerEntries (entries, currency = undefined) {
@@ -804,6 +852,55 @@ module.exports = class boaexchange extends Exchange {
             },
         };
         return data;
+    }
+
+    parseMarket (market) {
+        let id = market['id'];
+        let baseId = market['coin_market']['code'];
+        let quoteId = market['coin_traded']['code'];
+        let base = this.commonCurrencyCode (baseId);
+        let quote = this.commonCurrencyCode (quoteId);
+        let symbol = base + '/' + quote;
+        let pricePrecision = 8;
+        if (quote in this.options['pricePrecisionByCode'])
+            pricePrecision = this.options['pricePrecisionByCode'][quote];
+        let precision = {
+            'amount': 8,
+            'price': pricePrecision,
+        };
+        let paused = this.safeValue (market, 'paused', false);
+        if (paused === 'false' || !paused) {
+            paused = true;
+        }
+        return {
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'active': !paused,
+            'info': market,
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': Math.pow (10, -precision['price']),
+                    'max': undefined,
+                },
+            },
+        };
+    }
+
+    parseMarkets (markets) {
+        let results = [];
+        for (let i = 0; i < markets.length; i++) {
+            results.push (this.parseMarket (markets[i]));
+        }
+        return results;
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = 0, limit = 0) {
@@ -940,6 +1037,22 @@ module.exports = class boaexchange extends Exchange {
             'amount': amount,
             'cost': cost,
             'fee': undefined,
+        };
+    }
+
+    parseTradingLimits (limits, symbol = undefined, params = {}) {
+        return {
+            'info': limits,
+            'precision': {
+                'amount': this.safeInteger (limits['precision'], 'amount'),
+                'price': this.safeInteger (limits['precision'], 'price'),
+            },
+            'limits': {
+                'amount': {
+                    'min': this.safeFloat (limits['limits']['amount'], 'min'),
+                    'max': undefined,
+                },
+            },
         };
     }
 
