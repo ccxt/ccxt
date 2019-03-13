@@ -318,7 +318,6 @@ module.exports = class switcheo extends Exchange {
             'contract_hash': this.fetchContractHash ()['ETH'],
             'timestamp': this.milliseconds (),
         };
-        console.log (depositRequest);
         let stableStringify = this.stringifyMessage (depositRequest);
         let hexMessage = this.toHex (stableStringify);
         let signedMessage = this.signMessageHash (hexMessage, this.privateKey);
@@ -329,9 +328,7 @@ module.exports = class switcheo extends Exchange {
             'Accept': 'text/plain',
         };
         let createDeposit = await this.privatePostDeposits (params, headers, depositRequest);
-        console.log (createDeposit);
         let depositId = createDeposit['id'];
-        console.log (depositId);
         let executeDeposit = await this.privatePostDepositsIdBroadcast ({ 'id': depositId }, headers, this.signTransaction (createDeposit, this.privateKey));
         return executeDeposit;
     }
