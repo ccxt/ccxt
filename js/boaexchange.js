@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { AddressPending, AuthenticationError, DDoSProtection, ExchangeError, InsufficientFunds, InvalidNonce, OrderNotFound } = require ('./base/errors');
-const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -80,9 +79,7 @@ module.exports = class boaexchange extends Exchange {
             },
             'urls': {
                 'logo': 'https://boaexchange.com/4cdef72eb47d4a759d2c72e619f48827.png',
-                'api': {
-                    'v1': 'https://api.{hostname}/api',
-                },
+                'api': 'https://api.{hostname}/api',
                 'www': 'https://boaexchange.com',
                 'doc': [
                     'https://api.boaexchange.com/docs/',
@@ -91,32 +88,38 @@ module.exports = class boaexchange extends Exchange {
                 ],
             },
             'api': {
-                'v1': {
+                'public': {
                     'get': [
-                        'addresses',
-                        'addresses/{label}',
                         'airdrops',
-                        'balances',
-                        'balances/{label}',
                         'chat',
                         'coins',
                         'coins/{label}',
+                        'ledger',
+                        'markets',
+                        'markets/{label}',
+                        'markets/{label}/ohlcv',
+                        'markets/{label}/orderbook',
+                        'news',
+                        'trades/all',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'addresses',
+                        'addresses/{label}',
+                        'apiKeys',
+                        'balances',
+                        'balances/{label}',
                         'coins/{label}/limits',
                         'deposits',
                         'deposits/{depositId}',
                         'ledger',
-                        'markets',
-                        'markets/{label}',
                         'markets/{label}/fees',
                         'markets/{label}/limits',
-                        'markets/{label}/ohlcv',
-                        'markets/{label}/orderbook',
-                        'news',
                         'orders',
                         'orders/{orderId}',
                         'trades',
                         'trades/{tradeId}',
-                        'trades/all',
                         'transactions',
                         'transfers',
                         'transfers/{transferId}',
@@ -186,14 +189,6 @@ module.exports = class boaexchange extends Exchange {
         });
     }
 
-    costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['price'], DECIMAL_PLACES);
-    }
-
-    feeToPrecision (symbol, fee) {
-        return this.decimalToPrecision (fee, TRUNCATE, this.markets[symbol]['precision']['price'], DECIMAL_PLACES);
-    }
-
     nonce () {
         return this.seconds ();
     }
@@ -204,7 +199,7 @@ module.exports = class boaexchange extends Exchange {
         const request = {
             'label': currency['id'],
         };
-        const response = await this.v1GetAddressesLabel (this.extend (request, params));
+        const response = await this.privateGetAddressesLabel (this.extend (request, params));
         if (response['data'].length > 0) {
             return this.parseDepositAddress (response['data'][0]);
         }
@@ -222,7 +217,7 @@ module.exports = class boaexchange extends Exchange {
             'price': this.priceToPrecision (symbol, price),
             'side': side,
         };
-        let response = await this.v1GetOrder (this.extend (order, params));
+        let response = await this.privateGetOrder (this.extend (order, params));
         return this.extend (this.parseOrder (response['data'], market), {
             'status': 'open',
             'price': order['price'],
@@ -234,15 +229,10 @@ module.exports = class boaexchange extends Exchange {
         });
     }
 
-    async createLimitOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        let response = await this.createOrder (symbol, type, side, price, params);
-        return response;
-    }
-
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let request = { 'orderId': id };
-        let response = await this.v1DeleteOrdersOrderId (this.extend (request, params));
+        let response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
         return this.extend (this.parseOrder (response), {
             'status': 'canceled',
         });
@@ -250,13 +240,8 @@ module.exports = class boaexchange extends Exchange {
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = { 'orderId': '' };
-        for (let i = 0; i < ids.length; i++) {
-            request += ids[i];
-            if (i < ids.length - 1)
-                request += ',';
-        }
-        let response = await this.v1DeleteOrdersOrderId (this.extend (request, params));
+        let request = { 'orderId': ids.join (',') };
+        let response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
         return this.extend (this.parseOrder (response), {
             'status': 'canceled',
         });
@@ -264,7 +249,7 @@ module.exports = class boaexchange extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.v1GetBalances (params);
+        let response = await this.privateGetBalances (params);
         let balances = response['data'];
         return this.parseBalances (balances);
     }
@@ -277,13 +262,13 @@ module.exports = class boaexchange extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        let response = await this.v1GetOrders (this.extend (request, params));
+        let response = await this.privateGetOrders (this.extend (request, params));
         let orders = this.parseOrders (response['data'], market, since, limit);
         return this.filterBySymbol (orders, symbol);
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.v1GetCoins (params);
+        const response = await this.publicGetCoins (params);
         let currencies = this.parseCurrencies (response['data']);
         return currencies;
     }
@@ -296,8 +281,8 @@ module.exports = class boaexchange extends Exchange {
             currency = this.currency (code);
             request['coin'] = currency['id'];
         }
-        const response = await this.v1GetDeposits (this.extend (request, params));
-        return this.parseDeposits (response['data']);
+        const response = await this.privateGetDeposits (this.extend (request, params));
+        return this.parseTransactions (response['data'], currency);
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -306,7 +291,7 @@ module.exports = class boaexchange extends Exchange {
         const request = {
             'label': currency['id'],
         };
-        const response = await this.v1GetAddressesLabel (this.extend (request, params));
+        const response = await this.privateGetAddressesLabel (this.extend (request, params));
         let addresses = this.parseDepositAddresses (response['data']);
         if (!addresses) {
             throw new AddressPending (this.id + ' the address for ' + code + ' is being generated (pending, not ready yet, retry again later)');
@@ -323,7 +308,7 @@ module.exports = class boaexchange extends Exchange {
         for (let i = 0; i < codes.length; i++) {
             request['label'].push (codes);
         }
-        const response = await this.v1GetAddressesLabel (this.extend (request, params));
+        const response = await this.privateGetAddressesLabel (this.extend (request, params));
         return this.parseDepositAddresses (response);
     }
 
@@ -339,7 +324,7 @@ module.exports = class boaexchange extends Exchange {
             let code = codes[i];
             let currency = this.currency (code);
             let request = { 'label': currency['id'] };
-            let response = await this.v1GetCoinsLabel (request);
+            let response = await this.publicGetCoinsLabel (request);
             withdrawFees[code] = this.safeFloat (response['data'], 'tx_fee');
         }
         return {
@@ -369,7 +354,7 @@ module.exports = class boaexchange extends Exchange {
         let request = {
             'symbol': id,
         };
-        let response = await this.v1GetCoinsLabelLimits (this.extend (request, params));
+        let response = await this.privateGetCoinsLabelLimits (this.extend (request, params));
         return this.parseFundingLimits (this.safeValue (response, 'data', {}));
     }
 
@@ -384,12 +369,12 @@ module.exports = class boaexchange extends Exchange {
             currency = this.currency (code);
             request['coin'] = currency['id'];
         }
-        const response = await this.v1GetLedger (this.extend (request, params));
+        const response = await this.privateGetLedger (this.extend (request, params));
         return this.parseLedgerEntries (response['data'], currency);
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.v1GetMarkets ();
+        const response = await this.publicGetMarkets ();
         return this.parseMarkets (response['data']);
     }
 
@@ -397,27 +382,14 @@ module.exports = class boaexchange extends Exchange {
         params['symbol'] = symbol;
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.v1GetTrades (this.extend ({
+        let response = await this.privateGetTrades (this.extend ({
             'market': market['id'],
             'begin': since,
             'limit': limit,
         }, params));
         if ('data' in response) {
             if (response['data'] !== undefined) {
-                // Re-format dat
-                let data = [];
-                for (let i = 0; i < response['data'].length; i++) {
-                    let order = response['data'][i];
-                    data.push ({
-                        'market': order['market'],
-                        'amount': order['amount'],
-                        'symbol': symbol,
-                        'maker': order['maker'],
-                        'price': order['price'],
-                        'created': order['created'],
-                    });
-                }
-                return this.parseTrades (data, market, since, limit);
+                return this.parseTrades (response['data'], market, since, limit);
             }
         }
         throw new ExchangeError (this.id + ' fetchMyTrades() returned undefined response');
@@ -432,7 +404,7 @@ module.exports = class boaexchange extends Exchange {
             'begin': since,
             'limit': limit,
         };
-        let response = await this.v1GetMarketsLabelOhlcv (this.extend (request, params));
+        let response = await this.publicGetMarketsLabelOhlcv (this.extend (request, params));
         if ('data' in response) {
             if (response['data'])
                 return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
@@ -448,7 +420,7 @@ module.exports = class boaexchange extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        let response = await this.v1GetTrades (this.extend (request, params));
+        let response = await this.privateGetTrades (this.extend (request, params));
         let orders = this.parseOrders (response['data'], market, since, limit);
         return this.filterBySymbol (orders, symbol);
     }
@@ -458,7 +430,7 @@ module.exports = class boaexchange extends Exchange {
         let response = undefined;
         try {
             let request = { 'orderId': id };
-            response = await this.v1GetOrdersOrderId (this.extend (request, params));
+            response = await this.privateGetOrdersOrderId (this.extend (request, params));
         } catch (e) {
             throw e;
         }
@@ -476,7 +448,7 @@ module.exports = class boaexchange extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        let response = await this.v1GetOrders (this.extend (request, params));
+        let response = await this.privateGetOrders (this.extend (request, params));
         let orders = this.parseOrders (response['data'], market, since, limit);
         return this.filterBySymbol (orders, symbol);
     }
@@ -484,7 +456,7 @@ module.exports = class boaexchange extends Exchange {
     async fetchOrderBook (symbol, limit = 0, params = {}) {
         await this.loadMarkets ();
         let type = 'both';
-        let response = await this.v1GetMarketsLabelOrderbook (this.extend ({
+        let response = await this.publicGetMarketsLabelOrderbook (this.extend ({
             'label': this.marketId (symbol),
             'side': type,
             'limit': limit,
@@ -496,7 +468,7 @@ module.exports = class boaexchange extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.v1GetMarketsLabel (this.extend ({
+        let response = await this.publicGetMarketsLabel (this.extend ({
             'label': this.marketId (symbol),
         }, params));
         let ticker = response['data'];
@@ -505,7 +477,7 @@ module.exports = class boaexchange extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.v1GetMarkets (this.extend ({
+        let response = await this.publicGetMarkets (this.extend ({
         }, params));
         let tickers = response['data'];
         let result = {};
@@ -533,7 +505,7 @@ module.exports = class boaexchange extends Exchange {
         let market_key = Object.keys (this.markets)[0];
         let market = this.markets[market_key];
         params['label'] = market['id'];
-        let response = await this.v1GetMarketsLabelFees (params);
+        let response = await this.privateGetMarketsLabelFees (params);
         return {
             'info': response,
             'maker': this.safeFloat (response['data'], 'fees') - this.safeFloat (response['data'], 'rebates'),
@@ -544,27 +516,14 @@ module.exports = class boaexchange extends Exchange {
     async fetchTrades (symbol, since = 0, limit = 0, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.v1GetTradesAll (this.extend ({
+        let response = await this.publicGetTradesAll (this.extend ({
             'market': market['id'],
             'limit': limit,
             'page': since,
         }, params));
         if ('data' in response) {
             if (response['data'] !== undefined) {
-                // Re-format dat
-                let data = [];
-                for (let i = 0; i < response['data'].length; i++) {
-                    let order = response['data'][i];
-                    data.push ({
-                        'market': order['market'],
-                        'amount': order['amount'],
-                        'symbol': symbol,
-                        'maker': order['maker'],
-                        'price': order['price'],
-                        'created': order['created'],
-                    });
-                }
-                return this.parseTrades (data, market, since, limit);
+                return this.parseTrades (response['data'], market, since, limit);
             }
         }
         throw new ExchangeError (this.id + ' fetchTrades() returned undefined response');
@@ -590,13 +549,13 @@ module.exports = class boaexchange extends Exchange {
         let request = {
             'symbol': id,
         };
-        let response = await this.v1GetMarketsLabelLimits (this.extend (request, params));
+        let response = await this.privateGetMarketsLabelLimits (this.extend (request, params));
         return this.parseTradingLimits (this.safeValue (response, 'data', {}));
     }
 
     async fetchTransactions (symbol = undefined, since = 0, limit = 0, params = {}) {
         await this.loadMarkets ();
-        let response = await this.v1GetTransactions ();
+        let response = await this.privateGetTransactions ();
         return this.parseTransactions (response['data']);
     }
 
@@ -608,8 +567,8 @@ module.exports = class boaexchange extends Exchange {
             currency = this.currency (code);
             request['coin'] = currency['id'];
         }
-        const response = await this.v1GetWithdraws (this.extend (request, params));
-        return this.parseWithdrawals (response['data'], currency);
+        const response = await this.privateGetWithdraws (this.extend (request, params));
+        return this.parseTransactions (response['data'], currency);
     }
 
     async transfer (code, amount, accountFrom = undefined, accountTo = undefined, params = {}) {
@@ -621,7 +580,7 @@ module.exports = class boaexchange extends Exchange {
             'from': accountFrom,
             'amount': this.parseFloat (amount),
         };
-        let response = await this.v1GeAccountTransfer (this.extend (request, params));
+        let response = await this.privateGeAccountTransfer (this.extend (request, params));
         return {
             'info': response,
             'id': undefined,
@@ -638,7 +597,7 @@ module.exports = class boaexchange extends Exchange {
             'address': address,
             'password': params['password'],
         };
-        let response = await this.v1GetAccountWithdraw (this.extend (request, params));
+        let response = await this.privateGetAccountWithdraw (this.extend (request, params));
         let id = undefined;
         if ('data' in response) {
             if ('withdraw' in response['data'])
@@ -753,44 +712,6 @@ module.exports = class boaexchange extends Exchange {
             'tag': undefined,
             'info': depositAddress,
         };
-    }
-
-    parseDeposit (deposit) {
-        let code = this.commonCurrencyCode (this.safeString (deposit['coin'], 'id'));
-        let currencyId = this.safeString (deposit['coin'], 'id');
-        let currency = this.safeValue (this.currencies_by_id, currencyId);
-        if (currency !== undefined) {
-            code = currency['code'];
-        }
-        const confirmed = this.safeValue (deposit, 'confirmed', false);
-        let status = 'pending';
-        if (confirmed) {
-            status = 'ok';
-        }
-        const timestamp = this.parse8601 (this.safeString (deposit, 'created'));
-        return {
-            'info': deposit,
-            'id': this.safeString (deposit, 'txid'),
-            'currency': code,
-            'amount': this.safeFloat (deposit, 'amount'),
-            'address': this.safeString (deposit['address'], 'address'),
-            'tag': undefined,
-            'status': status,
-            'type': 'withdrawal',
-            'updated': undefined,
-            'txid': this.safeString (deposit, 'txid'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'fee': undefined,
-        };
-    }
-
-    parseDeposits (deposits) {
-        let results = [];
-        for (let i = 0; i < deposits.length; i++) {
-            results.push (this.parseDeposit (deposits[i]));
-        }
-        return results;
     }
 
     parseFundingLimits (limits, symbol = undefined, params = {}) {
@@ -1057,6 +978,12 @@ module.exports = class boaexchange extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
+        let address = undefined;
+        if ('address' in transaction) {
+            address = transaction['address']['address'];
+        } else {
+            address = transaction['address'];
+        }
         return {
             'info': transaction,
             'id': transaction['txid'],
@@ -1064,14 +991,14 @@ module.exports = class boaexchange extends Exchange {
             'timestamp': transaction['created'],
             'datetime': this.parse8601 (transaction['created']),
             'addressFrom': undefined,
-            'address': transaction['address'],
+            'address': address,
             'addressTo': undefined,
             'tagFrom': undefined,
             'tag': undefined,
             'tagTo': undefined,
             'type': transaction,
             'amount': transaction['amount'],
-            'currency': transaction['address']['coin']['code'],
+            'currency': transaction['coin']['code'],
             'status': 'ok',
             'updated': undefined,
             'message': undefined,
@@ -1079,68 +1006,23 @@ module.exports = class boaexchange extends Exchange {
         };
     }
 
-    parseWithdrawal (withdrawal, currency = undefined) {
-        let code = undefined;
-        let currencyId = this.safeString (withdrawal['coin'], 'id');
-        currency = this.safeValue (this.currencies_by_id, currencyId);
-        if (currency !== undefined) {
-            code = currency['code'];
-        } else {
-            code = this.commonCurrencyCode (this.safeString (withdrawal['coin'], 'id'));
-        }
-        const confirmed = this.safeValue (withdrawal, 'confirmed');
-        const cancelled = this.safeValue (withdrawal, 'cancelled');
-        const confirms = this.safeInteger (withdrawal, 'confirms', 0);
-        let status = undefined;
-        if (confirms) {
-            status = 'ok';
-        } else if (cancelled) {
-            status = 'canceled';
-        } else if (confirmed) {
-            status = 'pending';
-        }
-        const timestamp = this.parse8601 (this.safeString (withdrawal, 'created'));
-        return {
-            'info': withdrawal,
-            'id': this.safeString (withdrawal, 'txid'),
-            'currency': code,
-            'amount': this.safeFloat (withdrawal, 'amount'),
-            'address': this.safeString (withdrawal, 'address'),
-            'tag': undefined,
-            'status': status,
-            'type': 'withdrawal',
-            'updated': undefined,
-            'txid': this.safeString (withdrawal, 'txid'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'fee': undefined,
-        };
-    }
-
-    parseWithdrawals (withdraws, currency = undefined) {
-        let results = [];
-        for (let i = 0; i < withdraws.length; i++) {
-            results.push (this.parseWithdrawal (withdraws[i], currency));
-        }
-        return results;
-    }
-
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.implodeParams (this.urls['api'][api], {
+        let url = this.implodeParams (this.urls['api'], {
             'hostname': this.hostname,
-        }) + '/v1/';
-        url += this.implodeParams (path, params);
+        });
+        url += '/' + this.version + '/' + this.implodeParams (path, params);
         params['limit'] = 500;
         url += '?' + this.urlencode (params);
-        this.checkRequiredCredentials ();
-        let nonce = this.nonce ().toString ();
-        let signature = this.hmac (this.encode (nonce), this.encode (this.secret), 'sha256');
-        headers = {
-            'X-BOA-ENCRYPTED': signature,
-            'X-BOA-KEY': this.apiKey,
-            'X-BOA-NONCE': nonce,
-            'Content-Type': 'application/json',
-        };
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            let nonce = this.nonce ().toString ();
+            let signature = this.hmac (this.encode (nonce), this.encode (this.secret), 'sha256');
+            headers = {
+                'X-BOA-ENCRYPTED': signature,
+                'X-BOA-KEY': this.apiKey,
+                'X-BOA-NONCE': nonce,
+            };
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
@@ -1153,7 +1035,7 @@ module.exports = class boaexchange extends Exchange {
                 const message = errors[0];
                 if (message in this.exceptions)
                     throw new this.exceptions[message] (feedback);
-                throw new ExchangeError (this.id + ' an error occoured: ' + this.json (errors));
+                throw new ExchangeError (url + method + ' an error occoured: ' + this.json (errors));
             }
             if (data === undefined)
                 throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
