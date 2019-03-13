@@ -84,8 +84,6 @@ module.exports = class boaexchange extends Exchange {
                 'doc': [
                     'https://api.boaexchange.com/docs/',
                 ],
-                'fees': [
-                ],
             },
             'api': {
                 'public': {
