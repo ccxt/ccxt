@@ -80,14 +80,10 @@ module.exports = class boaexchange extends Exchange {
             },
             'urls': {
                 'logo': 'https://boaexchange.com/4cdef72eb47d4a759d2c72e619f48827.png',
-                'api': {
-                    'v1': 'https://api.{hostname}/api',
-                },
+                'api': 'https://api.{hostname}/api',
                 'www': 'https://boaexchange.com',
                 'doc': [
                     'https://api.boaexchange.com/docs/',
-                ],
-                'fees': [
                 ],
             },
             'api': {
@@ -1126,10 +1122,10 @@ module.exports = class boaexchange extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.implodeParams (this.urls['api'][api], {
+        let url = this.implodeParams (this.urls['api'], {
             'hostname': this.hostname,
-        }) + '/v1/';
-        url += this.implodeParams (path, params);
+        });
+        url += '/' + this.version + '/' + this.implodeParams (path, params);
         params['limit'] = 500;
         url += '?' + this.urlencode (params);
         this.checkRequiredCredentials ();
