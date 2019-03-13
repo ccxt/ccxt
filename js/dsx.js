@@ -425,6 +425,7 @@ module.exports = class dsx extends liqui {
     parseTrade (trade, market = undefined) {
         // {
         //   "number": "36635882", <-- this is present if the trade has come from the '/order/status' call
+        //   "id": "36635882", <-- this may have been artifically added by the parseTrades method
         //   "pair": "btcusd",
         //   "type": "buy",
         //   "volume": 0.0595,
@@ -451,7 +452,11 @@ module.exports = class dsx extends liqui {
             side = 'buy';
         }
         let price = this.safeFloat2 (trade, 'rate', 'price');
-        let id = 'number' in trade ? this.safeString (trade, 'number') : this.safeString2 (trade, 'id');
+        let id = undefined;
+        if ('number' in trade)
+            id = this.safeString (trade, 'number');
+        else
+            id = this.safeString2 (trade, 'id');
         let order = this.safeString (trade, 'orderId');
         if ('pair' in trade) {
             let marketId = this.safeString (trade, 'pair');
