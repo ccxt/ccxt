@@ -78,10 +78,14 @@ module.exports = class switcheo extends Exchange {
                 },
                 'private': {
                     'post': [
-                        'orders',
-                        'orders/{id}/broadcast',
                         'cancellations',
                         'cancellations/{id}/broadcast',
+                        'deposits',
+                        'deposits/{id}/broadcast',
+                        'orders',
+                        'orders/{id}/broadcast',
+                        'withdrawals',
+                        'withdrawals/{id}/broadcast',
                     ],
                 },
             },
@@ -304,6 +308,32 @@ module.exports = class switcheo extends Exchange {
         let signedCancel = this.signMessageHash (createCancel['transaction']['sha256'], this.privateKey);
         let executeCancel = await this.privatePostCancellationsIdBroadcast ({ 'id': cancelId }, headers, { 'signature': '0x' + signedCancel });
         return executeCancel;
+    }
+
+    async deposit (symbol, amount, params = {}) {
+        let depositRequest = {
+            'blockchain': 'eth',
+            'asset_id': symbol,
+            'amount': this.toWei (amount, 'ether'),
+            'contract_hash': this.fetchContractHash ()['ETH'],
+            'timestamp': this.milliseconds (),
+        };
+        console.log (depositRequest);
+        let stableStringify = this.stringifyMessage (depositRequest);
+        let hexMessage = this.toHex (stableStringify);
+        let signedMessage = this.signMessageHash (hexMessage, this.privateKey);
+        depositRequest['signature'] = signedMessage;
+        depositRequest['address'] = this.walletAddress.toLowerCase ();
+        let headers = {
+            'Content-type': 'application/json',
+            'Accept': 'text/plain',
+        };
+        let createDeposit = await this.privatePostDeposits (params, headers, depositRequest);
+        console.log (createDeposit);
+        let depositId = createDeposit['id'];
+        console.log (depositId);
+        let executeDeposit = await this.privatePostDepositsIdBroadcast ({ 'id': depositId }, headers, this.signTransaction (createDeposit, this.privateKey));
+        return executeDeposit;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
