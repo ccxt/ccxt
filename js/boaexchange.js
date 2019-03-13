@@ -982,6 +982,14 @@ module.exports = class boaexchange extends Exchange {
         } else {
             address = transaction['address'];
         }
+        let code = undefined;
+        let currencyId = this.safeString (transaction['coin'], 'code');
+        currency = this.safeValue (this.currencies_by_id, currencyId);
+        if (currency !== undefined) {
+            code = currency['code'];
+        } else {
+            code = this.commonCurrencyCode (currencyId);
+        }
         return {
             'info': transaction,
             'id': transaction['txid'],
@@ -996,7 +1004,7 @@ module.exports = class boaexchange extends Exchange {
             'tagTo': undefined,
             'type': transaction,
             'amount': transaction['amount'],
-            'currency': transaction['coin']['code'],
+            'currency': code,
             'status': 'ok',
             'updated': undefined,
             'message': undefined,
