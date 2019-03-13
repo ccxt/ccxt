@@ -86,8 +86,58 @@ module.exports = class dsx extends liqui {
                 'fetchMyTradesMethod': 'privatePostHistoryTrades',
                 'cancelOrderMethod': 'privatePostOrderCancel',
                 'fetchTickersMaxLength': 250,
+                'transactionStatus': {
+                    '1': 'failed',
+                    '2': 'ok',
+                    '3': 'pending',
+                    '4': 'failed',
+                },
             },
         });
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = code === undefined ? undefined : this.currency (code);
+        let request = {
+            'currency': currency,
+            'since': since,
+            'count': limit,
+        };
+        let response = await this.privatePostHistoryTransactions (this.extend (request, params));
+        let transactions = Object.values (response['return']);
+        return this.parseTransactions (transactions, currency, since, limit);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        const timestamp = transaction['timestamp'] * 1000;
+        const type = this.safeString (transaction, 'type') === 'Incoming' ? 'deposit' : 'withdrawal';
+        const currencyId = this.safeString (transaction, 'currency');
+        let code = undefined;
+        if (currencyId in this.currencies_by_id) {
+            const ccy = this.currencies_by_id[currencyId];
+            code = ccy['code'];
+        } else {
+            code = this.commonCurrencyCode (currencyId);
+        }
+        let status = this.safeString (transaction, 'status');
+        return {
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'txid'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': this.safeString (transaction, 'address'),
+            'type': type,
+            'amount': this.safeFloat (transaction, 'amount'),
+            'currency': code,
+            'status': this.safeString (this.options['transactionStatus'], status, status),
+            'fee': {
+                'currency': code,
+                'cost': this.safeFloat (transaction, 'commission'),
+                'rate': undefined,
+            },
+            'info': transaction,
+        };
     }
 
     async fetchMarkets (params = {}) {
