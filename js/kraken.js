@@ -986,7 +986,7 @@ module.exports = class kraken extends Exchange {
         await this.loadMarkets ();
         let response = await this.privatePostQueryOrders (this.extend ({
             'trades': true, // whether or not to include trades in output (optional, default false)
-            'txid': id,//do not comma separate a list of ids - use fetchOrdersByIds instead
+            'txid': id, // do not comma separate a list of ids - use fetchOrdersByIds instead
             // 'userref': 'optional', // restrict results to given user reference id (optional)
         }, params));
         let orders = response['result'];
