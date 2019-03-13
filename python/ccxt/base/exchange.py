@@ -82,7 +82,7 @@ try:
     from web3.utils.encoding import hex_encode_abi_type
     from eth_account.messages import defunct_hash_message
     from eth_account.account import Account
-    # from eth_utils import to_checksum_address, to_normalized_address
+    from eth_utils import to_checksum_address
 except ImportError:
     Web3 = HTTPProvider = None  # web3/0x not supported in Python 2
 
@@ -1781,6 +1781,25 @@ class Exchange(object):
 
     def signMessageHash(self, message, private_key):
         return binascii.hexlify(Account.signHash(message, private_key=private_key)['signature']).decode()
+
+    def signTransaction(self, raw_transaction, private_key):
+        sign_txn = {
+            'from': to_checksum_address(raw_transaction['transaction']['from']),
+            'to': to_checksum_address(raw_transaction['transaction']['to']),
+            'value': raw_transaction['transaction']['value'],
+            'data': raw_transaction['transaction']['data'],
+            'gas': raw_transaction['transaction']['gas'],
+            'gasPrice': raw_transaction['transaction']['gasPrice'],
+            'chainId': raw_transaction['transaction']['chainId'],
+            'nonce': raw_transaction['transaction']['nonce'],
+        }
+        signed_txn = Account.signTransaction(sign_txn, private_key=private_key)
+        signed_txn_hex = binascii.hexlify(signed_txn['hash']).decode()
+
+        # Broadcast transaction to Ethereum Network.
+        Web3(HTTPProvider('https://ropsten.infura.io/')).eth.sendRawTransaction(signed_txn.rawTransaction)
+
+        return {'transaction_hash': '0x' + signed_txn_hex}
 
     def oath(self):
         if self.twofa is not None:

@@ -1586,6 +1586,27 @@ module.exports = class Exchange {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64))
     }
 
+    signTransaction (rawTransaction, privateKey) {
+        const web3 = new Web3 (new Web3.providers.HttpProvider ('https://ropsten.infura.io/'));
+        let signTransaction = {
+            'from': ethUtil.account.toChecksumAddress (rawTransaction['transaction']['from']),
+            'to': ethUtil.account.toChecksumAddress (rawTransaction['transaction']['to']),
+            'value': rawTransaction['transaction']['value'],
+            'data': rawTransaction['transaction']['data'],
+            'gas': rawTransaction['transaction']['gas'],
+            'gasPrice': rawTransaction['transaction']['gasPrice'],
+            'chainId': rawTransaction['transaction']['chainId'],
+            'nonce': rawTransaction['transaction']['nonce'],
+        };
+        const account = web3.eth.accounts.privateKeyToAccount (privateKey);
+        let signedTransaction = account.signTransaction(signTransaction, privateKey);
+        web3.eth.sendRawTransaction (signedTransaction.rawTransaction);
+        let transactionMessage = {
+            'transaction_hash': '0x' + signTransaction['hash']
+        };
+        return transactionMessage;
+    }
+
     oath (key) {
         if (typeof this.twofa !== 'undefined') {
             return this.totp (key)
