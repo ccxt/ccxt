@@ -105,8 +105,7 @@ module.exports = class dsx extends liqui {
             'count': limit,
         };
         let response = await this.privatePostHistoryTransactions (this.extend (request, params));
-        let transactions = Object.values (response['return']);
-        return this.parseTransactions (transactions, currency, since, limit);
+        return this.parseTransactions (response['return'], currency, since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
