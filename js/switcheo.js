@@ -336,6 +336,30 @@ module.exports = class switcheo extends Exchange {
         return executeDeposit;
     }
 
+    async withdrawal (symbol, amount, params = {}) {
+        let withdrawalRequest = {
+            'blockchain': 'eth',
+            'asset_id': symbol,
+            'amount': this.toWei (amount, 'ether'),
+            'contract_hash': this.fetchContractHash ()['ETH'],
+            'timestamp': this.milliseconds (),
+        };
+        let stableStringify = this.stringifyMessage (withdrawalRequest);
+        let hexMessage = this.toHex (stableStringify);
+        let signedMessage = this.signMessageHash (hexMessage, this.privateKey);
+        withdrawalRequest['signature'] = signedMessage;
+        withdrawalRequest['address'] = this.walletAddress.toLowerCase ();
+        let headers = {
+            'Content-type': 'application/json',
+            'Accept': 'text/plain',
+        };
+        let createWithdrawal = await this.privatePostWithdrawals (params, headers, withdrawalRequest);
+        let withdrawalId = createWithdrawal['id'];
+        let signedWithdrawal = this.signMessageHash (createWithdrawal['transaction']['sha256'], this.privateKey);
+        let executeWithdrawal = await this.privatePostWithdrawalsIdBroadcast ({ 'id': withdrawalId }, headers, { 'signature': '0x' + signedWithdrawal });
+        return executeWithdrawal;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
