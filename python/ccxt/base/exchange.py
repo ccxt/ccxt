@@ -315,7 +315,7 @@ class Exchange(object):
 
         if self.requiresWeb3 and Web3 and not self.web3:
             # self.web3 = w3 if w3 else Web3(HTTPProvider())
-            self.web3 = Web3(HTTPProvider())
+            self.web3 = Web3(HTTPProvider(self.web3ProviderURL))
 
     def __del__(self):
         if self.session:
@@ -1795,10 +1795,7 @@ class Exchange(object):
         }
         signed_txn = Account.signTransaction(sign_txn, private_key=private_key)
         signed_txn_hex = binascii.hexlify(signed_txn['hash']).decode()
-
-        # Broadcast transaction to Ethereum Network.
-        Web3(HTTPProvider('https://ropsten.infura.io/')).eth.sendRawTransaction(signed_txn.rawTransaction)
-
+        self.web3.eth.sendRawTransaction(signed_txn.rawTransaction)
         return {'transaction_hash': '0x' + signed_txn_hex}
 
     def oath(self):

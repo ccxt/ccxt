@@ -19,6 +19,7 @@ module.exports = class switcheo extends Exchange {
             'certified': false,
             'parseJsonResponse': false,
             'requiresWeb3': true,
+            'web3ProviderURL': 'https://infura.io/',
             'has': {
                 'CORS': false,
                 'cancelOrder': true,

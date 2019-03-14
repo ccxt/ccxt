@@ -1587,7 +1587,6 @@ module.exports = class Exchange {
     }
 
     signTransaction (rawTransaction, privateKey) {
-        const web3 = new Web3 (new Web3.providers.HttpProvider ('https://ropsten.infura.io/'));
         let signTransaction = {
             'from': ethUtil.account.toChecksumAddress (rawTransaction['transaction']['from']),
             'to': ethUtil.account.toChecksumAddress (rawTransaction['transaction']['to']),
@@ -1598,9 +1597,9 @@ module.exports = class Exchange {
             'chainId': rawTransaction['transaction']['chainId'],
             'nonce': rawTransaction['transaction']['nonce'],
         };
-        const account = web3.eth.accounts.privateKeyToAccount (privateKey);
-        let signedTransaction = account.signTransaction(signTransaction, privateKey);
-        web3.eth.sendRawTransaction (signedTransaction.rawTransaction);
+        const account = this.web3.eth.accounts.privateKeyToAccount (privateKey);
+        let signedTransaction = account.signTransaction (signTransaction, privateKey);
+        this.web3.eth.sendRawTransaction (signedTransaction.rawTransaction);
         let transactionMessage = {
             'transaction_hash': '0x' + signTransaction['hash']
         };
