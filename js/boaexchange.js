@@ -367,7 +367,7 @@ module.exports = class boaexchange extends Exchange {
             request['coin'] = currency['id'];
         }
         const response = await this.privateGetLedger (this.extend (request, params));
-        return this.parseLedgerEntries (response['data'], currency);
+        return this.parseLedger (response['data'], currency);
     }
 
     async fetchMarkets (params = {}) {
@@ -691,15 +691,7 @@ module.exports = class boaexchange extends Exchange {
         };
     }
 
-    parseLedgerEntries (entries, currency = undefined) {
-        let results = [];
-        for (let i = 0; i < entries.length; i++) {
-            results.push (this.parseLedgerEntry (entries[i], currency));
-        }
-        return results;
-    }
-
-    parseLedgerEntry (entry, currency = undefined) {
+    parseLedgerEntry (entry, currency = undefined, since = undefined, limit = undefined) {
         let direction = undefined;
         const id = this.safeString (entry, 'id');
         let type = this.safeString (entry, 'ledger_type');
@@ -716,6 +708,7 @@ module.exports = class boaexchange extends Exchange {
         }
         const code = this.safeCurrencyCode (entry['coin'], 'code', currency);
         let amount = this.safeFloat (entry, 'amount');
+        amount = Math.abs (amount)
         if (amount < 0) {
             direction = 'out';
         } else {
@@ -1017,10 +1010,5 @@ module.exports = class boaexchange extends Exchange {
             if (data === undefined)
                 throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
         }
-    }
-
-    async request (path, api = '', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        return response;
     }
 };
