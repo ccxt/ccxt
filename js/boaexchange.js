@@ -606,34 +606,6 @@ module.exports = class boaexchange extends Exchange {
         };
     }
 
-    orderToTrade (order) {
-        // this entire method should be moved to the base class
-        const timestamp = this.safeInteger (order, 'created');
-        const market = this.marketId (this.safeString (order, 'market'));
-        return {
-            'id': this.safeString (order, 'id'),
-            'side': this.safeString (order, 'side'),
-            'order': this.safeString (order, 'id'),
-            'price': this.safeFloat (order, 'price'),
-            'amount': this.safeFloat (order, 'amount'),
-            'cost': this.safeFloat (order, 'amount_coin'),
-            'symbol': market['symbol'],
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'fee': undefined,
-            'info': order,
-        };
-    }
-
-    ordersToTrades (orders) {
-        // this entire method should be moved to the base class
-        const result = [];
-        for (let i = 0; i < orders.length; i++) {
-            result.push (this.orderToTrade (orders[i]));
-        }
-        return result;
-    }
-
     parseBalance (balance) {
         let currency = this.commonCurrencyCode (balance['coin']['code']);
         let free = this.safeFloat (balance, 'balance', 0);
