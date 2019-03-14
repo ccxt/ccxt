@@ -172,16 +172,11 @@ module.exports = class boaexchange extends Exchange {
                 'Too Many Requests': DDoSProtection,
             },
             'options': {
-                'hasEmptyMarkets': true,
                 // price precision by quote currency code
                 'pricePrecisionByCode': {
                     'USD': 3,
                 },
                 'symbolSeparator': '_',
-                'tag': {
-                },
-            },
-            'commonCurrencies': {
             },
         });
     }
