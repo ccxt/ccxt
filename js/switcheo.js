@@ -147,7 +147,49 @@ module.exports = class switcheo extends Exchange {
 
     async fetchCurrencies (params = {}) {
         let response = await this.publicGetExchangeTokens (params);
-        return response;
+        let currencies = Object.keys (response);
+        let result = {};
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = response[currencies[i]];
+            let id = currencies[i];
+            let name = response[currencies[i]]['name'];
+            let code = this.commonCurrencyCode (id);
+            let precision = response[currencies[i]]['precision'];
+            let active = response[currencies[i]]['trading_active'];
+            let type = response[currencies[i]]['type'];
+            let address = response[currencies[i]]['hash'];
+            let minimum = response[currencies[i]]['minimum_quantity'];
+            result[code] = {
+                'id': id,
+                'code': code,
+                'address': address,
+                'info': currency,
+                'type': type,
+                'name': name,
+                'active': active,
+                'fee': undefined,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': minimum,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            };
+        }
+        return result;
     }
 
     async fetchMarkets (params = {}) {
@@ -166,7 +208,7 @@ module.exports = class switcheo extends Exchange {
             let base = market['name'].split ('_')[0];
             let quote = market['name'].split ('_')[1];
             let symbol = base + '/' + quote;
-            let active = (tokens[base]['trading_active'] && tokens[quote]['trading_active']);
+            let active = (tokens[base]['active'] && tokens[quote]['active']);
             this.options['contract'] = contracts[quote];
             let precision = {
                 'amount': market['precision'],
@@ -175,10 +217,10 @@ module.exports = class switcheo extends Exchange {
             };
             let limits = {
                 'amount': {
-                    'min': tokens[quote]['minimum_quantity'],
+                    'min': tokens[quote]['limits']['amount']['min'],
                 },
                 'cost': {
-                    'min': tokens[base]['minimum_quantity'],
+                    'min': tokens[base]['limits']['amount']['min'],
                 },
             };
             result.push (this.extend ({
