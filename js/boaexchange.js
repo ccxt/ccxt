@@ -298,7 +298,7 @@ module.exports = class boaexchange extends Exchange {
         const request = {
             'label': [],
         };
-        for (let i = undefined; i < codes.length; i++) {
+        for (let i = 0; i < codes.length; i++) {
             request['label'].push (codes);
         }
         const response = await this.privateGetAddressesLabel (this.extend (request, params));
@@ -313,7 +313,7 @@ module.exports = class boaexchange extends Exchange {
         let info = {};
         if (codes === undefined)
             codes = Object.keys (this.currencies);
-        for (let i = undefined; i < codes.length; i++) {
+        for (let i = 0; i < codes.length; i++) {
             let code = codes[i];
             let currency = this.currency (code);
             let request = { 'label': currency['id'] };
@@ -336,7 +336,7 @@ module.exports = class boaexchange extends Exchange {
             symbols = this.symbols;
         }
         let result = {};
-        for (let i = undefined; i < symbols.length; i++) {
+        for (let i = 0; i < symbols.length; i++) {
             let symbol = symbols[i];
             result[symbol] = await this.fetchFundingLimitsById (this.marketId (symbol), params);
         }
@@ -474,7 +474,7 @@ module.exports = class boaexchange extends Exchange {
         }, params));
         let tickers = response['data'];
         let result = {};
-        for (let t = undefined; t < tickers.length; t++) {
+        for (let t = 0; t < tickers.length; t++) {
             let ticker = tickers[t];
             let id = ticker['id'];
             let market = undefined;
@@ -528,7 +528,7 @@ module.exports = class boaexchange extends Exchange {
             symbols = this.symbols;
         }
         let result = {};
-        for (let i = undefined; i < symbols.length; i++) {
+        for (let i = 0; i < symbols.length; i++) {
             let symbol = symbols[i];
             result[symbol] = await this.fetchTradingLimitsById (this.marketId (symbol), params);
         }
@@ -614,7 +614,7 @@ module.exports = class boaexchange extends Exchange {
 
     parseBalances (balances) {
         let results = { 'info': balances };
-        for (let i = undefined; i < balances.length; i++) {
+        for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
             let row = this.parseBalance (balance);
             results[row['currency']] = row['account'];
@@ -624,7 +624,7 @@ module.exports = class boaexchange extends Exchange {
 
     parseCurrencies (currencies) {
         const result = {};
-        for (let i = undefined; i < currencies.length; i++) {
+        for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'id');
             const code = this.commonCurrencyCode (this.safeString (currency, 'code'));
@@ -773,7 +773,7 @@ module.exports = class boaexchange extends Exchange {
 
     parseMarkets (markets) {
         let results = [];
-        for (let i = undefined; i < markets.length; i++) {
+        for (let i = 0; i < markets.length; i++) {
             results.push (this.parseMarket (markets[i]));
         }
         return results;
@@ -800,7 +800,7 @@ module.exports = class boaexchange extends Exchange {
             status = 'open';
         if (this.safeValue (order, 'cancelled', false))
             status = 'canceled';
-        if (remaining === undefined)
+        if (remaining === 0)
             status = 'closed';
         let symbol = undefined;
         if ('market' in order) {
