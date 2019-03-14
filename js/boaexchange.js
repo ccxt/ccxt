@@ -703,7 +703,7 @@ module.exports = class boaexchange extends Exchange {
         }
         const code = this.safeCurrencyCode (entry['coin'], 'code', currency);
         let amount = this.safeFloat (entry, 'amount');
-        amount = Math.abs (amount)
+        amount = Math.abs (amount);
         if (amount < 0) {
             direction = 'out';
         } else {
