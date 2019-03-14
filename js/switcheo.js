@@ -28,7 +28,7 @@ module.exports = class switcheo extends Exchange {
                 'fetchBalance': false,
                 'fetchClosedOrders': false,
                 'fetchContractHash': true,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': false,
@@ -144,11 +144,16 @@ module.exports = class switcheo extends Exchange {
         return this.parseCurrentContract (response);
     }
 
+    async fetchCurrencies (params = {}) {
+        let response = await this.publicGetExchangeTokens (params);
+        return response;
+    }
+
     async fetchMarkets (params = {}) {
         let markets = await this.publicGetExchangePairs (this.extend ({
             'show_details': 1,
         }, params));
-        let tokens = await this.publicGetExchangeTokens (this.extend ({
+        let tokens = await this.fetchCurrencies (this.extend ({
             'show_listing_details': 1,
             'show_inactive': 1,
         }, params));
