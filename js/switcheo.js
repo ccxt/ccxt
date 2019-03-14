@@ -23,8 +23,8 @@ module.exports = class switcheo extends Exchange {
                 'CORS': false,
                 'cancelOrder': true,
                 'createDepositAddress': false,
-                'createOrder': false,
-                'deposit': false,
+                'createOrder': true,
+                'deposit': true,
                 'fetchBalance': false,
                 'fetchClosedOrders': false,
                 'fetchContractHash': true,
@@ -43,7 +43,7 @@ module.exports = class switcheo extends Exchange {
                 'fetchTime': true,
                 'fetchBidsAsks': false,
                 'fetchTrades': false,
-                'withdraw': false,
+                'withdraw': true,
                 'fetchTransactions': false,
                 'fetchDeposits': false,
                 'fetchWithdrawals': false,
@@ -229,7 +229,7 @@ module.exports = class switcheo extends Exchange {
         return executeOrder;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, useSwitcheoToken = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         const errorMessage = this.id + ' createOrder() requires `exchange.walletAddress` and `exchange.privateKey`. The .walletAddress should be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377". The .privateKey for that wallet should be a "0x"-prefixed hexstring like "0xe4f40d465efa94c98aec1a51f574329344c772c1bce33be07fa20a56795fdd09".';
         if (!this.walletAddress || (this.walletAddress.indexOf ('0x') !== 0)) {
             throw new InvalidAddress (errorMessage);
@@ -239,6 +239,7 @@ module.exports = class switcheo extends Exchange {
         }
         await this.loadMarkets ();
         let timestamp = this.milliseconds ();
+        let useSwitcheoToken = undefined;
         let market = this.market (symbol);
         let reserveRequest = {
             'walletAddress': this.walletAddress.toLowerCase (), // Your Wallet Address
@@ -247,6 +248,9 @@ module.exports = class switcheo extends Exchange {
             'side': side, // buy or sell
             'orderAmount': this.toWei (this.amountToPrecision (symbol, amount), 'ether'), // Base token amount in wei
         };
+        if ('useSwitcheoToken' in params) {
+            useSwitcheoToken = params.useSwitcheoToken;
+        }
         if (market['network'].toLowerCase () === 'eth' || useSwitcheoToken === undefined) {
             useSwitcheoToken = false; // Fees can be paid in the quote currency or Switcheo
         } else if (useSwitcheoToken) {
@@ -286,7 +290,11 @@ module.exports = class switcheo extends Exchange {
         let orderId = submitCreateOrder['id'];
         let signedCreateOrder = this.signCreateOrder (submitCreateOrder, this.privateKey);
         let submitExecuteOrder = await this.privatePostOrdersIdBroadcast ({ 'id': orderId }, headers, signedCreateOrder);
-        return submitExecuteOrder;
+        let unifiedResponse = {
+            'info': submitExecuteOrder,
+            'id': orderId,
+        };
+        return unifiedResponse;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -354,11 +362,11 @@ module.exports = class switcheo extends Exchange {
         let withdrawalId = createWithdrawal['id'];
         let signedWithdrawal = this.signMessageHash (createWithdrawal['transaction']['sha256'], this.privateKey);
         let executeWithdrawal = await this.privatePostWithdrawalsIdBroadcast ({ 'id': withdrawalId }, headers, { 'signature': '0x' + signedWithdrawal });
-        let withdrawResponse = {
+        let unifiedResponse = {
             'info': executeWithdrawal,
             'id': withdrawalId,
         };
-        return withdrawResponse;
+        return unifiedResponse;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
