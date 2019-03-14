@@ -93,6 +93,7 @@ module.exports = class boaexchange extends Exchange {
                         'coins',
                         'coins/{label}',
                         'markets',
+                        'markets/fees',
                         'markets/{label}',
                         'markets/{label}/ohlcv',
                         'markets/{label}/orderbook',
@@ -494,10 +495,7 @@ module.exports = class boaexchange extends Exchange {
 
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
-        let market_key = Object.keys (this.markets)[0];
-        let market = this.markets[market_key];
-        params['label'] = market['id'];
-        let response = await this.privateGetMarketsLabelFees (params);
+        let response = await this.publicGetMarketsFees (params);
         return {
             'info': response,
             'maker': this.safeFloat (response['data'], 'fees') - this.safeFloat (response['data'], 'rebates'),
