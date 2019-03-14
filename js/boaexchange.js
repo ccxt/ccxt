@@ -92,7 +92,6 @@ module.exports = class boaexchange extends Exchange {
                         'chat',
                         'coins',
                         'coins/{label}',
-                        'ledger',
                         'markets',
                         'markets/{label}',
                         'markets/{label}/ohlcv',
