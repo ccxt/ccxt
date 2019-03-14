@@ -333,7 +333,7 @@ module.exports = class switcheo extends Exchange {
         return executeDeposit;
     }
 
-    async withdrawal (symbol, amount, params = {}) {
+    async withdraw (symbol, amount, address, tag = undefined, params = {}) {
         let withdrawalRequest = {
             'blockchain': 'eth',
             'asset_id': symbol,
@@ -345,7 +345,7 @@ module.exports = class switcheo extends Exchange {
         let hexMessage = this.toHex (stableStringify);
         let signedMessage = this.signMessageHash (hexMessage, this.privateKey);
         withdrawalRequest['signature'] = signedMessage;
-        withdrawalRequest['address'] = this.walletAddress.toLowerCase ();
+        withdrawalRequest['address'] = address;
         let headers = {
             'Content-type': 'application/json',
             'Accept': 'text/plain',
@@ -354,7 +354,11 @@ module.exports = class switcheo extends Exchange {
         let withdrawalId = createWithdrawal['id'];
         let signedWithdrawal = this.signMessageHash (createWithdrawal['transaction']['sha256'], this.privateKey);
         let executeWithdrawal = await this.privatePostWithdrawalsIdBroadcast ({ 'id': withdrawalId }, headers, { 'signature': '0x' + signedWithdrawal });
-        return executeWithdrawal;
+        let withdrawResponse = {
+            'info': executeWithdrawal,
+            'id': withdrawalId,
+        };
+        return withdrawResponse;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
