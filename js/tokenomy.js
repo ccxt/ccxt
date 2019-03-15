@@ -26,7 +26,7 @@ module.exports = class tokenomy extends Exchange {
                 'withdraw': true,
                 'fetchMarkets': true,
             },
-            'version': '1.8', // as of 9 April 2018
+            'version': '1.8',
             'urls': {
                 'logo': 'https://camo.githubusercontent.com/b0fde0930f9bdb9b47b3abd2e31ac05418b2a051/68747470733a2f2f7777772e746f6b656e6f6d792e636f6d2f696d616765732f746f6b656e6f6d792f4c4f474f5f544f4b454e4f4d592e706e67',
                 'api': {
