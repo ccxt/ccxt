@@ -40,6 +40,14 @@ module.exports = class dsx extends liqui {
                     '',
                 ],
             },
+            'fees': {
+                'trading': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'maker': 0.15 / 100,
+                    'taker': 0.25 / 100,
+                },
+            },
             'api': {
                 // market data (public)
                 'public': {
@@ -182,7 +190,8 @@ module.exports = class dsx extends liqui {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'taker': market['fee'] / 100,
+                'maker': this.fees['trading']['maker'],
+                'taker': this.fees['trading']['taker'],
                 'precision': precision,
                 'limits': limits,
                 'info': market,
