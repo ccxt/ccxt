@@ -75,6 +75,8 @@ module.exports = class braziliex extends Exchange {
     }
 
     async fetchCurrenciesFromCache (params = {}) {
+        // this method is now redundant
+        // currencies are now fetched before markets
         const options = this.safeValue (this.options, 'fetchCurrencies', {});
         const timestamp = this.safeInteger (options, 'timestamp');
         const expires = this.safeInteger (options, 'expires', 1000);
