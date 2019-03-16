@@ -174,10 +174,10 @@ class Exchange(BaseExchange):
                 if not self.markets_by_id:
                     return self.set_markets(self.markets)
                 return self.markets
-        markets = await self.fetch_markets(params)
         currencies = None
         if self.has['fetchCurrencies']:
             currencies = await self.fetch_currencies()
+        markets = await self.fetch_markets(params)
         return self.set_markets(markets, currencies)
 
     async def fetch_fees(self):

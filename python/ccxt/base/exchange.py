@@ -1076,10 +1076,10 @@ class Exchange(object):
                 if not self.markets_by_id:
                     return self.set_markets(self.markets)
                 return self.markets
-        markets = self.fetch_markets(params)
         currencies = None
         if self.has['fetchCurrencies']:
             currencies = self.fetch_currencies()
+        markets = self.fetch_markets(params)
         return self.set_markets(markets, currencies)
 
     def load_accounts(self, reload=False, params={}):
