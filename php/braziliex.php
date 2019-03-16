@@ -76,6 +76,8 @@ class braziliex extends Exchange {
     }
 
     public function fetch_currencies_from_cache ($params = array ()) {
+        // this method is $now redundant
+        // currencies are $now fetched before markets
         $options = $this->safe_value($this->options, 'fetchCurrencies', array ());
         $timestamp = $this->safe_integer($options, 'timestamp');
         $expires = $this->safe_integer($options, 'expires', 1000);
