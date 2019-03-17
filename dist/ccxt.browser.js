@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.367'
+const version = '1.18.368'
 
 Exchange.ccxtVersion = version
 
@@ -2529,11 +2529,11 @@ module.exports = class Exchange {
             }
             return this.markets
         }
-        const markets = await this.fetchMarkets (params)
         let currencies = undefined
         if (this.has.fetchCurrencies) {
             currencies = await this.fetchCurrencies ()
         }
+        const markets = await this.fetchMarkets (params)
         return this.setMarkets (markets, currencies)
     }
 
@@ -19250,6 +19250,8 @@ module.exports = class braziliex extends Exchange {
     }
 
     async fetchCurrenciesFromCache (params = {}) {
+        // this method is now redundant
+        // currencies are now fetched before markets
         const options = this.safeValue (this.options, 'fetchCurrencies', {});
         const timestamp = this.safeInteger (options, 'timestamp');
         const expires = this.safeInteger (options, 'expires', 1000);
