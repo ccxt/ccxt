@@ -509,7 +509,7 @@ module.exports = class mandalaex extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetMarketsummaries (params);
+        const response = await this.marketGetGetMarketSummary (params);
         let tickers = response['result'];
         let result = {};
         for (let t = 0; t < tickers.length; t++) {
@@ -530,12 +530,30 @@ module.exports = class mandalaex extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetMarketsummary (this.extend ({
-            'market': market['id'],
-        }, params));
-        let ticker = response['result'][0];
-        return this.parseTicker (ticker, market);
+        const request = {
+            'marketId': this.marketId (symbol),
+        };
+        const response = await this.marketGetGetMarketSummaryMarketId (this.extend (request, params));
+        //
+        //     {
+        //         status: 'Success',
+        //         errorMessage: null,
+        //         data: {
+        //             Pair: 'ETH_MDX',
+        //             Last: 0.000055,
+        //             LowestAsk: 0.000049,
+        //             HeighestBid: 0.00003,
+        //             PercentChange: 12.47,
+        //             BaseVolume: 34.60345,
+        //             QuoteVolume: 629153.63636364,
+        //             IsFrozen: false,
+        //             High_24hr: 0,
+        //             Low_24hr: 0
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseTicker (data);
     }
 
     parseTrade (trade, market = undefined) {
