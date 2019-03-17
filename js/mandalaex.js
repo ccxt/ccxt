@@ -686,14 +686,23 @@ module.exports = class mandalaex extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        let timestamp = this.parse8601 (ohlcv['T'] + '+00:00');
+        //
+        //     {
+        //         time: 1552830600000,
+        //         open: 0.000055,
+        //         close: 0.000055,
+        //         high: 0.000055,
+        //         low: 0.000055,
+        //         volume: 0,
+        //     }
+        //
         return [
-            timestamp,
-            ohlcv['O'],
-            ohlcv['H'],
-            ohlcv['L'],
-            ohlcv['C'],
-            ohlcv['V'],
+            this.safeInteger (ohlcv, 'time'),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
         ];
     }
 
@@ -703,15 +712,16 @@ module.exports = class mandalaex extends Exchange {
         if (limit === undefined) {
             limit = 100; // default is 100
         }
+        const offset = this.parseTimeframe (timeframe) * this.sum (limit, 1) * 1000;
         if (since === undefined) {
-            since = this.milliseconds () - this.parseTimeframe (timeframe) * limit * 1000;
+            since = this.milliseconds () - offset;
         }
         const request = {
             'interval': this.timeframes[timeframe],
             'baseCurrency': market['baseId'], // they have base/quote reversed with some endpoints
             'quoteCurrency': market['quoteId'],
             'limit': limit,
-            'timestamp': since,
+            'timestamp': this.sum (since, offset),
         };
         const response = await this.marketGetGetChartData (this.extend (request, params));
         //
