@@ -464,44 +464,58 @@ module.exports = class mandalaex extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.safeString (ticker, 'TimeStamp');
-        if (typeof timestamp === 'string') {
-            if (timestamp.length > 0) {
-                timestamp = this.parse8601 (timestamp);
+        //
+        // fetchTicker, fetchTickers
+        //     {
+        //         Pair: 'ETH_MDX', // missing in fetchTickers, TO FIX
+        //         Last: 0.000055,
+        //         LowestAsk: 0.000049,
+        //         HeighestBid: 0.00003,
+        //         PercentChange: 12.47,
+        //         BaseVolume: 34.60345,
+        //         QuoteVolume: 629153.63636364,
+        //         IsFrozen: false, // missing in fetchTickers, TO FIX
+        //         High_24hr: 0,
+        //         Low_24hr: 0
+        //     }
+        //
+        let symbol = undefined;
+        const marketId = this.safeString (ticker, 'Pair');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                symbol = this.parseSymbol (marketId);
             }
         }
-        let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-        let previous = this.safeFloat (ticker, 'PrevDay');
-        let last = this.safeFloat (ticker, 'Last');
-        let change = undefined;
-        let percentage = undefined;
-        if (last !== undefined)
-            if (previous !== undefined) {
-                change = last - previous;
-                if (previous > 0)
-                    percentage = (change / previous) * 100;
+        if (symbol === undefined) {
+            if (market !== undefined) {
+                symbol = market['symbol'];
             }
+        }
+        const last = this.safeFloat (ticker, 'Last');
         return {
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'High'),
-            'low': this.safeFloat (ticker, 'Low'),
-            'bid': this.safeFloat (ticker, 'Bid'),
+            'timestamp': undefined, // no timestamp in tickers, TO FIX
+            'datetime': undefined,
+            'high': this.safeFloat (ticker, 'High_24hr'),
+            'low': this.safeFloat (ticker, 'Low_24hr'),
+            'bid': this.safeFloat (ticker, 'HeighestBid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'Ask'),
+            'ask': this.safeFloat (ticker, 'LowestAsk'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': previous,
+            'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
+            'change': undefined,
+            'percentage': this.safeFloat (ticker, 'PercentChange'),
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'Volume'),
+            'baseVolume': this.safeFloat (ticker, 'QuoteVolume'),
             'quoteVolume': this.safeFloat (ticker, 'BaseVolume'),
             'info': ticker,
         };
@@ -515,7 +529,7 @@ module.exports = class mandalaex extends Exchange {
         //         status: 'Success',
         //         errorMessage: null,
         //         data: {
-        //             BTC_BAT:
+        //             BTC_BAT: {
         //                 Last: 0.00003431,
         //                 LowestAsk: 0,
         //                 HeighestBid: 0,
