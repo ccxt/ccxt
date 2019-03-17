@@ -206,8 +206,29 @@ module.exports = class mandalaex extends Exchange {
         });
     }
 
+    async fetchCurrenciesFromCache (params = {}) {
+        // this method is now redundant
+        // currencies are now fetched before markets
+        const options = this.safeValue (this.options, 'fetchCurrencies', {});
+        const timestamp = this.safeInteger (options, 'timestamp');
+        const expires = this.safeInteger (options, 'expires', 1000);
+        const now = this.milliseconds ();
+        if ((timestamp === undefined) || ((now - timestamp) > expires)) {
+            const response = await this.publicGetCurrencies (params);
+            this.options['fetchCurrencies'] = this.extend (options, {
+                'response': response,
+                'timestamp': timestamp,
+            });
+        }
+        return this.safeValue (this.options['fetchCurrencies'], 'response');
+    }
+
     async fetchCurrencies (params = {}) {
-        const response = await this.settingsGetCurrencySettings (params);
+        const response = await this.fetchCurrenciesFromCache (params);
+        this.options['currencies'] = {
+            'timestamp': this.milliseconds (),
+            'response': response,
+        };
         //
         //     {
         //         status: 'Success',
@@ -302,6 +323,8 @@ module.exports = class mandalaex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        const currencies = await this.fetchCurrenciesFromCache (params);
+        const currenciesById = this.indexBy (currencies, 'shortName');
         const response = await this.marketGetGetMarketSummary ();
         //
         //     {
@@ -341,18 +364,15 @@ module.exports = class mandalaex extends Exchange {
             const base = this.commonCurrencyCode (baseId);
             const quote = this.commonCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            let pricePrecision = 8;
-            if (quote in this.options['pricePrecisionByCode'])
-                pricePrecision = this.options['pricePrecisionByCode'][quote];
-            let precision = {
-                'amount': 8,
-                'price': pricePrecision,
+            const baseCurrency = this.safeValue (currenciesById, baseId, {});
+            const quoteCurrency = this.safeValue (currenciesById, quoteId, {});
+            const precision = {
+                'amount': this.safeInteger (baseCurrency, 'decimalPrecision', 8),
+                'price': this.safeInteger (quoteCurrency, 'decimalPrecision', 8),
             };
-            // bittrex uses boolean values, bleutrade uses strings
-            let active = this.safeValue (market, 'IsActive', false);
-            if ((active !== 'false') || active) {
-                active = true;
-            }
+            const baseTradeEnabled = this.safeValue (baseCurrency, 'tradeEnabled', true);
+            const quoteTradeEnabled = this.safeValue (quoteCurrency, 'tradeEnabled', true);
+            const active = baseTradeEnabled && quoteTradeEnabled;
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -365,7 +385,7 @@ module.exports = class mandalaex extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': market['MinTradeSize'],
+                        'min': Math.pow (10, -precision['amount']),
                         'max': undefined,
                     },
                     'price': {
