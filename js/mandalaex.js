@@ -490,8 +490,6 @@ module.exports = class mandalaex extends Exchange {
                 symbol = this.parseSymbol (marketId);
             }
         }
-        if (market)
-            symbol = market['symbol'];
         if (symbol === undefined) {
             if (market !== undefined) {
                 symbol = market['symbol'];
@@ -601,25 +599,42 @@ module.exports = class mandalaex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.parse8601 (trade['TimeStamp'] + '+00:00');
-        let side = undefined;
-        if (trade['OrderType'] === 'BUY') {
-            side = 'buy';
-        } else if (trade['OrderType'] === 'SELL') {
-            side = 'sell';
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         TradeID:  619255,
+        //         Rate:  0.000055,
+        //         Volume:  79163.63636364,
+        //         Total:  4.354,
+        //         Date: "2019-03-16T23:14:48.613",
+        //         Type: "Buy"
+        //     }
+        //
+        const timestamp = this.parse8601 (this.safeString (trade, 'Date'));
+        let side = this.safeString (trade, 'Type');
+        if (side !== undefined) {
+            side = side.toLowerCase ();
         }
-        let id = this.safeString2 (trade, 'Id', 'ID');
+        const id = this.safeString (trade, 'TradeID');
         let symbol = undefined;
-        if (market !== undefined)
-            symbol = market['symbol'];
-        let cost = undefined;
-        let price = this.safeFloat (trade, 'Price');
-        let amount = this.safeFloat (trade, 'Quantity');
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = price * amount;
+        // const marketId = this.safeString (ticker, 'Pair');
+        // if (marketId !== undefined) {
+        //     if (marketId in this.markets_by_id) {
+        //         market = this.markets_by_id[marketId];
+        //         symbol = market['symbol'];
+        //     } else {
+        //         symbol = this.parseSymbol (marketId);
+        //     }
+        // }
+        if (symbol === undefined) {
+            if (market !== undefined) {
+                symbol = market['symbol'];
             }
         }
+        const cost = this.safeFloat (trade, 'Total');
+        const price = this.safeFloat (trade, 'Rate');
+        const amount = this.safeFloat (trade, 'Volume');
         return {
             'id': id,
             'info': trade,
@@ -641,7 +656,7 @@ module.exports = class mandalaex extends Exchange {
         const request = {
             'marketId': market['id'],
         };
-        const response = await this.publicGetMarkethistory (this.extend (request, params));
+        const response = await this.marketGetGetTradeHistoryMarketId (this.extend (request, params));
         //
         //     {
         //         status:   "Success",
