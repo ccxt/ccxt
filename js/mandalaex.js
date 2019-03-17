@@ -196,7 +196,7 @@ module.exports = class mandalaex extends Exchange {
                 },
             },
             'options': {
-                'symbolSeparator': '-',
+                'symbolSeparator': '_',
                 'api': {
                     'settings': 'api',
                 },
@@ -510,11 +510,40 @@ module.exports = class mandalaex extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.marketGetGetMarketSummary (params);
-        let tickers = response['result'];
-        let result = {};
-        for (let t = 0; t < tickers.length; t++) {
-            let ticker = tickers[t];
-            let id = ticker['MarketName'];
+        //
+        //     {
+        //         status: 'Success',
+        //         errorMessage: null,
+        //         data: {
+        //             BTC_BAT:
+        //                 Last: 0.00003431,
+        //                 LowestAsk: 0,
+        //                 HeighestBid: 0,
+        //                 PercentChange: 0,
+        //                 BaseVolume: 0,
+        //                 QuoteVolume: 0,
+        //                 High_24hr: 0,
+        //                 Low_24hr: 0,
+        //             },
+        //             ETH_ZRX: {
+        //                 Last: 0.00213827,
+        //                 LowestAsk: 0,
+        //                 HeighestBid: 0,
+        //                 PercentChange: 0,
+        //                 BaseVolume: 0,
+        //                 QuoteVolume: 0,
+        //                 High_24hr: 0,
+        //                 Low_24hr: 0,
+        //             },
+        //         },
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const ids = Object.keys (data);
+        const result = {};
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const ticker = data[id];
             let market = undefined;
             let symbol = id;
             if (id in this.markets_by_id) {
