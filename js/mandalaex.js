@@ -201,7 +201,7 @@ module.exports = class mandalaex extends Exchange {
                     'settings': 'api',
                 },
                 'fetchCurrencies': {
-                    'expires': 1000,
+                    'expires': 5000,
                 },
             },
             'commonCurrencies': {
@@ -220,7 +220,7 @@ module.exports = class mandalaex extends Exchange {
             const response = await this.settingsGetCurrencySettings (params);
             this.options['fetchCurrencies'] = this.extend (options, {
                 'response': response,
-                'timestamp': timestamp,
+                'timestamp': now,
             });
         }
         return this.safeValue (this.options['fetchCurrencies'], 'response');
@@ -364,7 +364,7 @@ module.exports = class mandalaex extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const market = data[id];
-            const [ baseId, quoteId ] = id.split ('_');
+            const [ quoteId, baseId ] = id.split ('_');
             const base = this.commonCurrencyCode (baseId);
             const quote = this.commonCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
@@ -432,25 +432,35 @@ module.exports = class mandalaex extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetOrderbook (this.extend ({
-            'market': this.marketId (symbol),
-            'type': 'both',
-        }, params));
-        let orderbook = response['result'];
-        if ('type' in params) {
-            if (params['type'] === 'buy') {
-                orderbook = {
-                    'buy': response['result'],
-                    'sell': [],
-                };
-            } else if (params['type'] === 'sell') {
-                orderbook = {
-                    'buy': [],
-                    'sell': response['result'],
-                };
-            }
+        if (limit === undefined) {
+            limit = 10;
         }
-        return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
+        const request = {
+            'symbol': this.marketId (symbol),
+            'limit': limit,
+        };
+        const response = await this.marketGetDepth (this.extend (request, params));
+        // https://documenter.getpostman.com/view/6273708/RznBP1Hh#19469d73-45b5-4dd1-8464-c043efb62e00
+        //
+        //     {
+        //         status: 'Success',
+        //         errorMessage: '',
+        //         data: {
+        //             lastUpdate: 1552825727108,
+        //             bids: [
+        //                 [ "0.02880201", "0.05939008", []],
+        //                 [ "0.02880200", "0.30969842", []],
+        //             ],
+        //             'asks': [
+        //                 [ "0.02877161", "0.00001779", []],
+        //                 [ "0.02881321", "0.47325696", []],
+        //             ],
+        //         },
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const timestamp = this.safeInteger (data, 'lastUpdate');
+        return this.parseOrderBook (data, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
