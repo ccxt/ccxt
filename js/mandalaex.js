@@ -57,7 +57,7 @@ module.exports = class mandalaex extends Exchange {
             'api': {
                 'settings': {
                     'get': [
-                        'getCoinInfo',
+                        'getCoinInfo', // this endpoint is documented, but broken: https://zapi.mandalaex.com/api/getCoinInfo TO FIX
                         'GetSettings',
                         'CurrencySettings',
                         'Get_Withdrawal_Limits',
@@ -647,7 +647,7 @@ module.exports = class mandalaex extends Exchange {
         throw new ExchangeError (this.id + ' fetchTrades() returned undefined response');
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         let timestamp = this.parse8601 (ohlcv['T'] + '+00:00');
         return [
             timestamp,
@@ -1175,57 +1175,26 @@ module.exports = class mandalaex extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response) {
-        if (!this.isJsonEncodedObject (body))
+        if (!response) {
             return; // fallback to default error handler
-        if ('success' in response) {
-            //
-            // 1 - Liqui only returns the integer 'success' key from their private API
-            //
-            //     { "success": 1, ... } httpCode === 200
-            //     { "success": 0, ... } httpCode === 200
-            //
-            // 2 - However, exchanges derived from Liqui, can return non-integers
-            //
-            //     It can be a numeric string
-            //     { "sucesss": "1", ... }
-            //     { "sucesss": "0", ... }, httpCode >= 200 (can be 403, 502, etc)
-            //
-            //     Or just a string
-            //     { "success": "true", ... }
-            //     { "success": "false", ... }, httpCode >= 200
-            //
-            //     Or a boolean
-            //     { "success": true, ... }
-            //     { "success": false, ... }, httpCode >= 200
-            //
-            // 3 - Oversimplified, Python PEP8 forbids comparison operator (===) of different types
-            //
-            // 4 - We do not want to copy-paste and duplicate the code of this handler to other exchanges derived from Liqui
-            //
-            // To cover points 1, 2, 3 and 4 combined this handler should work like this:
-            //
-            let success = this.safeValue (response, 'success', false);
-            if (typeof success === 'string') {
-                if ((success === 'true') || (success === '1'))
-                    success = true;
-                else
-                    success = false;
+        }
+        //
+        //     {"status":"Error","errorMessage":"Invalid Market_Currency pair!","data":null}
+        //
+        const status = this.safeString (response, 'status');
+        if (status !== 'Success') {
+            const message = this.safeString (response, 'errorMessage');
+            const feedback = this.id + ' ' + this.json (response);
+            const exact = this.exceptions['exact'];
+            if (message in exact) {
+                throw new exact[message] (feedback);
             }
-            if (!success) {
-                const code = this.safeString (response, 'code');
-                const message = this.safeString (response, 'error');
-                const feedback = this.id + ' ' + this.json (response);
-                const exact = this.exceptions['exact'];
-                if (code in exact) {
-                    throw new exact[code] (feedback);
-                }
-                const broad = this.exceptions['broad'];
-                const broadKey = this.findBroadlyMatchedKey (broad, message);
-                if (broadKey !== undefined) {
-                    throw new broad[broadKey] (feedback);
-                }
-                throw new ExchangeError (feedback); // unknown message
+            const broad = this.exceptions['broad'];
+            const broadKey = this.findBroadlyMatchedKey (broad, message);
+            if (broadKey !== undefined) {
+                throw new broad[broadKey] (feedback);
             }
+            throw new ExchangeError (feedback); // unknown message
         }
     }
 };
