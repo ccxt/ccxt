@@ -200,6 +200,9 @@ module.exports = class mandalaex extends Exchange {
                 'api': {
                     'settings': 'api',
                 },
+                'fetchCurrencies': {
+                    'expires': 1000,
+                },
             },
             'commonCurrencies': {
             },
@@ -214,7 +217,7 @@ module.exports = class mandalaex extends Exchange {
         const expires = this.safeInteger (options, 'expires', 1000);
         const now = this.milliseconds ();
         if ((timestamp === undefined) || ((now - timestamp) > expires)) {
-            const response = await this.publicGetCurrencies (params);
+            const response = await this.settingsGetCurrencySettings (params);
             this.options['fetchCurrencies'] = this.extend (options, {
                 'response': response,
                 'timestamp': timestamp,
@@ -323,7 +326,8 @@ module.exports = class mandalaex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const currencies = await this.fetchCurrenciesFromCache (params);
+        const currenciesResponse = await this.fetchCurrenciesFromCache (params);
+        const currencies = this.safeValue (currenciesResponse, 'data', [])
         const currenciesById = this.indexBy (currencies, 'shortName');
         const response = await this.marketGetGetMarketSummary ();
         //
