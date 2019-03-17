@@ -34,11 +34,10 @@ module.exports = class mandalaex extends Exchange {
                 'withdraw': true,
             },
             'timeframes': {
-                '1m': 'oneMin',
-                '5m': 'fiveMin',
-                '30m': 'thirtyMin',
-                '1h': 'hour',
-                '1d': 'day',
+                '1m': '1',
+                '5m': '5',
+                '1h': '60',
+                '1d': '1440',
             },
             'comment': 'Modulus Exchange API ',
             'hostname': 'mandalaex.com',
@@ -365,7 +364,7 @@ module.exports = class mandalaex extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const market = data[id];
-            const [ quoteId, baseId ] = id.split ('_');
+            const [ quoteId, baseId ] = id.split ('_');  // they have base/quote reversed with some endpoints
             const base = this.commonCurrencyCode (baseId);
             const quote = this.commonCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
@@ -656,6 +655,7 @@ module.exports = class mandalaex extends Exchange {
         const request = {
             'marketId': market['id'],
         };
+        // this endpoint returns last 50 trades
         const response = await this.marketGetGetTradeHistoryMarketId (this.extend (request, params));
         //
         //     {
@@ -699,16 +699,47 @@ module.exports = class mandalaex extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
-            'tickInterval': this.timeframes[timeframe],
-            'marketName': market['id'],
-        };
-        let response = await this.v2GetMarketGetTicks (this.extend (request, params));
-        if ('result' in response) {
-            if (response['result'])
-                return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
+        const market = this.market (symbol);
+        if (limit === undefined) {
+            limit = 100; // default is 100
         }
+        if (since === undefined) {
+            since = this.milliseconds () - this.parseTimeframe (timeframe) * limit * 1000;
+        }
+        const request = {
+            'interval': this.timeframes[timeframe],
+            'baseCurrency': market['baseId'], // they have base/quote reversed with some endpoints
+            'quoteCurrency': market['quoteId'],
+            'limit': limit,
+            'timestamp': since,
+        };
+        const response = await this.marketGetGetChartData (this.extend (request, params));
+        //
+        //     {
+        //         status: 'Success',
+        //         errorMessage: null,
+        //         data: [
+        //             {
+        //                 time: 1552830600000,
+        //                 open: 0.000055,
+        //                 close: 0.000055,
+        //                 high: 0.000055,
+        //                 low: 0.000055,
+        //                 volume: 0,
+        //             },
+        //             {
+        //                 time: 1552830540000,
+        //                 open: 0.000055,
+        //                 close: 0.000055,
+        //                 high: 0.000055,
+        //                 low: 0.000055,
+        //                 volume: 0,
+        //             },
+        //         ],
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
