@@ -173,26 +173,27 @@ module.exports = class mandalaex extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
-                    '804': InvalidOrder, // "Count could not be more than 10000." (buying above maxAmount)
-                    '805': InvalidOrder, // "price could not be less than X." (minPrice violation on buy & sell)
-                    '806': InvalidOrder, // "price could not be more than X." (maxPrice violation on buy & sell)
-                    '807': InvalidOrder, // "cost could not be less than X." (minCost violation on buy & sell)
-                    '831': InsufficientFunds, // "Not enougth X to create buy order." (buying with balance.quote < order.cost)
-                    '832': InsufficientFunds, // "Not enougth X to create sell order." (selling with balance.base < order.amount)
-                    '833': OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
+                    // '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
+                    // '804': InvalidOrder, // "Count could not be more than 10000." (buying above maxAmount)
+                    // '805': InvalidOrder, // "price could not be less than X." (minPrice violation on buy & sell)
+                    // '806': InvalidOrder, // "price could not be more than X." (maxPrice violation on buy & sell)
+                    // '807': InvalidOrder, // "cost could not be less than X." (minCost violation on buy & sell)
+                    // '831': InsufficientFunds, // "Not enougth X to create buy order." (buying with balance.quote < order.cost)
+                    // '832': InsufficientFunds, // "Not enougth X to create sell order." (selling with balance.base < order.amount)
+                    // '833': OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
                 },
                 'broad': {
-                    'Invalid pair name': ExchangeError, // {"success":0,"error":"Invalid pair name: btc_eth"}
-                    'invalid api key': AuthenticationError,
-                    'invalid sign': AuthenticationError,
-                    'api key dont have trade permission': AuthenticationError,
-                    'invalid parameter': InvalidOrder,
-                    'invalid order': InvalidOrder,
-                    'Requests too often': DDoSProtection,
-                    'not available': ExchangeNotAvailable,
-                    'data unavailable': ExchangeNotAvailable,
-                    'external service unavailable': ExchangeNotAvailable,
+                    'Invalid Market_Currency pair': ExchangeError, // {"status":"Error","errorMessage":"Invalid Market_Currency pair!","data":null}
+                    // 'Invalid pair name': ExchangeError, // {"success":0,"error":"Invalid pair name: btc_eth"}
+                    // 'invalid api key': AuthenticationError,
+                    // 'invalid sign': AuthenticationError,
+                    // 'api key dont have trade permission': AuthenticationError,
+                    // 'invalid parameter': InvalidOrder,
+                    // 'invalid order': InvalidOrder,
+                    // 'Requests too often': DDoSProtection,
+                    // 'not available': ExchangeNotAvailable,
+                    // 'data unavailable': ExchangeNotAvailable,
+                    // 'external service unavailable': ExchangeNotAvailable,
                 },
             },
             'options': {
