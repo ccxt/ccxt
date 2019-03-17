@@ -637,15 +637,37 @@ module.exports = class mandalaex extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetMarkethistory (this.extend ({
-            'market': market['id'],
-        }, params));
-        if ('result' in response) {
-            if (response['result'] !== undefined)
-                return this.parseTrades (response['result'], market, since, limit);
-        }
-        throw new ExchangeError (this.id + ' fetchTrades() returned undefined response');
+        const market = this.market (symbol);
+        const request = {
+            'marketId': market['id'],
+        };
+        const response = await this.publicGetMarkethistory (this.extend (request, params));
+        //
+        //     {
+        //         status:   "Success",
+        //         errorMessage:    null,
+        //         data: [
+        //             {
+        //                 TradeID:  619255,
+        //                 Rate:  0.000055,
+        //                 Volume:  79163.63636364,
+        //                 Total:  4.354,
+        //                 Date: "2019-03-16T23:14:48.613",
+        //                 Type: "Buy"
+        //             },
+        //             {
+        //                 TradeID:  619206,
+        //                 Rate:  0.000073,
+        //                 Volume:  7635.50136986,
+        //                 Total:  0.5573916,
+        //                 Date: "2019-02-13T16:49:54.02",
+        //                 Type: "Sell"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseTrades (data, market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
