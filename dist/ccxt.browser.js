@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.372'
+const version = '1.18.373'
 
 Exchange.ccxtVersion = version
 
@@ -6973,6 +6973,7 @@ module.exports = class binance extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'BCC': 'BCC', // kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
                 'YOYO': 'YOYOW',
             },
             // exchange-specific options

@@ -261,6 +261,7 @@ class binance extends Exchange {
                 ),
             ),
             'commonCurrencies' => array (
+                'BCC' => 'BCC', // kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
                 'YOYO' => 'YOYOW',
             ),
             // exchange-specific options
