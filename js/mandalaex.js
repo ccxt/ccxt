@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, AddressPending } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, AddressPending } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -826,32 +826,28 @@ module.exports = class mandalaex extends Exchange {
         const data = this.safeValue (response, 'Data', {});
         const order = this.parseOrder (data, market);
         return this.extend (order, {
+            'symbol': symbol,
             'type': type,
             'price': price,
             'amount': amount,
+            'side': side,
+            'status': 'open',
         });
-        // let orderIdField = this.getOrderIdField ();
-        // let result = {
-        //     'info': response,
-        //     'id': response['result'][orderIdField],
-        //     'symbol': symbol,
-        //     'type': type,
-        //     'side': side,
-        //     'status': 'open',
-        // };
-        // return result;
-    }
-
-    getOrderIdField () {
-        return 'uuid';
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderIdField = this.getOrderIdField ();
-        let request = {};
-        request[orderIdField] = id;
-        let response = await this.marketGetCancel (this.extend (request, params));
+        const side = this.safeString (params, 'side');
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires an order side extra parameter');
+        }
+        const request = {
+            'orderId': id.toString (),
+            'side': side.toUpperCase (),
+        };
+        const response = await this.orderPostCancelMyOrder (this.extend (request, params));
+        console.log (response);
+        process.exit ();
         return this.extend (this.parseOrder (response), {
             'status': 'canceled',
         });
