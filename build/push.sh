@@ -4,16 +4,19 @@ set -e
 
 # ---------------------------------------------------------------------------------
 
-printf "Checking if HEAD hasn't changed on remote...\n"
+echo "Checking if HEAD hasn't changed on remote..."
+echo ""
 
 HEAD_LOCAL=`git rev-parse HEAD`
 HEAD_REMOTE=`git ls-remote --heads origin master | cut -c1-40`
 
-printf "Head (local):  $HEAD_LOCAL"
-printf "Head (remote): $HEAD_REMOTE\n"
+echo "Head (local):  $HEAD_LOCAL"
+echo "Head (remote): $HEAD_REMOTE"
+echo ""
 
-if [ "$HEAD_LOCAL" -ne "$HEAD_REMOTE" ]; then
+if [ "$HEAD_LOCAL" != "$HEAD_REMOTE" ]; then
     echo "HEAD CHANGED, ABORTING BUILD!"
+    echo ""
     exit 1
 fi
 
