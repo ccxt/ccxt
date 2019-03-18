@@ -450,9 +450,12 @@ module.exports = class okex3 extends Exchange {
         let url = this.urls['api'][api] + request;
         // console.log(path, request, url)
         let nonce = this.nonce ().toString ();
-        let timestamp = this.iso8601 (nonce);
+        let timestamp = this.iso8601 (nonce) || '';
         let payloadPath = url.replace (this.urls['www'], '');
-        let payload = timestamp + method + payloadPath;
+        let payload = timestamp + method;
+        if (payloadPath) {
+            payload += payloadPath;
+        }
         if (method === 'GET') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
@@ -462,7 +465,10 @@ module.exports = class okex3 extends Exchange {
             payload += this.json (query);
             body = this.json (query);
         }
-        let signature = this.hmac (payload, this.secret, 'sha256', 'base64');
+        let signature = '';
+        if (payload && this.secret) {
+            signature = this.hmac (payload, this.secret, 'sha256', 'base64');
+        }
         headers = {
             'OK-ACCESS-KEY': this.apiKey,
             'OK-ACCESS-SIGN': this.decode (signature),
