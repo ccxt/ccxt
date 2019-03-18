@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, NotSupported } = require ('./base/errors');
+const { ExchangeNotAvailable, InsufficientFunds, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -68,7 +68,6 @@ module.exports = class okex3 extends Exchange {
                     'post': [
                         'orders',
                         'cancel_orders/{id}',
-
                     ],
                 },
                 'account': {
@@ -130,7 +129,6 @@ module.exports = class okex3 extends Exchange {
                     'max': Math.pow (10, precision['price']),
                 },
             };
-
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -151,7 +149,7 @@ module.exports = class okex3 extends Exchange {
         await this.loadMarkets ();
         let response = await this.accountGetWallet (params);
         let result = { 'info': response };
-        let balances = response
+        let balances = response;
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
             let currencyId = balance['currency'];
@@ -190,9 +188,8 @@ module.exports = class okex3 extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = ticker['timestamp']
-        let last = ticker['last']
-
+        let timestamp = ticker['timestamp'];
+        let last = ticker['last'];
         return {
             'symbol': market['symbol'],
             'timestamp': this.parse8601 (timestamp),
@@ -254,7 +251,6 @@ module.exports = class okex3 extends Exchange {
             'id': market['id'],
         };
         let response = await this.spotGetInstrumentsIdTrades (this.extend (request, params));
-        console.log(response)
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -454,9 +450,8 @@ module.exports = class okex3 extends Exchange {
         let url = this.urls['api'][api] + request;
         // console.log(path, request, url)
         let timestamp = this.iso8601 (this.nonce ().toString ());
-        let payloadPath = url.replace(this.urls['www'], '');
+        let payloadPath = url.replace (this.urls['www'], '');
         let payload = timestamp + method + payloadPath;
-
         if (method === 'GET') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
@@ -466,7 +461,6 @@ module.exports = class okex3 extends Exchange {
             payload += this.json (query);
             body = this.json (query);
         }
-        console.log(payload)
         let signature = this.hmac (payload, this.secret, 'sha256', 'base64');
         headers = {
             'OK-ACCESS-KEY': this.apiKey,
