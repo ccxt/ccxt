@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 # ---------------------------------------------------------------------------------
 
 echo "Checking if HEAD hasn't changed on remote..."
