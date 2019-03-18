@@ -189,6 +189,7 @@ module.exports = class mandalaex extends Exchange {
                     'Invalid Market_Currency pair': ExchangeError, // {"status":"Error","errorMessage":"Invalid Market_Currency pair!","data":null}
                     'Invalid volume parameter': InvalidOrder, // {"Status":"BadRequest","Message":"Invalid volume parameter.","Data":null}
                     'Invalid rate parameter': InvalidOrder, // {"Status":"BadRequest","Message":"Invalid rate parameter.","Data":null}
+                    "Invalid parameter 'side', must be 'BUY' or 'SELL'": InvalidOrder, // {"Status":"BadRequest","Message":"Invalid parameter 'side', must be 'BUY' or 'SELL'.","Data":null}
                     // 'Invalid pair name': ExchangeError, // {"success":0,"error":"Invalid pair name: btc_eth"}
                     // 'invalid api key': AuthenticationError,
                     // 'invalid sign': AuthenticationError,
@@ -789,12 +790,6 @@ module.exports = class mandalaex extends Exchange {
         // rate: rate is the price for Limit order & limit-price for Stop-Limit orders, and for Market orders it is always zero. this value is always in market currency e.g XRP/BTC it's in BTC
         // volume: volumne is the quantity which one is willing to trade at. This value is always in trade currency e.g XRP/BTC it's in XRP
         // stop: stop is the stop-price at which a stop-limit order triggers and become a limit order. stop is always zero for limit and market orders.
-        // HEADERS
-        // Content-Typeapplication/json
-        // AuthorizationBearer dY7bpyYsMuxviZOrakMUS3B38WajFsKrAwJfnI9E6vfYjcdYwjsczLwHJsP1h_eY2ktQKR5M1ZihLoQ9tnI7CJJJGAVtxmPy5dQLcOkIMv_9FMlbw76NaAlbqW8z-jRoOb83e60VaVED9rAoHwSaYSqX18oUnmI8H01v-eH6NO6HiknOurr5Nzzs5cUw-MUFP09D2ZNB_ZXQcjsTEKrO0xopN2hnxjzTYNHO5n73CoZLEHVL0KlcX8EM210T3Tyzgr_vsvyZtsxybQagXSvlCw9NyPMwu_iJv0LWVMDO7Sw
-        // HMAC2FD5BD5E00EBB0C76C78F37F23406DD8469C16B7695515038E256ACBD278166A5E76983D7A6C02021B3523DB2792CA30064E150A4F64ACAE129434ED31A1D07B
-        // if (type !== 'limit')
-        //     throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         const market = this.market (symbol);
         let orderPrice = price;
@@ -828,9 +823,9 @@ module.exports = class mandalaex extends Exchange {
         return this.extend (order, {
             'symbol': symbol,
             'type': type,
+            'side': side,
             'price': price,
             'amount': amount,
-            'side': side,
             'status': 'open',
         });
     }
@@ -841,14 +836,23 @@ module.exports = class mandalaex extends Exchange {
         if (side === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires an order side extra parameter');
         }
+        params = this.omit (params, 'side');
         const request = {
             'orderId': id.toString (),
             'side': side.toUpperCase (),
         };
         const response = await this.orderPostCancelMyOrder (this.extend (request, params));
-        console.log (response);
-        process.exit ();
-        return this.extend (this.parseOrder (response), {
+        //
+        //     {
+        //         Status: 'Success',
+        //         Message: 'Success_General',
+        //         Data: 'Success!'
+        //     }
+        //
+        return this.parseOrder (response, {
+            'id': id,
+            'symbol': symbol,
+            'side': side,
             'status': 'canceled',
         });
     }
