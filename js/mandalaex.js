@@ -797,8 +797,9 @@ module.exports = class mandalaex extends Exchange {
         //     throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         const market = this.market (symbol);
+        let orderPrice = price;
         if (type === 'market') {
-            price = 0;
+            orderPrice = 0;
         }
         const request = {
             'market': market['quoteId'],
@@ -809,22 +810,25 @@ module.exports = class mandalaex extends Exchange {
             // IOC,FOK, DO must be passed only with a LIMIT order.
             // GTC (Good till cancelled), IOC (Immediate or cancel), FOK (Fill or Kill), Do (Day only)
             'timeInForce': 'GTC',
-            'rate': this.priceToPrecision (symbol, price),
+            'rate': this.priceToPrecision (symbol, orderPrice),
             'volume': this.amountToPrecision (symbol, amount),
         };
         const response = await this.orderPostPlaceOrder (this.extend (request, params));
         //
         //     {
-        //         "status": "Success",
-        //         "message": null,
-        //         "data": {
-        //             "orderId": 13143463
-        //         }
+        //         Status: 'Success',
+        //         Message: 'Success!',
+        //         Data: {
+        //             orderId: 20000031,
+        //         },
         //     }
         //
-        const order = this.parseOrder (response, market);
+        const data = this.safeValue (response, 'Data', {});
+        const order = this.parseOrder (data, market);
         return this.extend (order, {
-
+            'type': type,
+            'price': price,
+            'amount': amount,
         });
         // let orderIdField = this.getOrderIdField ();
         // let result = {
