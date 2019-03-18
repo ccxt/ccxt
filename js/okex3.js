@@ -449,7 +449,8 @@ module.exports = class okex3 extends Exchange {
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'][api] + request;
         // console.log(path, request, url)
-        let timestamp = this.iso8601 (this.nonce ().toString ());
+        let nonce = this.nonce ().toString ();
+        let timestamp = this.iso8601 (nonce);
         let payloadPath = url.replace (this.urls['www'], '');
         let payload = timestamp + method + payloadPath;
         if (method === 'GET') {
