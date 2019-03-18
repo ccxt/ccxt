@@ -166,10 +166,9 @@ module.exports = class itbit extends Exchange {
         const price = this.safeFloat2 (trade, 'price', 'rate');
         const amount = this.safeFloat2 (trade, 'currency1Amount', 'amount');
         let cost = undefined;
-
-        console.log('greetings from ccxt : ');
-        console.log(rebatesApplied, '   ', rebateCurrency, '    ', rebateCurrencyId);
-        console.log('feee cost ', feeCost);
+        console.log ('greetings from ccxt : ');
+        console.log (rebatesApplied, '   ', rebateCurrency, '    ', rebateCurrencyId);
+        console.log ('feee cost ', feeCost);
         if (price !== undefined) {
             if (amount !== undefined) {
                 cost = price * amount;
