@@ -416,7 +416,6 @@ module.exports = class mandalaex extends Exchange {
         //         Message: null,
         //         Data: [
         //             { currency: 'BCH', balance: 0, balanceInTrade: 0 },
-        //             { currency: 'BNTY', balance: 0, balanceInTrade: 0 },
         //             { currency: 'BTC', balance: 0, balanceInTrade: 0 },
         //             ...,
         //         ],
