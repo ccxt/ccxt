@@ -774,29 +774,64 @@ module.exports = class mandalaex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type !== 'limit')
-            throw new ExchangeError (this.id + ' allows limit orders only');
+        // POST Place an order (BID/ASK) (STOP LIMIT)
+        // https://zapi.mandalaex.com/api/PlaceOrder
+        // Pushes an order to the Order Books. You can use this endpoint for all nine types of orders.
+        // Order Side: BUY, SELL
+        // Type: MARKET, LIMIT, STOPLIMIT
+        // Market: BTC, ETH, USD
+        // trade: Coin-name, example XRP (Hint: when trading XRP/BTC, Market will be BTC and trade will be XRP)
+        // timeInForce: GTC (Good till cancelled), IOC (Immediate or cancel), FOK (Fill or Kill), Do (Day only), Here GTC should be default for LIMIT, MARKET & STOP LIMIT Orders. IOC,FOK, DO must be passed only with a LIMIT order.
+        // rate: rate is the price for Limit order & limit-price for Stop-Limit orders, and for Market orders it is always zero. this value is always in market currency e.g XRP/BTC it's in BTC
+        // volume: volumne is the quantity which one is willing to trade at. This value is always in trade currency e.g XRP/BTC it's in XRP
+        // stop: stop is the stop-price at which a stop-limit order triggers and become a limit order. stop is always zero for limit and market orders.
+        // HEADERS
+        // Content-Typeapplication/json
+        // AuthorizationBearer dY7bpyYsMuxviZOrakMUS3B38WajFsKrAwJfnI9E6vfYjcdYwjsczLwHJsP1h_eY2ktQKR5M1ZihLoQ9tnI7CJJJGAVtxmPy5dQLcOkIMv_9FMlbw76NaAlbqW8z-jRoOb83e60VaVED9rAoHwSaYSqX18oUnmI8H01v-eH6NO6HiknOurr5Nzzs5cUw-MUFP09D2ZNB_ZXQcjsTEKrO0xopN2hnxjzTYNHO5n73CoZLEHVL0KlcX8EM210T3Tyzgr_vsvyZtsxybQagXSvlCw9NyPMwu_iJv0LWVMDO7Sw
+        // HMAC2FD5BD5E00EBB0C76C78F37F23406DD8469C16B7695515038E256ACBD278166A5E76983D7A6C02021B3523DB2792CA30064E150A4F64ACAE129434ED31A1D07B
+        // if (type !== 'limit')
+        //     throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let method = 'marketGet' + this.capitalize (side) + type;
-        let order = {
-            'market': market['id'],
-            'quantity': this.amountToPrecision (symbol, amount),
+        const market = this.market (symbol);
+        if (type === 'market') {
+            price = 0;
+        }
+        const request = {
+            'market': market['quoteId'],
+            'trade': market['baseId'],
+            'type': type.toUpperCase (),
+            'side': side.toUpperCase (),
+            // Here GTC should be default for LIMIT, MARKET & STOP LIMIT Orders.
+            // IOC,FOK, DO must be passed only with a LIMIT order.
+            // GTC (Good till cancelled), IOC (Immediate or cancel), FOK (Fill or Kill), Do (Day only)
+            'timeInForce': 'GTC',
             'rate': this.priceToPrecision (symbol, price),
+            'volume': this.amountToPrecision (symbol, amount),
         };
-        // if (type == 'limit')
-        //     order['rate'] = this.priceToPrecision (symbol, price);
-        let response = await this[method] (this.extend (order, params));
-        let orderIdField = this.getOrderIdField ();
-        let result = {
-            'info': response,
-            'id': response['result'][orderIdField],
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'status': 'open',
-        };
-        return result;
+        const response = await this.ordersPostPlaceOrder (this.extend (request, params));
+        //
+        //     {
+        //         "status": "Success",
+        //         "message": null,
+        //         "data": {
+        //             "orderId": 13143463
+        //         }
+        //     }
+        //
+        const order = this.parseOrder (response, market);
+        return this.extend (order, {
+
+        });
+        // let orderIdField = this.getOrderIdField ();
+        // let result = {
+        //     'info': response,
+        //     'id': response['result'][orderIdField],
+        //     'symbol': symbol,
+        //     'type': type,
+        //     'side': side,
+        //     'status': 'open',
+        // };
+        // return result;
     }
 
     getOrderIdField () {
