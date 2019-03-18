@@ -166,9 +166,6 @@ module.exports = class itbit extends Exchange {
         const price = this.safeFloat2 (trade, 'price', 'rate');
         const amount = this.safeFloat2 (trade, 'currency1Amount', 'amount');
         let cost = undefined;
-        console.log ('greetings from ccxt : ');
-        console.log ('rebate applied : ', rebatesApplied.toString(), '   ', rebateCurrency, '    ', rebateCurrencyId);
-        console.log ('feee cost ', feeCost);
         if (price !== undefined) {
             if (amount !== undefined) {
                 cost = price * amount;
@@ -206,24 +203,17 @@ module.exports = class itbit extends Exchange {
             'cost': cost,
         };
         if (feeCost !== undefined && rebatesApplied !== undefined) {
-            console.log('inside first if for fees ');
-            console.log('fee currency, rebateCurrency : ', feeCurrency, '    ', rebateCurrency);
             if (feeCurrency === rebateCurrency || rebateCurrency === null) {
-                console.log('inside feecurrenc/rebateCurrency if');
                 if (feeCost !== undefined) {
-                    console.log('feeCost is defined');
                     if (rebatesApplied !== undefined) {
-                        console.log('rebates applied is defined');
                         feeCost = this.sum (feeCost, rebatesApplied);
                     }
                     result['fee'] = {
                         'cost': feeCost,
                         'currency': feeCurrency,
                     };
-                    console.log(result);
                 }
             } else {
-                console.log('in the else');
                 result['fees'] = [
                     {
                         'cost': feeCost,
@@ -235,10 +225,6 @@ module.exports = class itbit extends Exchange {
                     },
                 ];
             }
-        } else {
-            console.log('wft ???? ');
-            console.log(trade);
-        }
         return result;
     }
 
