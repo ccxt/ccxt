@@ -147,10 +147,10 @@ class itbit extends Exchange {
         //         "currency2" => "USD",                      // $quote currency
         //         "currency2Amount" => "0.0250530000000000", // order $cost in $quote currency
         //         "rate" => "250.53000000",
-        //         "commissionPaid" => "0.00000000",   // net $trade $fee paid after using any available rebate balance
+        //         "commissionPaid" => "0.00000000",   // net $trade fee paid after using any available rebate balance
         //         "commissionCurrency" => "USD",
-        //         "rebatesApplied" => "-0.000125265", // negative values represent $amount of rebate balance used for trades removing liquidity from order book; positive values represent $amount of rebate balance earned from trades adding liquidity to order book
-        //         "rebateCurrency" => "USD",
+        //         "$rebatesApplied" => "-0.000125265", // negative values represent $amount of rebate balance used for trades removing liquidity from order book; positive values represent $amount of rebate balance earned from trades adding liquidity to order book
+        //         "$rebateCurrency" => "USD",
         //         "executionId" => "23132"
         //     }
         //
@@ -161,13 +161,9 @@ class itbit extends Exchange {
         $feeCost = $this->safe_float($trade, 'commissionPaid');
         $feeCurrencyId = $this->safe_string($trade, 'commissionCurrency');
         $feeCurrency = $this->common_currency_code($feeCurrencyId);
-        $fee = null;
-        if ($feeCost !== null) {
-            $fee = array (
-                'cost' => $feeCost,
-                'currency' => $feeCurrency,
-            );
-        }
+        $rebatesApplied = $this->safe_float($trade, 'rebatesApplied');
+        $rebateCurrencyId = $this->safe_string($trade, 'rebateCurrency');
+        $rebateCurrency = $this->common_currency_code($rebateCurrencyId);
         $price = $this->safe_float_2($trade, 'price', 'rate');
         $amount = $this->safe_float_2($trade, 'currency1Amount', 'amount');
         $cost = null;
@@ -194,7 +190,7 @@ class itbit extends Exchange {
                 $symbol = $market['symbol'];
             }
         }
-        return array (
+        $result = array (
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -206,8 +202,32 @@ class itbit extends Exchange {
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
-            'fee' => $fee,
         );
+        if ($feeCost !== null && $rebatesApplied !== null) {
+            if ($feeCurrency === $rebateCurrency) {
+                if ($feeCost !== null) {
+                    if ($rebatesApplied !== null) {
+                        $feeCost = $this->sum ($feeCost, $rebatesApplied);
+                    }
+                    $result['fee'] = array (
+                        'cost' => $feeCost,
+                        'currency' => $feeCurrency,
+                    );
+                }
+            } else {
+                $result['fees'] = array (
+                    array (
+                        'cost' => $feeCost,
+                        'currency' => $feeCurrency,
+                    ),
+                    array (
+                        'cost' => $rebatesApplied,
+                        'currency' => $rebateCurrency,
+                    ),
+                );
+            }
+        }
+        return $result;
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
