@@ -85,7 +85,7 @@ module.exports = class braziliex extends Exchange {
             const response = await this.publicGetCurrencies (params);
             this.options['fetchCurrencies'] = this.extend (options, {
                 'response': response,
-                'timestamp': timestamp,
+                'timestamp': now,
             });
         }
         return this.safeValue (this.options['fetchCurrencies'], 'response');
