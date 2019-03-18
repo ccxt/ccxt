@@ -40,10 +40,12 @@ module.exports = class mandalaex extends Exchange {
                 '1d': '1440',
             },
             'comment': 'Modulus Exchange API ',
-            'hostname': 'mandalaex.com',
+            // 'hostname': 'mandalaex.com',
+            'hostname': 'greendonuts.org',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
-                'api': 'https://zapi.{hostname}',
+                // 'api': 'https://zapi.{hostname}',
+                'api': 'https://vbapi.{hostname}',
                 'www': 'https://mandalaex.com',
                 'doc': [
                     'https://documenter.getpostman.com/view/6273708/RznBP1Hh',
@@ -404,28 +406,35 @@ module.exports = class mandalaex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.accountGetBalances (params);
-        let balances = response['result'];
-        let result = { 'info': balances };
-        let indexed = this.indexBy (balances, 'Currency');
-        let keys = Object.keys (indexed);
-        for (let i = 0; i < keys.length; i++) {
-            let id = keys[i];
-            let currency = this.commonCurrencyCode (id);
-            let account = this.account ();
-            let balance = indexed[id];
-            let free = this.safeFloat (balance, 'Available', 0);
-            let total = this.safeFloat (balance, 'Balance', 0);
-            let used = undefined;
-            if (total !== undefined) {
-                if (free !== undefined) {
-                    used = total - free;
-                }
-            }
+        const request = {
+            'currency': 'ALL',
+        };
+        const response = await this.orderPostGetBalance (this.extend (request, params));
+        //
+        //     {
+        //         Status: 'Success',
+        //         Message: null,
+        //         Data: [
+        //             { currency: 'BCH', balance: 0, balanceInTrade: 0 },
+        //             { currency: 'BNTY', balance: 0, balanceInTrade: 0 },
+        //             { currency: 'BTC', balance: 0, balanceInTrade: 0 },
+        //             ...,
+        //         ],
+        //     }
+        //
+        const data = this.safeValue (response, 'Data');
+        const result = { 'info': response };
+        for (let i = 0; i < data.length; i++) {
+            const balance = data[i];
+            const code = this.commonCurrencyCode (this.safeString (balance, 'currency'));
+            const account = this.account ();
+            const free = this.safeFloat (balance, 'balance', 0);
+            const used = this.safeFloat (balance, 'balanceInTrade', 0);
+            const total = this.sum (free, used);
             account['free'] = free;
             account['used'] = used;
             account['total'] = total;
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -1228,7 +1237,7 @@ module.exports = class mandalaex extends Exchange {
         });
         url += '/' + this.safeString (this.options['api'], api, api);
         url += '/' + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
+        let query = this.omit (params, this.extractParams (path));
         // const isPublic = this.safeValue (this.options['api'], api, true);
         if (api === 'market' || api === 'settings') {
             if (Object.keys (query).length) {
@@ -1236,19 +1245,17 @@ module.exports = class mandalaex extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            url += api + '/';
-            if (((api === 'account') && (path !== 'withdraw')) || (path === 'openorders'))
-                url += method.toLowerCase ();
-            const request = {
-                'apikey': this.apiKey,
+            query = this.keysort (this.extend ({
+                'timestamp': this.seconds (),
+            }, query));
+            body = this.json (query);
+            const auth = this.urlencode (query);
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
+            headers = {
+                'Content-Type': 'application/json',
+                'publicKey': this.apiKey,
+                'HMAC': this.decode (signature),
             };
-            const disableNonce = this.safeValue (this.options, 'disableNonce');
-            if ((disableNonce === undefined) || !disableNonce) {
-                request['nonce'] = this.nonce ();
-            }
-            url += path + '?' + this.urlencode (this.extend (request, params));
-            let signature = this.hmac (this.encode (url), this.encode (this.secret), 'sha512');
-            headers = { 'apisign': signature };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -1260,7 +1267,7 @@ module.exports = class mandalaex extends Exchange {
         //
         //     {"status":"Error","errorMessage":"Invalid Market_Currency pair!","data":null}
         //
-        const status = this.safeString (response, 'status');
+        const status = this.safeString2 (response, 'status', 'Status');
         if (status !== 'Success') {
             const message = this.safeString (response, 'errorMessage');
             const feedback = this.id + ' ' + this.json (response);
