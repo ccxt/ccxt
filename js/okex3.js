@@ -120,8 +120,8 @@ module.exports = class okex3 extends Exchange {
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             let precision = {
-                'price': market['tick_size'],
-                'amount': market['size_increment'],
+                'price': this.safeFloat (market, 'tick_size'),
+                'amount': this.safeFloat (market, 'size_increment'),
             };
             let limits = {
                 'price': {
