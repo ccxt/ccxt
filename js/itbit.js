@@ -167,7 +167,7 @@ module.exports = class itbit extends Exchange {
         const amount = this.safeFloat2 (trade, 'currency1Amount', 'amount');
         let cost = undefined;
         console.log ('greetings from ccxt : ');
-        console.log (rebatesApplied, '   ', rebateCurrency, '    ', rebateCurrencyId);
+        console.log ('rebate applied : ', rebatesApplied.toString(), '   ', rebateCurrency, '    ', rebateCurrencyId);
         console.log ('feee cost ', feeCost);
         if (price !== undefined) {
             if (amount !== undefined) {
@@ -205,7 +205,7 @@ module.exports = class itbit extends Exchange {
             'amount': amount,
             'cost': cost,
         };
-        if (feeCost !== undefined && (rebatesApplied !== undefined && rebatesApplied !== 0.0)) {
+        if (feeCost !== undefined && rebatesApplied !== undefined) {
             console.log('inside first if for fees ');
             console.log('fee currency, rebateCurrency : ', feeCurrency, '    ', rebateCurrency);
             if (feeCurrency === rebateCurrency || rebateCurrency === null) {
@@ -235,6 +235,9 @@ module.exports = class itbit extends Exchange {
                     },
                 ];
             }
+        } else {
+            console.log('wft ???? ');
+            console.log(trade);
         }
         return result;
     }
