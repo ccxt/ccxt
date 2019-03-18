@@ -12,6 +12,11 @@ HEAD_REMOTE=`git ls-remote --heads origin master | cut -c1-40`
 printf "Head (local):  $HEAD_LOCAL"
 printf "Head (remote): $HEAD_REMOTE\n"
 
+if [ "$HEAD_LOCAL" -ne "$HEAD_REMOTE" ]; then
+    echo "HEAD CHANGED, ABORTING BUILD!"
+    exit 1
+fi
+
 # ---------------------------------------------------------------------------------
 
 echo "Pushing generated files back to GitHub..."
