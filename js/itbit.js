@@ -157,16 +157,12 @@ module.exports = class itbit extends Exchange {
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const side = this.safeString (trade, 'direction');
         const orderId = this.safeString (trade, 'orderId');
-        const feeCost = this.safeFloat (trade, 'commissionPaid');
+        let feeCost = this.safeFloat (trade, 'commissionPaid');
         const feeCurrencyId = this.safeString (trade, 'commissionCurrency');
         const feeCurrency = this.commonCurrencyCode (feeCurrencyId);
-        let fee = undefined;
-        if (feeCost !== undefined) {
-            fee = {
-                'cost': feeCost,
-                'currency': feeCurrency,
-            };
-        }
+        const rebatesApplied = this.safeFloat (trade, 'rebatesApplied');
+        const rebateCurrencyId = this.safeString (trade, 'rebateCurrency');
+        const rebateCurrency = this.commonCurrencyCode (rebateCurrencyId);
         const price = this.safeFloat2 (trade, 'price', 'rate');
         const amount = this.safeFloat2 (trade, 'currency1Amount', 'amount');
         let cost = undefined;
@@ -193,7 +189,7 @@ module.exports = class itbit extends Exchange {
                 symbol = market['symbol'];
             }
         }
-        return {
+        const result = {
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -205,16 +201,40 @@ module.exports = class itbit extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': fee,
         };
+        if (feeCost !== undefined && rebatesApplied !== undefined) {
+            if (feeCurrency === rebateCurrency) {
+                if (feeCost !== undefined) {
+                    if (rebatesApplied !== undefined) {
+                        feeCost = this.sum (feeCost, rebatesApplied);
+                    }
+                    result['fee'] = {
+                        'cost': feeCost,
+                        'currency': feeCurrency,
+                    };
+                }
+            } else {
+                result['fees'] = [
+                    {
+                        'cost': feeCost,
+                        'currency': feeCurrency,
+                    },
+                    {
+                        'cost': rebatesApplied,
+                        'currency': rebateCurrency,
+                    },
+                ];
+            }
+        }
+        return result;
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const walletId = this.safeString (params, 'walletId');
-        if (walletId === undefined) {
-            throw new ExchangeError (this.id + ' fetchMyTrades requires a walletId parameter');
-        }
+        // if (walletId === undefined) {
+        //     throw new ExchangeError (this.id + ' fetchMyTrades requires a walletId parameter');
+        // }
         await this.loadMarkets ();
         const request = {
             'walletId': walletId,
@@ -225,32 +245,33 @@ module.exports = class itbit extends Exchange {
         if (limit !== undefined) {
             request['perPage'] = limit; // default 50, max 50
         }
-        const response = await this.privateGetWalletsWalletIdTrades (this.extend (request, params));
+        // const response = await this.privateGetWalletsWalletIdTrades (this.extend (request, params));
+        const response =
         //
-        //     {
-        //         "totalNumberOfRecords": "2",
-        //         "currentPageNumber": "1",
-        //         "latestExecutionId": "332", // most recent execution at time of response
-        //         "recordsPerPage": "50",
-        //         "tradingHistory": [
-        //             {
-        //                 "orderId": "248ffda4-83a0-4033-a5bb-8929d523f59f",
-        //                 "timestamp": "2015-05-11T14:48:01.9870000Z",
-        //                 "instrument": "XBTUSD",
-        //                 "direction": "buy",                      // buy or sell
-        //                 "currency1": "XBT",                      // base currency
-        //                 "currency1Amount": "0.00010000",         // order amount in base currency
-        //                 "currency2": "USD",                      // quote currency
-        //                 "currency2Amount": "0.0250530000000000", // order cost in quote currency
-        //                 "rate": "250.53000000",
-        //                 "commissionPaid": "0.00000000",   // net trade fee paid after using any available rebate balance
-        //                 "commissionCurrency": "USD",
-        //                 "rebatesApplied": "-0.000125265", // negative values represent amount of rebate balance used for trades removing liquidity from order book; positive values represent amount of rebate balance earned from trades adding liquidity to order book
-        //                 "rebateCurrency": "USD",
-        //                 "executionId": "23132"
-        //             },
-        //         ],
-        //     }
+            {
+                "totalNumberOfRecords": "2",
+                "currentPageNumber": "1",
+                "latestExecutionId": "332", // most recent execution at time of response
+                "recordsPerPage": "50",
+                "tradingHistory": [
+                    {
+                        "orderId": "248ffda4-83a0-4033-a5bb-8929d523f59f",
+                        "timestamp": "2015-05-11T14:48:01.9870000Z",
+                        "instrument": "XBTUSD",
+                        "direction": "buy",                      // buy or sell
+                        "currency1": "XBT",                      // base currency
+                        "currency1Amount": "0.00010000",         // order amount in base currency
+                        "currency2": "USD",                      // quote currency
+                        "currency2Amount": "0.0250530000000000", // order cost in quote currency
+                        "rate": "250.53000000",
+                        "commissionPaid": "0.00000000",   // net trade fee paid after using any available rebate balance
+                        "commissionCurrency": "USD",
+                        "rebatesApplied": "-0.000125265", // negative values represent amount of rebate balance used for trades removing liquidity from order book; positive values represent amount of rebate balance earned from trades adding liquidity to order book
+                        "rebateCurrency": "USD",
+                        "executionId": "23132"
+                    },
+                ],
+            }
         //
         const trades = this.safeValue (response, 'tradingHistory', []);
         let market = undefined;
