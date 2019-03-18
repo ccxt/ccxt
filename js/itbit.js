@@ -225,6 +225,7 @@ module.exports = class itbit extends Exchange {
                     },
                 ];
             }
+        }
         return result;
     }
 
