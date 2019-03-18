@@ -160,7 +160,7 @@ module.exports = class itbit extends Exchange {
         let feeCost = this.safeFloat (trade, 'commissionPaid');
         const feeCurrencyId = this.safeString (trade, 'commissionCurrency');
         const feeCurrency = this.commonCurrencyCode (feeCurrencyId);
-        const rebatesApplied = this.safeFloat (trade, 'rebatesApplied');
+        const rebatesApplied = -(this.safeFloat (trade, 'rebatesApplied'));
         const rebateCurrencyId = this.safeString (trade, 'rebateCurrency');
         const rebateCurrency = this.commonCurrencyCode (rebateCurrencyId);
         const price = this.safeFloat2 (trade, 'price', 'rate');
@@ -202,8 +202,8 @@ module.exports = class itbit extends Exchange {
             'amount': amount,
             'cost': cost,
         };
-        if (feeCost !== undefined && rebatesApplied !== undefined) {
-            if (feeCurrency === rebateCurrency) {
+        if (feeCost !== undefined && (rebatesApplied !== undefined && rebatesApplied !== 0.0)) {
+            if (feeCurrency === rebateCurrency || rebateCurrency === null) {
                 if (feeCost !== undefined) {
                     if (rebatesApplied !== undefined) {
                         feeCost = this.sum (feeCost, rebatesApplied);
