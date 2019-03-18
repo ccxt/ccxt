@@ -120,7 +120,7 @@ module.exports = class counter extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderBook = await this.publicGetOrderbook (this.extend ({
-            'symbol': symbol
+            'symbol': symbol,
         }, params));
         let bids = [];
         let asks = [];
