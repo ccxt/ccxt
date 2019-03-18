@@ -174,6 +174,8 @@ module.exports = class mandalaex extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    'Failure_General': ExchangeError, // {"Status":"Error","Message":"Failure_General","Data":"Cannot roll back TransBuyOrder. No transaction or savepoint of that name was found."}
+                    'Exception_Insufficient_Funds': InsufficientFunds, // {"Status":"Error","Message":"Exception_Insufficient_Funds","Data":"Insufficient Funds."}
                     // '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
                     // '804': InvalidOrder, // "Count could not be more than 10000." (buying above maxAmount)
                     // '805': InvalidOrder, // "price could not be less than X." (minPrice violation on buy & sell)
@@ -185,6 +187,8 @@ module.exports = class mandalaex extends Exchange {
                 },
                 'broad': {
                     'Invalid Market_Currency pair': ExchangeError, // {"status":"Error","errorMessage":"Invalid Market_Currency pair!","data":null}
+                    'Invalid volume parameter': InvalidOrder, // {"Status":"BadRequest","Message":"Invalid volume parameter.","Data":null}
+                    'Invalid rate parameter': InvalidOrder, // {"Status":"BadRequest","Message":"Invalid rate parameter.","Data":null}
                     // 'Invalid pair name': ExchangeError, // {"success":0,"error":"Invalid pair name: btc_eth"}
                     // 'invalid api key': AuthenticationError,
                     // 'invalid sign': AuthenticationError,
@@ -808,7 +812,7 @@ module.exports = class mandalaex extends Exchange {
             'rate': this.priceToPrecision (symbol, price),
             'volume': this.amountToPrecision (symbol, amount),
         };
-        const response = await this.ordersPostPlaceOrder (this.extend (request, params));
+        const response = await this.orderPostPlaceOrder (this.extend (request, params));
         //
         //     {
         //         "status": "Success",
@@ -1303,7 +1307,7 @@ module.exports = class mandalaex extends Exchange {
         //
         const status = this.safeString2 (response, 'status', 'Status');
         if (status !== 'Success') {
-            const message = this.safeString (response, 'errorMessage');
+            const message = this.safeString2 (response, 'errorMessage', 'Message');
             const feedback = this.id + ' ' + this.json (response);
             const exact = this.exceptions['exact'];
             if (message in exact) {
