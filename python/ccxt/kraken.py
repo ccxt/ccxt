@@ -43,6 +43,7 @@ class kraken (Exchange):
             'has': {
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
+                'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'CORS': False,
                 'fetchCurrencies': True,
@@ -533,7 +534,7 @@ class kraken (Exchange):
             'interval': self.timeframes[timeframe],
         }
         if since is not None:
-            request['since'] = int(since / 1000)
+            request['since'] = int((since - 1) / 1000)
         response = self.publicGetOHLC(self.extend(request, params))
         ohlcvs = response['result'][market['id']]
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)

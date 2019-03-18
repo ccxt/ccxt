@@ -1,4 +1,11 @@
-/*  Preambule:
+/*
+    Usage:
+
+        npm run git-ignore-generated-files
+        npm run git-unignore-generated-files
+
+
+    Preambule:
 
         1.  Our build scripts generate a lot of files (e.g. Python and PHP code for exchanges)
         2.  We want them to be ignored from the manual commits.
@@ -17,14 +24,15 @@
 
 */
 
+
 "use strict"
 
 const { execSync } = require ('child_process')
 const log          = require ('ololog')
 
-const files = [
+let files = [
 
-    'build/ccxt.browser.js',
+    'dist/ccxt.browser.js',
 
     'python/test/test_decimal_to_precision.py',
     'php/test/decimal_to_precision.php',
@@ -45,11 +53,24 @@ const files = [
     // NB: Add more generated files here
 ]
 
-for (const id of require ('./exchanges.json').ids) {
+for (const id of require ('../exchanges.json').ids) {
 
     files.push (`python/ccxt/${id}.py`)
     files.push (`python/ccxt/async_support/${id}.py`)
     files.push (`php/${id}.php`)
+}
+
+// Filter untracked files (otherwise "git update-index" would fail)
+try {
+    const untrackedFiles = new Set (execSync ('git ls-files --others --exclude-standard').toString ().split ('\n').filter (s => s.length))
+    files = files.filter (f => !untrackedFiles.has (f))
+
+} catch (e) {
+    
+    // There is a legit case when we're not in a git repo (happens on AppVeyor)
+    if (!e.message.toLowerCase ().includes ('not a git repository')) {
+        log.bright.red (e)
+    }
 }
 
 if (process.argv.includes ('--unignore')) {
@@ -77,7 +98,12 @@ function gitUpdateIndex (command, allFiles) {
     } catch (e) {
 
         // There is a legit case when we're not in a git repo (happens on AppVeyor)
-        if (!e.message.toLowerCase ().includes ('not a git repository')) throw e
+        if (!e.message.toLowerCase ().includes ('not a git repository')) {
+
+            // do not fail here, as it is not a critical step in the build process (better to let it complete the build)...
+            log.red (e.message)
+            log.bright.yellow.warn (e)
+        }
     }
 }
 

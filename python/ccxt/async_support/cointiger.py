@@ -705,8 +705,14 @@ class cointiger (huobipro):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
-        if not self.password:
-            raise AuthenticationError(self.id + ' createOrder requires exchange.password to be set to user trading password(not login passwordnot )')
+        #
+        # obsolete since v2
+        # https://github.com/ccxt/ccxt/issues/4815
+        #
+        #     if not self.password:
+        #         raise AuthenticationError(self.id + ' createOrder requires exchange.password to be set to user trading password(not login passwordnot )')
+        #     }
+        #
         self.check_required_credentials()
         market = self.market(symbol)
         orderType = 1 if (type == 'limit') else 2
@@ -715,7 +721,7 @@ class cointiger (huobipro):
             'side': side.upper(),
             'type': orderType,
             'volume': self.amount_to_precision(symbol, amount),
-            'capital_password': self.password,
+            # 'capital_password': self.password,  # obsolete since v2, https://github.com/ccxt/ccxt/issues/4815
         }
         if (type == 'market') and(side == 'buy'):
             if price is None:
@@ -728,14 +734,20 @@ class cointiger (huobipro):
                 order['price'] = self.price_to_precision(symbol, 0)
             else:
                 order['price'] = self.price_to_precision(symbol, price)
-        response = await self.privatePostOrder(self.extend(order, params))
+        response = await self.v2PostOrder(self.extend(order, params))
         #
-        #     {"order_id":34343}
+        #     {
+        #         "code": "0",
+        #         "msg": "suc",
+        #         "data": {
+        #             "order_id": 481
+        #         }
+        #     }
         #
         timestamp = self.milliseconds()
         return {
             'info': response,
-            'id': str(response['data']['order_id']),
+            'id': self.safe_string(response['data'], 'order_id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,

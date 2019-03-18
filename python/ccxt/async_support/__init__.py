@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.293'
+__version__ = '1.18.373'
 
 # -----------------------------------------------------------------------------
 
@@ -119,11 +119,11 @@ from ccxt.async_support.ethfinex import ethfinex                          # noqa
 from ccxt.async_support.exmo import exmo                                  # noqa: F401
 from ccxt.async_support.exx import exx                                    # noqa: F401
 from ccxt.async_support.fcoin import fcoin                                # noqa: F401
+from ccxt.async_support.fcoinjp import fcoinjp                            # noqa: F401
 from ccxt.async_support.flowbtc import flowbtc                            # noqa: F401
 from ccxt.async_support.foxbit import foxbit                              # noqa: F401
 from ccxt.async_support.fybse import fybse                                # noqa: F401
 from ccxt.async_support.fybsg import fybsg                                # noqa: F401
-from ccxt.async_support.gatecoin import gatecoin                          # noqa: F401
 from ccxt.async_support.gateio import gateio                              # noqa: F401
 from ccxt.async_support.gdax import gdax                                  # noqa: F401
 from ccxt.async_support.gemini import gemini                              # noqa: F401
@@ -254,11 +254,11 @@ exchanges = [
     'exmo',
     'exx',
     'fcoin',
+    'fcoinjp',
     'flowbtc',
     'foxbit',
     'fybse',
     'fybsg',
-    'gatecoin',
     'gateio',
     'gdax',
     'gemini',

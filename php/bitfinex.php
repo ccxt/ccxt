@@ -24,6 +24,7 @@ class bitfinex extends Exchange {
                 'deposit' => true,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
+                'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchFundingFees' => true,
                 'fetchMyTrades' => true,
@@ -55,7 +56,7 @@ class bitfinex extends Exchange {
                 'api' => 'https://api.bitfinex.com',
                 'www' => 'https://www.bitfinex.com',
                 'doc' => array (
-                    'https://bitfinex.readme.io/v1/docs',
+                    'https://docs.bitfinex.com/v1/docs',
                     'https://github.com/bitfinexcom/bitfinex-api-node',
                 ),
             ),
@@ -275,6 +276,7 @@ class bitfinex extends Exchange {
                 'SPK' => 'SPANK',
                 'STJ' => 'STORJ',
                 'YYW' => 'YOYOW',
+                'UST' => 'USDT',
                 'UTN' => 'UTNP',
             ),
             'exceptions' => array (
@@ -369,6 +371,10 @@ class bitfinex extends Exchange {
                     'ZRX' => 'zrx',
                     'XTZ' => 'tezos',
                 ),
+                'orderTypes' => array (
+                    'limit' => 'exchange limit',
+                    'market' => 'exchange market',
+                ),
             ),
         ));
     }
@@ -398,6 +404,28 @@ class bitfinex extends Exchange {
     public function fetch_trading_fees ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostSummary ($params);
+        //
+        //     {
+        //         time => '2019-02-20T15:50:19.152000Z',
+        //         trade_vol_30d => array (
+        //             {
+        //                 curr => 'Total (USD)',
+        //                 vol => 0,
+        //                 vol_maker => 0,
+        //                 vol_BFX => 0,
+        //                 vol_BFX_maker => 0,
+        //                 vol_ETHFX => 0,
+        //                 vol_ETHFX_maker => 0
+        //             }
+        //         ),
+        //         fees_funding_30d => array (),
+        //         fees_funding_total_30d => 0,
+        //         fees_trading_30d => array (),
+        //         fees_trading_total_30d => 0,
+        //         maker_fee => 0.001,
+        //         taker_fee => 0.002
+        //     }
+        //
         return array (
             'info' => $response,
             'maker' => $this->safe_float($response, 'maker_fee'),
@@ -631,15 +659,11 @@ class bitfinex extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $orderType = $type;
-        if (($type === 'limit') || ($type === 'market'))
-            $orderType = 'exchange ' . $type;
-        $amount = $this->amount_to_precision($symbol, $amount);
         $order = array (
             'symbol' => $this->market_id($symbol),
-            'amount' => $amount,
             'side' => $side,
-            'type' => $orderType,
+            'amount' => $this->amount_to_precision($symbol, $amount),
+            'type' => $this->safe_string($this->options['orderTypes'], $type, $type),
             'ocoorder' => false,
             'buy_price_oco' => 0,
             'sell_price_oco' => 0,
@@ -653,9 +677,37 @@ class bitfinex extends Exchange {
         return $this->parse_order($result);
     }
 
+    public function edit_order ($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+        $this->load_markets();
+        $order = array (
+            'order_id' => $id,
+        );
+        if ($price !== null) {
+            $order['price'] = $this->price_to_precision($symbol, $price);
+        }
+        if ($amount !== null) {
+            $order['amount'] = $this->amount_to_precision($symbol, $amount);
+        }
+        if ($symbol !== null) {
+            $order['symbol'] = $this->market_id($symbol);
+        }
+        if ($side !== null) {
+            $order['side'] = $side;
+        }
+        if ($type !== null) {
+            $order['type'] = $this->safe_string($this->options['orderTypes'], $type, $type);
+        }
+        $result = $this->privatePostOrderCancelReplace (array_merge ($order, $params));
+        return $this->parse_order($result);
+    }
+
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         return $this->privatePostOrderCancel (array ( 'order_id' => intval ($id) ));
+    }
+
+    public function cancel_all_orders ($params = array ()) {
+        return $this->privatePostOrderCancelAll ($params);
     }
 
     public function parse_order ($order, $market = null) {

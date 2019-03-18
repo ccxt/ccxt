@@ -14,7 +14,7 @@ const asTable   = require ('as-table')
     , ansi      = require ('ansicolor').nice
     , fs        = require ('fs')
     , ccxt      = require ('../../ccxt.js')
-    , countries = require ('../../countries.js')
+    , countries = require ('../../build/countries.js')
     , chai      = require ('chai')
     , expect    = chai.expect
     , assert    = chai.assert
@@ -146,6 +146,7 @@ let loadExchange = async exchange => {
     let symbols = [
         'BTC/CNY',
         'BTC/USD',
+        'BTC/USDT',
         'BTC/EUR',
         'BTC/ETH',
         'ETH/BTC',
@@ -185,6 +186,7 @@ let testExchange = async exchange => {
     let symbol = exchange.symbols[0]
     let symbols = [
         'BTC/USD',
+        'BTC/USDT',
         'BTC/CNY',
         'BTC/EUR',
         'BTC/ETH',

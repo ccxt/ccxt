@@ -48,6 +48,7 @@ class poloniex (Exchange):
                 'fetchOrderStatus': 'emulated',  # no endpoint for status of a single open-or-closed order(just for open orders only)
                 'fetchOrderTrades': True,  # True endpoint for trades of a single open or closed order
                 'fetchTickers': True,
+                'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': 'emulated',  # but almost True )
@@ -127,7 +128,7 @@ class poloniex (Exchange):
             },
             'limits': {
                 'amount': {
-                    'min': 0.00000001,
+                    'min': 0.000001,
                     'max': 1000000000,
                 },
                 'price': {
@@ -249,11 +250,11 @@ class poloniex (Exchange):
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
-            minCost = self.safe_float(self.options['limits']['cost']['min'], quote, 0.0)
-            precision = {
-                'amount': 6,
-                'price': 8,
-            }
+            limits = self.extend(self.limits, {
+                'cost': {
+                    'min': self.safe_value(self.options['limits']['cost']['min'], quote),
+                },
+            })
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -262,21 +263,7 @@ class poloniex (Exchange):
                 'base': base,
                 'quote': quote,
                 'active': market['isFrozen'] != '1',
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': math.pow(10, -precision['amount']),
-                        'max': None,
-                    },
-                    'price': {
-                        'min': math.pow(10, -precision['price']),
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': minCost,
-                        'max': None,
-                    },
-                },
+                'limits': limits,
                 'info': market,
             }))
         return result

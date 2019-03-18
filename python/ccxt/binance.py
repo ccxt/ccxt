@@ -10,6 +10,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
@@ -24,7 +25,7 @@ class binance (Exchange):
         return self.deep_extend(super(binance, self).describe(), {
             'id': 'binance',
             'name': 'Binance',
-            'countries': ['JP'],  # Japan
+            'countries': ['JP', 'MT'],  # Japan, Malta
             'rateLimit': 500,
             'certified': True,
             # new metainfo interface
@@ -87,6 +88,7 @@ class binance (Exchange):
                 'wapi': {
                     'post': [
                         'withdraw',
+                        'sub-account/transfer',
                     ],
                     'get': [
                         'depositHistory',
@@ -94,9 +96,13 @@ class binance (Exchange):
                         'depositAddress',
                         'accountStatus',
                         'systemStatus',
+                        'apiTradingStatus',
                         'userAssetDribbletLog',
                         'tradeFee',
                         'assetDetail',
+                        'sub-account/list',
+                        'sub-account/transfer/history',
+                        'sub-account/assets',
                     ],
                 },
                 'v3': {
@@ -267,6 +273,7 @@ class binance (Exchange):
                 },
             },
             'commonCurrencies': {
+                'BCC': 'BCC',  # kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
                 'YOYO': 'YOYOW',
             },
             # exchange-specific options
@@ -1065,16 +1072,18 @@ class binance (Exchange):
         response = self.wapiGetDepositAddress(self.extend({
             'asset': currency['id'],
         }, params))
-        if 'success' in response:
-            if response['success']:
-                address = self.safe_string(response, 'address')
-                tag = self.safe_string(response, 'addressTag')
-                return {
-                    'currency': code,
-                    'address': self.check_address(address),
-                    'tag': tag,
-                    'info': response,
-                }
+        success = self.safe_value(response, 'success')
+        if success is None or not success:
+            raise InvalidAddress(self.id + ' fetchDepositAddress returned an empty response – create the deposit address in the user settings first.')
+        address = self.safe_string(response, 'address')
+        tag = self.safe_string(response, 'addressTag')
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': self.check_address(address),
+            'tag': tag,
+            'info': response,
+        }
 
     def fetch_funding_fees(self, codes=None, params={}):
         response = self.wapiGetAssetDetail()

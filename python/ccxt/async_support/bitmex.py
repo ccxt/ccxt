@@ -34,6 +34,7 @@ class bitmex (Exchange):
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchMyTrades': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -152,7 +153,9 @@ class bitmex (Exchange):
                 },
             },
             'options': {
-                'api-expires': None,
+                # https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
+                # https://github.com/ccxt/ccxt/issues/4789
+                'api-expires': 5,  # in seconds
             },
         })
 
@@ -320,6 +323,79 @@ class bitmex (Exchange):
         # Bitmex barfs if you set 'open': False in the filter...
         orders = await self.fetch_orders(symbol, since, limit, params)
         return self.filter_by(orders, 'status', 'closed')
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = None
+        request = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if since is not None:
+            request['startTime'] = self.iso8601(since)
+        if limit is not None:
+            request['count'] = limit
+        request = self.deep_extend(request, params)
+        # why the hassle? urlencode in python is kinda broken for nested dicts.
+        # E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
+        # Bitmex doesn't like that. Hence resorting to self hack.
+        if 'filter' in request:
+            request['filter'] = self.json(request['filter'])
+        response = await self.privateGetExecutionTradeHistory(request)
+        #
+        #     [
+        #         {
+        #             "execID": "string",
+        #             "orderID": "string",
+        #             "clOrdID": "string",
+        #             "clOrdLinkID": "string",
+        #             "account": 0,
+        #             "symbol": "string",
+        #             "side": "string",
+        #             "lastQty": 0,
+        #             "lastPx": 0,
+        #             "underlyingLastPx": 0,
+        #             "lastMkt": "string",
+        #             "lastLiquidityInd": "string",
+        #             "simpleOrderQty": 0,
+        #             "orderQty": 0,
+        #             "price": 0,
+        #             "displayQty": 0,
+        #             "stopPx": 0,
+        #             "pegOffsetValue": 0,
+        #             "pegPriceType": "string",
+        #             "currency": "string",
+        #             "settlCurrency": "string",
+        #             "execType": "string",
+        #             "ordType": "string",
+        #             "timeInForce": "string",
+        #             "execInst": "string",
+        #             "contingencyType": "string",
+        #             "exDestination": "string",
+        #             "ordStatus": "string",
+        #             "triggered": "string",
+        #             "workingIndicator": True,
+        #             "ordRejReason": "string",
+        #             "simpleLeavesQty": 0,
+        #             "leavesQty": 0,
+        #             "simpleCumQty": 0,
+        #             "cumQty": 0,
+        #             "avgPx": 0,
+        #             "commission": 0,
+        #             "tradePublishIndicator": "string",
+        #             "multiLegReportingType": "string",
+        #             "text": "string",
+        #             "trdMatchID": "string",
+        #             "execCost": 0,
+        #             "execComm": 0,
+        #             "homeNotional": 0,
+        #             "foreignNotional": 0,
+        #             "transactTime": "2019-03-05T12:47:02.762Z",
+        #             "timestamp": "2019-03-05T12:47:02.762Z"
+        #         }
+        #     ]
+        #
+        return self.parse_trades(response, market, since, limit)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -527,24 +603,122 @@ class bitmex (Exchange):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.parse8601(trade['timestamp'])
+        #
+        # fetchTrades(public)
+        #
+        #     {
+        #         timestamp: '2018-08-28T00:00:02.735Z',
+        #         symbol: 'XBTUSD',
+        #         side: 'Buy',
+        #         size: 2000,
+        #         price: 6906.5,
+        #         tickDirection: 'PlusTick',
+        #         trdMatchID: 'b9a42432-0a46-6a2f-5ecc-c32e9ca4baf8',
+        #         grossValue: 28958000,
+        #         homeNotional: 0.28958,
+        #         foreignNotional: 2000
+        #     }
+        #
+        # fetchMyTrades(private)
+        #
+        #     {
+        #         "execID": "string",
+        #         "orderID": "string",
+        #         "clOrdID": "string",
+        #         "clOrdLinkID": "string",
+        #         "account": 0,
+        #         "symbol": "string",
+        #         "side": "string",
+        #         "lastQty": 0,
+        #         "lastPx": 0,
+        #         "underlyingLastPx": 0,
+        #         "lastMkt": "string",
+        #         "lastLiquidityInd": "string",
+        #         "simpleOrderQty": 0,
+        #         "orderQty": 0,
+        #         "price": 0,
+        #         "displayQty": 0,
+        #         "stopPx": 0,
+        #         "pegOffsetValue": 0,
+        #         "pegPriceType": "string",
+        #         "currency": "string",
+        #         "settlCurrency": "string",
+        #         "execType": "string",
+        #         "ordType": "string",
+        #         "timeInForce": "string",
+        #         "execInst": "string",
+        #         "contingencyType": "string",
+        #         "exDestination": "string",
+        #         "ordStatus": "string",
+        #         "triggered": "string",
+        #         "workingIndicator": True,
+        #         "ordRejReason": "string",
+        #         "simpleLeavesQty": 0,
+        #         "leavesQty": 0,
+        #         "simpleCumQty": 0,
+        #         "cumQty": 0,
+        #         "avgPx": 0,
+        #         "commission": 0,
+        #         "tradePublishIndicator": "string",
+        #         "multiLegReportingType": "string",
+        #         "text": "string",
+        #         "trdMatchID": "string",
+        #         "execCost": 0,
+        #         "execComm": 0,
+        #         "homeNotional": 0,
+        #         "foreignNotional": 0,
+        #         "transactTime": "2019-03-05T12:47:02.762Z",
+        #         "timestamp": "2019-03-05T12:47:02.762Z"
+        #     }
+        #
+        timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float_2(trade, 'size', 'lastQty')
+        id = self.safe_string(trade, 'trdMatchID')
+        order = self.safe_string(trade, 'orderID')
+        side = self.safe_string(trade, 'side').lower()
+        # price * amount doesn't work for all symbols(e.g. XBT, ETH)
+        cost = self.safe_float(trade, 'execCost')
+        if cost is not None:
+            cost = abs(cost) / 100000000
+        fee = None
+        if 'execComm' in trade:
+            feeCost = self.safe_float(trade, 'execComm')
+            feeCost = feeCost / 100000000
+            currencyId = self.safe_string(trade, 'currency')
+            currencyId = currencyId.upper()
+            feeCurrency = self.common_currency_code(currencyId)
+            feeRate = self.safe_float(trade, 'commission')
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+                'rate': feeRate,
+            }
+        takerOrMaker = None
+        if fee is not None:
+            takerOrMaker = fee['cost'] < 'maker' if 0 else 'taker'
         symbol = None
-        if market is None:
-            if 'symbol' in trade:
-                market = self.markets_by_id[trade['symbol']]
-        if market:
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 'symbol')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
+            else:
+                symbol = marketId
         return {
-            'id': trade['trdMatchID'],
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'order': None,
+            'id': id,
+            'order': order,
             'type': None,
-            'side': trade['side'].lower(),
-            'price': trade['price'],
-            'amount': trade['size'],
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'fee': fee,
         }
 
     def parse_order_status(self, status):
@@ -617,7 +791,35 @@ class bitmex (Exchange):
         if limit is not None:
             request['count'] = limit
         response = await self.publicGetTrade(self.extend(request, params))
-        return self.parse_trades(response, market)
+        #
+        #     [
+        #         {
+        #             timestamp: '2018-08-28T00:00:02.735Z',
+        #             symbol: 'XBTUSD',
+        #             side: 'Buy',
+        #             size: 2000,
+        #             price: 6906.5,
+        #             tickDirection: 'PlusTick',
+        #             trdMatchID: 'b9a42432-0a46-6a2f-5ecc-c32e9ca4baf8',
+        #             grossValue: 28958000,
+        #             homeNotional: 0.28958,
+        #             foreignNotional: 2000
+        #         },
+        #         {
+        #             timestamp: '2018-08-28T00:00:03.778Z',
+        #             symbol: 'XBTUSD',
+        #             side: 'Sell',
+        #             size: 1000,
+        #             price: 6906,
+        #             tickDirection: 'MinusTick',
+        #             trdMatchID: '0d4f1682-5270-a800-569b-4a0eb92db97c',
+        #             grossValue: 14480000,
+        #             homeNotional: 0.1448,
+        #             foreignNotional: 1000
+        #         },
+        #     ]
+        #
+        return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -720,19 +922,14 @@ class bitmex (Exchange):
             self.check_required_credentials()
             auth = method + query
             expires = self.safe_integer(self.options, 'api-expires')
-            nonce = str(self.nonce())
             headers = {
                 'Content-Type': 'application/json',
                 'api-key': self.apiKey,
             }
-            if expires is not None:
-                expires = self.sum(self.seconds(), expires)
-                expires = str(expires)
-                auth += expires
-                headers['api-expires'] = expires
-            else:
-                auth += nonce
-                headers['api-nonce'] = nonce
+            expires = self.sum(self.seconds(), expires)
+            expires = str(expires)
+            auth += expires
+            headers['api-expires'] = expires
             if method == 'POST' or method == 'PUT':
                 if params:
                     body = self.json(params)

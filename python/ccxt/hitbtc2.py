@@ -50,6 +50,7 @@ class hitbtc2 (hitbtc):
                 'fetchDeposits': False,
                 'fetchWithdrawals': False,
                 'fetchTransactions': True,
+                'fetchTradingFee': True,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -96,6 +97,7 @@ class hitbtc2 (hitbtc):
                         'order',  # List your current open orders
                         'order/{clientOrderId}',  # Get a single order by clientOrderId
                         'trading/balance',  # Get trading balance
+                        'trading/fee/all',  # Get trading fee rate
                         'trading/fee/{symbol}',  # Get trading fee rate
                         'history/trades',  # Get historical trades
                         'history/order',  # Get historical orders
@@ -129,8 +131,8 @@ class hitbtc2 (hitbtc):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': -0.01 / 100,
-                    'taker': 0.1 / 100,
+                    'maker': 0.1 / 100,
+                    'taker': 0.2 / 100,
                 },
                 'funding': {
                     'tierBased': False,
@@ -674,6 +676,25 @@ class hitbtc2 (hitbtc):
             }
         return result
 
+    def fetch_trading_fee(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = self.extend({
+            'symbol': market['id'],
+        }, self.omit(params, 'symbol'))
+        response = self.privateGetTradingFeeSymbol(request)
+        #
+        #     {
+        #         takeLiquidityRate: '0.001',
+        #         provideLiquidityRate: '-0.0001'
+        #     }
+        #
+        return {
+            'info': response,
+            'maker': self.safe_float(response, 'provideLiquidityRate'),
+            'taker': self.safe_float(response, 'takeLiquidityRate'),
+        }
+
     def fetch_balance(self, params={}):
         self.load_markets()
         type = self.safe_string(params, 'type', 'trading')
@@ -712,6 +733,8 @@ class hitbtc2 (hitbtc):
             'symbol': market['id'],
             'period': self.timeframes[timeframe],
         }
+        if since is not None:
+            request['from'] = self.iso8601(since)
         if limit is not None:
             request['limit'] = limit
         response = self.publicGetCandlesSymbol(self.extend(request, params))
@@ -810,15 +833,16 @@ class hitbtc2 (hitbtc):
         #
         timestamp = self.parse8601(trade['timestamp'])
         symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        else:
-            id = trade['symbol']
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
+        marketId = self.safe_string(trade, 'symbol')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
                 symbol = market['symbol']
             else:
-                symbol = id
+                symbol = marketId
+        if symbol is None:
+            if market is not None:
+                symbol = market['symbol']
         fee = None
         feeCost = self.safe_float(trade, 'fee')
         if feeCost is not None:
@@ -1055,9 +1079,17 @@ class hitbtc2 (hitbtc):
         #
         created = self.parse8601(self.safe_string(order, 'createdAt'))
         updated = self.parse8601(self.safe_string(order, 'updatedAt'))
-        if not market:
-            market = self.markets_by_id[order['symbol']]
-        symbol = market['symbol']
+        marketId = self.safe_string(order, 'symbol')
+        symbol = None
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
+            else:
+                symbol = marketId
+        if symbol is None:
+            if market is not None:
+                symbol = market['id']
         amount = self.safe_float(order, 'quantity')
         filled = self.safe_float(order, 'cumQuantity')
         status = self.parse_order_status(self.safe_string(order, 'status'))

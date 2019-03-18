@@ -132,7 +132,7 @@ class okcoinusd (Exchange):
                 },
                 'www': 'https://www.okcoin.com',
                 'doc': [
-                    'https://www.okcoin.com/rest_getStarted.html',
+                    'https://www.okcoin.com/docs/en/',
                     'https://www.npmjs.com/package/okcoin.com',
                 ],
             },

@@ -121,7 +121,12 @@ The contents of the repository are structured as follows:
 /CONTRIBUTING.md           # this file
 /LICENSE.txt               # MIT
 /README.md                 # master markdown for GitHub, npmjs.com, npms.io, yarn and others
-/build/                    # a folder for the generated files
+/build/                    # build scripts
+/build/export-exchanges.js # used to create tables of exchanges in the docs during the build
+/build/transpile.js        # the transpilation script
+/build/update-badges.js    # a JS script to update badges in the README and in docs
+/build/vss.js              # reads single-sourced version from package.json and writes it everywhere
+/dist/                     # a folder for the generated browser bundle of CCXT
 /ccxt.js                   # entry point for the master JS version of the ccxt library
 /ccxt.php                  # entry point for the PHP version of the ccxt library
 /doc/                      # Sphinx-generated rst-docs for http://ccxt.readthedocs.io/
@@ -136,18 +141,13 @@ The contents of the repository are structured as follows:
 /python/setup.cfg          # wheels config file for the Python package
 /python/setup.py           # pip/setuptools script (build/install) for ccxt in Python
 /python/tox.ini            # tox config for Python
-/countries.js              # a list of ISO 2-letter country codes in JS for testing, not very important
 /examples/                 # self-explanatory
 /examples/js               # ...
 /examples/php              # ...
 /examples/py               # ...
 /exchanges.cfg             # custom bundle config for including only the exchanges you need
-/export-exchanges.js       # used to create tables of exchanges in the docs during the build
 /package.json              # npm package file, also used in setup.py for version single-sourcing
 /run-tests.js              # a front-end to run invididual tests of all exchanges in all languages (JS/PHP/Python)
-/transpile.js              # the transpilation script
-/update-badges.js          # a JS script to update badges in the README and in docs
-/vss.js                    # reads single-sourced version from package.json and writes it everywhere
 /wiki/                     # the source of all docs (edits go here)
 ```
 
@@ -161,7 +161,7 @@ The module entry points are:
 - `./python/__init__.py` for the Python pip package
 - `./python/async/__init__.py` for the Python 3.5.3+ ccxt.async_support subpackage
 - `./ccxt.js` for the Node.js npm package
-- `./build/ccxt.browser.js` for the browser bundle
+- `./dist/ccxt.browser.js` for the browser bundle
 - `./ccxt.php` for PHP
 
 Generated versions and docs are transpiled from the source `ccxt.js` file and files in `./js/` by the `npm run build` command.
@@ -234,7 +234,7 @@ If the transpiling process finishes successfully, but generates incorrect Python
 - do everything with base class methods only (for example, use `this.json ()` for converting objects to json).
 - always put a semicolon `;` at the end of each statement, as in PHP/C-style
 - all associative keys must be single-quoted strings everywhere, `array['good'], array.bad`
-- all local variables should be declared with the `let` keyword
+- variables should be declared with `const` or `let` keywords semantically (no `var`!)
 
 And structurally:
 
@@ -252,6 +252,54 @@ And structurally:
 - don't add custom currency or symbol/pair conversions and formatting, copy from existing code instead
 - **don't access non-existent keys, `array['key'] || {}` won't work in other languages!**
 - keep it simple, don't do more than one statement in one line
+
+##### Working With Array Lengths
+
+In JavaScript the common syntax to get a length of a string or an array is to reference the `.length` property like shown here:
+
+```JavaScript
+someArray.length
+// or
+someString.length
+```
+
+And it works for both strings and arrays. In Python this is done in a similar way:
+
+```Python
+len(some_array)
+# or
+len(some_string)
+```
+
+So the length is accessible in the same way for both strings and arrays and both work fine.
+
+However, with PHP this is different, so the syntax for string lengths and array lengths is different:
+
+```PHP
+count(some_array);
+// or
+strlen(some_string); // or mb_strlen
+```
+
+Because the transpiler works line-by-line and does no code introspection, it cannot tell arrays from strings and cannot properly transpile `.length` to PHP without additional hinting. It will always transpile JS `.length` to PHP `strlen` and will prefer string lengths over array lengths. In order to indicate an array length properly we have to do the following:
+
+```JavaScript
+const arrayLength = someArray.length;
+// the above line ends with .length;
+// that ending is a hint for the transpiler that will recognize someArray
+// as an array variable in this place, rather than a string type variable
+// now we can use arrayLength for the arithmetic
+```
+
+That `.length;` line ending does the trick. The only case when the array `.length` is preferred over the string `.length` is the `for` loop. In the header of the `for` loop, the `.length` always refers to array length (not string length).
+
+##### Working With Strings
+
+In JS the arithmetic addition `+` operator handles both strings and numbers. So, it can concatenate strings with `+` and can sum up numbers with `+` as well. The same is true with Python. With PHP this is different, so it has different operators for string concatenation (the "dot" operator `.`) and for arithmetic addition (the "plus" operator `+`). Once again, because the transpiler does no code introspection it cannot tell if you're adding up variables or strings in JS. This works fine until you want to transpile this to other languages, be it PHP or whatever other language it is. In order to help the transpiler we have to use `this.sum` for arithmetic additions.
+
+The rule of thumb is: **`+` is for string concatenation only (!)** and **`this.sum (a, b, c, ...)` is for arithmetic additions**.
+
+---
 
 **If you want to add (support for) another exchange, or implement a new method for a particular exchange, then the best way to make it a consistent improvement is to learn from example. Take a look at how same things are implemented in other exchanges and try to copy the code flow and style.**
 
@@ -353,9 +401,23 @@ node run-tests --php bitfinex   # test Bitfinex with PHP
 node run-tests --python3 kraken # test Kraken with Python 3, requires 'npm run build'
 ```
 
-```UNDER CONSTRUCTION```
+## Committing Changes To The Repository
 
-## Financial contributions
+The build process generates many changes in the transpiled exchange files, e.g. for Python and PHP. **You should NOT commit them to GitHub, commit only the base (JS) file changes please**.
+
+You can hide the changes in the generated files by running this command (after that, the generated files are no longer marked as changed):
+
+```
+npm run git-ignore-generated-files
+```
+
+Previously we had that command implemented as a final build step, but it caused problems with subsequent `git pull` and also branch selection commands (when a conflict occured in those files that have been marked as ignored). So if you experience an issue with that, you can un-ignore those files by executing:
+
+```
+npm run git-unignore-generated-files
+```
+
+## Financial Contributions
 
 We also welcome financial contributions in full transparency on our [open collective](https://opencollective.com/ccxt).
 Anyone can file an expense. If the expense makes sense for the development of the community, it will be "merged" in the ledger of our open collective by the core contributors and the person who filed the expense will be reimbursed.

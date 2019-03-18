@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.293'
+__version__ = '1.18.373'
 
 # -----------------------------------------------------------------------------
 
@@ -174,10 +174,10 @@ class Exchange(BaseExchange):
                 if not self.markets_by_id:
                     return self.set_markets(self.markets)
                 return self.markets
-        markets = await self.fetch_markets(params)
         currencies = None
         if self.has['fetchCurrencies']:
             currencies = await self.fetch_currencies()
+        markets = await self.fetch_markets(params)
         return self.set_markets(markets, currencies)
 
     async def fetch_fees(self):
@@ -274,6 +274,14 @@ class Exchange(BaseExchange):
         await self.cancel_order(id, symbol)
         return await self.create_order(symbol, *args)
 
+    async def fetch_trading_fees(self, params={}):
+        self.raise_error(NotSupported, details='fetch_trading_fees() not supported yet')
+
+    async def fetch_trading_fee(self, symbol, params={}):
+        if not self.has['fetchTradingFees']:
+            self.raise_error(NotSupported, details='fetch_trading_fee() not supported yet')
+        return await self.fetch_trading_fees(params)
+
     async def load_trading_limits(self, symbols=None, reload=False, params={}):
         if self.has['fetchTradingLimits']:
             if reload or not('limitsLoaded' in list(self.options.keys())):
@@ -283,3 +291,14 @@ class Exchange(BaseExchange):
                     self.markets[symbol] = self.deep_extend(self.markets[symbol], response[symbol])
                 self.options['limitsLoaded'] = self.milliseconds()
         return self.markets
+
+    async def load_accounts(self, reload=False, params={}):
+        if reload:
+            self.accounts = await self.fetch_accounts(params)
+        else:
+            if self.accounts:
+                return self.accounts
+            else:
+                self.accounts = await self.fetch_accounts(params)
+        self.accountsById = self.index_by(self.accounts, 'id')
+        return self.accounts

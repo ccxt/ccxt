@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.18.293'
+__version__ = '1.18.373'
 
 # ----------------------------------------------------------------------------
 
@@ -137,11 +137,11 @@ from ccxt.ethfinex import ethfinex                          # noqa: F401
 from ccxt.exmo import exmo                                  # noqa: F401
 from ccxt.exx import exx                                    # noqa: F401
 from ccxt.fcoin import fcoin                                # noqa: F401
+from ccxt.fcoinjp import fcoinjp                            # noqa: F401
 from ccxt.flowbtc import flowbtc                            # noqa: F401
 from ccxt.foxbit import foxbit                              # noqa: F401
 from ccxt.fybse import fybse                                # noqa: F401
 from ccxt.fybsg import fybsg                                # noqa: F401
-from ccxt.gatecoin import gatecoin                          # noqa: F401
 from ccxt.gateio import gateio                              # noqa: F401
 from ccxt.gdax import gdax                                  # noqa: F401
 from ccxt.gemini import gemini                              # noqa: F401
@@ -272,11 +272,11 @@ exchanges = [
     'exmo',
     'exx',
     'fcoin',
+    'fcoinjp',
     'flowbtc',
     'foxbit',
     'fybse',
     'fybsg',
-    'gatecoin',
     'gateio',
     'gdax',
     'gemini',

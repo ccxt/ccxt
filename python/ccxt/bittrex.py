@@ -43,7 +43,7 @@ class bittrex (Exchange):
                 'fetchDepositAddress': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
-                'fetchMyTrades': False,
+                'fetchMyTrades': 'emulated',
                 'fetchOHLCV': True,
                 'fetchOrder': True,
                 'fetchOpenOrders': True,
@@ -135,7 +135,7 @@ class bittrex (Exchange):
                     'tierBased': False,
                     'percentage': False,
                     'withdraw': {
-                        'BTC': 0.001,
+                        'BTC': 0.0005,
                         'LTC': 0.01,
                         'DOGE': 2,
                         'VTC': 0.02,
@@ -143,8 +143,14 @@ class bittrex (Exchange):
                         'FTC': 0.2,
                         'RDD': 2,
                         'NXT': 2,
-                        'DASH': 0.002,
+                        'DASH': 0.05,
                         'POT': 0.002,
+                        'BLK': 0.02,
+                        'EMC2': 0.2,
+                        'XMY': 0.2,
+                        'GLD': 0.0002,
+                        'SLR': 0.2,
+                        'GRS': 0.2,
                     },
                     'deposit': {
                         'BTC': 0,
@@ -157,6 +163,12 @@ class bittrex (Exchange):
                         'NXT': 0,
                         'DASH': 0,
                         'POT': 0,
+                        'BLK': 0,
+                        'EMC2': 0,
+                        'XMY': 0,
+                        'GLD': 0,
+                        'SLR': 0,
+                        'GRS': 0,
                     },
                 },
             },
@@ -200,7 +212,8 @@ class bittrex (Exchange):
                     'NEM': True,  # XEM
                     'STELLAR': True,  # XLM
                     'STEEM': True,  # SBD, GOLOS
-                    'LISK': True,  # LSK
+                    # https://github.com/ccxt/ccxt/issues/4794
+                    # 'LISK': True,  # LSK
                 },
             },
             'commonCurrencies': {
@@ -275,9 +288,12 @@ class bittrex (Exchange):
             currency = self.common_currency_code(id)
             account = self.account()
             balance = indexed[id]
-            free = float(balance['Available'])
-            total = float(balance['Balance'])
-            used = total - free
+            free = self.safe_float(balance, 'Available', 0)
+            total = self.safe_float(balance, 'Balance', 0)
+            used = None
+            if total is not None:
+                if free is not None:
+                    used = total - free
             account['free'] = free
             account['used'] = used
             account['total'] = total
@@ -719,9 +735,7 @@ class bittrex (Exchange):
         return base + '/' + quote
 
     def parse_order(self, order, market=None):
-        side = self.safe_string(order, 'OrderType')
-        if side is None:
-            side = self.safe_string(order, 'Type')
+        side = self.safe_string_2(order, 'OrderType', 'Type')
         isBuyOrder = (side == 'LIMIT_BUY') or (side == 'BUY')
         isSellOrder = (side == 'LIMIT_SELL') or (side == 'SELL')
         if isBuyOrder:
@@ -835,6 +849,34 @@ class bittrex (Exchange):
         if not response['result']:
             raise OrderNotFound(self.id + ' order ' + id + ' not found')
         return self.parse_order(response['result'])
+
+    def order_to_trade(self, order):
+        # self entire method should be moved to the base class
+        timestamp = self.safe_integer_2(order, 'lastTradeTimestamp', 'timestamp')
+        return {
+            'id': self.safe_string(order, 'id'),
+            'side': self.safe_string(order, 'side'),
+            'order': self.safe_string(order, 'id'),
+            'price': self.safe_float(order, 'average'),
+            'amount': self.safe_float(order, 'filled'),
+            'cost': self.safe_float(order, 'cost'),
+            'symbol': self.safe_string(order, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': self.safe_value(order, 'fee'),
+            'info': order,
+        }
+
+    def orders_to_trades(self, orders):
+        # self entire method should be moved to the base class
+        result = []
+        for i in range(0, len(orders)):
+            result.append(self.order_to_trade(orders[i]))
+        return result
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        orders = self.fetch_closed_orders(symbol, since, limit, params)
+        return self.orders_to_trades(orders)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

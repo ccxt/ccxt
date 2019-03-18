@@ -34,6 +34,7 @@ class hitbtc2 extends hitbtc {
                 'fetchDeposits' => false,
                 'fetchWithdrawals' => false,
                 'fetchTransactions' => true,
+                'fetchTradingFee' => true,
             ),
             'timeframes' => array (
                 '1m' => 'M1',
@@ -80,6 +81,7 @@ class hitbtc2 extends hitbtc {
                         'order', // List your current open orders
                         'order/{clientOrderId}', // Get a single order by clientOrderId
                         'trading/balance', // Get trading balance
+                        'trading/fee/all', // Get trading fee rate
                         'trading/fee/{symbol}', // Get trading fee rate
                         'history/trades', // Get historical trades
                         'history/order', // Get historical orders
@@ -113,8 +115,8 @@ class hitbtc2 extends hitbtc {
                 'trading' => array (
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => -0.01 / 100,
-                    'taker' => 0.1 / 100,
+                    'maker' => 0.1 / 100,
+                    'taker' => 0.2 / 100,
                 ),
                 'funding' => array (
                     'tierBased' => false,
@@ -664,6 +666,26 @@ class hitbtc2 extends hitbtc {
         return $result;
     }
 
+    public function fetch_trading_fee ($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array_merge (array (
+            'symbol' => $market['id'],
+        ), $this->omit ($params, 'symbol'));
+        $response = $this->privateGetTradingFeeSymbol ($request);
+        //
+        //     {
+        //         takeLiquidityRate => '0.001',
+        //         provideLiquidityRate => '-0.0001'
+        //     }
+        //
+        return array (
+            'info' => $response,
+            'maker' => $this->safe_float($response, 'provideLiquidityRate'),
+            'taker' => $this->safe_float($response, 'takeLiquidityRate'),
+        );
+    }
+
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $type = $this->safe_string($params, 'type', 'trading');
@@ -705,6 +727,9 @@ class hitbtc2 extends hitbtc {
             'symbol' => $market['id'],
             'period' => $this->timeframes[$timeframe],
         );
+        if ($since !== null) {
+            $request['from'] = $this->iso8601 ($since);
+        }
         if ($limit !== null)
             $request['limit'] = $limit;
         $response = $this->publicGetCandlesSymbol (array_merge ($request, $params));
@@ -799,7 +824,7 @@ class hitbtc2 extends hitbtc {
         // createMarketOrder
         //
         //  {       $fee => "0.0004644",
-        //           $id =>  386394956,
+        //           id =>  386394956,
         //        $price => "0.4644",
         //     quantity => "1",
         //    $timestamp => "2018-10-25T16:41:44.780Z" }
@@ -810,15 +835,18 @@ class hitbtc2 extends hitbtc {
         //
         $timestamp = $this->parse8601 ($trade['timestamp']);
         $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        } else {
-            $id = $trade['symbol'];
-            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$id];
+        $marketId = $this->safe_string($trade, 'symbol');
+        if ($marketId !== null) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
                 $symbol = $market['symbol'];
             } else {
-                $symbol = $id;
+                $symbol = $marketId;
+            }
+        }
+        if ($symbol === null) {
+            if ($market !== null) {
+                $symbol = $market['symbol'];
             }
         }
         $fee = null;
@@ -1073,9 +1101,21 @@ class hitbtc2 extends hitbtc {
         //
         $created = $this->parse8601 ($this->safe_string($order, 'createdAt'));
         $updated = $this->parse8601 ($this->safe_string($order, 'updatedAt'));
-        if (!$market)
-            $market = $this->markets_by_id[$order['symbol']];
-        $symbol = $market['symbol'];
+        $marketId = $this->safe_string($order, 'symbol');
+        $symbol = null;
+        if ($marketId !== null) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+                $symbol = $market['symbol'];
+            } else {
+                $symbol = $marketId;
+            }
+        }
+        if ($symbol === null) {
+            if ($market !== null) {
+                $symbol = $market['id'];
+            }
+        }
         $amount = $this->safe_float($order, 'quantity');
         $filled = $this->safe_float($order, 'cumQuantity');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));

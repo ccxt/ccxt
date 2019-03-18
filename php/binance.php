@@ -13,7 +13,7 @@ class binance extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'binance',
             'name' => 'Binance',
-            'countries' => array ( 'JP' ), // Japan
+            'countries' => array ( 'JP', 'MT' ), // Japan, Malta
             'rateLimit' => 500,
             'certified' => true,
             // new metainfo interface
@@ -76,6 +76,7 @@ class binance extends Exchange {
                 'wapi' => array (
                     'post' => array (
                         'withdraw',
+                        'sub-account/transfer',
                     ),
                     'get' => array (
                         'depositHistory',
@@ -83,9 +84,13 @@ class binance extends Exchange {
                         'depositAddress',
                         'accountStatus',
                         'systemStatus',
+                        'apiTradingStatus',
                         'userAssetDribbletLog',
                         'tradeFee',
                         'assetDetail',
+                        'sub-account/list',
+                        'sub-account/transfer/history',
+                        'sub-account/assets',
                     ),
                 ),
                 'v3' => array (
@@ -256,6 +261,7 @@ class binance extends Exchange {
                 ),
             ),
             'commonCurrencies' => array (
+                'BCC' => 'BCC', // kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
                 'YOYO' => 'YOYOW',
             ),
             // exchange-specific options
@@ -1136,18 +1142,19 @@ class binance extends Exchange {
         $response = $this->wapiGetDepositAddress (array_merge (array (
             'asset' => $currency['id'],
         ), $params));
-        if (is_array ($response) && array_key_exists ('success', $response)) {
-            if ($response['success']) {
-                $address = $this->safe_string($response, 'address');
-                $tag = $this->safe_string($response, 'addressTag');
-                return array (
-                    'currency' => $code,
-                    'address' => $this->check_address($address),
-                    'tag' => $tag,
-                    'info' => $response,
-                );
-            }
+        $success = $this->safe_value($response, 'success');
+        if ($success === null || !$success) {
+            throw new InvalidAddress ($this->id . ' fetchDepositAddress returned an empty $response – create the deposit $address in the user settings first.');
         }
+        $address = $this->safe_string($response, 'address');
+        $tag = $this->safe_string($response, 'addressTag');
+        $this->check_address($address);
+        return array (
+            'currency' => $code,
+            'address' => $this->check_address($address),
+            'tag' => $tag,
+            'info' => $response,
+        );
     }
 
     public function fetch_funding_fees ($codes = null, $params = array ()) {

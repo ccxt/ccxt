@@ -20,6 +20,7 @@ module.exports = class kraken extends Exchange {
             'has': {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
+                'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'CORS': false,
                 'fetchCurrencies': true,
@@ -539,7 +540,7 @@ module.exports = class kraken extends Exchange {
             'interval': this.timeframes[timeframe],
         };
         if (since !== undefined)
-            request['since'] = parseInt (since / 1000);
+            request['since'] = parseInt ((since - 1) / 1000);
         let response = await this.publicGetOHLC (this.extend (request, params));
         let ohlcvs = response['result'][market['id']];
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);

@@ -116,7 +116,7 @@ module.exports = class bittrex extends Exchange {
                     'tierBased': false,
                     'percentage': false,
                     'withdraw': {
-                        'BTC': 0.001,
+                        'BTC': 0.0005,
                         'LTC': 0.01,
                         'DOGE': 2,
                         'VTC': 0.02,
@@ -124,8 +124,14 @@ module.exports = class bittrex extends Exchange {
                         'FTC': 0.2,
                         'RDD': 2,
                         'NXT': 2,
-                        'DASH': 0.002,
+                        'DASH': 0.05,
                         'POT': 0.002,
+                        'BLK': 0.02,
+                        'EMC2': 0.2,
+                        'XMY': 0.2,
+                        'GLD': 0.0002,
+                        'SLR': 0.2,
+                        'GRS': 0.2,
                     },
                     'deposit': {
                         'BTC': 0,
@@ -138,6 +144,12 @@ module.exports = class bittrex extends Exchange {
                         'NXT': 0,
                         'DASH': 0,
                         'POT': 0,
+                        'BLK': 0,
+                        'EMC2': 0,
+                        'XMY': 0,
+                        'GLD': 0,
+                        'SLR': 0,
+                        'GRS': 0,
                     },
                 },
             },
@@ -181,7 +193,8 @@ module.exports = class bittrex extends Exchange {
                     'NEM': true, // XEM
                     'STELLAR': true, // XLM
                     'STEEM': true, // SBD, GOLOS
-                    'LISK': true, // LSK
+                    // https://github.com/ccxt/ccxt/issues/4794
+                    // 'LISK': true, // LSK
                 },
             },
             'commonCurrencies': {
@@ -262,9 +275,14 @@ module.exports = class bittrex extends Exchange {
             let currency = this.commonCurrencyCode (id);
             let account = this.account ();
             let balance = indexed[id];
-            let free = parseFloat (balance['Available']);
-            let total = parseFloat (balance['Balance']);
-            let used = total - free;
+            let free = this.safeFloat (balance, 'Available', 0);
+            let total = this.safeFloat (balance, 'Balance', 0);
+            let used = undefined;
+            if (total !== undefined) {
+                if (free !== undefined) {
+                    used = total - free;
+                }
+            }
             account['free'] = free;
             account['used'] = used;
             account['total'] = total;

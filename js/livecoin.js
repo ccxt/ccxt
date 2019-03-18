@@ -21,6 +21,7 @@ module.exports = class livecoin extends Exchange {
                 'CORS': false,
                 'fetchTickers': true,
                 'fetchCurrencies': true,
+                'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchOrders': true,
                 'fetchOrder': true,
