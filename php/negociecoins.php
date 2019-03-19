@@ -331,7 +331,7 @@ class negociecoins extends Exchange {
             $uri = strtolower ($this->encode_uri_component($url));
             $payload = implode ('', array ($this->apiKey, $method, $uri, $timestamp, $nonce, $content));
             $secret = base64_decode ($this->secret);
-            $signature = $this->hmac ($this->encode ($payload), $this->encode ($secret), 'sha256', 'base64');
+            $signature = $this->hmac ($this->encode ($payload), $secret, 'sha256', 'base64');
             $signature = $this->binary_to_string($signature);
             $auth = implode (':', array ($this->apiKey, $signature, $nonce, $timestamp));
             $headers = array (

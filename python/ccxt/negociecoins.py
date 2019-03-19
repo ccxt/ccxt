@@ -313,7 +313,7 @@ class negociecoins (Exchange):
             uri = self.encode_uri_component(url).lower()
             payload = ''.join([self.apiKey, method, uri, timestamp, nonce, content])
             secret = base64.b64decode(self.secret)
-            signature = self.hmac(self.encode(payload), self.encode(secret), hashlib.sha256, 'base64')
+            signature = self.hmac(self.encode(payload), secret, hashlib.sha256, 'base64')
             signature = self.binary_to_string(signature)
             auth = ':'.join([self.apiKey, signature, nonce, timestamp])
             headers = {
