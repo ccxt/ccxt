@@ -22,15 +22,9 @@ module.exports = class mandalaex extends Exchange {
                 'cancelAllOrders': true,
                 'createMarketOrder': true,
                 'fetchCurrencies': true,
-                'fetchDepositAddress': true,
-                // 'fetchDeposits': true,
-                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOrders': true,
                 'fetchTickers': true,
-                // 'fetchTransactions': true,
-                // 'fetchWithdrawals': true,
-                // 'withdraw': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -866,45 +860,183 @@ module.exports = class mandalaex extends Exchange {
         return await this.orderPostCancelAllMyOrders (this.extend (request, params));
     }
 
-    // async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-    //     await this.loadMarkets ();
-    //     let request = {};
-    //     let market = undefined;
-    //     if (symbol !== undefined) {
-    //         market = this.market (symbol);
-    //         request['market'] = market['id'];
-    //     }
-    //     let response = await this.marketGetOpenorders (this.extend (request, params));
-    //     let orders = this.parseOrders (response['result'], market, since, limit);
-    //     return this.filterBySymbol (orders, symbol);
-    // }
+    parseSymbol (id) {
+        let [ quote, base ] = id.split (this.options['symbolSeparator']);
+        base = this.commonCurrencyCode (base);
+        quote = this.commonCurrencyCode (quote);
+        return base + '/' + quote;
+    }
 
-    // async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-    //     await this.loadMarkets ();
-    //     // https://support.bittrex.com/hc/en-us/articles/115003723911
-    //     const request = {};
-    //     let currency = undefined;
-    //     if (code !== undefined) {
-    //         currency = this.currency (code);
-    //         request['currency'] = currency['id'];
-    //     }
-    //     const response = await this.accountGetDeposithistory (this.extend (request, params));
-    //     //
-    //     //     { success:    true,
-    //     //       message:   "",
-    //     //        result: [ {            Id:  22578097,
-    //     //                           Amount:  0.3,
-    //     //                         Currency: "ETH",
-    //     //                    Confirmations:  15,
-    //     //                      LastUpdated: "2018-06-10T07:12:10.57",
-    //     //                             TxId: "0xf50b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
-    //     //                    CryptoAddress: "0xb25f281fa51f1635abd4a60b0870a62d2a7fa404"                    } ] }
-    //     //
-    //     // we cannot filter by `since` timestamp, as it isn't set by Bittrex
-    //     // see https://github.com/ccxt/ccxt/issues/4067
-    //     // return this.parseTransactions (response['result'], currency, since, limit);
-    //     return this.parseTransactions (response['result'], currency, undefined, limit);
-    // }
+    parseOrder (order, market = undefined) {
+        //
+        // fetchOrders
+        //
+        //     {
+        //         orderId: 20000038,
+        //         market: 'BTC',
+        //         trade: 'ETH',
+        //         volume: 1,
+        //         pendingVolume: 1,
+        //         orderStatus: false,
+        //         rate: 1,
+        //         amount: 1,
+        //         serviceCharge: 0,
+        //         placementDate: '2019-03-19T18:28:43.553',
+        //         completionDate: null
+        //     }
+        //
+        const id = this.safeString (order, 'orderId');
+        const baseId = this.safeString (order, 'trade');
+        const quoteId = this.safeString (order, 'market');
+        const base = this.commonCurrencyCode (baseId);
+        const quote = this.commonCurrencyCode (quoteId);
+        let symbol = undefined;
+        if (base !== undefined && quote !== undefined) {
+            symbol = base + '/' + quote;
+        }
+        const completionDate = this.parse8601 (this.safeString (order, 'completionDate'));
+        const timestamp = this.parse8601 (this.safeString (order, 'placementDate'));
+        let price = this.safeFloat (order, 'rate');
+        const amount = this.safeFloat (order, 'volume');
+        let cost = this.safeFloat (order, 'amount');
+        const remaining = this.safeFloat (order, 'pendingVolume');
+        let filled = undefined;
+        if (amount !== undefined && remaining !== undefined) {
+            filled = Math.max (amount - remaining, 0);
+        }
+        if (!cost) {
+            if (price && filled)
+                cost = price * filled;
+        }
+        if (!price) {
+            if (cost && filled)
+                price = cost / filled;
+        }
+        let status = this.safeValue (order, 'orderStatus');
+        status = status ? 'closed' : 'open';
+        let lastTradeTimestamp = undefined;
+        if (filled > 0) {
+            lastTradeTimestamp = completionDate;
+        }
+        if ((filled !== undefined) && (amount !== undefined)) {
+            if ((filled < amount) && (status === 'closed')) {
+                status = 'canceled';
+            }
+        }
+        const feeCost = this.safeValue (order, 'serviceCharge');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': quote,
+            };
+        }
+        return {
+            'info': order,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': symbol,
+            'type': 'limit',
+            'side': undefined,
+            'price': price,
+            'cost': cost,
+            'average': undefined,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+        };
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const side = this.safeString (params, 'side');
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires an order side extra parameter');
+        }
+        params = this.omit (params, 'side');
+        const request = {
+            'key': this.apiKey,
+            'side': side.toUpperCase (),
+            // 'orderId': id,
+        };
+        const response = await this.orderGetMyOrderHistoryKeySide (this.extend (request, params));
+        //
+        //     {
+        //         status: 'Success',
+        //         errorMessage: null,
+        //         data: [
+        //             {
+        //                 orderId: 20000038,
+        //                 market: 'BTC',
+        //                 trade: 'ETH',
+        //                 volume: 1,
+        //                 pendingVolume: 1,
+        //                 orderStatus: false,
+        //                 rate: 1,
+        //                 amount: 1,
+        //                 serviceCharge: 0,
+        //                 placementDate: '2019-03-19T18:28:43.553',
+        //                 completionDate: null
+        //             },
+        //             {
+        //                 orderId: 20000037,
+        //                 market: 'BTC',
+        //                 trade: 'ETH',
+        //                 volume: 1,
+        //                 pendingVolume: 1,
+        //                 orderStatus: true,
+        //                 rate: 1,
+        //                 amount: 1,
+        //                 serviceCharge: 0,
+        //                 placementDate: '2019-03-19T18:27:51.087',
+        //                 completionDate: '2019-03-19T18:28:16.07'
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        return this.parseOrders (data, market, since, limit);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        // {
+        //     "currency": "ALL",
+        //     "timestamp": 1540967577,
+        //     "recvWindow": 1800
+        // }
+        const request = {
+            "currency": "ALL",
+        };
+        // let currency = undefined;
+        // if (code !== undefined) {
+        //     currency = this.currency (code);
+        //     request['currency'] = currency['id'];
+        // }
+        const response = await this.apiPostGetDeposits (this.extend (request, params));
+        console.log (response);
+        process.exit ();
+        //
+        //     { success:    true,
+        //       message:   "",
+        //        result: [ {            Id:  22578097,
+        //                           Amount:  0.3,
+        //                         Currency: "ETH",
+        //                    Confirmations:  15,
+        //                      LastUpdated: "2018-06-10T07:12:10.57",
+        //                             TxId: "0xf50b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
+        //                    CryptoAddress: "0xb25f281fa51f1635abd4a60b0870a62d2a7fa404"                    } ] }
+        //
+        // we cannot filter by `since` timestamp, as it isn't set by Bittrex
+        // see https://github.com/ccxt/ccxt/issues/4067
+        // return this.parseTransactions (response['result'], currency, since, limit);
+        return this.parseTransactions (response['result'], currency, undefined, limit);
+    }
 
     // async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
     //     await this.loadMarkets ();
@@ -1052,184 +1184,41 @@ module.exports = class mandalaex extends Exchange {
     //     };
     // }
 
-    parseSymbol (id) {
-        let [ quote, base ] = id.split (this.options['symbolSeparator']);
-        base = this.commonCurrencyCode (base);
-        quote = this.commonCurrencyCode (quote);
-        return base + '/' + quote;
-    }
-
-    parseOrder (order, market = undefined) {
-        //
-        // fetchOrders
-        //
-        //     {
-        //         orderId: 20000038,
-        //         market: 'BTC',
-        //         trade: 'ETH',
-        //         volume: 1,
-        //         pendingVolume: 1,
-        //         orderStatus: false,
-        //         rate: 1,
-        //         amount: 1,
-        //         serviceCharge: 0,
-        //         placementDate: '2019-03-19T18:28:43.553',
-        //         completionDate: null
-        //     }
-        //
-        const id = this.safeString (order, 'orderId');
-        const baseId = this.safeString (order, 'trade');
-        const quoteId = this.safeString (order, 'market');
-        const base = this.commonCurrencyCode (baseId);
-        const quote = this.commonCurrencyCode (quoteId);
-        let symbol = undefined;
-        if (base !== undefined && quote !== undefined) {
-            symbol = base + '/' + quote;
-        }
-        const completionDate = this.parse8601 (this.safeString (order, 'completionDate'));
-        const timestamp = this.parse8601 (this.safeString (order, 'placementDate'));
-        let price = this.safeFloat (order, 'rate');
-        const amount = this.safeFloat (order, 'volume');
-        let cost = this.safeFloat (order, 'amount');
-        const remaining = this.safeFloat (order, 'pendingVolume');
-        let filled = undefined;
-        if (amount !== undefined && remaining !== undefined) {
-            filled = Math.max (amount - remaining, 0);
-        }
-        if (!cost) {
-            if (price && filled)
-                cost = price * filled;
-        }
-        if (!price) {
-            if (cost && filled)
-                price = cost / filled;
-        }
-        let status = this.safeValue (order, 'orderStatus');
-        status = status ? 'closed' : 'open';
-        let lastTradeTimestamp = undefined;
-        if (filled > 0) {
-            lastTradeTimestamp = completionDate;
-        }
-        if ((filled !== undefined) && (amount !== undefined)) {
-            if ((filled < amount) && (status === 'closed')) {
-                status = 'canceled';
-            }
-        }
-        const feeCost = this.safeValue (order, 'serviceCharge');
-        let fee = undefined;
-        if (feeCost !== undefined) {
-            fee = {
-                'cost': feeCost,
-                'currency': quote,
-            };
-        }
-        return {
-            'info': order,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': symbol,
-            'type': 'limit',
-            'side': undefined,
-            'price': price,
-            'cost': cost,
-            'average': undefined,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'status': status,
-            'fee': fee,
-        };
-    }
-
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const side = this.safeString (params, 'side');
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires an order side extra parameter');
-        }
-        params = this.omit (params, 'side');
-        const request = {
-            'key': this.apiKey,
-            'side': side.toUpperCase (),
-            // 'orderId': id,
-        };
-        const response = await this.orderGetMyOrderHistoryKeySide (this.extend (request, params));
-        //
-        //     {
-        //         status: 'Success',
-        //         errorMessage: null,
-        //         data: [
-        //             {
-        //                 orderId: 20000038,
-        //                 market: 'BTC',
-        //                 trade: 'ETH',
-        //                 volume: 1,
-        //                 pendingVolume: 1,
-        //                 orderStatus: false,
-        //                 rate: 1,
-        //                 amount: 1,
-        //                 serviceCharge: 0,
-        //                 placementDate: '2019-03-19T18:28:43.553',
-        //                 completionDate: null
-        //             },
-        //             {
-        //                 orderId: 20000037,
-        //                 market: 'BTC',
-        //                 trade: 'ETH',
-        //                 volume: 1,
-        //                 pendingVolume: 1,
-        //                 orderStatus: true,
-        //                 rate: 1,
-        //                 amount: 1,
-        //                 serviceCharge: 0,
-        //                 placementDate: '2019-03-19T18:27:51.087',
-        //                 completionDate: '2019-03-19T18:28:16.07'
-        //             }
-        //         ]
-        //     }
-        //
-        const data = this.safeValue (response, 'data', []);
-        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
-        return this.parseOrders (data, market, since, limit);
-    }
-
-    async fetchOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        const side = this.safeString (params, 'side');
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires an order side extra parameter');
-        }
-        params = this.omit (params, 'side');
-        const request = {
-            'key': this.apiKey,
-            'side': side.toUpperCase (),
-            // 'orderId': id,
-        };
-        const response = await this.orderGetMyOrderHistoryKeySide (this.extend (request, params));
-        // const response = await this.orderGetMyOrderStatusKeySideOrderId (this.extend (request, params));
-        console.log (response);
-        process.exit ();
-        // let response = undefined;
-        // try {
-        //     let orderIdField = this.getOrderIdField ();
-        //     let request = {};
-        //     request[orderIdField] = id;
-        //     response = await this.accountGetOrder (this.extend (request, params));
-        // } catch (e) {
-        //     if (this.last_json_response) {
-        //         let message = this.safeString (this.last_json_response, 'message');
-        //         if (message === 'UUID_INVALID')
-        //             throw new OrderNotFound (this.id + ' fetchOrder() error: ' + this.last_http_response);
-        //     }
-        //     throw e;
-        // }
-        // if (!response['result']) {
-        //     throw new OrderNotFound (this.id + ' order ' + id + ' not found');
-        // }
-        return this.parseOrder (response['result']);
-    }
+    // async fetchOrder (id, symbol = undefined, params = {}) {
+    //     await this.loadMarkets ();
+    //     const side = this.safeString (params, 'side');
+    //     if (side === undefined) {
+    //         throw new ArgumentsRequired (this.id + ' fetchOrder() requires an order side extra parameter');
+    //     }
+    //     params = this.omit (params, 'side');
+    //     const request = {
+    //         'key': this.apiKey,
+    //         'side': side.toUpperCase (),
+    //         // 'orderId': id,
+    //     };
+    //     const response = await this.orderGetMyOrderHistoryKeySide (this.extend (request, params));
+    //     // const response = await this.orderGetMyOrderStatusKeySideOrderId (this.extend (request, params));
+    //     console.log (response);
+    //     process.exit ();
+    //     // let response = undefined;
+    //     // try {
+    //     //     let orderIdField = this.getOrderIdField ();
+    //     //     let request = {};
+    //     //     request[orderIdField] = id;
+    //     //     response = await this.accountGetOrder (this.extend (request, params));
+    //     // } catch (e) {
+    //     //     if (this.last_json_response) {
+    //     //         let message = this.safeString (this.last_json_response, 'message');
+    //     //         if (message === 'UUID_INVALID')
+    //     //             throw new OrderNotFound (this.id + ' fetchOrder() error: ' + this.last_http_response);
+    //     //     }
+    //     //     throw e;
+    //     // }
+    //     // if (!response['result']) {
+    //     //     throw new OrderNotFound (this.id + ' order ' + id + ' not found');
+    //     // }
+    //     return this.parseOrder (response['result']);
+    // }
 
     // orderToTrade (order) {
     //     // this entire method should be moved to the base class
