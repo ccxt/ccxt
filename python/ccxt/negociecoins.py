@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import base64
 import hashlib
+from ccxt.base.errors import ArgumentsRequired
 
 
 class negociecoins (Exchange):
@@ -273,6 +274,8 @@ class negociecoins (Exchange):
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         market = self.market(symbol)
         request = {
             'pair': market['id'],
