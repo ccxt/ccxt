@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.375'
+const version = '1.18.376'
 
 Exchange.ccxtVersion = version
 
@@ -54830,7 +54830,7 @@ module.exports = class negociecoins extends Exchange {
             let uri = this.encodeURIComponent (url).toLowerCase ();
             let payload = [ this.apiKey, method, uri, timestamp, nonce, content ].join ('');
             let secret = this.base64ToBinary (this.secret);
-            let signature = this.hmac (this.encode (payload), this.encode (secret), 'sha256', 'base64');
+            let signature = this.hmac (this.encode (payload), secret, 'sha256', 'base64');
             signature = this.binaryToString (signature);
             let auth = [ this.apiKey, signature, nonce, timestamp ].join (':');
             headers = {
