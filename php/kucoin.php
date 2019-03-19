@@ -212,7 +212,7 @@ class kucoin extends Exchange {
             $baseMinSize = $this->safe_float($market, 'baseMinSize');
             $quoteMaxSize = $this->safe_float($market, 'quoteMaxSize');
             $quoteMinSize = $this->safe_float($market, 'quoteMinSize');
-            $quoteIncrement = $this->safe_float($market, 'quoteIncrement');
+            // $quoteIncrement = $this->safe_float($market, 'quoteIncrement');
             $precision = array (
                 'amount' => $this->precision_from_string($this->safe_string($market, 'baseIncrement')),
                 'price' => $this->precision_from_string($this->safe_string($market, 'priceIncrement')),
@@ -223,7 +223,7 @@ class kucoin extends Exchange {
                     'max' => $baseMaxSize,
                 ),
                 'price' => array (
-                    'min' => $quoteIncrement,
+                    'min' => $this->safe_float($market, 'priceIncrement'),
                     'max' => $quoteMaxSize / $baseMinSize,
                 ),
                 'cost' => array (
