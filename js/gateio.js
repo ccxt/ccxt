@@ -605,13 +605,13 @@ module.exports = class gateio extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async fetchDeposits (symbol = undefined, limit = undefined, start = undefined, end = undefined, params = {}) {
+    async fetchDeposits (symbol = undefined, limit = undefined, since = undefined, end = undefined, params = {}) {
         const request = {};
         if ((symbol !== undefined) || (limit !== undefined)) {
-            throw new ExchangeError ('fetchDeposits for gate.io only use start and end parameters');
+            throw new ExchangeError ('fetchDeposits for gate.io only use start (since) and end parameters');
         }
-        if (start !== undefined) {
-            request['start'] = start;
+        if (since !== undefined) {
+            request['start'] = since;
         }
         if (end !== undefined) {
             request['end'] = end;
@@ -620,13 +620,13 @@ module.exports = class gateio extends Exchange {
         return response['deposits'];
     }
 
-    async fetchWithdrawals (symbol = undefined, limit = undefined, start = undefined, end = undefined, params = {}) {
+    async fetchWithdrawals (symbol = undefined, limit = undefined, since = undefined, end = undefined, params = {}) {
         const request = {};
         if ((symbol !== undefined) || (limit !== undefined)) {
-            throw new ExchangeError ('fetchWithdrawals for gate.io only use start and end parameters');
+            throw new ExchangeError ('fetchWithdrawals for gate.io only use start (since) and end parameters');
         }
         if (start !== undefined) {
-            request['start'] = start;
+            request['start'] = since;
         }
         if (end !== undefined) {
             request['end'] = end;
