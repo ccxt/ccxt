@@ -1120,6 +1120,7 @@ class kraken (Exchange):
         return self.filterByCurrencySinceLimit(result, code, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
         # https://www.kraken.com/en-us/help/api#deposit-status
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchDeposits requires a currency code argument')
@@ -1144,6 +1145,7 @@ class kraken (Exchange):
         return self.parse_transactions_by_type('deposit', response['result'], code, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
         # https://www.kraken.com/en-us/help/api#withdraw-status
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawals requires a currency code argument')

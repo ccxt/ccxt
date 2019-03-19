@@ -211,7 +211,7 @@ module.exports = class kucoin extends Exchange {
             const baseMinSize = this.safeFloat (market, 'baseMinSize');
             const quoteMaxSize = this.safeFloat (market, 'quoteMaxSize');
             const quoteMinSize = this.safeFloat (market, 'quoteMinSize');
-            const quoteIncrement = this.safeFloat (market, 'quoteIncrement');
+            // const quoteIncrement = this.safeFloat (market, 'quoteIncrement');
             const precision = {
                 'amount': this.precisionFromString (this.safeString (market, 'baseIncrement')),
                 'price': this.precisionFromString (this.safeString (market, 'priceIncrement')),
@@ -222,7 +222,7 @@ module.exports = class kucoin extends Exchange {
                     'max': baseMaxSize,
                 },
                 'price': {
-                    'min': quoteIncrement,
+                    'min': this.safeFloat (market, 'priceIncrement'),
                     'max': quoteMaxSize / baseMinSize,
                 },
                 'cost': {
