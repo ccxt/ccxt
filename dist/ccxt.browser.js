@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.380'
+const version = '1.18.381'
 
 Exchange.ccxtVersion = version
 
@@ -6030,13 +6030,14 @@ module.exports = class bigone extends Exchange {
             'countries': [ 'GB' ],
             'version': 'v2',
             'has': {
-                'fetchTickers': true,
-                'fetchOpenOrders': true,
-                'fetchMyTrades': true,
-                'fetchDepositAddress': true,
-                'withdraw': true,
-                'fetchOHLCV': false,
+                'cancelAllOrders': true,
                 'createMarketOrder': false,
+                'fetchDepositAddress': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': false,
+                'fetchOpenOrders': true,
+                'fetchTickers': true,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/42803606-27c2b5ec-89af-11e8-8d15-9c8c245e8b2c.jpg',
@@ -9294,6 +9295,7 @@ module.exports = class bitfinex extends Exchange {
             // new metainfo interface
             'has': {
                 'CORS': false,
+                'cancelAllOrders': true,
                 'createDepositAddress': true,
                 'deposit': true,
                 'fetchClosedOrders': true,
@@ -9980,7 +9982,7 @@ module.exports = class bitfinex extends Exchange {
         return await this.privatePostOrderCancel ({ 'order_id': parseInt (id) });
     }
 
-    async cancelAllOrders (params = {}) {
+    async cancelAllOrders (symbols = undefined, params = {}) {
         return await this.privatePostOrderCancelAll (params);
     }
 
@@ -32788,26 +32790,27 @@ module.exports = class crex24 extends Exchange {
             'version': 'v2',
             // new metainfo interface
             'has': {
+                'cancelAllOrders': true,
+                'CORS': false,
+                'editOrder': true,
+                'fetchBidsAsks': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'CORS': false,
-                'fetchBidsAsks': true,
-                'fetchTickers': true,
-                'fetchOHLCV': false,
+                'fetchDeposits': true,
+                'fetchFundingFees': false,
                 'fetchMyTrades': true,
+                'fetchOHLCV': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrders': false,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'withdraw': true,
+                'fetchOrderTrades': true,
+                'fetchTickers': true,
                 'fetchTradingFee': false, // actually, true, but will be implemented later
                 'fetchTradingFees': false, // actually, true, but will be implemented later
-                'fetchFundingFees': false,
-                'fetchDeposits': true,
-                'fetchWithdrawals': true,
                 'fetchTransactions': true,
-                'fetchOrderTrades': true,
-                'editOrder': true,
+                'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg',
@@ -40232,19 +40235,19 @@ module.exports = class gdax extends Exchange {
             'rateLimit': 1000,
             'userAgent': this.userAgents['chrome'],
             'has': {
+                'cancelAllOrders': true,
                 'CORS': true,
-                'fetchOHLCV': true,
                 'deposit': true,
-                'withdraw': true,
                 'fetchAccounts': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
                 'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrders': true,
                 'fetchTransactions': true,
-                'cancelAllOrders': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': 60,
@@ -40761,7 +40764,7 @@ module.exports = class gdax extends Exchange {
         return await this.privateDeleteOrdersId ({ 'id': id });
     }
 
-    async cancelAllOrders (params = {}) {
+    async cancelAllOrders (symbols = undefined, params = {}) {
         return await this.privateDeleteOrders (params);
     }
 
@@ -60252,13 +60255,14 @@ module.exports = class theocean extends Exchange {
                 '1d': '86400',
             },
             'has': {
+                'cancelAllOrders': true,
                 'CORS': false, // ?
-                'fetchTickers': true,
+                'fetchClosedOrders': true,
                 'fetchOHLCV': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
+                'fetchTickers': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/43103756-d56613ce-8ed7-11e8-924e-68f9d4bcacab.jpg',
@@ -60811,7 +60815,7 @@ module.exports = class theocean extends Exchange {
         });
     }
 
-    async cancelAllOrders (params = {}) {
+    async cancelAllOrders (symbols = undefined, params = {}) {
         const response = await this.privateDeleteOrder (params);
         //
         //     [{

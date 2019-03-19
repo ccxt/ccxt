@@ -26,19 +26,19 @@ class gdax (Exchange):
             'rateLimit': 1000,
             'userAgent': self.userAgents['chrome'],
             'has': {
+                'cancelAllOrders': True,
                 'CORS': True,
-                'fetchOHLCV': True,
                 'deposit': True,
-                'withdraw': True,
                 'fetchAccounts': True,
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
                 'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrders': True,
                 'fetchTransactions': True,
-                'cancelAllOrders': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': 60,
@@ -520,7 +520,7 @@ class gdax (Exchange):
         self.load_markets()
         return self.privateDeleteOrdersId({'id': id})
 
-    def cancel_all_orders(self, params={}):
+    def cancel_all_orders(self, symbols=None, params={}):
         return self.privateDeleteOrders(params)
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):

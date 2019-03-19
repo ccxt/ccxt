@@ -20,6 +20,7 @@ module.exports = class bitfinex extends Exchange {
             // new metainfo interface
             'has': {
                 'CORS': false,
+                'cancelAllOrders': true,
                 'createDepositAddress': true,
                 'deposit': true,
                 'fetchClosedOrders': true,
@@ -706,7 +707,7 @@ module.exports = class bitfinex extends Exchange {
         return await this.privatePostOrderCancel ({ 'order_id': parseInt (id) });
     }
 
-    async cancelAllOrders (params = {}) {
+    async cancelAllOrders (symbols = undefined, params = {}) {
         return await this.privatePostOrderCancelAll (params);
     }
 

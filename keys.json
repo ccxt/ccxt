@@ -78,6 +78,7 @@
     "tidebit":       { "skip": true },
     "tidex":         { "skip": true },
     "therock":       { "skip": true },
+    "upbit":         { "skip": true },
     "urdubit":       { "skip": true },
     "vaultoro":      { "skip": true },
     "vbtc":          { "skip": true },
