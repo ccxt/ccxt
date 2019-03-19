@@ -19,19 +19,19 @@ module.exports = class mandalaex extends Exchange {
             // new metainfo interface
             'has': {
                 'CORS': true,
-                'createMarketOrder': false,
+                'createMarketOrder': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchDeposits': true,
-                'fetchMyTrades': 'emulated',
+                // 'fetchDeposits': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchTickers': true,
-                'fetchTransactions': false,
-                'fetchWithdrawals': true,
-                'withdraw': true,
+                // 'fetchTransactions': true,
+                // 'fetchWithdrawals': true,
+                // 'withdraw': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -855,6 +855,28 @@ module.exports = class mandalaex extends Exchange {
             'side': side,
             'status': 'canceled',
         });
+    }
+
+    async cancelAllOrders (symbols = undefined, params = {}) {
+        const side = this.safeString (params, 'side');
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires an order side extra parameter');
+        }
+        params = this.omit (params, 'side');
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbols argument (a list containing one symbol)');
+        } else {
+            const numSymbols = symbols.length;
+            if (numSymbols !== 1) {
+                throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbols argument (a list containing one symbol)');
+            }
+        }
+        const symbol = symbols[0];
+        const request = {
+            'side': side.toUpperCase (),
+            'pair': this.marketId (symbol),
+        };
+        return await this.orderPostCancelAllMyOrders (this.extend (request, params));
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
