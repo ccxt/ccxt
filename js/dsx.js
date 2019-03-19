@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const liqui = require ('./liqui.js');
-const { ArgumentsRequired } = require ('./base/errors');
+const { ArgumentsRequired, InvalidOrder } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -87,6 +87,11 @@ module.exports = class dsx extends liqui {
                         'withdraw/cancel',
                         'transaction/status', // see 'history/transactions' in private tapi above
                     ],
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'Order wasn\'t cancelled': InvalidOrder, // non-existent order
                 },
             },
             'options': {
