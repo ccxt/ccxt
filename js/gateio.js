@@ -20,6 +20,8 @@ module.exports = class gateio extends Exchange {
                 'createMarketOrder': false,
                 'fetchTickers': true,
                 'withdraw': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
                 'fetchClosedOrders': true,
@@ -601,6 +603,36 @@ module.exports = class gateio extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    async fetchDeposits (symbol = undefined, limit = undefined, start = undefined, end = undefined, params = {}) {
+        const request = {};
+        if ((symbol !== undefined) || (limit !== undefined)) {
+            throw new ExchangeError ('fetchDeposits for gate.io only use start and end parameters');
+        }
+        if (start !== undefined) {
+            request['start'] = start;
+        }
+        if (end !== undefined) {
+            request['end'] = end;
+        }
+        const response = await this.privatePostDepositswithdrawals (this.extend (request, params));
+        return response['deposits'];
+    }
+
+    async fetchWithdrawals (symbol = undefined, limit = undefined, start = undefined, end = undefined, params = {}) {
+        const request = {};
+        if ((symbol !== undefined) || (limit !== undefined)) {
+            throw new ExchangeError ('fetchWithdrawals for gate.io only use start and end parameters');
+        }
+        if (start !== undefined) {
+            request['start'] = start;
+        }
+        if (end !== undefined) {
+            request['end'] = end;
+        }
+        const response = await this.privatePostDepositswithdrawals (this.extend (request, params));
+        return response['withdraws'];
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
