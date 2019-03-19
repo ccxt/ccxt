@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.379'
+const version = '1.18.380'
 
 Exchange.ccxtVersion = version
 
@@ -49017,7 +49017,7 @@ module.exports = class kucoin extends Exchange {
                     'max': baseMaxSize,
                 },
                 'price': {
-                    'min': Math.max (quoteMinSize / baseMinSize, quoteIncrement),
+                    'min': quoteIncrement,
                     'max': quoteMaxSize / baseMinSize,
                 },
                 'cost': {
