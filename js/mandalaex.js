@@ -19,6 +19,7 @@ module.exports = class mandalaex extends Exchange {
             // new metainfo interface
             'has': {
                 'CORS': true,
+                'cancelAllOrders': true,
                 'createMarketOrder': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
