@@ -17,19 +17,19 @@ class gdax extends Exchange {
             'rateLimit' => 1000,
             'userAgent' => $this->userAgents['chrome'],
             'has' => array (
+                'cancelAllOrders' => true,
                 'CORS' => true,
-                'fetchOHLCV' => true,
                 'deposit' => true,
-                'withdraw' => true,
                 'fetchAccounts' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => true,
-                'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
                 'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrders' => true,
                 'fetchTransactions' => true,
-                'cancelAllOrders' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array (
                 '1m' => 60,
@@ -546,7 +546,7 @@ class gdax extends Exchange {
         return $this->privateDeleteOrdersId (array ( 'id' => $id ));
     }
 
-    public function cancel_all_orders ($params = array ()) {
+    public function cancel_all_orders ($symbols = null, $params = array ()) {
         return $this->privateDeleteOrders ($params);
     }
 
