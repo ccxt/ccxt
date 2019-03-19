@@ -809,10 +809,8 @@ class bittrex (Exchange):
             if cost and filled:
                 price = cost / filled
         average = self.safe_float(order, 'PricePerUnit')
-        id = self.safe_string(order, 'OrderUuid')
-        if id is None:
-            id = self.safe_string(order, 'OrderId')
-        result = {
+        id = self.safe_string_2(order, 'OrderUuid', 'OrderId')
+        return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -830,7 +828,6 @@ class bittrex (Exchange):
             'status': status,
             'fee': fee,
         }
-        return result
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
