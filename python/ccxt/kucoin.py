@@ -222,7 +222,7 @@ class kucoin (Exchange):
             baseMinSize = self.safe_float(market, 'baseMinSize')
             quoteMaxSize = self.safe_float(market, 'quoteMaxSize')
             quoteMinSize = self.safe_float(market, 'quoteMinSize')
-            quoteIncrement = self.safe_float(market, 'quoteIncrement')
+            # quoteIncrement = self.safe_float(market, 'quoteIncrement')
             precision = {
                 'amount': self.precision_from_string(self.safe_string(market, 'baseIncrement')),
                 'price': self.precision_from_string(self.safe_string(market, 'priceIncrement')),
@@ -233,7 +233,7 @@ class kucoin (Exchange):
                     'max': baseMaxSize,
                 },
                 'price': {
-                    'min': quoteIncrement,
+                    'min': self.safe_float(market, 'priceIncrement'),
                     'max': quoteMaxSize / baseMinSize,
                 },
                 'cost': {
