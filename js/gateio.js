@@ -20,6 +20,8 @@ module.exports = class gateio extends Exchange {
                 'createMarketOrder': false,
                 'fetchTickers': true,
                 'withdraw': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
                 'fetchClosedOrders': true,
@@ -601,6 +603,32 @@ module.exports = class gateio extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    async fetchDeposits (start = undefined, end = undefined, params = {}) {
+        const request = {};
+        if (start !== undefined) {
+            request['start'] = start;
+        }
+        if (end !== undefined) {
+            request['end'] = end;
+        }
+        const response = await this.privatePostDepositswithdrawals(this.extend(request, params));
+
+        return response['deposits']
+    }
+
+    async fetchWithdrawals (start = undefined, end = undefined, params = {}) {
+        const request = {};
+        if (start !== undefined) {
+            request['start'] = start;
+        }
+        if (end !== undefined) {
+            request['end'] = end;
+        }
+        const response = await this.privatePostDepositswithdrawals(this.extend(request, params));
+
+        return response['withdraws']
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
