@@ -625,7 +625,7 @@ module.exports = class gateio extends Exchange {
         if ((symbol !== undefined) || (limit !== undefined)) {
             throw new ExchangeError ('fetchWithdrawals for gate.io only use start (since) and end parameters');
         }
-        if (start !== undefined) {
+        if (since !== undefined) {
             request['start'] = since;
         }
         if (end !== undefined) {
