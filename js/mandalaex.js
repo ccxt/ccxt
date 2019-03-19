@@ -21,14 +21,12 @@ module.exports = class mandalaex extends Exchange {
                 'CORS': true,
                 'cancelAllOrders': true,
                 'createMarketOrder': true,
-                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 // 'fetchDeposits': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenOrders': true,
-                'fetchOrder': true,
+                'fetchOrders': true,
                 'fetchTickers': true,
                 // 'fetchTransactions': true,
                 // 'fetchWithdrawals': true,
@@ -152,8 +150,9 @@ module.exports = class mandalaex extends Exchange {
                 },
                 'order': {
                     'get': [
-                        'my-order-history/{key}/{side}/{order-id}',
-                        'my-order-status/{key}/{side}/{Order-id}',
+                        'my-order-history/{key}/{side}',
+                        'my-order-history/{key}/{side}/{orderId}',
+                        'my-order-status/{key}/{side}/{orderId}',
                         'my-trade-history', // ?side=BUY&pair=BTC_ETH&orderID=13165837&apiKey=d14b1eb4-fe1f-4bfc-896d-97285975989e
                         'hmac', // ?side=BUY&market=BTC&trade=ETH&type=STOPLIMIT&volume=0.025&rate=0.032&timeInForce=GTC&stop=2&'
                     ],
@@ -766,19 +765,6 @@ module.exports = class mandalaex extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let request = {};
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['market'] = market['id'];
-        }
-        let response = await this.marketGetOpenorders (this.extend (request, params));
-        let orders = this.parseOrders (response['result'], market, since, limit);
-        return this.filterBySymbol (orders, symbol);
-    }
-
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         // POST Place an order (BID/ASK) (STOP LIMIT)
         // https://zapi.mandalaex.com/api/PlaceOrder
@@ -880,178 +866,191 @@ module.exports = class mandalaex extends Exchange {
         return await this.orderPostCancelAllMyOrders (this.extend (request, params));
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        // https://support.bittrex.com/hc/en-us/articles/115003723911
-        const request = {};
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['currency'] = currency['id'];
-        }
-        const response = await this.accountGetDeposithistory (this.extend (request, params));
-        //
-        //     { success:    true,
-        //       message:   "",
-        //        result: [ {            Id:  22578097,
-        //                           Amount:  0.3,
-        //                         Currency: "ETH",
-        //                    Confirmations:  15,
-        //                      LastUpdated: "2018-06-10T07:12:10.57",
-        //                             TxId: "0xf50b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
-        //                    CryptoAddress: "0xb25f281fa51f1635abd4a60b0870a62d2a7fa404"                    } ] }
-        //
-        // we cannot filter by `since` timestamp, as it isn't set by Bittrex
-        // see https://github.com/ccxt/ccxt/issues/4067
-        // return this.parseTransactions (response['result'], currency, since, limit);
-        return this.parseTransactions (response['result'], currency, undefined, limit);
-    }
+    // async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    //     await this.loadMarkets ();
+    //     let request = {};
+    //     let market = undefined;
+    //     if (symbol !== undefined) {
+    //         market = this.market (symbol);
+    //         request['market'] = market['id'];
+    //     }
+    //     let response = await this.marketGetOpenorders (this.extend (request, params));
+    //     let orders = this.parseOrders (response['result'], market, since, limit);
+    //     return this.filterBySymbol (orders, symbol);
+    // }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        // https://support.bittrex.com/hc/en-us/articles/115003723911
-        const request = {};
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['currency'] = currency['id'];
-        }
-        const response = await this.accountGetWithdrawalhistory (this.extend (request, params));
-        //
-        //     {
-        //         "success" : true,
-        //         "message" : "",
-        //         "result" : [{
-        //                 "PaymentUuid" : "b32c7a5c-90c6-4c6e-835c-e16df12708b1",
-        //                 "Currency" : "BTC",
-        //                 "Amount" : 17.00000000,
-        //                 "Address" : "1DfaaFBdbB5nrHj87x3NHS4onvw1GPNyAu",
-        //                 "Opened" : "2014-07-09T04:24:47.217",
-        //                 "Authorized" : true,
-        //                 "PendingPayment" : false,
-        //                 "TxCost" : 0.00020000,
-        //                 "TxId" : null,
-        //                 "Canceled" : true,
-        //                 "InvalidAddress" : false
-        //             }, {
-        //                 "PaymentUuid" : "d193da98-788c-4188-a8f9-8ec2c33fdfcf",
-        //                 "Currency" : "XC",
-        //                 "Amount" : 7513.75121715,
-        //                 "Address" : "TcnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
-        //                 "Opened" : "2014-07-08T23:13:31.83",
-        //                 "Authorized" : true,
-        //                 "PendingPayment" : false,
-        //                 "TxCost" : 0.00002000,
-        //                 "TxId" : "d8a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
-        //                 "Canceled" : false,
-        //                 "InvalidAddress" : false
-        //             }
-        //         ]
-        //     }
-        //
-        return this.parseTransactions (response['result'], currency, since, limit);
-    }
+    // async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    //     await this.loadMarkets ();
+    //     // https://support.bittrex.com/hc/en-us/articles/115003723911
+    //     const request = {};
+    //     let currency = undefined;
+    //     if (code !== undefined) {
+    //         currency = this.currency (code);
+    //         request['currency'] = currency['id'];
+    //     }
+    //     const response = await this.accountGetDeposithistory (this.extend (request, params));
+    //     //
+    //     //     { success:    true,
+    //     //       message:   "",
+    //     //        result: [ {            Id:  22578097,
+    //     //                           Amount:  0.3,
+    //     //                         Currency: "ETH",
+    //     //                    Confirmations:  15,
+    //     //                      LastUpdated: "2018-06-10T07:12:10.57",
+    //     //                             TxId: "0xf50b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
+    //     //                    CryptoAddress: "0xb25f281fa51f1635abd4a60b0870a62d2a7fa404"                    } ] }
+    //     //
+    //     // we cannot filter by `since` timestamp, as it isn't set by Bittrex
+    //     // see https://github.com/ccxt/ccxt/issues/4067
+    //     // return this.parseTransactions (response['result'], currency, since, limit);
+    //     return this.parseTransactions (response['result'], currency, undefined, limit);
+    // }
 
-    parseTransaction (transaction, currency = undefined) {
-        //
-        // fetchDeposits
-        //
-        //      {            Id:  72578097,
-        //               Amount:  0.3,
-        //             Currency: "ETH",
-        //        Confirmations:  15,
-        //          LastUpdated: "2018-06-17T07:12:14.57",
-        //                 TxId: "0xb31b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
-        //        CryptoAddress: "0x2d5f281fa51f1635abd4a60b0870a62d2a7fa404"                    }
-        //
-        // fetchWithdrawals
-        //
-        //     {
-        //         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf",
-        //         "Currency" : "XC",
-        //         "Amount" : 7513.75121715,
-        //         "Address" : "EVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
-        //         "Opened" : "2014-07-08T23:13:31.83",
-        //         "Authorized" : true,
-        //         "PendingPayment" : false,
-        //         "TxCost" : 0.00002000,
-        //         "TxId" : "b4a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
-        //         "Canceled" : false,
-        //         "InvalidAddress" : false
-        //     }
-        //
-        const id = this.safeString2 (transaction, 'Id', 'PaymentUuid');
-        const amount = this.safeFloat (transaction, 'Amount');
-        const address = this.safeString2 (transaction, 'CryptoAddress', 'Address');
-        const txid = this.safeString (transaction, 'TxId');
-        const updated = this.parse8601 (this.safeValue (transaction, 'LastUpdated'));
-        const timestamp = this.parse8601 (this.safeString (transaction, 'Opened', updated));
-        const type = (timestamp !== undefined) ? 'withdrawal' : 'deposit';
-        let code = undefined;
-        let currencyId = this.safeString (transaction, 'Currency');
-        currency = this.safeValue (this.currencies_by_id, currencyId);
-        if (currency !== undefined) {
-            code = currency['code'];
-        } else {
-            code = this.commonCurrencyCode (currencyId);
-        }
-        let status = 'pending';
-        if (type === 'deposit') {
-            if (currency !== undefined) {
-                // deposits numConfirmations never reach the minConfirmations number
-                // we set all of them to 'ok', otherwise they'd all be 'pending'
-                //
-                //     const numConfirmations = this.safeInteger (transaction, 'Confirmations', 0);
-                //     const minConfirmations = this.safeInteger (currency['info'], 'MinConfirmation');
-                //     if (numConfirmations >= minConfirmations) {
-                //         status = 'ok';
-                //     }
-                //
-                status = 'ok';
-            }
-        } else {
-            const authorized = this.safeValue (transaction, 'Authorized', false);
-            const pendingPayment = this.safeValue (transaction, 'PendingPayment', false);
-            const canceled = this.safeValue (transaction, 'Canceled', false);
-            const invalidAddress = this.safeValue (transaction, 'InvalidAddress', false);
-            if (invalidAddress) {
-                status = 'failed';
-            } else if (canceled) {
-                status = 'canceled';
-            } else if (pendingPayment) {
-                status = 'pending';
-            } else if (authorized && (txid !== undefined)) {
-                status = 'ok';
-            }
-        }
-        let feeCost = this.safeFloat (transaction, 'TxCost');
-        if (feeCost === undefined) {
-            if (type === 'deposit') {
-                // according to https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-
-                feeCost = 0; // FIXME: remove hardcoded value that may change any time
-            } else if (type === 'withdrawal') {
-                throw new ExchangeError ('Withdrawal without fee detected!');
-            }
-        }
-        return {
-            'info': transaction,
-            'id': id,
-            'currency': code,
-            'amount': amount,
-            'address': address,
-            'tag': undefined,
-            'status': status,
-            'type': type,
-            'updated': updated,
-            'txid': txid,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'fee': {
-                'currency': code,
-                'cost': feeCost,
-            },
-        };
-    }
+    // async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    //     await this.loadMarkets ();
+    //     // https://support.bittrex.com/hc/en-us/articles/115003723911
+    //     const request = {};
+    //     let currency = undefined;
+    //     if (code !== undefined) {
+    //         currency = this.currency (code);
+    //         request['currency'] = currency['id'];
+    //     }
+    //     const response = await this.accountGetWithdrawalhistory (this.extend (request, params));
+    //     //
+    //     //     {
+    //     //         "success" : true,
+    //     //         "message" : "",
+    //     //         "result" : [{
+    //     //                 "PaymentUuid" : "b32c7a5c-90c6-4c6e-835c-e16df12708b1",
+    //     //                 "Currency" : "BTC",
+    //     //                 "Amount" : 17.00000000,
+    //     //                 "Address" : "1DfaaFBdbB5nrHj87x3NHS4onvw1GPNyAu",
+    //     //                 "Opened" : "2014-07-09T04:24:47.217",
+    //     //                 "Authorized" : true,
+    //     //                 "PendingPayment" : false,
+    //     //                 "TxCost" : 0.00020000,
+    //     //                 "TxId" : null,
+    //     //                 "Canceled" : true,
+    //     //                 "InvalidAddress" : false
+    //     //             }, {
+    //     //                 "PaymentUuid" : "d193da98-788c-4188-a8f9-8ec2c33fdfcf",
+    //     //                 "Currency" : "XC",
+    //     //                 "Amount" : 7513.75121715,
+    //     //                 "Address" : "TcnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
+    //     //                 "Opened" : "2014-07-08T23:13:31.83",
+    //     //                 "Authorized" : true,
+    //     //                 "PendingPayment" : false,
+    //     //                 "TxCost" : 0.00002000,
+    //     //                 "TxId" : "d8a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
+    //     //                 "Canceled" : false,
+    //     //                 "InvalidAddress" : false
+    //     //             }
+    //     //         ]
+    //     //     }
+    //     //
+    //     return this.parseTransactions (response['result'], currency, since, limit);
+    // }
+
+    // parseTransaction (transaction, currency = undefined) {
+    //     //
+    //     // fetchDeposits
+    //     //
+    //     //      {            Id:  72578097,
+    //     //               Amount:  0.3,
+    //     //             Currency: "ETH",
+    //     //        Confirmations:  15,
+    //     //          LastUpdated: "2018-06-17T07:12:14.57",
+    //     //                 TxId: "0xb31b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
+    //     //        CryptoAddress: "0x2d5f281fa51f1635abd4a60b0870a62d2a7fa404"                    }
+    //     //
+    //     // fetchWithdrawals
+    //     //
+    //     //     {
+    //     //         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf",
+    //     //         "Currency" : "XC",
+    //     //         "Amount" : 7513.75121715,
+    //     //         "Address" : "EVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
+    //     //         "Opened" : "2014-07-08T23:13:31.83",
+    //     //         "Authorized" : true,
+    //     //         "PendingPayment" : false,
+    //     //         "TxCost" : 0.00002000,
+    //     //         "TxId" : "b4a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
+    //     //         "Canceled" : false,
+    //     //         "InvalidAddress" : false
+    //     //     }
+    //     //
+    //     const id = this.safeString2 (transaction, 'Id', 'PaymentUuid');
+    //     const amount = this.safeFloat (transaction, 'Amount');
+    //     const address = this.safeString2 (transaction, 'CryptoAddress', 'Address');
+    //     const txid = this.safeString (transaction, 'TxId');
+    //     const updated = this.parse8601 (this.safeValue (transaction, 'LastUpdated'));
+    //     const timestamp = this.parse8601 (this.safeString (transaction, 'Opened', updated));
+    //     const type = (timestamp !== undefined) ? 'withdrawal' : 'deposit';
+    //     let code = undefined;
+    //     let currencyId = this.safeString (transaction, 'Currency');
+    //     currency = this.safeValue (this.currencies_by_id, currencyId);
+    //     if (currency !== undefined) {
+    //         code = currency['code'];
+    //     } else {
+    //         code = this.commonCurrencyCode (currencyId);
+    //     }
+    //     let status = 'pending';
+    //     if (type === 'deposit') {
+    //         if (currency !== undefined) {
+    //             // deposits numConfirmations never reach the minConfirmations number
+    //             // we set all of them to 'ok', otherwise they'd all be 'pending'
+    //             //
+    //             //     const numConfirmations = this.safeInteger (transaction, 'Confirmations', 0);
+    //             //     const minConfirmations = this.safeInteger (currency['info'], 'MinConfirmation');
+    //             //     if (numConfirmations >= minConfirmations) {
+    //             //         status = 'ok';
+    //             //     }
+    //             //
+    //             status = 'ok';
+    //         }
+    //     } else {
+    //         const authorized = this.safeValue (transaction, 'Authorized', false);
+    //         const pendingPayment = this.safeValue (transaction, 'PendingPayment', false);
+    //         const canceled = this.safeValue (transaction, 'Canceled', false);
+    //         const invalidAddress = this.safeValue (transaction, 'InvalidAddress', false);
+    //         if (invalidAddress) {
+    //             status = 'failed';
+    //         } else if (canceled) {
+    //             status = 'canceled';
+    //         } else if (pendingPayment) {
+    //             status = 'pending';
+    //         } else if (authorized && (txid !== undefined)) {
+    //             status = 'ok';
+    //         }
+    //     }
+    //     let feeCost = this.safeFloat (transaction, 'TxCost');
+    //     if (feeCost === undefined) {
+    //         if (type === 'deposit') {
+    //             // according to https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-
+    //             feeCost = 0; // FIXME: remove hardcoded value that may change any time
+    //         } else if (type === 'withdrawal') {
+    //             throw new ExchangeError ('Withdrawal without fee detected!');
+    //         }
+    //     }
+    //     return {
+    //         'info': transaction,
+    //         'id': id,
+    //         'currency': code,
+    //         'amount': amount,
+    //         'address': address,
+    //         'tag': undefined,
+    //         'status': status,
+    //         'type': type,
+    //         'updated': updated,
+    //         'txid': txid,
+    //         'timestamp': timestamp,
+    //         'datetime': this.iso8601 (timestamp),
+    //         'fee': {
+    //             'currency': code,
+    //             'cost': feeCost,
+    //         },
+    //     };
+    // }
 
     parseSymbol (id) {
         let [ quote, base ] = id.split (this.options['symbolSeparator']);
@@ -1060,241 +1059,307 @@ module.exports = class mandalaex extends Exchange {
         return base + '/' + quote;
     }
 
-    parseOrder (order, market = undefined) {
-        let side = this.safeString2 (order, 'OrderType', 'Type');
-        let isBuyOrder = (side === 'LIMIT_BUY') || (side === 'BUY');
-        let isSellOrder = (side === 'LIMIT_SELL') || (side === 'SELL');
-        if (isBuyOrder) {
-            side = 'buy';
+    // parseOrder (order, market = undefined) {
+    //     let side = this.safeString2 (order, 'OrderType', 'Type');
+    //     let isBuyOrder = (side === 'LIMIT_BUY') || (side === 'BUY');
+    //     let isSellOrder = (side === 'LIMIT_SELL') || (side === 'SELL');
+    //     if (isBuyOrder) {
+    //         side = 'buy';
+    //     }
+    //     if (isSellOrder) {
+    //         side = 'sell';
+    //     }
+    //     // We parse different fields in a very specific order.
+    //     // Order might well be closed and then canceled.
+    //     let status = undefined;
+    //     if (('Opened' in order) && order['Opened'])
+    //         status = 'open';
+    //     if (('Closed' in order) && order['Closed'])
+    //         status = 'closed';
+    //     if (('CancelInitiated' in order) && order['CancelInitiated'])
+    //         status = 'canceled';
+    //     if (('Status' in order) && this.options['parseOrderStatus'])
+    //         status = this.parseOrderStatus (this.safeString (order, 'Status'));
+    //     let symbol = undefined;
+    //     if ('Exchange' in order) {
+    //         let marketId = order['Exchange'];
+    //         if (marketId in this.markets_by_id) {
+    //             market = this.markets_by_id[marketId];
+    //             symbol = market['symbol'];
+    //         } else {
+    //             symbol = this.parseSymbol (marketId);
+    //         }
+    //     } else {
+    //         if (market !== undefined) {
+    //             symbol = market['symbol'];
+    //         }
+    //     }
+    //     let timestamp = undefined;
+    //     if ('Opened' in order)
+    //         timestamp = this.parse8601 (order['Opened'] + '+00:00');
+    //     if ('Created' in order)
+    //         timestamp = this.parse8601 (order['Created'] + '+00:00');
+    //     let lastTradeTimestamp = undefined;
+    //     if (('TimeStamp' in order) && (order['TimeStamp'] !== undefined))
+    //         lastTradeTimestamp = this.parse8601 (order['TimeStamp'] + '+00:00');
+    //     if (('Closed' in order) && (order['Closed'] !== undefined))
+    //         lastTradeTimestamp = this.parse8601 (order['Closed'] + '+00:00');
+    //     if (timestamp === undefined)
+    //         timestamp = lastTradeTimestamp;
+    //     let fee = undefined;
+    //     let commission = undefined;
+    //     if ('Commission' in order) {
+    //         commission = 'Commission';
+    //     } else if ('CommissionPaid' in order) {
+    //         commission = 'CommissionPaid';
+    //     }
+    //     if (commission) {
+    //         fee = {
+    //             'cost': parseFloat (order[commission]),
+    //         };
+    //         if (market !== undefined) {
+    //             fee['currency'] = market['quote'];
+    //         } else if (symbol !== undefined) {
+    //             let currencyIds = symbol.split ('/');
+    //             let quoteCurrencyId = currencyIds[1];
+    //             if (quoteCurrencyId in this.currencies_by_id)
+    //                 fee['currency'] = this.currencies_by_id[quoteCurrencyId]['code'];
+    //             else
+    //                 fee['currency'] = this.commonCurrencyCode (quoteCurrencyId);
+    //         }
+    //     }
+    //     let price = this.safeFloat (order, 'Limit');
+    //     let cost = this.safeFloat (order, 'Price');
+    //     let amount = this.safeFloat (order, 'Quantity');
+    //     let remaining = this.safeFloat (order, 'QuantityRemaining');
+    //     let filled = undefined;
+    //     if (amount !== undefined && remaining !== undefined) {
+    //         filled = amount - remaining;
+    //     }
+    //     if (!cost) {
+    //         if (price && filled)
+    //             cost = price * filled;
+    //     }
+    //     if (!price) {
+    //         if (cost && filled)
+    //             price = cost / filled;
+    //     }
+    //     let average = this.safeFloat (order, 'PricePerUnit');
+    //     let id = this.safeString (order, 'OrderUuid');
+    //     if (id === undefined)
+    //         id = this.safeString (order, 'OrderId');
+    //     let result = {
+    //         'info': order,
+    //         'id': id,
+    //         'timestamp': timestamp,
+    //         'datetime': this.iso8601 (timestamp),
+    //         'lastTradeTimestamp': lastTradeTimestamp,
+    //         'symbol': symbol,
+    //         'type': 'limit',
+    //         'side': side,
+    //         'price': price,
+    //         'cost': cost,
+    //         'average': average,
+    //         'amount': amount,
+    //         'filled': filled,
+    //         'remaining': remaining,
+    //         'status': status,
+    //         'fee': fee,
+    //     };
+    //     return result;
+    // }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const side = this.safeString (params, 'side');
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires an order side extra parameter');
         }
-        if (isSellOrder) {
-            side = 'sell';
-        }
-        // We parse different fields in a very specific order.
-        // Order might well be closed and then canceled.
-        let status = undefined;
-        if (('Opened' in order) && order['Opened'])
-            status = 'open';
-        if (('Closed' in order) && order['Closed'])
-            status = 'closed';
-        if (('CancelInitiated' in order) && order['CancelInitiated'])
-            status = 'canceled';
-        if (('Status' in order) && this.options['parseOrderStatus'])
-            status = this.parseOrderStatus (this.safeString (order, 'Status'));
-        let symbol = undefined;
-        if ('Exchange' in order) {
-            let marketId = order['Exchange'];
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                symbol = this.parseSymbol (marketId);
-            }
-        } else {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
-        }
-        let timestamp = undefined;
-        if ('Opened' in order)
-            timestamp = this.parse8601 (order['Opened'] + '+00:00');
-        if ('Created' in order)
-            timestamp = this.parse8601 (order['Created'] + '+00:00');
-        let lastTradeTimestamp = undefined;
-        if (('TimeStamp' in order) && (order['TimeStamp'] !== undefined))
-            lastTradeTimestamp = this.parse8601 (order['TimeStamp'] + '+00:00');
-        if (('Closed' in order) && (order['Closed'] !== undefined))
-            lastTradeTimestamp = this.parse8601 (order['Closed'] + '+00:00');
-        if (timestamp === undefined)
-            timestamp = lastTradeTimestamp;
-        let fee = undefined;
-        let commission = undefined;
-        if ('Commission' in order) {
-            commission = 'Commission';
-        } else if ('CommissionPaid' in order) {
-            commission = 'CommissionPaid';
-        }
-        if (commission) {
-            fee = {
-                'cost': parseFloat (order[commission]),
-            };
-            if (market !== undefined) {
-                fee['currency'] = market['quote'];
-            } else if (symbol !== undefined) {
-                let currencyIds = symbol.split ('/');
-                let quoteCurrencyId = currencyIds[1];
-                if (quoteCurrencyId in this.currencies_by_id)
-                    fee['currency'] = this.currencies_by_id[quoteCurrencyId]['code'];
-                else
-                    fee['currency'] = this.commonCurrencyCode (quoteCurrencyId);
-            }
-        }
-        let price = this.safeFloat (order, 'Limit');
-        let cost = this.safeFloat (order, 'Price');
-        let amount = this.safeFloat (order, 'Quantity');
-        let remaining = this.safeFloat (order, 'QuantityRemaining');
-        let filled = undefined;
-        if (amount !== undefined && remaining !== undefined) {
-            filled = amount - remaining;
-        }
-        if (!cost) {
-            if (price && filled)
-                cost = price * filled;
-        }
-        if (!price) {
-            if (cost && filled)
-                price = cost / filled;
-        }
-        let average = this.safeFloat (order, 'PricePerUnit');
-        let id = this.safeString (order, 'OrderUuid');
-        if (id === undefined)
-            id = this.safeString (order, 'OrderId');
-        let result = {
-            'info': order,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': symbol,
-            'type': 'limit',
-            'side': side,
-            'price': price,
-            'cost': cost,
-            'average': average,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'status': status,
-            'fee': fee,
+        params = this.omit (params, 'side');
+        const request = {
+            'key': this.apiKey,
+            'side': side.toUpperCase (),
+            // 'orderId': id,
         };
-        return result;
+        const response = await this.orderGetMyOrderHistoryKeySide (this.extend (request, params));
+        //
+        //     {
+        //         status: 'Success',
+        //         errorMessage: null,
+        //         data: [
+        //             {
+        //                 orderId: 20000038,
+        //                 market: 'BTC',
+        //                 trade: 'ETH',
+        //                 volume: 1,
+        //                 pendingVolume: 1,
+        //                 orderStatus: false,
+        //                 rate: 1,
+        //                 amount: 1,
+        //                 serviceCharge: 0,
+        //                 placementDate: '2019-03-19T18:28:43.553',
+        //                 completionDate: null
+        //             },
+        //             {
+        //                 orderId: 20000037,
+        //                 market: 'BTC',
+        //                 trade: 'ETH',
+        //                 volume: 1,
+        //                 pendingVolume: 1,
+        //                 orderStatus: true,
+        //                 rate: 1,
+        //                 amount: 1,
+        //                 serviceCharge: 0,
+        //                 placementDate: '2019-03-19T18:27:51.087',
+        //                 completionDate: '2019-03-19T18:28:16.07'
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        return this.parseOrders (data, market, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = undefined;
-        try {
-            let orderIdField = this.getOrderIdField ();
-            let request = {};
-            request[orderIdField] = id;
-            response = await this.accountGetOrder (this.extend (request, params));
-        } catch (e) {
-            if (this.last_json_response) {
-                let message = this.safeString (this.last_json_response, 'message');
-                if (message === 'UUID_INVALID')
-                    throw new OrderNotFound (this.id + ' fetchOrder() error: ' + this.last_http_response);
-            }
-            throw e;
+        const side = this.safeString (params, 'side');
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires an order side extra parameter');
         }
-        if (!response['result']) {
-            throw new OrderNotFound (this.id + ' order ' + id + ' not found');
-        }
+        params = this.omit (params, 'side');
+        const request = {
+            'key': this.apiKey,
+            'side': side.toUpperCase (),
+            // 'orderId': id,
+        };
+        const response = await this.orderGetMyOrderHistoryKeySide (this.extend (request, params));
+        // const response = await this.orderGetMyOrderStatusKeySideOrderId (this.extend (request, params));
+        console.log (response);
+        process.exit ();
+        // let response = undefined;
+        // try {
+        //     let orderIdField = this.getOrderIdField ();
+        //     let request = {};
+        //     request[orderIdField] = id;
+        //     response = await this.accountGetOrder (this.extend (request, params));
+        // } catch (e) {
+        //     if (this.last_json_response) {
+        //         let message = this.safeString (this.last_json_response, 'message');
+        //         if (message === 'UUID_INVALID')
+        //             throw new OrderNotFound (this.id + ' fetchOrder() error: ' + this.last_http_response);
+        //     }
+        //     throw e;
+        // }
+        // if (!response['result']) {
+        //     throw new OrderNotFound (this.id + ' order ' + id + ' not found');
+        // }
         return this.parseOrder (response['result']);
     }
 
-    orderToTrade (order) {
-        // this entire method should be moved to the base class
-        const timestamp = this.safeInteger2 (order, 'lastTradeTimestamp', 'timestamp');
-        return {
-            'id': this.safeString (order, 'id'),
-            'side': this.safeString (order, 'side'),
-            'order': this.safeString (order, 'id'),
-            'price': this.safeFloat (order, 'average'),
-            'amount': this.safeFloat (order, 'filled'),
-            'cost': this.safeFloat (order, 'cost'),
-            'symbol': this.safeString (order, 'symbol'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'fee': this.safeValue (order, 'fee'),
-            'info': order,
-        };
-    }
+    // orderToTrade (order) {
+    //     // this entire method should be moved to the base class
+    //     const timestamp = this.safeInteger2 (order, 'lastTradeTimestamp', 'timestamp');
+    //     return {
+    //         'id': this.safeString (order, 'id'),
+    //         'side': this.safeString (order, 'side'),
+    //         'order': this.safeString (order, 'id'),
+    //         'price': this.safeFloat (order, 'average'),
+    //         'amount': this.safeFloat (order, 'filled'),
+    //         'cost': this.safeFloat (order, 'cost'),
+    //         'symbol': this.safeString (order, 'symbol'),
+    //         'timestamp': timestamp,
+    //         'datetime': this.iso8601 (timestamp),
+    //         'fee': this.safeValue (order, 'fee'),
+    //         'info': order,
+    //     };
+    // }
 
-    ordersToTrades (orders) {
-        // this entire method should be moved to the base class
-        const result = [];
-        for (let i = 0; i < orders.length; i++) {
-            result.push (this.orderToTrade (orders[i]));
-        }
-        return result;
-    }
+    // ordersToTrades (orders) {
+    //     // this entire method should be moved to the base class
+    //     const result = [];
+    //     for (let i = 0; i < orders.length; i++) {
+    //         result.push (this.orderToTrade (orders[i]));
+    //     }
+    //     return result;
+    // }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const orders = await this.fetchClosedOrders (symbol, since, limit, params);
-        return this.ordersToTrades (orders);
-    }
+    // async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    //     const orders = await this.fetchClosedOrders (symbol, since, limit, params);
+    //     return this.ordersToTrades (orders);
+    // }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let request = {};
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['market'] = market['id'];
-        }
-        let response = await this.accountGetOrderhistory (this.extend (request, params));
-        let orders = this.parseOrders (response['result'], market, since, limit);
-        if (symbol !== undefined)
-            return this.filterBySymbol (orders, symbol);
-        return orders;
-    }
+    // async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    //     await this.loadMarkets ();
+    //     let request = {};
+    //     let market = undefined;
+    //     if (symbol !== undefined) {
+    //         market = this.market (symbol);
+    //         request['market'] = market['id'];
+    //     }
+    //     let response = await this.accountGetOrderhistory (this.extend (request, params));
+    //     let orders = this.parseOrders (response['result'], market, since, limit);
+    //     if (symbol !== undefined)
+    //         return this.filterBySymbol (orders, symbol);
+    //     return orders;
+    // }
 
-    async fetchDepositAddress (code, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-        };
-        const response = await this.accountGetDepositaddress (this.extend (request, params));
-        //
-        //     { "success": false, "message": "ADDRESS_GENERATING", "result": null }
-        //
-        //     { success:    true,
-        //       message:   "",
-        //        result: { Currency: "INCNT",
-        //                   Address: "3PHvQt9bK21f7eVQVdJzrNPcsMzXabEA5Ha" } } }
-        //
-        let address = this.safeString (response['result'], 'Address');
-        const message = this.safeString (response, 'message');
-        if (!address || message === 'ADDRESS_GENERATING') {
-            throw new AddressPending (this.id + ' the address for ' + code + ' is being generated (pending, not ready yet, retry again later)');
-        }
-        let tag = undefined;
-        if (currency['type'] in this.options['tag']) {
-            tag = address;
-            address = currency['address'];
-        }
-        this.checkAddress (address);
-        return {
-            'currency': code,
-            'address': address,
-            'tag': tag,
-            'info': response,
-        };
-    }
+    // async fetchDepositAddress (code, params = {}) {
+    //     await this.loadMarkets ();
+    //     const currency = this.currency (code);
+    //     const request = {
+    //         'currency': currency['id'],
+    //     };
+    //     const response = await this.accountGetDepositaddress (this.extend (request, params));
+    //     //
+    //     //     { "success": false, "message": "ADDRESS_GENERATING", "result": null }
+    //     //
+    //     //     { success:    true,
+    //     //       message:   "",
+    //     //        result: { Currency: "INCNT",
+    //     //                   Address: "3PHvQt9bK21f7eVQVdJzrNPcsMzXabEA5Ha" } } }
+    //     //
+    //     let address = this.safeString (response['result'], 'Address');
+    //     const message = this.safeString (response, 'message');
+    //     if (!address || message === 'ADDRESS_GENERATING') {
+    //         throw new AddressPending (this.id + ' the address for ' + code + ' is being generated (pending, not ready yet, retry again later)');
+    //     }
+    //     let tag = undefined;
+    //     if (currency['type'] in this.options['tag']) {
+    //         tag = address;
+    //         address = currency['address'];
+    //     }
+    //     this.checkAddress (address);
+    //     return {
+    //         'currency': code,
+    //         'address': address,
+    //         'tag': tag,
+    //         'info': response,
+    //     };
+    // }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
-        this.checkAddress (address);
-        await this.loadMarkets ();
-        let currency = this.currency (code);
-        let request = {
-            'currency': currency['id'],
-            'quantity': amount,
-            'address': address,
-        };
-        if (tag)
-            request['paymentid'] = tag;
-        let response = await this.accountGetWithdraw (this.extend (request, params));
-        let id = undefined;
-        if ('result' in response) {
-            if ('uuid' in response['result'])
-                id = response['result']['uuid'];
-        }
-        return {
-            'info': response,
-            'id': id,
-        };
-    }
+    // async withdraw (code, amount, address, tag = undefined, params = {}) {
+    //     this.checkAddress (address);
+    //     await this.loadMarkets ();
+    //     let currency = this.currency (code);
+    //     let request = {
+    //         'currency': currency['id'],
+    //         'quantity': amount,
+    //         'address': address,
+    //     };
+    //     if (tag)
+    //         request['paymentid'] = tag;
+    //     let response = await this.accountGetWithdraw (this.extend (request, params));
+    //     let id = undefined;
+    //     if ('result' in response) {
+    //         if ('uuid' in response['result'])
+    //             id = response['result']['uuid'];
+    //     }
+    //     return {
+    //         'info': response,
+    //         'id': id,
+    //     };
+    // }
 
     sign (path, api = 'api', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeParams (this.urls['api'], {
