@@ -294,6 +294,10 @@ class binance (Exchange):
                 },
             },
             'exceptions': {
+                'API key does not exist': AuthenticationError,
+                'Order would trigger immediately.': InvalidOrder,
+                'Account has insufficient balance for requested action.': InsufficientFunds,
+                'Rest API trading is not enabled.': ExchangeNotAvailable,
                 '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
                 '-1013': InvalidOrder,  # createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
                 '-1021': InvalidNonce,  # 'your time is ahead of server'
@@ -1201,23 +1205,20 @@ class binance (Exchange):
                             parsedMessage = None
                         if parsedMessage is not None:
                             response = parsedMessage
+                exceptions = self.exceptions
+                message = self.safe_string(response, 'msg')
+                if message in exceptions:
+                    ExceptionClass = exceptions[message]
+                    raise ExceptionClass(self.id + ' ' + message)
                 # checks against error codes
                 error = self.safe_string(response, 'code')
                 if error is not None:
-                    exceptions = self.exceptions
                     if error in exceptions:
                         # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
                         # despite that their message is very confusing, it is raised by Binance
                         # on a temporary ban(the API key is valid, but disabled for a while)
                         if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
                             raise DDoSProtection(self.id + ' temporary banned: ' + body)
-                        message = self.safe_string(response, 'msg')
-                        if message == 'Order would trigger immediately.':
-                            raise InvalidOrder(self.id + ' ' + body)
-                        elif message == 'Account has insufficient balance for requested action.':
-                            raise InsufficientFunds(self.id + ' ' + body)
-                        elif message == 'Rest API trading is not enabled.':
-                            raise ExchangeNotAvailable(self.id + ' ' + body)
                         raise exceptions[error](self.id + ' ' + body)
                     else:
                         raise ExchangeError(self.id + ' ' + body)

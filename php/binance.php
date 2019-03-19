@@ -282,6 +282,10 @@ class binance extends Exchange {
                 ),
             ),
             'exceptions' => array (
+                'API key does not exist' => '\\ccxt\\AuthenticationError',
+                'Order would trigger immediately.' => '\\ccxt\\InvalidOrder',
+                'Account has insufficient balance for requested action.' => '\\ccxt\\InsufficientFunds',
+                'Rest API trading is not enabled.' => '\\ccxt\\ExchangeNotAvailable',
                 '-1000' => '\\ccxt\\ExchangeNotAvailable', // array ("code":-1000,"msg":"An unknown error occured while processing the request.")
                 '-1013' => '\\ccxt\\InvalidOrder', // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
                 '-1021' => '\\ccxt\\InvalidNonce', // 'your time is ahead of server'
@@ -1284,24 +1288,21 @@ class binance extends Exchange {
                         }
                     }
                 }
+                $exceptions = $this->exceptions;
+                $message = $this->safe_string($response, 'msg');
+                if (is_array ($exceptions) && array_key_exists ($message, $exceptions)) {
+                    $ExceptionClass = $exceptions[$message];
+                    throw new $ExceptionClass ($this->id . ' ' . $message);
+                }
                 // checks against $error codes
                 $error = $this->safe_string($response, 'code');
                 if ($error !== null) {
-                    $exceptions = $this->exceptions;
                     if (is_array ($exceptions) && array_key_exists ($error, $exceptions)) {
                         // a workaround for array ("$code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
                         // despite that their $message is very confusing, it is raised by Binance
                         // on a temporary ban (the API key is valid, but disabled for a while)
                         if (($error === '-2015') && $this->options['hasAlreadyAuthenticatedSuccessfully']) {
                             throw new DDoSProtection ($this->id . ' temporary banned => ' . $body);
-                        }
-                        $message = $this->safe_string($response, 'msg');
-                        if ($message === 'Order would trigger immediately.') {
-                            throw new InvalidOrder ($this->id . ' ' . $body);
-                        } else if ($message === 'Account has insufficient balance for requested action.') {
-                            throw new InsufficientFunds ($this->id . ' ' . $body);
-                        } else if ($message === 'Rest API trading is not enabled.') {
-                            throw new ExchangeNotAvailable ($this->id . ' ' . $body);
                         }
                         throw new $exceptions[$error] ($this->id . ' ' . $body);
                     } else {
