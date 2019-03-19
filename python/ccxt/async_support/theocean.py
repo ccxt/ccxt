@@ -46,13 +46,14 @@ class theocean (Exchange):
                 '1d': '86400',
             },
             'has': {
+                'cancelAllOrders': True,
                 'CORS': False,  # ?
-                'fetchTickers': True,
+                'fetchClosedOrders': True,
                 'fetchOHLCV': False,
+                'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
+                'fetchTickers': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/43103756-d56613ce-8ed7-11e8-924e-68f9d4bcacab.jpg',
@@ -564,7 +565,7 @@ class theocean (Exchange):
             'status': 'canceled',
         })
 
-    async def cancel_all_orders(self, params={}):
+    async def cancel_all_orders(self, symbols=None, params={}):
         response = await self.privateDeleteOrder(params)
         #
         #     [{

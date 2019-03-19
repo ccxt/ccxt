@@ -34,6 +34,7 @@ class bitfinex (Exchange):
             # new metainfo interface
             'has': {
                 'CORS': False,
+                'cancelAllOrders': True,
                 'createDepositAddress': True,
                 'deposit': True,
                 'fetchClosedOrders': True,
@@ -687,7 +688,7 @@ class bitfinex (Exchange):
         await self.load_markets()
         return await self.privatePostOrderCancel({'order_id': int(id)})
 
-    async def cancel_all_orders(self, params={}):
+    async def cancel_all_orders(self, symbols=None, params={}):
         return await self.privatePostOrderCancelAll(params)
 
     def parse_order(self, order, market=None):
