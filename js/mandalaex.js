@@ -1059,115 +1059,115 @@ module.exports = class mandalaex extends Exchange {
         return base + '/' + quote;
     }
 
-    // parseOrder (order, market = undefined) {
-    //     let side = this.safeString2 (order, 'OrderType', 'Type');
-    //     let isBuyOrder = (side === 'LIMIT_BUY') || (side === 'BUY');
-    //     let isSellOrder = (side === 'LIMIT_SELL') || (side === 'SELL');
-    //     if (isBuyOrder) {
-    //         side = 'buy';
-    //     }
-    //     if (isSellOrder) {
-    //         side = 'sell';
-    //     }
-    //     // We parse different fields in a very specific order.
-    //     // Order might well be closed and then canceled.
-    //     let status = undefined;
-    //     if (('Opened' in order) && order['Opened'])
-    //         status = 'open';
-    //     if (('Closed' in order) && order['Closed'])
-    //         status = 'closed';
-    //     if (('CancelInitiated' in order) && order['CancelInitiated'])
-    //         status = 'canceled';
-    //     if (('Status' in order) && this.options['parseOrderStatus'])
-    //         status = this.parseOrderStatus (this.safeString (order, 'Status'));
-    //     let symbol = undefined;
-    //     if ('Exchange' in order) {
-    //         let marketId = order['Exchange'];
-    //         if (marketId in this.markets_by_id) {
-    //             market = this.markets_by_id[marketId];
-    //             symbol = market['symbol'];
-    //         } else {
-    //             symbol = this.parseSymbol (marketId);
-    //         }
-    //     } else {
-    //         if (market !== undefined) {
-    //             symbol = market['symbol'];
-    //         }
-    //     }
-    //     let timestamp = undefined;
-    //     if ('Opened' in order)
-    //         timestamp = this.parse8601 (order['Opened'] + '+00:00');
-    //     if ('Created' in order)
-    //         timestamp = this.parse8601 (order['Created'] + '+00:00');
-    //     let lastTradeTimestamp = undefined;
-    //     if (('TimeStamp' in order) && (order['TimeStamp'] !== undefined))
-    //         lastTradeTimestamp = this.parse8601 (order['TimeStamp'] + '+00:00');
-    //     if (('Closed' in order) && (order['Closed'] !== undefined))
-    //         lastTradeTimestamp = this.parse8601 (order['Closed'] + '+00:00');
-    //     if (timestamp === undefined)
-    //         timestamp = lastTradeTimestamp;
-    //     let fee = undefined;
-    //     let commission = undefined;
-    //     if ('Commission' in order) {
-    //         commission = 'Commission';
-    //     } else if ('CommissionPaid' in order) {
-    //         commission = 'CommissionPaid';
-    //     }
-    //     if (commission) {
-    //         fee = {
-    //             'cost': parseFloat (order[commission]),
-    //         };
-    //         if (market !== undefined) {
-    //             fee['currency'] = market['quote'];
-    //         } else if (symbol !== undefined) {
-    //             let currencyIds = symbol.split ('/');
-    //             let quoteCurrencyId = currencyIds[1];
-    //             if (quoteCurrencyId in this.currencies_by_id)
-    //                 fee['currency'] = this.currencies_by_id[quoteCurrencyId]['code'];
-    //             else
-    //                 fee['currency'] = this.commonCurrencyCode (quoteCurrencyId);
-    //         }
-    //     }
-    //     let price = this.safeFloat (order, 'Limit');
-    //     let cost = this.safeFloat (order, 'Price');
-    //     let amount = this.safeFloat (order, 'Quantity');
-    //     let remaining = this.safeFloat (order, 'QuantityRemaining');
-    //     let filled = undefined;
-    //     if (amount !== undefined && remaining !== undefined) {
-    //         filled = amount - remaining;
-    //     }
-    //     if (!cost) {
-    //         if (price && filled)
-    //             cost = price * filled;
-    //     }
-    //     if (!price) {
-    //         if (cost && filled)
-    //             price = cost / filled;
-    //     }
-    //     let average = this.safeFloat (order, 'PricePerUnit');
-    //     let id = this.safeString (order, 'OrderUuid');
-    //     if (id === undefined)
-    //         id = this.safeString (order, 'OrderId');
-    //     let result = {
-    //         'info': order,
-    //         'id': id,
-    //         'timestamp': timestamp,
-    //         'datetime': this.iso8601 (timestamp),
-    //         'lastTradeTimestamp': lastTradeTimestamp,
-    //         'symbol': symbol,
-    //         'type': 'limit',
-    //         'side': side,
-    //         'price': price,
-    //         'cost': cost,
-    //         'average': average,
-    //         'amount': amount,
-    //         'filled': filled,
-    //         'remaining': remaining,
-    //         'status': status,
-    //         'fee': fee,
-    //     };
-    //     return result;
-    // }
+    parseOrder (order, market = undefined) {
+        let side = this.safeString2 (order, 'OrderType', 'Type');
+        let isBuyOrder = (side === 'LIMIT_BUY') || (side === 'BUY');
+        let isSellOrder = (side === 'LIMIT_SELL') || (side === 'SELL');
+        if (isBuyOrder) {
+            side = 'buy';
+        }
+        if (isSellOrder) {
+            side = 'sell';
+        }
+        // We parse different fields in a very specific order.
+        // Order might well be closed and then canceled.
+        let status = undefined;
+        if (('Opened' in order) && order['Opened'])
+            status = 'open';
+        if (('Closed' in order) && order['Closed'])
+            status = 'closed';
+        if (('CancelInitiated' in order) && order['CancelInitiated'])
+            status = 'canceled';
+        if (('Status' in order) && this.options['parseOrderStatus'])
+            status = this.parseOrderStatus (this.safeString (order, 'Status'));
+        let symbol = undefined;
+        if ('Exchange' in order) {
+            let marketId = order['Exchange'];
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                symbol = this.parseSymbol (marketId);
+            }
+        } else {
+            if (market !== undefined) {
+                symbol = market['symbol'];
+            }
+        }
+        let timestamp = undefined;
+        if ('Opened' in order)
+            timestamp = this.parse8601 (order['Opened'] + '+00:00');
+        if ('Created' in order)
+            timestamp = this.parse8601 (order['Created'] + '+00:00');
+        let lastTradeTimestamp = undefined;
+        if (('TimeStamp' in order) && (order['TimeStamp'] !== undefined))
+            lastTradeTimestamp = this.parse8601 (order['TimeStamp'] + '+00:00');
+        if (('Closed' in order) && (order['Closed'] !== undefined))
+            lastTradeTimestamp = this.parse8601 (order['Closed'] + '+00:00');
+        if (timestamp === undefined)
+            timestamp = lastTradeTimestamp;
+        let fee = undefined;
+        let commission = undefined;
+        if ('Commission' in order) {
+            commission = 'Commission';
+        } else if ('CommissionPaid' in order) {
+            commission = 'CommissionPaid';
+        }
+        if (commission) {
+            fee = {
+                'cost': parseFloat (order[commission]),
+            };
+            if (market !== undefined) {
+                fee['currency'] = market['quote'];
+            } else if (symbol !== undefined) {
+                let currencyIds = symbol.split ('/');
+                let quoteCurrencyId = currencyIds[1];
+                if (quoteCurrencyId in this.currencies_by_id)
+                    fee['currency'] = this.currencies_by_id[quoteCurrencyId]['code'];
+                else
+                    fee['currency'] = this.commonCurrencyCode (quoteCurrencyId);
+            }
+        }
+        let price = this.safeFloat (order, 'Limit');
+        let cost = this.safeFloat (order, 'Price');
+        let amount = this.safeFloat (order, 'Quantity');
+        let remaining = this.safeFloat (order, 'QuantityRemaining');
+        let filled = undefined;
+        if (amount !== undefined && remaining !== undefined) {
+            filled = amount - remaining;
+        }
+        if (!cost) {
+            if (price && filled)
+                cost = price * filled;
+        }
+        if (!price) {
+            if (cost && filled)
+                price = cost / filled;
+        }
+        let average = this.safeFloat (order, 'PricePerUnit');
+        let id = this.safeString (order, 'OrderUuid');
+        if (id === undefined)
+            id = this.safeString (order, 'OrderId');
+        let result = {
+            'info': order,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'average': average,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+        };
+        return result;
+    }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
