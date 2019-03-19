@@ -171,20 +171,30 @@ class negociecoins (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        balances = await self.privateGetUserBalance(params)
-        result = {'info': balances}
-        currencies = list(balances.keys())
-        for i in range(0, len(currencies)):
-            id = currencies[i]
-            balance = balances[id]
-            currency = self.common_currency_code(id)
+        response = await self.privateGetUserBalance(params)
+        #
+        #     {
+        #         "coins": [
+        #             {"name":"BRL","available":0.0,"openOrders":0.0,"withdraw":0.0,"total":0.0},
+        #             {"name":"BTC","available":0.0,"openOrders":0.0,"withdraw":0.0,"total":0.0},
+        #         ],
+        #     }
+        #
+        result = {'info': response}
+        balances = self.safe_value(response, 'coins')
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'name')
+            code = self.common_currency_code(currencyId)
+            openOrders = self.safe_float(balance, 'openOrders')
+            withdraw = self.safe_float(balance, 'withdraw')
             account = {
-                'free': float(balance['total']),
-                'used': 0.0,
-                'total': float(balance['available']),
+                'free': self.safe_float(balance, 'total'),
+                'used': self.sum(openOrders, withdraw),
+                'total': self.safe_float(balance, 'available'),
             }
             account['used'] = account['total'] - account['free']
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     def parse_order(self, order, market=None):
