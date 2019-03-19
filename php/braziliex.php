@@ -86,7 +86,7 @@ class braziliex extends Exchange {
             $response = $this->publicGetCurrencies ($params);
             $this->options['fetchCurrencies'] = array_merge ($options, array (
                 'response' => $response,
-                'timestamp' => $timestamp,
+                'timestamp' => $now,
             ));
         }
         return $this->safe_value($this->options['fetchCurrencies'], 'response');

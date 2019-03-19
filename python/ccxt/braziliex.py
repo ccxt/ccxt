@@ -89,7 +89,7 @@ class braziliex (Exchange):
             response = self.publicGetCurrencies(params)
             self.options['fetchCurrencies'] = self.extend(options, {
                 'response': response,
-                'timestamp': timestamp,
+                'timestamp': now,
             })
         return self.safe_value(self.options['fetchCurrencies'], 'response')
 

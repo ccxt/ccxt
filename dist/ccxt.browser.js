@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.368'
+const version = '1.18.375'
 
 Exchange.ccxtVersion = version
 
@@ -6973,6 +6973,7 @@ module.exports = class binance extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'BCC': 'BCC', // kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
                 'YOYO': 'YOYOW',
             },
             // exchange-specific options
@@ -19260,7 +19261,7 @@ module.exports = class braziliex extends Exchange {
             const response = await this.publicGetCurrencies (params);
             this.options['fetchCurrencies'] = this.extend (options, {
                 'response': response,
-                'timestamp': timestamp,
+                'timestamp': now,
             });
         }
         return this.safeValue (this.options['fetchCurrencies'], 'response');
@@ -26873,7 +26874,7 @@ module.exports = class coinex extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
+            'baseVolume': this.safeFloat (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -46480,16 +46481,12 @@ module.exports = class itbit extends Exchange {
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const side = this.safeString (trade, 'direction');
         const orderId = this.safeString (trade, 'orderId');
-        const feeCost = this.safeFloat (trade, 'commissionPaid');
+        let feeCost = this.safeFloat (trade, 'commissionPaid');
         const feeCurrencyId = this.safeString (trade, 'commissionCurrency');
         const feeCurrency = this.commonCurrencyCode (feeCurrencyId);
-        let fee = undefined;
-        if (feeCost !== undefined) {
-            fee = {
-                'cost': feeCost,
-                'currency': feeCurrency,
-            };
-        }
+        const rebatesApplied = this.safeFloat (trade, 'rebatesApplied');
+        const rebateCurrencyId = this.safeString (trade, 'rebateCurrency');
+        const rebateCurrency = this.commonCurrencyCode (rebateCurrencyId);
         const price = this.safeFloat2 (trade, 'price', 'rate');
         const amount = this.safeFloat2 (trade, 'currency1Amount', 'amount');
         let cost = undefined;
@@ -46516,7 +46513,7 @@ module.exports = class itbit extends Exchange {
                 symbol = market['symbol'];
             }
         }
-        return {
+        const result = {
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -46528,8 +46525,32 @@ module.exports = class itbit extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': fee,
         };
+        if (feeCost !== undefined && rebatesApplied !== undefined) {
+            if (feeCurrency === rebateCurrency) {
+                if (feeCost !== undefined) {
+                    if (rebatesApplied !== undefined) {
+                        feeCost = this.sum (feeCost, rebatesApplied);
+                    }
+                    result['fee'] = {
+                        'cost': feeCost,
+                        'currency': feeCurrency,
+                    };
+                }
+            } else {
+                result['fees'] = [
+                    {
+                        'cost': feeCost,
+                        'currency': feeCurrency,
+                    },
+                    {
+                        'cost': rebatesApplied,
+                        'currency': rebateCurrency,
+                    },
+                ];
+            }
+        }
+        return result;
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

@@ -281,7 +281,7 @@ count(some_array);
 strlen(some_string); // or mb_strlen
 ```
 
-Because the transpiler works line-by-line and does no code introspection, it cannot tell arrays from strings and cannot properly transpile the reference to length in PHP, without additional hinting. It will transpile JS `.length` to PHP `strlen` and will prefer string lengths over array lengths. In order to work with array length properly we have to do the following:
+Because the transpiler works line-by-line and does no code introspection, it cannot tell arrays from strings and cannot properly transpile `.length` to PHP without additional hinting. It will always transpile JS `.length` to PHP `strlen` and will prefer string lengths over array lengths. In order to indicate an array length properly we have to do the following:
 
 ```JavaScript
 const arrayLength = someArray.length;
@@ -295,7 +295,7 @@ That `.length;` line ending does the trick. The only case when the array `.lengt
 
 ##### Working With Strings
 
-In JS the arithmetic addition `+` operator handles both strings and numbers. So, it can concatenate strings with `+` and can sum up numbers with `+` as well. The same is true with Python. With PHP this is different, so it has different operators for string concatenation (the "dot" operator `.`) and for arithmetic addition (the "plus" operator `+`). Once again, because the transpiler does no code introspection and works on syntactic level only, it cannot tell if you're adding up variables or strings in JS. This works fine until you want to transpile this to other languages, be it PHP or whatever other language it is. In order to help it, we have to use `this.sum` for arithmetic additions.
+In JS the arithmetic addition `+` operator handles both strings and numbers. So, it can concatenate strings with `+` and can sum up numbers with `+` as well. The same is true with Python. With PHP this is different, so it has different operators for string concatenation (the "dot" operator `.`) and for arithmetic addition (the "plus" operator `+`). Once again, because the transpiler does no code introspection it cannot tell if you're adding up variables or strings in JS. This works fine until you want to transpile this to other languages, be it PHP or whatever other language it is. In order to help the transpiler we have to use `this.sum` for arithmetic additions.
 
 The rule of thumb is: **`+` is for string concatenation only (!)** and **`this.sum (a, b, c, ...)` is for arithmetic additions**.
 

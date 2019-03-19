@@ -87,6 +87,16 @@ const cfscrapeCookies = (url) => {
 
 //-----------------------------------------------------------------------------
 
+// set up keys and settings, if any
+const keysGlobal = path.resolve ('keys.json')
+const keysLocal = path.resolve ('keys.local.json')
+
+let globalKeysFile = fs.existsSync (keysGlobal) ? keysGlobal : false
+let localKeysFile = fs.existsSync (keysLocal) ? keysLocal : globalKeysFile
+let settings = localKeysFile ? (require (localKeysFile)[exchangeId] || {}) : {}
+
+//-----------------------------------------------------------------------------
+
 const timeout = 30000
 let exchange = undefined
 const enableRateLimit = true
@@ -103,6 +113,7 @@ try {
         timeout,
         enableRateLimit,
         agent,
+        ... settings,
     })
 
 } catch (e) {
@@ -111,18 +122,6 @@ try {
     printUsage ()
     process.exit ()
 }
-
-//-----------------------------------------------------------------------------
-
-// set up keys and settings, if any
-const keysGlobal = path.resolve ('keys.json')
-const keysLocal = path.resolve ('keys.local.json')
-
-let globalKeysFile = fs.existsSync (keysGlobal) ? keysGlobal : false
-let localKeysFile = fs.existsSync (keysLocal) ? keysLocal : globalKeysFile
-let settings = localKeysFile ? (require (localKeysFile)[exchangeId] || {}) : {}
-
-Object.assign (exchange, settings)
 
 //-----------------------------------------------------------------------------
 

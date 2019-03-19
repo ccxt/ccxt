@@ -24,7 +24,12 @@ Current feature list:
 Sponsored Promotion
 -------------------
 
-https://www.coss.io
+Want this place? Contact us: info@ccxt.trade
+
+.. figure:: https://user-images.githubusercontent.com/1707/48204972-43569e00-e37c-11e8-9cf3-b86e3dc19ee9.png
+   :alt: Placehodler
+
+   Placehodler
 
 Certified Cryptocurrency Exchanges
 ----------------------------------
