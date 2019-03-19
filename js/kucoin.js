@@ -222,7 +222,7 @@ module.exports = class kucoin extends Exchange {
                     'max': baseMaxSize,
                 },
                 'price': {
-                    'min': Math.max (quoteMinSize / baseMinSize, quoteIncrement),
+                    'min': quoteIncrement,
                     'max': quoteMaxSize / baseMinSize,
                 },
                 'cost': {

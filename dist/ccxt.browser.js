@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.375'
+const version = '1.18.382'
 
 Exchange.ccxtVersion = version
 
@@ -6030,13 +6030,14 @@ module.exports = class bigone extends Exchange {
             'countries': [ 'GB' ],
             'version': 'v2',
             'has': {
-                'fetchTickers': true,
-                'fetchOpenOrders': true,
-                'fetchMyTrades': true,
-                'fetchDepositAddress': true,
-                'withdraw': true,
-                'fetchOHLCV': false,
+                'cancelAllOrders': true,
                 'createMarketOrder': false,
+                'fetchDepositAddress': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': false,
+                'fetchOpenOrders': true,
+                'fetchTickers': true,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/42803606-27c2b5ec-89af-11e8-8d15-9c8c245e8b2c.jpg',
@@ -6994,6 +6995,10 @@ module.exports = class binance extends Exchange {
                 },
             },
             'exceptions': {
+                'API key does not exist': AuthenticationError,
+                'Order would trigger immediately.': InvalidOrder,
+                'Account has insufficient balance for requested action.': InsufficientFunds,
+                'Rest API trading is not enabled.': ExchangeNotAvailable,
                 '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
                 '-1013': InvalidOrder, // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
                 '-1021': InvalidNonce, // 'your time is ahead of server'
@@ -7996,24 +8001,21 @@ module.exports = class binance extends Exchange {
                         }
                     }
                 }
+                const exceptions = this.exceptions;
+                const message = this.safeString (response, 'msg');
+                if (message in exceptions) {
+                    const ExceptionClass = exceptions[message];
+                    throw new ExceptionClass (this.id + ' ' + message);
+                }
                 // checks against error codes
                 let error = this.safeString (response, 'code');
                 if (error !== undefined) {
-                    const exceptions = this.exceptions;
                     if (error in exceptions) {
                         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
                         // despite that their message is very confusing, it is raised by Binance
                         // on a temporary ban (the API key is valid, but disabled for a while)
                         if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
                             throw new DDoSProtection (this.id + ' temporary banned: ' + body);
-                        }
-                        const message = this.safeString (response, 'msg');
-                        if (message === 'Order would trigger immediately.') {
-                            throw new InvalidOrder (this.id + ' ' + body);
-                        } else if (message === 'Account has insufficient balance for requested action.') {
-                            throw new InsufficientFunds (this.id + ' ' + body);
-                        } else if (message === 'Rest API trading is not enabled.') {
-                            throw new ExchangeNotAvailable (this.id + ' ' + body);
                         }
                         throw new exceptions[error] (this.id + ' ' + body);
                     } else {
@@ -9293,6 +9295,7 @@ module.exports = class bitfinex extends Exchange {
             // new metainfo interface
             'has': {
                 'CORS': false,
+                'cancelAllOrders': true,
                 'createDepositAddress': true,
                 'deposit': true,
                 'fetchClosedOrders': true,
@@ -9979,7 +9982,7 @@ module.exports = class bitfinex extends Exchange {
         return await this.privatePostOrderCancel ({ 'order_id': parseInt (id) });
     }
 
-    async cancelAllOrders (params = {}) {
+    async cancelAllOrders (symbols = undefined, params = {}) {
         return await this.privatePostOrderCancelAll (params);
     }
 
@@ -32787,26 +32790,27 @@ module.exports = class crex24 extends Exchange {
             'version': 'v2',
             // new metainfo interface
             'has': {
+                'cancelAllOrders': true,
+                'CORS': false,
+                'editOrder': true,
+                'fetchBidsAsks': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'CORS': false,
-                'fetchBidsAsks': true,
-                'fetchTickers': true,
-                'fetchOHLCV': false,
+                'fetchDeposits': true,
+                'fetchFundingFees': false,
                 'fetchMyTrades': true,
+                'fetchOHLCV': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrders': false,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'withdraw': true,
+                'fetchOrderTrades': true,
+                'fetchTickers': true,
                 'fetchTradingFee': false, // actually, true, but will be implemented later
                 'fetchTradingFees': false, // actually, true, but will be implemented later
-                'fetchFundingFees': false,
-                'fetchDeposits': true,
-                'fetchWithdrawals': true,
                 'fetchTransactions': true,
-                'fetchOrderTrades': true,
-                'editOrder': true,
+                'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg',
@@ -40231,19 +40235,19 @@ module.exports = class gdax extends Exchange {
             'rateLimit': 1000,
             'userAgent': this.userAgents['chrome'],
             'has': {
+                'cancelAllOrders': true,
                 'CORS': true,
-                'fetchOHLCV': true,
                 'deposit': true,
-                'withdraw': true,
                 'fetchAccounts': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
                 'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrders': true,
                 'fetchTransactions': true,
-                'cancelAllOrders': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': 60,
@@ -40760,7 +40764,7 @@ module.exports = class gdax extends Exchange {
         return await this.privateDeleteOrdersId ({ 'id': id });
     }
 
-    async cancelAllOrders (params = {}) {
+    async cancelAllOrders (symbols = undefined, params = {}) {
         return await this.privateDeleteOrders (params);
     }
 
@@ -48609,6 +48613,7 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         // https://www.kraken.com/en-us/help/api#deposit-status
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposits requires a currency code argument');
@@ -48635,6 +48640,7 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         // https://www.kraken.com/en-us/help/api#withdraw-status
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawals requires a currency code argument');
@@ -49016,7 +49022,7 @@ module.exports = class kucoin extends Exchange {
                     'max': baseMaxSize,
                 },
                 'price': {
-                    'min': Math.max (quoteMinSize / baseMinSize, quoteIncrement),
+                    'min': quoteIncrement,
                     'max': quoteMaxSize / baseMinSize,
                 },
                 'cost': {
@@ -54504,6 +54510,7 @@ module.exports = class mixcoins extends Exchange {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -54675,20 +54682,30 @@ module.exports = class negociecoins extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let balances = await this.privateGetUserBalance (params);
-        let result = { 'info': balances };
-        let currencies = Object.keys (balances);
-        for (let i = 0; i < currencies.length; i++) {
-            let id = currencies[i];
-            let balance = balances[id];
-            let currency = this.commonCurrencyCode (id);
-            let account = {
-                'free': parseFloat (balance['total']),
-                'used': 0.0,
-                'total': parseFloat (balance['available']),
+        const response = await this.privateGetUserBalance (params);
+        //
+        //     {
+        //         "coins": [
+        //             {"name":"BRL","available":0.0,"openOrders":0.0,"withdraw":0.0,"total":0.0},
+        //             {"name":"BTC","available":0.0,"openOrders":0.0,"withdraw":0.0,"total":0.0},
+        //         ],
+        //     }
+        //
+        const result = { 'info': response };
+        const balances = this.safeValue (response, 'coins');
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'name');
+            const code = this.commonCurrencyCode (currencyId);
+            const openOrders = this.safeFloat (balance, 'openOrders');
+            const withdraw = this.safeFloat (balance, 'withdraw');
+            const account = {
+                'free': this.safeFloat (balance, 'total'),
+                'used': this.sum (openOrders, withdraw),
+                'total': this.safeFloat (balance, 'available'),
             };
             account['used'] = account['total'] - account['free'];
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -54775,6 +54792,9 @@ module.exports = class negociecoins extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders () requires a symbol argument');
+        }
         let market = this.market (symbol);
         let request = {
             'pair': market['id'],
@@ -54830,7 +54850,7 @@ module.exports = class negociecoins extends Exchange {
             let uri = this.encodeURIComponent (url).toLowerCase ();
             let payload = [ this.apiKey, method, uri, timestamp, nonce, content ].join ('');
             let secret = this.base64ToBinary (this.secret);
-            let signature = this.hmac (this.encode (payload), this.encode (secret), 'sha256', 'base64');
+            let signature = this.hmac (this.encode (payload), secret, 'sha256', 'base64');
             signature = this.binaryToString (signature);
             let auth = [ this.apiKey, signature, nonce, timestamp ].join (':');
             headers = {
@@ -54848,7 +54868,7 @@ module.exports = class negociecoins extends Exchange {
     }
 };
 
-},{"./base/Exchange":8}],124:[function(require,module,exports){
+},{"./base/Exchange":8,"./base/errors":10}],124:[function(require,module,exports){
 'use strict';
 
 //  ---------------------------------------------------------------------------
@@ -60237,13 +60257,14 @@ module.exports = class theocean extends Exchange {
                 '1d': '86400',
             },
             'has': {
+                'cancelAllOrders': true,
                 'CORS': false, // ?
-                'fetchTickers': true,
+                'fetchClosedOrders': true,
                 'fetchOHLCV': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
+                'fetchTickers': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/43103756-d56613ce-8ed7-11e8-924e-68f9d4bcacab.jpg',
@@ -60796,7 +60817,7 @@ module.exports = class theocean extends Exchange {
         });
     }
 
-    async cancelAllOrders (params = {}) {
+    async cancelAllOrders (symbols = undefined, params = {}) {
         const response = await this.privateDeleteOrder (params);
         //
         //     [{

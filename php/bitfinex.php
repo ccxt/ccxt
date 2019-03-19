@@ -20,6 +20,7 @@ class bitfinex extends Exchange {
             // new metainfo interface
             'has' => array (
                 'CORS' => false,
+                'cancelAllOrders' => true,
                 'createDepositAddress' => true,
                 'deposit' => true,
                 'fetchClosedOrders' => true,
@@ -706,7 +707,7 @@ class bitfinex extends Exchange {
         return $this->privatePostOrderCancel (array ( 'order_id' => intval ($id) ));
     }
 
-    public function cancel_all_orders ($params = array ()) {
+    public function cancel_all_orders ($symbols = null, $params = array ()) {
         return $this->privatePostOrderCancelAll ($params);
     }
 
