@@ -282,6 +282,10 @@ module.exports = class binance extends Exchange {
                 },
             },
             'exceptions': {
+                'API key does not exist': AuthenticationError,
+                'Order would trigger immediately.': InvalidOrder,
+                'Account has insufficient balance for requested action.': InsufficientFunds,
+                'Rest API trading is not enabled.': ExchangeNotAvailable,
                 '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
                 '-1013': InvalidOrder, // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
                 '-1021': InvalidNonce, // 'your time is ahead of server'
@@ -1284,24 +1288,21 @@ module.exports = class binance extends Exchange {
                         }
                     }
                 }
+                const exceptions = this.exceptions;
+                const message = this.safeString (response, 'msg');
+                if (message in exceptions) {
+                    const ExceptionClass = exceptions[message];
+                    throw new ExceptionClass (this.id + ' ' + message);
+                }
                 // checks against error codes
                 let error = this.safeString (response, 'code');
                 if (error !== undefined) {
-                    const exceptions = this.exceptions;
                     if (error in exceptions) {
                         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
                         // despite that their message is very confusing, it is raised by Binance
                         // on a temporary ban (the API key is valid, but disabled for a while)
                         if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
                             throw new DDoSProtection (this.id + ' temporary banned: ' + body);
-                        }
-                        const message = this.safeString (response, 'msg');
-                        if (message === 'Order would trigger immediately.') {
-                            throw new InvalidOrder (this.id + ' ' + body);
-                        } else if (message === 'Account has insufficient balance for requested action.') {
-                            throw new InsufficientFunds (this.id + ' ' + body);
-                        } else if (message === 'Rest API trading is not enabled.') {
-                            throw new ExchangeNotAvailable (this.id + ' ' + body);
                         }
                         throw new exceptions[error] (this.id + ' ' + body);
                     } else {

@@ -223,7 +223,7 @@ class kucoin extends Exchange {
                     'max' => $baseMaxSize,
                 ),
                 'price' => array (
-                    'min' => max ($quoteMinSize / $baseMinSize, $quoteIncrement),
+                    'min' => $quoteIncrement,
                     'max' => $quoteMaxSize / $baseMinSize,
                 ),
                 'cost' => array (
