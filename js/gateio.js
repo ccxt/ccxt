@@ -614,7 +614,6 @@ module.exports = class gateio extends Exchange {
             request['end'] = end;
         }
         const response = await this.privatePostDepositswithdrawals(this.extend(request, params));
-
         return response['deposits']
     }
 
@@ -627,7 +626,6 @@ module.exports = class gateio extends Exchange {
             request['end'] = end;
         }
         const response = await this.privatePostDepositswithdrawals(this.extend(request, params));
-
         return response['withdraws']
     }
 
