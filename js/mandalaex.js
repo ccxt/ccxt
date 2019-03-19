@@ -210,6 +210,13 @@ module.exports = class mandalaex extends Exchange {
         });
     }
 
+    signIn () {
+        return this.privatePostSignin ({
+            'login': this.login,
+            'passwd': this.password,
+        });
+    }
+
     async fetchCurrenciesFromCache (params = {}) {
         // this method is now redundant
         // currencies are now fetched before markets
