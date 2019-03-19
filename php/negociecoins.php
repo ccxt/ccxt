@@ -286,6 +286,9 @@ class negociecoins extends Exchange {
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchOrders () requires a $symbol argument');
+        }
         $market = $this->market ($symbol);
         $request = array (
             'pair' => $market['id'],
