@@ -1186,6 +1186,7 @@ class kraken extends Exchange {
     }
 
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         // https://www.kraken.com/en-us/help/api#deposit-status
         if ($code === null) {
             throw new ArgumentsRequired ($this->id . ' fetchDeposits requires a $currency $code argument');
@@ -1212,6 +1213,7 @@ class kraken extends Exchange {
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         // https://www.kraken.com/en-us/help/api#withdraw-status
         if ($code === null) {
             throw new ArgumentsRequired ($this->id . ' fetchWithdrawals requires a $currency $code argument');
