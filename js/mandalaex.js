@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, AddressPending } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -60,7 +60,7 @@ module.exports = class mandalaex extends Exchange {
             'api': {
                 'settings': {
                     'get': [
-                        'getCoinInfo', // this endpoint is documented, but broken: https://zapi.mandalaex.com/api/getCoinInfo TO FIX
+                        'getCoinInfo', // FIX ME, this endpoint is documented, but broken: https://zapi.mandalaex.com/api/getCoinInfo
                         'GetSettings',
                         'CurrencySettings',
                         'Get_Withdrawal_Limits',
@@ -286,7 +286,7 @@ module.exports = class mandalaex extends Exchange {
         //
         const expiresIn = this.safeInteger (tokenResponse, 'expires_in');
         this.options['expires'] = this.sum (this.milliseconds (), expiresIn * 1000);
-        this.options['accessToken'] = this.safeString (tokenResponse, 'accessToken');;
+        this.options['accessToken'] = this.safeString (tokenResponse, 'accessToken');
         this.options['tokenType'] = this.safeString (tokenResponse, 'token_type');
         // const accessToken = this.safeValue (tokenResponse, 'access_token');
         // this.headers['Authorization'] = 'Bearer ' + accessToken;
@@ -411,7 +411,7 @@ module.exports = class mandalaex extends Exchange {
 
     async fetchMarkets (params = {}) {
         const currenciesResponse = await this.fetchCurrenciesFromCache (params);
-        const currencies = this.safeValue (currenciesResponse, 'data', [])
+        const currencies = this.safeValue (currenciesResponse, 'data', []);
         const currenciesById = this.indexBy (currencies, 'shortName');
         const response = await this.marketGetGetMarketSummary ();
         //
@@ -557,14 +557,14 @@ module.exports = class mandalaex extends Exchange {
         //
         // fetchTicker, fetchTickers
         //     {
-        //         Pair: 'ETH_MDX', // missing in fetchTickers, TO FIX
+        //         Pair: 'ETH_MDX', // FIXME missing in fetchTickers
         //         Last: 0.000055,
         //         LowestAsk: 0.000049,
         //         HeighestBid: 0.00003,
         //         PercentChange: 12.47,
         //         BaseVolume: 34.60345,
         //         QuoteVolume: 629153.63636364,
-        //         IsFrozen: false, // missing in fetchTickers, TO FIX
+        //         IsFrozen: false, // FIXME missing in fetchTickers
         //         High_24hr: 0,
         //         Low_24hr: 0
         //     }
@@ -587,7 +587,7 @@ module.exports = class mandalaex extends Exchange {
         const last = this.safeFloat (ticker, 'Last');
         return {
             'symbol': symbol,
-            'timestamp': undefined, // no timestamp in tickers, TO FIX
+            'timestamp': undefined, // FIXME, no timestamp in tickers
             'datetime': undefined,
             'high': this.safeFloat (ticker, 'High_24hr'),
             'low': this.safeFloat (ticker, 'Low_24hr'),
@@ -1158,6 +1158,42 @@ module.exports = class mandalaex extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
+    async fetchOrderStatus (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const side = this.safeString (params, 'side');
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires an order side extra parameter');
+        }
+        params = this.omit (params, 'side');
+        const request = {
+            'key': this.apiKey,
+            'side': side.toUpperCase (),
+            // 'orderId': id,
+        };
+        const response = await this.orderGetMyOrderHistoryKeySide (this.extend (request, params));
+        // const response = await this.orderGetMyOrderStatusKeySideOrderId (this.extend (request, params));
+        console.log (response);
+        process.exit ();
+        // let response = undefined;
+        // try {
+        //     let orderIdField = this.getOrderIdField ();
+        //     let request = {};
+        //     request[orderIdField] = id;
+        //     response = await this.accountGetOrder (this.extend (request, params));
+        // } catch (e) {
+        //     if (this.last_json_response) {
+        //         let message = this.safeString (this.last_json_response, 'message');
+        //         if (message === 'UUID_INVALID')
+        //             throw new OrderNotFound (this.id + ' fetchOrder() error: ' + this.last_http_response);
+        //     }
+        //     throw e;
+        // }
+        // if (!response['result']) {
+        //     throw new OrderNotFound (this.id + ' order ' + id + ' not found');
+        // }
+        return this.parseOrder (response['result']);
+    }
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const side = this.safeString (params, 'side', 'ALL');
@@ -1458,42 +1494,6 @@ module.exports = class mandalaex extends Exchange {
         const address = this.safeString (data, 'address');
         return this.parseDepositAddress (address, currency);
     }
-
-    // async fetchOrderStatus? (id, symbol = undefined, params = {}) {
-    //     await this.loadMarkets ();
-    //     const side = this.safeString (params, 'side');
-    //     if (side === undefined) {
-    //         throw new ArgumentsRequired (this.id + ' fetchOrder() requires an order side extra parameter');
-    //     }
-    //     params = this.omit (params, 'side');
-    //     const request = {
-    //         'key': this.apiKey,
-    //         'side': side.toUpperCase (),
-    //         // 'orderId': id,
-    //     };
-    //     const response = await this.orderGetMyOrderHistoryKeySide (this.extend (request, params));
-    //     // const response = await this.orderGetMyOrderStatusKeySideOrderId (this.extend (request, params));
-    //     console.log (response);
-    //     process.exit ();
-    //     // let response = undefined;
-    //     // try {
-    //     //     let orderIdField = this.getOrderIdField ();
-    //     //     let request = {};
-    //     //     request[orderIdField] = id;
-    //     //     response = await this.accountGetOrder (this.extend (request, params));
-    //     // } catch (e) {
-    //     //     if (this.last_json_response) {
-    //     //         let message = this.safeString (this.last_json_response, 'message');
-    //     //         if (message === 'UUID_INVALID')
-    //     //             throw new OrderNotFound (this.id + ' fetchOrder() error: ' + this.last_http_response);
-    //     //     }
-    //     //     throw e;
-    //     // }
-    //     // if (!response['result']) {
-    //     //     throw new OrderNotFound (this.id + ' order ' + id + ' not found');
-    //     // }
-    //     return this.parseOrder (response['result']);
-    // }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
