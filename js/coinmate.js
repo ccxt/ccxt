@@ -62,7 +62,18 @@ module.exports = class coinmate extends Exchange {
             'markets': {
                 'BTC/EUR': { 'id': 'BTC_EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'precision': { 'amount': 4, 'price': 2 }},
                 'BTC/CZK': { 'id': 'BTC_CZK', 'symbol': 'BTC/CZK', 'base': 'BTC', 'quote': 'CZK', 'precision': { 'amount': 4, 'price': 2 }},
+                'LTC/EUR': { 'id': 'LTC_EUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR', 'precision': { 'amount': 4, 'price': 4 }},
+                'LTC/CZK': { 'id': 'LTC_CZK', 'symbol': 'LTC/CZK', 'base': 'LTC', 'quote': 'CZK', 'precision': { 'amount': 4, 'price': 6 }},
                 'LTC/BTC': { 'id': 'LTC_BTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'precision': { 'amount': 4, 'price': 5 }},
+                'ETH/EUR': { 'id': 'ETH_CZK', 'symbol': 'ETH/EUR', 'base': 'ETH', 'quote': 'EUR', 'precision': { 'amount': 4, 'price': 5 }},
+                'ETH/CZK': { 'id': 'ETH_CZK', 'symbol': 'ETH/CZK', 'base': 'ETH', 'quote': 'CZK', 'precision': { 'amount': 4, 'price': 6 }},
+                'ETH/BTC': { 'id': 'ETH_BTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'precision': { 'amount': 4, 'price': 6 }},
+                'XRP/EUR': { 'id': 'XRP_EUR', 'symbol': 'XRP/EUR', 'base': 'XRP', 'quote': 'EUR', 'precision': { 'amount': 4, 'price': 5 }},
+                'XRP/CZK': { 'id': 'XRP_CZK', 'symbol': 'XRP/CZK', 'base': 'XRP', 'quote': 'CZK', 'precision': { 'amount': 4, 'price': 6 }},
+                'XRP/BTC': { 'id': 'XRP_BTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'precision': { 'amount': 4, 'price': 5 }},
+                'BCH/EUR': { 'id': 'BCH_EUR', 'symbol': 'BCH/EUR', 'base': 'BCH', 'quote': 'EUR', 'precision': { 'amount': 4, 'price': 5 }},
+                'BCH/CZK': { 'id': 'BCH_CZK', 'symbol': 'BCH/CZK', 'base': 'BCH', 'quote': 'CZK', 'precision': { 'amount': 4, 'price': 6 }},
+                'BCH/BTC': { 'id': 'BCH_BTC', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'precision': { 'amount': 4, 'price': 6 }},
             },
             'fees': {
                 'trading': {
