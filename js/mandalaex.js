@@ -7,7 +7,7 @@ const { ExchangeError, ArgumentsRequired, BadRequest, AuthenticationError, Inval
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class mandalaex extends Exchange {
+module.exports = class mandala extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'mandala',
