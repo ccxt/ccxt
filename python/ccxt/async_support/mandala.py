@@ -14,10 +14,10 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 
 
-class mandalaex (Exchange):
+class mandala (Exchange):
 
     def describe(self):
-        return self.deep_extend(super(mandalaex, self).describe(), {
+        return self.deep_extend(super(mandala, self).describe(), {
             'id': 'mandala',
             'name': 'Mandala',
             'countries': ['MT'],
