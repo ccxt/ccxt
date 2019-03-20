@@ -995,6 +995,15 @@ module.exports = class mandalaex extends Exchange {
         //         date: '2019-03-19T18:28:43.553',
         //     }
         //
+        // fetchOrderStatus
+        //
+        //     {
+        //         "PendingVolume": 0.7368974,
+        //         "Volume": 0.7368974,
+        //         "Price": 0.22921771,
+        //         "Status": true
+        //     }
+        //
         const id = this.safeString (order, 'orderId');
         const baseId = this.safeString (order, 'trade');
         const quoteId = this.safeString (order, 'market');
@@ -1006,10 +1015,10 @@ module.exports = class mandalaex extends Exchange {
         }
         const completionDate = this.parse8601 (this.safeString (order, 'completionDate'));
         const timestamp = this.parse8601 (this.safeString2 (order, 'placementDate', 'date'));
-        let price = this.safeFloat (order, 'rate');
-        const amount = this.safeFloat (order, 'volume');
+        let price = this.safeFloat2 (order, 'rate', 'Price');
+        const amount = this.safeFloat2 (order, 'volume', 'Volume');
         let cost = this.safeFloat (order, 'amount');
-        const remaining = this.safeFloat (order, 'pendingVolume');
+        const remaining = this.safeFloat2 (order, 'pendingVolume', 'PendingVolume');
         let filled = undefined;
         if (amount !== undefined && remaining !== undefined) {
             filled = Math.max (amount - remaining, 0);
@@ -1022,7 +1031,7 @@ module.exports = class mandalaex extends Exchange {
             if (cost && filled)
                 price = cost / filled;
         }
-        let status = this.safeValue (order, 'orderStatus');
+        let status = this.safeValue2 (order, 'orderStatus', 'Status');
         status = status ? 'closed' : 'open';
         let lastTradeTimestamp = undefined;
         if (filled > 0) {
@@ -1063,7 +1072,7 @@ module.exports = class mandalaex extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const side = this.safeString (params, 'side', 'ALL');
+        const side = this.safeString (params, 'side');
         if (side === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires an order side extra parameter');
         }
@@ -1162,36 +1171,30 @@ module.exports = class mandalaex extends Exchange {
         await this.loadMarkets ();
         const side = this.safeString (params, 'side');
         if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires an order side extra parameter');
+            throw new ArgumentsRequired (this.id + ' fetchOrderStatus() requires an order side extra parameter');
         }
         params = this.omit (params, 'side');
         const request = {
             'key': this.apiKey,
             'side': side.toUpperCase (),
-            // 'orderId': id,
+            'orderId': id.toString (),
         };
-        const response = await this.orderGetMyOrderHistoryKeySide (this.extend (request, params));
-        // const response = await this.orderGetMyOrderStatusKeySideOrderId (this.extend (request, params));
-        console.log (response);
-        process.exit ();
-        // let response = undefined;
-        // try {
-        //     let orderIdField = this.getOrderIdField ();
-        //     let request = {};
-        //     request[orderIdField] = id;
-        //     response = await this.accountGetOrder (this.extend (request, params));
-        // } catch (e) {
-        //     if (this.last_json_response) {
-        //         let message = this.safeString (this.last_json_response, 'message');
-        //         if (message === 'UUID_INVALID')
-        //             throw new OrderNotFound (this.id + ' fetchOrder() error: ' + this.last_http_response);
+        const response = await this.orderGetMyOrderStatusKeySideOrderId (this.extend (request, params));
+        //
+        //     {
+        //         "status": "Success",
+        //         "errorMessage": null,
+        //         "data": {
+        //             "PendingVolume": 0.7368974,
+        //             "Volume": 0.7368974,
+        //             "Price": 0.22921771,
+        //             "Status": true
+        //         }
         //     }
-        //     throw e;
-        // }
-        // if (!response['result']) {
-        //     throw new OrderNotFound (this.id + ' order ' + id + ' not found');
-        // }
-        return this.parseOrder (response['result']);
+        //
+        const data = this.safeValue (response, 'data');
+        const order = this.parseOrder (data);
+        return order['status'];
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
