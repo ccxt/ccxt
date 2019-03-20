@@ -294,11 +294,11 @@ module.exports = class bitlish extends Exchange {
         return this.parseBalance (result);
     }
 
-    signIn () {
-        return this.privatePostSignin ({
+    async signIn (params = {}) {
+        return await this.privatePostSignin (this.extend ({
             'login': this.login,
             'passwd': this.password,
-        });
+        }, params));
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
