@@ -214,7 +214,7 @@ module.exports = class itbit extends Exchange {
                     };
                 }
             } else {
-                result['fees'] = [
+                result['fee'] = [
                     {
                         'cost': feeCost,
                         'currency': feeCurrency,
