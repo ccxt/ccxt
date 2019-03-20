@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.383'
+const version = '1.18.384'
 
 Exchange.ccxtVersion = version
 
@@ -3457,9 +3457,9 @@ module.exports = class Exchange {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64))
     }
 
-    oath (key) {
+    oath () {
         if (typeof this.twofa !== 'undefined') {
-            return this.totp (key)
+            return this.totp (this.twofa)
         } else {
             throw new ExchangeError (this.id + ' this.twofa has not been set')
         }
