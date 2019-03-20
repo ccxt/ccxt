@@ -10,7 +10,7 @@ const { ExchangeError, ArgumentsRequired, BadRequest, AuthenticationError, Inval
 module.exports = class mandalaex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'mandalaex',
+            'id': 'mandala',
             'name': 'Mandala',
             'countries': [ 'MT' ],
             'version': 'v1.1',
@@ -1567,7 +1567,7 @@ module.exports = class mandalaex extends Exchange {
             const secret = (api === 'api') ? this.options['secret'] : this.secret;
             const signature = this.hmac (this.encode (auth), this.encode (secret), 'sha512');
             headers = {
-                'HMAC': this.decode (signature.toUpperCase ()),
+                'HMAC': signature.toUpperCase (),
             };
             if (api === 'api') {
                 const token = this.safeString (this.options, 'accessToken');

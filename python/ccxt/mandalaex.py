@@ -18,7 +18,7 @@ class mandalaex (Exchange):
 
     def describe(self):
         return self.deep_extend(super(mandalaex, self).describe(), {
-            'id': 'mandalaex',
+            'id': 'mandala',
             'name': 'Mandala',
             'countries': ['MT'],
             'version': 'v1.1',
@@ -1490,7 +1490,7 @@ class mandalaex (Exchange):
             secret = self.options['secret'] if (api == 'api') else self.secret
             signature = self.hmac(self.encode(auth), self.encode(secret), hashlib.sha512)
             headers = {
-                'HMAC': self.decode(signature.upper()),
+                'HMAC': signature.upper(),
             }
             if api == 'api':
                 token = self.safe_string(self.options, 'accessToken')

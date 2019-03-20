@@ -11,7 +11,7 @@ class mandalaex extends Exchange {
 
     public function describe () {
         return array_replace_recursive (parent::describe (), array (
-            'id' => 'mandalaex',
+            'id' => 'mandala',
             'name' => 'Mandala',
             'countries' => array ( 'MT' ),
             'version' => 'v1.1',
@@ -1568,7 +1568,7 @@ class mandalaex extends Exchange {
             $secret = ($api === 'api') ? $this->options['secret'] : $this->secret;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($secret), 'sha512');
             $headers = array (
-                'HMAC' => $this->decode (strtoupper ($signature)),
+                'HMAC' => strtoupper ($signature),
             );
             if ($api === 'api') {
                 $token = $this->safe_string($this->options, 'accessToken');
