@@ -148,6 +148,7 @@ module.exports = class switcheo extends Exchange {
     async fetchCurrencies (params = {}) {
         let response = await this.publicGetExchangeTokens (params);
         let currencies = Object.keys (response);
+        let network = '';
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
             let currency = response[currencies[i]];
@@ -159,10 +160,20 @@ module.exports = class switcheo extends Exchange {
             let type = response[currencies[i]]['type'];
             let address = response[currencies[i]]['hash'];
             let minimum = response[currencies[i]]['minimum_quantity'];
+            if (response[currencies[i]]['type'] === 'NEO' || response[currencies[i]]['type'] === 'NEP-5') {
+                network = 'neo';
+            } else if (response[currencies[i]]['type'] === 'ETH' || response[currencies[i]]['type'] === 'ERC-20') {
+                network = 'eth';
+            } else if (response[currencies[i]]['type'] === 'EOS') {
+                network = 'eos';
+            } else if (response[currencies[i]]['type'] === 'QTUM') {
+                network = 'qtum';
+            }
             result[code] = {
                 'id': id,
                 'code': code,
                 'address': address,
+                'network': network,
                 'info': currency,
                 'type': type,
                 'name': name,
@@ -260,8 +271,7 @@ module.exports = class switcheo extends Exchange {
     signOrderList (orderParams, privateKey) {
         let orderDict = {};
         for (let i = 0; i < orderParams.length; i++) {
-            let signedOrder = this.signMessageHash (orderParams[i]['txn']['sha256'], privateKey);
-            orderDict[orderParams[i]['id']] = '0x' + signedOrder;
+            orderDict[orderParams[i]['id']] = this.signHashSignature (orderParams[i]['txn']['sha256'], privateKey);
         }
         return orderDict;
     }
@@ -277,6 +287,16 @@ module.exports = class switcheo extends Exchange {
         return executeOrder;
     }
 
+    async createSubmitOrder (orderPayload, params = {}) {
+        let createOrderPayload = await this.privatePostOrders (this.extend (orderPayload, params));
+        return createOrderPayload;
+    }
+
+    async createExecuteOrder (orderPayload, params = {}) {
+        let executeOrderPayload = await this.privatePostOrdersIdBroadcast (this.extend (orderPayload, params));
+        return executeOrderPayload;
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         const errorMessage = this.id + ' createOrder() requires `exchange.walletAddress` and `exchange.privateKey`. The .walletAddress should be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377". The .privateKey for that wallet should be a "0x"-prefixed hexstring like "0xe4f40d465efa94c98aec1a51f574329344c772c1bce33be07fa20a56795fdd09".';
         if (!this.walletAddress || (this.walletAddress.indexOf ('0x') !== 0)) {
@@ -286,16 +306,14 @@ module.exports = class switcheo extends Exchange {
             throw new InvalidAddress (errorMessage);
         }
         await this.loadMarkets ();
-        let timestamp = this.milliseconds ();
         let useSwitcheoToken = undefined;
         let market = this.market (symbol);
-        let reserveRequest = {
-            'walletAddress': this.walletAddress.toLowerCase (), // Your Wallet Address
-            'baseTokenAddress': market['base'], // Base token address
-            'quoteTokenAddress': market['quote'], // Quote token address
-            'side': side, // buy or sell
-            'orderAmount': this.toWei (this.amountToPrecision (symbol, amount), 'ether'), // Base token amount in wei
-        };
+        let orderAmount = 0;
+        let orderPrice = 0;
+        let orderType = '';
+        if (market['network'].toLowerCase () === 'eth') {
+            orderAmount = this.toWei (this.amountToPrecision (symbol, amount), 'ether');
+        }
         if ('useSwitcheoToken' in params) {
             useSwitcheoToken = params.useSwitcheoToken;
         }
@@ -305,39 +323,47 @@ module.exports = class switcheo extends Exchange {
             useSwitcheoToken = true;
         }
         if (type === 'limit') {
-            reserveRequest['price'] = this.priceToPrecision (symbol, price); // Price denominated in quote tokens (limit orders only)
-            reserveRequest['order_type'] = 'limit';
+            orderPrice = this.priceToPrecision (symbol, price); // Price denominated in quote tokens (limit orders only)
+            orderType = 'limit';
         } else if (type === 'market') {
-            reserveRequest['order_type'] = 'market';
+            orderType = 'market';
         }
-        let createOrder = {
+        let createOrderPayload = {
             'blockchain': market['network'].toLowerCase (),
             'contract_hash': this.options['contract'],
-            'order_type': reserveRequest['order_type'],
-            'quantity': reserveRequest['orderAmount'],
+            'order_type': orderType,
+            'quantity': orderAmount,
             'pair': market['id'],
             'side': side,
-            'timestamp': timestamp,
+            'timestamp': this.milliseconds (),
             'use_native_tokens': useSwitcheoToken,
         };
         if (type === 'limit') {
-            createOrder['price'] = reserveRequest['price'];
+            createOrderPayload['price'] = orderPrice;
         } else {
-            createOrder['price'] = undefined;
+            createOrderPayload['price'] = undefined;
         }
-        let stableStringify = this.stringifyMessage (createOrder);
-        let hexMessage = this.toHex (stableStringify);
-        let signedMessage = this.signMessageHash (hexMessage, this.privateKey);
-        createOrder['signature'] = signedMessage;
-        createOrder['address'] = this.walletAddress.toLowerCase ();
+        let stableStringify = this.stringifyMessage (createOrderPayload);
+        let hexMessage = this.hashStringMessage (stableStringify).replace ('0x', '');
+        createOrderPayload['signature'] = this.signHashSignature (hexMessage, this.privateKey);
+        createOrderPayload['address'] = this.walletAddress.toLowerCase ();
         let headers = {
             'Content-type': 'application/json',
             'Accept': 'text/plain',
         };
-        let submitCreateOrder = await this.privatePostOrders (params, headers, createOrder);
-        let orderId = submitCreateOrder['id'];
-        let signedCreateOrder = this.signCreateOrder (submitCreateOrder, this.privateKey);
-        let submitExecuteOrder = await this.privatePostOrdersIdBroadcast ({ 'id': orderId }, headers, signedCreateOrder);
+        let orderPayload = {
+            'body': createOrderPayload,
+            'headers': headers,
+        };
+        let submitCreateOrderResponse = await this.createSubmitOrder (orderPayload, params);
+        let orderId = submitCreateOrderResponse['id'];
+        let signedCreateOrder = this.signCreateOrder (submitCreateOrderResponse, this.privateKey);
+        let executeCreateOrderParams = {
+            'id': orderId,
+            'headers': headers,
+            'body': signedCreateOrder,
+        };
+        let submitExecuteOrder = await this.createExecuteOrder (executeCreateOrderParams, params);
         let unifiedResponse = {
             'info': submitExecuteOrder,
             'id': orderId,
@@ -345,71 +371,156 @@ module.exports = class switcheo extends Exchange {
         return unifiedResponse;
     }
 
+    async createCancelOrder (cancelPayload, params = {}) {
+        let createCancelPayload = await this.privatePostCancellations (this.extend (cancelPayload, params));
+        return createCancelPayload;
+    }
+
+    async executeCancelOrder (cancelPayload, params = {}) {
+        let executeCancelPayload = await this.privatePostCancellationsIdBroadcast (this.extend (cancelPayload, params));
+        return executeCancelPayload;
+    }
+
     async cancelOrder (id, symbol = undefined, params = {}) {
         let cancelRequest = {
             'order_id': id,
             'timestamp': this.milliseconds (),
         };
+        console.log (cancelRequest);
         let stableStringify = this.stringifyMessage (cancelRequest);
-        let hexMessage = this.toHex (stableStringify);
-        let signedMessage = this.signMessageHash (hexMessage, this.privateKey);
-        cancelRequest['signature'] = signedMessage;
+        let hexMessage = this.hashStringMessage (stableStringify).replace ('0x', '');
+        cancelRequest['signature'] = this.signHashSignature (hexMessage, this.privateKey);
         cancelRequest['address'] = this.walletAddress.toLowerCase ();
         let headers = {
             'Content-type': 'application/json',
             'Accept': 'text/plain',
         };
-        let createCancel = await this.privatePostCancellations (params, headers, cancelRequest);
-        let cancelId = createCancel['id'];
-        let signedCancel = this.signMessageHash (createCancel['transaction']['sha256'], this.privateKey);
-        let executeCancel = await this.privatePostCancellationsIdBroadcast ({ 'id': cancelId }, headers, { 'signature': '0x' + signedCancel });
+        let cancelOrderPayload = {
+            'body': cancelRequest,
+            'headers': headers,
+        };
+        console.log (cancelOrderPayload);
+        let createCancelResponse = await this.createCancelOrder (cancelOrderPayload, params);
+        console.log (createCancelResponse);
+        let cancelId = createCancelResponse['id'];
+        let cancelMessage = {
+            'signature': this.signHashSignature (createCancelResponse['transaction']['sha256'], this.privateKey),
+        };
+        let executeCancelOrderParams = {
+            'id': cancelId,
+            'headers': headers,
+            'body': cancelMessage,
+        };
+        let executeCancel = await this.executeCancelOrder (executeCancelOrderParams, params);
         return executeCancel;
     }
 
+    async createDeposit (depositPayload, params = {}) {
+        let createDepositPayload = await this.privatePostDeposits (this.extend (depositPayload, params));
+        return createDepositPayload;
+    }
+
+    async executeDeposit (depositPayload, params = {}) {
+        let executeDepositPayload = await this.privatePostDepositsIdBroadcast (this.extend (depositPayload, params));
+        return executeDepositPayload;
+    }
+
     async deposit (symbol, amount, params = {}) {
+        await this.loadMarkets ();
+        let contractHash = await this.fetchContractHash ();
         let depositRequest = {
-            'blockchain': 'eth',
+            'blockchain': this.currencies[symbol]['network'],
             'asset_id': symbol,
-            'amount': this.toWei (amount, 'ether'),
-            'contract_hash': this.fetchContractHash ()['ETH'],
             'timestamp': this.milliseconds (),
         };
-        let stableStringify = this.stringifyMessage (depositRequest);
-        let hexMessage = this.toHex (stableStringify);
-        let signedMessage = this.signMessageHash (hexMessage, this.privateKey);
-        depositRequest['signature'] = signedMessage;
-        depositRequest['address'] = this.walletAddress.toLowerCase ();
+        if (this.currencies[symbol]['network'] === 'eth') {
+            depositRequest['amount'] = this.toWei (amount, 'ether');
+            depositRequest['contract_hash'] = contractHash['ETH'];
+            let stableStringify = this.stringifyMessage (depositRequest);
+            let hexMessage = this.hashStringMessage (stableStringify).replace ('0x', '');
+            depositRequest['signature'] = this.signHashSignature (hexMessage, this.privateKey);
+            depositRequest['address'] = this.walletAddress.toLowerCase ();
+        }
         let headers = {
             'Content-type': 'application/json',
             'Accept': 'text/plain',
         };
-        let createDeposit = await this.privatePostDeposits (params, headers, depositRequest);
-        let depositId = createDeposit['id'];
-        let executeDeposit = await this.privatePostDepositsIdBroadcast ({ 'id': depositId }, headers, this.signTransaction (createDeposit, this.privateKey));
-        return executeDeposit;
+        let depositPayload = {
+            'body': depositRequest,
+            'headers': headers,
+        };
+        let createDepositResponse = await this.createDeposit (depositPayload, params);
+        let depositId = createDepositResponse['id'];
+        let txnPayload = {
+            'from': this.toChecksumAddress (createDepositResponse['transaction']['from']),
+            'to': this.toChecksumAddress (createDepositResponse['transaction']['to']),
+            'value': createDepositResponse['transaction']['value'],
+            'data': createDepositResponse['transaction']['data'],
+            'gas': createDepositResponse['transaction']['gas'],
+            'gasPrice': createDepositResponse['transaction']['gasPrice'],
+            'chainId': createDepositResponse['transaction']['chainId'],
+            'nonce': createDepositResponse['transaction']['nonce'],
+        };
+        let signedTxn = await this.signEthTransaction (txnPayload);
+        let txnHash = this.generateEthTransactionHash (signedTxn.rawTransaction);
+        this.sendEthSignedTransaction (signedTxn.rawTransaction);
+        let txnMessage = {
+            'transaction_hash': txnHash,
+        };
+        let executeDepositParams = {
+            'id': depositId,
+            'headers': headers,
+            'body': txnMessage,
+        };
+        let executeDepositPayload = await this.executeDeposit (executeDepositParams, params);
+        return executeDepositPayload;
+    }
+
+    async createWithdrawal (withdrawalPayload, params = {}) {
+        let createWithdrawalPayload = await this.privatePostWithdrawals (this.extend (withdrawalPayload, params));
+        return createWithdrawalPayload;
+    }
+
+    async executeWithdrawal (withdrawalPayload, params = {}) {
+        let executeWithdrawalPayload = await this.privatePostWithdrawalsIdBroadcast (this.extend (withdrawalPayload, params));
+        return executeWithdrawalPayload;
     }
 
     async withdraw (symbol, amount, address, tag = undefined, params = {}) {
+        await this.loadMarkets ();
+        let contractHash = await this.fetchContractHash ();
         let withdrawalRequest = {
-            'blockchain': 'eth',
+            'blockchain': this.currencies[symbol]['network'],
             'asset_id': symbol,
-            'amount': this.toWei (amount, 'ether'),
-            'contract_hash': this.fetchContractHash ()['ETH'],
             'timestamp': this.milliseconds (),
         };
-        let stableStringify = this.stringifyMessage (withdrawalRequest);
-        let hexMessage = this.toHex (stableStringify);
-        let signedMessage = this.signMessageHash (hexMessage, this.privateKey);
-        withdrawalRequest['signature'] = signedMessage;
-        withdrawalRequest['address'] = address;
+        if (this.currencies[symbol]['network'] === 'eth') {
+            withdrawalRequest['amount'] = this.toWei (amount, 'ether');
+            withdrawalRequest['contract_hash'] = contractHash['ETH'];
+            let stableStringify = this.stringifyMessage (withdrawalRequest);
+            let hexMessage = this.hashStringMessage (stableStringify).replace ('0x', '');
+            withdrawalRequest['signature'] = this.signHashSignature (hexMessage, this.privateKey);
+            withdrawalRequest['address'] = this.walletAddress.toLowerCase ();
+        }
         let headers = {
             'Content-type': 'application/json',
             'Accept': 'text/plain',
         };
-        let createWithdrawal = await this.privatePostWithdrawals (params, headers, withdrawalRequest);
-        let withdrawalId = createWithdrawal['id'];
-        let signedWithdrawal = this.signMessageHash (createWithdrawal['transaction']['sha256'], this.privateKey);
-        let executeWithdrawal = await this.privatePostWithdrawalsIdBroadcast ({ 'id': withdrawalId }, headers, { 'signature': '0x' + signedWithdrawal });
+        let withdrawalPayload = {
+            'body': withdrawalRequest,
+            'headers': headers,
+        };
+        let createWithdrawalResponse = await this.createWithdrawal (withdrawalPayload, params);
+        let withdrawalId = createWithdrawalResponse['id'];
+        let withdrawalMessage = {
+            'signature': this.signHashSignature (createWithdrawalResponse['transaction']['sha256'], this.privateKey),
+        };
+        let executeWithdrawalParams = {
+            'id': withdrawalId,
+            'headers': headers,
+            'body': withdrawalMessage,
+        };
+        let executeWithdrawal = await this.executeWithdrawal (executeWithdrawalParams);
         let unifiedResponse = {
             'info': executeWithdrawal,
             'id': withdrawalId,
@@ -423,6 +534,13 @@ module.exports = class switcheo extends Exchange {
         if (method === 'GET') {
             if (Object.keys (query).length)
                 request += '?' + this.urlencode (query);
+        } else if (method === 'POST') {
+            if ('headers' in query) {
+                headers = query['headers'];
+            }
+            if ('body' in query) {
+                body = this.stringifyMessage (query['body']);
+            }
         }
         let url = this.urls['api'] + '/' + this.version + request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

@@ -4,6 +4,7 @@
 
 const functions = require ('./functions')
     , Market    = require ('./Market')
+    , stringify = require ('json-stable-stringify')
 
 const {
     isNode
@@ -49,7 +50,6 @@ let Web3 = undefined
     , ethAbi = undefined
     , ethUtil = undefined
     , BigNumber = undefined
-    , stableStringify = undefined
 
 try {
     const requireFunction = require;
@@ -59,7 +59,6 @@ try {
     BigNumber = requireFunction ('bignumber.js') // eslint-disable-line global-require
     // we prefer bignumber.js over BN.js
     // BN        = requireFunction ('bn.js') // eslint-disable-line global-require
-    stableStringify = requireFunction ('json-stable-stringify') // eslint-disable-line global-require
 } catch (e) {
 }
 
@@ -411,6 +410,10 @@ module.exports = class Exchange {
             throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + this.json (address) + '"')
 
         return address
+    }
+
+    toChecksumAddress (address) {
+        return this.web3.utils.toChecksumAddress (address);
     }
 
     initRestRateLimiter () {
@@ -803,11 +806,15 @@ module.exports = class Exchange {
     }
 
     stringifyMessage (message) {
-        return stableStringify (message)
+        return stringify (message)
     }
 
     toHex (message) {
         return Buffer.from (message).toString ('hex')
+    }
+
+    intToHex (integer) {
+        return integer.toString (16)
     }
 
     fetchOrder (id, symbol = undefined, params = {}) {
@@ -1533,6 +1540,10 @@ module.exports = class Exchange {
         return this.web3.eth.accounts.hashMessage (message)
     }
 
+    hashStringMessage (stringMessage) {
+        return this.hashMessage (stringMessage)
+    }
+
     // works with Node only
     signHash (hash, privateKey) {
         const signature = ethUtil.ecsign (Buffer.from (hash.slice (-64), 'hex'), Buffer.from (privateKey.slice (-64), 'hex'))
@@ -1541,6 +1552,11 @@ module.exports = class Exchange {
             r: '0x' + signature.r.toString ('hex'), // '0x'-prefixed hex string
             s: '0x' + signature.s.toString ('hex'), // '0x'-prefixed hex string
         }
+    }
+
+    signHashSignature (hash, privateKey) {
+        const signature = ethUtil.ecsign (Buffer.from (hash.slice (-64), 'hex'), Buffer.from (privateKey.slice (-64), 'hex'))
+        return '0x' + signature.r.toString ('hex') + signature.s.toString ('hex') + this.intToHex (signature.v)
     }
 
     signMessage (message, privateKey) {
@@ -1586,24 +1602,20 @@ module.exports = class Exchange {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64))
     }
 
-    signTransaction (rawTransaction, privateKey) {
-        let signTransaction = {
-            'from': ethUtil.account.toChecksumAddress (rawTransaction['transaction']['from']),
-            'to': ethUtil.account.toChecksumAddress (rawTransaction['transaction']['to']),
-            'value': rawTransaction['transaction']['value'],
-            'data': rawTransaction['transaction']['data'],
-            'gas': rawTransaction['transaction']['gas'],
-            'gasPrice': rawTransaction['transaction']['gasPrice'],
-            'chainId': rawTransaction['transaction']['chainId'],
-            'nonce': rawTransaction['transaction']['nonce'],
-        };
-        const account = this.web3.eth.accounts.privateKeyToAccount (privateKey);
-        let signedTransaction = account.signTransaction (signTransaction, privateKey);
-        this.web3.eth.sendRawTransaction (signedTransaction.rawTransaction);
-        let transactionMessage = {
-            'transaction_hash': '0x' + signTransaction['hash']
-        };
-        return transactionMessage;
+    async signEthTransaction (txnPayload) {
+        let signedTxn = await this.web3.eth.accounts.signTransaction (txnPayload, this.privateKey)
+            .then ((signedPayload) => {
+                return signedPayload;
+            });
+        return signedTxn;
+    }
+
+    generateEthTransactionHash (rawTransaction) {
+        return this.web3.utils.sha3 (rawTransaction);
+    }
+
+    sendEthSignedTransaction (rawTransaction) {
+        this.web3.eth.sendSignedTransaction (rawTransaction);
     }
 
     oath (key) {

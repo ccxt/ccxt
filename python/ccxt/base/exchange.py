@@ -81,8 +81,6 @@ try:
     from web3 import Web3, HTTPProvider
     from web3.utils.encoding import hex_encode_abi_type
     from eth_account.messages import defunct_hash_message
-    from eth_account.account import Account
-    from eth_utils import to_checksum_address
 except ImportError:
     Web3 = HTTPProvider = None  # web3/0x not supported in Python 2
 
@@ -354,7 +352,7 @@ class Exchange(object):
                         outer_kwargs = {'path': url, 'api': api_type, 'method': uppercase_method}
 
                         @functools.wraps(entry)
-                        def inner(_self, params=None, headers=None, body=None):
+                        def inner(_self, params=None):
                             """
                             Inner is called when a generated method (publicGetX) is called.
                             _self is a reference to self created by function.__get__(exchange, type(exchange))
@@ -363,10 +361,6 @@ class Exchange(object):
                             inner_kwargs = dict(outer_kwargs)  # avoid mutation
                             if params is not None:
                                 inner_kwargs['params'] = params
-                            if headers is not None:
-                                inner_kwargs['headers'] = headers
-                            if body is not None:
-                                inner_kwargs['body'] = body
                             return entry(_self, **inner_kwargs)
                         return inner
                     to_bind = partialer()
@@ -539,6 +533,13 @@ class Exchange(object):
     @staticmethod
     def toHex(message):
         return binascii.hexlify(defunct_hash_message(text=message)).decode()
+
+    @staticmethod
+    def intToHex(integer):
+        return format(integer, 'x')
+
+    def toChecksumAddress(self, address):
+        return self.web3.toChecksumAddress(address)
 
     @staticmethod
     def safe_float(dictionary, key, default_value=None):
@@ -1737,6 +1738,10 @@ class Exchange(object):
         message_bytes = bytes.fromhex(message)
         return self.web3.sha3(b"\x19Ethereum Signed Message:\n" + str(len(message_bytes)).encode() + message_bytes).hex()
 
+    def hashStringMessage(self, stringMessage):
+        string_message_hex = stringMessage.encode('utf-8').hex()
+        return self.hashMessage(string_message_hex)
+
     def signHash(self, hash, privateKey):
         signature = self.web3.eth.account.signHash(hash[-64:], private_key=privateKey[-64:])
         return {
@@ -1744,6 +1749,10 @@ class Exchange(object):
             'r': self.web3.toHex(signature.r),  # '0x'-prefixed hex string
             's': self.web3.toHex(signature.s),  # '0x'-prefixed hex string
         }
+
+    def signHashSignature(self, hash, privateKey):
+        signature = self.web3.eth.account.signHash(hash[-64:], private_key=privateKey[-64:])
+        return self.web3.toHex(signature.signature)
 
     def signMessage(self, message, privateKey):
         #
@@ -1779,24 +1788,15 @@ class Exchange(object):
         signature = self.signHash(message_hash[-64:], privateKey[-64:])
         return signature
 
-    def signMessageHash(self, message, private_key):
-        return binascii.hexlify(Account.signHash(message, private_key=private_key)['signature']).decode()
+    def signEthTransaction(self, txn_payload):
+        signed_txn = self.web3.eth.account.signTransaction(txn_payload, private_key=self.privateKey)
+        return signed_txn
 
-    def signTransaction(self, raw_transaction, private_key):
-        sign_txn = {
-            'from': to_checksum_address(raw_transaction['transaction']['from']),
-            'to': to_checksum_address(raw_transaction['transaction']['to']),
-            'value': raw_transaction['transaction']['value'],
-            'data': raw_transaction['transaction']['data'],
-            'gas': raw_transaction['transaction']['gas'],
-            'gasPrice': raw_transaction['transaction']['gasPrice'],
-            'chainId': raw_transaction['transaction']['chainId'],
-            'nonce': raw_transaction['transaction']['nonce'],
-        }
-        signed_txn = Account.signTransaction(sign_txn, private_key=private_key)
-        signed_txn_hex = binascii.hexlify(signed_txn['hash']).decode()
-        self.web3.eth.sendRawTransaction(signed_txn.rawTransaction)
-        return {'transaction_hash': '0x' + signed_txn_hex}
+    def generateEthTransactionHash(self, raw_transaction):
+        return self.web3.toHex(self.web3.sha3(raw_transaction))
+
+    def sendEthSignedTransaction(self, raw_transaction):
+        return self.web3.eth.sendRawTransaction(raw_transaction)
 
     def oath(self):
         if self.twofa is not None:
@@ -1826,3 +1826,7 @@ class Exchange(object):
         offset = hex_to_dec(hmac_res[-1]) * 2
         otp = str(hex_to_dec(hmac_res[offset: offset + 8]) & 0x7fffffff)
         return otp[-6:]
+
+
+def reverseHex(message):
+    return "".join([message[x:x + 2] for x in range(0, len(message), 2)][::-1])

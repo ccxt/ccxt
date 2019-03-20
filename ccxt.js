@@ -161,6 +161,7 @@ const exchanges = {
     'rightbtc':                require ('./js/rightbtc.js'),
     'southxchange':            require ('./js/southxchange.js'),
     'surbitcoin':              require ('./js/surbitcoin.js'),
+    'switcheo':                require ('./js/switcheo.js'),
     'theocean':                require ('./js/theocean.js'),
     'therock':                 require ('./js/therock.js'),
     'tidebit':                 require ('./js/tidebit.js'),
