@@ -203,7 +203,8 @@ module.exports = class itbit extends Exchange {
             'cost': cost,
         };
         if (feeCost !== undefined && rebatesApplied !== undefined) {
-            if (feeCurrency === rebateCurrency || rebateCurrency === null) {
+            if (feeCurrency === rebateCurrency || rebateCurrency === null
+                || typeof (rebateCurrency) === 'undefined') {
                 if (feeCost !== undefined) {
                     if (rebatesApplied !== undefined) {
                         feeCost = this.sum (feeCost, rebatesApplied);
