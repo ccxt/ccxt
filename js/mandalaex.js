@@ -72,11 +72,12 @@ module.exports = class mandalaex extends Exchange {
                     ],
                 },
                 'public': {
-                    'get': [
-
-                    ],
                     'post': [
                         'AuthenticateUser',
+                        'ForgotPassword',
+                        'SignUp',
+                        'check_Duplicate_Mobile',
+                        'check_Duplicate_Email',
                     ],
                 },
                 'api': {
@@ -107,17 +108,13 @@ module.exports = class mandalaex extends Exchange {
                     'post': [
                         'GAuth_Set_Enable',
                         'GAuth_Disable_Request',
-                        'SignUp',
                         'VerifyAccount',
                         'SignUp_Resend_Email',
                         'AuthenticateUser_Resend_EmailOTP/{tempAuthToken}',
                         'Validate_BearerToken',
                         'RequestChangePasswordOT',
                         'ChangePassword',
-                        'ForgotPassword',
                         'ResetPassword',
-                        'check_Duplicate_Mobile',
-                        'check_Duplicate_Email',
                         'GenerateAddress',
                         'GetBalance',
                         'GetDeposits',
@@ -200,26 +197,8 @@ module.exports = class mandalaex extends Exchange {
                     'Invalid Type': BadRequest, // on fetchOrders with a wrong type {"status":"Error","errorMessage":"Invalid Type","data":null}
                     'Exception_Invalid_CurrencyName': BadRequest, // {"status":"BadRequest","message":"Exception_Invalid_CurrencyName","data":"Invalid Currency name"}
                     'Exception_BadRequest': BadRequest, // {"status":"BadRequest","message":"Exception_BadRequest","data":"Invalid Payload"}
-                    // '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
-                    // '804': InvalidOrder, // "Count could not be more than 10000." (buying above maxAmount)
-                    // '805': InvalidOrder, // "price could not be less than X." (minPrice violation on buy & sell)
-                    // '806': InvalidOrder, // "price could not be more than X." (maxPrice violation on buy & sell)
-                    // '807': InvalidOrder, // "cost could not be less than X." (minCost violation on buy & sell)
-                    // '831': InsufficientFunds, // "Not enougth X to create buy order." (buying with balance.quote < order.cost)
-                    // '832': InsufficientFunds, // "Not enougth X to create sell order." (selling with balance.base < order.amount)
-                    // '833': OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
                 },
                 'broad': {
-                    // 'Invalid pair name': ExchangeError, // {"success":0,"error":"Invalid pair name: btc_eth"}
-                    // 'invalid api key': AuthenticationError,
-                    // 'invalid sign': AuthenticationError,
-                    // 'api key dont have trade permission': AuthenticationError,
-                    // 'invalid parameter': InvalidOrder,
-                    // 'invalid order': InvalidOrder,
-                    // 'Requests too often': DDoSProtection,
-                    // 'not available': ExchangeNotAvailable,
-                    // 'data unavailable': ExchangeNotAvailable,
-                    // 'external service unavailable': ExchangeNotAvailable,
                 },
             },
             'options': {
@@ -235,8 +214,6 @@ module.exports = class mandalaex extends Exchange {
                 // HMAC can be obtained using a Secret key. Thispre shared secret key ensures that the message is encrypted by a legitimate source. You can get a secret key issued for your sandbox enviroment by writing an email to support@modulus.io
                 // Secret-Key : 03c06dd7-4982-441a-910d-5fd2cbb3f1c6
                 'secret': '03c06dd7-4982-441a-910d-5fd2cbb3f1c6',
-            },
-            'commonCurrencies': {
             },
         });
     }
@@ -1359,7 +1336,7 @@ module.exports = class mandalaex extends Exchange {
         const txid = this.safeString (transaction, 'txnHash');
         const updated = this.parse8601 (this.safeValue (transaction, 'withdrawalConfirmDate'));
         const timestamp = this.parse8601 (this.safeString (transaction, 'withdrawalReqDate', updated));
-        const type = (timestamp !== undefined) ? 'withdrawal' : 'deposit';
+        const type = ('withdrawalReqDate' in transaction) ? 'withdrawal' : 'deposit';
         let code = undefined;
         let currencyId = this.safeString (transaction, 'withdrawalType');
         currency = this.safeValue (this.currencies_by_id, currencyId);
@@ -1506,7 +1483,7 @@ module.exports = class mandalaex extends Exchange {
             'currency': currency['id'],
             'amount': parseFloat (amount),
             'address': address,
-            'addressTag': null,
+            // 'addressTag': null,
         };
         if (tag !== undefined) {
             withdrawalRequest['addressTag'] = tag;
@@ -1535,7 +1512,26 @@ module.exports = class mandalaex extends Exchange {
             'EmailToken': otp,
         };
         const confirmationResponse = await this.apiPostRequestWithdrawConfirmation (this.extend (confirmationRequest, params));
-        return confirmationResponse;
+        const timestamp = this.milliseconds ();
+        return {
+            'info': [ withdrawalResponse, confirmationResponse ],
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': tag,
+            'addressFrom': undefined,
+            'tagFrom': undefined,
+            'addressTo': address,
+            'tagTo': tag,
+            'type': 'withdrawal',
+            'updated': undefined,
+            'txid': undefined,
+            'status': 'pending',
+            'fee': undefined,
+        };
     }
 
     sign (path, api = 'api', method = 'GET', params = {}, headers = undefined, body = undefined) {
