@@ -279,11 +279,11 @@ class bitlish (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def sign_in(self):
-        return self.privatePostSignin({
+    def sign_in(self, params={}):
+        return self.privatePostSignin(self.extend({
             'login': self.login,
             'passwd': self.password,
-        })
+        }, params))
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

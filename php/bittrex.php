@@ -477,12 +477,14 @@ class bittrex extends Exchange {
             }
         }
         return array (
-            'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
+            'id' => $id,
+            'order' => null,
             'type' => 'limit',
+            'takerOrMaker' => null,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
@@ -850,10 +852,8 @@ class bittrex extends Exchange {
                 $price = $cost / $filled;
         }
         $average = $this->safe_float($order, 'PricePerUnit');
-        $id = $this->safe_string($order, 'OrderUuid');
-        if ($id === null)
-            $id = $this->safe_string($order, 'OrderId');
-        $result = array (
+        $id = $this->safe_string_2($order, 'OrderUuid', 'OrderId');
+        return array (
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -871,7 +871,6 @@ class bittrex extends Exchange {
             'status' => $status,
             'fee' => $fee,
         );
-        return $result;
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
