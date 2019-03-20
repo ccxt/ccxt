@@ -18,20 +18,22 @@ module.exports = class mandalaex extends Exchange {
             'certified': false,
             // new metainfo interface
             'has': {
-                'CORS': true,
                 'cancelAllOrders': true,
+                'CORS': true,
                 'createDepositAddress': true,
                 'createMarketOrder': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
                 'fetchDeposits': true,
-                'fetchOHLCV': true,
                 'fetchMyTrades': true,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrders': true,
+                'fetchOrderStatus': true,
                 'fetchTickers': true,
                 'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -197,6 +199,7 @@ module.exports = class mandalaex extends Exchange {
                     "Invalid parameter 'side', must be 'BUY' or 'SELL'.": InvalidOrder, // {"Status":"BadRequest","Message":"Invalid parameter 'side', must be 'BUY' or 'SELL'.","Data":null}
                     'Invalid Type': BadRequest, // on fetchOrders with a wrong type {"status":"Error","errorMessage":"Invalid Type","data":null}
                     'Exception_Invalid_CurrencyName': BadRequest, // {"status":"BadRequest","message":"Exception_Invalid_CurrencyName","data":"Invalid Currency name"}
+                    'Exception_BadRequest': BadRequest, // {"status":"BadRequest","message":"Exception_BadRequest","data":"Invalid Payload"}
                     // '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
                     // '804': InvalidOrder, // "Count could not be more than 10000." (buying above maxAmount)
                     // '805': InvalidOrder, // "price could not be less than X." (minPrice violation on buy & sell)
@@ -1496,27 +1499,40 @@ module.exports = class mandalaex extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const withdrawalRequest = {
             'currency': currency['id'],
-            'amount': amount,
+            'amount': parseFloat (amount),
             'address': address,
-            // 'addressTag': tag,
+            'addressTag': null,
         };
         if (tag !== undefined) {
-            request['addressTag'] = tag;
+            withdrawalRequest['addressTag'] = tag;
         }
-        const response = await this.apiPostRequestWithdraw (this.extend (request, params));
-        console.log (response);
-        process.exit ();
-        let id = undefined;
-        if ('result' in response) {
-            if ('uuid' in response['result'])
-                id = response['result']['uuid'];
+        const withdrawalResponse = await this.apiPostRequestWithdraw (this.extend (withdrawalRequest, params));
+        //
+        //     {
+        //         "status": "Success",
+        //         "message": null,
+        //         "data": {
+        //             "withdrawalId": "E26AA92F-F526-4F6C-85FD-B1EA9B1B118D"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (withdrawalResponse, 'data', {});
+        const id = this.safeString (data, 'withdrawalId');
+        let otp = undefined;
+        if (this.twofa !== undefined) {
+            otp = this.oath ();
         }
-        return {
-            'info': response,
-            'id': id,
+        otp = this.safeString (params, 'emailToken', otp);
+        if (otp === undefined) {
+            throw new AuthenticationError (this.id + ' signIn() requires this.twofa credential or a one-time 2FA "emailToken" parameter');
+        }
+        const confirmationRequest = {
+            'EmailToken': otp,
         };
+        const confirmationResponse = await this.apiPostRequestWithdrawConfirmation (this.extend (confirmationRequest, params));
+        return confirmationResponse;
     }
 
     sign (path, api = 'api', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -1588,11 +1604,15 @@ module.exports = class mandalaex extends Exchange {
             return; // fallback to default error handler
         }
         //
+        //     {"Status":"Error","Message":"Exception_Insufficient_Funds","Data":"Insufficient Funds."}
         //     {"status":"Error","errorMessage":"Invalid Market_Currency pair!","data":null}
+        //     {"status":"BadRequest","message":"Exception_BadRequest","data":"Invalid Payload"}
+        //
         //
         const status = this.safeString2 (response, 'status', 'Status');
         if ((status !== undefined) && (status !== 'Success')) {
-            const message = this.safeString2 (response, 'errorMessage', 'Message');
+            let message = this.safeString2 (response, 'errorMessage', 'Message');
+            message = this.safeString (response, 'message', message);
             const feedback = this.id + ' ' + this.json (response);
             const exact = this.exceptions['exact'];
             if (message in exact) {
