@@ -64,6 +64,14 @@ module.exports = class mandalaex extends Exchange {
                         'token',
                     ],
                 },
+                'public': {
+                    'get': [
+
+                    ],
+                    'post': [
+                        'AuthenticateUser',
+                    ],
+                },
                 'api': {
                     'get': [
                         'GAuth_Check_Status',
@@ -95,7 +103,6 @@ module.exports = class mandalaex extends Exchange {
                         'SignUp',
                         'VerifyAccount',
                         'SignUp_Resend_Email',
-                        'AuthenticateUser',
                         'AuthenticateUser_Resend_EmailOTP/{tempAuthToken}',
                         'Validate_BearerToken',
                         'RequestChangePasswordOT',
@@ -178,6 +185,11 @@ module.exports = class mandalaex extends Exchange {
                     'Exception_TimeStamp': BadRequest, // {"status":"BadRequest","message":"Exception_TimeStamp","data":"Invalid timestamp."}
                     'Exception_HMAC_Validation': AuthenticationError, // {"status":"Error","message":"Exception_HMAC_Validation","data":"HMAC validation failed."}
                     'Exception_General': BadRequest, // {"status":"BadRequest","message":"Exception_General","data":"Our servers are experiencing some glitch, please try again later."}
+                    'Must provide the orderID param.': BadRequest, // {"Status":"BadRequest","Message":"Must provide the orderID param.","Data":null}
+                    'Invalid Market_Currency pair!': ExchangeError, // {"status":"Error","errorMessage":"Invalid Market_Currency pair!","data":null}
+                    'Invalid volume parameter.': InvalidOrder, // {"Status":"BadRequest","Message":"Invalid volume parameter.","Data":null}
+                    'Invalid rate parameter.': InvalidOrder, // {"Status":"BadRequest","Message":"Invalid rate parameter.","Data":null}
+                    "Invalid parameter 'side', must be 'BUY' or 'SELL'.": InvalidOrder, // {"Status":"BadRequest","Message":"Invalid parameter 'side', must be 'BUY' or 'SELL'.","Data":null}
                     // '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
                     // '804': InvalidOrder, // "Count could not be more than 10000." (buying above maxAmount)
                     // '805': InvalidOrder, // "price could not be less than X." (minPrice violation on buy & sell)
@@ -188,10 +200,6 @@ module.exports = class mandalaex extends Exchange {
                     // '833': OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
                 },
                 'broad': {
-                    'Invalid Market_Currency pair': ExchangeError, // {"status":"Error","errorMessage":"Invalid Market_Currency pair!","data":null}
-                    'Invalid volume parameter': InvalidOrder, // {"Status":"BadRequest","Message":"Invalid volume parameter.","Data":null}
-                    'Invalid rate parameter': InvalidOrder, // {"Status":"BadRequest","Message":"Invalid rate parameter.","Data":null}
-                    "Invalid parameter 'side', must be 'BUY' or 'SELL'": InvalidOrder, // {"Status":"BadRequest","Message":"Invalid parameter 'side', must be 'BUY' or 'SELL'.","Data":null}
                     // 'Invalid pair name': ExchangeError, // {"success":0,"error":"Invalid pair name: btc_eth"}
                     // 'invalid api key': AuthenticationError,
                     // 'invalid sign': AuthenticationError,
@@ -208,6 +216,7 @@ module.exports = class mandalaex extends Exchange {
                 'symbolSeparator': '_',
                 'api': {
                     'settings': 'api',
+                    'public': 'api',
                 },
                 'fetchCurrencies': {
                     'expires': 5000,
@@ -230,7 +239,7 @@ module.exports = class mandalaex extends Exchange {
             'email': this.login,
             'password': this.password,
         };
-        const authenticateResponse = await this.apiPostAuthenticateUser (authenticateRequest);
+        const authenticateResponse = await this.publicPostAuthenticateUser (authenticateRequest);
         //
         //     {
         //         status: 'Success',
@@ -1124,43 +1133,108 @@ module.exports = class mandalaex extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    // async fetchMyTrades (symbol = undefined, since =)
-
-
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        // {
-        //     "currency": "ALL",
-        //     "timestamp": 1540967577,
-        //     "recvWindow": 1800
-        // }
+        const side = this.safeString (params, 'side', 'ALL');
+        params = this.omit (params, 'side');
+        let market = undefined;
+        let pair = 'ALL';
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            pair = market['id'];
+        }
         const request = {
-            "currency": "ALL",
+            'side': side.toUpperCase (),
+            'pair': pair,
+            'orderID': -1,
+            'apiKey': this.apiKey,
         };
-        // let currency = undefined;
-        // if (code !== undefined) {
-        //     currency = this.currency (code);
-        //     request['currency'] = currency['id'];
-        // }
-        const response = await this.apiPostGetDeposits (this.extend (request, params));
-        console.log (response);
-        process.exit ();
+        // const request = {
+        //     'side' BUY
+        //     pairBTC_ETH
+        //     orderID13165837
+        //     apiKeyd14b1eb4-fe1f-4bfc-896d-97285975989e
+        // };
+        const response = await this.orderGetMyTradeHistory (this.extend (request, params));
         //
-        //     { success:    true,
-        //       message:   "",
-        //        result: [ {            Id:  22578097,
-        //                           Amount:  0.3,
-        //                         Currency: "ETH",
-        //                    Confirmations:  15,
-        //                      LastUpdated: "2018-06-10T07:12:10.57",
-        //                             TxId: "0xf50b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
-        //                    CryptoAddress: "0xb25f281fa51f1635abd4a60b0870a62d2a7fa404"                    } ] }
+        //     {
+        //         Status: 'Success',
+        //         Message: null,
+        //         Data: [
+        //             {
+        //                 orderId: 20000040,
+        //                 market: 'ETH',
+        //                 trade: 'MDX',
+        //                 volume: 1,
+        //                 rate: 2,
+        //                 amount: 2,
+        //                 serviceCharge: 0.003,
+        //                 side: 'SELL',
+        //                 date: '2019-03-20T01:47:09.14'
+        //             },
+        //             {
+        //                 orderId: 20000041,
+        //                 market: 'ETH',
+        //                 trade: 'MDX',
+        //                 volume: 0.5,
+        //                 rate: 3,
+        //                 amount: 1.5,
+        //                 serviceCharge: 0.00225,
+        //                 side: 'SELL',
+        //                 date: '2019-03-20T01:49:20.42'
+        //             },
+        //             {
+        //                 orderId: 20000041,
+        //                 market: 'ETH',
+        //                 trade: 'MDX',
+        //                 volume: 0.25,
+        //                 rate: 3,
+        //                 amount: 0.75,
+        //                 serviceCharge: 0.001125,
+        //                 side: 'SELL',
+        //                 date: '2019-03-20T01:51:01.307'
+        //             }
+        //         ]
+        //     }
         //
-        // we cannot filter by `since` timestamp, as it isn't set by Bittrex
-        // see https://github.com/ccxt/ccxt/issues/4067
-        // return this.parseTransactions (response['result'], currency, since, limit);
-        return this.parseTransactions (response['result'], currency, undefined, limit);
+        const data = this.safeValue (response, 'Data');
+        return this.parseTrades (data, market, since, limit);
     }
+
+    // async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    //     await this.loadMarkets ();
+    //     // {
+    //     //     "currency": "ALL",
+    //     //     "timestamp": 1540967577,
+    //     //     "recvWindow": 1800
+    //     // }
+    //     const request = {
+    //         "currency": "ALL",
+    //     };
+    //     // let currency = undefined;
+    //     // if (code !== undefined) {
+    //     //     currency = this.currency (code);
+    //     //     request['currency'] = currency['id'];
+    //     // }
+    //     const response = await this.apiPostGetDeposits (this.extend (request, params));
+    //     console.log (response);
+    //     process.exit ();
+    //     //
+    //     //     { success:    true,
+    //     //       message:   "",
+    //     //        result: [ {            Id:  22578097,
+    //     //                           Amount:  0.3,
+    //     //                         Currency: "ETH",
+    //     //                    Confirmations:  15,
+    //     //                      LastUpdated: "2018-06-10T07:12:10.57",
+    //     //                             TxId: "0xf50b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
+    //     //                    CryptoAddress: "0xb25f281fa51f1635abd4a60b0870a62d2a7fa404"                    } ] }
+    //     //
+    //     // we cannot filter by `since` timestamp, as it isn't set by Bittrex
+    //     // see https://github.com/ccxt/ccxt/issues/4067
+    //     // return this.parseTransactions (response['result'], currency, since, limit);
+    //     return this.parseTransactions (response['result'], currency, undefined, limit);
+    // }
 
     // async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
     //     await this.loadMarkets ();
