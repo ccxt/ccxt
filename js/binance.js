@@ -625,8 +625,8 @@ module.exports = class binance extends Exchange {
             'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
-            'cost': price * amount,
             'amount': amount,
+            'cost': price * amount,
             'fee': fee,
         };
     }

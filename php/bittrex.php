@@ -477,12 +477,14 @@ class bittrex extends Exchange {
             }
         }
         return array (
-            'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
+            'id' => $id,
+            'order' => null,
             'type' => 'limit',
+            'takerOrMaker' => null,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,

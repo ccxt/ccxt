@@ -470,12 +470,14 @@ class bittrex (Exchange):
             if price is not None:
                 cost = price * amount
         return {
-            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
+            'id': id,
+            'order': None,
             'type': 'limit',
+            'takerOrMaker': None,
             'side': side,
             'price': price,
             'amount': amount,
