@@ -24,6 +24,7 @@ module.exports = class mandalaex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchOHLCV': true,
                 'fetchClosedOrders': true,
+                'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOrders': true,
                 'fetchTickers': true,
@@ -690,42 +691,64 @@ module.exports = class mandalaex extends Exchange {
         //         Type: "Buy"
         //     }
         //
-        const timestamp = this.parse8601 (this.safeString (trade, 'Date'));
-        let side = this.safeString (trade, 'Type');
+        // fetchMyTrades (private)
+        //
+        //     {
+        //         orderId: 20000040,
+        //         market: 'ETH',
+        //         trade: 'MDX',
+        //         volume: 1,
+        //         rate: 2,
+        //         amount: 2,
+        //         serviceCharge: 0.003,
+        //         side: 'SELL',
+        //         date: '2019-03-20T01:47:09.14'
+        //     }
+        //
+        const timestamp = this.parse8601 (this.safeString2 (trade, 'Date', 'date'));
+        let side = this.safeString2 (trade, 'Type', 'side');
         if (side !== undefined) {
             side = side.toLowerCase ();
         }
         const id = this.safeString (trade, 'TradeID');
         let symbol = undefined;
-        // const marketId = this.safeString (ticker, 'Pair');
-        // if (marketId !== undefined) {
-        //     if (marketId in this.markets_by_id) {
-        //         market = this.markets_by_id[marketId];
-        //         symbol = market['symbol'];
-        //     } else {
-        //         symbol = this.parseSymbol (marketId);
-        //     }
-        // }
-        if (symbol === undefined) {
+        const baseId = this.safeString (trade, 'trade');
+        const quoteId = this.safeString (trade, 'market');
+        const base = this.commonCurrencyCode (baseId);
+        const quote = this.commonCurrencyCode (quoteId);
+        if (base !== undefined && quote !== undefined) {
+            symbol = base + '/' + quote;
+        } else {
             if (market !== undefined) {
                 symbol = market['symbol'];
             }
         }
-        const cost = this.safeFloat (trade, 'Total');
-        const price = this.safeFloat (trade, 'Rate');
-        const amount = this.safeFloat (trade, 'Volume');
+        const cost = this.safeFloat2 (trade, 'Total', 'amount');
+        const price = this.safeFloat2 (trade, 'Rate', 'rate');
+        const amount = this.safeFloat2 (trade, 'Volume', 'volume');
+        const orderId = this.safeString (trade, 'orderId');
+        const feeCost = this.safeValue (trade, 'serviceCharge');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': quote,
+            };
+        }
         return {
-            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': 'limit',
+            'id': id,
+            'order': orderId,
+            'type': undefined,
+            'takerOrMaker': undefined,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
@@ -1149,12 +1172,6 @@ module.exports = class mandalaex extends Exchange {
             'orderID': -1,
             'apiKey': this.apiKey,
         };
-        // const request = {
-        //     'side' BUY
-        //     pairBTC_ETH
-        //     orderID13165837
-        //     apiKeyd14b1eb4-fe1f-4bfc-896d-97285975989e
-        // };
         const response = await this.orderGetMyTradeHistory (this.extend (request, params));
         //
         //     {
@@ -1201,85 +1218,76 @@ module.exports = class mandalaex extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    // async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-    //     await this.loadMarkets ();
-    //     // {
-    //     //     "currency": "ALL",
-    //     //     "timestamp": 1540967577,
-    //     //     "recvWindow": 1800
-    //     // }
-    //     const request = {
-    //         "currency": "ALL",
-    //     };
-    //     // let currency = undefined;
-    //     // if (code !== undefined) {
-    //     //     currency = this.currency (code);
-    //     //     request['currency'] = currency['id'];
-    //     // }
-    //     const response = await this.apiPostGetDeposits (this.extend (request, params));
-    //     console.log (response);
-    //     process.exit ();
-    //     //
-    //     //     { success:    true,
-    //     //       message:   "",
-    //     //        result: [ {            Id:  22578097,
-    //     //                           Amount:  0.3,
-    //     //                         Currency: "ETH",
-    //     //                    Confirmations:  15,
-    //     //                      LastUpdated: "2018-06-10T07:12:10.57",
-    //     //                             TxId: "0xf50b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
-    //     //                    CryptoAddress: "0xb25f281fa51f1635abd4a60b0870a62d2a7fa404"                    } ] }
-    //     //
-    //     // we cannot filter by `since` timestamp, as it isn't set by Bittrex
-    //     // see https://github.com/ccxt/ccxt/issues/4067
-    //     // return this.parseTransactions (response['result'], currency, since, limit);
-    //     return this.parseTransactions (response['result'], currency, undefined, limit);
-    // }
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        // {
+        //     "currency": "ALL",
+        //     "timestamp": 1540967577,
+        //     "recvWindow": 1800
+        // }
+        const request = {
+            "currency": "ALL",
+        };
+        // let currency = undefined;
+        // if (code !== undefined) {
+        //     currency = this.currency (code);
+        //     request['currency'] = currency['id'];
+        // }
+        const response = await this.apiPostGetDeposits (this.extend (request, params));
+        console.log (response);
+        process.exit ();
+        //
+        //     { success:    true,
+        //       message:   "",
+        //        result: [ {            Id:  22578097,
+        //                           Amount:  0.3,
+        //                         Currency: "ETH",
+        //                    Confirmations:  15,
+        //                      LastUpdated: "2018-06-10T07:12:10.57",
+        //                             TxId: "0xf50b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
+        //                    CryptoAddress: "0xb25f281fa51f1635abd4a60b0870a62d2a7fa404"                    } ] }
+        //
+        // we cannot filter by `since` timestamp, as it isn't set by Bittrex
+        // see https://github.com/ccxt/ccxt/issues/4067
+        // return this.parseTransactions (response['result'], currency, since, limit);
+        return this.parseTransactions (response['result'], currency, undefined, limit);
+    }
 
-    // async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-    //     await this.loadMarkets ();
-    //     // https://support.bittrex.com/hc/en-us/articles/115003723911
-    //     const request = {};
-    //     let currency = undefined;
-    //     if (code !== undefined) {
-    //         currency = this.currency (code);
-    //         request['currency'] = currency['id'];
-    //     }
-    //     const response = await this.accountGetWithdrawalhistory (this.extend (request, params));
-    //     //
-    //     //     {
-    //     //         "success" : true,
-    //     //         "message" : "",
-    //     //         "result" : [{
-    //     //                 "PaymentUuid" : "b32c7a5c-90c6-4c6e-835c-e16df12708b1",
-    //     //                 "Currency" : "BTC",
-    //     //                 "Amount" : 17.00000000,
-    //     //                 "Address" : "1DfaaFBdbB5nrHj87x3NHS4onvw1GPNyAu",
-    //     //                 "Opened" : "2014-07-09T04:24:47.217",
-    //     //                 "Authorized" : true,
-    //     //                 "PendingPayment" : false,
-    //     //                 "TxCost" : 0.00020000,
-    //     //                 "TxId" : null,
-    //     //                 "Canceled" : true,
-    //     //                 "InvalidAddress" : false
-    //     //             }, {
-    //     //                 "PaymentUuid" : "d193da98-788c-4188-a8f9-8ec2c33fdfcf",
-    //     //                 "Currency" : "XC",
-    //     //                 "Amount" : 7513.75121715,
-    //     //                 "Address" : "TcnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
-    //     //                 "Opened" : "2014-07-08T23:13:31.83",
-    //     //                 "Authorized" : true,
-    //     //                 "PendingPayment" : false,
-    //     //                 "TxCost" : 0.00002000,
-    //     //                 "TxId" : "d8a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
-    //     //                 "Canceled" : false,
-    //     //                 "InvalidAddress" : false
-    //     //             }
-    //     //         ]
-    //     //     }
-    //     //
-    //     return this.parseTransactions (response['result'], currency, since, limit);
-    // }
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        let requestCurrency = 'ALL';
+        if (code !== undefined) {
+            currency = this.currency (code);
+            requestCurrency = currency['id'];
+        }
+        const request = {
+            'currency': requestCurrency,
+        };
+        const response = await this.accountGetWithdrawalhistory (this.extend (request, params));
+        //
+        //     {
+        //         "status": "Success",
+        //         "message": null,
+        //         "data": {
+        //             "withdrawals": [
+        //                 {
+        //                     "withdrawalType": "ETH",
+        //                     "withdrawalAddress": "0xE28CE3A999d6035d042D1a87FAab389Cb0B78Db6",
+        //                     "withdrawalAmount": 0.071,
+        //                     "txnHash": null,
+        //                     "withdrawalReqDate": "2018-11-12T09:38:28.43",
+        //                     "withdrawalConfirmDate": null,
+        //                     "withdrawalStatus": "Pending"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const withdrawals = this.safeValue (data, 'withdrawals', []);
+        return this.parseTransactions (withdrawals, currency, since, limit);
+    }
 
     // parseTransaction (transaction, currency = undefined) {
     //     //
