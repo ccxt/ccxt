@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, AddressPending } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, AddressPending } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -57,6 +57,11 @@ module.exports = class mandalaex extends Exchange {
                         'Get_Withdrawal_Limits',
                     ],
                 },
+                'token': {
+                    'post': [
+                        'token',
+                    ],
+                },
                 'api': {
                     'get': [
                         'GAuth_Check_Status',
@@ -65,11 +70,11 @@ module.exports = class mandalaex extends Exchange {
                         'Loginhistory',
                         'ListAllAddresses',
                         'Get_User_Withdrawal_Limits',
-                        'GetPendingOrders?side=aLL&pair=ALL&timestamp=1541240408&recvWindow=3600',
-                        'TradeHistory?side=ALL&pair=ALL&timestamp=1550920234&recvWindow=10000&count=100&page=1',
+                        'GetPendingOrders', // ?side=aLL&pair=ALL&timestamp=1541240408&recvWindow=3600',
+                        'TradeHistory', // ?side=ALL&pair=ALL&timestamp=1550920234&recvWindow=10000&count=100&page=1',
                         'GOKYC_Get_Kyc_Form',
                         'language_list',
-                        'language?code=en&namespace=translation',
+                        'language', // ?code=en&namespace=translation',
                         'get_page_n_content',
                         'GetExchangeTokenDiscountEnrollmentStatus',
                         'GetDiscountTiers',
@@ -78,9 +83,9 @@ module.exports = class mandalaex extends Exchange {
                         'Affiliate_Commission',
                         'List_Fiat_Manual_Deposit_Requests',
                         'List_Fiat_BanksList/YCN/',
-                        'Get_Fiat_PGs?Currency=TRY',
+                        'Get_Fiat_PGs', // ?Currency=TRY',
                         'get_insta_pairs',
-                        'hmac?side=BUY&market=BTC&trade=ETH&type=STOPLIMIT&volume=0.025&rate=0.032&timeInForce=GTC&stop=2&',
+                        'hmac', // ?side=BUY&market=BTC&trade=ETH&type=STOPLIMIT&volume=0.025&rate=0.032&timeInForce=GTC&stop=2&',
                     ],
                     'post': [
                         'GAuth_Set_Enable',
@@ -89,14 +94,14 @@ module.exports = class mandalaex extends Exchange {
                         'VerifyAccount',
                         'SignUp_Resend_Email',
                         'AuthenticateUser',
-                        'AuthenticateUser_Resend_EmailOTP/71db395a-6bdc-4183-8191-5940bca95ffd',
+                        'AuthenticateUser_Resend_EmailOTP/{tempAuthToken}',
                         'Validate_BearerToken',
                         'RequestChangePasswordOT',
                         'ChangePassword',
                         'ForgotPassword',
                         'ResetPassword',
-                        'check_Duplicate_Mobile/',
-                        'check_Duplicate_Email/',
+                        'check_Duplicate_Mobile',
+                        'check_Duplicate_Email',
                         'GenerateAddress',
                         'GetBalance',
                         'GetDeposits',
@@ -104,8 +109,6 @@ module.exports = class mandalaex extends Exchange {
                         'RequestWithdraw',
                         'RequestWithdrawConfirmation',
                         'RequestTransfer_AeraPass',
-                        'PlaceOrder',
-                        'PlaceOrder',
                         'PlaceOrder',
                         'PlaceOrder_Priced',
                         'CancelOrder',
@@ -170,6 +173,9 @@ module.exports = class mandalaex extends Exchange {
                 'exact': {
                     'Failure_General': ExchangeError, // {"Status":"Error","Message":"Failure_General","Data":"Cannot roll back TransBuyOrder. No transaction or savepoint of that name was found."}
                     'Exception_Insufficient_Funds': InsufficientFunds, // {"Status":"Error","Message":"Exception_Insufficient_Funds","Data":"Insufficient Funds."}
+                    'Exception_TimeStamp': BadRequest, // {"status":"BadRequest","message":"Exception_TimeStamp","data":"Invalid timestamp."}
+                    'Exception_HMAC_Validation': AuthenticationError, // {"status":"Error","message":"Exception_HMAC_Validation","data":"HMAC validation failed."}
+                    'Exception_General': BadRequest, // {"status":"BadRequest","message":"Exception_General","data":"Our servers are experiencing some glitch, please try again later."}
                     // '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
                     // '804': InvalidOrder, // "Count could not be more than 10000." (buying above maxAmount)
                     // '805': InvalidOrder, // "price could not be less than X." (minPrice violation on buy & sell)
@@ -204,17 +210,66 @@ module.exports = class mandalaex extends Exchange {
                 'fetchCurrencies': {
                     'expires': 5000,
                 },
+                // https://documenter.getpostman.com/view/5614390/RWguuvfd#a74ee943-3b7a-415e-9315-a7bf204db09d
+                // HMAC can be obtained using a Secret key. Thispre shared secret key ensures that the message is encrypted by a legitimate source. You can get a secret key issued for your sandbox enviroment by writing an email to support@modulus.io
+                // Secret-Key : 03c06dd7-4982-441a-910d-5fd2cbb3f1c6
+                'secret': '03c06dd7-4982-441a-910d-5fd2cbb3f1c6',
             },
             'commonCurrencies': {
             },
         });
     }
 
-    signIn () {
-        return this.privatePostSignin ({
-            'login': this.login,
-            'passwd': this.password,
-        });
+    async signIn (params = {}) {
+        if (!this.login || !this.password) {
+            throw new AuthenticationError (this.id + ' signIn() requires this.login (email) and this.password credentials');
+        }
+        const authenticateRequest = {
+            'email': this.login,
+            'password': this.password,
+        };
+        const authenticateResponse = await this.apiPostAuthenticateUser (authenticateRequest);
+        //
+        //     {
+        //         status: 'Success',
+        //         message: 'Success!',
+        //         data: {
+        //             tempAuthToken: 'e1b0603a-5996-4bac-9ec4-f097a02d9696',
+        //             tokenExpiry: '2019-03-19T21:16:15.999201Z',
+        //             twoFAMehtod: 'GAuth'
+        //         }
+        //     }
+        //
+        const data = this.safeValue (authenticateResponse, 'data', {});
+        const tempAuthToken = this.safeString (data, 'tempAuthToken');
+        let otp = undefined;
+        if (this.twofa !== undefined) {
+            otp = this.oath ();
+        }
+        otp = this.safeString (params, 'password', otp);
+        if (otp === undefined) {
+            throw new AuthenticationError (this.id + ' signIn() requires this.twofa credential or a one-time 2FA "password" parameter');
+        }
+        const tokenRequest = {
+            'grant_type': 'password',
+            'username': tempAuthToken,
+            'password': otp,
+        };
+        const tokenResponse = await this.tokenPostToken (this.extend (tokenRequest, params));
+        //
+        //     {
+        //         "access_token": "WWRNCO--bFjX3zKAixROAjy3dbU0csNoI91PXpT1oScTrik50mVrSIbr22HrsJV5ATXgN867vy66pxY7IzMQGzYtz-7KTxUnL6uPbQpiveBgPEGD5drpvh5KwhcCOzFelJ1-OxZa6g6trx82x2YqQI7Lny0VkAIEv-EBQT8B4C_UVYhoMVCzYumeQgcxtyXc9hoRolVUwwQ965--LrAYIybBby85LzRRIfh7Yg_CVSx6zehAcHFUeKh2tE4NwN9lYweeDEPb6z2kHn0UJb18nxYcC3-NjgiyublBiY1AI_U",
+        //         "token_type": "bearer",
+        //         "expires_in": 86399
+        //     }
+        //
+        const expiresIn = this.safeInteger (tokenResponse, 'expires_in');
+        this.options['expires'] = this.sum (this.milliseconds (), expiresIn * 1000);
+        this.options['accessToken'] = this.safeString (tokenResponse, 'accessToken');;
+        this.options['tokenType'] = this.safeString (tokenResponse, 'token_type');
+        // const accessToken = this.safeValue (tokenResponse, 'access_token');
+        // this.headers['Authorization'] = 'Bearer ' + accessToken;
+        return tokenResponse;
     }
 
     async fetchCurrenciesFromCache (params = {}) {
@@ -892,6 +947,18 @@ module.exports = class mandalaex extends Exchange {
         //         completionDate: null
         //     }
         //
+        // fetchOpenOrders
+        //
+        //     {
+        //         orderId: 20000038,
+        //         market: 'BTC',
+        //         trade: 'ETH',
+        //         volume: 1,
+        //         rate: 1,
+        //         side: 'SELL',
+        //         date: '2019-03-19T18:28:43.553',
+        //     }
+        //
         const id = this.safeString (order, 'orderId');
         const baseId = this.safeString (order, 'trade');
         const quoteId = this.safeString (order, 'market');
@@ -902,7 +969,7 @@ module.exports = class mandalaex extends Exchange {
             symbol = base + '/' + quote;
         }
         const completionDate = this.parse8601 (this.safeString (order, 'completionDate'));
-        const timestamp = this.parse8601 (this.safeString (order, 'placementDate'));
+        const timestamp = this.parse8601 (this.safeString2 (order, 'placementDate', 'date'));
         let price = this.safeFloat (order, 'rate');
         const amount = this.safeFloat (order, 'volume');
         let cost = this.safeFloat (order, 'amount');
@@ -1007,6 +1074,51 @@ module.exports = class mandalaex extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        return this.parseOrders (data, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const side = this.safeString (params, 'side', 'ALL');
+        params = this.omit (params, 'side');
+        let market = undefined;
+        let pair = 'ALL';
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            pair = market['baseId'] + '-' + market['quoteId'];
+        }
+        const request = {
+            'side': side.toUpperCase (),
+            'pair': pair,
+        };
+        const response = await this.apiGetGetPendingOrders (this.extend (request, params));
+        //
+        //     {
+        //         status: 'Success',
+        //         message: 'Success!',
+        //         data: [
+        //             {
+        //                 orderId: 20000038,
+        //                 market: 'BTC',
+        //                 trade: 'ETH',
+        //                 volume: 1,
+        //                 rate: 1,
+        //                 side: 'SELL',
+        //                 date: '2019-03-19T18:28:43.553',
+        //             },
+        //             {
+        //                 orderId: 20000039,
+        //                 market: 'BTC',
+        //                 trade: 'ETH',
+        //                 volume: 1,
+        //                 rate: 2,
+        //                 side: 'SELL',
+        //                 date: '2019-03-19T18:48:12.033',
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -1335,27 +1447,62 @@ module.exports = class mandalaex extends Exchange {
         let url = this.implodeParams (this.urls['api'], {
             'hostname': this.hostname,
         });
-        url += '/' + this.safeString (this.options['api'], api, api);
+        if (api !== 'token') {
+            url += '/' + this.safeString (this.options['api'], api, api);
+        }
         url += '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         // const isPublic = this.safeValue (this.options['api'], api, true);
-        if (api === 'market' || api === 'settings') {
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
+        if (api === 'market' || api === 'settings' || api === 'public') {
+            if (method === 'POST') {
+                body = this.json (query);
+                headers = {
+                    'Content-Type': 'application/json',
+                };
+            } else {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
             }
+        } else if (api === 'token') {
+            body = this.urlencode (query);
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            };
         } else {
             this.checkRequiredCredentials ();
             query = this.keysort (this.extend ({
                 'timestamp': this.seconds (),
             }, query));
-            body = this.json (query);
             const auth = this.urlencode (query);
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
+            const secret = (api === 'api') ? this.options['secret'] : this.secret;
+            const signature = this.hmac (this.encode (auth), this.encode (secret), 'sha512');
             headers = {
-                'Content-Type': 'application/json',
-                'publicKey': this.apiKey,
-                'HMAC': this.decode (signature),
+                'HMAC': this.decode (signature.toUpperCase ()),
             };
+            if (api === 'api') {
+                const token = this.safeString (this.options, 'accessToken');
+                if (token === undefined) {
+                    throw new AuthenticationError (this.id + ' ' + path + ' endpoint requires an accessToken option or a prior call to signIn() method');
+                }
+                const expires = this.safeInteger (this.options, 'expires');
+                if (expires !== undefined) {
+                    if (this.milliseconds () >= expires) {
+                        throw new AuthenticationError (this.id + ' accessToken expired, supply a new accessToken or call signIn() method');
+                    }
+                }
+                const tokenType = this.safeString (this.options, 'tokenType', 'bearer');
+                headers['Authorization'] = tokenType + ' ' + token;
+            }
+            if (method === 'POST') {
+                body = this.json (query);
+                headers['Content-Type'] = 'application/json';
+                headers['publicKey'] = this.apiKey;
+            } else if (method === 'GET') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -1368,7 +1515,7 @@ module.exports = class mandalaex extends Exchange {
         //     {"status":"Error","errorMessage":"Invalid Market_Currency pair!","data":null}
         //
         const status = this.safeString2 (response, 'status', 'Status');
-        if (status !== 'Success') {
+        if ((status !== undefined) && (status !== 'Success')) {
             const message = this.safeString2 (response, 'errorMessage', 'Message');
             const feedback = this.id + ' ' + this.json (response);
             const exact = this.exceptions['exact'];
