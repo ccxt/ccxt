@@ -1618,9 +1618,9 @@ module.exports = class Exchange {
         this.web3.eth.sendSignedTransaction (rawTransaction);
     }
 
-    oath (key) {
+    oath () {
         if (typeof this.twofa !== 'undefined') {
-            return this.totp (key)
+            return this.totp (this.twofa)
         } else {
             throw new ExchangeError (this.id + ' this.twofa has not been set')
         }
