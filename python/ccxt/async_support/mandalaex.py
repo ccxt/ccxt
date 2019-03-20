@@ -50,12 +50,10 @@ class mandalaex (Exchange):
                 '1d': '1440',
             },
             'comment': 'Modulus Exchange API ',
-            # 'hostname': 'mandalaex.com',
-            'hostname': 'greendonuts.org',
+            'hostname': 'mandalaex.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
-                # 'api': 'https://zapi.{hostname}',
-                'api': 'https://vbapi.{hostname}',
+                'api': 'https://zapi.{hostname}',
                 'www': 'https://mandalaex.com',
                 'doc': [
                     'https://documenter.getpostman.com/view/6273708/RznBP1Hh',
