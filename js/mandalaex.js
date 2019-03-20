@@ -20,14 +20,18 @@ module.exports = class mandalaex extends Exchange {
             'has': {
                 'CORS': true,
                 'cancelAllOrders': true,
+                'createDepositAddress': true,
                 'createMarketOrder': true,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': true,
+                'fetchDeposits': true,
                 'fetchOHLCV': true,
-                'fetchClosedOrders': true,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOrders': true,
                 'fetchTickers': true,
+                'fetchWithdrawals': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -191,6 +195,8 @@ module.exports = class mandalaex extends Exchange {
                     'Invalid volume parameter.': InvalidOrder, // {"Status":"BadRequest","Message":"Invalid volume parameter.","Data":null}
                     'Invalid rate parameter.': InvalidOrder, // {"Status":"BadRequest","Message":"Invalid rate parameter.","Data":null}
                     "Invalid parameter 'side', must be 'BUY' or 'SELL'.": InvalidOrder, // {"Status":"BadRequest","Message":"Invalid parameter 'side', must be 'BUY' or 'SELL'.","Data":null}
+                    'Invalid Type': BadRequest, // on fetchOrders with a wrong type {"status":"Error","errorMessage":"Invalid Type","data":null}
+                    'Exception_Invalid_CurrencyName': BadRequest, // {"status":"BadRequest","message":"Exception_Invalid_CurrencyName","data":"Invalid Currency name"}
                     // '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
                     // '804': InvalidOrder, // "Count could not be more than 10000." (buying above maxAmount)
                     // '805': InvalidOrder, // "price could not be less than X." (minPrice violation on buy & sell)
@@ -856,17 +862,6 @@ module.exports = class mandalaex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        // POST Place an order (BID/ASK) (STOP LIMIT)
-        // https://zapi.mandalaex.com/api/PlaceOrder
-        // Pushes an order to the Order Books. You can use this endpoint for all nine types of orders.
-        // Order Side: BUY, SELL
-        // Type: MARKET, LIMIT, STOPLIMIT
-        // Market: BTC, ETH, USD
-        // trade: Coin-name, example XRP (Hint: when trading XRP/BTC, Market will be BTC and trade will be XRP)
-        // timeInForce: GTC (Good till cancelled), IOC (Immediate or cancel), FOK (Fill or Kill), Do (Day only), Here GTC should be default for LIMIT, MARKET & STOP LIMIT Orders. IOC,FOK, DO must be passed only with a LIMIT order.
-        // rate: rate is the price for Limit order & limit-price for Stop-Limit orders, and for Market orders it is always zero. this value is always in market currency e.g XRP/BTC it's in BTC
-        // volume: volumne is the quantity which one is willing to trade at. This value is always in trade currency e.g XRP/BTC it's in XRP
-        // stop: stop is the stop-price at which a stop-limit order triggers and become a limit order. stop is always zero for limit and market orders.
         await this.loadMarkets ();
         const market = this.market (symbol);
         let orderPrice = price;
@@ -876,14 +871,18 @@ module.exports = class mandalaex extends Exchange {
         const request = {
             'market': market['quoteId'],
             'trade': market['baseId'],
-            'type': type.toUpperCase (),
-            'side': side.toUpperCase (),
+            'type': type.toUpperCase (), // MARKET, LIMIT, STOPLIMIT
+            'side': side.toUpperCase (), // BUY, SELL
             // Here GTC should be default for LIMIT, MARKET & STOP LIMIT Orders.
             // IOC,FOK, DO must be passed only with a LIMIT order.
             // GTC (Good till cancelled), IOC (Immediate or cancel), FOK (Fill or Kill), Do (Day only)
             'timeInForce': 'GTC',
             'rate': this.priceToPrecision (symbol, orderPrice),
             'volume': this.amountToPrecision (symbol, amount),
+            // the stop-price at which a stop-limit order
+            // triggers and becomes a limit order
+            'stop': 0, // stop is always zero for limit and market orders
+            // 'clientOrderId': this.uuid (),
         };
         const response = await this.orderPostPlaceOrder (this.extend (request, params));
         //
@@ -1061,9 +1060,9 @@ module.exports = class mandalaex extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const side = this.safeString (params, 'side');
+        const side = this.safeString (params, 'side', 'ALL');
         if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires an order side extra parameter');
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires an order side extra parameter');
         }
         params = this.omit (params, 'side');
         const request = {
@@ -1357,6 +1356,106 @@ module.exports = class mandalaex extends Exchange {
         };
     }
 
+    parseDepositAddresses (addresses) {
+        const result = [];
+        const ids = Object.keys (addresses);
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const address = addresses[id];
+            const currencyId = id.toUpperCase ();
+            const currency = this.safeValue (this.currencies_by_id, currencyId);
+            result.push (this.parseDepositAddress (address, currency));
+        }
+        return result;
+    }
+
+    async fetchDepositAddresses (codes = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.apiGetListAllAddresses (params);
+        //
+        //     {
+        //         "status": "Success",
+        //         "message": null,
+        //         "data": {
+        //             "btc": "3PLKhwm59C21U3KN3YZVQmrQhoE3q1p1i8",
+        //             "eth": "0x8143c11ed6b100e5a96419994846c890598647cf",
+        //             "xrp": "rKHZQttBiDysDT4PtYL7RmLbGm6p5HBHfV:3931222419"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseDepositAddresses (data);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     "btc": "3PLKhwm59C21U3KN3YZVQmrQhoE3q1p1i8",
+        //     "eth": "0x8143c11ed6b100e5a96419994846c890598647cf",
+        //     "xrp": "rKHZQttBiDysDT4PtYL7RmLbGm6p5HBHfV:3931222419"
+        //
+        const parts = depositAddress.split (':');
+        const address = parts[0];
+        this.checkAddress (address);
+        let tag = undefined;
+        const numParts = parts.length;
+        if (numParts > 1) {
+            tag = parts[1];
+        }
+        let code = undefined;
+        if (currency !== undefined) {
+            code = currency['code'];
+        }
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': depositAddress,
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.apiPostGenerateAddress (this.extend (request, params));
+        //
+        //     {
+        //         status: 'Success',
+        //         message: '',
+        //         data: {
+        //             address: '0x13a1ac355bf1be5b157486f619169cf7f9ffed4e'
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const address = this.safeString (data, 'address');
+        return this.parseDepositAddress (address, currency);
+    }
+
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.apiPostGenerateAddress (this.extend (request, params));
+        //
+        //     {
+        //         status: 'Success',
+        //         message: '',
+        //         data: {
+        //             address: '0x13a1ac355bf1be5b157486f619169cf7f9ffed4e'
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const address = this.safeString (data, 'address');
+        return this.parseDepositAddress (address, currency);
+    }
+
     // async fetchOrderStatus? (id, symbol = undefined, params = {}) {
     //     await this.loadMarkets ();
     //     const side = this.safeString (params, 'side');
@@ -1391,40 +1490,6 @@ module.exports = class mandalaex extends Exchange {
     //     //     throw new OrderNotFound (this.id + ' order ' + id + ' not found');
     //     // }
     //     return this.parseOrder (response['result']);
-    // }
-
-    // async fetchDepositAddress (code, params = {}) {
-    //     await this.loadMarkets ();
-    //     const currency = this.currency (code);
-    //     const request = {
-    //         'currency': currency['id'],
-    //     };
-    //     const response = await this.accountGetDepositaddress (this.extend (request, params));
-    //     //
-    //     //     { "success": false, "message": "ADDRESS_GENERATING", "result": null }
-    //     //
-    //     //     { success:    true,
-    //     //       message:   "",
-    //     //        result: { Currency: "INCNT",
-    //     //                   Address: "3PHvQt9bK21f7eVQVdJzrNPcsMzXabEA5Ha" } } }
-    //     //
-    //     let address = this.safeString (response['result'], 'Address');
-    //     const message = this.safeString (response, 'message');
-    //     if (!address || message === 'ADDRESS_GENERATING') {
-    //         throw new AddressPending (this.id + ' the address for ' + code + ' is being generated (pending, not ready yet, retry again later)');
-    //     }
-    //     let tag = undefined;
-    //     if (currency['type'] in this.options['tag']) {
-    //         tag = address;
-    //         address = currency['address'];
-    //     }
-    //     this.checkAddress (address);
-    //     return {
-    //         'currency': code,
-    //         'address': address,
-    //         'tag': tag,
-    //         'info': response,
-    //     };
     // }
 
     // async withdraw (code, amount, address, tag = undefined, params = {}) {
