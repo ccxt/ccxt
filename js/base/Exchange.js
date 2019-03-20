@@ -1559,6 +1559,22 @@ module.exports = class Exchange {
         return '0x' + signature.r.toString ('hex') + signature.s.toString ('hex') + this.intToHex (signature.v)
     }
 
+    async signEthTransaction (txnPayload) {
+        let signedTxn = await this.web3.eth.accounts.signTransaction (txnPayload, this.privateKey)
+            .then ((signedPayload) => {
+                return signedPayload;
+            });
+        return signedTxn;
+    }
+
+    generateEthTransactionHash (rawTransaction) {
+        return this.web3.utils.sha3 (rawTransaction);
+    }
+
+    sendEthSignedTransaction (rawTransaction) {
+        this.web3.eth.sendSignedTransaction (rawTransaction);
+    }
+
     signMessage (message, privateKey) {
         //
         // The following comment is related to MetaMask, we use the upper type of signature prefix:
@@ -1600,22 +1616,6 @@ module.exports = class Exchange {
     signMessage2 (message, privateKey) {
         // an alternative to signMessage using ethUtil (ethereumjs-util) instead of web3
         return this.signHash (this.hashMessage (message), privateKey.slice (-64))
-    }
-
-    async signEthTransaction (txnPayload) {
-        let signedTxn = await this.web3.eth.accounts.signTransaction (txnPayload, this.privateKey)
-            .then ((signedPayload) => {
-                return signedPayload;
-            });
-        return signedTxn;
-    }
-
-    generateEthTransactionHash (rawTransaction) {
-        return this.web3.utils.sha3 (rawTransaction);
-    }
-
-    sendEthSignedTransaction (rawTransaction) {
-        this.web3.eth.sendSignedTransaction (rawTransaction);
     }
 
     oath () {
