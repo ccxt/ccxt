@@ -1284,6 +1284,13 @@ module.exports = class mandalaex extends Exchange {
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
+    parseTransactionStatus (status) {
+        const statuses = {
+            'Pending': 'pending',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
@@ -1305,8 +1312,9 @@ module.exports = class mandalaex extends Exchange {
         //     }
         //
         const id = undefined;
-        const amount = this.safeFloat2(transaction, 'withdrawalAmount');
+        const amount = this.safeFloat (transaction, 'withdrawalAmount');
         const address = this.safeString (transaction, 'withdrawalAddress');
+        const tag = undefined;
         const txid = this.safeString (transaction, 'txnHash');
         const updated = this.parse8601 (this.safeValue (transaction, 'withdrawalConfirmDate'));
         const timestamp = this.parse8601 (this.safeString (transaction, 'withdrawalReqDate', updated));
@@ -1319,43 +1327,18 @@ module.exports = class mandalaex extends Exchange {
         } else {
             code = this.commonCurrencyCode (currencyId);
         }
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'withdrawalStatus'));
+        let status = this.parseTransactionStatus (this.safeString (transaction, 'withdrawalStatus'));
+        let feeCost = undefined;
         if (type === 'deposit') {
-            if (currency !== undefined) {
-                // deposits numConfirmations never reach the minConfirmations number
-                // we set all of them to 'ok', otherwise they'd all be 'pending'
-                //
-                //     const numConfirmations = this.safeInteger (transaction, 'Confirmations', 0);
-                //     const minConfirmations = this.safeInteger (currency['info'], 'MinConfirmation');
-                //     if (numConfirmations >= minConfirmations) {
-                //         status = 'ok';
-                //     }
-                //
-                status = 'ok';
-            }
-        } else {
-            const authorized = this.safeValue (transaction, 'Authorized', false);
-            const pendingPayment = this.safeValue (transaction, 'PendingPayment', false);
-            const canceled = this.safeValue (transaction, 'Canceled', false);
-            const invalidAddress = this.safeValue (transaction, 'InvalidAddress', false);
-            if (invalidAddress) {
-                status = 'failed';
-            } else if (canceled) {
-                status = 'canceled';
-            } else if (pendingPayment) {
-                status = 'pending';
-            } else if (authorized && (txid !== undefined)) {
-                status = 'ok';
-            }
+            status = 'ok';
+            feeCost = 0;
         }
-        let feeCost = this.safeFloat (transaction, 'TxCost');
-        if (feeCost === undefined) {
-            if (type === 'deposit') {
-                // according to https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-
-                feeCost = 0; // FIXME: remove hardcoded value that may change any time
-            } else if (type === 'withdrawal') {
-                throw new ExchangeError ('Withdrawal without fee detected!');
-            }
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            };
         }
         return {
             'info': transaction,
@@ -1363,17 +1346,14 @@ module.exports = class mandalaex extends Exchange {
             'currency': code,
             'amount': amount,
             'address': address,
-            'tag': undefined,
+            'tag': tag,
             'status': status,
             'type': type,
             'updated': updated,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'fee': {
-                'currency': code,
-                'cost': feeCost,
-            },
+            'fee': fee,
         };
     }
 
