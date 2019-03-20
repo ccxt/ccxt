@@ -21,6 +21,7 @@ module.exports = class coinmate extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
                 'api': 'https://coinmate.io/api',
                 'www': 'https://coinmate.io',
+                'fees': 'https://coinmate.io/fees',
                 'doc': [
                     'https://coinmate.docs.apiary.io',
                     'https://coinmate.io/developers',
@@ -60,11 +61,11 @@ module.exports = class coinmate extends Exchange {
                 },
             },
             'markets': {
-                'BTC/EUR': { 'id': 'BTC_EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'precision': { 'amount': 4, 'price': 2 }},
-                'BTC/CZK': { 'id': 'BTC_CZK', 'symbol': 'BTC/CZK', 'base': 'BTC', 'quote': 'CZK', 'precision': { 'amount': 4, 'price': 2 }},
-                'LTC/EUR': { 'id': 'LTC_EUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR', 'precision': { 'amount': 4, 'price': 4 }},
-                'LTC/CZK': { 'id': 'LTC_CZK', 'symbol': 'LTC/CZK', 'base': 'LTC', 'quote': 'CZK', 'precision': { 'amount': 4, 'price': 6 }},
-                'LTC/BTC': { 'id': 'LTC_BTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'precision': { 'amount': 4, 'price': 5 }},
+                'BTC/EUR': { 'id': 'BTC_EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'precision': { 'amount': 4, 'price': 2 }, 'maker': 0.25 / 100, 'taker': 0.12 / 100 },
+                'BTC/CZK': { 'id': 'BTC_CZK', 'symbol': 'BTC/CZK', 'base': 'BTC', 'quote': 'CZK', 'precision': { 'amount': 4, 'price': 2 }, 'maker': 0.25 / 100, 'taker': 0.12 / 100 },
+                'LTC/EUR': { 'id': 'LTC_EUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR', 'precision': { 'amount': 4, 'price': 4 }, 'maker': 0.25 / 100, 'taker': 0.12 / 100 },
+                'LTC/CZK': { 'id': 'LTC_CZK', 'symbol': 'LTC/CZK', 'base': 'LTC', 'quote': 'CZK', 'precision': { 'amount': 4, 'price': 6 }, 'maker': 0.25 / 100, 'taker': 0.12 / 100 },
+                'LTC/BTC': { 'id': 'LTC_BTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'precision': { 'amount': 4, 'price': 5 }, 'maker': 0.25 / 100, 'taker': 0.12 / 100 },
                 'ETH/EUR': { 'id': 'ETH_CZK', 'symbol': 'ETH/EUR', 'base': 'ETH', 'quote': 'EUR', 'precision': { 'amount': 4, 'price': 5 }},
                 'ETH/CZK': { 'id': 'ETH_CZK', 'symbol': 'ETH/CZK', 'base': 'ETH', 'quote': 'CZK', 'precision': { 'amount': 4, 'price': 6 }},
                 'ETH/BTC': { 'id': 'ETH_BTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'precision': { 'amount': 4, 'price': 6 }},
@@ -77,8 +78,8 @@ module.exports = class coinmate extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.0005,
-                    'taker': 0.0035,
+                    'maker': 0.05 / 100,
+                    'taker': 0.15 / 100,
                 },
             },
         });
