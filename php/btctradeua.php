@@ -85,8 +85,8 @@ class btctradeua extends Exchange {
         ));
     }
 
-    public function sign_in () {
-        return $this->privatePostAuth ();
+    public function sign_in ($params = array ()) {
+        return $this->privatePostAuth ($params);
     }
 
     public function fetch_balance ($params = array ()) {

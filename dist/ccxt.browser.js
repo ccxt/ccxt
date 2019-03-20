@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.384'
+const version = '1.18.385'
 
 Exchange.ccxtVersion = version
 
@@ -5602,11 +5602,11 @@ module.exports = class bibox extends Exchange {
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
             ohlcv['time'],
-            ohlcv['open'],
-            ohlcv['high'],
-            ohlcv['low'],
-            ohlcv['close'],
-            ohlcv['vol'],
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'vol'),
         ];
     }
 
@@ -7338,8 +7338,8 @@ module.exports = class binance extends Exchange {
             'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
-            'cost': price * amount,
             'amount': amount,
+            'cost': price * amount,
             'fee': fee,
         };
     }
@@ -12751,11 +12751,11 @@ module.exports = class bitlish extends Exchange {
         return this.parseBalance (result);
     }
 
-    signIn () {
-        return this.privatePostSignin ({
+    async signIn (params = {}) {
+        return await this.privatePostSignin (this.extend ({
             'login': this.login,
             'passwd': this.password,
-        });
+        }, params));
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -16908,12 +16908,14 @@ module.exports = class bittrex extends Exchange {
             }
         }
         return {
-            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
+            'id': id,
+            'order': undefined,
             'type': 'limit',
+            'takerOrMaker': undefined,
             'side': side,
             'price': price,
             'amount': amount,
@@ -21587,8 +21589,8 @@ module.exports = class btctradeua extends Exchange {
         });
     }
 
-    signIn () {
-        return this.privatePostAuth ();
+    async signIn (params = {}) {
+        return await this.privatePostAuth (params);
     }
 
     async fetchBalance (params = {}) {
