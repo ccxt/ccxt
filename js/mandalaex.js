@@ -23,6 +23,8 @@ module.exports = class mandalaex extends Exchange {
                 'createMarketOrder': true,
                 'fetchCurrencies': true,
                 'fetchOHLCV': true,
+                'fetchClosedOrders': true,
+                'fetchOpenOrders': true,
                 'fetchOrders': true,
                 'fetchTickers': true,
             },
@@ -1121,6 +1123,9 @@ module.exports = class mandalaex extends Exchange {
         const data = this.safeValue (response, 'data');
         return this.parseOrders (data, market, since, limit);
     }
+
+    // async fetchMyTrades (symbol = undefined, since =)
+
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
