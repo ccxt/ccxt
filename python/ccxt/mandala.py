@@ -52,7 +52,7 @@ class mandala (Exchange):
             'comment': 'Modulus Exchange API ',
             'hostname': 'mandalaex.com',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/54686665-df629400-4b2a-11e9-84d3-d88856367dd7.jpg',
                 'api': 'https://zapi.{hostname}',
                 'www': 'https://mandalaex.com',
                 'doc': [
