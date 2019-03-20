@@ -1220,37 +1220,32 @@ module.exports = class mandalaex extends Exchange {
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        // {
-        //     "currency": "ALL",
-        //     "timestamp": 1540967577,
-        //     "recvWindow": 1800
-        // }
+        let currency = undefined;
+        let requestCurrency = 'ALL';
+        if (code !== undefined) {
+            currency = this.currency (code);
+            requestCurrency = currency['id'];
+        }
         const request = {
-            "currency": "ALL",
+            'currency': requestCurrency,
         };
-        // let currency = undefined;
-        // if (code !== undefined) {
-        //     currency = this.currency (code);
-        //     request['currency'] = currency['id'];
-        // }
         const response = await this.apiPostGetDeposits (this.extend (request, params));
-        console.log (response);
-        process.exit ();
         //
-        //     { success:    true,
-        //       message:   "",
-        //        result: [ {            Id:  22578097,
-        //                           Amount:  0.3,
-        //                         Currency: "ETH",
-        //                    Confirmations:  15,
-        //                      LastUpdated: "2018-06-10T07:12:10.57",
-        //                             TxId: "0xf50b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
-        //                    CryptoAddress: "0xb25f281fa51f1635abd4a60b0870a62d2a7fa404"                    } ] }
+        //     {
+        //         "status": "Success",
+        //         "message": null,
+        //         "data": {
+        //             "deposits": [
+        //                 {
+        //                     ?
+        //                 }
+        //             ]
+        //         }
+        //     }
         //
-        // we cannot filter by `since` timestamp, as it isn't set by Bittrex
-        // see https://github.com/ccxt/ccxt/issues/4067
-        // return this.parseTransactions (response['result'], currency, since, limit);
-        return this.parseTransactions (response['result'], currency, undefined, limit);
+        const data = this.safeValue (response, 'data', {});
+        const deposits = this.safeValue (data, 'deposits', []);
+        return this.parseTransactions (deposits, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1264,7 +1259,7 @@ module.exports = class mandalaex extends Exchange {
         const request = {
             'currency': requestCurrency,
         };
-        const response = await this.accountGetWithdrawalhistory (this.extend (request, params));
+        const response = await this.apiPostGetWithdrawals (this.extend (request, params));
         //
         //     {
         //         "status": "Success",
@@ -1289,108 +1284,100 @@ module.exports = class mandalaex extends Exchange {
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
-    // parseTransaction (transaction, currency = undefined) {
-    //     //
-    //     // fetchDeposits
-    //     //
-    //     //      {            Id:  72578097,
-    //     //               Amount:  0.3,
-    //     //             Currency: "ETH",
-    //     //        Confirmations:  15,
-    //     //          LastUpdated: "2018-06-17T07:12:14.57",
-    //     //                 TxId: "0xb31b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
-    //     //        CryptoAddress: "0x2d5f281fa51f1635abd4a60b0870a62d2a7fa404"                    }
-    //     //
-    //     // fetchWithdrawals
-    //     //
-    //     //     {
-    //     //         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf",
-    //     //         "Currency" : "XC",
-    //     //         "Amount" : 7513.75121715,
-    //     //         "Address" : "EVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
-    //     //         "Opened" : "2014-07-08T23:13:31.83",
-    //     //         "Authorized" : true,
-    //     //         "PendingPayment" : false,
-    //     //         "TxCost" : 0.00002000,
-    //     //         "TxId" : "b4a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
-    //     //         "Canceled" : false,
-    //     //         "InvalidAddress" : false
-    //     //     }
-    //     //
-    //     const id = this.safeString2 (transaction, 'Id', 'PaymentUuid');
-    //     const amount = this.safeFloat (transaction, 'Amount');
-    //     const address = this.safeString2 (transaction, 'CryptoAddress', 'Address');
-    //     const txid = this.safeString (transaction, 'TxId');
-    //     const updated = this.parse8601 (this.safeValue (transaction, 'LastUpdated'));
-    //     const timestamp = this.parse8601 (this.safeString (transaction, 'Opened', updated));
-    //     const type = (timestamp !== undefined) ? 'withdrawal' : 'deposit';
-    //     let code = undefined;
-    //     let currencyId = this.safeString (transaction, 'Currency');
-    //     currency = this.safeValue (this.currencies_by_id, currencyId);
-    //     if (currency !== undefined) {
-    //         code = currency['code'];
-    //     } else {
-    //         code = this.commonCurrencyCode (currencyId);
-    //     }
-    //     let status = 'pending';
-    //     if (type === 'deposit') {
-    //         if (currency !== undefined) {
-    //             // deposits numConfirmations never reach the minConfirmations number
-    //             // we set all of them to 'ok', otherwise they'd all be 'pending'
-    //             //
-    //             //     const numConfirmations = this.safeInteger (transaction, 'Confirmations', 0);
-    //             //     const minConfirmations = this.safeInteger (currency['info'], 'MinConfirmation');
-    //             //     if (numConfirmations >= minConfirmations) {
-    //             //         status = 'ok';
-    //             //     }
-    //             //
-    //             status = 'ok';
-    //         }
-    //     } else {
-    //         const authorized = this.safeValue (transaction, 'Authorized', false);
-    //         const pendingPayment = this.safeValue (transaction, 'PendingPayment', false);
-    //         const canceled = this.safeValue (transaction, 'Canceled', false);
-    //         const invalidAddress = this.safeValue (transaction, 'InvalidAddress', false);
-    //         if (invalidAddress) {
-    //             status = 'failed';
-    //         } else if (canceled) {
-    //             status = 'canceled';
-    //         } else if (pendingPayment) {
-    //             status = 'pending';
-    //         } else if (authorized && (txid !== undefined)) {
-    //             status = 'ok';
-    //         }
-    //     }
-    //     let feeCost = this.safeFloat (transaction, 'TxCost');
-    //     if (feeCost === undefined) {
-    //         if (type === 'deposit') {
-    //             // according to https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-
-    //             feeCost = 0; // FIXME: remove hardcoded value that may change any time
-    //         } else if (type === 'withdrawal') {
-    //             throw new ExchangeError ('Withdrawal without fee detected!');
-    //         }
-    //     }
-    //     return {
-    //         'info': transaction,
-    //         'id': id,
-    //         'currency': code,
-    //         'amount': amount,
-    //         'address': address,
-    //         'tag': undefined,
-    //         'status': status,
-    //         'type': type,
-    //         'updated': updated,
-    //         'txid': txid,
-    //         'timestamp': timestamp,
-    //         'datetime': this.iso8601 (timestamp),
-    //         'fee': {
-    //             'currency': code,
-    //             'cost': feeCost,
-    //         },
-    //     };
-    // }
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         ?
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "withdrawalType": "ETH",
+        //         "withdrawalAddress": "0xE28CE3A999d6035d042D1a87FAab389Cb0B78Db6",
+        //         "withdrawalAmount": 0.071,
+        //         "txnHash": null,
+        //         "withdrawalReqDate": "2018-11-12T09:38:28.43",
+        //         "withdrawalConfirmDate": null,
+        //         "withdrawalStatus": "Pending"
+        //     }
+        //
+        const id = undefined;
+        const amount = this.safeFloat2(transaction, 'withdrawalAmount');
+        const address = this.safeString (transaction, 'withdrawalAddress');
+        const txid = this.safeString (transaction, 'txnHash');
+        const updated = this.parse8601 (this.safeValue (transaction, 'withdrawalConfirmDate'));
+        const timestamp = this.parse8601 (this.safeString (transaction, 'withdrawalReqDate', updated));
+        const type = (timestamp !== undefined) ? 'withdrawal' : 'deposit';
+        let code = undefined;
+        let currencyId = this.safeString (transaction, 'withdrawalType');
+        currency = this.safeValue (this.currencies_by_id, currencyId);
+        if (currency !== undefined) {
+            code = currency['code'];
+        } else {
+            code = this.commonCurrencyCode (currencyId);
+        }
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'withdrawalStatus'));
+        if (type === 'deposit') {
+            if (currency !== undefined) {
+                // deposits numConfirmations never reach the minConfirmations number
+                // we set all of them to 'ok', otherwise they'd all be 'pending'
+                //
+                //     const numConfirmations = this.safeInteger (transaction, 'Confirmations', 0);
+                //     const minConfirmations = this.safeInteger (currency['info'], 'MinConfirmation');
+                //     if (numConfirmations >= minConfirmations) {
+                //         status = 'ok';
+                //     }
+                //
+                status = 'ok';
+            }
+        } else {
+            const authorized = this.safeValue (transaction, 'Authorized', false);
+            const pendingPayment = this.safeValue (transaction, 'PendingPayment', false);
+            const canceled = this.safeValue (transaction, 'Canceled', false);
+            const invalidAddress = this.safeValue (transaction, 'InvalidAddress', false);
+            if (invalidAddress) {
+                status = 'failed';
+            } else if (canceled) {
+                status = 'canceled';
+            } else if (pendingPayment) {
+                status = 'pending';
+            } else if (authorized && (txid !== undefined)) {
+                status = 'ok';
+            }
+        }
+        let feeCost = this.safeFloat (transaction, 'TxCost');
+        if (feeCost === undefined) {
+            if (type === 'deposit') {
+                // according to https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-
+                feeCost = 0; // FIXME: remove hardcoded value that may change any time
+            } else if (type === 'withdrawal') {
+                throw new ExchangeError ('Withdrawal without fee detected!');
+            }
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': undefined,
+            'status': status,
+            'type': type,
+            'updated': updated,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+            },
+        };
+    }
 
-    // async fetchOrder (id, symbol = undefined, params = {}) {
+    // async fetchOrderStatus? (id, symbol = undefined, params = {}) {
     //     await this.loadMarkets ();
     //     const side = this.safeString (params, 'side');
     //     if (side === undefined) {
@@ -1424,53 +1411,6 @@ module.exports = class mandalaex extends Exchange {
     //     //     throw new OrderNotFound (this.id + ' order ' + id + ' not found');
     //     // }
     //     return this.parseOrder (response['result']);
-    // }
-
-    // orderToTrade (order) {
-    //     // this entire method should be moved to the base class
-    //     const timestamp = this.safeInteger2 (order, 'lastTradeTimestamp', 'timestamp');
-    //     return {
-    //         'id': this.safeString (order, 'id'),
-    //         'side': this.safeString (order, 'side'),
-    //         'order': this.safeString (order, 'id'),
-    //         'price': this.safeFloat (order, 'average'),
-    //         'amount': this.safeFloat (order, 'filled'),
-    //         'cost': this.safeFloat (order, 'cost'),
-    //         'symbol': this.safeString (order, 'symbol'),
-    //         'timestamp': timestamp,
-    //         'datetime': this.iso8601 (timestamp),
-    //         'fee': this.safeValue (order, 'fee'),
-    //         'info': order,
-    //     };
-    // }
-
-    // ordersToTrades (orders) {
-    //     // this entire method should be moved to the base class
-    //     const result = [];
-    //     for (let i = 0; i < orders.length; i++) {
-    //         result.push (this.orderToTrade (orders[i]));
-    //     }
-    //     return result;
-    // }
-
-    // async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-    //     const orders = await this.fetchClosedOrders (symbol, since, limit, params);
-    //     return this.ordersToTrades (orders);
-    // }
-
-    // async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-    //     await this.loadMarkets ();
-    //     let request = {};
-    //     let market = undefined;
-    //     if (symbol !== undefined) {
-    //         market = this.market (symbol);
-    //         request['market'] = market['id'];
-    //     }
-    //     let response = await this.accountGetOrderhistory (this.extend (request, params));
-    //     let orders = this.parseOrders (response['result'], market, since, limit);
-    //     if (symbol !== undefined)
-    //         return this.filterBySymbol (orders, symbol);
-    //     return orders;
     // }
 
     // async fetchDepositAddress (code, params = {}) {
