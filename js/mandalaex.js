@@ -1492,28 +1492,32 @@ module.exports = class mandalaex extends Exchange {
     //     return this.parseOrder (response['result']);
     // }
 
-    // async withdraw (code, amount, address, tag = undefined, params = {}) {
-    //     this.checkAddress (address);
-    //     await this.loadMarkets ();
-    //     let currency = this.currency (code);
-    //     let request = {
-    //         'currency': currency['id'],
-    //         'quantity': amount,
-    //         'address': address,
-    //     };
-    //     if (tag)
-    //         request['paymentid'] = tag;
-    //     let response = await this.accountGetWithdraw (this.extend (request, params));
-    //     let id = undefined;
-    //     if ('result' in response) {
-    //         if ('uuid' in response['result'])
-    //             id = response['result']['uuid'];
-    //     }
-    //     return {
-    //         'info': response,
-    //         'id': id,
-    //     };
-    // }
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'amount': amount,
+            'address': address,
+            // 'addressTag': tag,
+        };
+        if (tag !== undefined) {
+            request['addressTag'] = tag;
+        }
+        const response = await this.apiPostRequestWithdraw (this.extend (request, params));
+        console.log (response);
+        process.exit ();
+        let id = undefined;
+        if ('result' in response) {
+            if ('uuid' in response['result'])
+                id = response['result']['uuid'];
+        }
+        return {
+            'info': response,
+            'id': id,
+        };
+    }
 
     sign (path, api = 'api', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeParams (this.urls['api'], {
