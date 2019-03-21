@@ -102,8 +102,8 @@ module.exports = class switcheo extends Exchange {
             },
             'options': {
                 'contract': '',
-                'contracts': '',
-                'currentContracts': '',
+                'contracts': {},
+                'currentContracts': {},
             },
         });
     }
@@ -142,11 +142,11 @@ module.exports = class switcheo extends Exchange {
         return current_contract;
     }
 
-    async fetchContractHash () {
-        let response = await this.publicGetExchangeContracts ();
+    async fetchContractHash (params = {}) {
+        let response = await this.publicGetExchangeContracts (params);
         let currentContract = this.parseCurrentContract (response);
-        this.options.contracts = response;
-        this.options.currentContracts = currentContract;
+        this.options['contracts'] = response;
+        this.options['currentContracts'] = currentContract;
         return currentContract;
     }
 
