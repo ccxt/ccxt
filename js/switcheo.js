@@ -19,7 +19,7 @@ module.exports = class switcheo extends Exchange {
             'certified': false,
             'parseJsonResponse': false,
             'requiresWeb3': true,
-            'web3ProviderURL': 'https://infura.io/',
+            'web3ProviderURL': '',
             'has': {
                 'CORS': false,
                 'cancelOrder': true,
@@ -102,6 +102,8 @@ module.exports = class switcheo extends Exchange {
             },
             'options': {
                 'contract': '',
+                'contracts': '',
+                'currentContracts': '',
             },
         });
     }
@@ -142,7 +144,10 @@ module.exports = class switcheo extends Exchange {
 
     async fetchContractHash () {
         let response = await this.publicGetExchangeContracts ();
-        return this.parseCurrentContract (response);
+        let currentContract = this.parseCurrentContract (response);
+        this.options.contracts = response;
+        this.options.currentContracts = currentContract;
+        return currentContract;
     }
 
     async fetchCurrencies (params = {}) {
@@ -239,7 +244,7 @@ module.exports = class switcheo extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'network': quote,
+                'network': quote.toLowerCase (),
                 'active': active,
                 'precision': precision,
                 'limits': limits,
@@ -249,9 +254,36 @@ module.exports = class switcheo extends Exchange {
         return result;
     }
 
-    async fetchPairs () {
-        let pairs = await this.publicGetExchangePairs ();
+    async fetchPairs (params = {}) {
+        let pairs = await this.publicGetExchangePairs (this.extend (params));
         return pairs;
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'blockchain': market['network'],
+            'pair': market['id'],
+            'contract_hash': this.options.currentContracts[market['quote']],
+        };
+        if (market['quote'] === 'NEO') {
+            request['contract_hash'] = this.options.currentContracts[market['quote']];
+        }
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        if (limit !== undefined && limit > 0 && limit <= 10000) {
+            request['limit'] = limit;
+        }
+        if ('startTime' in params) {
+            request['from'] = params.startTime;
+        }
+        if ('endTime' in params) {
+            request['to'] = params.endTime;
+        }
+        let response = await this.publicGetTrades (this.extend (request, params));
+        return response;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -311,13 +343,13 @@ module.exports = class switcheo extends Exchange {
         let orderAmount = 0;
         let orderPrice = 0;
         let orderType = '';
-        if (market['network'].toLowerCase () === 'eth') {
+        if (market['network'] === 'eth') {
             orderAmount = this.toWei (this.amountToPrecision (symbol, amount), 'ether');
         }
         if ('useSwitcheoToken' in params) {
             useSwitcheoToken = params.useSwitcheoToken;
         }
-        if (market['network'].toLowerCase () === 'eth' || useSwitcheoToken === undefined) {
+        if (market['network'] === 'eth' || useSwitcheoToken === undefined) {
             useSwitcheoToken = false; // Fees can be paid in the quote currency or Switcheo
         } else if (useSwitcheoToken) {
             useSwitcheoToken = true;
@@ -329,7 +361,7 @@ module.exports = class switcheo extends Exchange {
             orderType = 'market';
         }
         let createOrderPayload = {
-            'blockchain': market['network'].toLowerCase (),
+            'blockchain': market['network'],
             'contract_hash': this.options['contract'],
             'order_type': orderType,
             'quantity': orderAmount,
@@ -386,7 +418,6 @@ module.exports = class switcheo extends Exchange {
             'order_id': id,
             'timestamp': this.milliseconds (),
         };
-        console.log (cancelRequest);
         let stableStringify = this.stringifyMessage (cancelRequest);
         let hexMessage = this.hashStringMessage (stableStringify).replace ('0x', '');
         cancelRequest['signature'] = this.signHashSignature (hexMessage, this.privateKey);
@@ -399,9 +430,7 @@ module.exports = class switcheo extends Exchange {
             'body': cancelRequest,
             'headers': headers,
         };
-        console.log (cancelOrderPayload);
         let createCancelResponse = await this.createCancelOrder (cancelOrderPayload, params);
-        console.log (createCancelResponse);
         let cancelId = createCancelResponse['id'];
         let cancelMessage = {
             'signature': this.signHashSignature (createCancelResponse['transaction']['sha256'], this.privateKey),
