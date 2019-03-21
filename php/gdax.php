@@ -80,6 +80,7 @@ class gdax extends Exchange {
                         'funding',
                         'orders',
                         'orders/{id}',
+                        'otc/orders',
                         'payment-methods',
                         'position',
                         'reports/{id}',

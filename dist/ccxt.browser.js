@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.385'
+const version = '1.18.386'
 
 Exchange.ccxtVersion = version
 
@@ -40297,6 +40297,7 @@ module.exports = class gdax extends Exchange {
                         'funding',
                         'orders',
                         'orders/{id}',
+                        'otc/orders',
                         'payment-methods',
                         'position',
                         'reports/{id}',
