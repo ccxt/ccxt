@@ -51,7 +51,7 @@ module.exports = class switcheo extends Exchange {
                 'fetchTickers': false,
                 'fetchTime': true,
                 'fetchBidsAsks': false,
-                'fetchTrades': true,
+                'fetchTrades': false,
                 'withdraw': true,
                 'fetchTransactions': false,
                 'fetchDeposits': false,
@@ -275,10 +275,10 @@ module.exports = class switcheo extends Exchange {
         let request = {
             'blockchain': market['network'],
             'pair': market['id'],
-            'contract_hash': this.options.currentContracts[market['quote']],
+            'contract_hash': this.options['currentContracts'][market['quote']],
         };
         if (market['quote'] === 'NEO') {
-            request['contract_hash'] = this.options.currentContracts[market['quote']];
+            request['contract_hash'] = this.options['currentContracts'][market['quote']];
         }
         if (since !== undefined) {
             request['from'] = since;
