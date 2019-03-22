@@ -529,10 +529,7 @@ module.exports = class bibox extends Exchange {
     }
 
     parseTransactionStatusByType (status, type = undefined) {
-        if (type === undefined) {
-            return status;
-        }
-        let statuses = {
+        const statuses = {
             'deposit': {
                 '1': 'pending',
                 '2': 'ok',
@@ -542,7 +539,7 @@ module.exports = class bibox extends Exchange {
                 '3': 'ok',
             },
         };
-        return (status in statuses[type]) ? statuses[type][status] : status;
+        return this.safeString (this.safeValue (statuses, type, {}), status, status)
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
