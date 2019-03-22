@@ -20,13 +20,21 @@ module.exports = class switcheo extends Exchange {
             'parseJsonResponse': false,
             'requiresWeb3': true,
             'web3ProviderURL': '',
+            'requiredCredentials': {
+                'apiKey': false,
+                'secret': false,
+                'privateKey': true,
+                'walletAddress': true,
+                'web3ProviderURL': true,
+                'web3InfuraKey': true,
+            },
             'has': {
                 'CORS': false,
                 'cancelOrder': true,
                 'createDepositAddress': false,
                 'createOrder': true,
                 'deposit': true,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchClosedOrders': false,
                 'fetchContractHash': true,
                 'fetchCurrencies': true,
@@ -43,7 +51,7 @@ module.exports = class switcheo extends Exchange {
                 'fetchTickers': false,
                 'fetchTime': true,
                 'fetchBidsAsks': false,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'withdraw': true,
                 'fetchTransactions': false,
                 'fetchDeposits': false,
@@ -161,6 +169,7 @@ module.exports = class switcheo extends Exchange {
             let name = response[currencies[i]]['name'];
             let code = this.commonCurrencyCode (id);
             let precision = response[currencies[i]]['precision'];
+            let decimals = response[currencies[i]]['decimals'];
             let active = response[currencies[i]]['trading_active'];
             let type = response[currencies[i]]['type'];
             let address = response[currencies[i]]['hash'];
@@ -185,6 +194,7 @@ module.exports = class switcheo extends Exchange {
                 'active': active,
                 'fee': undefined,
                 'precision': precision,
+                'decimals': decimals,
                 'limits': {
                     'amount': {
                         'min': minimum,
@@ -227,7 +237,7 @@ module.exports = class switcheo extends Exchange {
             let active = (tokens[base]['active'] && tokens[quote]['active']);
             this.options['contract'] = contracts[quote];
             let precision = {
-                'amount': market['precision'],
+                'amount': tokens[base]['info']['decimals'],
                 'cost': market['precision'],
                 'price': market['precision'],
             };
@@ -284,6 +294,74 @@ module.exports = class switcheo extends Exchange {
         }
         let response = await this.publicGetTrades (this.extend (request, params));
         return response;
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        let contract_hashes = [];
+        let contracts = Object.keys (this.options['currentContracts']);
+        for (let i = 0; i < contracts.length; i++) {
+            contract_hashes.push (this.options['currentContracts'][contracts[i]]);
+        }
+        let request = {
+            'addresses': [ this.walletAddress ],
+            'contract_hashes': contract_hashes,
+        };
+        let response = await this.publicGetBalances (this.extend (request, params));
+        let freeBalance = {};
+        let freeKeys = Object.keys (response['confirmed']);
+        for (let j = 0; j < freeKeys.length; j++) {
+            freeBalance[freeKeys[j]] = this.fromWei (response['confirmed'][freeKeys[j]], 'ether', this.currencies[freeKeys[j]]['info']['decimals']);
+        }
+        let usedBalance = {};
+        let usedKeys = Object.keys (response['locked']);
+        for (let k = 0; k < usedKeys.length; k++) {
+            usedBalance[usedKeys[k]] = this.fromWei (response['locked'][usedKeys[k]], 'ether', this.currencies[freeKeys[k]]['info']['decimals']);
+        }
+        let totalBalance = {};
+        let totalKeys = freeKeys;
+        for (let l = 0; l < usedKeys.length; l++) {
+            let isUnique = true;
+            for (let c = 0; c < totalKeys.length; c++) {
+                if (totalKeys[c] in totalKeys)
+                    isUnique = false;
+            }
+            if (isUnique)
+                totalKeys.push (usedKeys[l]);
+        }
+        for (let m = 0; m < totalKeys.length; m++) {
+            let key = totalKeys[m];
+            let free = 0;
+            let used = 0;
+            if (key in freeBalance)
+                free = freeBalance[key];
+            if (key in usedBalance)
+                used = usedBalance[key];
+            totalBalance[key] = this.addFloat (free, used);
+        }
+        let unifiedBalance = {
+            'info': response,       // the original untouched non-parsed reply with details
+            'free': freeBalance,    // money, available for trading, by currency
+            'used': usedBalance,    // money on hold, locked, frozen, or pending, by currency}
+            'total': totalBalance,  // total (free + used), by currency
+        };
+        for (let n = 0; n < totalKeys.length; n++) {
+            let key = totalKeys[n];
+            let free = 0;
+            let used = 0;
+            let total = 0;
+            if (key in freeBalance)
+                free = freeBalance[key];
+            if (key in usedBalance)
+                used = usedBalance[key];
+            total = this.addFloat (free, used);
+            unifiedBalance[key] = {
+                'free': parseFloat (free),
+                'used': parseFloat (used),
+                'total': total,
+            };
+        }
+        return unifiedBalance;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -344,7 +422,7 @@ module.exports = class switcheo extends Exchange {
         let orderPrice = 0;
         let orderType = '';
         if (market['network'] === 'eth') {
-            orderAmount = this.toWei (this.amountToPrecision (symbol, amount), 'ether');
+            orderAmount = this.toWei (this.amountToPrecision (symbol, amount), 'ether', market['precision']['amount']);
         }
         if ('useSwitcheoToken' in params) {
             useSwitcheoToken = params.useSwitcheoToken;
@@ -560,9 +638,10 @@ module.exports = class switcheo extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
+        if (api === 'private')
+            this.checkRequiredCredentials ();
         if (method === 'GET') {
-            if (Object.keys (query).length)
-                request += '?' + this.urlencode (query);
+            request += '?' + this.urlencode (query, 'brackets');
         } else if (method === 'POST') {
             if ('headers' in query) {
                 headers = query['headers'];

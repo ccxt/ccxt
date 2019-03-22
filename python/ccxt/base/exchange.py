@@ -184,6 +184,8 @@ class Exchange(object):
         'twofa': False,  # 2-factor authentication (one-time password key)
         'privateKey': False,  # a "0x"-prefixed hexstring private key for a wallet
         'walletAddress': False,  # the wallet address "0x"-prefixed hexstring
+        'web3ProviderURL': False,
+        'web3InfuraKey': False,
     }
 
     # API method metainfo
@@ -313,7 +315,10 @@ class Exchange(object):
 
         if self.requiresWeb3 and Web3 and not self.web3:
             # self.web3 = w3 if w3 else Web3(HTTPProvider())
-            self.web3 = Web3(HTTPProvider(self.web3ProviderURL))
+            if self.web3InfuraKey is not None:
+                self.web3 = Web3(HTTPProvider(self.web3ProviderURL + self.web3InfuraKey))
+            else:
+                self.web3 = Web3(HTTPProvider(self.web3ProviderURL))
 
     def __del__(self):
         if self.session:
@@ -730,9 +735,11 @@ class Exchange(object):
         return result
 
     @staticmethod
-    def urlencode(params={}):
+    def urlencode(params={}, isDoseq=False):
+        if isDoseq == 'brackets':
+            isDoseq = True
         if (type(params) is dict) or isinstance(params, collections.OrderedDict):
-            return _urlencode.urlencode(params)
+            return _urlencode.urlencode(params, doseq=isDoseq)
         return params
 
     @staticmethod
@@ -1563,6 +1570,9 @@ class Exchange(object):
             30: 'tether',  # 0.000000000001
         }
         return self.safe_value(units, decimals)
+
+    def addFloat(self, value1, value2):
+        return float(Decimal(str(value1)) + Decimal(str(value2)))
 
     def fromWei(self, amount, unit='ether', decimals=18):
         if Web3 is None:

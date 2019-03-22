@@ -145,6 +145,8 @@ module.exports = class Exchange {
                 'twofa':      false, // 2-factor authentication (one-time password key)
                 'privateKey': false, // a "0x"-prefixed hexstring private key for a wallet
                 'walletAddress': false, // the wallet address "0x"-prefixed hexstring
+                'web3ProviderURL': false,
+                'web3InfuraKey': false,
             },
             'markets': undefined, // to be filled manually or by fetchMarkets
             'currencies': {}, // to be filled manually or by fetchMarkets
@@ -367,7 +369,14 @@ module.exports = class Exchange {
         }
 
         if (this.requiresWeb3 && !this.web3 && Web3) {
-            const provider = (this.web3ProviderURL) ? new Web3.providers.HttpProvider (this.web3ProviderURL) : new Web3.providers.HttpProvider ()
+            let provider = undefined
+            if (this.web3ProviderURL)
+                if (this.web3InfuraKey)
+                    provider = new Web3.providers.HttpProvider (this.web3ProviderURL + this.web3InfuraKey)
+                else
+                    provider = new Web3.providers.HttpProvider (this.web3ProviderURL)
+            else
+                provider = new Web3.providers.HttpProvider ()
             this.web3 = new Web3 (Web3.givenProvider || provider)
         }
     }
@@ -1374,6 +1383,10 @@ module.exports = class Exchange {
             30: 'tether',  // 0.000000000001
         }
         return this.safeValue (units, decimals)
+    }
+
+    addFloat (value1, value2) {
+        return parseFloat (BigNumber (value1).plus (value2));
     }
 
     fromWei (amount, unit = 'ether', decimals = 18) {
