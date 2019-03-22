@@ -280,13 +280,6 @@ Using `docker-compose` (in the cloned CCXT repository):
 docker-compose run --rm ccxt
 ```
 
-Alternatively:
-
-```shell
-docker build . --tag ccxt
-docker run -it ccxt
-```
-
 ---
 
 ## Documentation
