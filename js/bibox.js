@@ -18,6 +18,8 @@ module.exports = class bibox extends Exchange {
                 'CORS': false,
                 'publicAPI': false,
                 'fetchBalance': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchFundingFees': true,
