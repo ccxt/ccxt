@@ -539,7 +539,7 @@ module.exports = class bibox extends Exchange {
                 '3': 'ok',
             },
         };
-        return this.safeString (this.safeValue (statuses, type, {}), status, status)
+        return this.safeString (this.safeValue (statuses, type, {}), status, status);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
