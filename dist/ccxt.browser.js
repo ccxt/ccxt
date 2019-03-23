@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.388'
+const version = '1.18.389'
 
 Exchange.ccxtVersion = version
 
@@ -24924,7 +24924,7 @@ module.exports = class cobinhood extends Exchange {
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (code === undefined) {
-            throw new ExchangeError (this.id + ' fetchDeposits() requires a currency code arguemnt');
+            throw new ExchangeError (this.id + ' fetchDeposits() requires a currency code argument');
         }
         let currency = this.currency (code);
         let request = {
@@ -24937,7 +24937,7 @@ module.exports = class cobinhood extends Exchange {
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (code === undefined) {
-            throw new ExchangeError (this.id + ' fetchWithdrawals() requires a currency code arguemnt');
+            throw new ExchangeError (this.id + ' fetchWithdrawals() requires a currency code argument');
         }
         let currency = this.currency (code);
         let request = {
