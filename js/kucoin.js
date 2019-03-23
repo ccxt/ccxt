@@ -911,29 +911,36 @@ module.exports = class kucoin extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         //
-        // Deposits
-        //   { "address": "0x5f047b29041bcfdbf0e4478cdfa753a336ba6989",
-        //     "memo": "5c247c8a03aa677cea2a251d",
-        //     "amount": 1,
-        //     "fee": 0.0001,
-        //     "currency": "KCS",
-        //     "isInner": false,
-        //     "walletTxId": "5bbb57386d99522d9f954c5a@test004",
-        //     "status": "SUCCESS",
-        //     "createdAt": 1544178843000,
-        //     "updatedAt": 1544178891000 }
-        // Withdrawals
-        //   { "id": "5c2dc64e03aa675aa263f1ac",
-        //     "address": "0x5bedb060b8eb8d823e2414d82acce78d38be7fe9",
-        //     "memo": "",
-        //     "currency": "ETH",
-        //     "amount": 1.0000000,
-        //     "fee": 0.0100000,
-        //     "walletTxId": "3e2414d82acce78d38be7fe9",
-        //     "isInner": false,
-        //     "status": "FAILURE",
-        //     "createdAt": 1546503758000,
-        //     "updatedAt": 1546504603000 }
+        // fetchDeposits
+        //
+        //     {
+        //         "address": "0x5f047b29041bcfdbf0e4478cdfa753a336ba6989",
+        //         "memo": "5c247c8a03aa677cea2a251d",
+        //         "amount": 1,
+        //         "fee": 0.0001,
+        //         "currency": "KCS",
+        //         "isInner": false,
+        //         "walletTxId": "5bbb57386d99522d9f954c5a@test004",
+        //         "status": "SUCCESS",
+        //         "createdAt": 1544178843000,
+        //         "updatedAt": 1544178891000
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "id": "5c2dc64e03aa675aa263f1ac",
+        //         "address": "0x5bedb060b8eb8d823e2414d82acce78d38be7fe9",
+        //         "memo": "",
+        //         "currency": "ETH",
+        //         "amount": 1.0000000,
+        //         "fee": 0.0100000,
+        //         "walletTxId": "3e2414d82acce78d38be7fe9",
+        //         "isInner": false,
+        //         "status": "FAILURE",
+        //         "createdAt": 1546503758000,
+        //         "updatedAt": 1546504603000
+        //     }
         //
         let code = undefined;
         let currencyId = this.safeString (transaction, 'currency');
@@ -943,23 +950,50 @@ module.exports = class kucoin extends Exchange {
         } else {
             code = this.commonCurrencyCode (currencyId);
         }
-        const address = this.safeString (transaction, 'address');
+        let address = this.safeString (transaction, 'address');
         const amount = this.safeFloat (transaction, 'amount');
-        const txid = this.safeString (transaction, 'walletTxId');
-        const type = txid === undefined ? 'withdrawal' : 'deposit';
+        let txid = this.safeString (transaction, 'walletTxId');
+        const txidParts = txid.split ('@');
+        const numTxidParts = txidParts.length;
+        if (numTxidParts > 1) {
+            if (address === undefined) {
+                if (txidParts[1].length > 1) {
+                    address = txidParts[1];
+                }
+            }
+        }
+        txid = txidParts[0];
+        let type = txid === undefined ? 'withdrawal' : 'deposit';
         const rawStatus = this.safeString (transaction, 'status');
         const status = this.parseTransactionStatus (rawStatus);
-        let fees = {
-            'cost': this.safeFloat (transaction, 'fee'),
-        };
-        if (fees['cost'] !== undefined && amount !== undefined) {
-            fees['rate'] = fees['cost'] / amount;
+        let fee = undefined;
+        const feeCost = this.safeFloat (transaction, 'fee');
+        if (feeCost !== undefined) {
+            let rate = undefined;
+            if (amount !== undefined) {
+                rate = feeCost / amount;
+            }
+            fee = {
+                'cost': feeCost,
+                'rate': rate,
+                'currency': code,
+            };
         }
         const tag = this.safeString (transaction, 'memo');
-        const timestamp = this.safeInteger (transaction, 'createdAt');
-        const datetime = this.iso8601 (timestamp);
+        let timestamp = this.safeInteger2 (transaction, 'createdAt', 'createAt');
         const id = this.safeString (transaction, 'id');
-        const updated = this.safeInteger (transaction, 'updated');
+        let updated = this.safeInteger (transaction, 'updatedAt');
+        const isV1 = !('createdAt' in transaction);
+        // if it's a v1 structure
+        if (isV1) {
+            type = ('address' in transaction) ? 'withdrawal' : 'deposit';
+            if (timestamp !== undefined) {
+                timestamp = timestamp * 1000;
+            }
+            if (updated !== undefined) {
+                updated = updated * 1000;
+            }
+        }
         return {
             'id': id,
             'address': address,
@@ -969,9 +1003,9 @@ module.exports = class kucoin extends Exchange {
             'txid': txid,
             'type': type,
             'status': status,
-            'fee': fees,
+            'fee': fee,
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'updated': updated,
             'info': transaction,
         };
@@ -1032,7 +1066,6 @@ module.exports = class kucoin extends Exchange {
         //                     "walletTxId": "55c643bc2c68d6f17266383ac1be9e454038864b929ae7cee0bc408cc5c869e8@12ffGWmMMD1zA1WbFm7Ho3JZ1w6NYXjpFk@234",
         //                     "isInner": false,
         //                     "status": "SUCCESS",
-        //                     "remark": null
         //                 }
         //             ]
         //         }
@@ -1050,22 +1083,59 @@ module.exports = class kucoin extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        if (since !== undefined) {
-            request['startAt'] = since;
-        }
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await this.privateGetWithdrawals (this.extend (request, params));
+        let response = undefined;
+        if (since !== undefined) {
+            // if since is earlier than 2019-02-18T00:00:00Z
+            if (since < 1550448000000) {
+                request['startAt'] = parseInt (since / 1000);
+            } else {
+                request['startAt'] = since;
+            }
+            response = await this.privateGetHistWithdrawals (this.extend (request, params));
+        } else {
+            response = await this.privateGetWithdrawals (this.extend (request, params));
+        }
         //
-        // paginated
-        // { code: '200000',
-        //   data:
-        //    { totalNum: 0,
-        //      totalPage: 0,
-        //      pageSize: 10,
-        //      currentPage: 1,
-        //      items: [...] } }
+        //     {
+        //         code: '200000',
+        //         data: {
+        //             "currentPage": 1,
+        //             "pageSize": 5,
+        //             "totalNum": 2,
+        //             "totalPage": 1,
+        //             "items": [
+        //                 //---------------------------------------------------------
+        //                 // version 2 response structure
+        //                 {
+        //                     "id": "5c2dc64e03aa675aa263f1ac",
+        //                     "address": "0x5bedb060b8eb8d823e2414d82acce78d38be7fe9",
+        //                     "memo": "",
+        //                     "currency": "ETH",
+        //                     "amount": 1.0000000,
+        //                     "fee": 0.0100000,
+        //                     "walletTxId": "3e2414d82acce78d38be7fe9",
+        //                     "isInner": false,
+        //                     "status": "FAILURE",
+        //                     "createdAt": 1546503758000,
+        //                     "updatedAt": 1546504603000
+        //                 },
+        //                 //---------------------------------------------------------
+        //                 // version 1 (historical) response structure
+        //                 {
+        //                     "currency": "BTC",
+        //                     "createAt": 1526723468,
+        //                     "amount": "0.534",
+        //                     "address": "33xW37ZSW4tQvg443Pc7NLCAs167Yc2XUV",
+        //                     "walletTxId": "aeacea864c020acf58e51606169240e96774838dcd4f7ce48acf38e3651323f4",
+        //                     "isInner": false,
+        //                     "status": "SUCCESS"
+        //                 }
+        //             ]
+        //         }
+        //     }
         //
         const responseData = response['data']['items'];
         return this.parseTransactions (responseData, currency, since, limit);
