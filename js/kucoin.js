@@ -95,6 +95,7 @@ module.exports = class kucoin extends Exchange {
                         'deposit-addresses',
                         'deposits',
                         'hist-deposits',
+                        'hist-orders',
                         'hist-withdrawals',
                         'withdrawals',
                         'withdrawals/quotas',
@@ -762,6 +763,7 @@ module.exports = class kucoin extends Exchange {
             request['pageSize'] = limit;
         }
         const response = await this.publicGetMarketHistories (this.extend (request, params));
+        //
         //     {
         //         "code": "200000",
         //         "data": [
@@ -979,23 +981,58 @@ module.exports = class kucoin extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        if (since !== undefined) {
-            request['startAt'] = since;
-        }
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await this.privateGetDeposits (this.extend (request, params));
+        let response = undefined;
+        if (since !== undefined) {
+            // if since is earlier than 2019-02-18T00:00:00Z
+            if (since < 1550448000000) {
+                request['startAt'] = parseInt (since / 1000);
+            } else {
+                request['startAt'] = since;
+            }
+            response = await this.privateGetHistDeposits (this.extend (request, params));
+        } else {
+            response = await this.privateGetDeposits (this.extend (request, params));
+        }
         //
-        // paginated
-        // { code: '200000',
-        //   data:
-        //    { totalNum: 0,
-        //      totalPage: 0,
-        //      pageSize: 10,
-        //      currentPage: 1,
-        //      items: [...]
-        //     } }
+        //     {
+        //         code: '200000',
+        //         data: {
+        //             "currentPage": 1,
+        //             "pageSize": 5,
+        //             "totalNum": 2,
+        //             "totalPage": 1,
+        //             "items": [
+        //                 //---------------------------------------------------------
+        //                 // version 2 response structure
+        //                 {
+        //                     "address": "0x5f047b29041bcfdbf0e4478cdfa753a336ba6989",
+        //                     "memo": "5c247c8a03aa677cea2a251d",
+        //                     "amount": 1,
+        //                     "fee": 0.0001,
+        //                     "currency": "KCS",
+        //                     "isInner": false,
+        //                     "walletTxId": "5bbb57386d99522d9f954c5a@test004",
+        //                     "status": "SUCCESS",
+        //                     "createdAt": 1544178843000,
+        //                     "updatedAt": 1544178891000
+        //                 },
+        //                 //---------------------------------------------------------
+        //                 // version 1 (historical) response structure
+        //                 {
+        //                     "currency": "BTC",
+        //                     "createAt": 1528536998,
+        //                     "amount": "0.03266638",
+        //                     "walletTxId": "55c643bc2c68d6f17266383ac1be9e454038864b929ae7cee0bc408cc5c869e8@12ffGWmMMD1zA1WbFm7Ho3JZ1w6NYXjpFk@234",
+        //                     "isInner": false,
+        //                     "status": "SUCCESS",
+        //                     "remark": null
+        //                 }
+        //             ]
+        //         }
+        //     }
         //
         const responseData = response['data']['items'];
         return this.parseTransactions (responseData, currency, since, limit);
