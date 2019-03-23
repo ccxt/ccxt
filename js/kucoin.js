@@ -956,9 +956,10 @@ module.exports = class kucoin extends Exchange {
             fees['rate'] = fees['cost'] / amount;
         }
         const tag = this.safeString (transaction, 'memo');
-        const timestamp = this.safeInteger2 (transaction, 'updatedAt', 'createdAt');
+        const timestamp = this.safeInteger (transaction, 'createdAt');
         const datetime = this.iso8601 (timestamp);
         const id = this.safeString (transaction, 'id');
+        const updated = this.safeInteger (transaction, 'updated');
         return {
             'id': id,
             'address': address,
@@ -971,6 +972,7 @@ module.exports = class kucoin extends Exchange {
             'fee': fees,
             'timestamp': timestamp,
             'datetime': datetime,
+            'updated': updated,
             'info': transaction,
         };
     }
