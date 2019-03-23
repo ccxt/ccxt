@@ -2,7 +2,7 @@
 
 /*  ------------------------------------------------------------------------ */
 
-const CryptoJS = require ('crypto-js')
+const CryptoJS = require ('../../static_dependencies/crypto-js/crypto-js')
 const { capitalize } = require ('./string')
 const { stringToBase64, utf16ToBase64, urlencodeBase64 } = require ('./encode')
 
@@ -67,7 +67,7 @@ const totp = (secret) => {
         otp = (otp).substr (otp.length - 6, 6)
         return otp
     }
-    
+
     return getOTP (secret)
 }
 
