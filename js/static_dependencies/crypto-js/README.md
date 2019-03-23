@@ -1,4 +1,4 @@
-# crypto-js [![Build Status](https://travis-ci.org/brix/crypto-js.svg?branch=develop)](https://travis-ci.org/brix/crypto-js)
+# crypto-js
 
 JavaScript library of crypto standards.
 
@@ -14,18 +14,6 @@ npm install crypto-js
 ```
 
 ### Usage
-
-ES6 import for typical API call signing use case:
-
-```javascript
-import sha256 from 'crypto-js/sha256';
-import hmacSHA512 from 'crypto-js/hmac-sha512';
-import Base64 from 'crypto-js/enc-base64';
-
-const message, nonce, path, privateKey; // ...
-const hashDigest = sha256(nonce + message);
-const hmacDigest = Base64.stringify(hmacSHA512(path + hashDigest, privateKey));
-```
 
 Modular include:
 
@@ -101,7 +89,7 @@ require(["crypto-js"], function (CryptoJS) {
 
 ## API
 
-See: https://cryptojs.gitbook.io/docs/
+See: https://code.google.com/p/crypto-js
 
 ### AES Encryption
 
@@ -111,13 +99,13 @@ See: https://cryptojs.gitbook.io/docs/
 var CryptoJS = require("crypto-js");
 
 // Encrypt
-var ciphertext = CryptoJS.AES.encrypt('my message', 'secret key 123').toString();
+var ciphertext = CryptoJS.AES.encrypt('my message', 'secret key 123');
 
 // Decrypt
-var bytes  = CryptoJS.AES.decrypt(ciphertext, 'secret key 123');
-var originalText = bytes.toString(CryptoJS.enc.Utf8);
+var bytes  = CryptoJS.AES.decrypt(ciphertext.toString(), 'secret key 123');
+var plaintext = bytes.toString(CryptoJS.enc.Utf8);
 
-console.log(originalText); // 'my message'
+console.log(plaintext);
 ```
 
 #### Object encryption
@@ -128,13 +116,13 @@ var CryptoJS = require("crypto-js");
 var data = [{id: 1}, {id: 2}]
 
 // Encrypt
-var ciphertext = CryptoJS.AES.encrypt(JSON.stringify(data), 'secret key 123').toString();
+var ciphertext = CryptoJS.AES.encrypt(JSON.stringify(data), 'secret key 123');
 
 // Decrypt
-var bytes  = CryptoJS.AES.decrypt(ciphertext, 'secret key 123');
+var bytes  = CryptoJS.AES.decrypt(ciphertext.toString(), 'secret key 123');
 var decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
 
-console.log(decryptedData); // [{id: 1}, {id: 2}]
+console.log(decryptedData);
 ```
 
 ### List of modules

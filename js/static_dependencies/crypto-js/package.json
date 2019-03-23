@@ -1,17 +1,40 @@
 {
-  "name": "crypto-js",
-  "version": "3.1.9",
-  "description": "JavaScript library of crypto standards.",
-  "license": "MIT",
+  "_from": "crypto-js@3.1.9-1",
+  "_id": "crypto-js@3.1.9-1",
+  "_inBundle": false,
+  "_integrity": "sha1-/aGedh/Ad+Af+/3G6f38WeiAbNg=",
+  "_location": "/crypto-js",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "version",
+    "registry": true,
+    "raw": "crypto-js@3.1.9-1",
+    "name": "crypto-js",
+    "escapedName": "crypto-js",
+    "rawSpec": "3.1.9-1",
+    "saveSpec": null,
+    "fetchSpec": "3.1.9-1"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/crypto-js/-/crypto-js-3.1.9-1.tgz",
+  "_shasum": "fda19e761fc077e01ffbfdc6e9fdfc59e8806cd8",
+  "_spec": "crypto-js@3.1.9-1",
+  "_where": "/Users/carlorevelli/Downloads",
   "author": {
     "name": "Evan Vosberg",
     "url": "http://github.com/evanvosberg"
   },
-  "homepage": "http://github.com/brix/crypto-js",
-  "repository": {
-    "type": "git",
-    "url": "http://github.com/brix/crypto-js.git"
+  "bugs": {
+    "url": "https://github.com/brix/crypto-js/issues"
   },
+  "bundleDependencies": false,
+  "dependencies": {},
+  "deprecated": false,
+  "description": "JavaScript library of crypto standards.",
+  "homepage": "http://github.com/brix/crypto-js",
   "keywords": [
     "security",
     "crypto",
@@ -33,6 +56,12 @@
     "CBC",
     "Base64"
   ],
+  "license": "MIT",
   "main": "index.js",
-  "dependencies": {}
+  "name": "crypto-js",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/brix/crypto-js.git"
+  },
+  "version": "3.1.9-1"
 }
