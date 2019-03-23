@@ -62,6 +62,14 @@ module.exports = class kucoin extends Exchange {
                 'password': true,
             },
             'api': {
+                'v1': {
+                    'get': [
+                        '',
+                    ],
+                    'post': [
+                        ''
+                    ],
+                },
                 'public': {
                     'get': [
                         'timestamp',
@@ -86,11 +94,14 @@ module.exports = class kucoin extends Exchange {
                         'accounts/{accountId}/holds',
                         'deposit-addresses',
                         'deposits',
+                        'hist-deposits',
+                        'hist-withdrawals',
                         'withdrawals',
                         'withdrawals/quotas',
                         'orders',
                         'orders/{orderId}',
                         'fills',
+                        'limit/fills',
                     ],
                     'post': [
                         'accounts',
@@ -846,6 +857,7 @@ module.exports = class kucoin extends Exchange {
                 cost = amount * price;
             }
         }
+        const takerOrMaker = this.safeString (trade, 'liquidity');
         return {
             'info': trade,
             'id': id,
@@ -854,6 +866,7 @@ module.exports = class kucoin extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': type,
+            'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'amount': amount,
