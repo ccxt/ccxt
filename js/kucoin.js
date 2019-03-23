@@ -958,7 +958,9 @@ module.exports = class kucoin extends Exchange {
         const tag = this.safeString (transaction, 'memo');
         const timestamp = this.safeInteger2 (transaction, 'updatedAt', 'createdAt');
         const datetime = this.iso8601 (timestamp);
+        const id = this.safeString (transaction, 'id');
         return {
+            'id': id,
             'address': address,
             'tag': tag,
             'currency': code,
