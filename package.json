@@ -50,7 +50,7 @@
   "dependencies": {
     "crypto-js": "3.1.9-1",
     "fetch-ponyfill": "4.1.0",
-    "opencollective": "1.0.3",
+    "opencollective": "1.0.3"
   },
   "devDependencies": {
     "ansicolor": "1.1.71",
