@@ -230,7 +230,7 @@ module.exports = class itbit extends Exchange {
                     'cost': feeCost,
                     'currency': feeCurrency,
                 };
-            }                
+            }
         }
         return result;
     }
