@@ -205,27 +205,34 @@ module.exports = class itbit extends Exchange {
             'amount': amount,
             'cost': cost,
         };
-        if (feeCost !== undefined && rebatesApplied !== undefined) {
-            if (feeCurrency === rebateCurrency) {
-                if (feeCost !== undefined) {
-                    feeCost = this.sum (feeCost, rebatesApplied);
-                    result['fee'] = {
-                        'cost': feeCost,
-                        'currency': feeCurrency,
-                    };
+        if (feeCost !== undefined) {
+            if (rebatesApplied !== undefined) {
+                if (feeCurrency === rebateCurrency) {
+                    if (feeCost !== undefined) {
+                        feeCost = this.sum (feeCost, rebatesApplied);
+                        result['fee'] = {
+                            'cost': feeCost,
+                            'currency': feeCurrency,
+                        };
+                    }
+                } else {
+                    result['fees'] = [
+                        {
+                            'cost': feeCost,
+                            'currency': feeCurrency,
+                        },
+                        {
+                            'cost': rebatesApplied,
+                            'currency': rebateCurrency,
+                        },
+                    ];
                 }
             } else {
-                result['fees'] = [
-                    {
-                        'cost': feeCost,
-                        'currency': feeCurrency,
-                    },
-                    {
-                        'cost': rebatesApplied,
-                        'currency': rebateCurrency,
-                    },
-                ];
-            }
+                result['fee'] = {
+                    'cost': feeCost,
+                    'currency': feeCurrency,
+                };
+            }                
         }
         return result;
     }
