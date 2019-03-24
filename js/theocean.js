@@ -582,7 +582,7 @@ module.exports = class theocean extends Exchange {
         });
     }
 
-    async cancelAllOrders (symbols = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         const response = await this.privateDeleteOrder (params);
         //
         //     [{
