@@ -62,14 +62,6 @@ module.exports = class kucoin extends Exchange {
                 'password': true,
             },
             'api': {
-                'v1': {
-                    'get': [
-                        '',
-                    ],
-                    'post': [
-                        ''
-                    ],
-                },
                 'public': {
                     'get': [
                         'timestamp',
