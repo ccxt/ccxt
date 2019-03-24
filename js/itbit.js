@@ -160,7 +160,10 @@ module.exports = class itbit extends Exchange {
         let feeCost = this.safeFloat (trade, 'commissionPaid');
         const feeCurrencyId = this.safeString (trade, 'commissionCurrency');
         const feeCurrency = this.commonCurrencyCode (feeCurrencyId);
-        const rebatesApplied = this.safeFloat (trade, 'rebatesApplied');
+        let rebatesApplied = this.safeFloat (trade, 'rebatesApplied');
+        if (rebatesApplied !== undefined) {
+            rebatesApplied = -rebatesApplied;
+        }
         const rebateCurrencyId = this.safeString (trade, 'rebateCurrency');
         const rebateCurrency = this.commonCurrencyCode (rebateCurrencyId);
         const price = this.safeFloat2 (trade, 'price', 'rate');
@@ -202,28 +205,31 @@ module.exports = class itbit extends Exchange {
             'amount': amount,
             'cost': cost,
         };
-        if (feeCost !== undefined && rebatesApplied !== undefined) {
-            if (feeCurrency === rebateCurrency) {
-                if (feeCost !== undefined) {
-                    if (rebatesApplied !== undefined) {
-                        feeCost = this.sum (feeCost, rebatesApplied);
-                    }
+        if (feeCost !== undefined) {
+            if (rebatesApplied !== undefined) {
+                if (feeCurrency === rebateCurrency) {
+                    feeCost = this.sum (feeCost, rebatesApplied);
                     result['fee'] = {
                         'cost': feeCost,
                         'currency': feeCurrency,
                     };
+                } else {
+                    result['fees'] = [
+                        {
+                            'cost': feeCost,
+                            'currency': feeCurrency,
+                        },
+                        {
+                            'cost': rebatesApplied,
+                            'currency': rebateCurrency,
+                        },
+                    ];
                 }
             } else {
-                result['fees'] = [
-                    {
-                        'cost': feeCost,
-                        'currency': feeCurrency,
-                    },
-                    {
-                        'cost': rebatesApplied,
-                        'currency': rebateCurrency,
-                    },
-                ];
+                result['fee'] = {
+                    'cost': feeCost,
+                    'currency': feeCurrency,
+                };
             }
         }
         return result;
