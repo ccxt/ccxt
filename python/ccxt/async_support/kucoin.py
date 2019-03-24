@@ -1015,13 +1015,14 @@ class kucoin (Exchange):
         address = self.safe_string(transaction, 'address')
         amount = self.safe_float(transaction, 'amount')
         txid = self.safe_string(transaction, 'walletTxId')
-        txidParts = txid.split('@')
-        numTxidParts = len(txidParts)
-        if numTxidParts > 1:
-            if address is None:
-                if len(txidParts[1]) > 1:
-                    address = txidParts[1]
-        txid = txidParts[0]
+        if txid is not None:
+            txidParts = txid.split('@')
+            numTxidParts = len(txidParts)
+            if numTxidParts > 1:
+                if address is None:
+                    if len(txidParts[1]) > 1:
+                        address = txidParts[1]
+            txid = txidParts[0]
         type = txid is 'withdrawal' if None else 'deposit'
         rawStatus = self.safe_string(transaction, 'status')
         status = self.parse_transaction_status(rawStatus)

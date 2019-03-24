@@ -1071,16 +1071,18 @@ class kucoin extends Exchange {
         $address = $this->safe_string($transaction, 'address');
         $amount = $this->safe_float($transaction, 'amount');
         $txid = $this->safe_string($transaction, 'walletTxId');
-        $txidParts = explode ('@', $txid);
-        $numTxidParts = is_array ($txidParts) ? count ($txidParts) : 0;
-        if ($numTxidParts > 1) {
-            if ($address === null) {
-                if (strlen ($txidParts[1]) > 1) {
-                    $address = $txidParts[1];
+        if ($txid !== null) {
+            $txidParts = explode ('@', $txid);
+            $numTxidParts = is_array ($txidParts) ? count ($txidParts) : 0;
+            if ($numTxidParts > 1) {
+                if ($address === null) {
+                    if (strlen ($txidParts[1]) > 1) {
+                        $address = $txidParts[1];
+                    }
                 }
             }
+            $txid = $txidParts[0];
         }
-        $txid = $txidParts[0];
         $type = $txid === null ? 'withdrawal' : 'deposit';
         $rawStatus = $this->safe_string($transaction, 'status');
         $status = $this->parse_transaction_status ($rawStatus);
