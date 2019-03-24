@@ -306,17 +306,16 @@ class coinfalcon (Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = '/' + 'api/' + self.version + '/' + self.implode_params(path, params)
-        url = self.urls['api'] + request
+        request = '/api/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:
-                url += '?' + self.urlencode(query)
+                request += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
             if method == 'GET':
                 if query:
-                    url += '?' + self.urlencode(query)
+                    request += '?' + self.urlencode(query)
             else:
                 body = self.json(query)
             seconds = str(self.seconds())
@@ -330,6 +329,7 @@ class coinfalcon (Exchange):
                 'CF-API-SIGNATURE': signature,
                 'Content-Type': 'application/json',
             }
+        url = self.urls['api'] + request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response):

@@ -331,17 +331,18 @@ class coinfalcon extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $request = '/' . 'api/' . $this->version . '/' . $this->implode_params($path, $params);
-        $url = $this->urls['api'] . $request;
+        $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query)
-                $url .= '?' . $this->urlencode ($query);
+            if ($query) {
+                $request .= '?' . $this->urlencode ($query);
+            }
         } else {
             $this->check_required_credentials();
             if ($method === 'GET') {
-                if ($query)
-                    $url .= '?' . $this->urlencode ($query);
+                if ($query) {
+                    $request .= '?' . $this->urlencode ($query);
+                }
             } else {
                 $body = $this->json ($query);
             }
@@ -358,6 +359,7 @@ class coinfalcon extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
+        $url = $this->urls['api'] . $request;
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 

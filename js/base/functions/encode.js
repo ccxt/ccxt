@@ -3,7 +3,7 @@
 /*  ------------------------------------------------------------------------ */
 
 const CryptoJS = require ('crypto-js')
-const qs       = require ('qs') // querystring (TODO: get rid of that dependency)
+const qs       = require ('../../static_dependencies/qs/index')
 
 /*  ------------------------------------------------------------------------ */
 

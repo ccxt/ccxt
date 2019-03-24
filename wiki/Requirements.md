@@ -1,6 +1,6 @@
 # CCXT Integration Requirements
 
-The exchange is required to implement the following list of methods and structures in order to apply for certification with CCXT.
+The exchange is required to implement the following list of methods and structures in order to get integrated with CCXT.
 
 ## Public API
 
