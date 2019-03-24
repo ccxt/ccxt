@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.18.391",
+  "version": "1.18.393",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -456,7 +456,9 @@
     "zaif.jp",
     "zb.com",
     "fcoinjp.com",
-    "FCoinJP"
+    "FCoinJP",
+    "binance.je",
+    "Binance Jersey"
   ],
   "collective": {
     "type": "opencollective",
