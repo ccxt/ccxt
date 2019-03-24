@@ -110,8 +110,8 @@ class gdax extends Exchange {
                 'trading' => array (
                     'tierBased' => true, // complicated tier system per coin
                     'percentage' => true,
-                    'maker' => 0.0,
-                    'taker' => 0.3 / 100, // tiered fee starts at 0.3%
+                    'maker' => 0.15 / 100, // highest fee of all tiers
+                    'taker' => 0.25 / 100, // highest fee of all tiers
                 ),
                 'funding' => array (
                     'tierBased' => false,

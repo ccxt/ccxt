@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.390'
+const version = '1.18.391'
 
 Exchange.ccxtVersion = version
 
@@ -40327,8 +40327,8 @@ module.exports = class gdax extends Exchange {
                 'trading': {
                     'tierBased': true, // complicated tier system per coin
                     'percentage': true,
-                    'maker': 0.0,
-                    'taker': 0.3 / 100, // tiered fee starts at 0.3%
+                    'maker': 0.15 / 100, // highest fee of all tiers
+                    'taker': 0.25 / 100, // highest fee of all tiers
                 },
                 'funding': {
                     'tierBased': false,
