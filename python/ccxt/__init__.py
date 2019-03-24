@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.18.391'
+__version__ = '1.18.392'
 
 # ----------------------------------------------------------------------------
 
@@ -73,6 +73,7 @@ from ccxt.bcex import bcex                                  # noqa: F401
 from ccxt.bibox import bibox                                # noqa: F401
 from ccxt.bigone import bigone                              # noqa: F401
 from ccxt.binance import binance                            # noqa: F401
+from ccxt.binanceje import binanceje                        # noqa: F401
 from ccxt.bit2c import bit2c                                # noqa: F401
 from ccxt.bitbank import bitbank                            # noqa: F401
 from ccxt.bitbay import bitbay                              # noqa: F401
@@ -208,6 +209,7 @@ exchanges = [
     'bibox',
     'bigone',
     'binance',
+    'binanceje',
     'bit2c',
     'bitbank',
     'bitbay',
