@@ -1070,16 +1070,18 @@ module.exports = class kucoin extends Exchange {
         let address = this.safeString (transaction, 'address');
         const amount = this.safeFloat (transaction, 'amount');
         let txid = this.safeString (transaction, 'walletTxId');
-        const txidParts = txid.split ('@');
-        const numTxidParts = txidParts.length;
-        if (numTxidParts > 1) {
-            if (address === undefined) {
-                if (txidParts[1].length > 1) {
-                    address = txidParts[1];
+        if (txid !== undefined) {
+            const txidParts = txid.split ('@');
+            const numTxidParts = txidParts.length;
+            if (numTxidParts > 1) {
+                if (address === undefined) {
+                    if (txidParts[1].length > 1) {
+                        address = txidParts[1];
+                    }
                 }
             }
+            txid = txidParts[0];
         }
-        txid = txidParts[0];
         let type = txid === undefined ? 'withdrawal' : 'deposit';
         const rawStatus = this.safeString (transaction, 'status');
         const status = this.parseTransactionStatus (rawStatus);
