@@ -79,6 +79,11 @@ Welcome to the ccxt wiki!
 
 - [Usage Examples](https://github.com/ccxt/ccxt/tree/master/examples) (work in progress)
 
+## New Exchanges
+
+- [Certification](https://github.com/ccxt/ccxt/wiki/Certification)
+- [Requirements](https://github.com/ccxt/ccxt/wiki/Requirements)
+
 ## API Reference
 
 - API Reference (under construction right now!)
