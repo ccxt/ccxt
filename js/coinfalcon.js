@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, DDoSProtection, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -213,7 +213,7 @@ module.exports = class coinfalcon extends Exchange {
             'market': market['id'],
         };
         if (since !== undefined) {
-            request['start_time'] = this.iso8601(since);
+            request['start_time'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
