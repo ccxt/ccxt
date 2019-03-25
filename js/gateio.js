@@ -1,3 +1,4 @@
+
 'use strict';
 
 // ---------------------------------------------------------------------------
@@ -612,17 +613,15 @@ module.exports = class gateio extends Exchange {
         if (since !== undefined) {
             request['start'] = since;
         }
-        let response = this.privatePostDepositswithdrawals (this.extend (request, params));
-        for (let i = 0; i < response['deposits'].length; i++) {
-            response['deposits'][i]['type'] = 'deposit';
+        const response = this.privatePostDepositswithdrawals (this.extend (request, params));
+        const deposits = this.safeValue (response, 'deposits', []);
+        const withdrawals = this.safeValue (response, 'withdraws', []);
+        const transactions = this.arrayConcat (deposits, withdrawals);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
         }
-        for (let i = 0; i < response['withdraws'].length; i++) {
-            response['withdraws'][i]['type'] = 'withdrawal';
-        }
-        let deposits = this.parseTransactions (response['deposits'], params);
-        let withdrawals = this.parseTransactions (response['withdraws'], params);
-        let transactions = this.arrayConcat (deposits, withdrawals);
-        return this.filterByCurrencySinceLimit (this.sortBy (transactions, 'timestamp'), code, since, limit);
+        return this.parseTransactions (transactions, currency, since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -656,7 +655,6 @@ module.exports = class gateio extends Exchange {
         }
         const id = this.safeString (transaction, 'id');
         const txid = this.safeString (transaction, 'txid');
-        const type = this.safeString (transaction, 'type');
         const amount = this.safeFloat (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
         let timestamp = this.safeInteger (transaction, 'timestamp');
@@ -664,6 +662,7 @@ module.exports = class gateio extends Exchange {
             timestamp = timestamp * 1000;
         }
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const type = this.parseTransactionType (id[0]);
         return {
             'info': transaction,
             'id': id,
@@ -688,6 +687,14 @@ module.exports = class gateio extends Exchange {
             'DONE': 'ok',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    parseTransactionType (type) {
+        let types = {
+            'd': 'deposit',
+            'w': 'withdrawal',
+        };
+        return this.safeString (types, type, type);
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
