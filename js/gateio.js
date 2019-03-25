@@ -1,3 +1,4 @@
+
 'use strict';
 
 // ---------------------------------------------------------------------------
@@ -20,6 +21,9 @@ module.exports = class gateio extends Exchange {
                 'createMarketOrder': false,
                 'fetchTickers': true,
                 'withdraw': true,
+                'fetchDeposits': false,
+                'fetchWithdrawals': false,
+                'fetchTransactions': true,
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
                 'fetchClosedOrders': true,
@@ -601,6 +605,90 @@ module.exports = class gateio extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        let response = this.privatePostDepositswithdrawals (this.extend (request, params));
+        for (let i = 0; i < response['deposits'].length; i++) {
+            response['deposits'][i]['type'] = 'deposit';
+        }
+        for (let i = 0; i < response['withdraws'].length; i++) {
+            response['withdraws'][i]['type'] = 'withdrawal';
+        }
+        let deposits = this.parseTransactions (response['deposits'], params);
+        let withdrawals = this.parseTransactions (response['withdraws'], params);
+        let transactions = this.arrayConcat (deposits, withdrawals);
+        return this.filterByCurrencySinceLimit (this.sortBy (transactions, 'timestamp'), code, since, limit);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        // DEPOSIT
+        // {'id': 'd16520849',
+        // 'currency': 'NEO',
+        // 'address': False,
+        // amount': '1',
+        // 'txid': '01acf6b8ce4d24a....',
+        // 'timestamp': '1553125968',
+        // 'status': 'DONE',
+        // 'type': 'deposit'}
+        //
+        // WITHDRAWAL
+        // {'id': 'w5864259',
+        // 'currency': 'ETH',
+        // 'address': '0x72632f462....',
+        // 'amount': '0.4947',
+        // 'txid': '0x111167d120f736....',
+        // 'timestamp': '1553123688',
+        // 'status': 'DONE',
+        // 'type': 'withdrawal'}
+        let code = undefined;
+        let currencyId = this.safeString (transaction, 'currency');
+        currency = this.safeValue (this.currencies_by_id, currencyId);
+        if (currency === undefined) {
+            code = this.commonCurrencyCode (currencyId);
+        }
+        if (currency !== undefined) {
+            code = currency['code'];
+        }
+        const id = this.safeString (transaction, 'id');
+        const txid = this.safeString (transaction, 'txid');
+        const type = this.safeString (transaction, 'type');
+        const amount = this.safeFloat (transaction, 'amount');
+        const address = this.safeString (transaction, 'address');
+        let timestamp = this.safeInteger (transaction, 'timestamp');
+        if (timestamp !== undefined) {
+            timestamp = timestamp * 1000;
+        }
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': undefined,
+            'status': status,
+            'type': type,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': undefined,
+        };
+    }
+
+    parseTransactionStatus (status) {
+        let statuses = {
+            'PEND': 'pending',
+            'REQUEST': 'pending',
+            'CANCEL': 'failed',
+            'DONE': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
