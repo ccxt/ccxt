@@ -426,50 +426,44 @@ module.exports = class bibox extends Exchange {
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let symbol = undefined;
+        let currency = undefined;
+        const request = {};
         if (code !== undefined) {
-            const currency = this.currency (code);
-            symbol = currency['id'];
+            currency = this.currency (code);
+            request['symbol'] = currency['id'];
         }
-        let size = (limit) ? limit : 100;
+        request['size'] = (limit) ? limit : 100;
+        request['page'] = 1;
         let response = await this.privatePostTransfer ({
             'cmd': 'transfer/transferInList',
-            'body': this.extend ({
-                'search': symbol,
-                'filter_type': 0,   // 0：all，1：in progress，2：completed，3：failed
-                'page': 1,
-                'size': size,
-            }, params),
+            'body': this.extend (request, params),
         });
         let deposits = this.safeValue (response['result'], 'items', []);
         for (let i = 0; i < deposits.length; i++) {
             deposits[i]['type'] = 'deposit';
         }
-        return this.parseTransactions (deposits, code, since, limit);
+        return this.parseTransactions (deposits, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let symbol = undefined;
+        let currency = undefined;
+        const request = {};
         if (code !== undefined) {
-            const currency = this.currency (code);
-            symbol = currency['id'];
+            currency = this.currency (code);
+            request['symbol'] = currency['id'];
         }
-        let size = (limit) ? limit : 100;
+        request['size'] = (limit) ? limit : 100;
+        request['page'] = 1;
         let response = await this.privatePostTransfer ({
             'cmd': 'transfer/transferOutList',
-            'body': this.extend ({
-                'search': symbol,
-                'filter_type': 'ALL',   // ALL：all，1：in progress，2：error，3：completed
-                'page': 1,
-                'size': size,
-            }, params),
+            'body': this.extend (request, params),
         });
         let withdrawals = this.safeValue (response['result'], 'items', []);
         for (let i = 0; i < withdrawals.length; i++) {
             withdrawals[i]['type'] = 'withdrawal';
         }
-        return this.parseTransactions (withdrawals, code, since, limit);
+        return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -477,23 +471,23 @@ module.exports = class bibox extends Exchange {
         // fetchDeposits
         //      {'id': 1023291,
         //      'coin_symbol': 'ETH',
-        //      'to_address': '0x72632f462ca5ea0aa28fa84167f0a61f87ac39e5',
+        //      'to_address': '0x7263....',
         //      'amount': '0.49170000',
         //      'confirmCount': '16',
         //      'createdAt': 1553123867000,
-        //      'status': 2}]                                                             }
+        //      'status': 2}                                                             }
         //
         // fetchWithdrawals
         //
-        //       {      amount:  14,
-        //             address: "0x0123456789abcdef...",
-        //         successTime:  1514489710000,
-        //          addressTag: "",
-        //                txId: "0x0123456789abcdef...",
-        //                  id: "0123456789abcdef...",
-        //               asset: "ETH",
-        //           applyTime:  1514488724000,
-        //              status:  6                       }
+        //       {'id': 521844,
+        //       'coin_symbol': 'ETH',
+        //       'to_address': '0xfd4e....',
+        //       'addr_remark': '',
+        //       'amount': '0.39452750',
+        //       'fee': '0.00600000',
+        //       'createdAt': 1553226906000,
+        //       'memo': '',
+        //       'status': 3}
         //
         let id = this.safeString (transaction, 'id');
         let address = this.safeString (transaction, 'to_address');
@@ -508,23 +502,32 @@ module.exports = class bibox extends Exchange {
             code = currency['code'];
         }
         let timestamp = this.safeString (transaction, 'createdAt');
+        let tag = this.safeString (transaction, 'addr_remark');
         let type = this.safeString (transaction, 'type');
         let status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         let amount = this.safeFloat (transaction, 'amount');
+        let feeCost = this.safeFloat (transaction, 'fee');
+        if (type === 'deposit') {
+            feeCost = 0;
+            tag = undefined;
+        }
+        let fee = {
+            'cost': feeCost,
+            'currency': code,
+        };
         return {
             'info': transaction,
             'id': id,
-            'txid': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': address,
-            'tag': undefined,
+            'tag': tag,
             'type': type,
             'amount': amount,
             'currency': code,
             'status': status,
             'updated': undefined,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
