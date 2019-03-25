@@ -518,6 +518,7 @@ module.exports = class bibox extends Exchange {
         return {
             'info': transaction,
             'id': id,
+            'txid': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': address,
