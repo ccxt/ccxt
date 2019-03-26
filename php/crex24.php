@@ -923,7 +923,7 @@ class crex24 extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_all_orders ($symbols = null, $params = array ()) {
+    public function cancel_all_orders ($symbol = null, $params = array ()) {
         $response = $this->tradingPostCancelAllOrders ($params);
         //
         //     array (
