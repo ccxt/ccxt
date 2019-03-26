@@ -156,7 +156,16 @@ class gateio (Exchange):
             keys = list(market.keys())
             id = keys[0]
             details = market[id]
-            baseId, quoteId = id.split('_')
+            # all of their symbols are separated with an underscore
+            # but not boe_eth_eth(BOE_ETH/ETH) which has two underscores
+            # https://github.com/ccxt/ccxt/issues/4894
+            parts = id.split('_')
+            numParts = len(parts)
+            baseId = parts[0]
+            quoteId = parts[1]
+            if numParts > 2:
+                baseId = parts[0] + parts[1]
+                quoteId = parts[2]
             base = baseId.upper()
             quote = quoteId.upper()
             base = self.common_currency_code(base)

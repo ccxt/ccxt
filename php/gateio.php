@@ -142,7 +142,17 @@ class gateio extends Exchange {
             $keys = is_array ($market) ? array_keys ($market) : array ();
             $id = $keys[0];
             $details = $market[$id];
-            list ($baseId, $quoteId) = explode ('_', $id);
+            // all of their symbols are separated with an underscore
+            // but not boe_eth_eth (BOE_ETH/ETH) which has two underscores
+            // https://github.com/ccxt/ccxt/issues/4894
+            $parts = explode ('_', $id);
+            $numParts = is_array ($parts) ? count ($parts) : 0;
+            $baseId = $parts[0];
+            $quoteId = $parts[1];
+            if ($numParts > 2) {
+                $baseId = $parts[0] . $parts[1];
+                $quoteId = $parts[2];
+            }
             $base = strtoupper ($baseId);
             $quote = strtoupper ($quoteId);
             $base = $this->common_currency_code($base);

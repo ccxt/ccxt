@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.400'
+const version = '1.18.401'
 
 Exchange.ccxtVersion = version
 
@@ -39834,7 +39834,17 @@ module.exports = class gateio extends Exchange {
             let keys = Object.keys (market);
             let id = keys[0];
             let details = market[id];
-            let [ baseId, quoteId ] = id.split ('_');
+            // all of their symbols are separated with an underscore
+            // but not boe_eth_eth (BOE_ETH/ETH) which has two underscores
+            // https://github.com/ccxt/ccxt/issues/4894
+            const parts = id.split ('_');
+            const numParts = parts.length;
+            let baseId = parts[0];
+            let quoteId = parts[1];
+            if (numParts > 2) {
+                baseId = parts[0] + parts[1];
+                quoteId = parts[2];
+            }
             let base = baseId.toUpperCase ();
             let quote = quoteId.toUpperCase ();
             base = this.commonCurrencyCode (base);
