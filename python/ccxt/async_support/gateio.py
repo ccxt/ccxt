@@ -164,7 +164,7 @@ class gateio (Exchange):
             baseId = parts[0]
             quoteId = parts[1]
             if numParts > 2:
-                baseId = parts[0] + parts[1]
+                baseId = parts[0] + '_' + parts[1]
                 quoteId = parts[2]
             base = baseId.upper()
             quote = quoteId.upper()
