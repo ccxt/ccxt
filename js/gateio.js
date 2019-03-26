@@ -149,7 +149,7 @@ module.exports = class gateio extends Exchange {
             let baseId = parts[0];
             let quoteId = parts[1];
             if (numParts > 2) {
-                baseId = parts[0] + parts[1];
+                baseId = parts[0] + '_' + parts[1];
                 quoteId = parts[2];
             }
             let base = baseId.toUpperCase ();
