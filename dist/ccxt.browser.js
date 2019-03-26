@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.399'
+const version = '1.18.400'
 
 Exchange.ccxtVersion = version
 
@@ -52177,6 +52177,7 @@ module.exports = class liquid extends Exchange {
                     'get': [
                         'accounts/balance',
                         'accounts/main_asset',
+                        'accounts/{id}',
                         'crypto_accounts',
                         'executions/me',
                         'fiat_accounts',
