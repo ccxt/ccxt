@@ -480,10 +480,10 @@ class bigone (Exchange):
         #         }
         #     }
         #
-        order = response['data']
+        order = self.safe_value(response, 'data')
         return self.parse_order(order)
 
-    def cancel_all_orders(self, symbols=None, params={}):
+    def cancel_all_orders(self, symbol=None, params={}):
         self.load_markets()
         response = self.privatePostOrdersOrderIdCancel(params)
         #

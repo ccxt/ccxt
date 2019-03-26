@@ -880,7 +880,7 @@ class crex24 (Exchange):
         #
         return self.parse_order(response)
 
-    async def cancel_all_orders(self, symbols=None, params={}):
+    async def cancel_all_orders(self, symbol=None, params={}):
         response = await self.tradingPostCancelAllOrders(params)
         #
         #     [

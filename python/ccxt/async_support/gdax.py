@@ -521,7 +521,7 @@ class gdax (Exchange):
         await self.load_markets()
         return await self.privateDeleteOrdersId({'id': id})
 
-    async def cancel_all_orders(self, symbols=None, params={}):
+    async def cancel_all_orders(self, symbol=None, params={}):
         return await self.privateDeleteOrders(params)
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):

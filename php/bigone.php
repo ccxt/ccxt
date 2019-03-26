@@ -497,11 +497,11 @@ class bigone extends Exchange {
         //         }
         //     }
         //
-        $order = $response['data'];
+        $order = $this->safe_value($response, 'data');
         return $this->parse_order($order);
     }
 
-    public function cancel_all_orders ($symbols = null, $params = array ()) {
+    public function cancel_all_orders ($symbol = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostOrdersOrderIdCancel ($params);
         //

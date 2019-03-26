@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.398'
+const version = '1.18.399'
 
 Exchange.ccxtVersion = version
 
@@ -6495,8 +6495,8 @@ module.exports = class bigone extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = { 'order_id': id };
-        let response = await this.privatePostOrdersOrderIdCancel (this.extend (request, params));
+        const request = { 'order_id': id };
+        const response = await this.privatePostOrdersOrderIdCancel (this.extend (request, params));
         //
         //     {
         //       "data":
@@ -6512,13 +6512,13 @@ module.exports = class bigone extends Exchange {
         //         }
         //     }
         //
-        let order = response['data'];
+        const order = this.safeValue (response, 'data');
         return this.parseOrder (order);
     }
 
-    async cancelAllOrders (symbols = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostOrdersOrderIdCancel (params);
+        const response = await this.privatePostOrdersOrderIdCancel (params);
         //
         //     [
         //         {
@@ -6541,8 +6541,8 @@ module.exports = class bigone extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = { 'order_id': id };
-        let response = await this.privateGetOrdersOrderId (this.extend (request, params));
+        const request = { 'order_id': id };
+        const response = await this.privateGetOrdersOrderId (this.extend (request, params));
         //
         //     {
         //       "data":
@@ -6558,7 +6558,7 @@ module.exports = class bigone extends Exchange {
         //         }
         //     }
         //
-        let order = this.safeValue (response, 'data');
+        const order = this.safeValue (response, 'data');
         return this.parseOrder (order);
     }
 
@@ -10037,7 +10037,7 @@ module.exports = class bitfinex extends Exchange {
         return await this.privatePostOrderCancel ({ 'order_id': parseInt (id) });
     }
 
-    async cancelAllOrders (symbols = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         return await this.privatePostOrderCancelAll (params);
     }
 
@@ -23980,11 +23980,21 @@ module.exports = class cex extends Exchange {
         return await this.privatePostCancelOrder ({ 'id': id });
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'a': 'open',
+            'cd': 'canceled',
+            'c': 'canceled',
+            'd': 'closed',
+        };
+        return this.safeValue (statuses, status, status);
+    }
+
     parseOrder (order, market = undefined) {
         // Depending on the call, 'time' can be a unix int, unix string or ISO string
         // Yes, really
-        let timestamp = order['time'];
-        if (typeof order['time'] === 'string' && order['time'].indexOf ('T') >= 0) {
+        let timestamp = this.safeValue (order, 'time');
+        if (typeof timestamp === 'string' && timestamp.indexOf ('T') >= 0) {
             // ISO8601 string
             timestamp = this.parse8601 (timestamp);
         } else {
@@ -24073,7 +24083,7 @@ module.exports = class cex extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {};
+        const request = {};
         let method = 'privatePostOpenOrders';
         let market = undefined;
         if (symbol !== undefined) {
@@ -24081,7 +24091,7 @@ module.exports = class cex extends Exchange {
             request['pair'] = market['id'];
             method += 'Pair';
         }
-        let orders = await this[method] (this.extend (request, params));
+        const orders = await this[method] (this.extend (request, params));
         for (let i = 0; i < orders.length; i++) {
             orders[i] = this.extend (orders[i], { 'status': 'open' });
         }
@@ -24094,17 +24104,18 @@ module.exports = class cex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires a symbol argument');
         }
-        let market = this.market (symbol);
-        let request = { 'pair': market['id'] };
-        let response = await this[method] (this.extend (request, params));
+        const market = this.market (symbol);
+        const request = { 'pair': market['id'] };
+        const response = await this[method] (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostGetOrder (this.extend ({
+        const request = {
             'id': id.toString (),
-        }, params));
+        };
+        const response = await this.privatePostGetOrder (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -33782,7 +33793,7 @@ module.exports = class crex24 extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelAllOrders (symbols = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         const response = await this.tradingPostCancelAllOrders (params);
         //
         //     [
@@ -40852,7 +40863,7 @@ module.exports = class gdax extends Exchange {
         return await this.privateDeleteOrdersId ({ 'id': id });
     }
 
-    async cancelAllOrders (symbols = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         return await this.privateDeleteOrders (params);
     }
 
@@ -61972,7 +61983,7 @@ module.exports = class theocean extends Exchange {
         });
     }
 
-    async cancelAllOrders (symbols = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         const response = await this.privateDeleteOrder (params);
         //
         //     [{
