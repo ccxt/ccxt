@@ -4,7 +4,6 @@
 
 const functions = require ('./functions')
     , Market    = require ('./Market')
-    , stringify = require ('json-stable-stringify')
 
 const {
     isNode
@@ -28,7 +27,8 @@ const {
     , timeout
     , TimedOut
     , buildOHLCVC
-    , decimalToPrecision } = functions
+    , decimalToPrecision
+    , stableStringify } = functions
 
 const {
     ExchangeError
@@ -815,7 +815,7 @@ module.exports = class Exchange {
     }
 
     stringifyMessage (message) {
-        return stringify (message)
+        return stableStringify (message)
     }
 
     toHex (message) {

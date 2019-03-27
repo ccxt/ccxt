@@ -23,6 +23,7 @@ module.exports = unCamelCasePropertyNames (Object.assign ({}
     , require ('./functions/time')
     , require ('./functions/throttle')
     , require ('./functions/misc')
+    , require ('./functions/stringify')
 ))
 
 /*  ------------------------------------------------------------------------ */
