@@ -641,9 +641,9 @@ module.exports = class gateio extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
-        //        
+        //
         // deposit
-        //      
+        //
         //     {
         //         'id': 'd16520849',
         //         'currency': 'NEO',
@@ -654,7 +654,7 @@ module.exports = class gateio extends Exchange {
         //         'status': 'DONE',
         //         'type': 'deposit'
         //     }
-        //        
+        //
         // withdrawal
         //
         //     {
