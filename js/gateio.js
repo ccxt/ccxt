@@ -648,7 +648,7 @@ module.exports = class gateio extends Exchange {
         //         'id': 'd16520849',
         //         'currency': 'NEO',
         //         'address': False,
-        //         amount': '1',
+        //         'amount': '1',
         //         'txid': '01acf6b8ce4d24a....',
         //         'timestamp': '1553125968',
         //         'status': 'DONE',
