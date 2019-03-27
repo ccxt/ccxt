@@ -218,15 +218,19 @@ module.exports = class ceo extends Exchange {
             symbol = market['symbol'];
         }
         let last = this.safeFloat (ticker, 'last');
+        let bid = this.safeFloat (ticker, 'buy');
+        let ask = this.safeFloat (ticker, 'sell');
+        if (ask === '0.00000000')
+            ask = undefined;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
+            'bid': bid,
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
+            'ask': ask,
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
