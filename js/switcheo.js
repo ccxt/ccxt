@@ -155,6 +155,7 @@ module.exports = class switcheo extends Exchange {
 
     async fetchCurrencies (params = {}) {
         let response = await this.publicGetExchangeTokens (params);
+        let contracts = await this.fetchContractHash (params);
         let currencies = Object.keys (response);
         let network = '';
         let contractHash = '';
@@ -172,16 +173,16 @@ module.exports = class switcheo extends Exchange {
             let minimum = response[currencies[i]]['minimum_quantity'];
             if (response[currencies[i]]['type'] === 'NEO' || response[currencies[i]]['type'] === 'NEP-5') {
                 network = 'neo';
-                contractHash = this.options['currentContracts']['NEO'];
+                contractHash = contracts['NEO'];
             } else if (response[currencies[i]]['type'] === 'ETH' || response[currencies[i]]['type'] === 'ERC-20') {
                 network = 'eth';
-                contractHash = this.options['currentContracts']['ETH'];
+                contractHash = contracts['ETH'];
             } else if (response[currencies[i]]['type'] === 'EOS') {
                 network = 'eos';
-                contractHash = this.options['currentContracts']['EOS'];
+                contractHash = contracts['EOS'];
             } else if (response[currencies[i]]['type'] === 'QTUM') {
                 network = 'qtum';
-                contractHash = this.options['currentContracts']['QTUM'];
+                contractHash = contracts['QTUM'];
             }
             if (!(network in this.options['currencyHashes']))
                 this.options['currencyHashes'][network] = {};
