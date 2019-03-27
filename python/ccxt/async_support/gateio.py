@@ -36,6 +36,9 @@ class gateio (Exchange):
                 'createMarketOrder': False,
                 'fetchTickers': True,
                 'withdraw': True,
+                'fetchDeposits': True,
+                'fetchWithdrawals': True,
+                'fetchTransactions': True,
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
                 'fetchClosedOrders': True,
@@ -575,6 +578,108 @@ class gateio (Exchange):
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    async def fetch_transactions_by_type(self, type=None, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {}
+        if since is not None:
+            request['start'] = since
+        response = self.privatePostDepositswithdrawals(self.extend(request, params))
+        transactions = None
+        if type is None:
+            deposits = self.safe_value(response, 'deposits', [])
+            withdrawals = self.safe_value(response, 'withdraws', [])
+            transactions = self.array_concat(deposits, withdrawals)
+        else:
+            transactions = self.safe_value(response, type, [])
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        return self.parseTransactions(transactions, currency, since, limit)
+
+    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        return await self.fetch_transactions_by_type(None, code, since, limit, params)
+
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        return await self.fetch_transactions_by_type('deposits', code, since, limit, params)
+
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        return await self.fetch_transactions_by_type('withdraws', code, since, limit, params)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # deposit
+        #
+        #     {
+        #         'id': 'd16520849',
+        #         'currency': 'NEO',
+        #         'address': False,
+        #         'amount': '1',
+        #         'txid': '01acf6b8ce4d24a....',
+        #         'timestamp': '1553125968',
+        #         'status': 'DONE',
+        #         'type': 'deposit'
+        #     }
+        #
+        # withdrawal
+        #
+        #     {
+        #         'id': 'w5864259',
+        #         'currency': 'ETH',
+        #         'address': '0x72632f462....',
+        #         'amount': '0.4947',
+        #         'txid': '0x111167d120f736....',
+        #         'timestamp': '1553123688',
+        #         'status': 'DONE',
+        #         'type': 'withdrawal'
+        #     }
+        #
+        code = None
+        currencyId = self.safe_string(transaction, 'currency')
+        currency = self.safe_value(self.currencies_by_id, currencyId)
+        if currency is None:
+            code = self.common_currency_code(currencyId)
+        if currency is not None:
+            code = currency['code']
+        id = self.safe_string(transaction, 'id')
+        txid = self.safe_string(transaction, 'txid')
+        amount = self.safe_float(transaction, 'amount')
+        address = self.safe_string(transaction, 'address')
+        timestamp = self.safe_integer(transaction, 'timestamp')
+        if timestamp is not None:
+            timestamp = timestamp * 1000
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        type = self.parse_transaction_type(id[0])
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': None,
+            'status': status,
+            'type': type,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': None,
+        }
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            'PEND': 'pending',
+            'REQUEST': 'pending',
+            'CANCEL': 'failed',
+            'DONE': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction_type(self, type):
+        types = {
+            'd': 'deposit',
+            'w': 'withdrawal',
+        }
+        return self.safe_string(types, type, type)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
