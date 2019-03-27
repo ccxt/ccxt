@@ -454,7 +454,6 @@ declare module 'ccxt' {
     export class virwox extends Exchange {}
     export class xbtce extends Exchange {}
     export class yobit extends liqui {}
-    export class yunbi extends acx {}
     export class zaif extends Exchange {}
     export class zb extends Exchange {}
 

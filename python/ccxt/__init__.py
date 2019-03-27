@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.18.402'
+__version__ = '1.18.403'
 
 # ----------------------------------------------------------------------------
 
@@ -195,7 +195,6 @@ from ccxt.vbtc import vbtc                                  # noqa: F401
 from ccxt.virwox import virwox                              # noqa: F401
 from ccxt.xbtce import xbtce                                # noqa: F401
 from ccxt.yobit import yobit                                # noqa: F401
-from ccxt.yunbi import yunbi                                # noqa: F401
 from ccxt.zaif import zaif                                  # noqa: F401
 from ccxt.zb import zb                                      # noqa: F401
 
@@ -331,7 +330,6 @@ exchanges = [
     'virwox',
     'xbtce',
     'yobit',
-    'yunbi',
     'zaif',
     'zb',
 ]

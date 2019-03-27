@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.402'
+__version__ = '1.18.403'
 
 # -----------------------------------------------------------------------------
 
@@ -177,7 +177,6 @@ from ccxt.async_support.vbtc import vbtc                                  # noqa
 from ccxt.async_support.virwox import virwox                              # noqa: F401
 from ccxt.async_support.xbtce import xbtce                                # noqa: F401
 from ccxt.async_support.yobit import yobit                                # noqa: F401
-from ccxt.async_support.yunbi import yunbi                                # noqa: F401
 from ccxt.async_support.zaif import zaif                                  # noqa: F401
 from ccxt.async_support.zb import zb                                      # noqa: F401
 
@@ -313,7 +312,6 @@ exchanges = [
     'virwox',
     'xbtce',
     'yobit',
-    'yunbi',
     'zaif',
     'zb',
 ]
