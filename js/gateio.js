@@ -605,7 +605,7 @@ module.exports = class gateio extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-    
+
     async fetchTransactionsByType (type = undefined, code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
@@ -639,7 +639,6 @@ module.exports = class gateio extends Exchange {
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchTransactionsByType ('withdraws', code, since, limit, params);
     }
-
 
     parseTransaction (transaction, currency = undefined) {
         //        
