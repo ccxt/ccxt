@@ -688,7 +688,7 @@ class bitfinex (Exchange):
         await self.load_markets()
         return await self.privatePostOrderCancel({'order_id': int(id)})
 
-    async def cancel_all_orders(self, symbols=None, params={}):
+    async def cancel_all_orders(self, symbol=None, params={}):
         return await self.privatePostOrderCancelAll(params)
 
     def parse_order(self, order, market=None):

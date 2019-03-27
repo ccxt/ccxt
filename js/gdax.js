@@ -546,7 +546,7 @@ module.exports = class gdax extends Exchange {
         return await this.privateDeleteOrdersId ({ 'id': id });
     }
 
-    async cancelAllOrders (symbols = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         return await this.privateDeleteOrders (params);
     }
 

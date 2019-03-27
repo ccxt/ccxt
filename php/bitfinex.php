@@ -707,7 +707,7 @@ class bitfinex extends Exchange {
         return $this->privatePostOrderCancel (array ( 'order_id' => intval ($id) ));
     }
 
-    public function cancel_all_orders ($symbols = null, $params = array ()) {
+    public function cancel_all_orders ($symbol = null, $params = array ()) {
         return $this->privatePostOrderCancelAll ($params);
     }
 

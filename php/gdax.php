@@ -547,7 +547,7 @@ class gdax extends Exchange {
         return $this->privateDeleteOrdersId (array ( 'id' => $id ));
     }
 
-    public function cancel_all_orders ($symbols = null, $params = array ()) {
+    public function cancel_all_orders ($symbol = null, $params = array ()) {
         return $this->privateDeleteOrders ($params);
     }
 

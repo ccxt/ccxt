@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, DDoSProtection, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -18,6 +18,7 @@ module.exports = class coinfalcon extends Exchange {
             'has': {
                 'fetchTickers': true,
                 'fetchOpenOrders': true,
+                'fetchMyTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg',
@@ -175,20 +176,50 @@ module.exports = class coinfalcon extends Exchange {
         let amount = parseFloat (trade['size']);
         let symbol = market['symbol'];
         let cost = parseFloat (this.costToPrecision (symbol, price * amount));
+        let tradeId = this.safeString (trade, 'id');
+        let side = this.safeString (trade, 'side');
+        let orderId = this.safeString (trade, 'order_id');
+        let fee = undefined;
+        let feeCost = this.safeFloat (trade, 'fee');
+        if (feeCost !== undefined) {
+            let feeCurrencyCode = undefined;
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': undefined,
-            'order': undefined,
+            'id': tradeId,
+            'order': orderId,
             'type': undefined,
-            'side': undefined,
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined)
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'market': market['id'],
+        };
+        if (since !== undefined) {
+            request['start_time'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let response = await this.privateGetUserTrades (this.extend (request, params));
+        return this.parseTrades (response['data'], market, since, limit);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

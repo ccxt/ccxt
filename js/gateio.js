@@ -20,6 +20,9 @@ module.exports = class gateio extends Exchange {
                 'createMarketOrder': false,
                 'fetchTickers': true,
                 'withdraw': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
+                'fetchTransactions': true,
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
                 'fetchClosedOrders': true,
@@ -141,7 +144,17 @@ module.exports = class gateio extends Exchange {
             let keys = Object.keys (market);
             let id = keys[0];
             let details = market[id];
-            let [ baseId, quoteId ] = id.split ('_');
+            // all of their symbols are separated with an underscore
+            // but not boe_eth_eth (BOE_ETH/ETH) which has two underscores
+            // https://github.com/ccxt/ccxt/issues/4894
+            const parts = id.split ('_');
+            const numParts = parts.length;
+            let baseId = parts[0];
+            let quoteId = parts[1];
+            if (numParts > 2) {
+                baseId = parts[0] + '_' + parts[1];
+                quoteId = parts[2];
+            }
             let base = baseId.toUpperCase ();
             let quote = quoteId.toUpperCase ();
             base = this.commonCurrencyCode (base);
@@ -601,6 +614,121 @@ module.exports = class gateio extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    async fetchTransactionsByType (type = undefined, code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        const response = this.privatePostDepositswithdrawals (this.extend (request, params));
+        let transactions = undefined;
+        if (type === undefined) {
+            const deposits = this.safeValue (response, 'deposits', []);
+            const withdrawals = this.safeValue (response, 'withdraws', []);
+            transactions = this.arrayConcat (deposits, withdrawals);
+        } else {
+            transactions = this.safeValue (response, type, []);
+        }
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        return this.parseTransactions (transactions, currency, since, limit);
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType (undefined, code, since, limit, params);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType ('deposits', code, since, limit, params);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType ('withdraws', code, since, limit, params);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // deposit
+        //
+        //     {
+        //         'id': 'd16520849',
+        //         'currency': 'NEO',
+        //         'address': False,
+        //         'amount': '1',
+        //         'txid': '01acf6b8ce4d24a....',
+        //         'timestamp': '1553125968',
+        //         'status': 'DONE',
+        //         'type': 'deposit'
+        //     }
+        //
+        // withdrawal
+        //
+        //     {
+        //         'id': 'w5864259',
+        //         'currency': 'ETH',
+        //         'address': '0x72632f462....',
+        //         'amount': '0.4947',
+        //         'txid': '0x111167d120f736....',
+        //         'timestamp': '1553123688',
+        //         'status': 'DONE',
+        //         'type': 'withdrawal'
+        //     }
+        //
+        let code = undefined;
+        let currencyId = this.safeString (transaction, 'currency');
+        currency = this.safeValue (this.currencies_by_id, currencyId);
+        if (currency === undefined) {
+            code = this.commonCurrencyCode (currencyId);
+        }
+        if (currency !== undefined) {
+            code = currency['code'];
+        }
+        const id = this.safeString (transaction, 'id');
+        const txid = this.safeString (transaction, 'txid');
+        const amount = this.safeFloat (transaction, 'amount');
+        const address = this.safeString (transaction, 'address');
+        let timestamp = this.safeInteger (transaction, 'timestamp');
+        if (timestamp !== undefined) {
+            timestamp = timestamp * 1000;
+        }
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const type = this.parseTransactionType (id[0]);
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': undefined,
+            'status': status,
+            'type': type,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': undefined,
+        };
+    }
+
+    parseTransactionStatus (status) {
+        let statuses = {
+            'PEND': 'pending',
+            'REQUEST': 'pending',
+            'CANCEL': 'failed',
+            'DONE': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransactionType (type) {
+        let types = {
+            'd': 'deposit',
+            'w': 'withdrawal',
+        };
+        return this.safeString (types, type, type);
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

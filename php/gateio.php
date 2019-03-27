@@ -21,6 +21,9 @@ class gateio extends Exchange {
                 'createMarketOrder' => false,
                 'fetchTickers' => true,
                 'withdraw' => true,
+                'fetchDeposits' => true,
+                'fetchWithdrawals' => true,
+                'fetchTransactions' => true,
                 'createDepositAddress' => true,
                 'fetchDepositAddress' => true,
                 'fetchClosedOrders' => true,
@@ -142,7 +145,17 @@ class gateio extends Exchange {
             $keys = is_array ($market) ? array_keys ($market) : array ();
             $id = $keys[0];
             $details = $market[$id];
-            list ($baseId, $quoteId) = explode ('_', $id);
+            // all of their symbols are separated with an underscore
+            // but not boe_eth_eth (BOE_ETH/ETH) which has two underscores
+            // https://github.com/ccxt/ccxt/issues/4894
+            $parts = explode ('_', $id);
+            $numParts = is_array ($parts) ? count ($parts) : 0;
+            $baseId = $parts[0];
+            $quoteId = $parts[1];
+            if ($numParts > 2) {
+                $baseId = $parts[0] . '_' . $parts[1];
+                $quoteId = $parts[2];
+            }
             $base = strtoupper ($baseId);
             $quote = strtoupper ($quoteId);
             $base = $this->common_currency_code($base);
@@ -602,6 +615,121 @@ class gateio extends Exchange {
             );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function fetch_transactions_by_type ($type = null, $code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array ();
+        if ($since !== null) {
+            $request['start'] = $since;
+        }
+        $response = $this->privatePostDepositswithdrawals (array_merge ($request, $params));
+        $transactions = null;
+        if ($type === null) {
+            $deposits = $this->safe_value($response, 'deposits', array ());
+            $withdrawals = $this->safe_value($response, 'withdraws', array ());
+            $transactions = $this->array_concat($deposits, $withdrawals);
+        } else {
+            $transactions = $this->safe_value($response, $type, array ());
+        }
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+        }
+        return $this->parseTransactions ($transactions, $currency, $since, $limit);
+    }
+
+    public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions_by_type (null, $code, $since, $limit, $params);
+    }
+
+    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions_by_type ('deposits', $code, $since, $limit, $params);
+    }
+
+    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions_by_type ('withdraws', $code, $since, $limit, $params);
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        //
+        // deposit
+        //
+        //     {
+        //         'id' => 'd16520849',
+        //         'currency' => 'NEO',
+        //         'address' => False,
+        //         'amount' => '1',
+        //         'txid' => '01acf6b8ce4d24a....',
+        //         'timestamp' => '1553125968',
+        //         'status' => 'DONE',
+        //         'type' => 'deposit'
+        //     }
+        //
+        // withdrawal
+        //
+        //     {
+        //         'id' => 'w5864259',
+        //         'currency' => 'ETH',
+        //         'address' => '0x72632f462....',
+        //         'amount' => '0.4947',
+        //         'txid' => '0x111167d120f736....',
+        //         'timestamp' => '1553123688',
+        //         'status' => 'DONE',
+        //         'type' => 'withdrawal'
+        //     }
+        //
+        $code = null;
+        $currencyId = $this->safe_string($transaction, 'currency');
+        $currency = $this->safe_value($this->currencies_by_id, $currencyId);
+        if ($currency === null) {
+            $code = $this->common_currency_code($currencyId);
+        }
+        if ($currency !== null) {
+            $code = $currency['code'];
+        }
+        $id = $this->safe_string($transaction, 'id');
+        $txid = $this->safe_string($transaction, 'txid');
+        $amount = $this->safe_float($transaction, 'amount');
+        $address = $this->safe_string($transaction, 'address');
+        $timestamp = $this->safe_integer($transaction, 'timestamp');
+        if ($timestamp !== null) {
+            $timestamp = $timestamp * 1000;
+        }
+        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
+        $type = $this->parse_transaction_type ($id[0]);
+        return array (
+            'info' => $transaction,
+            'id' => $id,
+            'txid' => $txid,
+            'currency' => $code,
+            'amount' => $amount,
+            'address' => $address,
+            'tag' => null,
+            'status' => $status,
+            'type' => $type,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'fee' => null,
+        );
+    }
+
+    public function parse_transaction_status ($status) {
+        $statuses = array (
+            'PEND' => 'pending',
+            'REQUEST' => 'pending',
+            'CANCEL' => 'failed',
+            'DONE' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction_type ($type) {
+        $types = array (
+            'd' => 'deposit',
+            'w' => 'withdrawal',
+        );
+        return $this->safe_string($types, $type, $type);
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
