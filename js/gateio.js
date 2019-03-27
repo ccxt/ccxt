@@ -641,7 +641,7 @@ module.exports = class gateio extends Exchange {
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchTransactionsByType (undefined, code, since, limit, params);
     }
-    
+
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchTransactionsByType ('deposits', code, since, limit, params);
     }
