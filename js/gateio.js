@@ -624,25 +624,33 @@ module.exports = class gateio extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
-        // DEPOSIT
-        // {'id': 'd16520849',
-        // 'currency': 'NEO',
-        // 'address': False,
-        // amount': '1',
-        // 'txid': '01acf6b8ce4d24a....',
-        // 'timestamp': '1553125968',
-        // 'status': 'DONE',
-        // 'type': 'deposit'}
+        //        
+        // deposit
+        //      
+        //     {
+        //         'id': 'd16520849',
+        //         'currency': 'NEO',
+        //         'address': False,
+        //         amount': '1',
+        //         'txid': '01acf6b8ce4d24a....',
+        //         'timestamp': '1553125968',
+        //         'status': 'DONE',
+        //         'type': 'deposit'
+        //     }
+        //        
+        // withdrawal
         //
-        // WITHDRAWAL
-        // {'id': 'w5864259',
-        // 'currency': 'ETH',
-        // 'address': '0x72632f462....',
-        // 'amount': '0.4947',
-        // 'txid': '0x111167d120f736....',
-        // 'timestamp': '1553123688',
-        // 'status': 'DONE',
-        // 'type': 'withdrawal'}
+        //     {
+        //         'id': 'w5864259',
+        //         'currency': 'ETH',
+        //         'address': '0x72632f462....',
+        //         'amount': '0.4947',
+        //         'txid': '0x111167d120f736....',
+        //         'timestamp': '1553123688',
+        //         'status': 'DONE',
+        //         'type': 'withdrawal'
+        //     }
+        //
         let code = undefined;
         let currencyId = this.safeString (transaction, 'currency');
         currency = this.safeValue (this.currencies_by_id, currencyId);
