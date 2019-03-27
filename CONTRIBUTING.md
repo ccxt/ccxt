@@ -32,6 +32,10 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
   - which exchange it is
   - which method you're trying to call
 
+## Reporting Vulnerabilities And Critical Issues
+
+If you found a security issue or a critical vulnerability and reporting it in public would impose risk – please feel free to send us a message to <a href="mailto:info@ccxt.trade>info@ccxt.trade</a>.
+
 ## How To Contribute Code
 
 - **PLEASE, DO NOT COMMIT THE FOLLOWING FILES IN PULL REQUESTS:**
