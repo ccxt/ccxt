@@ -20,8 +20,8 @@ module.exports = class gateio extends Exchange {
                 'createMarketOrder': false,
                 'fetchTickers': true,
                 'withdraw': true,
-                'fetchDeposits': false,
-                'fetchWithdrawals': false,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
                 'fetchTransactions': true,
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
@@ -605,23 +605,41 @@ module.exports = class gateio extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+    
+    async fetchTransactionsByType (type = undefined, code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         if (since !== undefined) {
             request['start'] = since;
         }
         const response = this.privatePostDepositswithdrawals (this.extend (request, params));
-        const deposits = this.safeValue (response, 'deposits', []);
-        const withdrawals = this.safeValue (response, 'withdraws', []);
-        const transactions = this.arrayConcat (deposits, withdrawals);
+        let transactions = undefined;
+        if (type === undefined) {
+            const deposits = this.safeValue (response, 'deposits', []);
+            const withdrawals = this.safeValue (response, 'withdraws', []);
+            transactions = this.arrayConcat (deposits, withdrawals);
+        } else {
+            transactions = this.safeValue (response, type, []);
+        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
         return this.parseTransactions (transactions, currency, since, limit);
     }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType (undefined, code, since, limit, params);
+    }
+    
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType ('deposits', code, since, limit, params);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType ('withdraws', code, since, limit, params);
+    }
+
 
     parseTransaction (transaction, currency = undefined) {
         //        
