@@ -675,6 +675,10 @@ class Exchange(object):
         return Exchange.filter_by(array, key, value)
 
     @staticmethod
+    def sortArrayObjects(unsorted_array, sort_dict_key):
+        return sorted(unsorted_array, key=lambda k: k[sort_dict_key], reverse=False)
+
+    @staticmethod
     def group_by(array, key):
         result = {}
         array = Exchange.to_array(array)
@@ -848,6 +852,12 @@ class Exchange(object):
     def ymdhms(timestamp, infix=' '):
         utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
         return utc_datetime.strftime('%Y-%m-%d' + infix + '%H:%M:%S')
+
+    @staticmethod
+    def to_epoch(timestamp):
+        pattern = "%Y-%m-%dT%H:%M:%S.%fZ"
+        epoch = int(round(time.mktime(time.strptime(timestamp, pattern)) * 1000))
+        return epoch
 
     @staticmethod
     def parse_date(timestamp=None):

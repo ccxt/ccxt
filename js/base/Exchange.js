@@ -1158,6 +1158,24 @@ module.exports = class Exchange {
         return indexed ? indexBy (result, key) : result
     }
 
+    sortArrayObjects (unsortedArray, sortDictKey) {
+        let dictKeyValues = []
+        for (let a = 0; a < unsortedArray.length; a++) {
+            dictKeyValues.push (unsortedArray[a][sortDictKey])
+        }
+        dictKeyValues.sort ()
+        let sortedArray = []
+        for (let d = 0; d < dictKeyValues.length; d++) {
+            for (let a = 0; a < unsortedArray.length; a++) {
+                if (dictKeyValues[d] === unsortedArray[a]['timestamp']) {
+                    sortedArray.push (unsortedArray[a])
+                    unsortedArray.splice (a, 1)
+                }
+            }
+        }
+        return sortedArray
+    }
+
     parseTrades (trades, market = undefined, since = undefined, limit = undefined) {
         // this code is commented out temporarily to catch for exchange-specific errors
         // if (!this.isArray (trades)) {
@@ -1328,6 +1346,11 @@ module.exports = class Exchange {
         M = M < 10 ? ('0' + M) : M
         S = S < 10 ? ('0' + S) : S
         return Y + '-' + m + '-' + d + infix + H + ':' + M + ':' + S
+    }
+
+    toEpoch (timestamp) {
+      let date = new Date (timestamp).getTime ()
+      return date
     }
 
     // ------------------------------------------------------------------------

@@ -31,33 +31,25 @@ module.exports = class switcheo extends Exchange {
             'has': {
                 'CORS': false,
                 'cancelOrder': true,
-                'createDepositAddress': false,
                 'createOrder': true,
                 'deposit': true,
                 'fetchBalance': true,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': true,
                 'fetchContractHash': true,
                 'fetchCurrencies': true,
-                'fetchDepositAddress': false,
                 'fetchMarkets': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': false,
-                'fetchOpenOrders': false,
-                'fetchOrder': false,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
                 'fetchOrderBook': false,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchPairs': true,
                 'fetchTicker': false,
                 'fetchTickers': false,
                 'fetchTime': true,
-                'fetchBidsAsks': false,
                 'fetchTrades': false,
                 'withdraw': true,
-                'fetchTransactions': false,
-                'fetchDeposits': false,
-                'fetchWithdrawals': false,
-                'fetchMySells': false,
-                'fetchMyBuys': false,
             },
             'urls': {
                 'logo': 'https://docs.switcheo.network/images/logo.png',
@@ -69,20 +61,22 @@ module.exports = class switcheo extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'exchange/timestamp',
+                        'balances',
+                        'exchange/announcement_message',
                         'exchange/contracts',
                         'exchange/pairs',
+                        'exchange/timestamp',
                         'exchange/tokens',
                         'fees',
-                        'exchange/announcement_message',
+                        'offers',
+                        'offers/book',
+                        'orders',
+                        'orders/{id}',
                         'tickers/candlesticks',
                         'tickers/last_24_hours',
                         'tickers/last_price',
-                        'offers',
-                        'offers/book',
                         'trades',
                         'trades/recent',
-                        'balances',
                     ],
                 },
                 'private': {
@@ -112,6 +106,7 @@ module.exports = class switcheo extends Exchange {
                 'contract': '',
                 'contracts': {},
                 'currentContracts': {},
+                'currencyHashes': {},
             },
         });
     }
@@ -162,6 +157,7 @@ module.exports = class switcheo extends Exchange {
         let response = await this.publicGetExchangeTokens (params);
         let currencies = Object.keys (response);
         let network = '';
+        let contractHash = '';
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
             let currency = response[currencies[i]];
@@ -176,18 +172,26 @@ module.exports = class switcheo extends Exchange {
             let minimum = response[currencies[i]]['minimum_quantity'];
             if (response[currencies[i]]['type'] === 'NEO' || response[currencies[i]]['type'] === 'NEP-5') {
                 network = 'neo';
+                contractHash = this.options['currentContracts']['NEO'];
             } else if (response[currencies[i]]['type'] === 'ETH' || response[currencies[i]]['type'] === 'ERC-20') {
                 network = 'eth';
+                contractHash = this.options['currentContracts']['ETH'];
             } else if (response[currencies[i]]['type'] === 'EOS') {
                 network = 'eos';
+                contractHash = this.options['currentContracts']['EOS'];
             } else if (response[currencies[i]]['type'] === 'QTUM') {
                 network = 'qtum';
+                contractHash = this.options['currentContracts']['QTUM'];
             }
+            if (!(network in this.options['currencyHashes']))
+                this.options['currencyHashes'][network] = {};
+            this.options['currencyHashes'][network][address] = code;
             result[code] = {
                 'id': id,
                 'code': code,
                 'address': address,
                 'network': network,
+                'contract_hash': contractHash,
                 'info': currency,
                 'type': type,
                 'name': name,
@@ -222,11 +226,11 @@ module.exports = class switcheo extends Exchange {
         let markets = await this.publicGetExchangePairs (this.extend ({
             'show_details': 1,
         }, params));
+        let contracts = await this.fetchContractHash ();
         let tokens = await this.fetchCurrencies (this.extend ({
             'show_listing_details': 1,
             'show_inactive': 1,
         }, params));
-        let contracts = await this.fetchContractHash ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
@@ -362,6 +366,264 @@ module.exports = class switcheo extends Exchange {
             };
         }
         return unifiedBalance;
+    }
+
+    parseOrder (order) {
+        let pair = order['pair'].replace ('_', '/');
+        let wantAssetId = order['want_asset_id'];
+        let wantAssetSymbol = this.options['currencyHashes'][order['blockchain']][wantAssetId];
+        let lastTradeTimestamp = undefined;
+        let tradeAmount = 0;
+        let fee = {};
+        let feeAmount = 0;
+        let feeAsset = '';
+        let trades = [];
+        let price = [];
+        let type = '';
+        if (!order['price'])
+            type = 'market';
+        else
+            type = 'limit';
+        if (order['fills'].length > 0) {
+            for (let k = 0; k < order['fills'].length; k++) {
+                let fills = order['fills'][k];
+                if (fills['status'] === 'success') {
+                    tradeAmount += parseFloat (fills['want_amount']);
+                    feeAsset = this.options['currencyHashes'][order['blockchain']][fills['fee_asset_id']];
+                    feeAmount += this.fromWei (parseInt (fills['fee_amount']), 'ether', this.currencies[feeAsset]['info']['decimals']);
+                    trades.push (fills['id']);
+                    price.push (fills['price']);
+                    let fillTimestamp = this.toEpoch (fills['created_at']);
+                    if (lastTradeTimestamp === undefined || fillTimestamp > lastTradeTimestamp)
+                        lastTradeTimestamp = fillTimestamp;
+                }
+            }
+            fee['currency'] = feeAsset;
+            fee['cost'] = feeAmount;
+        }
+        if (order['makes'].length > 0) {
+            for (let m = 0; m < order['makes'].length; m++) {
+                let makes = order['makes'][m];
+                if (makes['status'] === 'success' || makes['status'] === 'cancelling' || makes['status'] === 'cancelled') {
+                    price.push (makes['price']);
+                    if (makes['trades'].length > 0) {
+                        for (let n = 0; n < makes['trades'].length; n++) {
+                            let makeTrades = makes['trades'][n];
+                            if (makeTrades['status'] === 'success') {
+                                tradeAmount += parseFloat (makeTrades['filled_amount']);
+                                feeAsset = this.options['currencyHashes'][order['blockchain']][makeTrades['fee_asset_id']];
+                                feeAmount += this.fromWei (parseInt (makeTrades['fee_amount']), 'ether', this.currencies[feeAsset]['info']['decimals']) * -0.5;
+                                trades.push (makeTrades['id']);
+                                let fillTimestamp = this.toEpoch (makeTrades['created_at']);
+                                if (lastTradeTimestamp === undefined || fillTimestamp > lastTradeTimestamp)
+                                    lastTradeTimestamp = fillTimestamp;
+                            }
+                        }
+                        fee['currency'] = feeAsset;
+                        fee['cost'] = feeAmount;
+                    }
+                }
+            }
+        }
+        let total = 0;
+        for (let l = 0; l < price.length; l++) {
+            total += parseFloat (price[l]);
+        }
+        let avgPrice = (total / price.length);
+        let wantAmount = parseFloat (order['want_amount']);
+        let remainingAmount = wantAmount - tradeAmount;
+        let tradedAmount = this.fromWei (tradeAmount, 'ether', this.currencies[wantAssetSymbol]['info']['decimals']);
+        let totalCost = 0;
+        if (order['side'] === 'buy')
+            totalCost = tradedAmount * avgPrice;
+        else if (order['side'] === 'sell')
+            totalCost = tradedAmount / avgPrice;
+        let unifiedOrder = {
+            'id': order['id'],
+            'datetime': order['created_at'],
+            'timestamp': order['created_at_epoch'],
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'status': order['order_status'],
+            'symbol': pair,
+            'type': type,
+            'side': order['side'],
+            'price': avgPrice,
+            'amount': this.fromWei (wantAmount, 'ether', this.currencies[wantAssetSymbol]['info']['decimals']),
+            'filled': tradedAmount,
+            'remaining': this.fromWei (remainingAmount, 'ether', this.currencies[wantAssetSymbol]['info']['decimals']),
+            'cost': totalCost,
+            'trades': trades,
+            'fee': fee,
+            'info': order,
+        };
+        return unifiedOrder;
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {
+            'id': id,
+        };
+        let response = await this.publicGetOrdersId (this.extend (request, params));
+        response['created_at_epoch'] = this.toEpoch (response['created_at']);
+        let responseFormatted = this.parseOrder (response);
+        return responseFormatted;
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {
+            'address': this.walletAddress,
+        };
+        if (symbol) {
+            request['contract_hash'] = this.currencies[symbol];
+            request['pair'] = this.market (symbol.toUpperCase ().replace ('_', '/'))['id'];
+        }
+        if (since) {
+            request['from'] = params['since'];
+        }
+        if ('order_status' in params) {
+            request['order_status'] = params['order_status'];
+        }
+        if ('before' in params) {
+            request['before'] = params['before'];
+        }
+        if (limit) {
+            request['limit'] = limit;
+        }
+        let response = await this.publicGetOrders (this.extend (request, params));
+        for (let i = 0; i < response.length; i++) {
+            response[i]['created_at_epoch'] = this.toEpoch (response[i]['created_at']);
+        }
+        let responseFormatted = [];
+        let reverseArrayLength = response.length - 1;
+        for (let j = 0; j < response.length; j++) {
+            let index = reverseArrayLength - j;
+            responseFormatted.push (this.parseOrder (response[index]));
+        }
+        return responseFormatted;
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        params['order_status'] = 'open';
+        let response = await this.fetchOrders (symbol, since, limit, params);
+        return response;
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        params['order_status'] = ['completed', 'cancelled'];
+        let response = await this.fetchOrders (symbol, since, limit, params);
+        return response;
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.fetchOrders (symbol, since, undefined, params);
+        let tradesFormatted = [];
+        for (let i = 0; i < response.length; i++) {
+            let order = response[i];
+            if (order['trades'].length > 0) {
+                let info = order['info'];
+                let wantAssetId = info['want_asset_id'];
+                let wantAssetSymbol = this.options['currencyHashes'][info['blockchain']][wantAssetId];
+                let offerAssetId = info['offer_asset_id'];
+                let offerAssetSymbol = this.options['currencyHashes'][info['blockchain']][offerAssetId];
+                let feeAsset = '';
+                let feeAmount = 0;
+                let fillTimestamp = 0;
+                let price = 0;
+                let amount = 0;
+                let cost = 0;
+                for (let j = 0; j < info['fills'].length; j++) {
+                    let fill = info['fills'][j];
+                    if (fill['status'] === 'success') {
+                        feeAsset = this.options['currencyHashes'][info['blockchain']][fill['fee_asset_id']];
+                        feeAmount = this.fromWei (fill['fee_amount'], 'ether', this.currencies[feeAsset]['info']['decimals']);
+                        fillTimestamp = this.toEpoch (fill['created_at']);
+                        price = parseFloat (fill['price']);
+                        amount = parseFloat (fill['want_amount']);
+                        if (order['side'] === 'buy')
+                            cost = amount * price;
+                        else if (order['side'] === 'sell')
+                            cost = amount / price;
+                        let tradeFormatted = {
+                            'info': info,
+                            'id': order['id'],
+                            'timestamp': fillTimestamp,
+                            'datetime': fill['created_at'],
+                            'symbol': order['symbol'],
+                            'order': fill['id'],
+                            'type': order['type'],
+                            'side': order['side'],
+                            'takerOrMaker': 'taker',
+                            'price': price,
+                            'amount': this.fromWei (amount, 'ether', this.currencies[wantAssetSymbol]['info']['decimals']),
+                            'cost': this.fromWei (cost, 'ether', this.currencies[offerAssetSymbol]['info']['decimals']),
+                            'fee': {
+                                'cost': feeAmount,
+                                'currency': feeAsset,
+                            },
+                        };
+                        tradesFormatted.push (tradeFormatted);
+                    }
+                }
+                for (let m = 0; m < info['makes'].length; m++) {
+                    let make = info['makes'][m];
+                    if (make['trades'].length > 0) {
+                        for (let n = 0; n < make['trades'].length; n++) {
+                            let trade = make['trades'][n];
+                            let feeAsset = '';
+                            let feeAmount = 0;
+                            let price = 0;
+                            let amount = 0;
+                            let cost = 0;
+                            if (trade['status'] === 'success') {
+                                feeAsset = this.options['currencyHashes'][info['blockchain']][trade['fee_asset_id']];
+                                feeAmount = this.fromWei (trade['fee_amount'], 'ether', this.currencies[feeAsset]['info']['decimals']) * -0.5;
+                                fillTimestamp = this.toEpoch (trade['created_at']);
+                                price = parseFloat (trade['price']);
+                                amount = parseFloat (trade['filled_amount']);
+                                if (order['side'] === 'buy')
+                                    cost = amount * price;
+                                else if (order['side'] === 'sell')
+                                    cost = amount / price;
+                                let tradeFormatted = {
+                                    'info': info,
+                                    'id': order['id'],
+                                    'timestamp': fillTimestamp,
+                                    'datetime': trade['created_at'],
+                                    'symbol': order['symbol'],
+                                    'order': trade['id'],
+                                    'type': order['type'],
+                                    'side': order['side'],
+                                    'takerOrMaker': 'maker',
+                                    'price': price,
+                                    'amount': this.fromWei (amount, 'ether', this.currencies[wantAssetSymbol]['info']['decimals']),
+                                    'cost': this.fromWei (cost, 'ether', this.currencies[offerAssetSymbol]['info']['decimals']),
+                                    'fee': {
+                                        'cost': feeAmount,
+                                        'currency': feeAsset,
+                                    },
+                                };
+                                tradesFormatted.push (tradeFormatted);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        let tradesSorted = this.sortArrayObjects (tradesFormatted, 'timestamp');
+        let tradesLimited = [];
+        let tradeArrayLength = tradesSorted.length;
+        let loopStart = 0;
+        if (limit) {
+            if (tradeArrayLength > limit)
+                loopStart = tradeArrayLength - limit;
+        }
+        for (let j = loopStart; j < tradesSorted.length; j++) {
+            tradesLimited.push (tradesSorted[j]);
+        }
+        return tradesLimited;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
