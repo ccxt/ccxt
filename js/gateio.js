@@ -641,7 +641,6 @@ module.exports = class gateio extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
-        //
         // deposit
         //
         //     {
