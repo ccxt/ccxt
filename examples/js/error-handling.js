@@ -1,8 +1,6 @@
 "use strict";
 
 const ccxt      = require ('../../ccxt.js')
-    , asTable   = require ('as-table').configure ({ delimiter: ' | ' })
-    , log       = require ('ololog').noLocate
     , verbose   = process.argv.includes ('--verbose')
 
 //-----------------------------------------------------------------------------
@@ -21,7 +19,7 @@ const run = async (id) => {
 
     if (exchangeFound) {
 
-        log ('Instantiating', id, 'exchange')
+        console.log ('Instantiating', id, 'exchange')
 
         // instantiate the exchange by id
         const exchange = new ccxt[id] ({ verbose })
@@ -68,7 +66,7 @@ const run = async (id) => {
 
     } else {
 
-        log ('Exchange ' + id.red + ' not found')
+        console.log ('Exchange', id, 'not found')
         printSupportedExchanges ()
     }
 }
