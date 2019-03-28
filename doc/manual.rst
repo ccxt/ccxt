@@ -3258,6 +3258,83 @@ In Python and PHP you can do the same by subclassing and overriding nonce functi
 Error Handling
 ==============
 
+The error handling with CCXT is done with the exception mechanism that is natively available with all languages.
+
+To handle the errors you should add a ``try`` block around the call to a unified method and catch the exceptions like you would normally do with your language:
+
+.. code:: javascript
+
+   // JavaScript
+
+   // try to call a unified method
+   try {
+       const response = await exchange.fetchTicker ('ETH/BTC')
+       console.log (response)
+   } catch (e) {
+       // if the exception is thrown, it is "caught" and can be handled here
+       // the handling reaction depends on the type of the exception
+       // and on the purpose or business logic of your application
+       if (e instanceof ccxt.NetworkError) {
+           console.log (exchange.id, 'fetchTicker failed due to a network error:', e.message)
+           // retry or whatever
+           // ...
+       } else if (e instanceof ccxt.ExchangeError) {
+           console.log (exchange.id, 'fetchTicker failed due to exchange error:', e.message)
+           // retry or whatever
+           // ...
+       } else {
+           console.log (exchange.id, 'fetchTicker failed with:', e.message)
+           // retry or whatever
+           // ...
+       }
+   }
+
+.. code:: python
+
+   # Python
+
+   # try to call a unified method
+   try:
+       response = await exchange.fetch_order_book('ETH/BTC')
+       print(ticker)
+   except ccxt.NetworkError as e:
+       print(exchange.id, 'fetch_order_book failed due to a network error:', str(e))
+       # retry or whatever
+       # ...
+   except ccxt.ExchangeError as e:
+       print(exchange.id, 'fetch_order_book failed due to exchange error:', str(e))
+       # retry or whatever
+       # ...
+   except Exception as e:
+       print(exchange.id, 'fetch_order_book failed with:', str(e))
+       # retry or whatever
+       # ...
+
+.. code:: php
+
+   // PHP
+
+   // try to call a unified method
+   try {
+       $response = $exchange->fetch_trades('ETH/BTC');
+       print_r(ticker);
+   } catch (\ccxt\NetworkError $e) {
+       echo $exchange->id . ' fetch_trades failed due to a network error: ' . $e->getMessage () . "\n";
+       // retry or whatever
+       // ...
+   } catch (\ccxt\ExchangeError $e) {
+       echo $exchange->id . ' fetch_trades failed due to exchange error: ' . $e->getMessage () . "\n";
+       // retry or whatever
+       // ...
+   } catch (Exception $e) {
+       echo $exchange->id . ' fetch_trades failed with: ' . $e->getMessage () . "\n";
+       // retry or whatever
+       // ...
+   }
+
+Exception Hierarchy
+-------------------
+
 All exceptions are derived from the base BaseError exception, which, in its turn, is defined in the ccxt library like so:
 
 .. code:: javascript
