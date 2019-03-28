@@ -1158,24 +1158,6 @@ module.exports = class Exchange {
         return indexed ? indexBy (result, key) : result
     }
 
-    sortArrayObjects (unsortedArray, sortDictKey) {
-        let dictKeyValues = []
-        for (let a = 0; a < unsortedArray.length; a++) {
-            dictKeyValues.push (unsortedArray[a][sortDictKey])
-        }
-        dictKeyValues.sort ()
-        let sortedArray = []
-        for (let d = 0; d < dictKeyValues.length; d++) {
-            for (let a = 0; a < unsortedArray.length; a++) {
-                if (dictKeyValues[d] === unsortedArray[a]['timestamp']) {
-                    sortedArray.push (unsortedArray[a])
-                    unsortedArray.splice (a, 1)
-                }
-            }
-        }
-        return sortedArray
-    }
-
     parseTrades (trades, market = undefined, since = undefined, limit = undefined) {
         // this code is commented out temporarily to catch for exchange-specific errors
         // if (!this.isArray (trades)) {
@@ -1406,10 +1388,6 @@ module.exports = class Exchange {
             30: 'tether',  // 0.000000000001
         }
         return this.safeValue (units, decimals)
-    }
-
-    addFloat (value1, value2) {
-        return parseFloat (BigNumber (value1).plus (value2));
     }
 
     fromWei (amount, unit = 'ether', decimals = 18) {

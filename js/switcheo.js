@@ -321,7 +321,7 @@ module.exports = class switcheo extends Exchange {
         let usedBalance = {};
         let usedKeys = Object.keys (response['locked']);
         for (let k = 0; k < usedKeys.length; k++) {
-            usedBalance[usedKeys[k]] = this.fromWei (response['locked'][usedKeys[k]], 'ether', this.currencies[freeKeys[k]]['info']['decimals']);
+            usedBalance[usedKeys[k]] = this.fromWei (response['locked'][usedKeys[k]], 'ether', this.currencies[usedKeys[k]]['info']['decimals']);
         }
         let totalBalance = {};
         let totalKeys = freeKeys;
@@ -342,7 +342,7 @@ module.exports = class switcheo extends Exchange {
                 free = freeBalance[key];
             if (key in usedBalance)
                 used = usedBalance[key];
-            totalBalance[key] = this.addFloat (free, used);
+            totalBalance[key] = this.sum (free, used);
         }
         let unifiedBalance = {
             'info': response,       // the original untouched non-parsed reply with details
@@ -359,7 +359,7 @@ module.exports = class switcheo extends Exchange {
                 free = freeBalance[key];
             if (key in usedBalance)
                 used = usedBalance[key];
-            total = this.addFloat (free, used);
+            total = this.sum (free, used);
             unifiedBalance[key] = {
                 'free': parseFloat (free),
                 'used': parseFloat (used),
@@ -557,7 +557,7 @@ module.exports = class switcheo extends Exchange {
                             'type': order['type'],
                             'side': order['side'],
                             'takerOrMaker': 'taker',
-                            'price': price,
+                            'price': this.numberToString (price),
                             'amount': this.fromWei (amount, 'ether', this.currencies[wantAssetSymbol]['info']['decimals']),
                             'cost': this.fromWei (cost, 'ether', this.currencies[offerAssetSymbol]['info']['decimals']),
                             'fee': {
@@ -598,7 +598,7 @@ module.exports = class switcheo extends Exchange {
                                     'type': order['type'],
                                     'side': order['side'],
                                     'takerOrMaker': 'maker',
-                                    'price': price,
+                                    'price': this.numberToString (price),
                                     'amount': this.fromWei (amount, 'ether', this.currencies[wantAssetSymbol]['info']['decimals']),
                                     'cost': this.fromWei (cost, 'ether', this.currencies[offerAssetSymbol]['info']['decimals']),
                                     'fee': {
@@ -613,7 +613,7 @@ module.exports = class switcheo extends Exchange {
                 }
             }
         }
-        let tradesSorted = this.sortArrayObjects (tradesFormatted, 'timestamp');
+        let tradesSorted = this.sortBy (tradesFormatted, 'timestamp');
         let tradesLimited = [];
         let tradeArrayLength = tradesSorted.length;
         let loopStart = 0;

@@ -675,10 +675,6 @@ class Exchange(object):
         return Exchange.filter_by(array, key, value)
 
     @staticmethod
-    def sortArrayObjects(unsorted_array, sort_dict_key):
-        return sorted(unsorted_array, key=lambda k: k[sort_dict_key], reverse=False)
-
-    @staticmethod
     def group_by(array, key):
         result = {}
         array = Exchange.to_array(array)
@@ -1580,9 +1576,6 @@ class Exchange(object):
             30: 'tether',  # 0.000000000001
         }
         return self.safe_value(units, decimals)
-
-    def addFloat(self, value1, value2):
-        return float(Decimal(str(value1)) + Decimal(str(value2)))
 
     def fromWei(self, amount, unit='ether', decimals=18):
         if Web3 is None:
