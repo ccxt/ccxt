@@ -304,7 +304,7 @@ module.exports = class bleutrade extends bittrex {
         }
         if (commission) {
             fee = {
-                cost': parseFloat (order[commission]),
+                'cost': this.safeFloat (order, commission),
 	    };
             if (market !== undefined) {
                 fee['currency'] = market['quote'];
