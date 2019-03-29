@@ -72,8 +72,8 @@ module.exports = class bleutrade extends bittrex {
                         'marketsummary',
                         'orderbook',
                         'ticker',
-                    ]
-                }
+                    ],
+                },
             },
             'fees': {
                 'funding': {
@@ -246,7 +246,7 @@ module.exports = class bleutrade extends bittrex {
             ohlcv['High'],
             ohlcv['Low'],
             ohlcv['Close'],
-            ohlcv['Volume']
+            ohlcv['Volume'],
         ];
     }
 
@@ -256,7 +256,7 @@ module.exports = class bleutrade extends bittrex {
         let request = {
             'period': this.timeframes[timeframe],
             'market': market['id'],
-            'count': limit
+            'count': limit,
         };
         let response = await this.publicGetCandles (this.extend (request, params));
         if ('result' in response) {
