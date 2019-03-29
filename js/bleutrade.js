@@ -286,7 +286,7 @@ module.exports = class bleutrade extends bittrex {
         let timestamp = undefined;
         if ('Opened' in order)
             timestamp = this.parse8601 (order['Opened'] + '+00:00');
-	if ('Created' in order)
+        if ('Created' in order)
             timestamp = this.parse8601 (order['Created'] + '+00:00');
         let lastTradeTimestamp = undefined;
         if (('TimeStamp' in order) && (order['TimeStamp'] !== undefined))
@@ -305,7 +305,7 @@ module.exports = class bleutrade extends bittrex {
         if (commission) {
             fee = {
                 'cost': this.safeFloat (order, commission),
-	    };
+            };
             if (market !== undefined) {
                 fee['currency'] = market['quote'];
             } else if (symbol !== undefined) {
@@ -313,10 +313,10 @@ module.exports = class bleutrade extends bittrex {
                 let quoteCurrencyId = currencyIds[1];
                 if (quoteCurrencyId in this.currencies_by_id) {
                     fee['currency'] = this.currencies_by_id[quoteCurrencyId]['code'];
-		} else {
+                } else {
                     fee['currency'] = this.commonCurrencyCode (quoteCurrencyId);
                 }
-	    }
+            }
         }
         let price = this.safeFloat (order, 'Price');
         let cost = undefined;
