@@ -234,6 +234,101 @@ class bleutrade (bittrex):
             'fee': None,
         }
 
+    def parse_order(self, order, market=None):
+        side = self.safe_string_2(order, 'OrderType', 'Type')
+        isBuyOrder = (side == 'LIMIT_BUY') or (side == 'BUY')
+        isSellOrder = (side == 'LIMIT_SELL') or (side == 'SELL')
+        if isBuyOrder:
+            side = 'buy'
+        if isSellOrder:
+            side = 'sell'
+        # We parse different fields in a very specific order.
+        # Order might well be closed and then canceled.
+        status = None
+        if ('Opened' in list(order.keys())) and order['Opened']:
+            status = 'open'
+        if ('Closed' in list(order.keys())) and order['Closed']:
+            status = 'closed'
+        if ('CancelInitiated' in list(order.keys())) and order['CancelInitiated']:
+            status = 'canceled'
+        if ('Status' in list(order.keys())) and self.options['parseOrderStatus']:
+            status = self.parse_order_status(self.safe_string(order, 'Status'))
+        symbol = None
+        if 'Exchange' in order:
+            marketId = order['Exchange']
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
+            else:
+                symbol = self.parse_symbol(marketId)
+        else:
+            if market is not None:
+                symbol = market['symbol']
+        timestamp = None
+        if 'Opened' in order:
+            timestamp = self.parse8601(order['Opened'] + '+00:00')
+        if 'Created' in order:
+            timestamp = self.parse8601(order['Created'] + '+00:00')
+        lastTradeTimestamp = None
+        if ('TimeStamp' in list(order.keys())) and(order['TimeStamp'] is not None):
+            lastTradeTimestamp = self.parse8601(order['TimeStamp'] + '+00:00')
+        if ('Closed' in list(order.keys())) and(order['Closed'] is not None):
+            lastTradeTimestamp = self.parse8601(order['Closed'] + '+00:00')
+        if timestamp is None:
+            timestamp = lastTradeTimestamp
+        fee = None
+        commission = None
+        if 'Commission' in order:
+            commission = 'Commission'
+        elif 'CommissionPaid' in order:
+            commission = 'CommissionPaid'
+        if commission:
+            fee = {
+                'cost': self.safe_float(order, commission),
+            }
+            if market is not None:
+                fee['currency'] = market['quote']
+            elif symbol is not None:
+                currencyIds = symbol.split('/')
+                quoteCurrencyId = currencyIds[1]
+                if quoteCurrencyId in self.currencies_by_id:
+                    fee['currency'] = self.currencies_by_id[quoteCurrencyId]['code']
+                else:
+                    fee['currency'] = self.common_currency_code(quoteCurrencyId)
+        price = self.safe_float(order, 'Price')
+        cost = None
+        amount = self.safe_float(order, 'Quantity')
+        remaining = self.safe_float(order, 'QuantityRemaining')
+        filled = None
+        if amount is not None and remaining is not None:
+            filled = amount - remaining
+        if not cost:
+            if price and filled:
+                cost = price * filled
+        if not price:
+            if cost and filled:
+                price = cost / filled
+        average = self.safe_float(order, 'PricePerUnit')
+        id = self.safe_string_2(order, 'OrderUuid', 'OrderId')
+        return {
+            'info': order,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'average': average,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+        }
+
     def parse_transaction(self, transaction, currency=None):
         #
         #  deposit:
