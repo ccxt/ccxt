@@ -12,7 +12,7 @@ module.exports = class bequant extends hitbtc2 {
             'name': 'Bequant',
             'countries': [ 'HK' ],
             'urls': {
-                'logo': 'https://i.imgur.com/WK3S28s.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg',
                 'api': 'https://api.bequant.io',
                 'www': 'https://bequant.io',
                 'doc': [
