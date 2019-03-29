@@ -343,7 +343,15 @@ module.exports = class bitstamp extends Exchange {
         //
         // fetchMyTrades, trades returned within fetchOrder (private)
         //
-        //     ...
+        //     {
+        //         "usd": "6.0134400000000000",
+        //         "price": "4008.96000000",
+        //         "datetime": "2019-03-28 23:07:37.233599",
+        //         "fee": "0.02",
+        //         "btc": "0.00150000",
+        //         "tid": 84452058,
+        //         "type": 2
+        //     }
         //
         const id = this.safeString2 (trade, 'id', 'tid');
         let symbol = undefined;
@@ -378,9 +386,19 @@ module.exports = class bitstamp extends Exchange {
             feeCurrency = market['quote'];
             symbol = market['symbol'];
         }
+        let timestamp = this.safeString2 (trade, 'date', 'datetime');
+        if (timestamp !== undefined) {
+            if (timestamp.indexOf (' ') >= 0) {
+                // iso8601
+                timestamp = this.parse8601 (timestamp);
+            } else {
+                // string unix epoch in seconds
+                timestamp = parseInt (timestamp);
+                timestamp = timestamp * 1000;
+            }
+        }
         // if it is a private trade
         if ('id' in trade) {
-            timestamp = this.parse8601 (trade['datetime']);
             if (amount !== undefined) {
                 if (amount < 0) {
                     side = 'sell';
@@ -390,7 +408,6 @@ module.exports = class bitstamp extends Exchange {
                 }
             }
         } else {
-            timestamp = parseInt (trade['datetime']) * 1000;
             side = this.safeString (trade, 'type');
             if (side === '1') {
                 side = 'sell';
@@ -520,7 +537,8 @@ module.exports = class bitstamp extends Exchange {
 
     async fetchOrderStatus (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostOrderStatus (this.extend ({ 'id': id }, params));
+        const request = { 'id': id };
+        const response = await this.privatePostOrderStatus (this.extend (request, params));
         return this.parseOrderStatus (this.safeString (response, 'status'));
     }
 
@@ -530,7 +548,24 @@ module.exports = class bitstamp extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let response = await this.privatePostOrderStatus (this.extend ({ 'id': id }, params));
+        const request = { 'id': id };
+        const response = await this.privatePostOrderStatus (this.extend (request, params));
+        //
+        //     {
+        //         "status": "Finished",
+        //         "id": 3047704374,
+        //         "transactions": [
+        //             {
+        //                 "usd": "6.0134400000000000",
+        //                 "price": "4008.96000000",
+        //                 "datetime": "2019-03-28 23:07:37.233599",
+        //                 "fee": "0.02",
+        //                 "btc": "0.00150000",
+        //                 "tid": 84452058,
+        //                 "type": 2
+        //             }
+        //         ]
+        //     }
         return this.parseOrder (response, market);
     }
 
