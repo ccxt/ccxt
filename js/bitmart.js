@@ -104,7 +104,7 @@ module.exports = class bitmart extends Exchange {
         let ticker = await this.publicGetTicker (this.extend ({
             'symbol': this.marketId (symbol),
         }, params));
-        return this.parseTicker(ticker);
+        return this.parseTicker (ticker);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -131,7 +131,7 @@ module.exports = class bitmart extends Exchange {
                 'name': currency['name'],
                 'info': currency, // the original payload
                 'active': true,
-            }
+            };
         }
         return result;
     }
