@@ -356,7 +356,6 @@ module.exports = class bitstamp extends Exchange {
         const id = this.safeString2 (trade, 'id', 'tid');
         let symbol = undefined;
         let side = undefined;
-        let timestamp = undefined;
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'amount');
         let orderId = this.safeString (trade, 'order_id');
