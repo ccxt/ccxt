@@ -757,9 +757,12 @@ class bitmex (Exchange):
         if amount is not None:
             if filled is not None:
                 remaining = max(amount - filled, 0.0)
+        average = self.safe_float(order, 'avgPx')
         cost = None
-        if price is not None:
-            if filled is not None:
+        if filled is not None:
+            if average is not None:
+                cost = average * filled
+            elif price is not None:
                 cost = price * filled
         result = {
             'info': order,
@@ -773,6 +776,7 @@ class bitmex (Exchange):
             'price': price,
             'amount': amount,
             'cost': cost,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,

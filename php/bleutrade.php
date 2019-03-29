@@ -249,6 +249,114 @@ class bleutrade extends bittrex {
         );
     }
 
+    public function parse_order ($order, $market = null) {
+        $side = $this->safe_string_2($order, 'OrderType', 'Type');
+        $isBuyOrder = ($side === 'LIMIT_BUY') || ($side === 'BUY');
+        $isSellOrder = ($side === 'LIMIT_SELL') || ($side === 'SELL');
+        if ($isBuyOrder) {
+            $side = 'buy';
+        }
+        if ($isSellOrder) {
+            $side = 'sell';
+        }
+        // We parse different fields in a very specific $order->
+        // Order might well be closed and then canceled.
+        $status = null;
+        if ((is_array ($order) && array_key_exists ('Opened', $order)) && $order['Opened'])
+            $status = 'open';
+        if ((is_array ($order) && array_key_exists ('Closed', $order)) && $order['Closed'])
+            $status = 'closed';
+        if ((is_array ($order) && array_key_exists ('CancelInitiated', $order)) && $order['CancelInitiated'])
+            $status = 'canceled';
+        if ((is_array ($order) && array_key_exists ('Status', $order)) && $this->options['parseOrderStatus'])
+            $status = $this->parse_order_status($this->safe_string($order, 'Status'));
+        $symbol = null;
+        if (is_array ($order) && array_key_exists ('Exchange', $order)) {
+            $marketId = $order['Exchange'];
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+                $symbol = $market['symbol'];
+            } else {
+                $symbol = $this->parse_symbol ($marketId);
+            }
+        } else {
+            if ($market !== null) {
+                $symbol = $market['symbol'];
+            }
+        }
+        $timestamp = null;
+        if (is_array ($order) && array_key_exists ('Opened', $order))
+            $timestamp = $this->parse8601 ($order['Opened'] . '+00:00');
+        if (is_array ($order) && array_key_exists ('Created', $order))
+            $timestamp = $this->parse8601 ($order['Created'] . '+00:00');
+        $lastTradeTimestamp = null;
+        if ((is_array ($order) && array_key_exists ('TimeStamp', $order)) && ($order['TimeStamp'] !== null))
+            $lastTradeTimestamp = $this->parse8601 ($order['TimeStamp'] . '+00:00');
+        if ((is_array ($order) && array_key_exists ('Closed', $order)) && ($order['Closed'] !== null))
+            $lastTradeTimestamp = $this->parse8601 ($order['Closed'] . '+00:00');
+        if ($timestamp === null)
+            $timestamp = $lastTradeTimestamp;
+        $fee = null;
+        $commission = null;
+        if (is_array ($order) && array_key_exists ('Commission', $order)) {
+            $commission = 'Commission';
+        } else if (is_array ($order) && array_key_exists ('CommissionPaid', $order)) {
+            $commission = 'CommissionPaid';
+        }
+        if ($commission) {
+            $fee = array (
+                'cost' => $this->safe_float($order, $commission),
+            );
+            if ($market !== null) {
+                $fee['currency'] = $market['quote'];
+            } else if ($symbol !== null) {
+                $currencyIds = explode ('/', $symbol);
+                $quoteCurrencyId = $currencyIds[1];
+                if (is_array ($this->currencies_by_id) && array_key_exists ($quoteCurrencyId, $this->currencies_by_id)) {
+                    $fee['currency'] = $this->currencies_by_id[$quoteCurrencyId]['code'];
+                } else {
+                    $fee['currency'] = $this->common_currency_code($quoteCurrencyId);
+                }
+            }
+        }
+        $price = $this->safe_float($order, 'Price');
+        $cost = null;
+        $amount = $this->safe_float($order, 'Quantity');
+        $remaining = $this->safe_float($order, 'QuantityRemaining');
+        $filled = null;
+        if ($amount !== null && $remaining !== null) {
+            $filled = $amount - $remaining;
+        }
+        if (!$cost) {
+            if ($price && $filled)
+                $cost = $price * $filled;
+        }
+        if (!$price) {
+            if ($cost && $filled)
+                $price = $cost / $filled;
+        }
+        $average = $this->safe_float($order, 'PricePerUnit');
+        $id = $this->safe_string_2($order, 'OrderUuid', 'OrderId');
+        return array (
+            'info' => $order,
+            'id' => $id,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => $lastTradeTimestamp,
+            'symbol' => $symbol,
+            'type' => 'limit',
+            'side' => $side,
+            'price' => $price,
+            'cost' => $cost,
+            'average' => $average,
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'status' => $status,
+            'fee' => $fee,
+        );
+    }
+
     public function parse_transaction ($transaction, $currency = null) {
         //
         //  deposit:

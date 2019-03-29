@@ -179,6 +179,9 @@ class kucoin (Exchange):
                     'deposit': {},
                 },
             },
+            'commonCurrencies': {
+                'HOT': 'HOTNOW',
+            },
             'options': {
                 'version': 'v1',
                 'symbolSeparator': '-',

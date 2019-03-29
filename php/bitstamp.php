@@ -344,12 +344,19 @@ class bitstamp extends Exchange {
         //
         // fetchMyTrades, trades returned within fetchOrder (private)
         //
-        //     ...
+        //     {
+        //         "usd" => "6.0134400000000000",
+        //         "$price" => "4008.96000000",
+        //         "datetime" => "2019-03-28 23:07:37.233599",
+        //         "$fee" => "0.02",
+        //         "btc" => "0.00150000",
+        //         "tid" => 84452058,
+        //         "$type" => 2
+        //     }
         //
         $id = $this->safe_string_2($trade, 'id', 'tid');
         $symbol = null;
         $side = null;
-        $timestamp = null;
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $orderId = $this->safe_string($trade, 'order_id');
@@ -379,9 +386,19 @@ class bitstamp extends Exchange {
             $feeCurrency = $market['quote'];
             $symbol = $market['symbol'];
         }
+        $timestamp = $this->safe_string_2($trade, 'date', 'datetime');
+        if ($timestamp !== null) {
+            if (mb_strpos ($timestamp, ' ') !== false) {
+                // iso8601
+                $timestamp = $this->parse8601 ($timestamp);
+            } else {
+                // string unix epoch in seconds
+                $timestamp = intval ($timestamp);
+                $timestamp = $timestamp * 1000;
+            }
+        }
         // if it is a private $trade
         if (is_array ($trade) && array_key_exists ('id', $trade)) {
-            $timestamp = $this->parse8601 ($trade['datetime']);
             if ($amount !== null) {
                 if ($amount < 0) {
                     $side = 'sell';
@@ -391,7 +408,6 @@ class bitstamp extends Exchange {
                 }
             }
         } else {
-            $timestamp = intval ($trade['date']) * 1000;
             $side = $this->safe_string($trade, 'type');
             if ($side === '1') {
                 $side = 'sell';
@@ -521,7 +537,8 @@ class bitstamp extends Exchange {
 
     public function fetch_order_status ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostOrderStatus (array_merge (array ( 'id' => $id ), $params));
+        $request = array ( 'id' => $id );
+        $response = $this->privatePostOrderStatus (array_merge ($request, $params));
         return $this->parse_order_status($this->safe_string($response, 'status'));
     }
 
@@ -531,7 +548,24 @@ class bitstamp extends Exchange {
         if ($symbol !== null) {
             $market = $this->market ($symbol);
         }
-        $response = $this->privatePostOrderStatus (array_merge (array ( 'id' => $id ), $params));
+        $request = array ( 'id' => $id );
+        $response = $this->privatePostOrderStatus (array_merge ($request, $params));
+        //
+        //     {
+        //         "status" => "Finished",
+        //         "$id" => 3047704374,
+        //         "transactions" => array (
+        //             {
+        //                 "usd" => "6.0134400000000000",
+        //                 "price" => "4008.96000000",
+        //                 "datetime" => "2019-03-28 23:07:37.233599",
+        //                 "fee" => "0.02",
+        //                 "btc" => "0.00150000",
+        //                 "tid" => 84452058,
+        //                 "type" => 2
+        //             }
+        //         )
+        //     }
         return $this->parse_order($response, $market);
     }
 
