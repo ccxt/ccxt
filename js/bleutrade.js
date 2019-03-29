@@ -237,7 +237,7 @@ module.exports = class bleutrade extends bittrex {
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchTransactionsByType ('withdrawal', code, since, limit, params);
     }
-    
+
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
         let timestamp = this.parse8601 (ohlcv['TimeStamp'] + '+00:00');
         return [
