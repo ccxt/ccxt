@@ -99,8 +99,8 @@ If you choose the hard way, here is the list of the dependencies you will need. 
 - [Node.js](https://nodejs.org/en/download/) 8+
 - [Python](https://www.python.org/downloads/) 3.5.3+ and Python 2.7+
   - tox (`brew install tox` or `pip install tox`)
-  - requests (pip install requests)
-  - aiohttp (pip install aiohttp)
+  - requests (`pip install requests`)
+  - aiohttp (`pip install aiohttp`)
 - [PHP](https://secure.php.net/downloads.php) 5.3+ with the following extensions installed and enabled:
   - cURL
   - iconv
