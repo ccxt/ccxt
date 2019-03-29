@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.408'
+const version = '1.18.409'
 
 Exchange.ccxtVersion = version
 
@@ -49240,6 +49240,9 @@ module.exports = class kucoin extends Exchange {
                     'withdraw': {},
                     'deposit': {},
                 },
+            },
+            'commonCurrencies': {
+                'HOT': 'HOTNOW',
             },
             'options': {
                 'version': 'v1',

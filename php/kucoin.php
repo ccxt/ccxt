@@ -166,6 +166,9 @@ class kucoin extends Exchange {
                     'deposit' => array (),
                 ),
             ),
+            'commonCurrencies' => array (
+                'HOT' => 'HOTNOW',
+            ),
             'options' => array (
                 'version' => 'v1',
                 'symbolSeparator' => '-',
