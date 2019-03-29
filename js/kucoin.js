@@ -165,6 +165,9 @@ module.exports = class kucoin extends Exchange {
                     'deposit': {},
                 },
             },
+            'commonCurrencies': {
+                'HOT': 'HOTNOW',
+            },
             'options': {
                 'version': 'v1',
                 'symbolSeparator': '-',
