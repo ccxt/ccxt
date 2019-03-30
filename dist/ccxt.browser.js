@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.416'
+const version = '1.18.417'
 
 Exchange.ccxtVersion = version
 
@@ -7108,17 +7108,18 @@ module.exports = class binance extends Exchange {
             };
             if ('PRICE_FILTER' in filters) {
                 let filter = filters['PRICE_FILTER'];
-                // PRICE_FILTER reports zero values for minPrice and maxPrice
+                // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
-                // therefore limits['price']['min'] and limits['price']['max]
-                // don't have any meaningful value except undefined
-                //
-                //     entry['limits']['price'] = {
-                //         'min': this.safeFloat (filter, 'minPrice'),
-                //         'max': this.safeFloat (filter, 'maxPrice'),
-                //     };
-                //
+                // therefore limits['price']['max'] doesn't have any meaningful value except undefined
+                entry['limits']['price'] = {
+                    'min': this.safeFloat (filter, 'minPrice'),
+                    'max': undefined,
+                };
+                const maxPrice = this.safeFloat (filter, 'maxPrice');
+                if ((maxPrice !== undefined) && (maxPrice > 0)) {
+                    entry['limits']['price']['max'] = maxPrice;
+                }
                 entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
             }
             if ('LOT_SIZE' in filters) {
