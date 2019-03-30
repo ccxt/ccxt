@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.415'
+const version = '1.18.416'
 
 Exchange.ccxtVersion = version
 
@@ -7264,8 +7264,8 @@ module.exports = class binance extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'symbol': market['id'],
             'interval': this.timeframes[timeframe],
         };
@@ -7275,7 +7275,7 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default == max == 500
         }
-        let response = await this.publicGetKlines (this.extend (request, params));
+        const response = await this.publicGetKlines (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
@@ -39946,11 +39946,26 @@ module.exports = class gateio extends Exchange {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
                 'fetchClosedOrders': true,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrderTrades': true,
                 'fetchOrders': true,
                 'fetchOrder': true,
                 'fetchMyTrades': true,
+            },
+            'timeframes': {
+                '1m': '60',
+                '5m': '300',
+                '10m': '600',
+                '15m': '900',
+                '30m': '1200',
+                '1h': '3600',
+                '2h': '7200',
+                '4h': '14400',
+                '6h': '21600',
+                '12h': '43200',
+                '1d': '86400',
+                '1w': '604800',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
@@ -39969,6 +39984,7 @@ module.exports = class gateio extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'candlestick2/{id}',
                         'pairs',
                         'marketinfo',
                         'marketlist',
@@ -40149,19 +40165,61 @@ module.exports = class gateio extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetOrderBookId (this.extend ({
+        const request = {
             'id': this.marketId (symbol),
-        }, params));
-        return this.parseOrderBook (orderbook);
+        };
+        const response = await this.publicGetOrderBookId (this.extend (request, params));
+        return this.parseOrderBook (response);
+    }
+
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        // they return [ Timestamp, Volume, Close, High, Low, Open ]
+        return [
+            parseInt (ohlcv[0]),   // t
+            parseFloat (ohlcv[5]), // o
+            parseFloat (ohlcv[3]), // h
+            parseFloat (ohlcv[4]), // l
+            parseFloat (ohlcv[2]), // c
+            parseFloat (ohlcv[1]), // v
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'id': market['id'],
+            'group_sec': this.timeframes[timeframe],
+        };
+        // max limit = 1001
+        if (limit !== undefined) {
+            const periodDurationInSeconds = this.parseTimeframe (timeframe);
+            const hours = parseInt ((periodDurationInSeconds * limit) / 3600);
+            request['range_hour'] = Math.max (0, hours - 1);
+        }
+        const response = await this.publicGetCandlestick2Id (this.extend (request, params));
+        //
+        //     {
+        //         "elapsed": "15ms",
+        //         "result": "true",
+        //         "data": [
+        //             [ "1553930820000", "1.005299", "4081.05", "4086.18", "4081.05", "4086.18" ],
+        //             [ "1553930880000", "0.110923277", "4095.2", "4095.23", "4091.15", "4091.15" ],
+        //             ...
+        //             [ "1553934420000", "0", "4089.42", "4089.42", "4089.42", "4089.42" ],
+        //         ]
+        //     }
+        //
+        return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.milliseconds ();
+        const timestamp = this.milliseconds ();
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-        let last = this.safeFloat (ticker, 'last');
-        let percentage = this.safeFloat (ticker, 'percentChange');
+        const last = this.safeFloat (ticker, 'last');
+        const percentage = this.safeFloat (ticker, 'percentChange');
         let open = undefined;
         let change = undefined;
         let average = undefined;
@@ -40202,11 +40260,11 @@ module.exports = class gateio extends Exchange {
         if (body[0] !== '{') {
             return;
         }
-        let resultString = this.safeString (response, 'result', '');
+        const resultString = this.safeString (response, 'result', '');
         if (resultString !== 'false') {
             return;
         }
-        let errorCode = this.safeString (response, 'code');
+        const errorCode = this.safeString (response, 'code');
         if (errorCode !== undefined) {
             const exceptions = this.exceptions;
             const errorCodeNames = this.errorCodeNames;
