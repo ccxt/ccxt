@@ -27,6 +27,19 @@ class bleutrade (bittrex):
                 'fetchClosedOrders': True,
                 'fetchOrderTrades': True,
             },
+            'timeframes': {
+                '15m': '15m',
+                '20m': '20m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '3h': '3h',
+                '4h': '4h',
+                '6h': '6h',
+                '8h': '8h',
+                '12h': '12h',
+                '1d': '1d',
+            },
             'hostname': 'bleutrade.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
@@ -51,6 +64,18 @@ class bleutrade (bittrex):
                         'orderhistory',
                         'withdrawhistory',
                         'withdraw',
+                    ],
+                },
+                'public': {
+                    'get': [
+                        'candles',
+                        'currencies',
+                        'markethistory',
+                        'markets',
+                        'marketsummaries',
+                        'marketsummary',
+                        'orderbook',
+                        'ticker',
                     ],
                 },
             },
@@ -202,6 +227,30 @@ class bleutrade (bittrex):
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         return self.fetch_transactions_by_type('withdrawal', code, since, limit, params)
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
+        timestamp = self.parse8601(ohlcv['TimeStamp'] + '+00:00')
+        return [
+            timestamp,
+            ohlcv['Open'],
+            ohlcv['High'],
+            ohlcv['Low'],
+            ohlcv['Close'],
+            ohlcv['Volume'],
+        ]
+
+    def fetch_ohlcv(self, symbol, timeframe='15m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'period': self.timeframes[timeframe],
+            'market': market['id'],
+            'count': limit,
+        }
+        response = self.publicGetCandles(self.extend(request, params))
+        if 'result' in response:
+            if response['result']:
+                return self.parse_ohlcvs(response['result'], market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(trade['TimeStamp'] + '+00:00')

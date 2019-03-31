@@ -24,6 +24,19 @@ class bleutrade extends bittrex {
                 'fetchClosedOrders' => true,
                 'fetchOrderTrades' => true,
             ),
+            'timeframes' => array (
+                '15m' => '15m',
+                '20m' => '20m',
+                '30m' => '30m',
+                '1h' => '1h',
+                '2h' => '2h',
+                '3h' => '3h',
+                '4h' => '4h',
+                '6h' => '6h',
+                '8h' => '8h',
+                '12h' => '12h',
+                '1d' => '1d',
+            ),
             'hostname' => 'bleutrade.com',
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
@@ -48,6 +61,18 @@ class bleutrade extends bittrex {
                         'orderhistory',
                         'withdrawhistory',
                         'withdraw',
+                    ),
+                ),
+                'public' => array (
+                    'get' => array (
+                        'candles',
+                        'currencies',
+                        'markethistory',
+                        'markets',
+                        'marketsummaries',
+                        'marketsummary',
+                        'orderbook',
+                        'ticker',
                     ),
                 ),
             ),
@@ -212,6 +237,33 @@ class bleutrade extends bittrex {
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
         return $this->fetch_transactions_by_type ('withdrawal', $code, $since, $limit, $params);
+    }
+
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
+        $timestamp = $this->parse8601 ($ohlcv['TimeStamp'] . '+00:00');
+        return [
+            $timestamp,
+            $ohlcv['Open'],
+            $ohlcv['High'],
+            $ohlcv['Low'],
+            $ohlcv['Close'],
+            $ohlcv['Volume'],
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '15m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'period' => $this->timeframes[$timeframe],
+            'market' => $market['id'],
+            'count' => $limit,
+        );
+        $response = $this->publicGetCandles (array_merge ($request, $params));
+        if (is_array ($response) && array_key_exists ('result', $response)) {
+            if ($response['result'])
+                return $this->parse_ohlcvs($response['result'], $market, $timeframe, $since, $limit);
+        }
     }
 
     public function parse_trade ($trade, $market = null) {
