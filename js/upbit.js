@@ -139,7 +139,7 @@ module.exports = class upbit extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'CPT': 'Content Protocol Token', // conflict with CPT (Cryptaur) https://github.com/ccxt/ccxt/issues/4920
+                'CPT': 'Contents Protocol', // conflict with CPT (Cryptaur) https://github.com/ccxt/ccxt/issues/4920
             },
         });
     }
