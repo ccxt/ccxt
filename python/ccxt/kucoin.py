@@ -215,7 +215,7 @@ class kucoin (Exchange):
         #   baseCurrency: 'KCS'}
         #
         data = response['data']
-        result = {}
+        result = []
         for i in range(0, len(data)):
             market = data[i]
             id = market['name']
@@ -248,7 +248,7 @@ class kucoin (Exchange):
                     'max': quoteMaxSize,
                 },
             }
-            result[symbol] = {
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'baseId': baseId,
@@ -259,7 +259,7 @@ class kucoin (Exchange):
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-            }
+            })
         return result
 
     def fetch_currencies(self, params={}):
