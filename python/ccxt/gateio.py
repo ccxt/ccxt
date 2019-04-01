@@ -42,11 +42,26 @@ class gateio (Exchange):
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
                 'fetchClosedOrders': True,
+                'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrderTrades': True,
                 'fetchOrders': True,
                 'fetchOrder': True,
                 'fetchMyTrades': True,
+            },
+            'timeframes': {
+                '1m': '60',
+                '5m': '300',
+                '10m': '600',
+                '15m': '900',
+                '30m': '1200',
+                '1h': '3600',
+                '2h': '7200',
+                '4h': '14400',
+                '6h': '21600',
+                '12h': '43200',
+                '1d': '86400',
+                '1w': '604800',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
@@ -65,6 +80,7 @@ class gateio (Exchange):
             'api': {
                 'public': {
                     'get': [
+                        'candlestick2/{id}',
                         'pairs',
                         'marketinfo',
                         'marketlist',
@@ -235,10 +251,49 @@ class gateio (Exchange):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetOrderBookId(self.extend({
+        request = {
             'id': self.market_id(symbol),
-        }, params))
-        return self.parse_order_book(orderbook)
+        }
+        response = self.publicGetOrderBookId(self.extend(request, params))
+        return self.parse_order_book(response)
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        # they return [Timestamp, Volume, Close, High, Low, Open]
+        return [
+            int(ohlcv[0]),   # t
+            float(ohlcv[5]),  # o
+            float(ohlcv[3]),  # h
+            float(ohlcv[4]),  # l
+            float(ohlcv[2]),  # c
+            float(ohlcv[1]),  # v
+        ]
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'id': market['id'],
+            'group_sec': self.timeframes[timeframe],
+        }
+        # max limit = 1001
+        if limit is not None:
+            periodDurationInSeconds = self.parse_timeframe(timeframe)
+            hours = int((periodDurationInSeconds * limit) / 3600)
+            request['range_hour'] = max(0, hours - 1)
+        response = self.publicGetCandlestick2Id(self.extend(request, params))
+        #
+        #     {
+        #         "elapsed": "15ms",
+        #         "result": "true",
+        #         "data": [
+        #             ["1553930820000", "1.005299", "4081.05", "4086.18", "4081.05", "4086.18"],
+        #             ["1553930880000", "0.110923277", "4095.2", "4095.23", "4091.15", "4091.15"],
+        #             ...
+        #             ["1553934420000", "0", "4089.42", "4089.42", "4089.42", "4089.42"],
+        #         ]
+        #     }
+        #
+        return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
