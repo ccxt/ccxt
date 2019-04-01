@@ -406,23 +406,23 @@ module.exports = class cointiger extends huobipro {
     }
 
     convertTimestamp (timestamp) {
-        timestamp = new Date(timestamp);
-        let date = (('0' + (timestamp.getDate())).slice(-2));
-        let month = (('0' + (timestamp.getMonth() + 1)).slice(-2));
-        let year = timestamp.getFullYear();
+        timestamp = new Date (timestamp);
+        let date = (('0' + (timestamp.getDate ())).slice (-2));
+        let month = (('0' + (timestamp.getMonth () + 1)).slice (-2));
+        let year = timestamp.getFullYear ();
         return year + '-' + month + '-' + date;
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let week = 604800000; //milliseconds
+        let week = 604800000; // milliseconds
         if (symbol === undefined)
             throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
         if (since === undefined)
-            since = this.milliseconds () - week; //week ago
+            since = this.milliseconds () - week; // week ago
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let from = this.convertTimestamp(since);
-        let to = this.convertTimestamp(since + week); //one week
+        let from = this.convertTimestamp (since);
+        let to = this.convertTimestamp (since + week); // one week
         if (limit === undefined)
             limit = 1000;
         let response = await this.v2GetOrderMatchResults (this.extend ({
