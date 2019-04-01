@@ -20,6 +20,9 @@ module.exports = class bitmart extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchCurrencies': true,
+                'fetchOrderBook': true,
+                'fetchTrades': true,
+                'fetchOHLCV': true,
             },
             'urls': {
                 'logo': 'https://www.bitmart.com/_nuxt/img/ed5c199.png',
@@ -34,11 +37,16 @@ module.exports = class bitmart extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'ticker',
+                        'currencies',
+                        'ping',
+                        'steps',
                         'symbols',
                         'symbols_details',
+                        'symbols/{symbol}/kline',
+                        'symbols/{symbol}/orders',
                         'symbols/{symbol}/trades',
-                        'currencies',
+                        'ticker',
+                        'time',
                     ],
                 },
             },
@@ -136,6 +144,18 @@ module.exports = class bitmart extends Exchange {
         return result;
     }
 
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        //
+        // order query parameters:
+        //    precision : price precision whose range is defined in symbol details : [optional]
+        //
+        let response = await this.publicGetSymbolsSymbolOrders (this.extend ({
+            'symbol': this.marketId (symbol),
+        }, params));
+        return this.parseOrderBook (response, undefined, 'buys', 'sells', 'price', 'amount');
+    }
+
     parseTrade (trade, market) {
         let timestamp = parseInt (trade['order_time']);
         return {
@@ -159,6 +179,32 @@ module.exports = class bitmart extends Exchange {
             'symbol': this.marketId (symbol),
         }, params));
         return this.parseTrades (response, market, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        return [
+            parseInt (ohlcv['timestamp']) * 100,
+            this.safeFloat (ohlcv, 'open_price'),
+            this.safeFloat (ohlcv, 'highest_price'),
+            this.safeFloat (ohlcv, 'lowest_price'),
+            this.safeFloat (ohlcv, 'current_price'),
+            this.safeFloat (ohlcv, 'volume'),
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        //
+        // ohlcv query parameters:
+        //    from : start time of k-line data (in milliseconds) : [required]
+        //    to : end time of k-line data (in milliseconds) : [required]
+        //    step : steps of sampling (in minutes, default 1 minute) : [optional]
+        //
+        let response = await this.publicGetSymbolsSymbolKline (this.extend ({
+            'symbol': this.marketId (symbol),
+        }, params));
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     nonce () {
