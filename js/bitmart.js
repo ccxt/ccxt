@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-
+const { AuthenticationError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitmart extends Exchange {
@@ -15,7 +15,7 @@ module.exports = class bitmart extends Exchange {
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
-                'CORS': false,
+                'CORS': true,
                 'fetchMarkets': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -23,6 +23,7 @@ module.exports = class bitmart extends Exchange {
                 'fetchOrderBook': true,
                 'fetchTrades': true,
                 'fetchOHLCV': true,
+                'fetchBalance': true,
             },
             'urls': {
                 'logo': 'https://www.bitmart.com/_nuxt/img/ed5c199.png',
@@ -33,8 +34,14 @@ module.exports = class bitmart extends Exchange {
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,
+                'uid': true,
             },
             'api': {
+                'token': {
+                    'post': [
+                        'authentication',
+                    ],
+                },
                 'public': {
                     'get': [
                         'currencies',
@@ -49,8 +56,31 @@ module.exports = class bitmart extends Exchange {
                         'time',
                     ],
                 },
+                'private': {
+                    'get': [
+                        'wallet',
+                    ],
+                },
             },
         });
+    }
+
+    async signIn (params = {}) {
+        let message = this.apiKey + ':' + this.secret + ':' + this.uid;
+        let data = {
+            'grant_type': 'client_credentials',
+            'client_id': this.apiKey,
+            'client_secret': this.hmac (this.encode (message), this.encode (this.secret), 'sha256'),
+        };
+        let response = await this.tokenPostAuthentication (this.extend (data, params));
+        let accessToken = this.safeString (response, 'access_token');
+        if (!accessToken) {
+            throw new AuthenticationError (this.id + ' signIn() failed to authenticate. Access token missing from response.');
+        }
+        let expiresIn = this.safeInteger (response, 'expires_in');
+        this.options['expires'] = this.sum (this.nonce (), expiresIn * 1000);
+        this.options['accessToken'] = accessToken;
+        return response;
     }
 
     async fetchMarkets (params = {}) {
@@ -207,6 +237,27 @@ module.exports = class bitmart extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        let balances = await this.privateGetWallet (params);
+        let result = {};
+        for (let i = 0; i < balances.length; i++) {
+            let balance = balances[i];
+            let id = this.safeString (balance, 'id');
+            if (id in this.currencies_by_id) {
+                id = this.currencies_by_id[id]['code'];
+            }
+            let free = this.safeFloat (balance, 'available');
+            let used = this.safeFloat (balance, 'frozen');
+            result[id] = {
+                'free': free,
+                'used': used,
+                'total': this.sum (free, used),
+            };
+        }
+        return result;
+    }
+
     nonce () {
         return this.milliseconds ();
     }
@@ -217,16 +268,28 @@ module.exports = class bitmart extends Exchange {
         if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
-        } else {
-            // FIXME: need to fetch bearer token before sending a request. params must be sorted a-z.
+        } else if (api === 'token') {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
-            body = this.urlencode (this.extend ({ 'timestamp': nonce }, params));
+            body = this.urlencode (query);
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            };
+        } else {
+            this.checkRequiredCredentials ();
+            let token = this.safeString (this.options, 'accessToken');
+            if (token === undefined) {
+                throw new AuthenticationError (this.id + ' ' + path + ' endpoint requires an accessToken option or a prior call to signIn() method');
+            }
+            let expires = this.safeInteger (this.options, 'expires');
+            if (expires !== undefined) {
+                if (this.nonce () >= expires) {
+                    throw new AuthenticationError (this.id + ' accessToken expired, supply a new accessToken or call to signIn() method');
+                }
+            }
             headers = {
                 'Content-Type': 'application/json',
-                'X-BM-TIMESTAMP': nonce,
-                'X-BM-AUTHORIZATION': 'Bearer: <token>',
-                'X-BM-SIGNATURE': this.hmac (this.encode (body), this.encode (this.secret), 'sha256'),
+                'X-BM-TIMESTAMP': this.nonce (),
+                'X-BM-AUTHORIZATION': 'Bearer ' + token,
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
