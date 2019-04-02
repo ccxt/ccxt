@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError } = require ('./base/errors');
+const { AuthenticationError, ArgumentsRequired } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitmart extends Exchange {
@@ -22,8 +22,15 @@ module.exports = class bitmart extends Exchange {
                 'fetchCurrencies': true,
                 'fetchOrderBook': true,
                 'fetchTrades': true,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchBalance': true,
+                'createOrder': true,
+                'cancelOrder': true,
+                'fetchOrders': false,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
+                'fetchOrder': true,
             },
             'urls': {
                 'logo': 'https://www.bitmart.com/_nuxt/img/ed5c199.png',
@@ -58,7 +65,17 @@ module.exports = class bitmart extends Exchange {
                 },
                 'private': {
                     'get': [
+                        'orders',
+                        'orders/{id}',
+                        'trades',
                         'wallet',
+                    ],
+                    'post': [
+                        'orders',
+                    ],
+                    'delete': [
+                        'orders',
+                        'orders/{id}',
                     ],
                 },
             },
@@ -187,16 +204,23 @@ module.exports = class bitmart extends Exchange {
     }
 
     parseTrade (trade, market) {
-        let timestamp = parseInt (trade['order_time']);
+        let timestamp = this.safeInteger (trade, 'timestamp');
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger (trade, 'order_time');
+        }
+        let side = this.safeString (trade, 'type');
+        if (side !== undefined) {
+            side = side.toLowerCase ();
+        }
         return {
             'info': trade,
-            'id': trade['tid'].toString (),
-            'order': undefined,
+            'id': this.safeString (trade, 'trade_id'),
+            'order': this.safeInteger (trade, 'entrust_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'type': undefined,
-            'side': trade['type'].toLowerCase (),
+            'type': 'limit',
+            'side': side,
             'price': this.safeFloat (trade, 'price'),
             'amount': this.safeFloat (trade, 'amount'),
         };
@@ -209,6 +233,25 @@ module.exports = class bitmart extends Exchange {
             'symbol': this.marketId (symbol),
         }, params));
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined)
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'symbol': this.marketId (symbol),
+        };
+        if (limit === undefined) {
+            limit = 500;
+        }
+        request['limit'] = limit;
+        if (this.safeInteger (params, 'offset') === undefined) {
+            request['offset'] = 0;
+        }
+        let response = await this.privateGetTrades (this.extend (request, params));
+        return this.parseTrades (response['trades'], market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
@@ -231,16 +274,23 @@ module.exports = class bitmart extends Exchange {
         //    to : end time of k-line data (in milliseconds) : [required]
         //    step : steps of sampling (in minutes, default 1 minute) : [optional]
         //
-        let response = await this.publicGetSymbolsSymbolKline (this.extend ({
+        let request = {
             'symbol': this.marketId (symbol),
-        }, params));
+        };
+        request['from'] = since;
+        if (since === undefined)
+            request['from'] = this.milliseconds () - 86400000;
+        if (params['to'] === undefined) {
+            request['to'] = this.milliseconds ();
+        }
+        let response = await this.publicGetSymbolsSymbolKline (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balances = await this.privateGetWallet (params);
-        let result = {};
+        let result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
             let id = this.safeString (balance, 'id');
@@ -258,12 +308,138 @@ module.exports = class bitmart extends Exchange {
         return result;
     }
 
+    parseOrder (order, market = undefined) {
+        let timestamp = this.milliseconds ();
+        let symbol = this.findSymbol (this.safeString (order, 'symbol'), market);
+        let info = order['info'];
+        if (info === undefined) {
+            info = this.extend ({}, order);
+        }
+        order = this.mapOrderResponse (order, market);
+        return {
+            'id': this.safeInteger (order, 'id'),
+            'info': info,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': 'limit',
+            'side': this.safeString (order, 'side'),
+            'price': this.safeFloat (order, 'price'),
+            'amount': this.safeFloat (order, 'amount'),
+            'cost': undefined,
+            'average': undefined,
+            'filled': this.safeFloat (order, 'executed_amount'),
+            'remaining': this.safeFloat (order, 'remaining_amount'),
+            'status': this.safeInteger (order, 'status'),
+            'fee': undefined,
+            'trades': undefined,
+        };
+    }
+
+    mapOrderResponse (order, market = undefined) {
+        if (order['original_amount'] !== undefined) {
+            order['amount'] = this.safeFloat (order, 'original_amount');
+        }
+        if (order['entrust_id'] !== undefined) {
+            order['id'] = this.safeInteger (order, 'entrust_id');
+        }
+        return order;
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let order = {
+            'symbol': this.marketId (symbol),
+            'side': side.toLowerCase (),
+            'amount': this.amountToPrecision (symbol, amount),
+            'price': this.priceToPrecision (symbol, price),
+        };
+        let response = await this.privatePostOrders (this.extend (order, params));
+        order = this.extend ({
+            'status': 'open',
+            'info': response,
+        }, order);
+        return this.parseOrder (this.extend (order, response), market);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined)
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.privateDeleteOrdersId (this.extend ({
+            'id': id,
+            'entrust_id': id,
+        }, params));
+        return this.parseOrder (this.extend ({
+            'symbol': this.marketId (symbol),
+            'status': 'canceled',
+            'entrust_id': id,
+            'info': response,
+        }, response), market);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined)
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'symbol': this.marketId (symbol),
+        };
+        if (limit === undefined) {
+            limit = 500;
+        }
+        request['limit'] = limit;
+        if (this.safeInteger (params, 'offset') === undefined) {
+            request['offset'] = 0;
+        }
+        // pending & partially filled orders
+        request['status'] = 5;
+        let response = await this.privateGetOrders (this.extend (request, params));
+        return this.parseOrders (response['orders'], market, since, limit);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined)
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires a symbol argument');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'symbol': this.marketId (symbol),
+        };
+        if (limit === undefined) {
+            limit = 500;
+        }
+        request['limit'] = limit;
+        if (this.safeInteger (params, 'offset') === undefined) {
+            request['offset'] = 0;
+        }
+        // successful and canceled orders
+        request['status'] = 6;
+        let response = await this.privateGetOrders (this.extend (request, params));
+        return this.parseOrders (response['orders'], market, since, limit);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined)
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.privateGetOrdersId (this.extend ({
+            'id': id,
+        }, params));
+        return this.parseOrder (response, market);
+    }
+
     nonce () {
         return this.milliseconds ();
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + path;
+        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length)
@@ -286,11 +462,19 @@ module.exports = class bitmart extends Exchange {
                     throw new AuthenticationError (this.id + ' accessToken expired, supply a new accessToken or call to signIn() method');
                 }
             }
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
             headers = {
                 'Content-Type': 'application/json',
                 'X-BM-TIMESTAMP': this.nonce (),
                 'X-BM-AUTHORIZATION': 'Bearer ' + token,
             };
+            if (method !== 'GET') {
+                query = this.keysort (query);
+                body = this.json (query);
+                let message = this.urlencode (query);
+                headers['X-BM-SIGNATURE'] = this.hmac (this.encode (message), this.encode (this.secret), 'sha256');
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
