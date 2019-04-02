@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.425'
+const version = '1.18.426'
 
 Exchange.ccxtVersion = version
 
@@ -13567,6 +13567,9 @@ module.exports = class bitmex extends Exchange {
             let side = (order['side'] === 'Sell') ? 'asks' : 'bids';
             let amount = this.safeFloat (order, 'size');
             let price = this.safeFloat (order, 'price');
+            // https://github.com/ccxt/ccxt/issues/4926
+            // https://github.com/ccxt/ccxt/issues/4927
+            // the exchange sometimes returns null price in the orderbook
             if (price !== undefined) {
                 result[side].push ([ price, amount ]);
             }
