@@ -405,14 +405,6 @@ module.exports = class cointiger extends huobipro {
         return this.parseTrades (response['data']['list'], market, since, limit);
     }
 
-    convertTimestamp (timestamp) {
-        timestamp = new Date (timestamp);
-        let date = (('0' + (timestamp.getDate ())).slice (-2));
-        let month = (('0' + (timestamp.getMonth () + 1)).slice (-2));
-        let year = timestamp.getFullYear ();
-        return year + '-' + month + '-' + date;
-    }
-
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let week = 604800000; // milliseconds
         if (symbol === undefined)
@@ -421,8 +413,8 @@ module.exports = class cointiger extends huobipro {
             since = this.milliseconds () - week; // week ago
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let from = this.convertTimestamp (since);
-        let to = this.convertTimestamp (since + week); // one week
+        let from = this.ymd (since);
+        let to = this.ymd (since + week); // one week
         if (limit === undefined)
             limit = 1000;
         let response = await this.v2GetOrderMatchResults (this.extend ({
