@@ -18,7 +18,7 @@ module.exports = class bitmart extends Exchange {
                 'CORS': true,
                 'fetchMarkets': true,
                 'fetchTicker': true,
-                'fetchTickers': true,
+                'fetchTickers': 'emulated',
                 'fetchCurrencies': true,
                 'fetchOrderBook': true,
                 'fetchTrades': true,
@@ -28,8 +28,8 @@ module.exports = class bitmart extends Exchange {
                 'createOrder': true,
                 'cancelOrder': true,
                 'fetchOrders': false,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
+                'fetchOpenOrders': 'emulated',
+                'fetchClosedOrders': 'emulated',
                 'fetchOrder': true,
             },
             'urls': {
@@ -310,6 +310,7 @@ module.exports = class bitmart extends Exchange {
 
     parseOrder (order, market = undefined) {
         let timestamp = this.milliseconds ();
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = this.findSymbol (this.safeString (order, 'symbol'), market);
         let info = order['info'];
         if (info === undefined) {
@@ -331,7 +332,7 @@ module.exports = class bitmart extends Exchange {
             'average': undefined,
             'filled': this.safeFloat (order, 'executed_amount'),
             'remaining': this.safeFloat (order, 'remaining_amount'),
-            'status': this.safeInteger (order, 'status'),
+            'status': status,
             'fee': undefined,
             'trades': undefined,
         };
@@ -345,6 +346,19 @@ module.exports = class bitmart extends Exchange {
             order['id'] = this.safeInteger (order, 'entrust_id');
         }
         return order;
+    }
+
+    parseOrderStatus (status) {
+        let statuses = {
+            '0': 'all',
+            '1': 'open',
+            '2': 'open',
+            '3': 'closed',
+            '4': 'canceled',
+            '5': 'open',
+            '6': 'closed',
+        };
+        return (status in statuses) ? statuses[status] : status;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
