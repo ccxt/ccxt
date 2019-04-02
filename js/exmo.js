@@ -96,7 +96,7 @@ module.exports = class exmo extends Exchange {
                 },
             },
             'options': {
-                'useWebapiForFetchingFees': false, // TODO: figure why Exmo bans us when we try to fetch() their web urls
+                'useWebapiForFetchingFees': true, // TODO: figure why Exmo bans us when we try to fetch() their web urls
                 'feesAndLimits': {
                     'success': 1,
                     'ctlr': 'feesAndLimits',
@@ -379,7 +379,7 @@ module.exports = class exmo extends Exchange {
             let response = await this.webGetEnDocsFees (params);
             let parts = response.split ('<td class="th_fees_2" colspan="2">');
             let numParts = parts.length;
-            if (numParts !== 3) {
+            if (numParts !== 2) {
                 throw new ExchangeError (this.id + ' fetchTradingFees format has changed');
             }
             const rest = parts[1];
@@ -392,7 +392,7 @@ module.exports = class exmo extends Exchange {
             let taker = fee;
             let maker = fee;
             return {
-                'info': response,
+                // 'info': response,
                 'maker': maker,
                 'taker': taker,
             };
