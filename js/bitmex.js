@@ -284,7 +284,7 @@ module.exports = class bitmex extends Exchange {
             let price = this.safeFloat (order, 'price');
             // https://github.com/ccxt/ccxt/issues/4926
             // https://github.com/ccxt/ccxt/issues/4927
-            // bitmex sometimes returns null price in the orderbook
+            // the exchange sometimes returns null price in the orderbook
             if (price !== undefined) {
                 result[side].push ([ price, amount ]);
             }
