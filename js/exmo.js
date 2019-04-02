@@ -379,7 +379,7 @@ module.exports = class exmo extends Exchange {
             let response = await this.webGetEnDocsFees (params);
             let parts = response.split ('<td class="th_fees_2" colspan="2">');
             let numParts = parts.length;
-            if (numParts !== 2) {
+            if (numParts !== 3) {
                 throw new ExchangeError (this.id + ' fetchTradingFees format has changed');
             }
             const rest = parts[1];
