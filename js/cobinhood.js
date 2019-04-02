@@ -609,9 +609,9 @@ module.exports = class cobinhood extends Exchange {
             market = this.market (symbol);
             request['trading_pair_id'] = market['id'];
         }
-        if (limit === undefined)
-            limit = 100;
-        request['limit'] = limit;
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 50, max 100
+        }
         let result = await this.privateGetTradingOrderHistory (this.extend (request, params));
         let orders = this.parseOrders (result['result']['orders'], market, since, limit);
         if (symbol !== undefined) {
