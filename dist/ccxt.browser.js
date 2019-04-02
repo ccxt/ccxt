@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.422'
+const version = '1.18.426'
 
 Exchange.ccxtVersion = version
 
@@ -5355,6 +5355,9 @@ module.exports = class bibox extends Exchange {
                 '15m': '15min',
                 '30m': '30min',
                 '1h': '1hour',
+                '2h': '2hour',
+                '4h': '4hour',
+                '6h': '6hour',
                 '12h': '12hour',
                 '1d': 'day',
                 '1w': 'week',
@@ -13562,9 +13565,14 @@ module.exports = class bitmex extends Exchange {
         for (let o = 0; o < orderbook.length; o++) {
             let order = orderbook[o];
             let side = (order['side'] === 'Sell') ? 'asks' : 'bids';
-            let amount = order['size'];
-            let price = order['price'];
-            result[side].push ([ price, amount ]);
+            let amount = this.safeFloat (order, 'size');
+            let price = this.safeFloat (order, 'price');
+            // https://github.com/ccxt/ccxt/issues/4926
+            // https://github.com/ccxt/ccxt/issues/4927
+            // the exchange sometimes returns null price in the orderbook
+            if (price !== undefined) {
+                result[side].push ([ price, amount ]);
+            }
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);
         result['asks'] = this.sortBy (result['asks'], 0);
@@ -55328,6 +55336,7 @@ module.exports = class negociecoins extends Exchange {
             'rateLimit': 1000,
             'version': 'v3',
             'has': {
+                'createMarketOrder': false,
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
