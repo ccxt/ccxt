@@ -16,13 +16,14 @@ class bigone extends Exchange {
             'countries' => array ( 'GB' ),
             'version' => 'v2',
             'has' => array (
-                'fetchTickers' => true,
-                'fetchOpenOrders' => true,
-                'fetchMyTrades' => true,
-                'fetchDepositAddress' => true,
-                'withdraw' => true,
-                'fetchOHLCV' => false,
+                'cancelAllOrders' => true,
                 'createMarketOrder' => false,
+                'fetchDepositAddress' => true,
+                'fetchMyTrades' => true,
+                'fetchOHLCV' => false,
+                'fetchOpenOrders' => true,
+                'fetchTickers' => true,
+                'withdraw' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/42803606-27c2b5ec-89af-11e8-8d15-9c8c245e8b2c.jpg',
@@ -496,11 +497,11 @@ class bigone extends Exchange {
         //         }
         //     }
         //
-        $order = $response['data'];
+        $order = $this->safe_value($response, 'data');
         return $this->parse_order($order);
     }
 
-    public function cancel_all_orders ($symbols = null, $params = array ()) {
+    public function cancel_all_orders ($symbol = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostOrdersOrderIdCancel ($params);
         //

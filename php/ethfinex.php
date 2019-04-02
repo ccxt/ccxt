@@ -31,6 +31,7 @@ class ethfinex extends bitfinex {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchTickers' => true,
+                'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'withdraw' => true,
             ),

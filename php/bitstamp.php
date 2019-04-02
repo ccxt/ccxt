@@ -331,20 +331,37 @@ class bitstamp extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = null;
+        //
+        // fetchTrades (public)
+        //
+        //     array (
+        //         date => '1551814435',
+        //         tid => '83581898',
+        //         $price => '0.03532850',
+        //         $type => '1',
+        //         $amount => '0.85945907'
+        //     ),
+        //
+        // fetchMyTrades, trades returned within fetchOrder (private)
+        //
+        //     {
+        //         "usd" => "6.0134400000000000",
+        //         "$price" => "4008.96000000",
+        //         "datetime" => "2019-03-28 23:07:37.233599",
+        //         "$fee" => "0.02",
+        //         "btc" => "0.00150000",
+        //         "tid" => 84452058,
+        //         "$type" => 2
+        //     }
+        //
+        $id = $this->safe_string_2($trade, 'id', 'tid');
         $symbol = null;
-        if (is_array ($trade) && array_key_exists ('date', $trade)) {
-            $timestamp = intval ($trade['date']) * 1000;
-        } else if (is_array ($trade) && array_key_exists ('datetime', $trade)) {
-            $timestamp = $this->parse8601 ($trade['datetime']);
-        }
-        // only if overrided externally
-        $side = $this->safe_string($trade, 'side');
-        $orderId = $this->safe_string($trade, 'order_id');
+        $side = null;
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
+        $orderId = $this->safe_string($trade, 'order_id');
+        $type = null;
         $cost = $this->safe_float($trade, 'cost');
-        $id = $this->safe_string_2($trade, 'tid', 'id');
         if ($market === null) {
             $keys = is_array ($trade) ? array_keys ($trade) : array ();
             for ($i = 0; $i < count ($keys); $i++) {
@@ -369,13 +386,34 @@ class bitstamp extends Exchange {
             $feeCurrency = $market['quote'];
             $symbol = $market['symbol'];
         }
-        if ($amount !== null) {
-            if ($amount < 0) {
-                $side = 'sell';
+        $timestamp = $this->safe_string_2($trade, 'date', 'datetime');
+        if ($timestamp !== null) {
+            if (mb_strpos ($timestamp, ' ') !== false) {
+                // iso8601
+                $timestamp = $this->parse8601 ($timestamp);
             } else {
+                // string unix epoch in seconds
+                $timestamp = intval ($timestamp);
+                $timestamp = $timestamp * 1000;
+            }
+        }
+        // if it is a private $trade
+        if (is_array ($trade) && array_key_exists ('id', $trade)) {
+            if ($amount !== null) {
+                if ($amount < 0) {
+                    $side = 'sell';
+                    $amount = -$amount;
+                } else {
+                    $side = 'buy';
+                }
+            }
+        } else {
+            $side = $this->safe_string($trade, 'type');
+            if ($side === '1') {
+                $side = 'sell';
+            } else if ($side === '0') {
                 $side = 'buy';
             }
-            $amount = abs ($amount);
         }
         if ($cost === null) {
             if ($price !== null) {
@@ -387,6 +425,13 @@ class bitstamp extends Exchange {
         if ($cost !== null) {
             $cost = abs ($cost);
         }
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array (
+                'cost' => $feeCost,
+                'currency' => $feeCurrency,
+            );
+        }
         return array (
             'id' => $id,
             'info' => $trade,
@@ -394,15 +439,12 @@ class bitstamp extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
             'order' => $orderId,
-            'type' => null,
+            'type' => $type,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
-            'fee' => array (
-                'cost' => $feeCost,
-                'currency' => $feeCurrency,
-            ),
+            'fee' => $fee,
         );
     }
 
@@ -413,6 +455,24 @@ class bitstamp extends Exchange {
             'pair' => $market['id'],
             'time' => 'hour',
         ), $params));
+        //
+        //     array (
+        //         array (
+        //             date => '1551814435',
+        //             tid => '83581898',
+        //             price => '0.03532850',
+        //             type => '1',
+        //             amount => '0.85945907'
+        //         ),
+        //         array (
+        //             date => '1551814434',
+        //             tid => '83581896',
+        //             price => '0.03532851',
+        //             type => '1',
+        //             amount => '11.34130961'
+        //         ),
+        //     )
+        //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -477,7 +537,8 @@ class bitstamp extends Exchange {
 
     public function fetch_order_status ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostOrderStatus (array_merge (array ( 'id' => $id ), $params));
+        $request = array ( 'id' => $id );
+        $response = $this->privatePostOrderStatus (array_merge ($request, $params));
         return $this->parse_order_status($this->safe_string($response, 'status'));
     }
 
@@ -487,7 +548,24 @@ class bitstamp extends Exchange {
         if ($symbol !== null) {
             $market = $this->market ($symbol);
         }
-        $response = $this->privatePostOrderStatus (array_merge (array ( 'id' => $id ), $params));
+        $request = array ( 'id' => $id );
+        $response = $this->privatePostOrderStatus (array_merge ($request, $params));
+        //
+        //     {
+        //         "status" => "Finished",
+        //         "$id" => 3047704374,
+        //         "transactions" => array (
+        //             {
+        //                 "usd" => "6.0134400000000000",
+        //                 "price" => "4008.96000000",
+        //                 "datetime" => "2019-03-28 23:07:37.233599",
+        //                 "fee" => "0.02",
+        //                 "btc" => "0.00150000",
+        //                 "tid" => 84452058,
+        //                 "type" => 2
+        //             }
+        //         )
+        //     }
         return $this->parse_order($response, $market);
     }
 

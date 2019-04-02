@@ -33,6 +33,7 @@ module.exports = class hitbtc2 extends hitbtc {
                 'fetchDeposits': false,
                 'fetchWithdrawals': false,
                 'fetchTransactions': true,
+                'fetchTradingFee': true,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -79,6 +80,7 @@ module.exports = class hitbtc2 extends hitbtc {
                         'order', // List your current open orders
                         'order/{clientOrderId}', // Get a single order by clientOrderId
                         'trading/balance', // Get trading balance
+                        'trading/fee/all', // Get trading fee rate
                         'trading/fee/{symbol}', // Get trading fee rate
                         'history/trades', // Get historical trades
                         'history/order', // Get historical orders
@@ -112,8 +114,8 @@ module.exports = class hitbtc2 extends hitbtc {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': -0.01 / 100,
-                    'taker': 0.1 / 100,
+                    'maker': 0.1 / 100,
+                    'taker': 0.2 / 100,
                 },
                 'funding': {
                     'tierBased': false,
@@ -341,8 +343,8 @@ module.exports = class hitbtc2 extends hitbtc {
                         'ZSC': 191,
                     },
                     'deposit': {
-                        'BTC': 0.0006,
-                        'ETH': 0.003,
+                        'BTC': 0,
+                        'ETH': 0,
                         'BCH': 0,
                         'USDT': 0,
                         'BTG': 0,
@@ -663,6 +665,26 @@ module.exports = class hitbtc2 extends hitbtc {
         return result;
     }
 
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = this.extend ({
+            'symbol': market['id'],
+        }, this.omit (params, 'symbol'));
+        const response = await this.privateGetTradingFeeSymbol (request);
+        //
+        //     {
+        //         takeLiquidityRate: '0.001',
+        //         provideLiquidityRate: '-0.0001'
+        //     }
+        //
+        return {
+            'info': response,
+            'maker': this.safeFloat (response, 'provideLiquidityRate'),
+            'taker': this.safeFloat (response, 'takeLiquidityRate'),
+        };
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let type = this.safeString (params, 'type', 'trading');
@@ -704,6 +726,9 @@ module.exports = class hitbtc2 extends hitbtc {
             'symbol': market['id'],
             'period': this.timeframes[timeframe],
         };
+        if (since !== undefined) {
+            request['from'] = this.iso8601 (since);
+        }
         if (limit !== undefined)
             request['limit'] = limit;
         let response = await this.publicGetCandlesSymbol (this.extend (request, params));
@@ -809,15 +834,18 @@ module.exports = class hitbtc2 extends hitbtc {
         //
         let timestamp = this.parse8601 (trade['timestamp']);
         let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        } else {
-            let id = trade['symbol'];
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
+        const marketId = this.safeString (trade, 'symbol');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
                 symbol = market['symbol'];
             } else {
-                symbol = id;
+                symbol = marketId;
+            }
+        }
+        if (symbol === undefined) {
+            if (market !== undefined) {
+                symbol = market['symbol'];
             }
         }
         let fee = undefined;
@@ -1072,9 +1100,21 @@ module.exports = class hitbtc2 extends hitbtc {
         //
         let created = this.parse8601 (this.safeString (order, 'createdAt'));
         let updated = this.parse8601 (this.safeString (order, 'updatedAt'));
-        if (!market)
-            market = this.markets_by_id[order['symbol']];
-        let symbol = market['symbol'];
+        const marketId = this.safeString (order, 'symbol');
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                symbol = marketId;
+            }
+        }
+        if (symbol === undefined) {
+            if (market !== undefined) {
+                symbol = market['id'];
+            }
+        }
         let amount = this.safeFloat (order, 'quantity');
         let filled = this.safeFloat (order, 'cumQuantity');
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -1212,7 +1252,7 @@ module.exports = class hitbtc2 extends hitbtc {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             // 'symbol': 'BTC/USD', // optional
             // 'sort':   'DESC', // or 'ASC'
             // 'by':     'timestamp', // or 'id' String timestamp by default, or id
@@ -1230,7 +1270,33 @@ module.exports = class hitbtc2 extends hitbtc {
             request['from'] = this.iso8601 (since);
         if (limit !== undefined)
             request['limit'] = limit;
-        let response = await this.privateGetHistoryTrades (this.extend (request, params));
+        const response = await this.privateGetHistoryTrades (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //         "id": 9535486,
+        //         "clientOrderId": "f8dbaab336d44d5ba3ff578098a68454",
+        //         "orderId": 816088377,
+        //         "symbol": "ETHBTC",
+        //         "side": "sell",
+        //         "quantity": "0.061",
+        //         "price": "0.045487",
+        //         "fee": "0.000002775",
+        //         "timestamp": "2017-05-17T12:32:57.848Z"
+        //         },
+        //         {
+        //         "id": 9535437,
+        //         "clientOrderId": "27b9bfc068b44194b1f453c7af511ed6",
+        //         "orderId": 816088021,
+        //         "symbol": "ETHBTC",
+        //         "side": "buy",
+        //         "quantity": "0.038",
+        //         "price": "0.046000",
+        //         "fee": "-0.000000174",
+        //         "timestamp": "2017-05-17T12:30:57.848Z"
+        //         }
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 

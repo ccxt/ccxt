@@ -329,19 +329,37 @@ class bitstamp (Exchange):
         return None
 
     def parse_trade(self, trade, market=None):
-        timestamp = None
+        #
+        # fetchTrades(public)
+        #
+        #     {
+        #         date: '1551814435',
+        #         tid: '83581898',
+        #         price: '0.03532850',
+        #         type: '1',
+        #         amount: '0.85945907'
+        #     },
+        #
+        # fetchMyTrades, trades returned within fetchOrder(private)
+        #
+        #     {
+        #         "usd": "6.0134400000000000",
+        #         "price": "4008.96000000",
+        #         "datetime": "2019-03-28 23:07:37.233599",
+        #         "fee": "0.02",
+        #         "btc": "0.00150000",
+        #         "tid": 84452058,
+        #         "type": 2
+        #     }
+        #
+        id = self.safe_string_2(trade, 'id', 'tid')
         symbol = None
-        if 'date' in trade:
-            timestamp = int(trade['date']) * 1000
-        elif 'datetime' in trade:
-            timestamp = self.parse8601(trade['datetime'])
-        # only if overrided externally
-        side = self.safe_string(trade, 'side')
-        orderId = self.safe_string(trade, 'order_id')
+        side = None
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
+        orderId = self.safe_string(trade, 'order_id')
+        type = None
         cost = self.safe_float(trade, 'cost')
-        id = self.safe_string_2(trade, 'tid', 'id')
         if market is None:
             keys = list(trade.keys())
             for i in range(0, len(keys)):
@@ -361,18 +379,41 @@ class bitstamp (Exchange):
             cost = self.safe_float(trade, market['quoteId'], cost)
             feeCurrency = market['quote']
             symbol = market['symbol']
-        if amount is not None:
-            if amount < 0:
-                side = 'sell'
+        timestamp = self.safe_string_2(trade, 'date', 'datetime')
+        if timestamp is not None:
+            if timestamp.find(' ') >= 0:
+                # iso8601
+                timestamp = self.parse8601(timestamp)
             else:
+                # string unix epoch in seconds
+                timestamp = int(timestamp)
+                timestamp = timestamp * 1000
+        # if it is a private trade
+        if 'id' in trade:
+            if amount is not None:
+                if amount < 0:
+                    side = 'sell'
+                    amount = -amount
+                else:
+                    side = 'buy'
+        else:
+            side = self.safe_string(trade, 'type')
+            if side == '1':
+                side = 'sell'
+            elif side == '0':
                 side = 'buy'
-            amount = abs(amount)
         if cost is None:
             if price is not None:
                 if amount is not None:
                     cost = price * amount
         if cost is not None:
             cost = abs(cost)
+        fee = None
+        if feeCost is not None:
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            }
         return {
             'id': id,
             'info': trade,
@@ -380,15 +421,12 @@ class bitstamp (Exchange):
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'order': orderId,
-            'type': None,
+            'type': type,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': {
-                'cost': feeCost,
-                'currency': feeCurrency,
-            },
+            'fee': fee,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -398,6 +436,24 @@ class bitstamp (Exchange):
             'pair': market['id'],
             'time': 'hour',
         }, params))
+        #
+        #     [
+        #         {
+        #             date: '1551814435',
+        #             tid: '83581898',
+        #             price: '0.03532850',
+        #             type: '1',
+        #             amount: '0.85945907'
+        #         },
+        #         {
+        #             date: '1551814434',
+        #             tid: '83581896',
+        #             price: '0.03532851',
+        #             type: '1',
+        #             amount: '11.34130961'
+        #         },
+        #     ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     def fetch_balance(self, params={}):
@@ -455,7 +511,8 @@ class bitstamp (Exchange):
 
     def fetch_order_status(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.privatePostOrderStatus(self.extend({'id': id}, params))
+        request = {'id': id}
+        response = self.privatePostOrderStatus(self.extend(request, params))
         return self.parse_order_status(self.safe_string(response, 'status'))
 
     def fetch_order(self, id, symbol=None, params={}):
@@ -463,7 +520,24 @@ class bitstamp (Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        response = self.privatePostOrderStatus(self.extend({'id': id}, params))
+        request = {'id': id}
+        response = self.privatePostOrderStatus(self.extend(request, params))
+        #
+        #     {
+        #         "status": "Finished",
+        #         "id": 3047704374,
+        #         "transactions": [
+        #             {
+        #                 "usd": "6.0134400000000000",
+        #                 "price": "4008.96000000",
+        #                 "datetime": "2019-03-28 23:07:37.233599",
+        #                 "fee": "0.02",
+        #                 "btc": "0.00150000",
+        #                 "tid": 84452058,
+        #                 "type": 2
+        #             }
+        #         ]
+        #     }
         return self.parse_order(response, market)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):

@@ -343,11 +343,20 @@ class cex (Exchange):
         await self.load_markets()
         return await self.privatePostCancelOrder({'id': id})
 
+    def parse_order_status(self, status):
+        statuses = {
+            'a': 'open',
+            'cd': 'canceled',
+            'c': 'canceled',
+            'd': 'closed',
+        }
+        return self.safe_value(statuses, status, status)
+
     def parse_order(self, order, market=None):
         # Depending on the call, 'time' can be a unix int, unix string or ISO string
         # Yes, really
-        timestamp = order['time']
-        if isinstance(order['time'], basestring) and order['time'].find('T') >= 0:
+        timestamp = self.safe_value(order, 'time')
+        if isinstance(timestamp, basestring) and timestamp.find('T') >= 0:
             # ISO8601 string
             timestamp = self.parse8601(timestamp)
         else:
@@ -454,9 +463,10 @@ class cex (Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        response = await self.privatePostGetOrder(self.extend({
+        request = {
             'id': str(id),
-        }, params))
+        }
+        response = await self.privatePostGetOrder(self.extend(request, params))
         return self.parse_order(response)
 
     def nonce(self):

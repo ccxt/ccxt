@@ -27,13 +27,14 @@ class upbit (Exchange):
             # new metainfo interface
             'has': {
                 'CORS': True,
-                'fetchOrderBooks': True,
+                'createDepositAddress': True,
                 'createMarketOrder': False,
                 'fetchDepositAddress': True,
                 'fetchClosedOrders': True,
                 'fetchMyTrades': False,
                 'fetchOHLCV': True,
                 'fetchOrder': True,
+                'fetchOrderBooks': True,
                 'fetchOpenOrders': True,
                 'fetchOrders': False,
                 'fetchTickers': True,
@@ -144,6 +145,9 @@ class upbit (Exchange):
                 'tradingFeesByQuoteCurrency': {
                     'KRW': 0.0005,
                 },
+            },
+            'commonCurrencies': {
+                'CPT': 'Contents Protocol',  # conflict with CPT(Cryptaur) https://github.com/ccxt/ccxt/issues/4920
             },
         })
 
@@ -485,8 +489,8 @@ class upbit (Exchange):
             symbol = self.get_symbol_from_market_id(self.safe_string(orderbook, 'market'))
             timestamp = self.safe_integer(orderbook, 'timestamp')
             result[symbol] = {
-                'bids': self.parse_bids_asks(orderbook['orderbook_units'], 'bid_price', 'bid_size'),
-                'asks': self.parse_bids_asks(orderbook['orderbook_units'], 'ask_price', 'ask_size'),
+                'bids': self.sort_by(self.parse_bids_asks(orderbook['orderbook_units'], 'bid_price', 'bid_size'), 0, True),
+                'asks': self.sort_by(self.parse_bids_asks(orderbook['orderbook_units'], 'ask_price', 'ask_size'), 0),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
                 'nonce': None,
@@ -1235,6 +1239,12 @@ class upbit (Exchange):
         #
         return self.parse_order(response)
 
+    def parse_deposit_addresses(self, addresses):
+        result = []
+        for i in range(0, len(addresses)):
+            result.append(self.parse_deposit_address(addresses[i]))
+        return result
+
     async def fetch_deposit_addresses(self, codes=None, params={}):
         await self.load_markets()
         response = await self.privateGetDepositsCoinAddresses(params)
@@ -1257,12 +1267,7 @@ class upbit (Exchange):
         #         }
         #     ]
         #
-        result = {}
-        for i in range(0, len(response)):
-            depositAddress = self.parse_deposit_address(response[i])
-            code = depositAddress['currency']
-            result[code] = depositAddress
-        return result
+        return self.parse_deposit_addresses(response)
 
     def parse_deposit_address(self, depositAddress, currency=None):
         #

@@ -17,17 +17,19 @@ class gdax extends Exchange {
             'rateLimit' => 1000,
             'userAgent' => $this->userAgents['chrome'],
             'has' => array (
+                'cancelAllOrders' => true,
                 'CORS' => true,
-                'fetchOHLCV' => true,
                 'deposit' => true,
-                'withdraw' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => true,
-                'fetchOpenOrders' => true,
+                'fetchAccounts' => true,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
                 'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrders' => true,
                 'fetchTransactions' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array (
                 '1m' => 60,
@@ -78,6 +80,7 @@ class gdax extends Exchange {
                         'funding',
                         'orders',
                         'orders/{id}',
+                        'otc/orders',
                         'payment-methods',
                         'position',
                         'reports/{id}',
@@ -107,8 +110,8 @@ class gdax extends Exchange {
                 'trading' => array (
                     'tierBased' => true, // complicated tier system per coin
                     'percentage' => true,
-                    'maker' => 0.0,
-                    'taker' => 0.3 / 100, // tiered fee starts at 0.3%
+                    'maker' => 0.15 / 100, // highest fee of all tiers
+                    'taker' => 0.25 / 100, // highest fee of all tiers
                 ),
                 'funding' => array (
                     'tierBased' => false,
@@ -138,6 +141,7 @@ class gdax extends Exchange {
                     'Invalid API Key' => '\\ccxt\\AuthenticationError',
                     'invalid signature' => '\\ccxt\\AuthenticationError',
                     'Invalid Passphrase' => '\\ccxt\\AuthenticationError',
+                    'Invalid order id' => '\\ccxt\\InvalidOrder',
                 ),
                 'broad' => array (
                     'Order already done' => '\\ccxt\\OrderNotFound',
@@ -200,9 +204,47 @@ class gdax extends Exchange {
         return $result;
     }
 
+    public function fetch_accounts ($params = array ()) {
+        $response = $this->privateGetAccounts ($params);
+        //
+        //     array (
+        //         array (
+        //             id => '4aac9c60-cbda-4396-9da4-4aa71e95fba0',
+        //             currency => 'BTC',
+        //             balance => '0.0000000000000000',
+        //             available => '0',
+        //             hold => '0.0000000000000000',
+        //             profile_id => 'b709263e-f42a-4c7d-949a-a95c83d065da'
+        //         ),
+        //         array (
+        //             id => 'f75fa69a-1ad1-4a80-bd61-ee7faa6135a3',
+        //             currency => 'USDC',
+        //             balance => '0.0000000000000000',
+        //             available => '0',
+        //             hold => '0.0000000000000000',
+        //             profile_id => 'b709263e-f42a-4c7d-949a-a95c83d065da'
+        //         ),
+        //     )
+        //
+        $result = array ();
+        for ($i = 0; $i < count ($response); $i++) {
+            $account = $response[$i];
+            $accountId = $this->safe_string($account, 'id');
+            $currencyId = $this->safe_string($account, 'currency');
+            $code = $this->common_currency_code($currencyId);
+            $result[] = array (
+                'id' => $accountId,
+                'type' => null,
+                'currency' => $code,
+                'info' => $account,
+            );
+        }
+        return $result;
+    }
+
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $balances = $this->privateGetAccounts ();
+        $balances = $this->privateGetAccounts ($params);
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
@@ -505,6 +547,10 @@ class gdax extends Exchange {
         return $this->privateDeleteOrdersId (array ( 'id' => $id ));
     }
 
+    public function cancel_all_orders ($symbol = null, $params = array ()) {
+        return $this->privateDeleteOrders ($params);
+    }
+
     public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         $market = $this->markets[$symbol];
         $rate = $market[$takerOrMaker];
@@ -580,25 +626,23 @@ class gdax extends Exchange {
 
     public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        if ($code === null) {
-            throw new ArgumentsRequired ($this->id . ' fetchTransactions() requires a $currency $code argument');
-        }
-        $currency = $this->currency ($code);
-        $accountId = null;
-        $accounts = $this->privateGetAccounts ();
-        for ($i = 0; $i < count ($accounts); $i++) {
-            $account = $accounts[$i];
-            // todo => use unified common currencies below
-            if ($account['currency'] === $currency['id']) {
-                $accountId = $account['id'];
-                break;
+        $this->loadAccounts ();
+        $currency = null;
+        $id = $this->safe_string($params, 'id'); // $account $id
+        if ($id === null) {
+            if ($code === null) {
+                throw new ArgumentsRequired ($this->id . ' fetchTransactions() requires a $currency $code argument if no $account $id specified in params');
             }
-        }
-        if ($accountId === null) {
-            throw new ExchangeError ($this->id . ' fetchTransactions() could not find $account id for ' . $code);
+            $currency = $this->currency ($code);
+            $accountsByCurrencyCode = $this->index_by($this->accounts, 'currency');
+            $account = $this->safe_value($accountsByCurrencyCode, $code);
+            if ($account === null) {
+                throw new ExchangeError ($this->id . ' fetchTransactions() could not find $account $id for ' . $code);
+            }
+            $id = $account['id'];
         }
         $request = array (
-            'id' => $accountId,
+            'id' => $id,
         );
         if ($limit !== null) {
             $request['limit'] = $limit;

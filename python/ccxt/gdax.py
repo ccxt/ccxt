@@ -26,17 +26,19 @@ class gdax (Exchange):
             'rateLimit': 1000,
             'userAgent': self.userAgents['chrome'],
             'has': {
+                'cancelAllOrders': True,
                 'CORS': True,
-                'fetchOHLCV': True,
                 'deposit': True,
-                'withdraw': True,
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
+                'fetchAccounts': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
                 'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrders': True,
                 'fetchTransactions': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': 60,
@@ -87,6 +89,7 @@ class gdax (Exchange):
                         'funding',
                         'orders',
                         'orders/{id}',
+                        'otc/orders',
                         'payment-methods',
                         'position',
                         'reports/{id}',
@@ -116,8 +119,8 @@ class gdax (Exchange):
                 'trading': {
                     'tierBased': True,  # complicated tier system per coin
                     'percentage': True,
-                    'maker': 0.0,
-                    'taker': 0.3 / 100,  # tiered fee starts at 0.3%
+                    'maker': 0.15 / 100,  # highest fee of all tiers
+                    'taker': 0.25 / 100,  # highest fee of all tiers
                 },
                 'funding': {
                     'tierBased': False,
@@ -147,6 +150,7 @@ class gdax (Exchange):
                     'Invalid API Key': AuthenticationError,
                     'invalid signature': AuthenticationError,
                     'Invalid Passphrase': AuthenticationError,
+                    'Invalid order id': InvalidOrder,
                 },
                 'broad': {
                     'Order already done': OrderNotFound,
@@ -204,9 +208,45 @@ class gdax (Exchange):
             }))
         return result
 
+    def fetch_accounts(self, params={}):
+        response = self.privateGetAccounts(params)
+        #
+        #     [
+        #         {
+        #             id: '4aac9c60-cbda-4396-9da4-4aa71e95fba0',
+        #             currency: 'BTC',
+        #             balance: '0.0000000000000000',
+        #             available: '0',
+        #             hold: '0.0000000000000000',
+        #             profile_id: 'b709263e-f42a-4c7d-949a-a95c83d065da'
+        #         },
+        #         {
+        #             id: 'f75fa69a-1ad1-4a80-bd61-ee7faa6135a3',
+        #             currency: 'USDC',
+        #             balance: '0.0000000000000000',
+        #             available: '0',
+        #             hold: '0.0000000000000000',
+        #             profile_id: 'b709263e-f42a-4c7d-949a-a95c83d065da'
+        #         },
+        #     ]
+        #
+        result = []
+        for i in range(0, len(response)):
+            account = response[i]
+            accountId = self.safe_string(account, 'id')
+            currencyId = self.safe_string(account, 'currency')
+            code = self.common_currency_code(currencyId)
+            result.append({
+                'id': accountId,
+                'type': None,
+                'currency': code,
+                'info': account,
+            })
+        return result
+
     def fetch_balance(self, params={}):
         self.load_markets()
-        balances = self.privateGetAccounts()
+        balances = self.privateGetAccounts(params)
         result = {'info': balances}
         for b in range(0, len(balances)):
             balance = balances[b]
@@ -481,6 +521,9 @@ class gdax (Exchange):
         self.load_markets()
         return self.privateDeleteOrdersId({'id': id})
 
+    def cancel_all_orders(self, symbol=None, params={}):
+        return self.privateDeleteOrders(params)
+
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
         rate = market[takerOrMaker]
@@ -550,21 +593,20 @@ class gdax (Exchange):
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
-        if code is None:
-            raise ArgumentsRequired(self.id + ' fetchTransactions() requires a currency code argument')
-        currency = self.currency(code)
-        accountId = None
-        accounts = self.privateGetAccounts()
-        for i in range(0, len(accounts)):
-            account = accounts[i]
-            # todo: use unified common currencies below
-            if account['currency'] == currency['id']:
-                accountId = account['id']
-                break
-        if accountId is None:
-            raise ExchangeError(self.id + ' fetchTransactions() could not find account id for ' + code)
+        self.loadAccounts()
+        currency = None
+        id = self.safe_string(params, 'id')  # account id
+        if id is None:
+            if code is None:
+                raise ArgumentsRequired(self.id + ' fetchTransactions() requires a currency code argument if no account id specified in params')
+            currency = self.currency(code)
+            accountsByCurrencyCode = self.index_by(self.accounts, 'currency')
+            account = self.safe_value(accountsByCurrencyCode, code)
+            if account is None:
+                raise ExchangeError(self.id + ' fetchTransactions() could not find account id for ' + code)
+            id = account['id']
         request = {
-            'id': accountId,
+            'id': id,
         }
         if limit is not None:
             request['limit'] = limit

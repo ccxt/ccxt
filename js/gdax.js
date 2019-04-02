@@ -16,17 +16,19 @@ module.exports = class gdax extends Exchange {
             'rateLimit': 1000,
             'userAgent': this.userAgents['chrome'],
             'has': {
+                'cancelAllOrders': true,
                 'CORS': true,
-                'fetchOHLCV': true,
                 'deposit': true,
-                'withdraw': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
+                'fetchAccounts': true,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
                 'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrders': true,
                 'fetchTransactions': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': 60,
@@ -77,6 +79,7 @@ module.exports = class gdax extends Exchange {
                         'funding',
                         'orders',
                         'orders/{id}',
+                        'otc/orders',
                         'payment-methods',
                         'position',
                         'reports/{id}',
@@ -106,8 +109,8 @@ module.exports = class gdax extends Exchange {
                 'trading': {
                     'tierBased': true, // complicated tier system per coin
                     'percentage': true,
-                    'maker': 0.0,
-                    'taker': 0.3 / 100, // tiered fee starts at 0.3%
+                    'maker': 0.15 / 100, // highest fee of all tiers
+                    'taker': 0.25 / 100, // highest fee of all tiers
                 },
                 'funding': {
                     'tierBased': false,
@@ -137,6 +140,7 @@ module.exports = class gdax extends Exchange {
                     'Invalid API Key': AuthenticationError,
                     'invalid signature': AuthenticationError,
                     'Invalid Passphrase': AuthenticationError,
+                    'Invalid order id': InvalidOrder,
                 },
                 'broad': {
                     'Order already done': OrderNotFound,
@@ -199,9 +203,47 @@ module.exports = class gdax extends Exchange {
         return result;
     }
 
+    async fetchAccounts (params = {}) {
+        const response = await this.privateGetAccounts (params);
+        //
+        //     [
+        //         {
+        //             id: '4aac9c60-cbda-4396-9da4-4aa71e95fba0',
+        //             currency: 'BTC',
+        //             balance: '0.0000000000000000',
+        //             available: '0',
+        //             hold: '0.0000000000000000',
+        //             profile_id: 'b709263e-f42a-4c7d-949a-a95c83d065da'
+        //         },
+        //         {
+        //             id: 'f75fa69a-1ad1-4a80-bd61-ee7faa6135a3',
+        //             currency: 'USDC',
+        //             balance: '0.0000000000000000',
+        //             available: '0',
+        //             hold: '0.0000000000000000',
+        //             profile_id: 'b709263e-f42a-4c7d-949a-a95c83d065da'
+        //         },
+        //     ]
+        //
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const account = response[i];
+            const accountId = this.safeString (account, 'id');
+            const currencyId = this.safeString (account, 'currency');
+            const code = this.commonCurrencyCode (currencyId);
+            result.push ({
+                'id': accountId,
+                'type': undefined,
+                'currency': code,
+                'info': account,
+            });
+        }
+        return result;
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let balances = await this.privateGetAccounts ();
+        let balances = await this.privateGetAccounts (params);
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
@@ -504,6 +546,10 @@ module.exports = class gdax extends Exchange {
         return await this.privateDeleteOrdersId ({ 'id': id });
     }
 
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        return await this.privateDeleteOrders (params);
+    }
+
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         let market = this.markets[symbol];
         let rate = market[takerOrMaker];
@@ -579,25 +625,23 @@ module.exports = class gdax extends Exchange {
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a currency code argument');
-        }
-        let currency = this.currency (code);
-        let accountId = undefined;
-        let accounts = await this.privateGetAccounts ();
-        for (let i = 0; i < accounts.length; i++) {
-            let account = accounts[i];
-            // todo: use unified common currencies below
-            if (account['currency'] === currency['id']) {
-                accountId = account['id'];
-                break;
+        await this.loadAccounts ();
+        let currency = undefined;
+        let id = this.safeString (params, 'id'); // account id
+        if (id === undefined) {
+            if (code === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a currency code argument if no account id specified in params');
             }
+            currency = this.currency (code);
+            const accountsByCurrencyCode = this.indexBy (this.accounts, 'currency');
+            const account = this.safeValue (accountsByCurrencyCode, code);
+            if (account === undefined) {
+                throw new ExchangeError (this.id + ' fetchTransactions() could not find account id for ' + code);
+            }
+            id = account['id'];
         }
-        if (accountId === undefined) {
-            throw new ExchangeError (this.id + ' fetchTransactions() could not find account id for ' + code);
-        }
-        let request = {
-            'id': accountId,
+        const request = {
+            'id': id,
         };
         if (limit !== undefined) {
             request['limit'] = limit;

@@ -20,6 +20,7 @@ class kraken extends Exchange {
             'has' => array (
                 'createDepositAddress' => true,
                 'fetchDepositAddress' => true,
+                'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'CORS' => false,
                 'fetchCurrencies' => true,
@@ -539,7 +540,7 @@ class kraken extends Exchange {
             'interval' => $this->timeframes[$timeframe],
         );
         if ($since !== null)
-            $request['since'] = intval ($since / 1000);
+            $request['since'] = intval (($since - 1) / 1000);
         $response = $this->publicGetOHLC (array_merge ($request, $params));
         $ohlcvs = $response['result'][$market['id']];
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
@@ -1185,6 +1186,7 @@ class kraken extends Exchange {
     }
 
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         // https://www.kraken.com/en-us/help/api#deposit-status
         if ($code === null) {
             throw new ArgumentsRequired ($this->id . ' fetchDeposits requires a $currency $code argument');
@@ -1211,6 +1213,7 @@ class kraken extends Exchange {
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         // https://www.kraken.com/en-us/help/api#withdraw-status
         if ($code === null) {
             throw new ArgumentsRequired ($this->id . ' fetchWithdrawals requires a $currency $code argument');

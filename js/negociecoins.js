@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -15,6 +16,7 @@ module.exports = class negociecoins extends Exchange {
             'rateLimit': 1000,
             'version': 'v3',
             'has': {
+                'createMarketOrder': false,
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
@@ -174,20 +176,30 @@ module.exports = class negociecoins extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let balances = await this.privateGetUserBalance (params);
-        let result = { 'info': balances };
-        let currencies = Object.keys (balances);
-        for (let i = 0; i < currencies.length; i++) {
-            let id = currencies[i];
-            let balance = balances[id];
-            let currency = this.commonCurrencyCode (id);
-            let account = {
-                'free': parseFloat (balance['total']),
-                'used': 0.0,
-                'total': parseFloat (balance['available']),
+        const response = await this.privateGetUserBalance (params);
+        //
+        //     {
+        //         "coins": [
+        //             {"name":"BRL","available":0.0,"openOrders":0.0,"withdraw":0.0,"total":0.0},
+        //             {"name":"BTC","available":0.0,"openOrders":0.0,"withdraw":0.0,"total":0.0},
+        //         ],
+        //     }
+        //
+        const result = { 'info': response };
+        const balances = this.safeValue (response, 'coins');
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'name');
+            const code = this.commonCurrencyCode (currencyId);
+            const openOrders = this.safeFloat (balance, 'openOrders');
+            const withdraw = this.safeFloat (balance, 'withdraw');
+            const account = {
+                'free': this.safeFloat (balance, 'total'),
+                'used': this.sum (openOrders, withdraw),
+                'total': this.safeFloat (balance, 'available'),
             };
             account['used'] = account['total'] - account['free'];
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -274,6 +286,9 @@ module.exports = class negociecoins extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders () requires a symbol argument');
+        }
         let market = this.market (symbol);
         let request = {
             'pair': market['id'],
@@ -329,7 +344,7 @@ module.exports = class negociecoins extends Exchange {
             let uri = this.encodeURIComponent (url).toLowerCase ();
             let payload = [ this.apiKey, method, uri, timestamp, nonce, content ].join ('');
             let secret = this.base64ToBinary (this.secret);
-            let signature = this.hmac (this.encode (payload), this.encode (secret), 'sha256', 'base64');
+            let signature = this.hmac (this.encode (payload), secret, 'sha256', 'base64');
             signature = this.binaryToString (signature);
             let auth = [ this.apiKey, signature, nonce, timestamp ].join (':');
             headers = {

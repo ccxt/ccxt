@@ -330,20 +330,37 @@ module.exports = class bitstamp extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = undefined;
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         date: '1551814435',
+        //         tid: '83581898',
+        //         price: '0.03532850',
+        //         type: '1',
+        //         amount: '0.85945907'
+        //     },
+        //
+        // fetchMyTrades, trades returned within fetchOrder (private)
+        //
+        //     {
+        //         "usd": "6.0134400000000000",
+        //         "price": "4008.96000000",
+        //         "datetime": "2019-03-28 23:07:37.233599",
+        //         "fee": "0.02",
+        //         "btc": "0.00150000",
+        //         "tid": 84452058,
+        //         "type": 2
+        //     }
+        //
+        const id = this.safeString2 (trade, 'id', 'tid');
         let symbol = undefined;
-        if ('date' in trade) {
-            timestamp = parseInt (trade['date']) * 1000;
-        } else if ('datetime' in trade) {
-            timestamp = this.parse8601 (trade['datetime']);
-        }
-        // only if overrided externally
-        let side = this.safeString (trade, 'side');
-        let orderId = this.safeString (trade, 'order_id');
+        let side = undefined;
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'amount');
+        let orderId = this.safeString (trade, 'order_id');
+        let type = undefined;
         let cost = this.safeFloat (trade, 'cost');
-        let id = this.safeString2 (trade, 'tid', 'id');
         if (market === undefined) {
             let keys = Object.keys (trade);
             for (let i = 0; i < keys.length; i++) {
@@ -368,13 +385,34 @@ module.exports = class bitstamp extends Exchange {
             feeCurrency = market['quote'];
             symbol = market['symbol'];
         }
-        if (amount !== undefined) {
-            if (amount < 0) {
-                side = 'sell';
+        let timestamp = this.safeString2 (trade, 'date', 'datetime');
+        if (timestamp !== undefined) {
+            if (timestamp.indexOf (' ') >= 0) {
+                // iso8601
+                timestamp = this.parse8601 (timestamp);
             } else {
+                // string unix epoch in seconds
+                timestamp = parseInt (timestamp);
+                timestamp = timestamp * 1000;
+            }
+        }
+        // if it is a private trade
+        if ('id' in trade) {
+            if (amount !== undefined) {
+                if (amount < 0) {
+                    side = 'sell';
+                    amount = -amount;
+                } else {
+                    side = 'buy';
+                }
+            }
+        } else {
+            side = this.safeString (trade, 'type');
+            if (side === '1') {
+                side = 'sell';
+            } else if (side === '0') {
                 side = 'buy';
             }
-            amount = Math.abs (amount);
         }
         if (cost === undefined) {
             if (price !== undefined) {
@@ -386,6 +424,13 @@ module.exports = class bitstamp extends Exchange {
         if (cost !== undefined) {
             cost = Math.abs (cost);
         }
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
+        }
         return {
             'id': id,
             'info': trade,
@@ -393,15 +438,12 @@ module.exports = class bitstamp extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'order': orderId,
-            'type': undefined,
+            'type': type,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': {
-                'cost': feeCost,
-                'currency': feeCurrency,
-            },
+            'fee': fee,
         };
     }
 
@@ -412,6 +454,24 @@ module.exports = class bitstamp extends Exchange {
             'pair': market['id'],
             'time': 'hour',
         }, params));
+        //
+        //     [
+        //         {
+        //             date: '1551814435',
+        //             tid: '83581898',
+        //             price: '0.03532850',
+        //             type: '1',
+        //             amount: '0.85945907'
+        //         },
+        //         {
+        //             date: '1551814434',
+        //             tid: '83581896',
+        //             price: '0.03532851',
+        //             type: '1',
+        //             amount: '11.34130961'
+        //         },
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -476,7 +536,8 @@ module.exports = class bitstamp extends Exchange {
 
     async fetchOrderStatus (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostOrderStatus (this.extend ({ 'id': id }, params));
+        const request = { 'id': id };
+        const response = await this.privatePostOrderStatus (this.extend (request, params));
         return this.parseOrderStatus (this.safeString (response, 'status'));
     }
 
@@ -486,7 +547,24 @@ module.exports = class bitstamp extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let response = await this.privatePostOrderStatus (this.extend ({ 'id': id }, params));
+        const request = { 'id': id };
+        const response = await this.privatePostOrderStatus (this.extend (request, params));
+        //
+        //     {
+        //         "status": "Finished",
+        //         "id": 3047704374,
+        //         "transactions": [
+        //             {
+        //                 "usd": "6.0134400000000000",
+        //                 "price": "4008.96000000",
+        //                 "datetime": "2019-03-28 23:07:37.233599",
+        //                 "fee": "0.02",
+        //                 "btc": "0.00150000",
+        //                 "tid": 84452058,
+        //                 "type": 2
+        //             }
+        //         ]
+        //     }
         return this.parseOrder (response, market);
     }
 

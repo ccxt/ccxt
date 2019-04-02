@@ -253,7 +253,7 @@ class bxinth (Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['pairing'] = market['id']
-        response = self.privatePostGetorders(self.extend(request, params))
+        response = await self.privatePostGetorders(self.extend(request, params))
         orders = self.parse_orders(response['orders'], market, since, limit)
         return self.filter_by_symbol(orders, symbol)
 

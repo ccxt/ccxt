@@ -37,6 +37,9 @@ class bibox extends Exchange {
                 '15m' => '15min',
                 '30m' => '30min',
                 '1h' => '1hour',
+                '2h' => '2hour',
+                '4h' => '4hour',
+                '6h' => '6hour',
                 '12h' => '12hour',
                 '1d' => 'day',
                 '1w' => 'week',
@@ -314,11 +317,11 @@ class bibox extends Exchange {
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         return [
             $ohlcv['time'],
-            $ohlcv['open'],
-            $ohlcv['high'],
-            $ohlcv['low'],
-            $ohlcv['close'],
-            $ohlcv['vol'],
+            $this->safe_float($ohlcv, 'open'),
+            $this->safe_float($ohlcv, 'high'),
+            $this->safe_float($ohlcv, 'low'),
+            $this->safe_float($ohlcv, 'close'),
+            $this->safe_float($ohlcv, 'vol'),
         ];
     }
 

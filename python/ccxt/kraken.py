@@ -43,6 +43,7 @@ class kraken (Exchange):
             'has': {
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
+                'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'CORS': False,
                 'fetchCurrencies': True,
@@ -533,7 +534,7 @@ class kraken (Exchange):
             'interval': self.timeframes[timeframe],
         }
         if since is not None:
-            request['since'] = int(since / 1000)
+            request['since'] = int((since - 1) / 1000)
         response = self.publicGetOHLC(self.extend(request, params))
         ohlcvs = response['result'][market['id']]
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
@@ -1119,6 +1120,7 @@ class kraken (Exchange):
         return self.filterByCurrencySinceLimit(result, code, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
         # https://www.kraken.com/en-us/help/api#deposit-status
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchDeposits requires a currency code argument')
@@ -1143,6 +1145,7 @@ class kraken (Exchange):
         return self.parse_transactions_by_type('deposit', response['result'], code, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
         # https://www.kraken.com/en-us/help/api#withdraw-status
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawals requires a currency code argument')

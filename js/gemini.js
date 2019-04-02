@@ -78,8 +78,8 @@ module.exports = class gemini extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'taker': 0.01,
-                    'maker': 0.01,
+                    'taker': 0.0035,
+                    'maker': 0.001,
                 },
             },
         });

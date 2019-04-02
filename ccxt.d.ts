@@ -329,9 +329,11 @@ declare module 'ccxt' {
     export class anxpro extends Exchange {}
     export class anybits extends bitsane {}
     export class bcex extends Exchange {}
+    export class bequant extends hitbtc2 {}
     export class bibox extends Exchange {}
     export class bigone extends Exchange {}
     export class binance extends Exchange {}
+    export class binanceje extends binance {}
     export class bit2c extends Exchange {}
     export class bitbank extends Exchange {}
     export class bitbay extends Exchange {}
@@ -396,11 +398,11 @@ declare module 'ccxt' {
     export class exmo extends Exchange {}
     export class exx extends Exchange {}
     export class fcoin extends Exchange {}
+    export class fcoinjp extends fcoin {}
     export class flowbtc extends Exchange {}
     export class foxbit extends Exchange {}
     export class fybse extends Exchange {}
     export class fybsg extends fybse {}
-    export class gatecoin extends Exchange {}
     export class gateio extends Exchange {}
     export class gdax extends Exchange {}
     export class gemini extends Exchange {}
@@ -418,7 +420,7 @@ declare module 'ccxt' {
     export class kkex extends Exchange {}
     export class kraken extends Exchange {}
     export class kucoin extends Exchange {}
-    export class kucoin2 extends Exchange {}
+    export class kucoin2 extends kucoin {}
     export class kuna extends acx {}
     export class lakebtc extends Exchange {}
     export class lbank extends Exchange {}
@@ -439,6 +441,7 @@ declare module 'ccxt' {
     export class quadrigacx extends Exchange {}
     export class rightbtc extends Exchange {}
     export class southxchange extends Exchange {}
+    export class stronghold extends Exchange {}
     export class surbitcoin extends foxbit {}
     export class theocean extends Exchange {}
     export class therock extends Exchange {}
@@ -452,7 +455,6 @@ declare module 'ccxt' {
     export class virwox extends Exchange {}
     export class xbtce extends Exchange {}
     export class yobit extends liqui {}
-    export class yunbi extends acx {}
     export class zaif extends Exchange {}
     export class zb extends Exchange {}
 

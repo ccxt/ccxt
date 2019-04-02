@@ -1,12 +1,18 @@
+// ---------------------------------------------------------------------------
+// Usage:
+//
+//      npm run transpile
+// ---------------------------------------------------------------------------
+
 "use strict";
 
 const fs   = require ('fs')
     , path = require ('path')
     , log  = require ('ololog')
     , ansi = require ('ansicolor').nice
-    , errors = require ('./js/base/errors.js')
-    , { unCamelCase, capitalize } = require ('./js/base/functions.js')
-    , { precisionConstants } = require ('./js/base/functions/number.js')
+    , errors = require ('../js/base/errors.js')
+    , { unCamelCase } = require ('../js/base/functions.js')
+    , { precisionConstants } = require ('../js/base/functions/number.js')
 
 // ---------------------------------------------------------------------------
 
@@ -91,6 +97,7 @@ const commonRegexes = [
     [ /\.marketId\s/g, '.market_id'],
     [ /\.fetchFundingFees\s/g, '.fetch_funding_fees'],
     [ /\.fetchTradingFees\s/g, '.fetch_trading_fees'],
+    [ /\.fetchTradingFee\s/g, '.fetch_trading_fee'],
     [ /\.fetchFees\s/g, '.fetch_fees'],
     [ /\.fetchL2OrderBook\s/g, '.fetch_l2_order_book'],
     [ /\.fetchOrderBook\s/g, '.fetch_order_book'],
@@ -716,7 +723,7 @@ function transpileDerivedExchangeFile (folder, filename) {
 function transpileDerivedExchangeFiles (folder, pattern = '.js') {
 
     // exchanges.json accounts for ids included in exchanges.cfg
-    const ids = require ('./exchanges.json').ids;
+    const ids = require ('../exchanges.json').ids;
 
     const classNames = fs.readdirSync (folder)
         .filter (file => file.includes (pattern) && ids.includes (path.basename (file, pattern)))

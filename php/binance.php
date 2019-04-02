@@ -13,7 +13,7 @@ class binance extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'binance',
             'name' => 'Binance',
-            'countries' => array ( 'JP' ), // Japan
+            'countries' => array ( 'JP', 'MT' ), // Japan, Malta
             'rateLimit' => 500,
             'certified' => true,
             // new metainfo interface
@@ -76,6 +76,7 @@ class binance extends Exchange {
                 'wapi' => array (
                     'post' => array (
                         'withdraw',
+                        'sub-account/transfer',
                     ),
                     'get' => array (
                         'depositHistory',
@@ -83,9 +84,13 @@ class binance extends Exchange {
                         'depositAddress',
                         'accountStatus',
                         'systemStatus',
+                        'apiTradingStatus',
                         'userAssetDribbletLog',
                         'tradeFee',
                         'assetDetail',
+                        'sub-account/list',
+                        'sub-account/transfer/history',
+                        'sub-account/assets',
                     ),
                 ),
                 'v3' => array (
@@ -256,6 +261,7 @@ class binance extends Exchange {
                 ),
             ),
             'commonCurrencies' => array (
+                'BCC' => 'BCC', // kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
                 'YOYO' => 'YOYOW',
             ),
             // exchange-specific options
@@ -276,6 +282,10 @@ class binance extends Exchange {
                 ),
             ),
             'exceptions' => array (
+                'API key does not exist' => '\\ccxt\\AuthenticationError',
+                'Order would trigger immediately.' => '\\ccxt\\InvalidOrder',
+                'Account has insufficient balance for requested action.' => '\\ccxt\\InsufficientFunds',
+                'Rest API trading is not enabled.' => '\\ccxt\\ExchangeNotAvailable',
                 '-1000' => '\\ccxt\\ExchangeNotAvailable', // array ("code":-1000,"msg":"An unknown error occured while processing the request.")
                 '-1013' => '\\ccxt\\InvalidOrder', // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
                 '-1021' => '\\ccxt\\InvalidNonce', // 'your time is ahead of server'
@@ -355,17 +365,18 @@ class binance extends Exchange {
             );
             if (is_array ($filters) && array_key_exists ('PRICE_FILTER', $filters)) {
                 $filter = $filters['PRICE_FILTER'];
-                // PRICE_FILTER reports zero values for minPrice and maxPrice
+                // PRICE_FILTER reports zero values for $maxPrice
                 // since they updated $filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
-                // therefore limits['price']['min'] and limits['price']['max]
-                // don't have any meaningful value except null
-                //
-                //     $entry['limits']['price'] = array (
-                //         'min' => $this->safe_float($filter, 'minPrice'),
-                //         'max' => $this->safe_float($filter, 'maxPrice'),
-                //     );
-                //
+                // therefore limits['price']['max'] doesn't have any meaningful value except null
+                $entry['limits']['price'] = array (
+                    'min' => $this->safe_float($filter, 'minPrice'),
+                    'max' => null,
+                );
+                $maxPrice = $this->safe_float($filter, 'maxPrice');
+                if (($maxPrice !== null) && ($maxPrice > 0)) {
+                    $entry['limits']['price']['max'] = $maxPrice;
+                }
                 $entry['precision']['price'] = $this->precision_from_string($filter['tickSize']);
             }
             if (is_array ($filters) && array_key_exists ('LOT_SIZE', $filters)) {
@@ -615,8 +626,8 @@ class binance extends Exchange {
             'takerOrMaker' => $takerOrMaker,
             'side' => $side,
             'price' => $price,
-            'cost' => $price * $amount,
             'amount' => $amount,
+            'cost' => $price * $amount,
             'fee' => $fee,
         );
     }
@@ -1136,18 +1147,19 @@ class binance extends Exchange {
         $response = $this->wapiGetDepositAddress (array_merge (array (
             'asset' => $currency['id'],
         ), $params));
-        if (is_array ($response) && array_key_exists ('success', $response)) {
-            if ($response['success']) {
-                $address = $this->safe_string($response, 'address');
-                $tag = $this->safe_string($response, 'addressTag');
-                return array (
-                    'currency' => $code,
-                    'address' => $this->check_address($address),
-                    'tag' => $tag,
-                    'info' => $response,
-                );
-            }
+        $success = $this->safe_value($response, 'success');
+        if ($success === null || !$success) {
+            throw new InvalidAddress ($this->id . ' fetchDepositAddress returned an empty $response – create the deposit $address in the user settings first.');
         }
+        $address = $this->safe_string($response, 'address');
+        $tag = $this->safe_string($response, 'addressTag');
+        $this->check_address($address);
+        return array (
+            'currency' => $code,
+            'address' => $this->check_address($address),
+            'tag' => $tag,
+            'info' => $response,
+        );
     }
 
     public function fetch_funding_fees ($codes = null, $params = array ()) {
@@ -1277,24 +1289,21 @@ class binance extends Exchange {
                         }
                     }
                 }
+                $exceptions = $this->exceptions;
+                $message = $this->safe_string($response, 'msg');
+                if (is_array ($exceptions) && array_key_exists ($message, $exceptions)) {
+                    $ExceptionClass = $exceptions[$message];
+                    throw new $ExceptionClass ($this->id . ' ' . $message);
+                }
                 // checks against $error codes
                 $error = $this->safe_string($response, 'code');
                 if ($error !== null) {
-                    $exceptions = $this->exceptions;
                     if (is_array ($exceptions) && array_key_exists ($error, $exceptions)) {
                         // a workaround for array ("$code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
                         // despite that their $message is very confusing, it is raised by Binance
                         // on a temporary ban (the API key is valid, but disabled for a while)
                         if (($error === '-2015') && $this->options['hasAlreadyAuthenticatedSuccessfully']) {
                             throw new DDoSProtection ($this->id . ' temporary banned => ' . $body);
-                        }
-                        $message = $this->safe_string($response, 'msg');
-                        if ($message === 'Order would trigger immediately.') {
-                            throw new InvalidOrder ($this->id . ' ' . $body);
-                        } else if ($message === 'Account has insufficient balance for requested action.') {
-                            throw new InsufficientFunds ($this->id . ' ' . $body);
-                        } else if ($message === 'Rest API trading is not enabled.') {
-                            throw new ExchangeNotAvailable ($this->id . ' ' . $body);
                         }
                         throw new $exceptions[$error] ($this->id . ' ' . $body);
                     } else {

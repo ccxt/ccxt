@@ -23,6 +23,9 @@ class anxpro (Exchange):
                 'fetchCurrencies': True,
                 'fetchOHLCV': False,
                 'fetchTrades': False,
+                'fetchOpenOrders': True,
+                'fetchDepositAddress': True,
+                'createDepositAddress': False,
                 'withdraw': True,
             },
             'urls': {
@@ -389,6 +392,139 @@ class anxpro (Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         raise ExchangeError(self.id + ' switched off the trades endpoint, see their docs at https://docs.anxv2.apiary.io')
 
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'currency_pair': market['id'],
+        }
+        # ANXPro will return all symbol pairs regardless of what is specified in request
+        response = self.privatePostCurrencyPairMoneyOrders(self.extend(request, params))
+        #
+        #     {
+        #         "result": "success",
+        #         "data": [
+        #             {
+        #                 "oid": "e74305c7-c424-4fbc-a8a2-b41d8329deb0",
+        #                 "currency": "HKD",
+        #                 "item": "BTC",
+        #                 "type": "offer",
+        #                 "amount": {
+        #                     "currency": "BTC",
+        #                     "display": "10.00000000 BTC",
+        #                     "display_short": "10.00 BTC",
+        #                     "value": "10.00000000",
+        #                     "value_int": "1000000000"
+        #                 },
+        #                 "effective_amount": {
+        #                     "currency": "BTC",
+        #                     "display": "10.00000000 BTC",
+        #                     "display_short": "10.00 BTC",
+        #                     "value": "10.00000000",
+        #                     "value_int": "1000000000"
+        #                 },
+        #                 "price": {
+        #                     "currency": "HKD",
+        #                     "display": "412.34567 HKD",
+        #                     "display_short": "412.35 HKD",
+        #                     "value": "412.34567",
+        #                     "value_int": "41234567"
+        #                 },
+        #                 "status": "open",
+        #                 "date": 1393411075000,
+        #                 "priority": 1393411075000000,
+        #                 "actions": []
+        #             },
+        #            ...
+        #         ]
+        #     }
+        #
+        return self.parse_orders(self.safe_value(response, 'data', {}), symbol, since, limit)
+
+    def parse_order(self, order, market=None):
+        #
+        #     {
+        #       "oid": "e74305c7-c424-4fbc-a8a2-b41d8329deb0",
+        #       "currency": "HKD",
+        #       "item": "BTC",
+        #       "type": "offer",  <-- bid/offer
+        #       "amount": {
+        #         "currency": "BTC",
+        #         "display": "10.00000000 BTC",
+        #         "display_short": "10.00 BTC",
+        #         "value": "10.00000000",
+        #         "value_int": "1000000000"
+        #       },
+        #       "effective_amount": {
+        #         "currency": "BTC",
+        #         "display": "10.00000000 BTC",
+        #         "display_short": "10.00 BTC",
+        #         "value": "10.00000000",
+        #         "value_int": "1000000000"
+        #       },
+        #       "price": {
+        #         "currency": "HKD",
+        #         "display": "412.34567 HKD",
+        #         "display_short": "412.35 HKD",
+        #         "value": "412.34567",
+        #         "value_int": "41234567"
+        #       },
+        #       "status": "open",
+        #       "date": 1393411075000,
+        #       "priority": 1393411075000000,
+        #       "actions": []
+        #     }
+        #
+        id = self.safe_string(order, 'oid')
+        status = self.safe_string(order, 'status')
+        timestamp = self.safe_integer(order, 'date')
+        baseId = self.safe_string(order, 'item')
+        quoteId = self.safe_string(order, 'currency')
+        marketId = baseId + '/' + quoteId
+        market = self.safe_value(self.markets_by_id, marketId)
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        amount_info = self.safe_value(order, 'amount', {})
+        effective_info = self.safe_value(order, 'effective_amount', {})
+        price_info = self.safe_value(order, 'price', {})
+        remaining = self.safe_float(effective_info, 'value')
+        amount = self.safe_float(amount_info, 'volume')
+        price = self.safe_float(price_info, 'value')
+        filled = None
+        cost = None
+        if amount is not None:
+            if remaining is not None:
+                filled = amount - remaining
+                cost = price * filled
+        orderType = 'limit'
+        side = self.safe_string(order, 'type')
+        if side == 'offer':
+            side = 'sell'
+        else:
+            side = 'buy'
+        fee = None
+        trades = None  # todo parse trades
+        lastTradeTimestamp = None
+        return {
+            'info': order,
+            'id': id,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'type': orderType,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'remaining': remaining,
+            'filled': filled,
+            'status': status,
+            'fee': fee,
+            'trades': trades,
+        }
+
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         market = self.market(symbol)
         order = {
@@ -434,6 +570,22 @@ class anxpro (Exchange):
         return {
             'info': response,
             'id': response['data']['transactionId'],
+        }
+
+    def fetch_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = self.privatePostMoneyCurrencyAddress(self.extend(request, params))
+        result = response['data']
+        address = self.safe_string(result, 'addr')
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'info': response,
         }
 
     def nonce(self):

@@ -30,6 +30,7 @@ class ethfinex (bitfinex):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchTickers': True,
+                'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'withdraw': True,
             },
