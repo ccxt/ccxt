@@ -91,6 +91,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [Python3とCCXTライブラリを用いたBitMEX自動売買bot作成Tips](https://note.mu/akagami/n/n0af0a96c261f) – An article in Japanese on getting started with CCXT and a few bot tips.
 
+[Python数字货币量化交易开发入门视频-利用CCXT获取bitmex交易所的行情数据](https://www.bilibili.com/video/av44339579/) – An video in Chinese on how to get started with CCXT in Python and a tutorial on OHLCV + Pandas export to CSV.
+
 [BitMEX自動売買Bot「MANA 1.0.1」の全て](https://note.mu/moycoin/n/n6f585ea854d4) – An example of automatic BitMEX Bot MANA 1.0.1.
 
 [BitMEX 自動売買BOT開発 (API編) ① 開発環境の構築、APIライブラリの詳細、全APIマップ](https://note.mu/mazmex7/n/n1a3a0293ce82) – An article on developing an automatic BitMEX trading bot.
