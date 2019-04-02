@@ -282,6 +282,8 @@ module.exports = class bitmex extends Exchange {
             let side = (order['side'] === 'Sell') ? 'asks' : 'bids';
             let amount = this.safeFloat (order, 'size');
             let price = this.safeFloat (order, 'price');
+            // https://github.com/ccxt/ccxt/issues/4926
+            // https://github.com/ccxt/ccxt/issues/4927
             if (price !== undefined) {
                 result[side].push ([ price, amount ]);
             }
