@@ -281,9 +281,11 @@ class bitmex extends Exchange {
         for ($o = 0; $o < count ($orderbook); $o++) {
             $order = $orderbook[$o];
             $side = ($order['side'] === 'Sell') ? 'asks' : 'bids';
-            $amount = $order['size'];
-            $price = $order['price'];
-            $result[$side][] = array ( $price, $amount );
+            $amount = $this->safe_float($order, 'size');
+            $price = $this->safe_float($order, 'price');
+            if ($price !== null) {
+                $result[$side][] = array ( $price, $amount );
+            }
         }
         $result['bids'] = $this->sort_by($result['bids'], 0, true);
         $result['asks'] = $this->sort_by($result['asks'], 0);
