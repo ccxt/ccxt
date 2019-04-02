@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.423'
+const version = '1.18.424'
 
 Exchange.ccxtVersion = version
 
@@ -5355,6 +5355,9 @@ module.exports = class bibox extends Exchange {
                 '15m': '15min',
                 '30m': '30min',
                 '1h': '1hour',
+                '2h': '2hour',
+                '4h': '4hour',
+                '6h': '6hour',
                 '12h': '12hour',
                 '1d': 'day',
                 '1w': 'week',
