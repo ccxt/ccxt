@@ -280,9 +280,10 @@ class bitmex (Exchange):
         for o in range(0, len(orderbook)):
             order = orderbook[o]
             side = 'asks' if (order['side'] == 'Sell') else 'bids'
-            amount = order['size']
-            price = order['price']
-            result[side].append([price, amount])
+            amount = self.safe_float(order, 'size')
+            price = self.safe_float(order, 'price')
+            if price is not None:
+                result[side].append([price, amount])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
