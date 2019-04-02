@@ -608,7 +608,7 @@ module.exports = class cobinhood extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['trading_pair_id'] = market['id'];
-        };
+        }
         if (limit === undefined)
             limit = 100;
         request['limit'] = limit;
