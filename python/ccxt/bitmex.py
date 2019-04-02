@@ -282,8 +282,7 @@ class bitmex (Exchange):
             side = 'asks' if (order['side'] == 'Sell') else 'bids'
             amount = order['size']
             price = order['price']
-            if price is not None:
-                result[side].append([price, amount])
+            result[side].append([price, amount])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
