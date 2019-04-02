@@ -282,6 +282,9 @@ class bitmex (Exchange):
             side = 'asks' if (order['side'] == 'Sell') else 'bids'
             amount = self.safe_float(order, 'size')
             price = self.safe_float(order, 'price')
+            # https://github.com/ccxt/ccxt/issues/4926
+            # https://github.com/ccxt/ccxt/issues/4927
+            # the exchange sometimes returns null price in the orderbook
             if price is not None:
                 result[side].append([price, amount])
         result['bids'] = self.sort_by(result['bids'], 0, True)

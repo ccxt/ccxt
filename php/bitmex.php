@@ -283,6 +283,9 @@ class bitmex extends Exchange {
             $side = ($order['side'] === 'Sell') ? 'asks' : 'bids';
             $amount = $this->safe_float($order, 'size');
             $price = $this->safe_float($order, 'price');
+            // https://github.com/ccxt/ccxt/issues/4926
+            // https://github.com/ccxt/ccxt/issues/4927
+            // the exchange sometimes returns null $price in the $orderbook
             if ($price !== null) {
                 $result[$side][] = array ( $price, $amount );
             }
