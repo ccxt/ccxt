@@ -1370,6 +1370,7 @@ class Exchange(object):
                 ohlcvs[j - 1][volume] += trade['amount']
         return ohlcvs
 
+    @staticmethod
     def parse_timeframe(self, timeframe):
         amount = int(timeframe[0:-1])
         unit = timeframe[-1]
