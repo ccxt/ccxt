@@ -1371,7 +1371,7 @@ class Exchange(object):
         return ohlcvs
 
     @staticmethod
-    def parse_timeframe(self, timeframe):
+    def parse_timeframe(timeframe):
         amount = int(timeframe[0:-1])
         unit = timeframe[-1]
         if 'y' in unit:
