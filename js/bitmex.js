@@ -280,9 +280,14 @@ module.exports = class bitmex extends Exchange {
         for (let o = 0; o < orderbook.length; o++) {
             let order = orderbook[o];
             let side = (order['side'] === 'Sell') ? 'asks' : 'bids';
-            let amount = order['size'];
-            let price = order['price'];
-            result[side].push ([ price, amount ]);
+            let amount = this.safeFloat (order, 'size');
+            let price = this.safeFloat (order, 'price');
+            // https://github.com/ccxt/ccxt/issues/4926
+            // https://github.com/ccxt/ccxt/issues/4927
+            // the exchange sometimes returns null price in the orderbook
+            if (price !== undefined) {
+                result[side].push ([ price, amount ]);
+            }
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);
         result['asks'] = this.sortBy (result['asks'], 0);

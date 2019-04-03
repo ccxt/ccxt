@@ -238,7 +238,7 @@ class kucoin extends Exchange {
                     'max' => $quoteMaxSize,
                 ),
             );
-            $result[$symbol] = array (
+            $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'baseId' => $baseId,
