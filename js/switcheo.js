@@ -158,7 +158,6 @@ module.exports = class switcheo extends Exchange {
             params['show_listing_details'] = 1;
         if (!('show_inactive' in params))
             params['show_inactive'] = 1;
-        console.log (params);
         let response = await this.publicGetExchangeTokens (params);
         let contracts = await this.fetchContractHash (params);
         let currencies = Object.keys (response);
@@ -427,7 +426,7 @@ module.exports = class switcheo extends Exchange {
                                 } else if (order['blockchain'] === 'eth') {
                                     feeAmountBlockchain = this.fromWei (parseInt (makeTrades['fee_amount']), 'ether', this.currencies[feeAsset]['info']['decimals']) * -0.5;
                                 }
-                                feeAmount += feeAmountBlockchain
+                                feeAmount += feeAmountBlockchain;
                                 trades.push (makeTrades['id']);
                                 let fillTimestamp = this.toEpoch (makeTrades['created_at']);
                                 if (lastTradeTimestamp === undefined || fillTimestamp > lastTradeTimestamp)
