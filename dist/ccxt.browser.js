@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.431'
+const version = '1.18.432'
 
 Exchange.ccxtVersion = version
 
@@ -2982,12 +2982,12 @@ module.exports = class Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
     }
 
-    parseTransactions (transactions, currency = undefined, since = undefined, limit = undefined) {
+    parseTransactions (transactions, currency = undefined, since = undefined, limit = undefined, params = {}) {
         // this code is commented out temporarily to catch for exchange-specific errors
         // if (!this.isArray (transactions)) {
         //     throw new ExchangeError (this.id + ' parseTransactions expected an array in the transactions argument, but got ' + typeof transactions);
         // }
-        let result = Object.values (transactions || []).map (transaction => this.parseTransaction (transaction, currency))
+        let result = Object.values (transactions || []).map (transaction => this.extend (this.parseTransaction (transaction, currency), params))
         result = this.sortBy (result, 'timestamp');
         let code = (currency !== undefined) ? currency['code'] : undefined;
         return this.filterByCurrencySinceLimit (result, code, since, limit);
@@ -50578,7 +50578,7 @@ module.exports = class kucoin extends Exchange {
         //     }
         //
         const responseData = response['data']['items'];
-        return this.parseTransactions (responseData, currency, since, limit);
+        return this.parseTransactions (responseData, currency, since, limit, { 'type': 'deposit' });
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -50643,7 +50643,7 @@ module.exports = class kucoin extends Exchange {
         //     }
         //
         const responseData = response['data']['items'];
-        return this.parseTransactions (responseData, currency, since, limit);
+        return this.parseTransactions (responseData, currency, since, limit, { 'type': 'withdrawal' });
     }
 
     async fetchBalance (params = {}) {
