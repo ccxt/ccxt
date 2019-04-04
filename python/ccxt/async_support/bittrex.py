@@ -187,6 +187,7 @@ class bittrex (Exchange):
                 'UUID_INVALID': OrderNotFound,
                 'RATE_NOT_PROVIDED': InvalidOrder,  # createLimitBuyOrder('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP': PermissionDenied,
+                'DUST_TRADE_DISALLOWED_MIN_VALUE': InvalidOrder,
             },
             'options': {
                 # price precision by quote currency code
@@ -990,8 +991,12 @@ class bittrex (Exchange):
                         raise DDoSProtection(feedback)
                     else:
                         raise AuthenticationError(feedback)
-                if message == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT':
-                    raise InvalidOrder(self.id + ' order cost should be over 50k satoshi ' + self.json(response))
+                # https://github.com/ccxt/ccxt/issues/4932
+                # the following two lines are now redundant, see line 171 in describe()
+                #
+                #     if message == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT':
+                #         raise InvalidOrder(self.id + ' order cost should be over 50k satoshi ' + self.json(response))
+                #
                 if message == 'INVALID_ORDER':
                     # Bittrex will return an ambiguous INVALID_ORDER message
                     # upon canceling already-canceled and closed orders
