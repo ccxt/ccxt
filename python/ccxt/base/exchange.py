@@ -1402,9 +1402,9 @@ class Exchange(object):
         code = currency['code'] if currency else None
         return self.filter_by_currency_since_limit(array, code, since, limit)
 
-    def parse_transactions(self, transactions, currency=None, since=None, limit=None):
+    def parse_transactions(self, transactions, currency=None, since=None, limit=None, params={}):
         array = self.to_array(transactions)
-        array = [self.parse_transaction(transaction, currency) for transaction in array]
+        array = [self.extend(self.parse_transaction(transaction, currency), params) for transaction in array]
         array = self.sort_by(array, 'timestamp')
         code = currency['code'] if currency else None
         return self.filter_by_currency_since_limit(array, code, since, limit)

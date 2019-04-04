@@ -1563,18 +1563,20 @@ class Exchange {
         return $this->parse_ledger ($items, $currency, $since, $limit);
     }
 
-    public function parse_transactions ($transactions, $currency = null, $since = null, $limit = null) {
+    public function parse_transactions ($transactions, $currency = null, $since = null, $limit = null, $params = array ()) {
         $array = is_array ($transactions) ? array_values ($transactions) : array ();
         $result = array ();
-        foreach ($array as $transaction)
-            $result[] = $this->parse_transaction ($transaction, $currency);
+        foreach ($array as $transaction) {
+            var_dump ($params);
+            $result[] = array_merge ($this->parse_transaction ($transaction, $currency), $params);
+        }
         $result = $this->sort_by ($result, 'timestamp');
         $code = isset ($currency) ? $currency['code'] : null;
         return $this->filter_by_currency_since_limit ($result, $code, $since, $limit);
     }
 
-    public function parseTransactions ($transactions, $currency = null, $since = null, $limit = null) {
-        return $this->parse_transactions ($transactions, $currency, $since, $limit);
+    public function parseTransactions ($transactions, $currency = null, $since = null, $limit = null, $params = array ()) {
+        return $this->parse_transactions ($transactions, $currency, $since, $limit, $params);
     }
 
     public function parse_orders ($orders, $market = null, $since = null, $limit = null) {
