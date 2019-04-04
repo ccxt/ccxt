@@ -99,6 +99,7 @@ class coinmarketcap (Exchange):
             'Bitgem': 'Bitgem',
             'BlazeCoin': 'BlazeCoin',
             'BlockCAT': 'BlockCAT',
+            'Blocktrade Token': 'Blocktrade Token',
             'Catcoin': 'Catcoin',
             'CanYaCoin': 'CanYaCoin',  # conflict with CAN(Content and AD Network)
             'Comet': 'Comet',  # conflict with CMT(CyberMiles)

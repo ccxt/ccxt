@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.405'
+__version__ = '1.18.431'
 
 # -----------------------------------------------------------------------------
 
@@ -52,6 +52,7 @@ from ccxt.async_support.allcoin import allcoin                            # noqa
 from ccxt.async_support.anxpro import anxpro                              # noqa: F401
 from ccxt.async_support.anybits import anybits                            # noqa: F401
 from ccxt.async_support.bcex import bcex                                  # noqa: F401
+from ccxt.async_support.bequant import bequant                            # noqa: F401
 from ccxt.async_support.bibox import bibox                                # noqa: F401
 from ccxt.async_support.bigone import bigone                              # noqa: F401
 from ccxt.async_support.binance import binance                            # noqa: F401
@@ -187,6 +188,7 @@ exchanges = [
     'anxpro',
     'anybits',
     'bcex',
+    'bequant',
     'bibox',
     'bigone',
     'binance',

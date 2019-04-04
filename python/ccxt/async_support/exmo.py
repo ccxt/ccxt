@@ -112,7 +112,7 @@ class exmo (Exchange):
                 },
             },
             'options': {
-                'useWebapiForFetchingFees': False,  # TODO: figure why Exmo bans us when we try to fetch() their web urls
+                'useWebapiForFetchingFees': True,  # TODO: figure why Exmo bans us when we try to fetch() their web urls
                 'feesAndLimits': {
                     'success': 1,
                     'ctlr': 'feesAndLimits',
@@ -405,7 +405,7 @@ class exmo (Exchange):
             taker = fee
             maker = fee
             return {
-                'info': response,
+                # 'info': response,
                 'maker': maker,
                 'taker': taker,
             }

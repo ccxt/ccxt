@@ -342,12 +342,19 @@ class bitstamp (Exchange):
         #
         # fetchMyTrades, trades returned within fetchOrder(private)
         #
-        #     ...
+        #     {
+        #         "usd": "6.0134400000000000",
+        #         "price": "4008.96000000",
+        #         "datetime": "2019-03-28 23:07:37.233599",
+        #         "fee": "0.02",
+        #         "btc": "0.00150000",
+        #         "tid": 84452058,
+        #         "type": 2
+        #     }
         #
         id = self.safe_string_2(trade, 'id', 'tid')
         symbol = None
         side = None
-        timestamp = None
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         orderId = self.safe_string(trade, 'order_id')
@@ -372,9 +379,17 @@ class bitstamp (Exchange):
             cost = self.safe_float(trade, market['quoteId'], cost)
             feeCurrency = market['quote']
             symbol = market['symbol']
+        timestamp = self.safe_string_2(trade, 'date', 'datetime')
+        if timestamp is not None:
+            if timestamp.find(' ') >= 0:
+                # iso8601
+                timestamp = self.parse8601(timestamp)
+            else:
+                # string unix epoch in seconds
+                timestamp = int(timestamp)
+                timestamp = timestamp * 1000
         # if it is a private trade
         if 'id' in trade:
-            timestamp = self.parse8601(trade['datetime'])
             if amount is not None:
                 if amount < 0:
                     side = 'sell'
@@ -382,7 +397,6 @@ class bitstamp (Exchange):
                 else:
                     side = 'buy'
         else:
-            timestamp = int(trade['date']) * 1000
             side = self.safe_string(trade, 'type')
             if side == '1':
                 side = 'sell'
@@ -497,7 +511,8 @@ class bitstamp (Exchange):
 
     async def fetch_order_status(self, id, symbol=None, params={}):
         await self.load_markets()
-        response = await self.privatePostOrderStatus(self.extend({'id': id}, params))
+        request = {'id': id}
+        response = await self.privatePostOrderStatus(self.extend(request, params))
         return self.parse_order_status(self.safe_string(response, 'status'))
 
     async def fetch_order(self, id, symbol=None, params={}):
@@ -505,7 +520,24 @@ class bitstamp (Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        response = await self.privatePostOrderStatus(self.extend({'id': id}, params))
+        request = {'id': id}
+        response = await self.privatePostOrderStatus(self.extend(request, params))
+        #
+        #     {
+        #         "status": "Finished",
+        #         "id": 3047704374,
+        #         "transactions": [
+        #             {
+        #                 "usd": "6.0134400000000000",
+        #                 "price": "4008.96000000",
+        #                 "datetime": "2019-03-28 23:07:37.233599",
+        #                 "fee": "0.02",
+        #                 "btc": "0.00150000",
+        #                 "tid": 84452058,
+        #                 "type": 2
+        #             }
+        #         ]
+        #     }
         return self.parse_order(response, market)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):

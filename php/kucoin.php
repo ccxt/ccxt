@@ -166,6 +166,9 @@ class kucoin extends Exchange {
                     'deposit' => array (),
                 ),
             ),
+            'commonCurrencies' => array (
+                'HOT' => 'HOTNOW',
+            ),
             'options' => array (
                 'version' => 'v1',
                 'symbolSeparator' => '-',
@@ -235,7 +238,7 @@ class kucoin extends Exchange {
                     'max' => $quoteMaxSize,
                 ),
             );
-            $result[$symbol] = array (
+            $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'baseId' => $baseId,

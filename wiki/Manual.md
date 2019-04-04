@@ -53,7 +53,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 
 # Exchanges
 
-The ccxt library currently supports the following 133 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 134 cryptocurrency exchange markets and trading APIs:
 
 |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;logo&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                                                                                     | id                 | name                                                                                 | ver   | doc                                                                                              | certified                                                                                                                  |
 |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|--------------------------------------------------------------------------------------|:-----:|:------------------------------------------------------------------------------------------------:|----------------------------------------------------------------------------------------------------------------------------|
@@ -63,6 +63,7 @@ The ccxt library currently supports the following 133 cryptocurrency exchange ma
 |[![anxpro](https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg)](https://anxpro.com)                                                         | anxpro             | [ANXPro](https://anxpro.com)                                                         | *     | [API](https://anxv2.docs.apiary.io)                                                              |                                                                                                                             | Japan, Singapore, Hong Kong, New Zealand|
 |[![anybits](https://user-images.githubusercontent.com/1294454/41388454-ae227544-6f94-11e8-82a4-127d51d34903.jpg)](https://anybits.com)                                                       | anybits            | [Anybits](https://anybits.com)                                                       | *     | [API](https://anybits.com/help/api)                                                              |                                                                                                                             | Ireland                                 |
 |[![bcex](https://user-images.githubusercontent.com/1294454/43362240-21c26622-92ee-11e8-9464-5801ec526d77.jpg)](https://www.bcex.top/user/reg/type/2/pid/758978)                              | bcex               | [BCEX](https://www.bcex.top/user/reg/type/2/pid/758978)                              | 1     | [API](https://github.com/BCEX-TECHNOLOGY-LIMITED/API_Docs/wiki/Interface)                        |                                                                                                                             | China, Canada                           |
+|[![bequant](https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg)](https://hitbtc.com/?ref_id=5a5d39a65d466)                                  | bequant            | [Bequant](https://hitbtc.com/?ref_id=5a5d39a65d466)                                  | 2     | [API](https://api.bequant.io/)                                                                   |                                                                                                                             | Malta                                   |
 |[![bibox](https://user-images.githubusercontent.com/1294454/34902611-2be8bf1a-f830-11e7-91a2-11b2f292e750.jpg)](https://www.bibox.com/signPage?id=11114745&lang=en)                          | bibox              | [Bibox](https://www.bibox.com/signPage?id=11114745&lang=en)                          | 1     | [API](https://github.com/Biboxcom/api_reference/wiki/home_en)                                    |                                                                                                                             | China, US, South Korea                  |
 |[![bigone](https://user-images.githubusercontent.com/1294454/42803606-27c2b5ec-89af-11e8-8d15-9c8c245e8b2c.jpg)](https://b1.run/users/new?code=D3LLBVFT)                                     | bigone             | [BigONE](https://b1.run/users/new?code=D3LLBVFT)                                     | 2     | [API](https://open.big.one/docs/api.html)                                                        |                                                                                                                             | UK                                      |
 |[![binance](https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg)](https://www.binance.com/?ref=10205187)                                     | binance            | [Binance](https://www.binance.com/?ref=10205187)                                     | *     | [API](https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md)     | [![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | Japan, Malta                            |
@@ -3007,6 +3008,82 @@ class MyZaif extends \ccxt\zaif {
 ```
 
 # Error Handling
+
+The error handling with CCXT is done with the exception mechanism that is natively available with all languages.
+
+To handle the errors you should add a `try` block around the call to a unified method and catch the exceptions like you would normally do with your language:
+
+```JavaScript
+// JavaScript
+
+// try to call a unified method
+try {
+    const response = await exchange.fetchTicker ('ETH/BTC')
+    console.log (response)
+} catch (e) {
+    // if the exception is thrown, it is "caught" and can be handled here
+    // the handling reaction depends on the type of the exception
+    // and on the purpose or business logic of your application
+    if (e instanceof ccxt.NetworkError) {
+        console.log (exchange.id, 'fetchTicker failed due to a network error:', e.message)
+        // retry or whatever
+        // ...
+    } else if (e instanceof ccxt.ExchangeError) {
+        console.log (exchange.id, 'fetchTicker failed due to exchange error:', e.message)
+        // retry or whatever
+        // ...
+    } else {
+        console.log (exchange.id, 'fetchTicker failed with:', e.message)
+        // retry or whatever
+        // ...
+    }
+}
+```
+
+```Python
+# Python
+
+# try to call a unified method
+try:
+    response = await exchange.fetch_order_book('ETH/BTC')
+    print(ticker)
+except ccxt.NetworkError as e:
+    print(exchange.id, 'fetch_order_book failed due to a network error:', str(e))
+    # retry or whatever
+    # ...
+except ccxt.ExchangeError as e:
+    print(exchange.id, 'fetch_order_book failed due to exchange error:', str(e))
+    # retry or whatever
+    # ...
+except Exception as e:
+    print(exchange.id, 'fetch_order_book failed with:', str(e))
+    # retry or whatever
+    # ...
+```
+
+```PHP
+// PHP
+
+// try to call a unified method
+try {
+    $response = $exchange->fetch_trades('ETH/BTC');
+    print_r(ticker);
+} catch (\ccxt\NetworkError $e) {
+    echo $exchange->id . ' fetch_trades failed due to a network error: ' . $e->getMessage () . "\n";
+    // retry or whatever
+    // ...
+} catch (\ccxt\ExchangeError $e) {
+    echo $exchange->id . ' fetch_trades failed due to exchange error: ' . $e->getMessage () . "\n";
+    // retry or whatever
+    // ...
+} catch (Exception $e) {
+    echo $exchange->id . ' fetch_trades failed with: ' . $e->getMessage () . "\n";
+    // retry or whatever
+    // ...
+}
+```
+
+## Exception Hierarchy
 
 All exceptions are derived from the base BaseError exception, which, in its turn, is defined in the ccxt library like so:
 

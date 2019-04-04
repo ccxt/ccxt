@@ -374,17 +374,17 @@ class binance (Exchange):
             }
             if 'PRICE_FILTER' in filters:
                 filter = filters['PRICE_FILTER']
-                # PRICE_FILTER reports zero values for minPrice and maxPrice
+                # PRICE_FILTER reports zero values for maxPrice
                 # since they updated filter types in November 2018
                 # https://github.com/ccxt/ccxt/issues/4286
-                # therefore limits['price']['min'] and limits['price']['max]
-                # don't have any meaningful value except None
-                #
-                #     entry['limits']['price'] = {
-                #         'min': self.safe_float(filter, 'minPrice'),
-                #         'max': self.safe_float(filter, 'maxPrice'),
-                #     }
-                #
+                # therefore limits['price']['max'] doesn't have any meaningful value except None
+                entry['limits']['price'] = {
+                    'min': self.safe_float(filter, 'minPrice'),
+                    'max': None,
+                }
+                maxPrice = self.safe_float(filter, 'maxPrice')
+                if (maxPrice is not None) and(maxPrice > 0):
+                    entry['limits']['price']['max'] = maxPrice
                 entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
             if 'LOT_SIZE' in filters:
                 filter = filters['LOT_SIZE']
