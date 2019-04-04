@@ -993,48 +993,44 @@ module.exports = class bitstamp extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response) {
-        if (typeof body !== 'string')
-            return; // fallback to default error handler
-        if (body.length < 2)
-            return; // fallback to default error handler
-        if ((body[0] === '{') || (body[0] === '[')) {
-            // fetchDepositAddress returns {"error": "No permission found"} on apiKeys that don't have the permission required
-            response = this.parseJson (body);
-            let status = this.safeString (response, 'status');
-            let error = this.safeValue (response, 'error');
-            if (status === 'error' || error) {
-                let errors = [];
-                if (typeof error !== 'string') {
-                    let keys = Object.keys (error);
-                    for (let i = 0; i < keys.length; i++) {
-                        let thisError = error[keys[i]];
-                        if (Array.isArray (thisError)) {
-                            thisError = thisError.join ('. ');
-                        }
-                        errors.push (keys[i] + ': ' + thisError);
+        if (response === undefined) {
+            return;
+        }
+        // fetchDepositAddress returns {"error": "No permission found"} on apiKeys that don't have the permission required
+        let status = this.safeString (response, 'status');
+        let error = this.safeValue (response, 'error');
+        if (status === 'error' || error) {
+            let errors = [];
+            if (typeof error !== 'string') {
+                let keys = Object.keys (error);
+                for (let i = 0; i < keys.length; i++) {
+                    let thisError = error[keys[i]];
+                    if (Array.isArray (thisError)) {
+                        thisError = thisError.join ('. ');
                     }
-                } else {
-                    errors.push (error);
+                    errors.push (keys[i] + ': ' + thisError);
                 }
-                if (response.reason && response.reason['__all__'] && Array.isArray (response.reason['__all__'])) {
-                    for (let i = 0; i < response.reason['__all__'].length; i++) {
-                        errors.push (response.reason['__all__'][i]);
-                    }
-                }
-                let exceptions = this.exceptions;
-                for (let i = 0; i < errors.length; i++) {
-                    if (errors[i] in exceptions) {
-                        throw new exceptions[error] (this.id + ': ' + errors[i]);
-                    }
-                    throw new ExchangeError (this.id + ': ' + errors[i]);
-                }
-                let code = this.safeString (response, 'code');
-                if (code !== undefined) {
-                    if (code === 'API0005')
-                        throw new AuthenticationError (this.id + ' invalid signature, use the uid for the main account if you have subaccounts');
-                }
-                throw new ExchangeError (this.id + ' ' + body);
+            } else {
+                errors.push (error);
             }
+            if (response.reason && response.reason['__all__'] && Array.isArray (response.reason['__all__'])) {
+                for (let i = 0; i < response.reason['__all__'].length; i++) {
+                    errors.push (response.reason['__all__'][i]);
+                }
+            }
+            let exceptions = this.exceptions;
+            for (let i = 0; i < errors.length; i++) {
+                if (errors[i] in exceptions) {
+                    throw new exceptions[error] (this.id + ': ' + errors[i]);
+                }
+                throw new ExchangeError (this.id + ': ' + errors[i]);
+            }
+            let code = this.safeString (response, 'code');
+            if (code !== undefined) {
+                if (code === 'API0005')
+                    throw new AuthenticationError (this.id + ' invalid signature, use the uid for the main account if you have subaccounts');
+            }
+            throw new ExchangeError (this.id + ' ' + body);
         }
     }
 };
