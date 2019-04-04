@@ -1020,10 +1020,11 @@ module.exports = class bitstamp extends Exchange {
             }
             let exceptions = this.exceptions;
             for (let i = 0; i < errors.length; i++) {
-                if (errors[i] in exceptions) {
-                    throw new exceptions[error] (this.id + ': ' + errors[i]);
+                let e = errors[i];
+                if (e in exceptions) {
+                    throw new exceptions[e] (this.id + ': ' + e);
                 }
-                throw new ExchangeError (this.id + ': ' + errors[i]);
+                throw new ExchangeError (this.id + ': ' + e);
             }
             let code = this.safeString (response, 'code');
             if (code !== undefined) {
