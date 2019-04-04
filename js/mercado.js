@@ -85,6 +85,8 @@ module.exports = class mercado extends Exchange {
                         'list_orderbook',
                         'place_buy_order',
                         'place_sell_order',
+                        'place_market_buy_order',
+                        'place_market_sell_order',
                         'withdraw_coin',
                     ],
                 },
@@ -204,15 +206,26 @@ module.exports = class mercado extends Exchange {
 
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         let order = {
-            'coin_pair': this.marketId(symbol),
-            'quantity': amount
+            'coin_pair': this.marketId(symbol)
         };
+
+        let method = 'privatePostPlace' + this.capitalize(side) + 'Order';
 
         if (type === 'limit') {
             order['limit_price'] = price;
+            order['quantity'] = amount;
+        }
+        else {
+            method = 'privatePostPlaceMarket' + this.capitalize(side) + 'Order';
+
+            if (side === "buy") {
+                order['cost'] = (amount * price).toFixed(5);
+            }
+            else { 
+                order['quantity'] = amount;
+            }
         }
 
-        let method = 'privatePostPlace' + this.capitalize(side) + 'Order';
         let response = await this[method](this.extend(order, params));
 
         return {
