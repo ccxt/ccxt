@@ -97,7 +97,7 @@ class exmo extends Exchange {
                 ),
             ),
             'options' => array (
-                'useWebapiForFetchingFees' => false, // TODO => figure why Exmo bans us when we try to fetch() their web urls
+                'useWebapiForFetchingFees' => true, // TODO => figure why Exmo bans us when we try to fetch() their web urls
                 'feesAndLimits' => array (
                     'success' => 1,
                     'ctlr' => 'feesAndLimits',
@@ -393,7 +393,7 @@ class exmo extends Exchange {
             $taker = $fee;
             $maker = $fee;
             return array (
-                'info' => $response,
+                // 'info' => $response,
                 'maker' => $maker,
                 'taker' => $taker,
             );

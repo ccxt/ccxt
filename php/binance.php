@@ -365,17 +365,18 @@ class binance extends Exchange {
             );
             if (is_array ($filters) && array_key_exists ('PRICE_FILTER', $filters)) {
                 $filter = $filters['PRICE_FILTER'];
-                // PRICE_FILTER reports zero values for minPrice and maxPrice
+                // PRICE_FILTER reports zero values for $maxPrice
                 // since they updated $filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
-                // therefore limits['price']['min'] and limits['price']['max]
-                // don't have any meaningful value except null
-                //
-                //     $entry['limits']['price'] = array (
-                //         'min' => $this->safe_float($filter, 'minPrice'),
-                //         'max' => $this->safe_float($filter, 'maxPrice'),
-                //     );
-                //
+                // therefore limits['price']['max'] doesn't have any meaningful value except null
+                $entry['limits']['price'] = array (
+                    'min' => $this->safe_float($filter, 'minPrice'),
+                    'max' => null,
+                );
+                $maxPrice = $this->safe_float($filter, 'maxPrice');
+                if (($maxPrice !== null) && ($maxPrice > 0)) {
+                    $entry['limits']['price']['max'] = $maxPrice;
+                }
                 $entry['precision']['price'] = $this->precision_from_string($filter['tickSize']);
             }
             if (is_array ($filters) && array_key_exists ('LOT_SIZE', $filters)) {

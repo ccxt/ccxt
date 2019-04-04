@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.414';
+$version = '1.18.432';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.414';
+    const VERSION = '1.18.432';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -1563,18 +1563,20 @@ class Exchange {
         return $this->parse_ledger ($items, $currency, $since, $limit);
     }
 
-    public function parse_transactions ($transactions, $currency = null, $since = null, $limit = null) {
+    public function parse_transactions ($transactions, $currency = null, $since = null, $limit = null, $params = array ()) {
         $array = is_array ($transactions) ? array_values ($transactions) : array ();
         $result = array ();
-        foreach ($array as $transaction)
-            $result[] = $this->parse_transaction ($transaction, $currency);
+        foreach ($array as $transaction) {
+            var_dump ($params);
+            $result[] = array_merge ($this->parse_transaction ($transaction, $currency), $params);
+        }
         $result = $this->sort_by ($result, 'timestamp');
         $code = isset ($currency) ? $currency['code'] : null;
         return $this->filter_by_currency_since_limit ($result, $code, $since, $limit);
     }
 
-    public function parseTransactions ($transactions, $currency = null, $since = null, $limit = null) {
-        return $this->parse_transactions ($transactions, $currency, $since, $limit);
+    public function parseTransactions ($transactions, $currency = null, $since = null, $limit = null, $params = array ()) {
+        return $this->parse_transactions ($transactions, $currency, $since, $limit, $params);
     }
 
     public function parse_orders ($orders, $market = null, $since = null, $limit = null) {
