@@ -154,6 +154,11 @@ module.exports = class switcheo extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        if (!('show_listing_details' in params))
+            params['show_listing_details'] = 1;
+        if (!('show_inactive' in params))
+            params['show_inactive'] = 1;
+        console.log (params);
         let response = await this.publicGetExchangeTokens (params);
         let contracts = await this.fetchContractHash (params);
         let currencies = Object.keys (response);
@@ -228,10 +233,7 @@ module.exports = class switcheo extends Exchange {
             'show_details': 1,
         }, params));
         let contracts = await this.fetchContractHash ();
-        let tokens = await this.fetchCurrencies (this.extend ({
-            'show_listing_details': 1,
-            'show_inactive': 1,
-        }, params));
+        let tokens = await this.fetchCurrencies (params);
         let result = [];
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
@@ -391,7 +393,13 @@ module.exports = class switcheo extends Exchange {
                 if (fills['status'] === 'success') {
                     tradeAmount += parseFloat (fills['want_amount']);
                     feeAsset = this.options['currencyHashes'][order['blockchain']][fills['fee_asset_id']];
-                    feeAmount += this.fromWei (parseInt (fills['fee_amount']), 'ether', this.currencies[feeAsset]['info']['decimals']);
+                    let feeAmountBlockchain = 0;
+                    if (order['blockchain'] === 'neo') {
+                        feeAmountBlockchain = this.decimalToPrecision (this.fromWei (parseInt (fills['fee_amount']), 'ether', this.currencies[feeAsset]['info']['decimals']), 0, this.currencies[feeAsset]['info']['decimals']);
+                    } else if (order['blockchain'] === 'eth') {
+                        feeAmountBlockchain = this.fromWei (parseInt (fills['fee_amount']), 'ether', this.currencies[feeAsset]['info']['decimals']);
+                    }
+                    feeAmount += feeAmountBlockchain;
                     trades.push (fills['id']);
                     price.push (fills['price']);
                     let fillTimestamp = this.toEpoch (fills['created_at']);
@@ -413,7 +421,13 @@ module.exports = class switcheo extends Exchange {
                             if (makeTrades['status'] === 'success') {
                                 tradeAmount += parseFloat (makeTrades['filled_amount']);
                                 feeAsset = this.options['currencyHashes'][order['blockchain']][makeTrades['fee_asset_id']];
-                                feeAmount += this.fromWei (parseInt (makeTrades['fee_amount']), 'ether', this.currencies[feeAsset]['info']['decimals']) * -0.5;
+                                let feeAmountBlockchain = 0;
+                                if (order['blockchain'] === 'neo') {
+                                    feeAmountBlockchain = this.decimalToPrecision (this.fromWei (parseInt (makeTrades['fee_amount']), 'ether', this.currencies[feeAsset]['info']['decimals']) * -0.5, 0, this.currencies[feeAsset]['info']['decimals']);
+                                } else if (order['blockchain'] === 'eth') {
+                                    feeAmountBlockchain = this.fromWei (parseInt (makeTrades['fee_amount']), 'ether', this.currencies[feeAsset]['info']['decimals']) * -0.5;
+                                }
+                                feeAmount += feeAmountBlockchain
                                 trades.push (makeTrades['id']);
                                 let fillTimestamp = this.toEpoch (makeTrades['created_at']);
                                 if (lastTradeTimestamp === undefined || fillTimestamp > lastTradeTimestamp)
@@ -486,8 +500,8 @@ module.exports = class switcheo extends Exchange {
         if ('order_status' in params) {
             request['order_status'] = params['order_status'];
         }
-        if ('before' in params) {
-            request['before'] = params['before'];
+        if ('before_id' in params) {
+            request['before_id'] = params['before'];
         }
         if (limit) {
             request['limit'] = limit;
@@ -519,7 +533,12 @@ module.exports = class switcheo extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.fetchOrders (symbol, since, undefined, params);
+        let response = {};
+        if (limit > 50 && limit <= 200) {
+            response = await this.fetchOrders (symbol, since, limit, params);
+        } else {
+            response = await this.fetchOrders (symbol, since, undefined, params);
+        }
         let tradesFormatted = [];
         for (let i = 0; i < response.length; i++) {
             let order = response[i];
@@ -539,7 +558,7 @@ module.exports = class switcheo extends Exchange {
                     let fill = info['fills'][j];
                     if (fill['status'] === 'success') {
                         feeAsset = this.options['currencyHashes'][info['blockchain']][fill['fee_asset_id']];
-                        feeAmount = this.fromWei (fill['fee_amount'], 'ether', this.currencies[feeAsset]['info']['decimals']);
+                        feeAmount = fill['fee_amount'];
                         fillTimestamp = this.toEpoch (fill['created_at']);
                         price = parseFloat (fill['price']);
                         amount = parseFloat (fill['want_amount']);
@@ -547,6 +566,21 @@ module.exports = class switcheo extends Exchange {
                             cost = amount * price;
                         else if (order['side'] === 'sell')
                             cost = amount / price;
+                        cost = Math.round (cost);
+                        let priceFormat = 0;
+                        let amountFormat = 0;
+                        let costFormat = 0;
+                        if (info['blockchain'] === 'neo') {
+                            feeAmount = this.decimalToPrecision (this.fromWei (feeAmount, 'ether', this.currencies[feeAsset]['info']['decimals']), 0, this.currencies[feeAsset]['info']['decimals']);
+                            priceFormat = this.decimalToPrecision (price, 0, 8);
+                            amountFormat = this.decimalToPrecision (this.fromWei (amount, 'ether', this.currencies[wantAssetSymbol]['info']['decimals']), 0, this.currencies[wantAssetSymbol]['info']['decimals']);
+                            costFormat = this.decimalToPrecision (this.fromWei (cost, 'ether', this.currencies[offerAssetSymbol]['info']['decimals']), 0, this.currencies[offerAssetSymbol]['info']['decimals']);
+                        } else if (info['blockchain'] === 'eth') {
+                            feeAmount = this.fromWei (feeAmount, 'ether', this.currencies[feeAsset]['info']['decimals']);
+                            priceFormat = this.decimalToPrecision (price, 0, 8);
+                            amountFormat = this.decimalToPrecision (this.fromWei (amount, 'ether', this.currencies[wantAssetSymbol]['info']['decimals']), 0, this.currencies[wantAssetSymbol]['info']['decimals']);
+                            costFormat = this.decimalToPrecision (this.fromWei (cost, 'ether', this.currencies[offerAssetSymbol]['info']['decimals']), 0, this.currencies[offerAssetSymbol]['info']['decimals']);
+                        }
                         let tradeFormatted = {
                             'info': info,
                             'id': order['id'],
@@ -557,14 +591,15 @@ module.exports = class switcheo extends Exchange {
                             'type': order['type'],
                             'side': order['side'],
                             'takerOrMaker': 'taker',
-                            'price': this.numberToString (price),
-                            'amount': this.fromWei (amount, 'ether', this.currencies[wantAssetSymbol]['info']['decimals']),
-                            'cost': this.fromWei (cost, 'ether', this.currencies[offerAssetSymbol]['info']['decimals']),
+                            'price': priceFormat,
+                            'amount': amountFormat,
+                            'cost': costFormat,
                             'fee': {
                                 'cost': feeAmount,
                                 'currency': feeAsset,
                             },
                         };
+                        // let trades_csv = 'Trade,' + tradeFormatted['amount'] + ',' + wantAssetSymbol + ',,' + tradeFormatted['cost'] + ',' + offerAssetSymbol + ',Switcheo,' + tradeFormatted['datetime'] + ',' + tradeFormatted['side'] + ',' + tradeFormatted['symbol'] + ',' + tradeFormatted['price'] + ',' + tradeFormatted['fee']['cost'] + ',' + tradeFormatted['fee']['currency'] + ',' + this.walletAddress + ',' + order['id'] + ',taker';
                         tradesFormatted.push (tradeFormatted);
                     }
                 }
@@ -580,7 +615,7 @@ module.exports = class switcheo extends Exchange {
                             let cost = 0;
                             if (trade['status'] === 'success') {
                                 feeAsset = this.options['currencyHashes'][info['blockchain']][trade['fee_asset_id']];
-                                feeAmount = this.fromWei (trade['fee_amount'], 'ether', this.currencies[feeAsset]['info']['decimals']) * -0.5;
+                                feeAmount = trade['fee_amount'];
                                 fillTimestamp = this.toEpoch (trade['created_at']);
                                 price = parseFloat (trade['price']);
                                 amount = parseFloat (trade['filled_amount']);
@@ -588,6 +623,21 @@ module.exports = class switcheo extends Exchange {
                                     cost = amount * price;
                                 else if (order['side'] === 'sell')
                                     cost = amount / price;
+                                cost = Math.round (cost);
+                                let priceFormat = 0;
+                                let amountFormat = 0;
+                                let costFormat = 0;
+                                if (info['blockchain'] === 'neo') {
+                                    feeAmount = this.decimalToPrecision (this.fromWei (feeAmount, 'ether', this.currencies[feeAsset]['info']['decimals']) * -0.5, 0, this.currencies[feeAsset]['info']['decimals']);
+                                    priceFormat = this.decimalToPrecision (price, 0, 8);
+                                    amountFormat = this.decimalToPrecision (this.fromWei (amount, 'ether', this.currencies[wantAssetSymbol]['info']['decimals']), 0, this.currencies[wantAssetSymbol]['info']['decimals']);
+                                    costFormat = this.decimalToPrecision (this.fromWei (cost, 'ether', this.currencies[offerAssetSymbol]['info']['decimals']), 0, this.currencies[offerAssetSymbol]['info']['decimals']);
+                                } else if (info['blockchain'] === 'eth') {
+                                    feeAmount = this.fromWei (feeAmount, 'ether', this.currencies[feeAsset]['info']['decimals']) * -0.5;
+                                    priceFormat = this.decimalToPrecision (price, 0, 8);
+                                    amountFormat = this.fromWei (amount, 'ether', this.currencies[wantAssetSymbol]['info']['decimals']);
+                                    costFormat = this.fromWei (cost, 'ether', this.currencies[offerAssetSymbol]['info']['decimals']);
+                                }
                                 let tradeFormatted = {
                                     'info': info,
                                     'id': order['id'],
@@ -598,14 +648,15 @@ module.exports = class switcheo extends Exchange {
                                     'type': order['type'],
                                     'side': order['side'],
                                     'takerOrMaker': 'maker',
-                                    'price': this.numberToString (price),
-                                    'amount': this.fromWei (amount, 'ether', this.currencies[wantAssetSymbol]['info']['decimals']),
-                                    'cost': this.fromWei (cost, 'ether', this.currencies[offerAssetSymbol]['info']['decimals']),
+                                    'price': priceFormat,
+                                    'amount': amountFormat,
+                                    'cost': costFormat,
                                     'fee': {
                                         'cost': feeAmount,
                                         'currency': feeAsset,
                                     },
                                 };
+                                // let trades_csv = 'Trade,' + tradeFormatted['amount'] + ',' + wantAssetSymbol + ',,' + tradeFormatted['cost'] + ',' + offerAssetSymbol + ',Switcheo,' + tradeFormatted['datetime'] + ',' + tradeFormatted['side'] + ',' + tradeFormatted['symbol'] + ',' + tradeFormatted['price'] + ',' + tradeFormatted['fee']['cost'] + ',' + tradeFormatted['fee']['currency'] + ',' + this.walletAddress + ',' + order['id'] + ',maker';
                                 tradesFormatted.push (tradeFormatted);
                             }
                         }
