@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.433'
+const version = '1.18.434'
 
 Exchange.ccxtVersion = version
 
@@ -14602,15 +14602,17 @@ module.exports = class bitsane extends Exchange {
             market = this.safeValue (this.marketsById, order['pair']);
         if (market)
             symbol = market['symbol'];
-        let timestamp = this.safeInteger (order, 'timestamp') * 1000;
-        let price = parseFloat (order['price']);
-        let amount = this.safeFloat (order, 'original_amount');
-        let filled = this.safeFloat (order, 'executed_amount');
-        let remaining = this.safeFloat (order, 'remaining_amount');
+        const timestamp = this.safeInteger (order, 'timestamp') * 1000;
+        const price = this.safeFloat (order, 'price');
+        const amount = this.safeFloat (order, 'original_amount');
+        const filled = this.safeFloat (order, 'executed_amount');
+        const remaining = this.safeFloat (order, 'remaining_amount');
+        const isCanceled = this.safeValue (order, 'is_cancelled');
+        const isLive = this.safeValue (order, 'is_live');
         let status = 'closed';
-        if (order['is_cancelled']) {
+        if (isCanceled) {
             status = 'canceled';
-        } else if (order['is_live']) {
+        } else if (isLive) {
             status = 'open';
         }
         return {
