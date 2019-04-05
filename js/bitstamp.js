@@ -997,12 +997,12 @@ module.exports = class bitstamp extends Exchange {
             return;
         }
         // fetchDepositAddress returns {"error": "No permission found"} on apiKeys that don't have the permission required
-        let status = this.safeString (response, 'status');
-        let error = this.safeValue (response, 'error');
+        const status = this.safeString (response, 'status');
+        const error = this.safeValue (response, 'error');
         if (status === 'error' || error) {
-            let errors = [];
+            const errors = [];
             if (typeof error !== 'string') {
-                let keys = Object.keys (error);
+                const keys = Object.keys (error);
                 for (let i = 0; i < keys.length; i++) {
                     let thisError = error[keys[i]];
                     if (Array.isArray (thisError)) {
@@ -1013,20 +1013,24 @@ module.exports = class bitstamp extends Exchange {
             } else {
                 errors.push (error);
             }
-            if (response.reason && response.reason['__all__'] && Array.isArray (response.reason['__all__'])) {
-                for (let i = 0; i < response.reason['__all__'].length; i++) {
-                    errors.push (response.reason['__all__'][i]);
+            const reason = this.safeValue (response, 'reason', {});
+            const all = this.safeValue (reason, '__all__');
+            if (all !== undefined) {
+                if (Array.isArray (all)) {
+                    for (let i = 0; i < all.length; i++) {
+                        errors.push (all[i]);
+                    }
                 }
             }
-            let exceptions = this.exceptions;
+            const exceptions = this.exceptions;
             for (let i = 0; i < errors.length; i++) {
-                let e = errors[i];
+                const e = errors[i];
                 if (e in exceptions) {
                     throw new exceptions[e] (this.id + ': ' + e);
                 }
                 throw new ExchangeError (this.id + ': ' + e);
             }
-            let code = this.safeString (response, 'code');
+            const code = this.safeString (response, 'code');
             if (code !== undefined) {
                 if (code === 'API0005')
                     throw new AuthenticationError (this.id + ' invalid signature, use the uid for the main account if you have subaccounts');
