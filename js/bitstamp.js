@@ -1006,19 +1006,20 @@ module.exports = class bitstamp extends Exchange {
         const status = this.safeString (response, 'status');
         const error = this.safeValue (response, 'error');
         if (status === 'error' || error) {
-            const errors = [];
-            if (typeof error !== 'string') {
+            let errors = [];
+            if (typeof error === 'string') {
+                errors.push (error);
+            } else {
                 const keys = Object.keys (error);
                 for (let i = 0; i < keys.length; i++) {
                     const key = keys[i];
-                    let thisError = this.safeValue (error, key);
-                    if (Array.isArray (thisError)) {
-                        thisError = thisError.join ('. ');
+                    const value = this.safeValue (error, key);
+                    if (Array.isArray (value)) {
+                        errors = this.arrayConcat (errors, value);
+                    } else {
+                        errors.push (value);
                     }
-                    errors.push (keys[i] + ': ' + thisError);
                 }
-            } else {
-                errors.push (error);
             }
             const reason = this.safeValue (response, 'reason', {});
             const all = this.safeValue (reason, '__all__');
@@ -1030,17 +1031,16 @@ module.exports = class bitstamp extends Exchange {
                 }
             }
             const code = this.safeString (response, 'code');
-            if (code !== undefined) {
-                if (code === 'API0005')
-                    throw new AuthenticationError (this.id + ' invalid signature, use the uid for the main account if you have subaccounts');
+            if (code === 'API0005') {
+                throw new AuthenticationError (this.id + ' invalid signature, use the uid for the main account if you have subaccounts');
             }
             const exact = this.exceptions['exact'];
             const broad = this.exceptions['broad'];
             const feedback = this.id + ' ' + body;
             for (let i = 0; i < errors.length; i++) {
-                const e = errors[i];
-                if (e in exact) {
-                    throw new exact[e] (feedback);
+                const value = errors[i];
+                if (value in exact) {
+                    throw new exact[value] (feedback);
                 }
                 const broadKey = this.findBroadlyMatchedKey (broad, e);
                 if (broadKey !== undefined) {
