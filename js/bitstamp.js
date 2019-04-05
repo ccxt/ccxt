@@ -1010,7 +1010,8 @@ module.exports = class bitstamp extends Exchange {
             if (typeof error !== 'string') {
                 const keys = Object.keys (error);
                 for (let i = 0; i < keys.length; i++) {
-                    let thisError = error[keys[i]];
+                    const key = keys[i];
+                    let thisError = this.safeValue (error, key);
                     if (Array.isArray (thisError)) {
                         thisError = thisError.join ('. ');
                     }
@@ -1028,20 +1029,25 @@ module.exports = class bitstamp extends Exchange {
                     }
                 }
             }
-            const exceptions = this.exceptions['exact'];
-            for (let i = 0; i < errors.length; i++) {
-                const e = errors[i];
-                if (e in exceptions) {
-                    throw new exceptions[e] (this.id + ': ' + e);
-                }
-                throw new ExchangeError (this.id + ': ' + e);
-            }
             const code = this.safeString (response, 'code');
             if (code !== undefined) {
                 if (code === 'API0005')
                     throw new AuthenticationError (this.id + ' invalid signature, use the uid for the main account if you have subaccounts');
             }
-            throw new ExchangeError (this.id + ' ' + body);
+            const exact = this.exceptions['exact'];
+            const broad = this.exceptions['broad'];
+            const feedback = this.id + ' ' + body;
+            for (let i = 0; i < errors.length; i++) {
+                const e = errors[i];
+                if (e in exact) {
+                    throw new exact[e] (feedback);
+                }
+                const broadKey = this.findBroadlyMatchedKey (broad, e);
+                if (broadKey !== undefined) {
+                    throw new broad[broadKey] (feedback);
+                }
+            }
+            throw new ExchangeError (feedback);
         }
     }
 };
