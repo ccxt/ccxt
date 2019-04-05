@@ -1042,7 +1042,7 @@ module.exports = class bitstamp extends Exchange {
                 if (value in exact) {
                     throw new exact[value] (feedback);
                 }
-                const broadKey = this.findBroadlyMatchedKey (broad, e);
+                const broadKey = this.findBroadlyMatchedKey (broad, value);
                 if (broadKey !== undefined) {
                     throw new broad[broadKey] (feedback);
                 }
