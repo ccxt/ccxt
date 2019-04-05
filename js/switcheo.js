@@ -240,7 +240,10 @@ module.exports = class switcheo extends Exchange {
             let base = market['name'].split ('_')[0];
             let quote = market['name'].split ('_')[1];
             let symbol = base + '/' + quote;
-            let active = (tokens[base]['active'] && tokens[quote]['active']);
+            let active = false;
+            if (tokens[base]['active'] && tokens[quote]['active'] && tokens[quote]['id'] !== 'GAS' && tokens[quote]['id'] !== 'SWTH') {
+                active = true;
+            }
             this.options['contract'] = contracts[quote];
             let precision = {
                 'amount': tokens[base]['info']['decimals'],
@@ -688,7 +691,99 @@ module.exports = class switcheo extends Exchange {
             request['depth'] = limit;
         }
         let response = await this.publicGetOffersBook (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'quantity');
+        let parsedOrderBook = this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'quantity');
+        return parsedOrderBook;
+    }
+
+    parseTicker (tickerObject, orderBook, symbolCcxt) {
+        let formattedTicker = {
+            'symbol': symbolCcxt,
+            'info': tickerObject,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': this.safeFloat (tickerObject, 'high'),
+            'low': this.safeFloat (tickerObject, 'low'),
+            'vwap': undefined,
+            'open': this.safeFloat (tickerObject, 'open'),
+            'close': this.safeFloat (tickerObject, 'close'),
+            'last': this.safeFloat (tickerObject, 'close'),
+            'previousClose': undefined,
+            'change': parseFloat ((this.safeFloat (tickerObject, 'close') - this.safeFloat (tickerObject, 'open')).toFixed (8)),
+            'percentage': parseFloat ((((this.safeFloat (tickerObject, 'close') - this.safeFloat (tickerObject, 'open')) / this.safeFloat (tickerObject, 'open')) * 100).toFixed (2)),
+            'average': parseFloat (((this.safeFloat (tickerObject, 'close') + this.safeFloat (tickerObject, 'open')) / 2).toFixed (8)),
+            'baseVolume': this.safeFloat (tickerObject, 'quote_volume'),
+            'quoteVolume': this.safeFloat (tickerObject, 'volume'),
+        };
+        if (orderBook['bids'][0] !== undefined) {
+            formattedTicker['bid'] = orderBook['bids'][0][0];
+            formattedTicker['bidVolume'] = orderBook['bids'][0][1];
+        }
+        if (orderBook['asks'][0] !== undefined) {
+            formattedTicker['asks'] = orderBook['asks'][0][0];
+            formattedTicker['askVolume'] = orderBook['asks'][0][1];
+        }
+        return formattedTicker;
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let tickerTwentyFourHours = await this.publicGetTickersLast24Hours ();
+        let orderBook = await this.fetchOrderBook (symbol, params);
+        let tickerSymbol = {};
+        for (let i = 0; i < tickerTwentyFourHours.length; i++) {
+            if (market['id'] === tickerTwentyFourHours[i]['pair']) {
+                tickerSymbol = tickerTwentyFourHours[i];
+            }
+        }
+        let parsedTicker = this.parseTicker (tickerSymbol, orderBook, symbol);
+        return parsedTicker;
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let tickerSymbols = [];
+        let tickerTwentyFourHours = await this.publicGetTickersLast24Hours ();
+        if (symbols) {
+            for (let i = 0; i < symbols.length; i++) {
+                let symbol = symbols[i];
+                let market = this.market (symbol);
+                if (market['active']) {
+                    let orderBook = await this.fetchOrderBook (symbol, params);
+                    for (let i = 0; i < tickerTwentyFourHours.length; i++) {
+                        if (market['id'] === tickerTwentyFourHours[i]['pair']) {
+                            tickerSymbols.push (this.parseTicker (tickerTwentyFourHours[i], orderBook, symbol));
+                        }
+                    }
+                }
+            }
+        } else {
+            for (let i = 0; i < tickerTwentyFourHours.length; i++) {
+                let symbol = tickerTwentyFourHours[i]['pair'].replace ('_', '/');
+                let market = this.market (symbol);
+                if (market['active']) {
+                    let orderBook = await this.fetchOrderBook (symbol, params);
+                    tickerSymbols.push (this.parseTicker (tickerTwentyFourHours[i], orderBook, symbol));
+                }
+            }
+        }
+        let response = {};
+        response['info'] = tickerTwentyFourHours;
+        for (let j = 0; j < tickerSymbols.length; j++) {
+            response[tickerSymbols[j]['symbol']] = tickerSymbols[j];
+        }
+        return response;
+    }
+
+    async fetchTickerLastPrice (symbol, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'symbols': market['base'],
+            'bases': market['quote'],
+        };
+        let lastPriceTicker = await this.publicGetTickersLastPrice (request);
+        return lastPriceTicker;
     }
 
     signOrderList (orderParams, privateKey) {
