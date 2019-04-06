@@ -342,7 +342,7 @@ module.exports = class bibox extends Exchange {
 
     async fetchCurrencies (params = {}) {
         if (!this.apiKey || !this.secret) {
-            throw new AthenticationError (this.id + " fetchCurrencies is an authenticated endpoint, therefore it requires 'apiKey' and 'secret' credentials. If you don't need currency details, set exchange.has['fetchCurrencies'] = false before calling its methods.");
+            throw new AuthenticationError (this.id + " fetchCurrencies is an authenticated endpoint, therefore it requires 'apiKey' and 'secret' credentials. If you don't need currency details, set exchange.has['fetchCurrencies'] = false before calling its methods.");
         }
         let response = await this.privatePostTransfer ({
             'cmd': 'transfer/coinList',
@@ -521,11 +521,11 @@ module.exports = class bibox extends Exchange {
             code = currency['code'];
         }
         const timestamp = this.safeString (transaction, 'createdAt');
-        const tag = this.safeString (transaction, 'addr_remark');
+        let tag = this.safeString (transaction, 'addr_remark');
         const type = this.safeString (transaction, 'type');
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         const amount = this.safeFloat (transaction, 'amount');
-        const feeCost = this.safeFloat (transaction, 'fee');
+        let feeCost = this.safeFloat (transaction, 'fee');
         if (type === 'deposit') {
             feeCost = 0;
             tag = undefined;
