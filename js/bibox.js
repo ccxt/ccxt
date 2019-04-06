@@ -341,6 +341,9 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        if (!this.apiKey || !this.secret) {
+            throw new ExchangeError (this.id + " fetchCurrencies is an authenticated endpoint, therefore it requires 'apiKey' and 'secret' credentials. If you don't need currency details, set exchange.has['fetchCurrencies'] = false before calling its methods.");
+        }
         let response = await this.privatePostTransfer ({
             'cmd': 'transfer/coinList',
             'body': {},
