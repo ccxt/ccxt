@@ -94,6 +94,7 @@ class huobipro extends Exchange {
                         'order/matchresults', // 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
                         'dw/deposit-virtual/addresses',
+                        'dw/deposit-virtual/sharedAddressWithTag', // https://github.com/ccxt/ccxt/issues/4851
                         'query/deposit-withdraw',
                         'margin/loan-orders', // 借贷订单
                         'margin/accounts/balance', // 借贷账户详情
@@ -148,6 +149,9 @@ class huobipro extends Exchange {
                 'fetchBalanceMethod' => 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod' => 'privatePostOrderOrdersPlace',
                 'language' => 'en-US',
+            ),
+            'commonCurrencies' => array (
+                'HOT' => 'Hydro Protocol', // conflict with HOT (Holo) https://github.com/ccxt/ccxt/issues/4929
             ),
         ));
     }
@@ -851,15 +855,54 @@ class huobipro extends Exchange {
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
-        $response = $this->privateGetDwDepositVirtualAddresses (array_merge (array (
+        // if $code == 'EOS':
+        //     res = huobi.request('/dw/deposit-virtual/sharedAddressWithTag', 'private', 'GET', array ('currency' => 'eos', 'chain' => 'eos1'))
+        //     address_info = res['data']
+        // else:
+        //     address_info = self.broker.fetch_deposit_address($code)
+        $request = array (
             'currency' => strtolower ($currency['id']),
-        ), $params));
-        $address = $this->safe_string($response, 'data');
+        );
+        // https://github.com/ccxt/ccxt/issues/4851
+        $info = $this->safe_value($currency, 'info', array ());
+        $currencyAddressWithTag = $this->safe_value($info, 'currency-addr-with-tag');
+        $method = 'privateGetDwDepositVirtualAddresses';
+        if ($currencyAddressWithTag) {
+            $method = 'privateGetDwDepositVirtualSharedAddressWithTag';
+        }
+        $response = $this->$method (array_merge ($request, $params));
+        //
+        // privateGetDwDepositVirtualSharedAddressWithTag
+        //
+        //     {
+        //         "status" => "ok",
+        //         "$data" => {
+        //             "$address" => "huobideposit",
+        //             "$tag" => "1937002"
+        //         }
+        //     }
+        //
+        // privateGetDwDepositVirtualAddresses
+        //
+        //     {
+        //         "status" => "ok",
+        //         "$data" => "0xd7842ec9ba2bc20354e12f0e925a4e285a64187b"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        $address = null;
+        $tag = null;
+        if ($currencyAddressWithTag) {
+            $address = $this->safe_string($data, 'address');
+            $tag = $this->safe_string($data, 'tag');
+        } else {
+            $address = $this->safe_string($response, 'data');
+        }
         $this->check_address($address);
         return array (
             'currency' => $code,
             'address' => $address,
-            'tag' => null,
+            'tag' => $tag,
             'info' => $response,
         );
     }

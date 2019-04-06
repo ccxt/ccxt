@@ -119,8 +119,8 @@ class gdax (Exchange):
                 'trading': {
                     'tierBased': True,  # complicated tier system per coin
                     'percentage': True,
-                    'maker': 0.0,
-                    'taker': 0.3 / 100,  # tiered fee starts at 0.3%
+                    'maker': 0.15 / 100,  # highest fee of all tiers
+                    'taker': 0.25 / 100,  # highest fee of all tiers
                 },
                 'funding': {
                     'tierBased': False,
@@ -521,7 +521,7 @@ class gdax (Exchange):
         await self.load_markets()
         return await self.privateDeleteOrdersId({'id': id})
 
-    async def cancel_all_orders(self, symbols=None, params={}):
+    async def cancel_all_orders(self, symbol=None, params={}):
         return await self.privateDeleteOrders(params)
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):

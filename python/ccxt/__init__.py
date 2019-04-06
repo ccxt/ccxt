@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.18.386'
+__version__ = '1.18.435'
 
 # ----------------------------------------------------------------------------
 
@@ -70,9 +70,11 @@ from ccxt.allcoin import allcoin                            # noqa: F401
 from ccxt.anxpro import anxpro                              # noqa: F401
 from ccxt.anybits import anybits                            # noqa: F401
 from ccxt.bcex import bcex                                  # noqa: F401
+from ccxt.bequant import bequant                            # noqa: F401
 from ccxt.bibox import bibox                                # noqa: F401
 from ccxt.bigone import bigone                              # noqa: F401
 from ccxt.binance import binance                            # noqa: F401
+from ccxt.binanceje import binanceje                        # noqa: F401
 from ccxt.bit2c import bit2c                                # noqa: F401
 from ccxt.bitbank import bitbank                            # noqa: F401
 from ccxt.bitbay import bitbay                              # noqa: F401
@@ -194,7 +196,6 @@ from ccxt.vbtc import vbtc                                  # noqa: F401
 from ccxt.virwox import virwox                              # noqa: F401
 from ccxt.xbtce import xbtce                                # noqa: F401
 from ccxt.yobit import yobit                                # noqa: F401
-from ccxt.yunbi import yunbi                                # noqa: F401
 from ccxt.zaif import zaif                                  # noqa: F401
 from ccxt.zb import zb                                      # noqa: F401
 
@@ -205,9 +206,11 @@ exchanges = [
     'anxpro',
     'anybits',
     'bcex',
+    'bequant',
     'bibox',
     'bigone',
     'binance',
+    'binanceje',
     'bit2c',
     'bitbank',
     'bitbay',
@@ -329,7 +332,6 @@ exchanges = [
     'virwox',
     'xbtce',
     'yobit',
-    'yunbi',
     'zaif',
     'zb',
 ]

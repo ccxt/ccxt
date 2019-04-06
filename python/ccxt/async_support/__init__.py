@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.386'
+__version__ = '1.18.435'
 
 # -----------------------------------------------------------------------------
 
@@ -52,9 +52,11 @@ from ccxt.async_support.allcoin import allcoin                            # noqa
 from ccxt.async_support.anxpro import anxpro                              # noqa: F401
 from ccxt.async_support.anybits import anybits                            # noqa: F401
 from ccxt.async_support.bcex import bcex                                  # noqa: F401
+from ccxt.async_support.bequant import bequant                            # noqa: F401
 from ccxt.async_support.bibox import bibox                                # noqa: F401
 from ccxt.async_support.bigone import bigone                              # noqa: F401
 from ccxt.async_support.binance import binance                            # noqa: F401
+from ccxt.async_support.binanceje import binanceje                        # noqa: F401
 from ccxt.async_support.bit2c import bit2c                                # noqa: F401
 from ccxt.async_support.bitbank import bitbank                            # noqa: F401
 from ccxt.async_support.bitbay import bitbay                              # noqa: F401
@@ -176,7 +178,6 @@ from ccxt.async_support.vbtc import vbtc                                  # noqa
 from ccxt.async_support.virwox import virwox                              # noqa: F401
 from ccxt.async_support.xbtce import xbtce                                # noqa: F401
 from ccxt.async_support.yobit import yobit                                # noqa: F401
-from ccxt.async_support.yunbi import yunbi                                # noqa: F401
 from ccxt.async_support.zaif import zaif                                  # noqa: F401
 from ccxt.async_support.zb import zb                                      # noqa: F401
 
@@ -187,9 +188,11 @@ exchanges = [
     'anxpro',
     'anybits',
     'bcex',
+    'bequant',
     'bibox',
     'bigone',
     'binance',
+    'binanceje',
     'bit2c',
     'bitbank',
     'bitbay',
@@ -311,7 +314,6 @@ exchanges = [
     'virwox',
     'xbtce',
     'yobit',
-    'yunbi',
     'zaif',
     'zb',
 ]

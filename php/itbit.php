@@ -162,6 +162,9 @@ class itbit extends Exchange {
         $feeCurrencyId = $this->safe_string($trade, 'commissionCurrency');
         $feeCurrency = $this->common_currency_code($feeCurrencyId);
         $rebatesApplied = $this->safe_float($trade, 'rebatesApplied');
+        if ($rebatesApplied !== null) {
+            $rebatesApplied = -$rebatesApplied;
+        }
         $rebateCurrencyId = $this->safe_string($trade, 'rebateCurrency');
         $rebateCurrency = $this->common_currency_code($rebateCurrencyId);
         $price = $this->safe_float_2($trade, 'price', 'rate');
@@ -203,27 +206,30 @@ class itbit extends Exchange {
             'amount' => $amount,
             'cost' => $cost,
         );
-        if ($feeCost !== null && $rebatesApplied !== null) {
-            if ($feeCurrency === $rebateCurrency) {
-                if ($feeCost !== null) {
-                    if ($rebatesApplied !== null) {
-                        $feeCost = $this->sum ($feeCost, $rebatesApplied);
-                    }
+        if ($feeCost !== null) {
+            if ($rebatesApplied !== null) {
+                if ($feeCurrency === $rebateCurrency) {
+                    $feeCost = $this->sum ($feeCost, $rebatesApplied);
                     $result['fee'] = array (
                         'cost' => $feeCost,
                         'currency' => $feeCurrency,
                     );
+                } else {
+                    $result['fees'] = array (
+                        array (
+                            'cost' => $feeCost,
+                            'currency' => $feeCurrency,
+                        ),
+                        array (
+                            'cost' => $rebatesApplied,
+                            'currency' => $rebateCurrency,
+                        ),
+                    );
                 }
             } else {
-                $result['fees'] = array (
-                    array (
-                        'cost' => $feeCost,
-                        'currency' => $feeCurrency,
-                    ),
-                    array (
-                        'cost' => $rebatesApplied,
-                        'currency' => $rebateCurrency,
-                    ),
+                $result['fee'] = array (
+                    'cost' => $feeCost,
+                    'currency' => $feeCurrency,
                 );
             }
         }

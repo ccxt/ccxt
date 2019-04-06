@@ -922,7 +922,7 @@ module.exports = class crex24 extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelAllOrders (symbols = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         const response = await this.tradingPostCancelAllOrders (params);
         //
         //     [

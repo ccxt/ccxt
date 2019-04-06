@@ -604,8 +604,17 @@ class cobinhood extends Exchange {
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $result = $this->privateGetTradingOrderHistory ($params);
-        $orders = $this->parse_orders($result['result']['orders'], null, $since, $limit);
+        $request = array ();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['trading_pair_id'] = $market['id'];
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 50, max 100
+        }
+        $result = $this->privateGetTradingOrderHistory (array_merge ($request, $params));
+        $orders = $this->parse_orders($result['result']['orders'], $market, $since, $limit);
         if ($symbol !== null) {
             return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
         }
@@ -705,7 +714,7 @@ class cobinhood extends Exchange {
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($code === null) {
-            throw new ExchangeError ($this->id . ' fetchDeposits() requires a $currency $code arguemnt');
+            throw new ExchangeError ($this->id . ' fetchDeposits() requires a $currency $code argument');
         }
         $currency = $this->currency ($code);
         $request = array (
@@ -718,7 +727,7 @@ class cobinhood extends Exchange {
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($code === null) {
-            throw new ExchangeError ($this->id . ' fetchWithdrawals() requires a $currency $code arguemnt');
+            throw new ExchangeError ($this->id . ' fetchWithdrawals() requires a $currency $code argument');
         }
         $currency = $this->currency ($code);
         $request = array (

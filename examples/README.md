@@ -91,6 +91,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [Python3とCCXTライブラリを用いたBitMEX自動売買bot作成Tips](https://note.mu/akagami/n/n0af0a96c261f) – An article in Japanese on getting started with CCXT and a few bot tips.
 
+[Python数字货币量化交易开发入门视频-利用CCXT获取bitmex交易所的行情数据](https://www.bilibili.com/video/av44339579/) – An video in Chinese on how to get started with CCXT in Python and a tutorial on OHLCV + Pandas export to CSV.
+
 [BitMEX自動売買Bot「MANA 1.0.1」の全て](https://note.mu/moycoin/n/n6f585ea854d4) – An example of automatic BitMEX Bot MANA 1.0.1.
 
 [BitMEX 自動売買BOT開発 (API編) ① 開発環境の構築、APIライブラリの詳細、全APIマップ](https://note.mu/mazmex7/n/n1a3a0293ce82) – An article on developing an automatic BitMEX trading bot.
@@ -117,6 +119,8 @@ php -f path/to/example.php # substitute for actual filename here
 [Algorithmic Trading - Aula 4](https://www.youtube.com/watch?v=BkKebXrhMGY) – A video introduction to algorithmic trading with CCXT from Curso Algo Trading in Portuguese language.
 
 [Лучшая криптотрейдинг библиотека?](http://medium.com/@vladthelittleone/лучшая-криптотрейдинг-библиотека-67e308f96c1f) – An article in Russian on setting up CCXT to connect and trade with crypto exchanges.
+
+[Présentation de projet - Créer un Bot Telegram de A à Z (+CCXT)](https://www.youtube.com/watch?v=yayJKRtg5M4) – La création d'un bot Telegram en Node.js, qui va rechercher des informations sur les différentes marketpalce de crypto-monnaies, et cela via la librairie CCXT.
 
 [Using ccxt and technicalindicators to calculate MACD for BTC/USDT with Node.js](https://runkit.com/dhilipb/macd-for-btc-usdt) – A runkit sample showing how to fetch data and run statistical calculations.
 

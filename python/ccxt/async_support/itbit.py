@@ -161,6 +161,8 @@ class itbit (Exchange):
         feeCurrencyId = self.safe_string(trade, 'commissionCurrency')
         feeCurrency = self.common_currency_code(feeCurrencyId)
         rebatesApplied = self.safe_float(trade, 'rebatesApplied')
+        if rebatesApplied is not None:
+            rebatesApplied = -rebatesApplied
         rebateCurrencyId = self.safe_string(trade, 'rebateCurrency')
         rebateCurrency = self.common_currency_code(rebateCurrencyId)
         price = self.safe_float_2(trade, 'price', 'rate')
@@ -196,26 +198,30 @@ class itbit (Exchange):
             'amount': amount,
             'cost': cost,
         }
-        if feeCost is not None and rebatesApplied is not None:
-            if feeCurrency == rebateCurrency:
-                if feeCost is not None:
-                    if rebatesApplied is not None:
-                        feeCost = self.sum(feeCost, rebatesApplied)
+        if feeCost is not None:
+            if rebatesApplied is not None:
+                if feeCurrency == rebateCurrency:
+                    feeCost = self.sum(feeCost, rebatesApplied)
                     result['fee'] = {
                         'cost': feeCost,
                         'currency': feeCurrency,
                     }
+                else:
+                    result['fees'] = [
+                        {
+                            'cost': feeCost,
+                            'currency': feeCurrency,
+                        },
+                        {
+                            'cost': rebatesApplied,
+                            'currency': rebateCurrency,
+                        },
+                    ]
             else:
-                result['fees'] = [
-                    {
-                        'cost': feeCost,
-                        'currency': feeCurrency,
-                    },
-                    {
-                        'cost': rebatesApplied,
-                        'currency': rebateCurrency,
-                    },
-                ]
+                result['fee'] = {
+                    'cost': feeCost,
+                    'currency': feeCurrency,
+                }
         return result
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
