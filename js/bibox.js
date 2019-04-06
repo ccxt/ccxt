@@ -211,9 +211,9 @@ module.exports = class bibox extends Exchange {
     }
 
     parseTickers (rawTickers, symbols = undefined) {
-        let tickers = [];
+        const tickers = [];
         for (let i = 0; i < rawTickers.length; i++) {
-            let ticker = this.parseTicker (rawTickers[i]);
+            const ticker = this.parseTicker (rawTickers[i]);
             if ((symbols === undefined) || (this.inArray (ticker['symbol'], symbols))) {
                 tickers.push (ticker);
             }
@@ -222,10 +222,11 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        let response = await this.publicGetMdata (this.extend ({
+        const request = {
             'cmd': 'marketAll',
-        }, params));
-        let tickers = this.parseTickers (response['result'], symbols);
+        };
+        const response = await this.publicGetMdata (this.extend (request, params));
+        const tickers = this.parseTickers (response['result'], symbols);
         return this.indexBy (tickers, 'symbol');
     }
 
@@ -290,25 +291,29 @@ module.exports = class bibox extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let size = (limit) ? limit : 200;
-        let response = await this.publicGetMdata (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'cmd': 'deals',
             'pair': market['id'],
-            'size': size,
-        }, params));
+        };
+        if (limit !== undefined) {
+            request['size'] = limit; // default = 200
+        }
+        const response = await this.publicGetMdata (this.extend (request, params));
         return this.parseTrades (response['result'], market, since, limit);
     }
 
-    async fetchOrderBook (symbol, limit = 200, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'cmd': 'depth',
             'pair': market['id'],
         };
-        request['size'] = limit; // default = 200 ?
-        let response = await this.publicGetMdata (this.extend (request, params));
+        if (limit !== undefined) {
+            request['size'] = limit; // default = 200
+        }
+        const response = await this.publicGetMdata (this.extend (request, params));
         return this.parseOrderBook (response['result'], this.safeFloat (response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
     }
 
@@ -427,18 +432,21 @@ module.exports = class bibox extends Exchange {
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {};
+        const request = {
+            'page': 1,
+        };
         if (code !== undefined) {
             currency = this.currency (code);
             request['symbol'] = currency['id'];
         }
-        request['size'] = (limit) ? limit : 100;
-        request['page'] = 1;
-        let response = await this.privatePostTransfer ({
+        if (limit !== undefined) {
+            request['size'] = limit; // default = 100
+        }
+        const response = await this.privatePostTransfer ({
             'cmd': 'transfer/transferInList',
             'body': this.extend (request, params),
         });
-        let deposits = this.safeValue (response['result'], 'items', []);
+        const deposits = this.safeValue (response['result'], 'items', []);
         for (let i = 0; i < deposits.length; i++) {
             deposits[i]['type'] = 'deposit';
         }
@@ -448,18 +456,21 @@ module.exports = class bibox extends Exchange {
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {};
+        const request = {
+            'page': 1,
+        };
         if (code !== undefined) {
             currency = this.currency (code);
             request['symbol'] = currency['id'];
         }
-        request['size'] = (limit) ? limit : 100;
-        request['page'] = 1;
-        let response = await this.privatePostTransfer ({
+        if (limit !== undefined) {
+            request['size'] = limit; // default = 100
+        }
+        const response = await this.privatePostTransfer ({
             'cmd': 'transfer/transferOutList',
             'body': this.extend (request, params),
         });
-        let withdrawals = this.safeValue (response['result'], 'items', []);
+        const withdrawals = this.safeValue (response['result'], 'items', []);
         for (let i = 0; i < withdrawals.length; i++) {
             withdrawals[i]['type'] = 'withdrawal';
         }
