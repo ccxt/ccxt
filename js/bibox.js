@@ -483,30 +483,35 @@ module.exports = class bibox extends Exchange {
     parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
-        //      {'id': 1023291,
-        //      'coin_symbol': 'ETH',
-        //      'to_address': '0x7263....',
-        //      'amount': '0.49170000',
-        //      'confirmCount': '16',
-        //      'createdAt': 1553123867000,
-        //      'status': 2}                                                             }
+        //
+        //     {
+        //         'id': 1023291,
+        //         'coin_symbol': 'ETH',
+        //         'to_address': '0x7263....',
+        //         'amount': '0.49170000',
+        //         'confirmCount': '16',
+        //         'createdAt': 1553123867000,
+        //         'status': 2
+        //     }
         //
         // fetchWithdrawals
         //
-        //       {'id': 521844,
-        //       'coin_symbol': 'ETH',
-        //       'to_address': '0xfd4e....',
-        //       'addr_remark': '',
-        //       'amount': '0.39452750',
-        //       'fee': '0.00600000',
-        //       'createdAt': 1553226906000,
-        //       'memo': '',
-        //       'status': 3}
+        //     {
+        //         'id': 521844,
+        //         'coin_symbol': 'ETH',
+        //         'to_address': '0xfd4e....',
+        //         'addr_remark': '',
+        //         'amount': '0.39452750',
+        //         'fee': '0.00600000',
+        //         'createdAt': 1553226906000,
+        //         'memo': '',
+        //         'status': 3
+        //     }
         //
-        let id = this.safeString (transaction, 'id');
-        let address = this.safeString (transaction, 'to_address');
+        const id = this.safeString (transaction, 'id');
+        const address = this.safeString (transaction, 'to_address');
         let code = undefined;
-        let currencyId = this.safeString (transaction, 'coin_symbol');
+        const currencyId = this.safeString (transaction, 'coin_symbol');
         if (currencyId in this.currencies_by_id) {
             currency = this.currencies_by_id[currencyId];
         } else {
@@ -515,17 +520,17 @@ module.exports = class bibox extends Exchange {
         if (currency !== undefined) {
             code = currency['code'];
         }
-        let timestamp = this.safeString (transaction, 'createdAt');
-        let tag = this.safeString (transaction, 'addr_remark');
-        let type = this.safeString (transaction, 'type');
-        let status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
-        let amount = this.safeFloat (transaction, 'amount');
-        let feeCost = this.safeFloat (transaction, 'fee');
+        const timestamp = this.safeString (transaction, 'createdAt');
+        const tag = this.safeString (transaction, 'addr_remark');
+        const type = this.safeString (transaction, 'type');
+        const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
+        const amount = this.safeFloat (transaction, 'amount');
+        const feeCost = this.safeFloat (transaction, 'fee');
         if (type === 'deposit') {
             feeCost = 0;
             tag = undefined;
         }
-        let fee = {
+        const fee = {
             'cost': feeCost,
             'currency': code,
         };
