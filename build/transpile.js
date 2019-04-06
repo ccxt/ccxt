@@ -608,6 +608,7 @@ function transpileDerivedExchangeClass (contents) {
 
         if (!matches) {
             log.red (methods[i])
+            log.yellow.bright ("\nMake sure your methods don't have empty lines!\n")
         }
 
         // async or not
