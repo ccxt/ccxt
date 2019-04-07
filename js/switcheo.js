@@ -42,7 +42,7 @@ module.exports = class switcheo extends Exchange {
                 'fetchOHLCV': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPairs': true,
                 'fetchTicker': false,
@@ -696,11 +696,12 @@ module.exports = class switcheo extends Exchange {
     }
 
     parseTicker (tickerObject, orderBook, symbolCcxt) {
+        let timestamp = this.milliseconds ();
         let formattedTicker = {
             'symbol': symbolCcxt,
             'info': tickerObject,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (tickerObject, 'high'),
             'low': this.safeFloat (tickerObject, 'low'),
             'vwap': undefined,
@@ -717,10 +718,16 @@ module.exports = class switcheo extends Exchange {
         if (orderBook['bids'][0] !== undefined) {
             formattedTicker['bid'] = orderBook['bids'][0][0];
             formattedTicker['bidVolume'] = orderBook['bids'][0][1];
+        } else {
+            formattedTicker['bid'] = undefined;
+            formattedTicker['bidVolume'] = undefined;
         }
         if (orderBook['asks'][0] !== undefined) {
-            formattedTicker['asks'] = orderBook['asks'][0][0];
+            formattedTicker['ask'] = orderBook['asks'][0][0];
             formattedTicker['askVolume'] = orderBook['asks'][0][1];
+        } else {
+            formattedTicker['ask'] = undefined;
+            formattedTicker['askVolume'] = undefined;
         }
         return formattedTicker;
     }
@@ -784,6 +791,42 @@ module.exports = class switcheo extends Exchange {
         };
         let lastPriceTicker = await this.publicGetTickersLastPrice (request);
         return lastPriceTicker;
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let parsedTimeframe = parseInt (timeframe);
+        if (parsedTimeframe !== 1 && parsedTimeframe !== 5 && parsedTimeframe !== 30 && parsedTimeframe !== 60 && parsedTimeframe !== 360 && parsedTimeframe !== 1440) {
+            throw new ExchangeError ('Candlestick time frame - ' + parsedTimeframe + ' - is not an allowed Switcheo Exchange value (1, 5, 30, 60, 360, or 1440).');
+        }
+        let request = {
+            'pair': market['id'],
+            'interval': parsedTimeframe,
+        };
+        if (since) {
+            request['start_time'] = since;
+        } else {
+            throw new ExchangeError ('Candlestick endpoint for the Switcheo Exchange requires a startTime in epoch.');
+        }
+        if ('endTime' in params) {
+            request['end_time'] = params['endTime'];
+        } else {
+            throw new ExchangeError ('Candlestick endpoint for the Switcheo Exchange requires an endTime in epoch.');
+        }
+        let getOHLCV = await this.publicGetTickersCandlesticks (this.extend (request, params));
+        let responseOHLCV = [];
+        for (let i = 0; i < getOHLCV.length; i++) {
+            let ohlcv = [];
+            ohlcv.push (getOHLCV[i]['time'] * 1000);
+            ohlcv.push (parseFloat (getOHLCV[i]['open']));
+            ohlcv.push (parseFloat (getOHLCV[i]['high']));
+            ohlcv.push (parseFloat (getOHLCV[i]['low']));
+            ohlcv.push (parseFloat (getOHLCV[i]['close']));
+            ohlcv.push (parseFloat (getOHLCV[i]['quote_volume']));
+            responseOHLCV.push (ohlcv);
+        }
+        return responseOHLCV;
     }
 
     signOrderList (orderParams, privateKey) {
