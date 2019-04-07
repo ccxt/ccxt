@@ -15,6 +15,8 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
@@ -161,16 +163,22 @@ class bitstamp (Exchange):
                 },
             },
             'exceptions': {
-                'No permission found': PermissionDenied,
-                'API key not found': AuthenticationError,
-                'IP address not allowed': PermissionDenied,
-                'Invalid nonce': InvalidNonce,
-                'Invalid signature': AuthenticationError,
-                'Authentication failed': AuthenticationError,
-                'Missing key, signature and nonce parameters': AuthenticationError,
-                'Your account is frozen': PermissionDenied,
-                'Please update your profile with your FATCA information, before using API.': PermissionDenied,
-                'Order not found': OrderNotFound,
+                'exact': {
+                    'No permission found': PermissionDenied,
+                    'API key not found': AuthenticationError,
+                    'IP address not allowed': PermissionDenied,
+                    'Invalid nonce': InvalidNonce,
+                    'Invalid signature': AuthenticationError,
+                    'Authentication failed': AuthenticationError,
+                    'Missing key, signature and nonce parameters': AuthenticationError,
+                    'Your account is frozen': PermissionDenied,
+                    'Please update your profile with your FATCA information, before using API.': PermissionDenied,
+                    'Order not found': OrderNotFound,
+                },
+                'broad': {
+                    'Check your account balance for details.': InsufficientFunds,  # You have only 0.00100000 BTC available. Check your account balance for details.
+                    'Ensure self value has at least': InvalidAddress,  # Ensure self value has at least 25 characters(it has 4).
+                },
             },
         })
 
@@ -921,20 +929,41 @@ class bitstamp (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response):
-        if not isinstance(body, basestring):
-            return  # fallback to default error handler
-        if len(body) < 2:
-            return  # fallback to default error handler
-        if (body[0] == '{') or (body[0] == '['):
-            # fetchDepositAddress returns {"error": "No permission found"} on apiKeys that don't have the permission required
-            error = self.safe_string(response, 'error')
-            exceptions = self.exceptions
-            if error in exceptions:
-                raise exceptions[error](self.id + ' ' + body)
-            status = self.safe_string(response, 'status')
-            if status == 'error':
-                code = self.safe_string(response, 'code')
-                if code is not None:
-                    if code == 'API0005':
-                        raise AuthenticationError(self.id + ' invalid signature, use the uid for the main account if you have subaccounts')
-                raise ExchangeError(self.id + ' ' + body)
+        if response is None:
+            return
+        # fetchDepositAddress returns {"error": "No permission found"} on apiKeys that don't have the permission required
+        status = self.safe_string(response, 'status')
+        error = self.safe_value(response, 'error')
+        if status == 'error' or error:
+            errors = []
+            if isinstance(error, basestring):
+                errors.append(error)
+            else:
+                keys = list(error.keys())
+                for i in range(0, len(keys)):
+                    key = keys[i]
+                    value = self.safe_value(error, key)
+                    if isinstance(value, list):
+                        errors = self.array_concat(errors, value)
+                    else:
+                        errors.append(value)
+            reason = self.safe_value(response, 'reason', {})
+            all = self.safe_value(reason, '__all__')
+            if all is not None:
+                if isinstance(all, list):
+                    for i in range(0, len(all)):
+                        errors.append(all[i])
+            code = self.safe_string(response, 'code')
+            if code == 'API0005':
+                raise AuthenticationError(self.id + ' invalid signature, use the uid for the main account if you have subaccounts')
+            exact = self.exceptions['exact']
+            broad = self.exceptions['broad']
+            feedback = self.id + ' ' + body
+            for i in range(0, len(errors)):
+                value = errors[i]
+                if value in exact:
+                    raise exact[value](feedback)
+                broadKey = self.findBroadlyMatchedKey(broad, value)
+                if broadKey is not None:
+                    raise broad[broadKey](feedback)
+            raise ExchangeError(feedback)

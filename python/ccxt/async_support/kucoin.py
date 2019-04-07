@@ -639,10 +639,10 @@ class kucoin (Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders_by_status('done', symbol, since, limit, params)
+        return await self.fetch_orders_by_status('done', symbol, since, limit, params)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders_by_status('active', symbol, since, limit, params)
+        return await self.fetch_orders_by_status('active', symbol, since, limit, params)
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -1124,7 +1124,7 @@ class kucoin (Exchange):
         #     }
         #
         responseData = response['data']['items']
-        return self.parseTransactions(responseData, currency, since, limit)
+        return self.parseTransactions(responseData, currency, since, limit, {'type': 'deposit'})
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1184,7 +1184,7 @@ class kucoin (Exchange):
         #     }
         #
         responseData = response['data']['items']
-        return self.parseTransactions(responseData, currency, since, limit)
+        return self.parseTransactions(responseData, currency, since, limit, {'type': 'withdrawal'})
 
     async def fetch_balance(self, params={}):
         await self.load_markets()

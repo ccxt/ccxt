@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -147,16 +147,22 @@ module.exports = class bitstamp extends Exchange {
                 },
             },
             'exceptions': {
-                'No permission found': PermissionDenied,
-                'API key not found': AuthenticationError,
-                'IP address not allowed': PermissionDenied,
-                'Invalid nonce': InvalidNonce,
-                'Invalid signature': AuthenticationError,
-                'Authentication failed': AuthenticationError,
-                'Missing key, signature and nonce parameters': AuthenticationError,
-                'Your account is frozen': PermissionDenied,
-                'Please update your profile with your FATCA information, before using API.': PermissionDenied,
-                'Order not found': OrderNotFound,
+                'exact': {
+                    'No permission found': PermissionDenied,
+                    'API key not found': AuthenticationError,
+                    'IP address not allowed': PermissionDenied,
+                    'Invalid nonce': InvalidNonce,
+                    'Invalid signature': AuthenticationError,
+                    'Authentication failed': AuthenticationError,
+                    'Missing key, signature and nonce parameters': AuthenticationError,
+                    'Your account is frozen': PermissionDenied,
+                    'Please update your profile with your FATCA information, before using API.': PermissionDenied,
+                    'Order not found': OrderNotFound,
+                },
+                'broad': {
+                    'Check your account balance for details.': InsufficientFunds, // You have only 0.00100000 BTC available. Check your account balance for details.
+                    'Ensure this value has at least': InvalidAddress, // Ensure this value has at least 25 characters (it has 4).
+                },
             },
         });
     }
@@ -993,26 +999,55 @@ module.exports = class bitstamp extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response) {
-        if (typeof body !== 'string')
-            return; // fallback to default error handler
-        if (body.length < 2)
-            return; // fallback to default error handler
-        if ((body[0] === '{') || (body[0] === '[')) {
-            // fetchDepositAddress returns {"error": "No permission found"} on apiKeys that don't have the permission required
-            let error = this.safeString (response, 'error');
-            let exceptions = this.exceptions;
-            if (error in exceptions) {
-                throw new exceptions[error] (this.id + ' ' + body);
-            }
-            let status = this.safeString (response, 'status');
-            if (status === 'error') {
-                let code = this.safeString (response, 'code');
-                if (code !== undefined) {
-                    if (code === 'API0005')
-                        throw new AuthenticationError (this.id + ' invalid signature, use the uid for the main account if you have subaccounts');
+        if (response === undefined) {
+            return;
+        }
+        // fetchDepositAddress returns {"error": "No permission found"} on apiKeys that don't have the permission required
+        const status = this.safeString (response, 'status');
+        const error = this.safeValue (response, 'error');
+        if (status === 'error' || error) {
+            let errors = [];
+            if (typeof error === 'string') {
+                errors.push (error);
+            } else {
+                const keys = Object.keys (error);
+                for (let i = 0; i < keys.length; i++) {
+                    const key = keys[i];
+                    const value = this.safeValue (error, key);
+                    if (Array.isArray (value)) {
+                        errors = this.arrayConcat (errors, value);
+                    } else {
+                        errors.push (value);
+                    }
                 }
-                throw new ExchangeError (this.id + ' ' + body);
             }
+            const reason = this.safeValue (response, 'reason', {});
+            const all = this.safeValue (reason, '__all__');
+            if (all !== undefined) {
+                if (Array.isArray (all)) {
+                    for (let i = 0; i < all.length; i++) {
+                        errors.push (all[i]);
+                    }
+                }
+            }
+            const code = this.safeString (response, 'code');
+            if (code === 'API0005') {
+                throw new AuthenticationError (this.id + ' invalid signature, use the uid for the main account if you have subaccounts');
+            }
+            const exact = this.exceptions['exact'];
+            const broad = this.exceptions['broad'];
+            const feedback = this.id + ' ' + body;
+            for (let i = 0; i < errors.length; i++) {
+                const value = errors[i];
+                if (value in exact) {
+                    throw new exact[value] (feedback);
+                }
+                const broadKey = this.findBroadlyMatchedKey (broad, value);
+                if (broadKey !== undefined) {
+                    throw new broad[broadKey] (feedback);
+                }
+            }
+            throw new ExchangeError (feedback);
         }
     }
 };

@@ -1124,7 +1124,7 @@ class kucoin (Exchange):
         #     }
         #
         responseData = response['data']['items']
-        return self.parseTransactions(responseData, currency, since, limit)
+        return self.parseTransactions(responseData, currency, since, limit, {'type': 'deposit'})
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1184,7 +1184,7 @@ class kucoin (Exchange):
         #     }
         #
         responseData = response['data']['items']
-        return self.parseTransactions(responseData, currency, since, limit)
+        return self.parseTransactions(responseData, currency, since, limit, {'type': 'withdrawal'})
 
     def fetch_balance(self, params={}):
         self.load_markets()
