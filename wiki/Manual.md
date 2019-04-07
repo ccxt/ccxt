@@ -285,6 +285,45 @@ $exchange = new $exchange_class (array (
 ));
 ```
 
+### Overriding Exchange Properties Upon Instantiation
+
+Most of exchange properties as well as specific options can be overrided upon exchange class instantiation or afterwards, like shown below:
+
+```JavaScript
+// JavaScript
+const exchange = new ccxt.binance ({
+    'rateLimit': 10000, // unified exchange property
+    'options': {
+        'adjustForTimeDifference': true, // exchange-specific option
+    }
+})
+exchange.options['adjustForTimeDifference'] = false
+```
+
+```Python
+# Python
+exchange = ccxt.binance ({
+    'rateLimit': 10000,  # unified exchange property
+    'options': {
+        'adjustForTimeDifference': True,  # exchange-specific option
+    }
+})
+exchange.options['adjustForTimeDifference'] = False
+```
+
+```PHP
+// PHP
+$exchange_id = 'binance';
+$exchange_class = "\\ccxt\\$exchange_id";
+$exchange = new $exchange_class (array (
+    'rateLimit' => 10000, // unified exchange property
+    'options' => array (
+        'adjustForTimeDifference' => true, // exchange-specific option
+    ),
+));
+$exchange->options['adjustForTimeDifference'] = false;
+```
+
 ## Exchange Structure
 
 Every exchange has a set of properties and methods, most of which you can override by passing an associative array of params to an exchange constructor. You can also make a subclass and override everything.
