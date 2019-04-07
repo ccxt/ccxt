@@ -34,8 +34,8 @@ class binanceje extends binance {
                 'trading' => array (
                     'tierBased' => false,
                     'percentage' => true,
-                    'taker' => 0.005,
-                    'maker' => 0.005,
+                    'taker' => 0.0005,
+                    'maker' => 0.0005,
                 ),
                 // should be deleted, these are outdated and inaccurate
                 'funding' => array (
