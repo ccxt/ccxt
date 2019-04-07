@@ -545,7 +545,7 @@ module.exports = class kraken extends Exchange {
         let ohlcvs = response['result'][market['id']];
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
-    
+
     parseLedgerEntryType (type) {
         const types = {
             'trade': 'trade',
