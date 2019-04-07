@@ -209,8 +209,6 @@ module.exports = class dsx extends liqui {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'maker': this.fees['trading']['maker'],
-                'taker': this.fees['trading']['taker'],
                 'precision': precision,
                 'limits': limits,
                 'info': market,
