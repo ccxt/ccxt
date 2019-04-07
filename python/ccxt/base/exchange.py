@@ -1271,7 +1271,7 @@ class Exchange(object):
     def fetch_trading_fees(self, params={}):
         self.raise_error(NotSupported, details='fetch_trading_fees() not supported yet')
 
-    def fetch_trading_fee(self, code, params={}):
+    def fetch_trading_fee(self, symbol, params={}):
         self.raise_error(NotSupported, details='fetch_trading_fee() not supported yet')
 
     def fetch_funding_fees(self, params={}):
