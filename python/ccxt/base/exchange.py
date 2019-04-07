@@ -1102,12 +1102,11 @@ class Exchange(object):
         self.accountsById = self.index_by(self.accounts, 'id')
         return self.accounts
 
-    def load_fees(self):
+    def load_fees(self, reload=False):
         self.load_markets()
-        if not (self.has['fetchTradingFees'] or self.has['fetchFundingFees']):
-            return self.fees
-
-        self.loaded_fees = self.fetch_fees()
+        if not reload:
+            if self.loaded_fees == Exchange.loaded_fees:
+                self.loaded_fees = self.deep_extend(self.loaded_fees, self.fetch_fees())
         return self.loaded_fees
 
     def fetch_markets(self, params={}):
@@ -1127,20 +1126,10 @@ class Exchange(object):
     def fetch_fees(self):
         trading = {}
         funding = {}
-        try:
+        if self.has['fetchTradingFees']:
             trading = self.fetch_trading_fees()
-        except AuthenticationError:
-            pass
-        except AttributeError:
-            pass
-
-        try:
+        if self.has['fetchFundingFees']:
             funding = self.fetch_funding_fees()
-        except AuthenticationError:
-            pass
-        except AttributeError:
-            pass
-
         return {
             'trading': trading,
             'funding': funding,
