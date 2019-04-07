@@ -982,28 +982,28 @@ module.exports = class kraken extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostQueryOrders (this.extend ({
+        const response = await this.privatePostQueryOrders (this.extend ({
             'trades': true, // whether or not to include trades in output (optional, default false)
             'txid': id, // do not comma separate a list of ids - use fetchOrdersByIds instead
             // 'userref': 'optional', // restrict results to given user reference id (optional)
         }, params));
-        let orders = response['result'];
-        let order = this.parseOrder (this.extend ({ 'id': id }, orders[id]));
+        const orders = response['result'];
+        const order = this.parseOrder (this.extend ({ 'id': id }, orders[id]));
         return this.extend ({ 'info': response }, order);
     }
 
-    async fetchOrdersByIds (ids = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersByIds (ids = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostQueryOrders (this.extend ({
+        const response = await this.privatePostQueryOrders (this.extend ({
             'trades': true, // whether or not to include trades in output (optional, default false)
             'txid': ids.join (','), // comma delimited list of transaction ids to query info about (20 maximum)
         }, params));
-        const responseResult = response['result'];
+        const result = this.safeValue (response, 'result', {});
         const orders = [];
-        const orderIds = Object.keys (responseResult);
+        const orderIds = Object.keys (result);
         for (let i = 0; i < orderIds.length; i++) {
             const id = orderIds[i];
-            const item = responseResult[id];
+            const item = result[id];
             const order = this.parseOrder (this.extend ({ 'id': id }, item));
             orders.push (order);
         }
