@@ -91,7 +91,7 @@ module.exports = class dsx extends liqui {
             },
             'exceptions': {
                 'exact': {
-                    'Order wasn\'t cancelled': InvalidOrder, // non-existent order
+                    "Order wasn't cancelled": InvalidOrder, // non-existent order
                 },
             },
             'options': {
@@ -99,12 +99,6 @@ module.exports = class dsx extends liqui {
                 'fetchMyTradesMethod': 'privatePostHistoryTrades',
                 'cancelOrderMethod': 'privatePostOrderCancel',
                 'fetchTickersMaxLength': 250,
-                'transactionStatus': {
-                    '1': 'failed',
-                    '2': 'ok',
-                    '3': 'pending',
-                    '4': 'failed',
-                },
             },
         });
     }
@@ -121,9 +115,22 @@ module.exports = class dsx extends liqui {
         return this.parseTransactions (response['return'], currency, since, limit);
     }
 
+    parseTransactionStatus (status) {
+        const statuses = {
+            '1': 'failed',
+            '2': 'ok',
+            '3': 'pending',
+            '4': 'failed',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseTransaction (transaction, currency = undefined) {
         const timestamp = transaction['timestamp'] * 1000;
-        const type = this.safeString (transaction, 'type') === 'Incoming' ? 'deposit' : 'withdrawal';
+        let type = this.safeString (transaction, 'type');
+        if (type !== undefined) {
+            type = (type === 'Incoming') ? 'deposit' : 'withdrawal';
+        }
         const currencyId = this.safeString (transaction, 'currency');
         let code = undefined;
         if (currencyId in this.currencies_by_id) {
@@ -132,7 +139,7 @@ module.exports = class dsx extends liqui {
         } else {
             code = this.commonCurrencyCode (currencyId);
         }
-        let status = this.safeString (transaction, 'status');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         return {
             'id': this.safeString (transaction, 'id'),
             'txid': this.safeString (transaction, 'txid'),
@@ -142,7 +149,7 @@ module.exports = class dsx extends liqui {
             'type': type,
             'amount': this.safeFloat (transaction, 'amount'),
             'currency': code,
-            'status': this.safeString (this.options['transactionStatus'], status, status),
+            'status': status,
             'fee': {
                 'currency': code,
                 'cost': this.safeFloat (transaction, 'commission'),
