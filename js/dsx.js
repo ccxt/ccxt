@@ -119,6 +119,24 @@ module.exports = class dsx extends liqui {
             request['count'] = limit;
         }
         const response = await this.privatePostHistoryTransactions (this.extend (request, params));
+        //
+        //     {
+        //         "success": 1,
+        //         "return": [
+        //             {
+        //                 "id": 1,
+        //                 "timestamp": 11,
+        //                 "type": "Withdraw",
+        //                 "amount": 1,
+        //                 "currency": "btc",
+        //                 "confirmationsCount": 6,
+        //                 "address": "address",
+        //                 "status": 2,
+        //                 "commission": 0.0001
+        //             }
+        //         ]
+        //     }
+        //
         const transactions = this.safeValue (response, 'return', []);
         return this.parseTransactions (transactions, currency, since, limit);
     }
@@ -134,10 +152,30 @@ module.exports = class dsx extends liqui {
     }
 
     parseTransaction (transaction, currency = undefined) {
-        const timestamp = transaction['timestamp'] * 1000;
+        //
+        //     {
+        //         "id": 1,
+        //         "timestamp": 11, // 11 in their docs (
+        //         "type": "Withdraw",
+        //         "amount": 1,
+        //         "currency": "btc",
+        //         "confirmationsCount": 6,
+        //         "address": "address",
+        //         "status": 2,
+        //         "commission": 0.0001
+        //     }
+        //
+        let timestamp = this.safeInteger (transaction, 'timestamp');
+        if (timestamp !== undefined) {
+            timestamp = timestamp * 1000;
+        }
         let type = this.safeString (transaction, 'type');
         if (type !== undefined) {
-            type = (type === 'Incoming') ? 'deposit' : 'withdrawal';
+            if (type === 'Incoming') {
+                type = 'deposit';
+            } else if (type === 'Withdraw') {
+                type = 'withdrawal';
+            }
         }
         const currencyId = this.safeString (transaction, 'currency');
         let code = undefined;
