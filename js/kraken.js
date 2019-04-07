@@ -992,7 +992,7 @@ module.exports = class kraken extends Exchange {
         return this.extend ({ 'info': response }, order);
     }
 
-    async fetchOrdersByIds (ids, params = {}) {
+    async fetchOrdersByIds (ids, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostQueryOrders (this.extend ({
             'trades': true, // whether or not to include trades in output (optional, default false)
