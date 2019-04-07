@@ -105,14 +105,21 @@ module.exports = class dsx extends liqui {
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let currency = code === undefined ? undefined : this.currency (code);
-        let request = {
-            'currency': currency,
-            'since': since,
-            'count': limit,
-        };
-        let response = await this.privatePostHistoryTransactions (this.extend (request, params));
-        return this.parseTransactions (response['return'], currency, since, limit);
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['since'] = since;
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const response = await this.privatePostHistoryTransactions (this.extend (request, params));
+        const transactions = this.safeValue (response, 'return', []);
+        return this.parseTransactions (transactions, currency, since, limit);
     }
 
     parseTransactionStatus (status) {
