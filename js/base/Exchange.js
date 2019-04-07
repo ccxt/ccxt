@@ -1198,18 +1198,11 @@ module.exports = class Exchange {
     }
 
     parseTrades (trades, market = undefined, since = undefined, limit = undefined) {
-        let result;
-        if (!this.isArray (trades)) {
-            result = [];
-            for (let id in trades) {
-                let trade = this.extend ({}, trades[id]);
-                trade.id = id;
-                let parsed = this.parseTrade (trade, market);
-                result.push (parsed);
-            }
-        } else {
-            result = Object.values (trades || []).map (trade => this.parseTrade (trade, market))
-        };
+        // this code is commented out temporarily to catch for exchange-specific errors
+        // if (!this.isArray (trades)) {
+        //     throw new ExchangeError (this.id + ' parseTrades expected an array in the trades argument, but got ' + typeof trades);
+        // }
+        let result = Object.values (trades || []).map (trade => this.parseTrade (trade, market))
         result = sortBy (result, 'timestamp')
         let symbol = (market !== undefined) ? market['symbol'] : undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
