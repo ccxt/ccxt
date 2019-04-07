@@ -478,13 +478,9 @@ module.exports = class dsx extends liqui {
         } else if (side === 'bid') {
             side = 'buy';
         }
-        let price = this.safeFloat2 (trade, 'rate', 'price');
-        let id = undefined;
-        if ('number' in trade)
-            id = this.safeString (trade, 'number');
-        else
-            id = this.safeString2 (trade, 'id');
-        let order = this.safeString (trade, 'orderId');
+        const price = this.safeFloat2 (trade, 'rate', 'price');
+        const id = this.safeString2 (trade, 'number', 'id');
+        const orderId = this.safeString (trade, 'orderId');
         if ('pair' in trade) {
             let marketId = this.safeString (trade, 'pair');
             market = this.safeValue (this.markets_by_id, marketId, market);
@@ -493,11 +489,11 @@ module.exports = class dsx extends liqui {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let amount = this.safeFloat2 (trade, 'amount', 'volume');
-        let type = 'limit'; // all trades are still limit trades
+        const amount = this.safeFloat2 (trade, 'amount', 'volume');
+        const type = 'limit'; // all trades are still limit trades
         let takerOrMaker = undefined;
         let fee = undefined;
-        let feeCost = this.safeFloat (trade, 'commission');
+        const feeCost = this.safeFloat (trade, 'commission');
         if (feeCost !== undefined) {
             let feeCurrencyId = this.safeString (trade, 'commissionCurrency');
             feeCurrencyId = feeCurrencyId.toUpperCase ();
@@ -523,9 +519,15 @@ module.exports = class dsx extends liqui {
                 fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
             }
         }
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
+        }
         return {
             'id': id,
-            'order': order,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -534,7 +536,7 @@ module.exports = class dsx extends liqui {
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'fee': fee,
             'info': trade,
         };
