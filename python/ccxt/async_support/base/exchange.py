@@ -25,7 +25,6 @@ from ccxt.async_support.base.throttle import throttle
 # -----------------------------------------------------------------------------
 
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import NotSupported
