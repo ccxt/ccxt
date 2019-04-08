@@ -396,7 +396,11 @@ The rule of thumb is: **`+` is for string concatenation only (!)** and **`this.s
 
 ---
 
-**If you want to add (support for) another exchange, or implement a new method for a particular exchange, then the best way to make it a consistent improvement is to learn from example. Take a look at how same things are implemented in other exchanges and try to copy the code flow and style.**
+#### Adding New Exchange Integrations
+
+Please, see the following document for new integrations: https://github.com/ccxt/ccxt/wiki/Requirements
+
+**If you want to add (support for) another exchange, or implement a new method for a particular exchange, then the best way to make it a consistent improvement is to learn from example. Take a look at how same things are implemented in other exchanges (we recommend certified exchanges) and try to copy the code flow and style.**
 
 The basic JSON-skeleton for a new exchange integration is as follows:
 
