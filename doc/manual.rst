@@ -423,6 +423,46 @@ The ccxt library in PHP uses builtin UTC/GMT time functions, therefore you are r
        'enableRateLimit' => true,
    ));
 
+Overriding Exchange Properties Upon Instantiation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Most of exchange properties as well as specific options can be overrided upon exchange class instantiation or afterwards, like shown below:
+
+.. code:: javascript
+
+   // JavaScript
+   const exchange = new ccxt.binance ({
+       'rateLimit': 10000, // unified exchange property
+       'options': {
+           'adjustForTimeDifference': true, // exchange-specific option
+       }
+   })
+   exchange.options['adjustForTimeDifference'] = false
+
+.. code:: python
+
+   # Python
+   exchange = ccxt.binance ({
+       'rateLimit': 10000,  # unified exchange property
+       'options': {
+           'adjustForTimeDifference': True,  # exchange-specific option
+       }
+   })
+   exchange.options['adjustForTimeDifference'] = False
+
+.. code:: php
+
+   // PHP
+   $exchange_id = 'binance';
+   $exchange_class = "\\ccxt\\$exchange_id";
+   $exchange = new $exchange_class (array (
+       'rateLimit' => 10000, // unified exchange property
+       'options' => array (
+           'adjustForTimeDifference' => true, // exchange-specific option
+       ),
+   ));
+   $exchange->options['adjustForTimeDifference'] = false;
+
 Exchange Structure
 ------------------
 
