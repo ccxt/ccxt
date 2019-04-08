@@ -259,6 +259,84 @@ And structurally:
 - **don't access non-existent keys, `array['key'] || {}` won't work in other languages!**
 - keep it simple, don't do more than one statement in one line
 
+##### Working With Dictionary Keys
+
+In JavaScript, dictionary keys can be accessed in two notations:
+
+- `object['key']` (single-quoted string key notation)
+- `object.key` (property notation)
+
+Both work almost identically, and one is implicitly converted to another upon executing the JavaScript code.
+
+While the above does work in JavaScript, it will not work in Python or PHP. In most languages, associative dictionary keys are not treaded in the same was as properties. Therefore, in Python `object.key` is not the same as `object['key']`. In PHP `$object->key` is not the same as `$object['key']` as well. Languages that differentiate between associative keys and properties use different notations for the two.
+
+To keep the code transpileable, please, remeber this simple rule: **always use the single-quoted string key notation `object['key']` for accessing all associative dictionary keys in all languages everywhere throughout this library!**.
+
+##### Sanitizing Input With Safe Methods
+
+JavaScript is less restrictive than other languages. It will tolerate an attempt to dereference a non-existent key where other languages will throw an Exception:
+
+```JavaScript
+// JavaScript
+
+const someObject = {}
+
+if (someObject['nonExistentKey']) {
+    // the body of this conditional will not execute in JavaScript
+    // because someObject['nonExistentKey'] === undefined === false
+    // but JavaScript will not throw an exception on the if-clause
+}
+```
+
+However, the above logic with *"an undefined value by default"* will not work in Python or PHP.
+
+```Python
+# Python
+some_dictionary = {}
+
+# breaks
+if some_dictionary['nonExistentKey']:
+    # in Python the attempt to dereference the nonExistentKey value
+    # will throw a standard built-in KeyError exception
+
+# works
+if 'nonExistentKey' in some_dictionary and some_dictionary['nonExistentKey']:
+    # this is a way to check if the key exists before accessing the value
+
+# also works
+if some_dictionary.get('nonExistentKey'):
+    # another a way to check if the key exists before accessing the value...
+```
+
+Most languages will not tolerate an attempt to access a non-existent key in an object.
+
+Therefore we have a family of `safe*` functions, which check for the existence of the key in the object and properly return `undefined/None/null` values for JS/Python/PHP. Alternatively, you could check for the key existence first...
+
+So, you have to change this:
+
+```JavaScript
+if (params['foo'] !== undefined) {
+    // your code
+}
+```
+
+↓
+
+```JavaScript
+const foo = this.safeValue (params, 'foo');
+if (foo !== undefined) {
+    // your code
+}
+
+//
+// OR
+//
+
+if ('foo' in params) {
+    // your code
+}
+```
+
 ##### Working With Array Lengths
 
 In JavaScript the common syntax to get a length of a string or an array is to reference the `.length` property like shown here:
