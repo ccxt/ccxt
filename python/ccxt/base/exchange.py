@@ -1258,19 +1258,21 @@ class Exchange(object):
     def fetch_total_balance(self, params={}):
         return self.fetch_partial_balance('total', params)
 
+    def fetch_trading_fees(self, symbol, params={}):
+        self.raise_error(NotSupported, details='fetch_trading_fees() not supported yet')
+
     def fetch_trading_fee(self, symbol, params={}):
         if not self.has['fetchTradingFees']:
             self.raise_error(NotSupported, details='fetch_trading_fee() not supported yet')
         return self.fetch_trading_fees(params)
 
-    def fetch_trading_fee(self, symbol, params={}):
-        self.raise_error(NotSupported, details='fetch_trading_fee() not supported yet')
-
     def fetch_funding_fees(self, params={}):
         self.raise_error(NotSupported, details='fetch_funding_fees() not supported yet')
 
     def fetch_funding_fee(self, code, params={}):
-        self.raise_error(NotSupported, details='fetch_funding_fee() not supported yet')
+        if not self.has['fetchFundingFees']:
+            self.raise_error(NotSupported, details='fetch_funding_fee() not supported yet')
+        return self.fetch_funding_fees(params)
 
     def load_trading_limits(self, symbols=None, reload=False, params={}):
         if self.has['fetchTradingLimits']:
