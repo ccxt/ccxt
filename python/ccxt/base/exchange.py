@@ -1103,7 +1103,6 @@ class Exchange(object):
         return self.accounts
 
     def load_fees(self, reload=False):
-        self.load_markets()
         if not reload:
             if self.loaded_fees != Exchange.loaded_fees:
                 return self.loaded_fees

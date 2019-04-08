@@ -183,39 +183,21 @@ class Exchange(BaseExchange):
     async def fetch_fees(self):
         trading = {}
         funding = {}
-        try:
+        if self.has['fetchTradingFees']:
             trading = await self.fetch_trading_fees()
-        except AuthenticationError:
-            pass
-        except AttributeError:
-            pass
-
-        try:
+        if self.has['fetchFundingFees']:
             funding = await self.fetch_funding_fees()
-        except AuthenticationError:
-            pass
-        except AttributeError:
-            pass
-
         return {
             'trading': trading,
             'funding': funding,
         }
 
-    async def load_fees(self):
-        await self.load_markets()
-        self.populate_fees()
-        if not (self.has['fetchTradingFees'] or self.has['fetchFundingFees']):
-            return self.fees
-
-        fetched_fees = await self.fetch_fees()
-        if fetched_fees['funding']:
-            self.fees['funding']['fee_loaded'] = True
-        if fetched_fees['trading']:
-            self.fees['trading']['fee_loaded'] = True
-
-        self.fees = self.deep_extend(self.fees, fetched_fees)
-        return self.fees
+    async def load_fees(self, reload=False):
+        if not reload:
+            if self.loaded_fees != Exchange.loaded_fees:
+                return self.loaded_fees
+        self.loaded_fees = self.deep_extend(self.loaded_fees, await self.fetch_fees())
+        return self.loaded_fees
 
     async def fetch_markets(self, params={}):
         # markets are returned as a list
