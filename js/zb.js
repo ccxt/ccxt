@@ -22,6 +22,7 @@ module.exports = class zb extends Exchange {
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
                 'fetchOHLCV': true,
                 'fetchTickers': true,
                 'withdraw': true,
@@ -456,6 +457,11 @@ module.exports = class zb extends Exchange {
             throw e;
         }
         return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let orders = await this.fetchOrders (symbol, since, limit, params);
+        return this.filterBy (orders, 'status', 'closed');
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
