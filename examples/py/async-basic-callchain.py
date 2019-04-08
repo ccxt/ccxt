@@ -1,15 +1,21 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
-from pprint import pprint
-import ccxt.async_support as ccxt
+import os
+import sys
 
-async def run_all_exchanges (exchange_ids):
+root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(root + '/python')
+
+import ccxt.async_support as ccxt  # noqa: E402
+
+
+async def run_all_exchanges(exchange_ids):
     results = {}
 
     for exchange_id in exchange_ids:
 
-        exchange = getattr(ccxt, exchange_id) ({
+        exchange = getattr(ccxt, exchange_id)({
             'enableRateLimit': True,  # required accoding to the Manual
             'options': {
                 'useWebapiForFetchingFees': False,
@@ -37,6 +43,7 @@ async def run_all_exchanges (exchange_ids):
 
     return results
 
+
 async def load_markets(exchange, symbol):
     try:
         result = await exchange.load_markets()
@@ -45,6 +52,7 @@ async def load_markets(exchange, symbol):
         print(type(e).__name__, str(e), str(e.args))
         raise e
 
+
 async def fetch_ticker(exchange, symbol):
     try:
         result = await exchange.fetch_ticker(symbol)
@@ -52,6 +60,7 @@ async def fetch_ticker(exchange, symbol):
     except ccxt.BaseError as e:
         print(type(e).__name__, str(e), str(e.args))
         raise e
+
 
 async def fetch_orderbook(exchange, symbol):
     try:
@@ -66,4 +75,4 @@ if __name__ == '__main__':
     exchange_ids = ['bitfinex', 'okex', 'exmo']
     exchanges = []
     results = asyncio.get_event_loop().run_until_complete(run_all_exchanges(exchange_ids))
-    pprint([ (exchange_id, ticker) for exchange_id, ticker in results.items()])
+    print([(exchange_id, ticker) for exchange_id, ticker in results.items()])
