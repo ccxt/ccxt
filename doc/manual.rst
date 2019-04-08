@@ -832,6 +832,50 @@ In the second example the **price** of any order placed on the market **must sat
 
 *The ``precision`` and ``limits`` params are currently under heavy development, some of these fields may be missing here and there until the unification process is complete. This does not influence most of the orders but can be significant in extreme cases of very large or very small orders. The ``active`` flag is not yet supported and/or implemented by all markets.*
 
+Methods For Decimal Formatting
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The exchange base class contains the ``decimalToPrecision`` method to help format values to the required decimal precision with support for different rounding, counting and padding modes.
+
+.. code:: javascript
+
+   // JavaScript
+   function decimalToPrecision (x, roundingMode, numPrecisionDigits, countingMode = DECIMAL_PLACES, paddingMode = NO_PADDING)
+
+.. code:: python
+
+   # Python
+   # WARNING! The `decimal_to_precision` method is susceptible to getcontext().prec!
+   def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=DECIMAL_PLACES, padding_mode=NO_PADDING):
+
+.. code:: php
+
+   // PHP
+   function decimalToPrecision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING)
+
+Supported rounding modes are:
+
+-  ``ROUND`` – will round the last decimal digits to precision
+-  ``TRUNCATE``– will cut off the digits after certain precision
+
+Supported counting modes are:
+
+– ``DECIMAL_PLACES`` – counts all digits, 99% of exchanges use this counting mode
+– ``SIGNIFICANT_DIGITS`` – counts non-zero digits only, some exchanges (``bitfinex`` and maybe a few other) implement this mode of counting decimals
+
+Supported padding modes are:
+
+– ``NO_PADDING`` – default for most cases
+– ``PAD_WITH_ZERO`` – appends zero characters up to precision
+
+For examples of how to use the ``decimalToPrecision`` to format strings and floats, please, see the following files:
+
+-  JavaScript: https://github.com/ccxt/ccxt/blob/master/js/test/base/functions/test.number.js
+   – Python: https://github.com/ccxt/ccxt/blob/master/python/test/test_decimal_to_precision.py
+   – PHP: https://github.com/ccxt/ccxt/blob/master/php/test/decimal_to_precision.php
+
+**Python WARNING! The ``decimal_to_precision`` method is susceptible to getcontext().prec!**
+
 Loading Markets
 ---------------
 
