@@ -181,10 +181,7 @@ class gdax (Exchange):
             taker = self.fees['trading']['taker']  # does not seem right
             if (base == 'ETH') or (base == 'LTC'):
                 taker = 0.003
-            accessible = True
-            if 'accessible' in market:
-                accessible = self.safe_value(market, 'accessible')
-            active = (market['status'] == 'online') and accessible
+            active = market['status'] == 'online'
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
