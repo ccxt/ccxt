@@ -1105,8 +1105,9 @@ class Exchange(object):
     def load_fees(self, reload=False):
         self.load_markets()
         if not reload:
-            if self.loaded_fees == Exchange.loaded_fees:
-                self.loaded_fees = self.deep_extend(self.loaded_fees, self.fetch_fees())
+            if self.loaded_fees != Exchange.loaded_fees:
+                return self.loaded_fees
+        self.loaded_fees = self.deep_extend(self.loaded_fees, self.fetch_fees())
         return self.loaded_fees
 
     def fetch_markets(self, params={}):
@@ -1257,8 +1258,10 @@ class Exchange(object):
     def fetch_total_balance(self, params={}):
         return self.fetch_partial_balance('total', params)
 
-    def fetch_trading_fees(self, params={}):
-        self.raise_error(NotSupported, details='fetch_trading_fees() not supported yet')
+    def fetch_trading_fee(self, symbol, params={}):
+        if not self.has['fetchTradingFees']:
+            self.raise_error(NotSupported, details='fetch_trading_fee() not supported yet')
+        return self.fetch_trading_fees(params)
 
     def fetch_trading_fee(self, symbol, params={}):
         self.raise_error(NotSupported, details='fetch_trading_fee() not supported yet')
