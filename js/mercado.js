@@ -292,16 +292,19 @@ module.exports = class mercado extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined)
+        if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder () requires a symbol argument');
+        }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = undefined;
-        response = await this.privatePostGetOrder (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'coin_pair': market['id'],
             'order_id': parseInt (id),
-        }, params));
-        return this.parseOrder (response['response_data']['order']);
+        };
+        const response = await this.privatePostGetOrder (this.extend (request, params));
+        const responseData = this.safeValue (response, 'response_data', {});
+        const order = this.safeValue (responseData, 'order');
+        return this.parseOrder (order);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -374,16 +377,14 @@ module.exports = class mercado extends Exchange {
         if (symbol === undefined)
             throw new ArgumentsRequired (this.id + ' fetchOrders () requires a symbol argument');
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = undefined;
-        response = await this.privatePostListOrders (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'coin_pair': market['base'],
-        }, params));
-        let orders = response['response_data']['orders'];
-        for (let i = 0; i < orders.length; i++) {
-            orders[i] = this.parseOrder (orders[i]);
-        }
-        return orders;
+        };
+        const response = await this.privatePostListOrders (this.extend (request, params));
+        const responseData = this.safeValue (response, 'response_data', {});
+        const orders = this.safeValue (responseData, 'orders', []);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
