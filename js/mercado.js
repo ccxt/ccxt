@@ -418,15 +418,15 @@ module.exports = class mercado extends Exchange {
             'precision': this.timeframes[timeframe],
             'coin': market.id.toLowerCase (),
         };
-        if (since !== undefined) {
+        if (limit !== undefined && since !== undefined) {
+            request['from'] = parseInt (since / 1000);
+            request['to'] = this.sum (request['from'], limit * this.parseTimeframe (timeframe));
+        } else if (since !== undefined) {
             request['from'] = parseInt (since / 1000);
             request['to'] = this.sum (this.seconds (), 1);
-        }
-        if (limit !== undefined && since !== undefined) {
-            request['to'] = (this.sum (request['from'], limit * this.parseTimeframe (timeframe)));
         } else if (limit !== undefined) {
-            request['from'] = this.seconds () - (limit * this.parseTimeframe (timeframe));
             request['to'] = this.seconds ();
+            request['from'] = request['to'] - (limit * this.parseTimeframe (timeframe));
         }
         let response = await this.v4PublicGetCoinCandle (this.extend (request, params));
         return this.parseOHLCVs (response['candles'], market, timeframe, since, limit);
