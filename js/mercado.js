@@ -250,7 +250,7 @@ module.exports = class mercado extends Exchange {
         //     }
         //
         const responseData = this.safeValue (response, 'response_data', {});
-        const order = this.safeValue (responseData, 'order', {})
+        const order = this.safeValue (responseData, 'order', {});
         return this.parseOrder (order, market);
     }
 
