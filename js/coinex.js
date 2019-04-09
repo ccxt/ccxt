@@ -93,7 +93,7 @@ module.exports = class coinex extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.0,
+                    'maker': 0.001,
                     'taker': 0.001,
                 },
                 'funding': {
