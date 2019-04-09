@@ -216,15 +216,19 @@ module.exports = class mercado extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined)
+        if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder () requires a symbol argument');
+        }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.privatePostCancelOrder (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'coin_pair': market['id'],
             'order_id': id,
-        }, params));
-        return this.parseOrder (response['response_data']['order'], market);
+        };
+        const response = await this.privatePostCancelOrder (this.extend (request, params));
+        const responseData = this.safeValue (response, 'response_data', {});
+        const order = this.safeValue (responseData, 'order', {})
+        return this.parseOrder (order, market);
     }
 
     parseOrderStatus (status) {
@@ -304,7 +308,7 @@ module.exports = class mercado extends Exchange {
         const response = await this.privatePostGetOrder (this.extend (request, params));
         const responseData = this.safeValue (response, 'response_data', {});
         const order = this.safeValue (responseData, 'order');
-        return this.parseOrder (order);
+        return this.parseOrder (order, market);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
