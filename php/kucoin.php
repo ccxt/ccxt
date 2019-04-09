@@ -127,6 +127,10 @@ class kucoin extends Exchange {
                 '1w' => '1week',
             ),
             'exceptions' => array (
+                'order_not_exist' => '\\ccxt\\OrderNotFound', // array ("code":"order_not_exist","msg":"order_not_exist") ¯\_(ツ)_/¯
+                'order_not_exist_or_not_allow_to_cancel' => '\\ccxt\\InvalidOrder', // array ("code":"400100","msg":"order_not_exist_or_not_allow_to_cancel")
+                'Order size below the minimum requirement.' => '\\ccxt\\InvalidOrder', // array ("code":"400100","msg":"Order size below the minimum requirement.")
+                'The withdrawal amount is below the minimum requirement.' => '\\ccxt\\ExchangeError', // array ("code":"400100","msg":"The withdrawal amount is below the minimum requirement.")
                 '400' => '\\ccxt\\BadRequest',
                 '401' => '\\ccxt\\AuthenticationError',
                 '403' => '\\ccxt\\NotSupported',
@@ -136,6 +140,7 @@ class kucoin extends Exchange {
                 '500' => '\\ccxt\\ExchangeError',
                 '503' => '\\ccxt\\ExchangeNotAvailable',
                 '200004' => '\\ccxt\\InsufficientFunds',
+                '260100' => '\\ccxt\\InsufficientFunds', // array ("code":"260100","msg":"account.noBalance")
                 '300000' => '\\ccxt\\InvalidOrder',
                 '400001' => '\\ccxt\\AuthenticationError',
                 '400002' => '\\ccxt\\InvalidNonce',
@@ -148,9 +153,6 @@ class kucoin extends Exchange {
                 '400100' => '\\ccxt\\ArgumentsRequired',
                 '411100' => '\\ccxt\\AccountSuspended',
                 '500000' => '\\ccxt\\ExchangeError',
-                'order_not_exist' => '\\ccxt\\OrderNotFound', // array ("code":"order_not_exist","msg":"order_not_exist") ¯\_(ツ)_/¯
-                'order_not_exist_or_not_allow_to_cancel' => '\\ccxt\\InvalidOrder', // array ("code":"400100","msg":"order_not_exist_or_not_allow_to_cancel")
-                'Order size below the minimum requirement.' => '\\ccxt\\InvalidOrder', // array ("code":"400100","msg":"Order size below the minimum requirement.")
             ),
             'fees' => array (
                 'trading' => array (
@@ -1023,10 +1025,9 @@ class kucoin extends Exchange {
         //
         // array ( "withdrawalId" => "5bffb63303aa675e8bbe18f9" )
         //
-        $responseData = $response['data'];
         return array (
-            'id' => $this->safe_string($responseData, 'withdrawalId'),
-            'info' => $responseData,
+            'id' => $this->safe_string($response, 'withdrawalId'),
+            'info' => $response,
         );
     }
 
