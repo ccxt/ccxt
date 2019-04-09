@@ -85,11 +85,11 @@ module.exports = class mercado extends Exchange {
                 },
             },
             'markets': {
-                'BTC/BRL': { 'id': 'BRLBTC', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'suffix': 'Bitcoin' },
-                'LTC/BRL': { 'id': 'BRLLTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL', 'suffix': 'Litecoin' },
-                'BCH/BRL': { 'id': 'BRLBCH', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL', 'suffix': 'BCash' },
-                'XRP/BRL': { 'id': 'BRLXRP', 'symbol': 'XRP/BRL', 'base': 'XRP', 'quote': 'BRL', 'suffix': 'Ripple' },
-                'ETH/BRL': { 'id': 'BRLETH', 'symbol': 'ETH/BRL', 'base': 'ETH', 'quote': 'BRL', 'suffix': 'Ethereum' },
+                'BTC/BRL': { 'id': 'BRLBTC', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'precision': { 'amount': 5, 'price': 8 }, 'suffix': 'Bitcoin' },
+                'LTC/BRL': { 'id': 'BRLLTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL', 'precision': { 'amount': 5, 'price': 8 }, 'suffix': 'Litecoin' },
+                'BCH/BRL': { 'id': 'BRLBCH', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL', 'precision': { 'amount': 5, 'price': 8 }, 'suffix': 'BCash' },
+                'XRP/BRL': { 'id': 'BRLXRP', 'symbol': 'XRP/BRL', 'base': 'XRP', 'quote': 'BRL', 'precision': { 'amount': 5, 'price': 8 }, 'suffix': 'Ripple' },
+                'ETH/BRL': { 'id': 'BRLETH', 'symbol': 'ETH/BRL', 'base': 'ETH', 'quote': 'BRL', 'precision': { 'amount': 5, 'price': 8 }, 'suffix': 'Ethereum' },
             },
             'fees': {
                 'trading': {
@@ -193,25 +193,26 @@ module.exports = class mercado extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        let order = {
+        const request = {
             'coin_pair': this.marketId (symbol),
         };
         let method = 'privatePostPlace' + this.capitalize (side) + 'Order';
         if (type === 'limit') {
-            order['limit_price'] = price;
-            order['quantity'] = amount;
+            request['limit_price'] = price;
+            request['quantity'] = amount;
         } else {
-            if (price === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount');
-            }
             method = 'privatePostPlaceMarket' + this.capitalize (side) + 'Order';
             if (side === 'buy') {
-                order['cost'] = (amount * price).toFixed (5);
+                if (price === undefined) {
+                    throw new InvalidOrder (this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount');
+                }
+                request['cost'] = this.amountToPrecision (symbol, amount * price);
             } else {
-                order['quantity'] = amount;
+                request['quantity'] = amount;
             }
         }
-        let response = await this[method] (this.extend (order, params));
+        const response = await this[method] (this.extend (request, params));
+        // TODO: replace this with a call to parseOrder for unification!
         return {
             'info': response,
             'id': response['response_data']['order']['order_id'].toString (),
