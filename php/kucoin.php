@@ -755,6 +755,15 @@ class kucoin extends Exchange {
             'currency' => $feeCurrency,
             'cost' => $feeCost,
         );
+        if ($type === 'market') {
+            if ($price === 0.0) {
+                if (($cost !== null) && ($filled !== null)) {
+                    if (($cost > 0) && ($filled > 0)) {
+                        $price = $cost / $filled;
+                    }
+                }
+            }
+        }
         return array (
             'id' => $orderId,
             'symbol' => $symbol,

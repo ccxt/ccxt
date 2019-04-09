@@ -726,6 +726,11 @@ class kucoin (Exchange):
             'currency': feeCurrency,
             'cost': feeCost,
         }
+        if type == 'market':
+            if price == 0.0:
+                if (cost is not None) and(filled is not None):
+                    if (cost > 0) and(filled > 0):
+                        price = cost / filled
         return {
             'id': orderId,
             'symbol': symbol,
