@@ -94,7 +94,7 @@ class coinex extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
-                    'maker' => 0.0,
+                    'maker' => 0.001,
                     'taker' => 0.001,
                 ),
                 'funding' => array (
