@@ -878,6 +878,7 @@ class Exchange {
         $this->enableLastJsonResponse = true;
         $this->enableLastHttpResponse = true;
         $this->enableLastResponseHeaders = true;
+        $this->enableLastRawResponse = true;
         $this->last_http_response = null;
         $this->last_json_response = null;
         $this->last_response_headers = null;
@@ -1192,6 +1193,10 @@ class Exchange {
 
         if ($this->enableLastResponseHeaders) {
             $this->last_response_headers = $response_headers;
+        }
+
+        if ($this->enableLastRawResponse) {
+            $this->last_raw_response = $result;
         }
 
         $json_response = null;

@@ -251,6 +251,7 @@ class Exchange(object):
     enableLastHttpResponse = True
     enableLastJsonResponse = True
     enableLastResponseHeaders = True
+    enableLastRawResponse = True
     last_http_response = None
     last_json_response = None
     last_response_headers = None
@@ -487,6 +488,8 @@ class Exchange(object):
                 self.last_json_response = json_response
             if self.enableLastResponseHeaders:
                 self.last_response_headers = headers
+            if self.enableLastRawResponse:
+                self.last_raw_response = response
             if self.verbose:
                 print("\nResponse:", method, url, response.status_code, headers, http_response)
             self.logger.debug("%s %s, Response: %s %s %s", method, url, response.status_code, headers, http_response)

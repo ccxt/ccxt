@@ -344,6 +344,7 @@ module.exports = class Exchange {
         this.enableLastJsonResponse = true
         this.enableLastHttpResponse = true
         this.enableLastResponseHeaders = true
+        this.enableLastRawResponse = true
         this.last_http_response    = undefined
         this.last_json_response    = undefined
         this.last_response_headers = undefined
@@ -695,6 +696,10 @@ module.exports = class Exchange {
 
             if (this.enableLastJsonResponse) {
                 this.last_json_response = json         // FIXME: for those classes that haven't switched to handleErrors yet
+            }
+
+            if (this.enableLastRawResponse) {
+                this.last_raw_response = response
             }
 
             if (this.verbose)
