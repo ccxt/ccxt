@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.445'
+const version = '1.18.446'
 
 Exchange.ccxtVersion = version
 
@@ -48505,18 +48505,22 @@ module.exports = class kraken extends Exchange {
                 'private': {
                     'post': [
                         'AddOrder',
+                        'AddExport',
                         'Balance',
                         'CancelOrder',
                         'ClosedOrders',
                         'DepositAddresses',
                         'DepositMethods',
                         'DepositStatus',
+                        'ExportStatus',
                         'Ledgers',
                         'OpenOrders',
                         'OpenPositions',
                         'QueryLedgers',
                         'QueryOrders',
                         'QueryTrades',
+                        'RetrieveExport',
+                        'RemoveExport',
                         'TradeBalance',
                         'TradesHistory',
                         'TradeVolume',
