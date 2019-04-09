@@ -226,6 +226,29 @@ module.exports = class mercado extends Exchange {
             'order_id': id,
         };
         const response = await this.privatePostCancelOrder (this.extend (request, params));
+        //
+        //     {
+        //         response_data: {
+        //             order: {
+        //                 order_id: 2176769,
+        //                 coin_pair: 'BRLBCH',
+        //                 order_type: 2,
+        //                 status: 3,
+        //                 has_fills: false,
+        //                 quantity: '0.10000000',
+        //                 limit_price: '1996.15999',
+        //                 executed_quantity: '0.00000000',
+        //                 executed_price_avg: '0.00000',
+        //                 fee: '0.00000000',
+        //                 created_timestamp: '1536956488',
+        //                 updated_timestamp: '1536956499',
+        //                 operations: []
+        //             }
+        //         },
+        //         status_code: 100,
+        //         server_unix_timestamp: '1536956499'
+        //     }
+        //
         const responseData = this.safeValue (response, 'response_data', {});
         const order = this.safeValue (responseData, 'order', {})
         return this.parseOrder (order, market);
@@ -241,6 +264,31 @@ module.exports = class mercado extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         "order_id": 4,
+        //         "coin_pair": "BRLBTC",
+        //         "order_type": 1,
+        //         "status": 2,
+        //         "has_fills": true,
+        //         "quantity": "2.00000000",
+        //         "limit_price": "900.00000",
+        //         "executed_quantity": "1.00000000",
+        //         "executed_price_avg": "900.00000",
+        //         "fee": "0.00300000",
+        //         "created_timestamp": "1453838494",
+        //         "updated_timestamp": "1453838494",
+        //         "operations": [
+        //             {
+        //                 "operation_id": 1,
+        //                 "quantity": "1.00000000",
+        //                 "price": "900.00000",
+        //                 "fee_rate": "0.30",
+        //                 "executed_timestamp": "1453838494",
+        //             },
+        //         ],
+        //     }
+        //
         const id = this.safeString (order, 'order_id');
         let side = undefined;
         if ('order_type' in order)
