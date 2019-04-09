@@ -818,10 +818,10 @@ module.exports = class boaexchange extends Exchange {
         }
         let timestamp = undefined;
         if ('created' in order)
-            timestamp = this.parse8601 (order['created'] + '+00:00');
+            timestamp = order['created'];
         let lastTradeTimestamp = undefined;
         if (('date_closed' in order) && (order['date_closed'] !== undefined))
-            lastTradeTimestamp = this.parse8601 (order['date_closed'] + '+00:00');
+            lastTradeTimestamp = order['date_closed'];
         if (timestamp === undefined)
             timestamp = lastTradeTimestamp;
         let price = this.safeFloat (order, 'price');
@@ -952,7 +952,7 @@ module.exports = class boaexchange extends Exchange {
             'id': transaction['txid'],
             'txid': transaction['txid'],
             'timestamp': transaction['created'],
-            'datetime': this.parse8601 (transaction['created']),
+            'datetime': this.iso8601 (transaction['created']),
             'addressFrom': undefined,
             'address': address,
             'addressTo': undefined,
