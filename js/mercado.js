@@ -71,7 +71,6 @@ module.exports = class mercado extends Exchange {
                         '{coin}/trades/{from}/',
                         '{coin}/trades/{from}/{to}',
                         '{coin}/day-summary/{year}/{month}/{day}/',
-
                     ],
                 },
                 'private': {
@@ -188,7 +187,7 @@ module.exports = class mercado extends Exchange {
     async fetchBalance (params = {}) {
         let response = await this.privatePostGetAccountInfo ();
         let balances = response['response_data']['balance'];
-        let result = {};
+        let result = { 'info': response };
         let currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
