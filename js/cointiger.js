@@ -413,14 +413,14 @@ module.exports = class cointiger extends huobipro {
             since = this.milliseconds () - week; // week ago
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let from = this.ymd (since);
-        let to = this.ymd (since + week); // one week
+        let start = this.ymd (since);
+        let end = this.ymd (since + week); // one week
         if (limit === undefined)
             limit = 1000;
         let response = await this.v2GetOrderMatchResults (this.extend ({
             'symbol': market['id'],
-            'start-date': from,
-            'end-date': to,
+            'start-date': start,
+            'end-date': end,
             'size': limit,
         }, params));
         return this.parseTrades (response['data'], market, since, limit);
