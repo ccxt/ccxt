@@ -395,7 +395,7 @@ module.exports = class mercado extends Exchange {
         let market = this.market (symbol);
         let response = undefined;
         response = await this.privatePostListOrders (this.extend ({
-            'coin_pair': market['base']
+            'coin_pair': market['base'],
         }, params));
         let orders = response['response_data']['orders'];
         for (let i = 0; i < orders.length; i++) {
@@ -407,7 +407,7 @@ module.exports = class mercado extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         let tickers = {};
         for (let i = 0; i < this.tickers.length; i++) {
-            const ticker = this.tickers[i];
+            let ticker = this.tickers[i];
             tickers[ticker] = await this.fetchTicker (ticker);
         }
         return tickers;
