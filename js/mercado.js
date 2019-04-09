@@ -198,11 +198,11 @@ module.exports = class mercado extends Exchange {
         };
         let method = this.capitalize (side) + 'Order';
         if (type === 'limit') {
-            method = 'privatePostPlace' + method
+            method = 'privatePostPlace' + method;
             request['limit_price'] = this.priceToPrecision (symbol, price);
             request['quantity'] = this.amountToPrecision (symbol, amount);
         } else {
-            method = 'privatePostPlaceMarket' + method
+            method = 'privatePostPlaceMarket' + method;
             if (side === 'buy') {
                 if (price === undefined) {
                     throw new InvalidOrder (this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount');
