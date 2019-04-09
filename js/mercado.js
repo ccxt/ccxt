@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -201,6 +201,9 @@ module.exports = class mercado extends Exchange {
             order['limit_price'] = price;
             order['quantity'] = amount;
         } else {
+            if (price === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount');
+            }
             method = 'privatePostPlaceMarket' + this.capitalize (side) + 'Order';
             if (side === 'buy') {
                 order['cost'] = (amount * price).toFixed (5);
@@ -415,14 +418,16 @@ module.exports = class mercado extends Exchange {
         };
         if (since !== undefined) {
             request['from'] = parseInt (since / 1000);
-            if (limit !== undefined) {
-                request['to'] = (this.sum (request['from'], limit * this.parseTimeframe (timeframe)));
-            } else {
-                request['to'] = this.sum (this.seconds (), 1);
-            }
+            request['to'] = this.sum (this.seconds (), 1);
+        }
+        if (limit !== undefined && since !== undefined) {
+            request['to'] = (this.sum (request['from'], limit * this.parseTimeframe (timeframe)));
+        } else if (limit !== undefined) {
+            request['from'] = this.seconds () - (limit * this.parseTimeframe (timeframe));
+            request['to'] = this.seconds ();
         }
         let response = await this.v4PublicGetCoinCandle (this.extend (request, params));
-        return this.parseOHLCVs (response.candles, market, timeframe, since, limit);
+        return this.parseOHLCVs (response['candles'], market, timeframe, since, limit);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

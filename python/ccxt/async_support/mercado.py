@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import InvalidOrder
 
 
 class mercado (Exchange):
@@ -20,15 +21,33 @@ class mercado (Exchange):
             'version': 'v3',
             'has': {
                 'CORS': True,
-                'createMarketOrder': False,
+                'createMarketOrder': True,
                 'fetchOrder': True,
                 'withdraw': True,
+                'fetchOHLCV': True,
+                'fetchOrders': True,
+                'fetchOpenOrders': True,
+                'fetchTicker': True,
+                'fetchTickers': False,
+            },
+            'timeframes': {
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1d',
+                '3d': '3d',
+                '1w': '1w',
+                '2w': '2w',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg',
                 'api': {
                     'public': 'https://www.mercadobitcoin.net/api',
                     'private': 'https://www.mercadobitcoin.net/tapi',
+                    'v4Public': 'https://www.mercadobitcoin.com.br/v4',
                 },
                 'www': 'https://www.mercadobitcoin.com.br',
                 'doc': [
@@ -58,7 +77,14 @@ class mercado (Exchange):
                         'list_orderbook',
                         'place_buy_order',
                         'place_sell_order',
+                        'place_market_buy_order',
+                        'place_market_sell_order',
                         'withdraw_coin',
+                    ],
+                },
+                'v4Public': {
+                    'get': [
+                        '{coin}/candle/',
                     ],
                 },
             },
@@ -162,14 +188,21 @@ class mercado (Exchange):
         return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        if type == 'market':
-            raise ExchangeError(self.id + ' allows limit orders only')
-        method = 'privatePostPlace' + self.capitalize(side) + 'Order'
         order = {
             'coin_pair': self.market_id(symbol),
-            'quantity': amount,
-            'limit_price': price,
         }
+        method = 'privatePostPlace' + self.capitalize(side) + 'Order'
+        if type == 'limit':
+            order['limit_price'] = price
+            order['quantity'] = amount
+        else:
+            if price is None:
+                raise InvalidOrder(self.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount')
+            method = 'privatePostPlaceMarket' + self.capitalize(side) + 'Order'
+            if side == 'buy':
+                order['cost'] = (amount * '{:.5f}'.format(price))
+            else:
+                order['quantity'] = amount
         response = await getattr(self, method)(self.extend(order, params))
         return {
             'info': response,
@@ -181,28 +214,37 @@ class mercado (Exchange):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.privatePostCancelOrder(self.extend({
+        request = {
             'coin_pair': market['id'],
             'order_id': id,
-        }, params))
+        }
+        response = await self.privatePostCancelOrder(self.extend(request, params))
         #
-        #     {        response_data: {order: {          order_id:    2176769,
-        #                                                  coin_pair:   "BRLBCH",
-        #                                                 order_type:    2,
-        #                                                     status:    3,
-        #                                                  has_fills:    False,
-        #                                                   quantity:   "0.10000000",
-        #                                                limit_price:   "1996.15999",
-        #                                          executed_quantity:   "0.00000000",
-        #                                         executed_price_avg:   "0.00000",
-        #                                                        fee:   "0.00000000",
-        #                                          created_timestamp:   "1536956488",
-        #                                          updated_timestamp:   "1536956499",
-        #                                                 operations: []              }},
-        #                 status_code:    100,
-        #       server_unix_timestamp:   "1536956499"                                      }
+        #     {
+        #         response_data: {
+        #             order: {
+        #                 order_id: 2176769,
+        #                 coin_pair: 'BRLBCH',
+        #                 order_type: 2,
+        #                 status: 3,
+        #                 has_fills: False,
+        #                 quantity: '0.10000000',
+        #                 limit_price: '1996.15999',
+        #                 executed_quantity: '0.00000000',
+        #                 executed_price_avg: '0.00000',
+        #                 fee: '0.00000000',
+        #                 created_timestamp: '1536956488',
+        #                 updated_timestamp: '1536956499',
+        #                 operations: []
+        #             }
+        #         },
+        #         status_code: 100,
+        #         server_unix_timestamp: '1536956499'
+        #     }
         #
-        return self.parse_order(response['response_data']['order'], market)
+        responseData = self.safe_value(response, 'response_data', {})
+        order = self.safe_value(responseData, 'order', {})
+        return self.parse_order(order, market)
 
     def parse_order_status(self, status):
         statuses = {
@@ -289,15 +331,17 @@ class mercado (Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        response = None
-        response = await self.privatePostGetOrder(self.extend({
+        request = {
             'coin_pair': market['id'],
             'order_id': int(id),
-        }, params))
-        return self.parse_order(response['response_data']['order'])
+        }
+        response = await self.privatePostGetOrder(self.extend(request, params))
+        responseData = self.safe_value(response, 'response_data', {})
+        order = self.safe_value(responseData, 'order')
+        return self.parse_order(order, market)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
@@ -328,10 +372,51 @@ class mercado (Exchange):
             'id': response['response_data']['withdrawal']['id'],
         }
 
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        return [
+            ohlcv['timestamp'] * 1000,
+            float(ohlcv['open']),
+            float(ohlcv['high']),
+            float(ohlcv['low']),
+            float(ohlcv['close']),
+            float(ohlcv['volume']),
+        ]
+
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'precision': self.timeframes[timeframe],
+            'coin': market.id.lower(),
+        }
+        if since is not None:
+            request['from'] = int(since / 1000)
+            request['to'] = self.sum(self.seconds(), 1)
+        if limit is not None and since is not None:
+            request['to'] = (self.sum(request['from'], limit * self.parse_timeframe(timeframe)))
+        elif limit is not None:
+            request['from'] = self.seconds() - (limit * self.parse_timeframe(timeframe))
+            request['to'] = self.seconds()
+        response = await self.v4PublicGetCoinCandle(self.extend(request, params))
+        return self.parse_ohlcvs(response['candles'], market, timeframe, since, limit)
+
+    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'coin_pair': market['base'],
+        }
+        response = await self.privatePostListOrders(self.extend(request, params))
+        responseData = self.safe_value(response, 'response_data', {})
+        orders = self.safe_value(responseData, 'orders', [])
+        return self.parse_orders(orders, market, since, limit)
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/'
         query = self.omit(params, self.extract_params(path))
-        if api == 'public':
+        if api == 'public' or (api == 'v4Public'):
             url += self.implode_params(path, params)
             if query:
                 url += '?' + self.urlencode(query)
