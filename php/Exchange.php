@@ -2221,7 +2221,7 @@ class Exchange {
 
         // Special handling for negative precision
         if ($numPrecisionDigits < 0) {
-            $toNearest = 10 ** abs ($numPrecisionDigits);
+            $toNearest = pow (10, abs ($numPrecisionDigits));
             if ($roundingMode === ROUND) {
                 $result = (string) ($toNearest * static::decimal_to_precision ($x / $toNearest, $roundingMode, 0, DECIMAL_PLACES, $paddingMode));
             }
