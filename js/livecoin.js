@@ -296,8 +296,9 @@ module.exports = class livecoin extends Exchange {
             'currencyPair': this.marketId (symbol),
             'groupByPrice': 'false',
         };
-        if (limit !== undefined)
+        if (limit !== undefined) {
             request['depth'] = limit; // 100
+        }
         let orderbook = await this.publicGetExchangeOrderBook (this.extend (request, params));
         let timestamp = orderbook['timestamp'];
         return this.parseOrderBook (orderbook, timestamp);
@@ -306,13 +307,15 @@ module.exports = class livecoin extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
         let symbol = undefined;
-        if (market)
+        if (market) {
             symbol = market['symbol'];
+        }
         let vwap = this.safeFloat (ticker, 'vwap');
         let baseVolume = this.safeFloat (ticker, 'volume');
         let quoteVolume = undefined;
-        if (baseVolume !== undefined && vwap !== undefined)
+        if (baseVolume !== undefined && vwap !== undefined) {
             quoteVolume = baseVolume * vwap;
+        }
         let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -389,9 +392,10 @@ module.exports = class livecoin extends Exchange {
         };
     }
 
-    async fetchMyTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined)
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -558,8 +562,9 @@ module.exports = class livecoin extends Exchange {
             'quantity': this.amountToPrecision (symbol, amount),
             'currencyPair': market['id'],
         };
-        if (type === 'limit')
+        if (type === 'limit') {
             order['price'] = this.priceToPrecision (symbol, price);
+        }
         let response = await this[method] (this.extend (order, params));
         const result = {
             'info': response,
