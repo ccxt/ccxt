@@ -71,7 +71,6 @@ module.exports = class mercado extends Exchange {
                         '{coin}/trades/{from}/',
                         '{coin}/trades/{from}/{to}',
                         '{coin}/day-summary/{year}/{month}/{day}/',
-
                     ],
                 },
                 'private': {
