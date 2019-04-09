@@ -364,19 +364,43 @@ module.exports = class livecoin extends Exchange {
     }
 
     parseTrade (trade, market) {
-        let timestamp = trade['time'] * 1000;
+        let timestamp = this.safeString2 (trade, 'time', 'datetime') * 1000;
+        let fee = undefined;
+        if ('commission' in trade) {
+            let feeCurrency = market ? market['quote'] : undefined;
+            fee = {
+                'cost': this.safeFloat (trade, 'commission'),
+                'currency': feeCurrency,
+            };
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'id': trade['id'].toString (),
-            'order': undefined,
+            'order': this.safeString (trade, 'clientorderid'),
             'type': undefined,
             'side': trade['type'].toLowerCase (),
             'price': trade['price'],
             'amount': trade['quantity'],
+            'cost': trade['price'] * trade['quantity'],
+            'fee': fee,
         };
+    }
+
+    async fetchMyTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined)
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'currencyPair': market['id'],
+        };
+        if (limit !== undefined)
+            request['limit'] = limit;
+        let response = await this.privateGetExchangeTrades (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
