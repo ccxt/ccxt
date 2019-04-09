@@ -27,6 +27,7 @@ class livecoin extends Exchange {
                 'fetchOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchMyTrades' => true,
                 'withdraw' => true,
             ),
             'urls' => array (
