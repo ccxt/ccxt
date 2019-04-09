@@ -401,7 +401,7 @@ module.exports = class livecoin extends Exchange {
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
-            }
+            };
         }
         const orderId = this.safeString (trade, 'clientorderid');
         const id = this.safeString (trade, 'id');
