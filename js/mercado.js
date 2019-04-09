@@ -91,13 +91,6 @@ module.exports = class mercado extends Exchange {
                 'XRP/BRL': { 'id': 'BRLXRP', 'symbol': 'XRP/BRL', 'base': 'XRP', 'quote': 'BRL', 'suffix': 'Ripple' },
                 'ETH/BRL': { 'id': 'BRLETH', 'symbol': 'ETH/BRL', 'base': 'ETH', 'quote': 'BRL', 'suffix': 'Ethereum' },
             },
-            'tickers': [
-                'BTC/BRL',
-                'LTC/BRL',
-                'BCH/BRL',
-                'XRP/BRL',
-                'ETH/BRL',
-            ],
             'fees': {
                 'trading': {
                     'maker': 0.3 / 100,
