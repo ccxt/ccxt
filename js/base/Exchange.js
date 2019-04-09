@@ -369,8 +369,7 @@ module.exports = class Exchange {
 
         // generate old metainfo interface
         for (const k in this.has) {
-            this.has[k] = !!this.has[k] // converts 'emulated' to true
-            this['has' + capitalize (k)] = this.has[k]
+            this['has' + capitalize (k)] = !!this.has[k] // converts 'emulated' to true
         }
 
         if (this.api)
