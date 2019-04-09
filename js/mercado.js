@@ -401,13 +401,17 @@ module.exports = class mercado extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        let timestamp = this.safeInteger (ohlcv, 'timestamp');
+        if (timestamp !== undefined) {
+            timestamp = timestamp * 1000;
+        }
         return [
-            ohlcv['timestamp'] * 1000,
-            parseFloat (ohlcv['open']),
-            parseFloat (ohlcv['high']),
-            parseFloat (ohlcv['low']),
-            parseFloat (ohlcv['close']),
-            parseFloat (ohlcv['volume']),
+            timestamp,
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
         ];
     }
 
