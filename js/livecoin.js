@@ -367,14 +367,18 @@ module.exports = class livecoin extends Exchange {
     }
 
     parseTrade (trade, market) {
-        let timestamp = this.safeString2 (trade, 'time', 'datetime') * 1000;
+        let timestamp = this.safeString2 (trade, 'time', 'datetime');
+        if (timestamp !== undefined) {
+            timestamp = timestamp * 1000;
+        }
         let fee = undefined;
-        if ('commission' in trade) {
-            let feeCurrency = market ? market['quote'] : undefined;
+        const feeCost = this.safeFloat (trade, 'commission');
+        if (feeCost !== undefined) {
+            const feeCurrency = market ? market['quote'] : undefined;
             fee = {
-                'cost': this.safeFloat (trade, 'commission'),
+                'cost': feeCost,
                 'currency': feeCurrency,
-            };
+            }
         }
         return {
             'info': trade,
