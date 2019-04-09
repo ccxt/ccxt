@@ -24,7 +24,7 @@ module.exports = class mercado extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchTicker': true,
-                'fetchTickers': true,
+                'fetchTickers': false,
             },
             'timeframes': {
                 '5m': '5m',
@@ -391,15 +391,6 @@ module.exports = class mercado extends Exchange {
             orders[i] = this.parseOrder (orders[i]);
         }
         return orders;
-    }
-
-    async fetchTickers (symbols = undefined, params = {}) {
-        let tickers = {};
-        for (let i = 0; i < this.tickers.length; i++) {
-            let ticker = this.tickers[i];
-            tickers[ticker] = await this.fetchTicker (ticker);
-        }
-        return tickers;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
