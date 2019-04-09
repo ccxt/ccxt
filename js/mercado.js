@@ -38,17 +38,6 @@ module.exports = class mercado extends Exchange {
                 '1w': '1w',
                 '2w': '2w',
             },
-            'timeframesMilliseconds': {
-                '5m': 300,
-                '15m': 900,
-                '30m': 1800,
-                '1h': 3600,
-                '6h': 21600,
-                '1d': 86400,
-                '3d': 64800,
-                '1w': 604800,
-                '2w': 1209600,
-            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg',
                 'api': {
@@ -360,12 +349,12 @@ module.exports = class mercado extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            ohlcv.timestamp * 1000,
-            parseFloat (ohlcv.open),
-            parseFloat (ohlcv.high),
-            parseFloat (ohlcv.low),
-            parseFloat (ohlcv.close),
-            parseFloat (ohlcv.volume),
+            ohlcv['timestamp'] * 1000,
+            parseFloat (ohlcv['open']),
+            parseFloat (ohlcv['high']),
+            parseFloat (ohlcv['low']),
+            parseFloat (ohlcv['close']),
+            parseFloat (ohlcv['volume']),
         ];
     }
 
@@ -379,7 +368,7 @@ module.exports = class mercado extends Exchange {
         if (since !== undefined) {
             request['from'] = parseInt (since / 1000);
             if (limit !== undefined) {
-                request['to'] = (this.sum (request['from'], limit * this.timeframesMilliseconds[timeframe]));
+                request['to'] = (this.sum (request['from'], limit * this.parseTimeframe (timeframe)));
             } else {
                 request['to'] = this.sum (this.seconds (), 1);
             }
