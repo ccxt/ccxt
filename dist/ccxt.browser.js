@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.453'
+const version = '1.18.454'
 
 Exchange.ccxtVersion = version
 
@@ -53652,6 +53652,7 @@ module.exports = class livecoin extends Exchange {
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchMyTrades': true,
                 'withdraw': true,
             },
             'urls': {
