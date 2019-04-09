@@ -388,15 +388,14 @@ module.exports = class mercado extends Exchange {
         return this.parseOHLCVs (response.candles, market, timeframe, since, limit);
     }
 
-    async fetchOrders (id, symbol = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined)
             throw new ArgumentsRequired (this.id + ' fetchOrders () requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = undefined;
         response = await this.privatePostListOrders (this.extend ({
-            'coin_pair': market['base'],
-            'order_id': parseInt (id),
+            'coin_pair': market['base']
         }, params));
         let orders = response['response_data']['orders'];
         for (let i = 0; i < orders.length; i++) {
@@ -405,7 +404,7 @@ module.exports = class mercado extends Exchange {
         return orders;
     }
 
-    async fetchTickers (params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         let tickers = {};
         for (let i = 0; i < this.tickers.length; i++) {
             const ticker = this.tickers[i];

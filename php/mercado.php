@@ -389,15 +389,14 @@ class mercado extends Exchange {
         return $this->parse_ohlcvs($response->candles, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_orders ($id, $symbol = null, $params = array ()) {
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null)
             throw new ArgumentsRequired ($this->id . ' fetchOrders () requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = null;
         $response = $this->privatePostListOrders (array_merge (array (
-            'coin_pair' => $market['base'],
-            'order_id' => intval ($id),
+            'coin_pair' => $market['base']
         ), $params));
         $orders = $response['response_data']['orders'];
         for ($i = 0; $i < count ($orders); $i++) {
@@ -406,7 +405,7 @@ class mercado extends Exchange {
         return $orders;
     }
 
-    public function fetch_tickers ($params = array ()) {
+    public function fetch_tickers ($symbols = null, $params = array ()) {
         $tickers = array ();
         for ($i = 0; $i < count ($this->tickers); $i++) {
             $ticker = $this->tickers[$i];

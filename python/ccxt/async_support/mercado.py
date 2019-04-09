@@ -360,22 +360,21 @@ class mercado (Exchange):
         response = await self.v4PublicGetCoinCandle(self.extend(request, params))
         return self.parse_ohlcvs(response.candles, market, timeframe, since, limit)
 
-    async def fetch_orders(self, id, symbol=None, params={}):
+    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         response = None
         response = await self.privatePostListOrders(self.extend({
-            'coin_pair': market['base'],
-            'order_id': int(id),
+            'coin_pair': market['base']
         }, params))
         orders = response['response_data']['orders']
         for i in range(0, len(orders)):
             orders[i] = self.parse_order(orders[i])
         return orders
 
-    async def fetch_tickers(self, params={}):
+    async def fetch_tickers(self, symbols=None, params={}):
         tickers = {}
         for i in range(0, len(self.tickers)):
             ticker = self.tickers[i]
