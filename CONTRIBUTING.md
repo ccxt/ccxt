@@ -259,7 +259,7 @@ And structurally:
 - **don't access non-existent keys, `array['key'] || {}` won't work in other languages!**
 - keep it simple, don't do more than one statement in one line
 
-##### Working With Dictionary Keys
+##### Accessing Dictionary Keys
 
 In JavaScript, dictionary keys can be accessed in two notations:
 
@@ -327,7 +327,6 @@ So, you have to change this:
 
 ```JavaScript
 if (params['foo'] !== undefined) {
-    // your code
 }
 ```
 
@@ -336,15 +335,9 @@ if (params['foo'] !== undefined) {
 ```JavaScript
 const foo = this.safeValue (params, 'foo');
 if (foo !== undefined) {
-    // your code
 }
-
-//
 // OR
-//
-
 if ('foo' in params) {
-    // your code
 }
 ```
 
@@ -388,15 +381,21 @@ const arrayLength = someArray.length;
 
 That `.length;` line ending does the trick. The only case when the array `.length` is preferred over the string `.length` is the `for` loop. In the header of the `for` loop, the `.length` always refers to array length (not string length).
 
-##### Working With Strings
+##### Adding Numbers And Concatenating Strings
 
 In JS the arithmetic addition `+` operator handles both strings and numbers. So, it can concatenate strings with `+` and can sum up numbers with `+` as well. The same is true with Python. With PHP this is different, so it has different operators for string concatenation (the "dot" operator `.`) and for arithmetic addition (the "plus" operator `+`). Once again, because the transpiler does no code introspection it cannot tell if you're adding up variables or strings in JS. This works fine until you want to transpile this to other languages, be it PHP or whatever other language it is. In order to help the transpiler we have to use `this.sum` for arithmetic additions.
 
 The rule of thumb is: **`+` is for string concatenation only (!)** and **`this.sum (a, b, c, ...)` is for arithmetic additions**.
 
+#### Formatting Decimal Numbers to Precision
+
+The `.toFixed ()` method has [known rounding bugs](https://www.google.com/search?q=toFixed+bug) in JavaScript, and so do the other rounding methods in the other languages as well.
+
+In order to work with number formatting consistently, we need to use the [`decimalToPrecision` method as described in the Manual](https://github.com/ccxt/ccxt/wiki/Manual#methods-for-formatting-decimals).
+
 ---
 
-#### Adding New Exchange Integrations
+#### New Exchange Integrations
 
 Please, see the following document for new integrations: https://github.com/ccxt/ccxt/wiki/Requirements
 

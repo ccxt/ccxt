@@ -673,7 +673,7 @@ Examples:
 
 *The `precision` and `limits` params are currently under heavy development, some of these fields may be missing here and there until the unification process is complete. This does not influence most of the orders but can be significant in extreme cases of very large or very small orders. The `active` flag is not yet supported and/or implemented by all markets.*
 
-#### Methods For Decimal Formatting
+#### Methods For Foramtting Decimals
 
 The exchange base class contains the `decimalToPrecision` method to help format values to the required decimal precision with support for different rounding, counting and padding modes.
 
@@ -700,19 +700,19 @@ Supported rounding modes are:
 
 Supported counting modes are:
 
-– `DECIMAL_PLACES` – counts all digits, 99% of exchanges use this counting mode
-– `SIGNIFICANT_DIGITS` – counts non-zero digits only, some exchanges (`bitfinex` and maybe a few other) implement this mode of counting decimals
+- `DECIMAL_PLACES` – counts all digits, 99% of exchanges use this counting mode
+- `SIGNIFICANT_DIGITS` – counts non-zero digits only, some exchanges (`bitfinex` and maybe a few other) implement this mode of counting decimals
 
 Supported padding modes are:
 
-– `NO_PADDING` – default for most cases
-– `PAD_WITH_ZERO` – appends zero characters up to precision
+- `NO_PADDING` – default for most cases
+- `PAD_WITH_ZERO` – appends zero characters up to precision
 
 For examples of how to use the `decimalToPrecision` to format strings and floats, please, see the following files:
 
 - JavaScript: https://github.com/ccxt/ccxt/blob/master/js/test/base/functions/test.number.js
-– Python: https://github.com/ccxt/ccxt/blob/master/python/test/test_decimal_to_precision.py
-– PHP: https://github.com/ccxt/ccxt/blob/master/php/test/decimal_to_precision.php
+- Python: https://github.com/ccxt/ccxt/blob/master/python/test/test_decimal_to_precision.py
+- PHP: https://github.com/ccxt/ccxt/blob/master/php/test/decimal_to_precision.php
 
 **Python WARNING! The `decimal_to_precision` method is susceptible to getcontext().prec!**
 
