@@ -105,6 +105,13 @@ class mercado (Exchange):
                 'XRP/BRL': {'id': 'BRLXRP', 'symbol': 'XRP/BRL', 'base': 'XRP', 'quote': 'BRL', 'suffix': 'Ripple'},
                 'ETH/BRL': {'id': 'BRLETH', 'symbol': 'ETH/BRL', 'base': 'ETH', 'quote': 'BRL', 'suffix': 'Ethereum'},
             },
+            'tickers': [
+                'BTC/BRL',
+                'LTC/BRL',
+                'BCH/BRL',
+                'XRP/BRL',
+                'ETH/BRL',
+            ],
             'fees': {
                 'trading': {
                     'maker': 0.3 / 100,
@@ -370,12 +377,8 @@ class mercado (Exchange):
 
     async def fetch_tickers(self, params={}):
         tickers = {}
-        tickersArray = []
-        list(self.markets).forEach((key.keys()) => {
-            tickersArray.append(key)
-        })
-        for i in range(0, len(tickersArray)):
-            ticker = tickersArray[i]
+        for i in range(0, len(self.tickers)):
+            ticker = self.tickers[i]
             tickers[ticker] = await self.fetch_ticker(ticker)
         return tickers
 

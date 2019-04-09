@@ -102,6 +102,13 @@ module.exports = class mercado extends Exchange {
                 'XRP/BRL': { 'id': 'BRLXRP', 'symbol': 'XRP/BRL', 'base': 'XRP', 'quote': 'BRL', 'suffix': 'Ripple' },
                 'ETH/BRL': { 'id': 'BRLETH', 'symbol': 'ETH/BRL', 'base': 'ETH', 'quote': 'BRL', 'suffix': 'Ethereum' },
             },
+            'tickers': [
+                'BTC/BRL',
+                'LTC/BRL',
+                'BCH/BRL',
+                'XRP/BRL',
+                'ETH/BRL',
+            ],
             'fees': {
                 'trading': {
                     'maker': 0.3 / 100,
@@ -400,12 +407,8 @@ module.exports = class mercado extends Exchange {
 
     async fetchTickers (params = {}) {
         let tickers = {};
-        let tickersArray = [];
-        Object.keys (this.markets).forEach ((key) => {
-            tickersArray.push (key);
-        });
-        for (let i = 0; i < tickersArray.length; i++) {
-            const ticker = tickersArray[i];
+        for (let i = 0; i < this.tickers.length; i++) {
+            const ticker = this.tickers[i];
             tickers[ticker] = await this.fetchTicker (ticker);
         }
         return tickers;

@@ -103,6 +103,13 @@ class mercado extends Exchange {
                 'XRP/BRL' => array ( 'id' => 'BRLXRP', 'symbol' => 'XRP/BRL', 'base' => 'XRP', 'quote' => 'BRL', 'suffix' => 'Ripple' ),
                 'ETH/BRL' => array ( 'id' => 'BRLETH', 'symbol' => 'ETH/BRL', 'base' => 'ETH', 'quote' => 'BRL', 'suffix' => 'Ethereum' ),
             ),
+            'tickers' => array (
+                'BTC/BRL',
+                'LTC/BRL',
+                'BCH/BRL',
+                'XRP/BRL',
+                'ETH/BRL',
+            ),
             'fees' => array (
                 'trading' => array (
                     'maker' => 0.3 / 100,
@@ -401,12 +408,8 @@ class mercado extends Exchange {
 
     public function fetch_tickers ($params = array ()) {
         $tickers = array ();
-        $tickersArray = array ();
-        is_array ($this->markets).forEach ((key) ? array_keys ($this->markets).forEach ((key) : array () => {
-            $tickersArray[] = key;
-        });
-        for ($i = 0; $i < count ($tickersArray); $i++) {
-            $ticker = $tickersArray[$i];
+        for ($i = 0; $i < count ($this->tickers); $i++) {
+            $ticker = $this->tickers[$i];
             $tickers[$ticker] = $this->fetch_ticker($ticker);
         }
         return $tickers;
