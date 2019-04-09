@@ -13,7 +13,7 @@ class mercado extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'mercado',
             'name' => 'Mercado Bitcoin',
-            'countries' => ['BR'], // Brazil
+            'countries' => array ( 'BR' ), // Brazil
             'rateLimit' => 1000,
             'version' => 'v3',
             'has' => array (
@@ -86,11 +86,11 @@ class mercado extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/BRL' => array ( 'id' => 'BRLBTC', 'symbol' => 'BTC/BRL', 'base' => 'BTC', 'quote' => 'BRL', 'suffix' => 'Bitcoin' ),
-                'LTC/BRL' => array ( 'id' => 'BRLLTC', 'symbol' => 'LTC/BRL', 'base' => 'LTC', 'quote' => 'BRL', 'suffix' => 'Litecoin' ),
-                'BCH/BRL' => array ( 'id' => 'BRLBCH', 'symbol' => 'BCH/BRL', 'base' => 'BCH', 'quote' => 'BRL', 'suffix' => 'BCash' ),
-                'XRP/BRL' => array ( 'id' => 'BRLXRP', 'symbol' => 'XRP/BRL', 'base' => 'XRP', 'quote' => 'BRL', 'suffix' => 'Ripple' ),
-                'ETH/BRL' => array ( 'id' => 'BRLETH', 'symbol' => 'ETH/BRL', 'base' => 'ETH', 'quote' => 'BRL', 'suffix' => 'Ethereum' ),
+                'BTC/BRL' => array ( 'id' => 'BRLBTC', 'symbol' => 'BTC/BRL', 'base' => 'BTC', 'quote' => 'BRL', 'precision' => array ( 'amount' => 8, 'price' => 5 ), 'suffix' => 'Bitcoin' ),
+                'LTC/BRL' => array ( 'id' => 'BRLLTC', 'symbol' => 'LTC/BRL', 'base' => 'LTC', 'quote' => 'BRL', 'precision' => array ( 'amount' => 8, 'price' => 5 ), 'suffix' => 'Litecoin' ),
+                'BCH/BRL' => array ( 'id' => 'BRLBCH', 'symbol' => 'BCH/BRL', 'base' => 'BCH', 'quote' => 'BRL', 'precision' => array ( 'amount' => 8, 'price' => 5 ), 'suffix' => 'BCash' ),
+                'XRP/BRL' => array ( 'id' => 'BRLXRP', 'symbol' => 'XRP/BRL', 'base' => 'XRP', 'quote' => 'BRL', 'precision' => array ( 'amount' => 8, 'price' => 5 ), 'suffix' => 'Ripple' ),
+                'ETH/BRL' => array ( 'id' => 'BRLETH', 'symbol' => 'ETH/BRL', 'base' => 'ETH', 'quote' => 'BRL', 'precision' => array ( 'amount' => 8, 'price' => 5 ), 'suffix' => 'Ethereum' ),
             ),
             'fees' => array (
                 'trading' => array (
@@ -194,25 +194,27 @@ class mercado extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $order = array (
+        $request = array (
             'coin_pair' => $this->market_id($symbol),
         );
-        $method = 'privatePostPlace' . $this->capitalize ($side) . 'Order';
+        $method = $this->capitalize ($side) . 'Order';
         if ($type === 'limit') {
-            $order['limit_price'] = $price;
-            $order['quantity'] = $amount;
+            $method = 'privatePostPlace' . $method;
+            $request['limit_price'] = $this->price_to_precision($symbol, $price);
+            $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         } else {
-            if ($price === null) {
-                throw new InvalidOrder ($this->id . ' createOrder() requires the $price argument with market buy orders to calculate total $order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and amount');
-            }
-            $method = 'privatePostPlaceMarket' . $this->capitalize ($side) . 'Order';
+            $method = 'privatePostPlaceMarket' . $method;
             if ($side === 'buy') {
-                $order['cost'] = ($amount * sprintf ('%.5f', $price));
+                if ($price === null) {
+                    throw new InvalidOrder ($this->id . ' createOrder() requires the $price argument with market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and amount');
+                }
+                $request['cost'] = $this->price_to_precision($symbol, $amount * $price);
             } else {
-                $order['quantity'] = $amount;
+                $request['quantity'] = $this->amount_to_precision($symbol, $amount);
             }
         }
-        $response = $this->$method (array_merge ($order, $params));
+        $response = $this->$method (array_merge ($request, $params));
+        // TODO => replace this with a call to parseOrder for unification
         return array (
             'info' => $response,
             'id' => (string) $response['response_data']['order']['order_id'],
@@ -400,14 +402,18 @@ class mercado extends Exchange {
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        return [
-            $ohlcv['timestamp'] * 1000,
-            floatval ($ohlcv['open']),
-            floatval ($ohlcv['high']),
-            floatval ($ohlcv['low']),
-            floatval ($ohlcv['close']),
-            floatval ($ohlcv['volume']),
-        ];
+        $timestamp = $this->safe_integer($ohlcv, 'timestamp');
+        if ($timestamp !== null) {
+            $timestamp = $timestamp * 1000;
+        }
+        return array (
+            $timestamp,
+            $this->safe_float($ohlcv, 'open'),
+            $this->safe_float($ohlcv, 'high'),
+            $this->safe_float($ohlcv, 'low'),
+            $this->safe_float($ohlcv, 'close'),
+            $this->safe_float($ohlcv, 'volume'),
+        );
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -417,15 +423,15 @@ class mercado extends Exchange {
             'precision' => $this->timeframes[$timeframe],
             'coin' => strtolower ($market->id),
         );
-        if ($since !== null) {
+        if ($limit !== null && $since !== null) {
+            $request['from'] = intval ($since / 1000);
+            $request['to'] = $this->sum ($request['from'], $limit * $this->parse_timeframe($timeframe));
+        } else if ($since !== null) {
             $request['from'] = intval ($since / 1000);
             $request['to'] = $this->sum ($this->seconds (), 1);
-        }
-        if ($limit !== null && $since !== null) {
-            $request['to'] = ($this->sum ($request['from'], $limit * $this->parse_timeframe($timeframe)));
         } else if ($limit !== null) {
-            $request['from'] = $this->seconds () - ($limit * $this->parse_timeframe($timeframe));
             $request['to'] = $this->seconds ();
+            $request['from'] = $request['to'] - ($limit * $this->parse_timeframe($timeframe));
         }
         $response = $this->v4PublicGetCoinCandle (array_merge ($request, $params));
         return $this->parse_ohlcvs($response['candles'], $market, $timeframe, $since, $limit);

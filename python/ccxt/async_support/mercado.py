@@ -89,11 +89,11 @@ class mercado (Exchange):
                 },
             },
             'markets': {
-                'BTC/BRL': {'id': 'BRLBTC', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'suffix': 'Bitcoin'},
-                'LTC/BRL': {'id': 'BRLLTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL', 'suffix': 'Litecoin'},
-                'BCH/BRL': {'id': 'BRLBCH', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL', 'suffix': 'BCash'},
-                'XRP/BRL': {'id': 'BRLXRP', 'symbol': 'XRP/BRL', 'base': 'XRP', 'quote': 'BRL', 'suffix': 'Ripple'},
-                'ETH/BRL': {'id': 'BRLETH', 'symbol': 'ETH/BRL', 'base': 'ETH', 'quote': 'BRL', 'suffix': 'Ethereum'},
+                'BTC/BRL': {'id': 'BRLBTC', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'precision': {'amount': 8, 'price': 5}, 'suffix': 'Bitcoin'},
+                'LTC/BRL': {'id': 'BRLLTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL', 'precision': {'amount': 8, 'price': 5}, 'suffix': 'Litecoin'},
+                'BCH/BRL': {'id': 'BRLBCH', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL', 'precision': {'amount': 8, 'price': 5}, 'suffix': 'BCash'},
+                'XRP/BRL': {'id': 'BRLXRP', 'symbol': 'XRP/BRL', 'base': 'XRP', 'quote': 'BRL', 'precision': {'amount': 8, 'price': 5}, 'suffix': 'Ripple'},
+                'ETH/BRL': {'id': 'BRLETH', 'symbol': 'ETH/BRL', 'base': 'ETH', 'quote': 'BRL', 'precision': {'amount': 8, 'price': 5}, 'suffix': 'Ethereum'},
             },
             'fees': {
                 'trading': {
@@ -188,22 +188,24 @@ class mercado (Exchange):
         return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        order = {
+        request = {
             'coin_pair': self.market_id(symbol),
         }
-        method = 'privatePostPlace' + self.capitalize(side) + 'Order'
+        method = self.capitalize(side) + 'Order'
         if type == 'limit':
-            order['limit_price'] = price
-            order['quantity'] = amount
+            method = 'privatePostPlace' + method
+            request['limit_price'] = self.price_to_precision(symbol, price)
+            request['quantity'] = self.amount_to_precision(symbol, amount)
         else:
-            if price is None:
-                raise InvalidOrder(self.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount')
-            method = 'privatePostPlaceMarket' + self.capitalize(side) + 'Order'
+            method = 'privatePostPlaceMarket' + method
             if side == 'buy':
-                order['cost'] = (amount * '{:.5f}'.format(price))
+                if price is None:
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount')
+                request['cost'] = self.price_to_precision(symbol, amount * price)
             else:
-                order['quantity'] = amount
-        response = await getattr(self, method)(self.extend(order, params))
+                request['quantity'] = self.amount_to_precision(symbol, amount)
+        response = await getattr(self, method)(self.extend(request, params))
+        # TODO: replace self with a call to parseOrder for unification
         return {
             'info': response,
             'id': str(response['response_data']['order']['order_id']),
@@ -373,13 +375,16 @@ class mercado (Exchange):
         }
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        timestamp = self.safe_integer(ohlcv, 'timestamp')
+        if timestamp is not None:
+            timestamp = timestamp * 1000
         return [
-            ohlcv['timestamp'] * 1000,
-            float(ohlcv['open']),
-            float(ohlcv['high']),
-            float(ohlcv['low']),
-            float(ohlcv['close']),
-            float(ohlcv['volume']),
+            timestamp,
+            self.safe_float(ohlcv, 'open'),
+            self.safe_float(ohlcv, 'high'),
+            self.safe_float(ohlcv, 'low'),
+            self.safe_float(ohlcv, 'close'),
+            self.safe_float(ohlcv, 'volume'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -389,14 +394,15 @@ class mercado (Exchange):
             'precision': self.timeframes[timeframe],
             'coin': market.id.lower(),
         }
-        if since is not None:
+        if limit is not None and since is not None:
+            request['from'] = int(since / 1000)
+            request['to'] = self.sum(request['from'], limit * self.parse_timeframe(timeframe))
+        elif since is not None:
             request['from'] = int(since / 1000)
             request['to'] = self.sum(self.seconds(), 1)
-        if limit is not None and since is not None:
-            request['to'] = (self.sum(request['from'], limit * self.parse_timeframe(timeframe)))
         elif limit is not None:
-            request['from'] = self.seconds() - (limit * self.parse_timeframe(timeframe))
             request['to'] = self.seconds()
+            request['from'] = request['to'] - (limit * self.parse_timeframe(timeframe))
         response = await self.v4PublicGetCoinCandle(self.extend(request, params))
         return self.parse_ohlcvs(response['candles'], market, timeframe, since, limit)
 
