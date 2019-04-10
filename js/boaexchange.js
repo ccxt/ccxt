@@ -732,8 +732,8 @@ module.exports = class boaexchange extends Exchange {
 
     parseMarket (market) {
         let id = market['id'];
-        let baseId = market['coin_market']['code'];
-        let quoteId = market['coin_traded']['code'];
+        let baseId = market['coin_traded']['code'];
+        let quoteId = market['coin_market']['code'];
         let base = this.commonCurrencyCode (baseId);
         let quote = this.commonCurrencyCode (quoteId);
         let symbol = base + '/' + quote;
