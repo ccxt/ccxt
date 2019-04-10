@@ -40,10 +40,10 @@ type APIs struct {
 
 // APIMethods get/post/put/delete urls
 type APIMethods struct {
-	Get    []string `json:"get"`
-	Post   []string `json:"post"`
-	Put    []string `json:"put"`
-	Delete []string `json:"delete"`
+	Get    map[string]string `json:"get"`
+	Post   map[string]string `json:"post"`
+	Put    map[string]string `json:"put"`
+	Delete map[string]string `json:"delete"`
 }
 
 // URLs for exchange

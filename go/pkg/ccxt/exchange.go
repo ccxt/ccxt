@@ -1,6 +1,9 @@
 package ccxt
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/ccxt/ccxt/go/internal/util"
 )
 
@@ -24,7 +27,7 @@ type Exchange interface {
 	CreateOrder(symbol, t, side string, amount float64, price *float64, params map[string]interface{}) (Order, error)
 	CancelOrder(id string, symbol *string, params map[string]interface{}) error
 
-	Info() (ExchangeInfo, error)
+	// Info() (ExchangeInfo, error)
 	LoadMarkets(reload bool) (map[string]Market, error)
 	GetMarket(symbol string) (Market, error)
 	CreateLimitBuyOrder(symbol string, amount float64, price *float64, params map[string]interface{}) (Order, error)
@@ -33,14 +36,16 @@ type Exchange interface {
 	CreateMarketSellOrder(symbol string, amount float64, params map[string]interface{}) (Order, error)
 }
 
-// Info load info from exchange.json
-// func Info(x Exchange) (ExchangeInfo, error) {
-// 	info, err := x.Info()
-// 	if err != nil {
-// 		return info, err
-// 	}
-// 	return info, nil
-// }
+// Info on the exchange
+func Info(x Exchange) {
+	var info interface{}
+	info = x
+	msg, err := json.MarshalIndent(info, "", "  ")
+	if err != nil {
+		fmt.Printf("Error JSONMarshal: %v", err)
+	}
+	fmt.Println(string(msg))
+}
 
 // LoadMarkets from exchange
 // func LoadMarkets(x Exchange) (map[string]Market, error) {
