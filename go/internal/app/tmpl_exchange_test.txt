@@ -1,0 +1,16 @@
+package {{.ID}}
+
+// AUTOMATICALLY GENERATED, BUT NEEDS TO BE MODIFIED:
+import (
+    "testing"
+)
+
+func TestExchangeInit(t *testing.T) {
+    x, err := Init()
+    if err != nil {
+        t.Fatal(err)
+    }
+    if x.Info.ID != "{{.ID}}" {
+        t.Fatal("Did not load ID {{.ID}} correctly")
+    }
+}

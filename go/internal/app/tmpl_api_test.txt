@@ -11,7 +11,7 @@ import (
 )
 
 var info ccxt.ExchangeInfo
-var c {{title .ID}}Exchange
+var c Exchange
 
 func init() {
 	f, err := os.Open("{{.ID}}")
@@ -22,7 +22,7 @@ func init() {
 	json.NewDecoder(f).Decode(&info)
 }
 
-{{$baseURL := .URLs.API.Public}}{{$id := .ID | title}}{{range $api := .API.Public.Get}}
+{{$baseURL := .URLs.API.Public}}{{range $api := .API.Public.Get}}
 func TestPublicGet{{apiToFuncName $api}}(t *testing.T) {
     data, err := c.PublicGet{{apiToFuncName $api}}()
     if err != nil {

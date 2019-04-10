@@ -6,657 +6,1025 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
-	"time"
+	"net/url"
+
+	"github.com/ccxt/ccxt/go/internal/app/bitmex/models"
 )
 
-func request(method string, url string, data *interface{}, body bytes.Buffer) (err error) {
-	client := &http.Client{Timeout: time.Second * 10}
+func (c *Exchange) apiRequest(method string, reqURL string, params *url.Values, body bytes.Buffer) (res *http.Response, err error) {
+	baseURL, err := url.Parse(reqURL)
+	if err != nil {
+		return nil, err
+	}
+	baseURL.RawQuery = params.Encode()
 	var req *http.Request
 	if len(body.Bytes()) > 0 {
-		req, err = http.NewRequest(method, url, &body)
+		req, err = http.NewRequest(method, baseURL.String(), &body)
+		if err != nil {
+			return nil, err
+		}
 		req.Header.Add("Content-Type", http.DetectContentType(body.Bytes()))
 	} else {
-		req, err = http.NewRequest(method, url, nil)
+		req, err = http.NewRequest(method, baseURL.String(), nil)
+		if err != nil {
+			return nil, err
+		}
 	}
 	// TODO: Implement headers for auth or extras
-	res, err := client.Do(req)
+	req.Header.Add("Accept", "application/json")
+	res, err = c.Client.Do(req)
 	if err != nil {
-		return err
+		return res, err
 	}
-	defer res.Body.Close()
-	err = json.NewDecoder(res.Body).Decode(data)
-	if err != nil {
-		return err
-	}
-	return nil
+	return res, nil
 }
 
 // PublicGetAnnouncement method for https://www.bitmex.com/api/v1/announcement
-func (c *BitmexExchange) PublicGetAnnouncement() (data interface{}, err error) {
+func (c *Exchange) PublicGetAnnouncement(params *url.Values) (data []models.Announcement, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/announcement"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PublicGetAnnouncementUrgent method for https://www.bitmex.com/api/v1/announcement/urgent
-func (c *BitmexExchange) PublicGetAnnouncementUrgent() (data interface{}, err error) {
+func (c *Exchange) PublicGetAnnouncementUrgent(params *url.Values) (data []models.Announcement, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/announcement/urgent"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PublicGetFunding method for https://www.bitmex.com/api/v1/funding
-func (c *BitmexExchange) PublicGetFunding() (data interface{}, err error) {
+func (c *Exchange) PublicGetFunding(params *url.Values) (data []models.Funding, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/funding"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PublicGetInstrument method for https://www.bitmex.com/api/v1/instrument
-func (c *BitmexExchange) PublicGetInstrument() (data interface{}, err error) {
+func (c *Exchange) PublicGetInstrument(params *url.Values) (data []models.Instrument, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/instrument"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PublicGetInstrumentActive method for https://www.bitmex.com/api/v1/instrument/active
-func (c *BitmexExchange) PublicGetInstrumentActive() (data interface{}, err error) {
+func (c *Exchange) PublicGetInstrumentActive(params *url.Values) (data []models.Instrument, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/instrument/active"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PublicGetInstrumentActiveAndIndices method for https://www.bitmex.com/api/v1/instrument/activeAndIndices
-func (c *BitmexExchange) PublicGetInstrumentActiveAndIndices() (data interface{}, err error) {
+func (c *Exchange) PublicGetInstrumentActiveAndIndices(params *url.Values) (data []models.Instrument, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/instrument/activeAndIndices"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PublicGetInstrumentActiveIntervals method for https://www.bitmex.com/api/v1/instrument/activeIntervals
-func (c *BitmexExchange) PublicGetInstrumentActiveIntervals() (data interface{}, err error) {
+func (c *Exchange) PublicGetInstrumentActiveIntervals(params *url.Values) (data []models.Instrument, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/instrument/activeIntervals"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PublicGetInstrumentCompositeIndex method for https://www.bitmex.com/api/v1/instrument/compositeIndex
-func (c *BitmexExchange) PublicGetInstrumentCompositeIndex() (data interface{}, err error) {
+func (c *Exchange) PublicGetInstrumentCompositeIndex(params *url.Values) (data []models.Instrument, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/instrument/compositeIndex"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PublicGetInstrumentIndices method for https://www.bitmex.com/api/v1/instrument/indices
-func (c *BitmexExchange) PublicGetInstrumentIndices() (data interface{}, err error) {
+func (c *Exchange) PublicGetInstrumentIndices(params *url.Values) (data []models.Instrument, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/instrument/indices"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PublicGetInsurance method for https://www.bitmex.com/api/v1/insurance
-func (c *BitmexExchange) PublicGetInsurance() (data interface{}, err error) {
+func (c *Exchange) PublicGetInsurance(params *url.Values) (data []models.Insurance, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/insurance"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PublicGetLeaderboard method for https://www.bitmex.com/api/v1/leaderboard
-func (c *BitmexExchange) PublicGetLeaderboard() (data interface{}, err error) {
+func (c *Exchange) PublicGetLeaderboard(params *url.Values) (data []models.Leaderboard, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/leaderboard"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
+}
+
+// PublicGetLeaderboardName method for https://www.bitmex.com/api/v1/leaderboard/name
+func (c *Exchange) PublicGetLeaderboardName(params *url.Values) (data models.Leaderboard, err error) {
+	reqURL := "https://www.bitmex.com/api/v1/leaderboard/name"
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
+	}
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PublicGetLiquidation method for https://www.bitmex.com/api/v1/liquidation
-func (c *BitmexExchange) PublicGetLiquidation() (data interface{}, err error) {
+func (c *Exchange) PublicGetLiquidation(params *url.Values) (data []models.Liquidation, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/liquidation"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
-}
-
-// PublicGetOrderBook method for https://www.bitmex.com/api/v1/orderBook
-func (c *BitmexExchange) PublicGetOrderBook() (data interface{}, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/orderBook"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	return data, nil
 }
 
 // PublicGetOrderBookL2 method for https://www.bitmex.com/api/v1/orderBook/L2
-func (c *BitmexExchange) PublicGetOrderBookL2() (data interface{}, err error) {
+func (c *Exchange) PublicGetOrderBookL2(params *url.Values) (data []models.OrderBookL2, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/orderBook/L2"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PublicGetQuote method for https://www.bitmex.com/api/v1/quote
-func (c *BitmexExchange) PublicGetQuote() (data interface{}, err error) {
+func (c *Exchange) PublicGetQuote(params *url.Values) (data []models.Quote, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/quote"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PublicGetQuoteBucketed method for https://www.bitmex.com/api/v1/quote/bucketed
-func (c *BitmexExchange) PublicGetQuoteBucketed() (data interface{}, err error) {
+func (c *Exchange) PublicGetQuoteBucketed(params *url.Values) (data []models.Quote, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/quote/bucketed"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PublicGetSchema method for https://www.bitmex.com/api/v1/schema
-func (c *BitmexExchange) PublicGetSchema() (data interface{}, err error) {
+func (c *Exchange) PublicGetSchema(params *url.Values) (data interface{}, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/schema"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PublicGetSchemaWebsocketHelp method for https://www.bitmex.com/api/v1/schema/websocketHelp
-func (c *BitmexExchange) PublicGetSchemaWebsocketHelp() (data interface{}, err error) {
+func (c *Exchange) PublicGetSchemaWebsocketHelp(params *url.Values) (data interface{}, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/schema/websocketHelp"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PublicGetSettlement method for https://www.bitmex.com/api/v1/settlement
-func (c *BitmexExchange) PublicGetSettlement() (data interface{}, err error) {
+func (c *Exchange) PublicGetSettlement(params *url.Values) (data models.Settlement, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/settlement"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PublicGetStats method for https://www.bitmex.com/api/v1/stats
-func (c *BitmexExchange) PublicGetStats() (data interface{}, err error) {
+func (c *Exchange) PublicGetStats(params *url.Values) (data []models.Stats, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/stats"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PublicGetStatsHistory method for https://www.bitmex.com/api/v1/stats/history
-func (c *BitmexExchange) PublicGetStatsHistory() (data interface{}, err error) {
+func (c *Exchange) PublicGetStatsHistory(params *url.Values) (data []models.StatsHistory, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/stats/history"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PublicGetTrade method for https://www.bitmex.com/api/v1/trade
-func (c *BitmexExchange) PublicGetTrade() (data interface{}, err error) {
+func (c *Exchange) PublicGetTrade(params *url.Values) (data []models.Trade, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/trade"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PublicGetTradeBucketed method for https://www.bitmex.com/api/v1/trade/bucketed
-func (c *BitmexExchange) PublicGetTradeBucketed() (data interface{}, err error) {
+func (c *Exchange) PublicGetTradeBucketed(params *url.Values) (data []models.TradeBin, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/trade/bucketed"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivateGetApiKey method for https://www.bitmex.com/api/v1/apiKey
-func (c *BitmexExchange) PrivateGetApiKey() (data interface{}, err error) {
+func (c *Exchange) PrivateGetApiKey(params *url.Values) (data models.APIKey, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/apiKey"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivateGetChat method for https://www.bitmex.com/api/v1/chat
-func (c *BitmexExchange) PrivateGetChat() (data interface{}, err error) {
+func (c *Exchange) PrivateGetChat(params *url.Values) (data []models.Chat, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/chat"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivateGetChatChannels method for https://www.bitmex.com/api/v1/chat/channels
-func (c *BitmexExchange) PrivateGetChatChannels() (data interface{}, err error) {
+func (c *Exchange) PrivateGetChatChannels(params *url.Values) (data []models.ChatChannel, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/chat/channels"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivateGetChatConnected method for https://www.bitmex.com/api/v1/chat/connected
-func (c *BitmexExchange) PrivateGetChatConnected() (data interface{}, err error) {
+func (c *Exchange) PrivateGetChatConnected(params *url.Values) (data models.ConnectedUsers, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/chat/connected"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivateGetExecution method for https://www.bitmex.com/api/v1/execution
-func (c *BitmexExchange) PrivateGetExecution() (data interface{}, err error) {
+func (c *Exchange) PrivateGetExecution(params *url.Values) (data []models.Execution, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/execution"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivateGetExecutionTradeHistory method for https://www.bitmex.com/api/v1/execution/tradeHistory
-func (c *BitmexExchange) PrivateGetExecutionTradeHistory() (data interface{}, err error) {
+func (c *Exchange) PrivateGetExecutionTradeHistory(params *url.Values) (data []models.Execution, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/execution/tradeHistory"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
-// PrivateGetNotification method for https://www.bitmex.com/api/v1/notification
-func (c *BitmexExchange) PrivateGetNotification() (data interface{}, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/notification"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+// PrivateGetGlobalNotification method for https://www.bitmex.com/api/v1/globalNotification
+func (c *Exchange) PrivateGetGlobalNotification(params *url.Values) (data []models.GlobalNotification, err error) {
+	reqURL := "https://www.bitmex.com/api/v1/globalNotification"
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivateGetOrder method for https://www.bitmex.com/api/v1/order
-func (c *BitmexExchange) PrivateGetOrder() (data interface{}, err error) {
+func (c *Exchange) PrivateGetOrder(params *url.Values) (data []models.Order, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/order"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivateGetPosition method for https://www.bitmex.com/api/v1/position
-func (c *BitmexExchange) PrivateGetPosition() (data interface{}, err error) {
+func (c *Exchange) PrivateGetPosition(params *url.Values) (data []models.Position, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/position"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivateGetUser method for https://www.bitmex.com/api/v1/user
-func (c *BitmexExchange) PrivateGetUser() (data interface{}, err error) {
+func (c *Exchange) PrivateGetUser(params *url.Values) (data models.User, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/user"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivateGetUserAffiliateStatus method for https://www.bitmex.com/api/v1/user/affiliateStatus
-func (c *BitmexExchange) PrivateGetUserAffiliateStatus() (data interface{}, err error) {
+func (c *Exchange) PrivateGetUserAffiliateStatus(params *url.Values) (data models.Affiliate, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/user/affiliateStatus"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivateGetUserCheckReferralCode method for https://www.bitmex.com/api/v1/user/checkReferralCode
-func (c *BitmexExchange) PrivateGetUserCheckReferralCode() (data interface{}, err error) {
+func (c *Exchange) PrivateGetUserCheckReferralCode(params *url.Values) (data float64, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/user/checkReferralCode"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivateGetUserCommission method for https://www.bitmex.com/api/v1/user/commission
-func (c *BitmexExchange) PrivateGetUserCommission() (data interface{}, err error) {
+func (c *Exchange) PrivateGetUserCommission(params *url.Values) (data models.UserCommissionsBySymbol, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/user/commission"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivateGetUserDepositAddress method for https://www.bitmex.com/api/v1/user/depositAddress
-func (c *BitmexExchange) PrivateGetUserDepositAddress() (data interface{}, err error) {
+func (c *Exchange) PrivateGetUserDepositAddress(params *url.Values) (data string, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/user/depositAddress"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
+}
+
+// PrivateGetUserExecutionHistory method for https://www.bitmex.com/api/v1/user/executionHistory
+func (c *Exchange) PrivateGetUserExecutionHistory(params *url.Values) (data []models.Execution, err error) {
+	reqURL := "https://www.bitmex.com/api/v1/user/executionHistory"
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
+	}
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivateGetUserMargin method for https://www.bitmex.com/api/v1/user/margin
-func (c *BitmexExchange) PrivateGetUserMargin() (data interface{}, err error) {
+func (c *Exchange) PrivateGetUserMargin(params *url.Values) (data models.Margin, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/user/margin"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivateGetUserMinWithdrawalFee method for https://www.bitmex.com/api/v1/user/minWithdrawalFee
-func (c *BitmexExchange) PrivateGetUserMinWithdrawalFee() (data interface{}, err error) {
+func (c *Exchange) PrivateGetUserMinWithdrawalFee(params *url.Values) (data interface{}, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/user/minWithdrawalFee"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivateGetUserWallet method for https://www.bitmex.com/api/v1/user/wallet
-func (c *BitmexExchange) PrivateGetUserWallet() (data interface{}, err error) {
+func (c *Exchange) PrivateGetUserWallet(params *url.Values) (data models.Wallet, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/user/wallet"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivateGetUserWalletHistory method for https://www.bitmex.com/api/v1/user/walletHistory
-func (c *BitmexExchange) PrivateGetUserWalletHistory() (data interface{}, err error) {
+func (c *Exchange) PrivateGetUserWalletHistory(params *url.Values) (data []models.Transaction, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/user/walletHistory"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivateGetUserWalletSummary method for https://www.bitmex.com/api/v1/user/walletSummary
-func (c *BitmexExchange) PrivateGetUserWalletSummary() (data interface{}, err error) {
+func (c *Exchange) PrivateGetUserWalletSummary(params *url.Values) (data []models.Transaction, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/user/walletSummary"
-	if err = request("GET", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivatePostApiKey method for https://www.bitmex.com/api/v1/apiKey
-func (c *BitmexExchange) PrivatePostApiKey(body bytes.Buffer) (data interface{}, err error) {
+func (c *Exchange) PrivatePostApiKey(params *url.Values, body bytes.Buffer) (data models.APIKey, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/apiKey"
-	if err = request("POST", reqURL, &data, body); err != nil {
-		return nil, err
+	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivatePostApiKeyDisable method for https://www.bitmex.com/api/v1/apiKey/disable
-func (c *BitmexExchange) PrivatePostApiKeyDisable(body bytes.Buffer) (data interface{}, err error) {
+func (c *Exchange) PrivatePostApiKeyDisable(params *url.Values, body bytes.Buffer) (data models.APIKey, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/apiKey/disable"
-	if err = request("POST", reqURL, &data, body); err != nil {
-		return nil, err
+	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivatePostApiKeyEnable method for https://www.bitmex.com/api/v1/apiKey/enable
-func (c *BitmexExchange) PrivatePostApiKeyEnable(body bytes.Buffer) (data interface{}, err error) {
+func (c *Exchange) PrivatePostApiKeyEnable(params *url.Values, body bytes.Buffer) (data models.APIKey, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/apiKey/enable"
-	if err = request("POST", reqURL, &data, body); err != nil {
-		return nil, err
+	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivatePostChat method for https://www.bitmex.com/api/v1/chat
-func (c *BitmexExchange) PrivatePostChat(body bytes.Buffer) (data interface{}, err error) {
+func (c *Exchange) PrivatePostChat(params *url.Values, body bytes.Buffer) (data models.Chat, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/chat"
-	if err = request("POST", reqURL, &data, body); err != nil {
-		return nil, err
+	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivatePostOrder method for https://www.bitmex.com/api/v1/order
-func (c *BitmexExchange) PrivatePostOrder(body bytes.Buffer) (data interface{}, err error) {
+func (c *Exchange) PrivatePostOrder(params *url.Values, body bytes.Buffer) (data models.Order, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/order"
-	if err = request("POST", reqURL, &data, body); err != nil {
-		return nil, err
+	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivatePostOrderBulk method for https://www.bitmex.com/api/v1/order/bulk
-func (c *BitmexExchange) PrivatePostOrderBulk(body bytes.Buffer) (data interface{}, err error) {
+func (c *Exchange) PrivatePostOrderBulk(params *url.Values, body bytes.Buffer) (data []models.Order, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/order/bulk"
-	if err = request("POST", reqURL, &data, body); err != nil {
-		return nil, err
+	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivatePostOrderCancelAllAfter method for https://www.bitmex.com/api/v1/order/cancelAllAfter
-func (c *BitmexExchange) PrivatePostOrderCancelAllAfter(body bytes.Buffer) (data interface{}, err error) {
+func (c *Exchange) PrivatePostOrderCancelAllAfter(params *url.Values, body bytes.Buffer) (data interface{}, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/order/cancelAllAfter"
-	if err = request("POST", reqURL, &data, body); err != nil {
-		return nil, err
+	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
-}
-
-// PrivatePostOrderClosePosition method for https://www.bitmex.com/api/v1/order/closePosition
-func (c *BitmexExchange) PrivatePostOrderClosePosition(body bytes.Buffer) (data interface{}, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/order/closePosition"
-	if err = request("POST", reqURL, &data, body); err != nil {
-		return nil, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	return data, nil
 }
 
 // PrivatePostPositionIsolate method for https://www.bitmex.com/api/v1/position/isolate
-func (c *BitmexExchange) PrivatePostPositionIsolate(body bytes.Buffer) (data interface{}, err error) {
+func (c *Exchange) PrivatePostPositionIsolate(params *url.Values, body bytes.Buffer) (data models.Position, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/position/isolate"
-	if err = request("POST", reqURL, &data, body); err != nil {
-		return nil, err
+	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivatePostPositionLeverage method for https://www.bitmex.com/api/v1/position/leverage
-func (c *BitmexExchange) PrivatePostPositionLeverage(body bytes.Buffer) (data interface{}, err error) {
+func (c *Exchange) PrivatePostPositionLeverage(params *url.Values, body bytes.Buffer) (data models.Position, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/position/leverage"
-	if err = request("POST", reqURL, &data, body); err != nil {
-		return nil, err
+	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivatePostPositionRiskLimit method for https://www.bitmex.com/api/v1/position/riskLimit
-func (c *BitmexExchange) PrivatePostPositionRiskLimit(body bytes.Buffer) (data interface{}, err error) {
+func (c *Exchange) PrivatePostPositionRiskLimit(params *url.Values, body bytes.Buffer) (data models.Position, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/position/riskLimit"
-	if err = request("POST", reqURL, &data, body); err != nil {
-		return nil, err
+	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivatePostPositionTransferMargin method for https://www.bitmex.com/api/v1/position/transferMargin
-func (c *BitmexExchange) PrivatePostPositionTransferMargin(body bytes.Buffer) (data interface{}, err error) {
+func (c *Exchange) PrivatePostPositionTransferMargin(params *url.Values, body bytes.Buffer) (data models.Position, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/position/transferMargin"
-	if err = request("POST", reqURL, &data, body); err != nil {
-		return nil, err
+	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivatePostUserCancelWithdrawal method for https://www.bitmex.com/api/v1/user/cancelWithdrawal
-func (c *BitmexExchange) PrivatePostUserCancelWithdrawal(body bytes.Buffer) (data interface{}, err error) {
+func (c *Exchange) PrivatePostUserCancelWithdrawal(params *url.Values, body bytes.Buffer) (data models.Transaction, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/user/cancelWithdrawal"
-	if err = request("POST", reqURL, &data, body); err != nil {
-		return nil, err
+	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
+}
+
+// PrivatePostUserCommunicationToken method for https://www.bitmex.com/api/v1/user/communicationToken
+func (c *Exchange) PrivatePostUserCommunicationToken(params *url.Values, body bytes.Buffer) (data []models.CommunicationToken, err error) {
+	reqURL := "https://www.bitmex.com/api/v1/user/communicationToken"
+	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
+	}
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivatePostUserConfirmEmail method for https://www.bitmex.com/api/v1/user/confirmEmail
-func (c *BitmexExchange) PrivatePostUserConfirmEmail(body bytes.Buffer) (data interface{}, err error) {
+func (c *Exchange) PrivatePostUserConfirmEmail(params *url.Values, body bytes.Buffer) (data models.AccessToken, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/user/confirmEmail"
-	if err = request("POST", reqURL, &data, body); err != nil {
-		return nil, err
+	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
-}
-
-// PrivatePostUserConfirmEnableTFA method for https://www.bitmex.com/api/v1/user/confirmEnableTFA
-func (c *BitmexExchange) PrivatePostUserConfirmEnableTFA(body bytes.Buffer) (data interface{}, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/user/confirmEnableTFA"
-	if err = request("POST", reqURL, &data, body); err != nil {
-		return nil, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	return data, nil
 }
 
 // PrivatePostUserConfirmWithdrawal method for https://www.bitmex.com/api/v1/user/confirmWithdrawal
-func (c *BitmexExchange) PrivatePostUserConfirmWithdrawal(body bytes.Buffer) (data interface{}, err error) {
+func (c *Exchange) PrivatePostUserConfirmWithdrawal(params *url.Values, body bytes.Buffer) (data models.Transaction, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/user/confirmWithdrawal"
-	if err = request("POST", reqURL, &data, body); err != nil {
-		return nil, err
+	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
-}
-
-// PrivatePostUserDisableTFA method for https://www.bitmex.com/api/v1/user/disableTFA
-func (c *BitmexExchange) PrivatePostUserDisableTFA(body bytes.Buffer) (data interface{}, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/user/disableTFA"
-	if err = request("POST", reqURL, &data, body); err != nil {
-		return nil, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	return data, nil
 }
 
 // PrivatePostUserLogout method for https://www.bitmex.com/api/v1/user/logout
-func (c *BitmexExchange) PrivatePostUserLogout(body bytes.Buffer) (data interface{}, err error) {
+func (c *Exchange) PrivatePostUserLogout(params *url.Values, body bytes.Buffer) (data interface{}, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/user/logout"
-	if err = request("POST", reqURL, &data, body); err != nil {
-		return nil, err
+	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
-}
-
-// PrivatePostUserLogoutAll method for https://www.bitmex.com/api/v1/user/logoutAll
-func (c *BitmexExchange) PrivatePostUserLogoutAll(body bytes.Buffer) (data interface{}, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/user/logoutAll"
-	if err = request("POST", reqURL, &data, body); err != nil {
-		return nil, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	return data, nil
 }
 
 // PrivatePostUserPreferences method for https://www.bitmex.com/api/v1/user/preferences
-func (c *BitmexExchange) PrivatePostUserPreferences(body bytes.Buffer) (data interface{}, err error) {
+func (c *Exchange) PrivatePostUserPreferences(params *url.Values, body bytes.Buffer) (data models.UserPreferences, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/user/preferences"
-	if err = request("POST", reqURL, &data, body); err != nil {
-		return nil, err
+	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
-}
-
-// PrivatePostUserRequestEnableTFA method for https://www.bitmex.com/api/v1/user/requestEnableTFA
-func (c *BitmexExchange) PrivatePostUserRequestEnableTFA(body bytes.Buffer) (data interface{}, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/user/requestEnableTFA"
-	if err = request("POST", reqURL, &data, body); err != nil {
-		return nil, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	return data, nil
 }
 
 // PrivatePostUserRequestWithdrawal method for https://www.bitmex.com/api/v1/user/requestWithdrawal
-func (c *BitmexExchange) PrivatePostUserRequestWithdrawal(body bytes.Buffer) (data interface{}, err error) {
+func (c *Exchange) PrivatePostUserRequestWithdrawal(params *url.Values, body bytes.Buffer) (data models.Transaction, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/user/requestWithdrawal"
-	if err = request("POST", reqURL, &data, body); err != nil {
-		return nil, err
+	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivatePutOrder method for https://www.bitmex.com/api/v1/order
-func (c *BitmexExchange) PrivatePutOrder(body bytes.Buffer) (data interface{}, err error) {
+func (c *Exchange) PrivatePutOrder(params *url.Values, body bytes.Buffer) (data models.Order, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/order"
-	if err = request("PUT", reqURL, &data, body); err != nil {
-		return nil, err
+	res, err := c.apiRequest("PUT", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivatePutOrderBulk method for https://www.bitmex.com/api/v1/order/bulk
-func (c *BitmexExchange) PrivatePutOrderBulk(body bytes.Buffer) (data interface{}, err error) {
+func (c *Exchange) PrivatePutOrderBulk(params *url.Values, body bytes.Buffer) (data []models.Order, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/order/bulk"
-	if err = request("PUT", reqURL, &data, body); err != nil {
-		return nil, err
+	res, err := c.apiRequest("PUT", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
-}
-
-// PrivatePutUser method for https://www.bitmex.com/api/v1/user
-func (c *BitmexExchange) PrivatePutUser(body bytes.Buffer) (data interface{}, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/user"
-	if err = request("PUT", reqURL, &data, body); err != nil {
-		return nil, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	return data, nil
 }
 
 // PrivateDeleteApiKey method for https://www.bitmex.com/api/v1/apiKey
-func (c *BitmexExchange) PrivateDeleteApiKey() (data interface{}, err error) {
+func (c *Exchange) PrivateDeleteApiKey(params *url.Values) (data interface{}, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/apiKey"
-	if err = request("DELETE", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("DELETE", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivateDeleteOrder method for https://www.bitmex.com/api/v1/order
-func (c *BitmexExchange) PrivateDeleteOrder() (data interface{}, err error) {
+func (c *Exchange) PrivateDeleteOrder(params *url.Values) (data []models.Order, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/order"
-	if err = request("DELETE", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("DELETE", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
 // PrivateDeleteOrderAll method for https://www.bitmex.com/api/v1/order/all
-func (c *BitmexExchange) PrivateDeleteOrderAll() (data interface{}, err error) {
+func (c *Exchange) PrivateDeleteOrderAll(params *url.Values) (data []models.Order, err error) {
 	reqURL := "https://www.bitmex.com/api/v1/order/all"
-	if err = request("DELETE", reqURL, &data, bytes.Buffer{}); err != nil {
-		return nil, err
+	res, err := c.apiRequest("DELETE", reqURL, params, bytes.Buffer{})
+	if err != nil {
+		return data, err
 	}
-	return data, err
+	defer res.Body.Close()
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }

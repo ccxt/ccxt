@@ -7,12 +7,14 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"regexp"
 	"strings"
 	"text/template"
 
 	"github.com/ccxt/ccxt/go/pkg/ccxt"
 )
 
+// apiToFuncName converts the URL endpoint to a go func name
 func apiToFuncName(m string) string {
 	x := strings.ReplaceAll(m, "/", " ")
 	x = strings.Title(x)
@@ -20,13 +22,29 @@ func apiToFuncName(m string) string {
 	return x
 }
 
+// apiResult takes the endpoint val and links to the appropriate data type
+func apiResult(s string) string {
+	re := regexp.MustCompile(`^(string|float|int)`)
+	if re.Match([]byte(s)) {
+		return s
+	}
+	if strings.Contains(s, "[]") {
+		s = strings.TrimLeft(s, "[]")
+		s = "[]models." + s
+	} else {
+		s = "models." + s
+	}
+	return s
+}
+
 // ParseAPITemplate print template for exchange APIs
-func ParseAPITemplate(info ccxt.ExchangeInfo, dir string, buildTest *bool) error {
+func ParseAPITemplate(info ccxt.ExchangeInfo, dir string, file string, buildTest *bool) error {
 	funcMap := template.FuncMap{
 		"apiToFuncName": apiToFuncName,
+		"apiResult":     apiResult,
 		"title":         strings.Title,
 	}
-	tmplName := "template"
+	tmplName := file
 	if *buildTest {
 		tmplName += "_test"
 	}
@@ -36,7 +54,7 @@ func ParseAPITemplate(info ccxt.ExchangeInfo, dir string, buildTest *bool) error
 	if err != nil {
 		return fmt.Errorf("Unable to parse %s\n%v", tmplPath, err)
 	}
-	goName := "api"
+	goName := strings.TrimPrefix(file, "tmpl_")
 	if *buildTest {
 		goName += "_test"
 	}
@@ -74,7 +92,11 @@ func main() {
 			}
 			defer f.Close()
 			json.NewDecoder(f).Decode(&info)
-			err = ParseAPITemplate(info, exchangePath, buildTest)
+			err = ParseAPITemplate(info, exchangePath, "tmpl_exchange", buildTest)
+			if err != nil {
+				panic(err)
+			}
+			err = ParseAPITemplate(info, exchangePath, "tmpl_api", buildTest)
 			if err != nil {
 				panic(err)
 			}
