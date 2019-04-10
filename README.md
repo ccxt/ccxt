@@ -224,10 +224,13 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 ### JavaScript (for use with the `<script>` tag):
 
-[All-in-one browser bundle](https://unpkg.com/ccxt) (dependencies included), served from [unpkg CDN](https://unpkg.com/), which is a fast, global content delivery network for everything on NPM.
+All-in-one browser bundle (dependencies included), served from a CDN of your choice. Please keep in mind that we are not responsible for the correct operation of those CDN servers:
+
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.456/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.18.456/dist/ccxt.browser.js
 
 ```HTML
-<script type="text/javascript" src="https://unpkg.com/ccxt"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.456/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -235,6 +238,8 @@ Creates a global `ccxt` object:
 ```JavaScript
 console.log (ccxt.exchanges) // print all available exchanges
 ```
+
+You can also use 
 
 ### Python
 
