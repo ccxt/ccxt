@@ -259,6 +259,88 @@ And structurally:
 - **don't access non-existent keys, `array['key'] || {}` won't work in other languages!**
 - keep it simple, don't do more than one statement in one line
 
+##### Accessing Dictionary Keys
+
+In JavaScript, dictionary keys can be accessed in two notations:
+
+- `object['key']` (single-quoted string key notation)
+- `object.key` (property notation)
+
+Both work almost identically, and one is implicitly converted to another upon executing the JavaScript code.
+
+While the above does work in JavaScript, it will not work in Python or PHP. In most languages, associative dictionary keys are not treaded in the same was as properties. Therefore, in Python `object.key` is not the same as `object['key']`. In PHP `$object->key` is not the same as `$object['key']` as well. Languages that differentiate between associative keys and properties use different notations for the two.
+
+To keep the code transpileable, please, remeber this simple rule: **always use the single-quoted string key notation `object['key']` for accessing all associative dictionary keys in all languages everywhere throughout this library!**.
+
+##### Sanitizing Input With Safe Methods
+
+JavaScript is less restrictive than other languages. It will tolerate an attempt to dereference a non-existent key where other languages will throw an Exception:
+
+```JavaScript
+// JavaScript
+
+const someObject = {}
+
+if (someObject['nonExistentKey']) {
+    // the body of this conditional will not execute in JavaScript
+    // because someObject['nonExistentKey'] === undefined === false
+    // but JavaScript will not throw an exception on the if-clause
+}
+```
+
+However, the above logic with *"an undefined value by default"* will not work in Python or PHP.
+
+```Python
+# Python
+some_dictionary = {}
+
+# breaks
+if some_dictionary['nonExistentKey']:
+    # in Python the attempt to dereference the nonExistentKey value
+    # will throw a standard built-in KeyError exception
+
+# works
+if 'nonExistentKey' in some_dictionary and some_dictionary['nonExistentKey']:
+    # this is a way to check if the key exists before accessing the value
+
+# also works
+if some_dictionary.get('nonExistentKey'):
+    # another a way to check if the key exists before accessing the value...
+```
+
+Most languages will not tolerate an attempt to access a non-existent key in an object.
+
+Therefore we have a family of `safe*` functions:
+
+- `safeInteger (object, key)`, `safeInteger2 (object, key1, key2)`
+- `safeFloat (object, key)`, `safeFloat2 (object, key1, key2)`
+- `safeString (object, key)`, `safeString2 (object, key1, key2)`
+- `safeValue (object, key)`, `safeValue2 (object, key1, key2)`
+
+The `safeValue` function is used for objects inside objects, arrays inside objects and boolean `true/false` values.
+
+The above safe-functions will check for the existence of the key in the object and will properly return `undefined/None/null` values for JS/Python/PHP. Each function also accepts the default value to be returned instead of `undefined/None/null` in the last argument.
+
+Alternatively, you could check for the key existence first...
+
+So, you have to change this:
+
+```JavaScript
+if (params['foo'] !== undefined) {
+}
+```
+
+↓
+
+```JavaScript
+const foo = this.safeValue (params, 'foo');
+if (foo !== undefined) {
+}
+// OR
+if ('foo' in params) {
+}
+```
+
 ##### Working With Array Lengths
 
 In JavaScript the common syntax to get a length of a string or an array is to reference the `.length` property like shown here:
@@ -299,15 +381,23 @@ const arrayLength = someArray.length;
 
 That `.length;` line ending does the trick. The only case when the array `.length` is preferred over the string `.length` is the `for` loop. In the header of the `for` loop, the `.length` always refers to array length (not string length).
 
-##### Working With Strings
+##### Adding Numbers And Concatenating Strings
 
 In JS the arithmetic addition `+` operator handles both strings and numbers. So, it can concatenate strings with `+` and can sum up numbers with `+` as well. The same is true with Python. With PHP this is different, so it has different operators for string concatenation (the "dot" operator `.`) and for arithmetic addition (the "plus" operator `+`). Once again, because the transpiler does no code introspection it cannot tell if you're adding up variables or strings in JS. This works fine until you want to transpile this to other languages, be it PHP or whatever other language it is. In order to help the transpiler we have to use `this.sum` for arithmetic additions.
 
 The rule of thumb is: **`+` is for string concatenation only (!)** and **`this.sum (a, b, c, ...)` is for arithmetic additions**.
 
+##### Formatting Decimal Numbers To Precision
+
+The `.toFixed ()` method has [known rounding bugs](https://www.google.com/search?q=toFixed+bug) in JavaScript, and so do the other rounding methods in the other languages as well. In order to work with number formatting consistently, we need to use the [`decimalToPrecision` method as described in the Manual](https://github.com/ccxt/ccxt/wiki/Manual#methods-for-formatting-decimals).
+
 ---
 
-**If you want to add (support for) another exchange, or implement a new method for a particular exchange, then the best way to make it a consistent improvement is to learn from example. Take a look at how same things are implemented in other exchanges and try to copy the code flow and style.**
+#### New Exchange Integrations
+
+Please, see the following document for new integrations: https://github.com/ccxt/ccxt/wiki/Requirements
+
+**If you want to add (support for) another exchange, or implement a new method for a particular exchange, then the best way to make it a consistent improvement is to learn from example. Take a look at how same things are implemented in other exchanges (we recommend certified exchanges) and try to copy the code flow and style.**
 
 The basic JSON-skeleton for a new exchange integration is as follows:
 

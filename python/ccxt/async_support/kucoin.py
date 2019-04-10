@@ -140,6 +140,10 @@ class kucoin (Exchange):
                 '1w': '1week',
             },
             'exceptions': {
+                'order_not_exist': OrderNotFound,  # {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
+                'order_not_exist_or_not_allow_to_cancel': InvalidOrder,  # {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
+                'Order size below the minimum requirement.': InvalidOrder,  # {"code":"400100","msg":"Order size below the minimum requirement."}
+                'The withdrawal amount is below the minimum requirement.': ExchangeError,  # {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
                 '400': BadRequest,
                 '401': AuthenticationError,
                 '403': NotSupported,
@@ -149,6 +153,7 @@ class kucoin (Exchange):
                 '500': ExchangeError,
                 '503': ExchangeNotAvailable,
                 '200004': InsufficientFunds,
+                '260100': InsufficientFunds,  # {"code":"260100","msg":"account.noBalance"}
                 '300000': InvalidOrder,
                 '400001': AuthenticationError,
                 '400002': InvalidNonce,
@@ -161,9 +166,6 @@ class kucoin (Exchange):
                 '400100': ArgumentsRequired,
                 '411100': AccountSuspended,
                 '500000': ExchangeError,
-                'order_not_exist': OrderNotFound,  # {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
-                'order_not_exist_or_not_allow_to_cancel': InvalidOrder,  # {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
-                'Order size below the minimum requirement.': InvalidOrder,  # {"code":"400100","msg":"Order size below the minimum requirement."}
             },
             'fees': {
                 'trading': {
@@ -639,10 +641,10 @@ class kucoin (Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders_by_status('done', symbol, since, limit, params)
+        return await self.fetch_orders_by_status('done', symbol, since, limit, params)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders_by_status('active', symbol, since, limit, params)
+        return await self.fetch_orders_by_status('active', symbol, since, limit, params)
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -726,6 +728,11 @@ class kucoin (Exchange):
             'currency': feeCurrency,
             'cost': feeCost,
         }
+        if type == 'market':
+            if price == 0.0:
+                if (cost is not None) and(filled is not None):
+                    if (cost > 0) and(filled > 0):
+                        price = cost / filled
         return {
             'id': orderId,
             'symbol': symbol,
@@ -961,10 +968,9 @@ class kucoin (Exchange):
         #
         # {"withdrawalId": "5bffb63303aa675e8bbe18f9"}
         #
-        responseData = response['data']
         return {
-            'id': self.safe_string(responseData, 'withdrawalId'),
-            'info': responseData,
+            'id': self.safe_string(response, 'withdrawalId'),
+            'info': response,
         }
 
     def parse_transaction_status(self, status):
@@ -1124,7 +1130,7 @@ class kucoin (Exchange):
         #     }
         #
         responseData = response['data']['items']
-        return self.parseTransactions(responseData, currency, since, limit)
+        return self.parseTransactions(responseData, currency, since, limit, {'type': 'deposit'})
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1184,7 +1190,7 @@ class kucoin (Exchange):
         #     }
         #
         responseData = response['data']['items']
-        return self.parseTransactions(responseData, currency, since, limit)
+        return self.parseTransactions(responseData, currency, since, limit, {'type': 'withdrawal'})
 
     async def fetch_balance(self, params={}):
         await self.load_markets()

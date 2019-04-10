@@ -52,6 +52,7 @@ class stronghold (Exchange):
                 'createDepositAddress': True,
                 'withdraw': True,
                 'fetchTicker': False,
+                'fetchTickers': False,
                 'fetchAccounts': True,
             },
             'api': {

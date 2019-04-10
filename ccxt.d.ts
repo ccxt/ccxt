@@ -429,6 +429,7 @@ declare module 'ccxt' {
     export class livecoin extends Exchange {}
     export class luno extends Exchange {}
     export class lykke extends Exchange {}
+    export class mandala extends Exchange {}
     export class mercado extends Exchange {}
     export class mixcoins extends Exchange {}
     export class negociecoins extends Exchange {}

@@ -148,16 +148,22 @@ class bitstamp extends Exchange {
                 ),
             ),
             'exceptions' => array (
-                'No permission found' => '\\ccxt\\PermissionDenied',
-                'API key not found' => '\\ccxt\\AuthenticationError',
-                'IP address not allowed' => '\\ccxt\\PermissionDenied',
-                'Invalid nonce' => '\\ccxt\\InvalidNonce',
-                'Invalid signature' => '\\ccxt\\AuthenticationError',
-                'Authentication failed' => '\\ccxt\\AuthenticationError',
-                'Missing key, signature and nonce parameters' => '\\ccxt\\AuthenticationError',
-                'Your account is frozen' => '\\ccxt\\PermissionDenied',
-                'Please update your profile with your FATCA information, before using API.' => '\\ccxt\\PermissionDenied',
-                'Order not found' => '\\ccxt\\OrderNotFound',
+                'exact' => array (
+                    'No permission found' => '\\ccxt\\PermissionDenied',
+                    'API key not found' => '\\ccxt\\AuthenticationError',
+                    'IP address not allowed' => '\\ccxt\\PermissionDenied',
+                    'Invalid nonce' => '\\ccxt\\InvalidNonce',
+                    'Invalid signature' => '\\ccxt\\AuthenticationError',
+                    'Authentication failed' => '\\ccxt\\AuthenticationError',
+                    'Missing key, signature and nonce parameters' => '\\ccxt\\AuthenticationError',
+                    'Your account is frozen' => '\\ccxt\\PermissionDenied',
+                    'Please update your profile with your FATCA information, before using API.' => '\\ccxt\\PermissionDenied',
+                    'Order not found' => '\\ccxt\\OrderNotFound',
+                ),
+                'broad' => array (
+                    'Check your account balance for details.' => '\\ccxt\\InsufficientFunds', // You have only 0.00100000 BTC available. Check your account balance for details.
+                    'Ensure this value has at least' => '\\ccxt\\InvalidAddress', // Ensure this value has at least 25 characters (it has 4).
+                ),
             ),
         ));
     }
@@ -994,26 +1000,55 @@ class bitstamp extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
-        if (gettype ($body) !== 'string')
-            return; // fallback to default $error handler
-        if (strlen ($body) < 2)
-            return; // fallback to default $error handler
-        if (($body[0] === '{') || ($body[0] === '[')) {
-            // fetchDepositAddress returns array ("$error" => "No permission found") on apiKeys that don't have the permission required
-            $error = $this->safe_string($response, 'error');
-            $exceptions = $this->exceptions;
-            if (is_array ($exceptions) && array_key_exists ($error, $exceptions)) {
-                throw new $exceptions[$error] ($this->id . ' ' . $body);
-            }
-            $status = $this->safe_string($response, 'status');
-            if ($status === 'error') {
-                $code = $this->safe_string($response, 'code');
-                if ($code !== null) {
-                    if ($code === 'API0005')
-                        throw new AuthenticationError ($this->id . ' invalid signature, use the uid for the main account if you have subaccounts');
+        if ($response === null) {
+            return;
+        }
+        // fetchDepositAddress returns array ("$error" => "No permission found") on apiKeys that don't have the permission required
+        $status = $this->safe_string($response, 'status');
+        $error = $this->safe_value($response, 'error');
+        if ($status === 'error' || $error) {
+            $errors = array ();
+            if (gettype ($error) === 'string') {
+                $errors[] = $error;
+            } else {
+                $keys = is_array ($error) ? array_keys ($error) : array ();
+                for ($i = 0; $i < count ($keys); $i++) {
+                    $key = $keys[$i];
+                    $value = $this->safe_value($error, $key);
+                    if (gettype ($value) === 'array' && count (array_filter (array_keys ($value), 'is_string')) == 0) {
+                        $errors = $this->array_concat($errors, $value);
+                    } else {
+                        $errors[] = $value;
+                    }
                 }
-                throw new ExchangeError ($this->id . ' ' . $body);
             }
+            $reason = $this->safe_value($response, 'reason', array ());
+            $all = $this->safe_value($reason, '__all__');
+            if ($all !== null) {
+                if (gettype ($all) === 'array' && count (array_filter (array_keys ($all), 'is_string')) == 0) {
+                    for ($i = 0; $i < count ($all); $i++) {
+                        $errors[] = $all[$i];
+                    }
+                }
+            }
+            $code = $this->safe_string($response, 'code');
+            if ($code === 'API0005') {
+                throw new AuthenticationError ($this->id . ' invalid signature, use the uid for the main account if you have subaccounts');
+            }
+            $exact = $this->exceptions['exact'];
+            $broad = $this->exceptions['broad'];
+            $feedback = $this->id . ' ' . $body;
+            for ($i = 0; $i < count ($errors); $i++) {
+                $value = $errors[$i];
+                if (is_array ($exact) && array_key_exists ($value, $exact)) {
+                    throw new $exact[$value] ($feedback);
+                }
+                $broadKey = $this->findBroadlyMatchedKey ($broad, $value);
+                if ($broadKey !== null) {
+                    throw new $broad[$broadKey] ($feedback);
+                }
+            }
+            throw new ExchangeError ($feedback);
         }
     }
 }

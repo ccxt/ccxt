@@ -26,10 +26,7 @@ Sponsored Promotion
 
 Want this place? Contact us: info@ccxt.trade
 
-.. figure:: https://user-images.githubusercontent.com/1707/48204972-43569e00-e37c-11e8-9cf3-b86e3dc19ee9.png
-   :alt: Placehodler
-
-   Placehodler
+`Placehodler <https://ccxt.trade/advertise/>`__
 
 Certified Cryptocurrency Exchanges
 ----------------------------------
@@ -57,7 +54,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 134 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 135 cryptocurrency exchange markets and trading APIs:
 
 +--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | id                 | name                                                                                    | ver   | doc                                                                                                 | certified                                                            |
@@ -271,6 +268,8 @@ The ccxt library currently supports the following 134 cryptocurrency exchange ma
 | luno               | `luno <https://www.luno.com>`__                                                         | 1     | `API <https://www.luno.com/en/api>`__                                                               |                                                                      |
 +--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | lykke              | `Lykke <https://www.lykke.com>`__                                                       | 1     | `API <https://hft-api.lykke.com/swagger/ui/>`__                                                     |                                                                      |
++--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
+| mandala            | `Mandala <https://trade.mandalaex.com/?ref=564377>`__                                   | 1.1   | `API <https://documenter.getpostman.com/view/6273708/RznBP1Hh>`__                                   |                                                                      |
 +--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | mercado            | `Mercado Bitcoin <https://www.mercadobitcoin.com.br>`__                                 | 3     | `API <https://www.mercadobitcoin.com.br/api-doc>`__                                                 |                                                                      |
 +--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+

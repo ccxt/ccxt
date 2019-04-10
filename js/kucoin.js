@@ -126,6 +126,10 @@ module.exports = class kucoin extends Exchange {
                 '1w': '1week',
             },
             'exceptions': {
+                'order_not_exist': OrderNotFound, // {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
+                'order_not_exist_or_not_allow_to_cancel': InvalidOrder, // {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
+                'Order size below the minimum requirement.': InvalidOrder, // {"code":"400100","msg":"Order size below the minimum requirement."}
+                'The withdrawal amount is below the minimum requirement.': ExchangeError, // {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
                 '400': BadRequest,
                 '401': AuthenticationError,
                 '403': NotSupported,
@@ -135,6 +139,7 @@ module.exports = class kucoin extends Exchange {
                 '500': ExchangeError,
                 '503': ExchangeNotAvailable,
                 '200004': InsufficientFunds,
+                '260100': InsufficientFunds, // {"code":"260100","msg":"account.noBalance"}
                 '300000': InvalidOrder,
                 '400001': AuthenticationError,
                 '400002': InvalidNonce,
@@ -147,9 +152,6 @@ module.exports = class kucoin extends Exchange {
                 '400100': ArgumentsRequired,
                 '411100': AccountSuspended,
                 '500000': ExchangeError,
-                'order_not_exist': OrderNotFound, // {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
-                'order_not_exist_or_not_allow_to_cancel': InvalidOrder, // {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
-                'Order size below the minimum requirement.': InvalidOrder, // {"code":"400100","msg":"Order size below the minimum requirement."}
             },
             'fees': {
                 'trading': {
@@ -659,11 +661,11 @@ module.exports = class kucoin extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrdersByStatus ('done', symbol, since, limit, params);
+        return await this.fetchOrdersByStatus ('done', symbol, since, limit, params);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrdersByStatus ('active', symbol, since, limit, params);
+        return await this.fetchOrdersByStatus ('active', symbol, since, limit, params);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -739,7 +741,7 @@ module.exports = class kucoin extends Exchange {
         const type = this.safeString (order, 'type');
         const timestamp = this.safeInteger (order, 'createdAt');
         const datetime = this.iso8601 (timestamp);
-        const price = this.safeFloat (order, 'price');
+        let price = this.safeFloat (order, 'price');
         const side = this.safeString (order, 'side');
         const feeCurrencyId = this.safeString (order, 'feeCurrency');
         const feeCurrency = this.commonCurrencyCode (feeCurrencyId);
@@ -754,6 +756,15 @@ module.exports = class kucoin extends Exchange {
             'currency': feeCurrency,
             'cost': feeCost,
         };
+        if (type === 'market') {
+            if (price === 0.0) {
+                if ((cost !== undefined) && (filled !== undefined)) {
+                    if ((cost > 0) && (filled > 0)) {
+                        price = cost / filled;
+                    }
+                }
+            }
+        }
         return {
             'id': orderId,
             'symbol': symbol,
@@ -1013,10 +1024,9 @@ module.exports = class kucoin extends Exchange {
         //
         // { "withdrawalId": "5bffb63303aa675e8bbe18f9" }
         //
-        const responseData = response['data'];
         return {
-            'id': this.safeString (responseData, 'withdrawalId'),
-            'info': responseData,
+            'id': this.safeString (response, 'withdrawalId'),
+            'info': response,
         };
     }
 
@@ -1193,7 +1203,7 @@ module.exports = class kucoin extends Exchange {
         //     }
         //
         const responseData = response['data']['items'];
-        return this.parseTransactions (responseData, currency, since, limit);
+        return this.parseTransactions (responseData, currency, since, limit, { 'type': 'deposit' });
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1258,7 +1268,7 @@ module.exports = class kucoin extends Exchange {
         //     }
         //
         const responseData = response['data']['items'];
-        return this.parseTransactions (responseData, currency, since, limit);
+        return this.parseTransactions (responseData, currency, since, limit, { 'type': 'withdrawal' });
     }
 
     async fetchBalance (params = {}) {

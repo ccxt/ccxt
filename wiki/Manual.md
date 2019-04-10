@@ -53,7 +53,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 
 # Exchanges
 
-The ccxt library currently supports the following 134 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 135 cryptocurrency exchange markets and trading APIs:
 
 |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;logo&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                                                                                     | id                 | name                                                                                 | ver   | doc                                                                                              | certified                                                                                                                  |
 |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|--------------------------------------------------------------------------------------|:-----:|:------------------------------------------------------------------------------------------------:|----------------------------------------------------------------------------------------------------------------------------|
@@ -162,6 +162,7 @@ The ccxt library currently supports the following 134 cryptocurrency exchange ma
 |[![livecoin](https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg)](https://livecoin.net/?from=Livecoin-CQ1hfx44)                             | livecoin           | [LiveCoin](https://livecoin.net/?from=Livecoin-CQ1hfx44)                             | *     | [API](https://www.livecoin.net/api?lang=en)                                                      |                                                                                                                             | US, UK, Russia                          |
 |[![luno](https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg)](https://www.luno.com)                                                         | luno               | [luno](https://www.luno.com)                                                         | 1     | [API](https://www.luno.com/en/api)                                                               |                                                                                                                             | UK, Singapore, South Africa             |
 |[![lykke](https://user-images.githubusercontent.com/1294454/34487620-3139a7b0-efe6-11e7-90f5-e520cef74451.jpg)](https://www.lykke.com)                                                       | lykke              | [Lykke](https://www.lykke.com)                                                       | 1     | [API](https://hft-api.lykke.com/swagger/ui/)                                                     |                                                                                                                             | Switzerland                             |
+|[![mandala](https://user-images.githubusercontent.com/1294454/54686665-df629400-4b2a-11e9-84d3-d88856367dd7.jpg)](https://trade.mandalaex.com/?ref=564377)                                   | mandala            | [Mandala](https://trade.mandalaex.com/?ref=564377)                                   | 1.1   | [API](https://documenter.getpostman.com/view/6273708/RznBP1Hh)                                   |                                                                                                                             | Malta                                   |
 |[![mercado](https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg)](https://www.mercadobitcoin.com.br)                                         | mercado            | [Mercado Bitcoin](https://www.mercadobitcoin.com.br)                                 | 3     | [API](https://www.mercadobitcoin.com.br/api-doc)                                                 |                                                                                                                             | Brazil                                  |
 |[![mixcoins](https://user-images.githubusercontent.com/1294454/30237212-ed29303c-9535-11e7-8af8-fcd381cfa20c.jpg)](https://mixcoins.com)                                                     | mixcoins           | [MixCoins](https://mixcoins.com)                                                     | 1     | [API](https://mixcoins.com/help/api/)                                                            |                                                                                                                             | UK, Hong Kong                           |
 |[![negociecoins](https://user-images.githubusercontent.com/1294454/38008571-25a6246e-3258-11e8-969b-aeb691049245.jpg)](https://www.negociecoins.com.br)                                      | negociecoins       | [NegocieCoins](https://www.negociecoins.com.br)                                      | 3     | [API](https://www.negociecoins.com.br/documentacao-tradeapi)                                     |                                                                                                                             | Brazil                                  |
@@ -282,6 +283,45 @@ $exchange = new $exchange_class (array (
     'timeout' => 30000,
     'enableRateLimit' => true,
 ));
+```
+
+### Overriding Exchange Properties Upon Instantiation
+
+Most of exchange properties as well as specific options can be overrided upon exchange class instantiation or afterwards, like shown below:
+
+```JavaScript
+// JavaScript
+const exchange = new ccxt.binance ({
+    'rateLimit': 10000, // unified exchange property
+    'options': {
+        'adjustForTimeDifference': true, // exchange-specific option
+    }
+})
+exchange.options['adjustForTimeDifference'] = false
+```
+
+```Python
+# Python
+exchange = ccxt.binance ({
+    'rateLimit': 10000,  # unified exchange property
+    'options': {
+        'adjustForTimeDifference': True,  # exchange-specific option
+    }
+})
+exchange.options['adjustForTimeDifference'] = False
+```
+
+```PHP
+// PHP
+$exchange_id = 'binance';
+$exchange_class = "\\ccxt\\$exchange_id";
+$exchange = new $exchange_class (array (
+    'rateLimit' => 10000, // unified exchange property
+    'options' => array (
+        'adjustForTimeDifference' => true, // exchange-specific option
+    ),
+));
+$exchange->options['adjustForTimeDifference'] = false;
 ```
 
 ## Exchange Structure
@@ -632,6 +672,49 @@ Examples:
     ```
 
 *The `precision` and `limits` params are currently under heavy development, some of these fields may be missing here and there until the unification process is complete. This does not influence most of the orders but can be significant in extreme cases of very large or very small orders. The `active` flag is not yet supported and/or implemented by all markets.*
+
+#### Methods For Foramtting Decimals
+
+The exchange base class contains the `decimalToPrecision` method to help format values to the required decimal precision with support for different rounding, counting and padding modes.
+
+```JavaScript
+// JavaScript
+function decimalToPrecision (x, roundingMode, numPrecisionDigits, countingMode = DECIMAL_PLACES, paddingMode = NO_PADDING)
+```
+
+```Python
+# Python
+# WARNING! The `decimal_to_precision` method is susceptible to getcontext().prec!
+def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=DECIMAL_PLACES, padding_mode=NO_PADDING):
+```
+
+```PHP
+// PHP
+function decimalToPrecision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING)
+```
+
+Supported rounding modes are:
+
+- `ROUND` – will round the last decimal digits to precision
+- `TRUNCATE`– will cut off the digits after certain precision
+
+Supported counting modes are:
+
+- `DECIMAL_PLACES` – counts all digits, 99% of exchanges use this counting mode
+- `SIGNIFICANT_DIGITS` – counts non-zero digits only, some exchanges (`bitfinex` and maybe a few other) implement this mode of counting decimals
+
+Supported padding modes are:
+
+- `NO_PADDING` – default for most cases
+- `PAD_WITH_ZERO` – appends zero characters up to precision
+
+For examples of how to use the `decimalToPrecision` to format strings and floats, please, see the following files:
+
+- JavaScript: https://github.com/ccxt/ccxt/blob/master/js/test/base/functions/test.number.js
+- Python: https://github.com/ccxt/ccxt/blob/master/python/test/test_decimal_to_precision.py
+- PHP: https://github.com/ccxt/ccxt/blob/master/php/test/decimal_to_precision.php
+
+**Python WARNING! The `decimal_to_precision` method is susceptible to getcontext().prec!**
 
 ## Loading Markets
 
