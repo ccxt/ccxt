@@ -210,15 +210,15 @@ module.exports = class boaexchange extends Exchange {
             'price': this.priceToPrecision (symbol, price),
             'side': side,
         };
-        let response = await this.privateGetOrders (this.extend (order, params));
-        return this.extend (this.parseOrder (response['data'], market), {
+        let response = await this.privatePostOrders (this.extend (order, params));
+        return this.extend (this.parseOrder (response['data'][0], market), {
             'status': 'open',
             'price': order['price'],
             'symbol': symbol,
             'amount': order['amount'],
             'side': side,
             'type': type,
-            'id': response['data']['id'],
+            'id': response['data'][0]['id'],
         });
     }
 
