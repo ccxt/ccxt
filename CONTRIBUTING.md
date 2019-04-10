@@ -270,7 +270,7 @@ Both work almost identically, and one is implicitly converted to another upon ex
 
 While the above does work in JavaScript, it will not work in Python or PHP. In most languages, associative dictionary keys are not treaded in the same was as properties. Therefore, in Python `object.key` is not the same as `object['key']`. In PHP `$object->key` is not the same as `$object['key']` as well. Languages that differentiate between associative keys and properties use different notations for the two.
 
-To keep the code transpileable, please, remeber this simple rule: **always use the single-quoted string key notation `object['key']` for accessing all associative dictionary keys in all languages everywhere throughout this library!**.
+To keep the code transpileable, please, remeber this simple rule: *always use the single-quoted string key notation `object['key']` for accessing all associative dictionary keys in all languages everywhere throughout this library!*
 
 ##### Sanitizing Input With Safe Methods
 
