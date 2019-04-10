@@ -211,7 +211,7 @@ module.exports = class boaexchange extends Exchange {
             'side': side,
         };
         let response = await this.privatePostOrders (this.extend (order, params));
-        return this.extend (this.parseOrder (response['data'][0], market), {
+        return this.extend (this.parseOrder (response['data'], market), {
             'status': 'open',
             'price': order['price'],
             'symbol': symbol,
