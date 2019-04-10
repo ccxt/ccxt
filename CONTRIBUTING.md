@@ -161,7 +161,7 @@ The contents of the repository are structured as follows:
 
 The ccxt library is available in three different languages (more to come). We encourage developers to design *portable* code, so that a single-language user can read code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
 
-At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we decided to switch to what we call a *source/generated* process. There is now a single source version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) from the source version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the source version as well.
+At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we decided to switch to what we call a *source/generated* process. There is now a single source version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) automatically from the source version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the source version as well.
 
 The module entry points are:
 - `./python/__init__.py` for the Python pip package
@@ -174,7 +174,7 @@ Generated versions and docs are transpiled from the source `ccxt.js` file and fi
 
 #### Transpiled (generated) files
 
-- All derived exchange classes are transpiled from source JS files. The source files are language-agnostic, easily mapped line-to-line to any other language and written in a cross-language-compatible way. Any coder can read it (by design).
+- All derived exchange classes are transpiled automatically from source JS files. The source files are language-agnostic, easily mapped line-to-line to any other language and written in a cross-language-compatible way. Any coder can read it (by design).
 - All base classes are **not** transpiled, those are language-specific.
 
 ##### JavaScript
