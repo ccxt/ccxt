@@ -218,7 +218,7 @@ module.exports = class boaexchange extends Exchange {
             'amount': order['amount'],
             'side': side,
             'type': type,
-            'id': response['data'][0]['id'],
+            'id': response['data']['id'],
         });
     }
 
