@@ -1,0 +1,150 @@
+{
+  "proxy": "",
+  "origin": "*",
+  "headers": {},
+  "userAgents": {
+    "chrome": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36",
+    "chrome39": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36"
+  },
+  "timeout": 10000,
+  "verbose": false,
+  "debug": false,
+  "journal": "debug.json",
+  "apiKey": "",
+  "secret": "",
+  "uid": "",
+  "login": "",
+  "password": "",
+  "privateKey": "",
+  "walletAddress": "",
+  "id": "",
+  "name": "",
+  "countries": "",
+  "enableRateLimit": false,
+  "rateLimit": 2000,
+  "certified": false,
+  "has": {
+    "cancelAllOrders": false,
+    "cancelOrder": true,
+    "cancelOrders": false,
+    "CORS": false,
+    "createDepositAddress": false,
+    "createLimitOrder": true,
+    "createMarketOrder": true,
+    "createOrder": true,
+    "deposit": false,
+    "editOrder": "emulated",
+    "fetchBalance": true,
+    "fetchBidsAsks": false,
+    "fetchClosedOrders": false,
+    "fetchCurrencies": false,
+    "fetchDepositAddress": false,
+    "fetchDeposits": false,
+    "fetchFundingFees": false,
+    "fetchL2OrderBook": true,
+    "fetchLedger": false,
+    "fetchMarkets": true,
+    "fetchMyTrades": false,
+    "fetchOHLCV": "emulated",
+    "fetchOpenOrders": false,
+    "fetchOrder": false,
+    "fetchOrderBook": true,
+    "fetchOrderBooks": false,
+    "fetchOrders": false,
+    "fetchTicker": true,
+    "fetchTickers": false,
+    "fetchTrades": true,
+    "fetchTradingFee": false,
+    "fetchTradingFees": false,
+    "fetchTradingLimits": false,
+    "fetchTransactions": false,
+    "fetchWithdrawals": false,
+    "privateAPI": true,
+    "publicAPI": true,
+    "withdraw": false
+  },
+  "urls": {
+    "logo": "",
+    "api": "",
+    "www": "",
+    "doc": "",
+    "fees": ""
+  },
+  "api": "",
+  "requiredCredentials": {
+    "apiKey": true,
+    "secret": true,
+    "uid": false,
+    "login": false,
+    "password": false,
+    "twofa": false,
+    "privateKey": false,
+    "walletAddress": false
+  },
+  "markets": "",
+  "currencies": {},
+  "timeframes": "",
+  "fees": {
+    "trading": {
+      "tierBased": "",
+      "percentage": "",
+      "taker": "",
+      "maker": ""
+    },
+    "funding": {
+      "tierBased": "",
+      "percentage": "",
+      "withdraw": {},
+      "deposit": {}
+    }
+  },
+  "skipJsonOnStatusCodes": [],
+  "exceptions": "",
+  "httpExceptions": {
+    "422": "ExchangeError",
+    "418": "DDoSProtection",
+    "429": "DDoSProtection",
+    "404": "ExchangeNotAvailable",
+    "409": "ExchangeNotAvailable",
+    "500": "ExchangeNotAvailable",
+    "501": "ExchangeNotAvailable",
+    "502": "ExchangeNotAvailable",
+    "520": "ExchangeNotAvailable",
+    "521": "ExchangeNotAvailable",
+    "522": "ExchangeNotAvailable",
+    "525": "ExchangeNotAvailable",
+    "526": "ExchangeNotAvailable",
+    "400": "ExchangeNotAvailable",
+    "403": "ExchangeNotAvailable",
+    "405": "ExchangeNotAvailable",
+    "503": "ExchangeNotAvailable",
+    "530": "ExchangeNotAvailable",
+    "408": "RequestTimeout",
+    "504": "RequestTimeout",
+    "401": "AuthenticationError",
+    "511": "AuthenticationError"
+  },
+  "dontGetUsedBalanceFromStaleCache": false,
+  "commonCurrencies": {
+    "XBT": "BTC",
+    "BCC": "BCH",
+    "DRK": "DASH",
+    "BCHABC": "BCH",
+    "BCHSV": "BSV"
+  },
+  "precisionMode": "DECIMAL_PLACES",
+  "limits": {
+    "amount": {
+      "min": "",
+      "max": ""
+    },
+    "price": {
+      "min": "",
+      "max": ""
+    },
+    "cost": {
+      "min": "",
+      "max": ""
+    }
+  }
+}

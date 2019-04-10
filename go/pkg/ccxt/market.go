@@ -1,7 +1,7 @@
 package ccxt
 
 type Market struct {
-	Exchange Exchange
+	Exchange *Exchange
 
 	ID        string // exchange specific
 	Symbol    string // ccxt unified

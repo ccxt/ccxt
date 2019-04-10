@@ -9,8 +9,9 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
 	"hash"
+
+	"github.com/dgrijalva/jwt-go"
 )
 
 var hashers = map[string]func() hash.Hash{
@@ -21,6 +22,7 @@ var hashers = map[string]func() hash.Hash{
 	"md5":    md5.New,
 }
 
+// Hash encodes the payload based on the available hashing algo
 func Hash(payload, algo, encoding string) (string, error) {
 	if hashers[algo] == nil {
 		return "", fmt.Errorf("hash: unsupported algo \"%s\"", algo)
@@ -33,6 +35,7 @@ func Hash(payload, algo, encoding string) (string, error) {
 	return string(encode(h.Sum(nil), encoding)), nil
 }
 
+// HMAC encodes the payload based on the available hashing algo
 func HMAC(payload, key, algo, encoding string) (string, error) {
 	if hashers[algo] == nil {
 		return "", fmt.Errorf("HMAC: unsupported hashing algo \"%s\"", algo)
@@ -45,6 +48,7 @@ func HMAC(payload, key, algo, encoding string) (string, error) {
 	return string(encode(h.Sum(nil), encoding)), nil
 }
 
+// JWT creates a new signed token
 func JWT(claims map[string]interface{}, secret string) (string, error) {
 	var signer jwt.SigningMethod = jwt.SigningMethodHS256
 	token := jwt.New(signer)

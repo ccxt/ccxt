@@ -6,6 +6,7 @@ import (
 	"sort"
 )
 
+// URLEncode takes the items and encodes them into a url string
 func URLEncode(items map[string]string) string {
 	values := make(url.Values)
 	for k, v := range items {
@@ -14,6 +15,7 @@ func URLEncode(items map[string]string) string {
 	return values.Encode()
 }
 
+// RawEncode takes the items and encodes them into raw bytes string
 func RawEncode(items map[string]string) string {
 	v := make(url.Values)
 	for k, item := range items {

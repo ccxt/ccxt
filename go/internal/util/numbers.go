@@ -6,25 +6,30 @@ import (
 	"strconv"
 )
 
+// Round iota
 const (
 	Round = iota
 	Truncate
 )
 
+// DecimalPlaces iota
 const (
 	DecimalPlaces = iota
 	SignificantDigits
 )
 
+// NoPadding iota
 const (
 	NoPadding = iota
 	PadWithZero
 )
 
+// NumberToString converts a float64 to a string
 func NumberToString(f float64) string {
 	return strconv.FormatFloat(f, 'f', -1, 64)
 }
 
+// DecimalToPrecision converst a float64 to a string
 func DecimalToPrecision(f float64, roundingMode int, numPrecisionDigits int, countingMode int, paddingMode int) (string, error) {
 	if numPrecisionDigits < 0 {
 		return "", fmt.Errorf("negative precision not supported")
@@ -47,7 +52,7 @@ func DecimalToPrecision(f float64, roundingMode int, numPrecisionDigits int, cou
 
 	var sz = strEnd - strStart + 1
 	if hasDot {
-		sz -= 1
+		sz--
 	}
 	var chars = make([]byte, sz)
 	chars[0] = '0'
@@ -84,7 +89,7 @@ func DecimalToPrecision(f float64, roundingMode int, numPrecisionDigits int, cou
 		c := chars[i]
 		if i != 0 {
 			if memo {
-				c += 1
+				c++
 			}
 			if i >= precisionStart+numPrecisionDigits {
 				if roundingMode == Round && c >= '5' && !(c == '5' && memo) {

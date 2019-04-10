@@ -14,14 +14,17 @@ import (
 // unmarshal as a time.Time.
 type JSONTime time.Time
 
+// T converts the JSONTime to time.Time
 func (t JSONTime) T() time.Time {
 	return time.Time(t)
 }
 
+// MarshalJSON for JSONTime
 func (t JSONTime) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.FormatInt(time.Time(t).UnixNano()/1e6, 10)), nil
 }
 
+// UnmarshalJSON for JSONTime
 func (t *JSONTime) UnmarshalJSON(s []byte) (err error) {
 	r := strings.Replace(string(s), `"`, ``, -1)
 	r = strings.Split(r, ".")[0]
@@ -52,6 +55,7 @@ func (t JSONTime) String() string {
 	return time.Time(t).String()
 }
 
+// ParseTimeFrame converts the timeframe string to a time.Duration
 func ParseTimeFrame(tf string) (d time.Duration, err error) {
 	var amount float64
 	var unit string

@@ -1,12 +1,13 @@
 package ccxt
 
+// AUTO GENERATED FILE PLEASE DO NOT EDIT
 import (
 	"fmt"
 )
 
-// This file does some wannabe inheritage nonsense with error types,
+// TODO: This file does some wannabe inheritage nonsense with error types,
 // errors should probably be a simple struct{msg, type, detail} instead,
-// but I went this road. todo
+// but I went this road.
 
 type BaseError string
 type ExchangeError BaseError

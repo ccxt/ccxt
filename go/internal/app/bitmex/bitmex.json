@@ -1,0 +1,129 @@
+{
+  "id": "bitmex",
+  "name": "BitMEX",
+  "countries": ["SC"],
+  "version": "v1",
+  "rateLimit": 2000,
+  "has": {
+    "CORS": false,
+    "fetchOHLCV": true,
+    "withdraw": true,
+    "editOrder": true,
+    "fetchOrder": true,
+    "fetchOrders": true,
+    "fetchOpenOrders": true,
+    "fetchClosedOrders": true,
+    "fetchMyTrades": true
+  },
+  "timeframes": {
+    "1m": "1m",
+    "5m": "5m",
+    "1h": "1h",
+    "1d": "1d"
+  },
+  "urls": {
+    "test": "https://testnet.bitmex.com",
+    "logo": "https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg",
+    "api": "https://www.bitmex.com/api/v1",
+    "www": "https://www.bitmex.com",
+    "doc": [
+      "https://www.bitmex.com/app/apiOverview",
+      "https://github.com/BitMEX/api-connectors/tree/master/official-http"
+    ],
+    "fees": "https://www.bitmex.com/app/fees",
+    "referral": "https://www.bitmex.com/register/rm3C16"
+  },
+  "api": {
+    "public": {
+      "get": [
+        "announcement",
+        "announcement/urgent",
+        "funding",
+        "instrument",
+        "instrument/active",
+        "instrument/activeAndIndices",
+        "instrument/activeIntervals",
+        "instrument/compositeIndex",
+        "instrument/indices",
+        "insurance",
+        "leaderboard",
+        "liquidation",
+        "orderBook",
+        "orderBook/L2",
+        "quote",
+        "quote/bucketed",
+        "schema",
+        "schema/websocketHelp",
+        "settlement",
+        "stats",
+        "stats/history",
+        "trade",
+        "trade/bucketed"
+      ]
+    },
+    "private": {
+      "get": [
+        "apiKey",
+        "chat",
+        "chat/channels",
+        "chat/connected",
+        "execution",
+        "execution/tradeHistory",
+        "notification",
+        "order",
+        "position",
+        "user",
+        "user/affiliateStatus",
+        "user/checkReferralCode",
+        "user/commission",
+        "user/depositAddress",
+        "user/margin",
+        "user/minWithdrawalFee",
+        "user/wallet",
+        "user/walletHistory",
+        "user/walletSummary"
+      ],
+      "post": [
+        "apiKey",
+        "apiKey/disable",
+        "apiKey/enable",
+        "chat",
+        "order",
+        "order/bulk",
+        "order/cancelAllAfter",
+        "order/closePosition",
+        "position/isolate",
+        "position/leverage",
+        "position/riskLimit",
+        "position/transferMargin",
+        "user/cancelWithdrawal",
+        "user/confirmEmail",
+        "user/confirmEnableTFA",
+        "user/confirmWithdrawal",
+        "user/disableTFA",
+        "user/logout",
+        "user/logoutAll",
+        "user/preferences",
+        "user/requestEnableTFA",
+        "user/requestWithdrawal"
+      ],
+      "put": ["order", "order/bulk", "user"],
+      "delete": ["apiKey", "order", "order/all"]
+    }
+  },
+  "exceptions": {
+    "exact": {
+      "Invalid API Key.": "AuthenticationError",
+      "Access Denied": "PermissionDenied",
+      "Duplicate clOrdID": "InvalidOrder",
+      "Signature not valid": "AuthenticationError"
+    },
+    "broad": {
+      "overloaded": "ExchangeNotAvailable",
+      "Account has insufficient Available Balance": "InsufficientFunds"
+    }
+  },
+  "options": {
+    "api-expires": 5
+  }
+}

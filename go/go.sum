@@ -1,2 +1,4 @@
+github.com/ccxt/ccxt v0.0.0-20190409115740-6d0f856a1833 h1:yhJ7kX/jtbt21JdpRY2yGyx64R5lIRpxQKXYP6uO/Jo=
+github.com/ccxt/ccxt v0.0.0-20190409160357-2fc1214d3033 h1:0woM8seZc4z0f9J6+oooFUVgLie1pKlnX7ZiQnA2BfA=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible h1:7qlOGliEKZXTDg6OTjfoBKDXWrumCAMpl/TFQ4/5kLM=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=

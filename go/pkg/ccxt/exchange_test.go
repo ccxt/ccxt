@@ -1,39 +1,31 @@
-package ccxttest
+package ccxt
 
 import (
-	"github.com/ccxt/ccxt/go"
-	"github.com/ccxt/ccxt/go/util"
 	"testing"
 	"time"
+
+	"github.com/ccxt/ccxt/go/internal/util"
 )
 
-func TestExchange(t *testing.T, x ccxt.Exchange) {
-	t.Run("LoadMarkets", func(t *testing.T) { testLoadMarkets(t, x) })
-	t.Run("FetchOpenOrders", func(t *testing.T) { testFetchOpenOrders(t, x) })
-	t.Run("FetchClosedOrders", func(t *testing.T) { testFetchClosedOrders(t, x) })
-	t.Run("FetchOrders", func(t *testing.T) { testFetchOrders(t, x) })
-	t.Run("FetchTickers", func(t *testing.T) { testFetchTickers(t, x) })
-	t.Run("FetchTicker", func(t *testing.T) { testFetchTicker(t, x) })
-	t.Run("FetchOHLCV", func(t *testing.T) { testFetchOHLCV(t, x) })
-	t.Run("FetchOrderBook", func(t *testing.T) { testFetchOrderBook(t, x) })
-	t.Run("FetchTrades", func(t *testing.T) { testFetchTrades(t, x) })
-	t.Run("FetchBalance", func(t *testing.T) { testFetchBalance(t, x) })
-	t.Run("OrdersBasics", func(t *testing.T) { testOrdersBasics(t, x) })
+var x Exchange
+
+func init() {
+	x = Exchange{}
 }
 
 func skipAuthError(t *testing.T, err error) {
-	if _, ok := err.(ccxt.AuthenticationError); ok {
+	if _, ok := err.(AuthenticationError); ok {
 		t.Skip(err)
 	}
 }
 
 func skipNotSupportedError(t *testing.T, err error) {
-	if _, ok := err.(ccxt.NotSupportedError); ok {
+	if _, ok := err.(NotSupportedError); ok {
 		t.Skip(err)
 	}
 }
 
-func getAnyMarket(t *testing.T, x ccxt.Exchange) (m ccxt.Market) {
+func getAnyMarket(t *testing.T) (m Market) {
 	markets, err := x.LoadMarkets(false)
 	if err != nil {
 		t.Fatal("LoadMarkets: ", err)
@@ -45,7 +37,7 @@ func getAnyMarket(t *testing.T, x ccxt.Exchange) (m ccxt.Market) {
 	return
 }
 
-func testLoadMarkets(t *testing.T, x ccxt.Exchange) {
+func TestLoadMarkets(t *testing.T) {
 	markets, err := x.LoadMarkets(false)
 	if err != nil {
 		t.Fatal(err)
@@ -53,8 +45,8 @@ func testLoadMarkets(t *testing.T, x ccxt.Exchange) {
 	t.Logf("%d markets available\n", len(markets))
 }
 
-func testFetchOpenOrders(t *testing.T, x ccxt.Exchange) {
-	m := getAnyMarket(t, x)
+func TestFetchOpenOrders(t *testing.T) {
+	m := getAnyMarket(t)
 	openOrders, err := x.FetchOpenOrders(&m.Symbol, nil, nil, nil)
 	if err != nil {
 		skipAuthError(t, err)
@@ -64,8 +56,8 @@ func testFetchOpenOrders(t *testing.T, x ccxt.Exchange) {
 	t.Logf("%s: %d open orders\n", m.Symbol, len(openOrders))
 }
 
-func testFetchClosedOrders(t *testing.T, x ccxt.Exchange) {
-	m := getAnyMarket(t, x)
+func TestFetchClosedOrders(t *testing.T) {
+	m := getAnyMarket(t)
 	orders, err := x.FetchClosedOrders(&m.Symbol, nil, nil, nil)
 	if err != nil {
 		skipAuthError(t, err)
@@ -75,8 +67,8 @@ func testFetchClosedOrders(t *testing.T, x ccxt.Exchange) {
 	t.Logf("%s: %d closed orders", m.Symbol, len(orders))
 }
 
-func testFetchOrders(t *testing.T, x ccxt.Exchange) {
-	m := getAnyMarket(t, x)
+func TestFetchOrders(t *testing.T) {
+	m := getAnyMarket(t)
 	orders, err := x.FetchOrders(&m.Symbol, nil, nil, nil)
 	if err != nil {
 		skipAuthError(t, err)
@@ -86,7 +78,7 @@ func testFetchOrders(t *testing.T, x ccxt.Exchange) {
 	t.Logf("%s: %d orders", m.Symbol, len(orders))
 }
 
-func testFetchTickers(t *testing.T, x ccxt.Exchange) {
+func TestFetchTickers(t *testing.T) {
 	tickers, err := x.FetchTickers(nil, nil)
 	if err != nil {
 		skipNotSupportedError(t, err)
@@ -95,8 +87,8 @@ func testFetchTickers(t *testing.T, x ccxt.Exchange) {
 	t.Logf("%d tickers\n", len(tickers))
 }
 
-func testFetchTicker(t *testing.T, x ccxt.Exchange) {
-	m := getAnyMarket(t, x)
+func TestFetchTicker(t *testing.T) {
+	m := getAnyMarket(t)
 	ticker, err := x.FetchTicker(m.Symbol, nil)
 	if err != nil {
 		skipNotSupportedError(t, err)
@@ -105,8 +97,8 @@ func testFetchTicker(t *testing.T, x ccxt.Exchange) {
 	t.Logf("%s (%.2f%%): %f / %f\n", ticker.Symbol, ticker.Change, ticker.Ask, ticker.Bid)
 }
 
-func testFetchOHLCV(t *testing.T, x ccxt.Exchange) {
-	m := getAnyMarket(t, x)
+func TestFetchOHLCV(t *testing.T) {
+	m := getAnyMarket(t)
 	info := x.Info()
 	if !info.Has["fetchOHLCV"] {
 		t.Skip("NotSupported: fetchOHLCV")
@@ -129,8 +121,8 @@ func testFetchOHLCV(t *testing.T, x ccxt.Exchange) {
 		m.Symbol, len(candles), tf, candles[0].Timestamp, candles[len(candles)-1].Timestamp)
 }
 
-func testFetchOrderBook(t *testing.T, x ccxt.Exchange) {
-	m := getAnyMarket(t, x)
+func TestFetchOrderBook(t *testing.T) {
+	m := getAnyMarket(t)
 	book, err := x.FetchOrderBook(m.Symbol, nil, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -138,8 +130,8 @@ func testFetchOrderBook(t *testing.T, x ccxt.Exchange) {
 	t.Logf("%s: %d asks / %d bids\n", m.Symbol, len(book.Asks), len(book.Bids))
 }
 
-func testFetchTrades(t *testing.T, x ccxt.Exchange) {
-	m := getAnyMarket(t, x)
+func TestFetchTrades(t *testing.T) {
+	m := getAnyMarket(t)
 	trades, err := x.FetchTrades(m.Symbol, util.Time(time.Now().Add(-time.Minute)), nil)
 	if err != nil {
 		skipNotSupportedError(t, err)
@@ -148,7 +140,7 @@ func testFetchTrades(t *testing.T, x ccxt.Exchange) {
 	t.Logf("%s: %d trades the last minute", m.Symbol, len(trades))
 }
 
-func testFetchBalance(t *testing.T, x ccxt.Exchange) {
+func TestFetchBalance(t *testing.T) {
 	b, err := x.FetchBalance(nil)
 	if err != nil {
 		skipAuthError(t, err)
@@ -158,7 +150,7 @@ func testFetchBalance(t *testing.T, x ccxt.Exchange) {
 	t.Logf("balance totals: %v", b.Total)
 }
 
-func testOrdersBasics(t *testing.T, x ccxt.Exchange) {
+func TestOrdersBasics(t *testing.T) {
 	markets, err := x.LoadMarkets(false)
 	if err != nil {
 		t.Fatal(err)
@@ -173,7 +165,7 @@ func testOrdersBasics(t *testing.T, x ccxt.Exchange) {
 	}
 	balances.FilterZeros()
 
-	var market ccxt.Market
+	var market Market
 	var free float64
 	for _, v := range markets {
 		if free = balances.Free[v.Base]; free > v.Limits.Amount.Min {
