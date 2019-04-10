@@ -226,7 +226,7 @@ module.exports = class boaexchange extends Exchange {
         await this.loadMarkets ();
         let request = { 'orderId': id };
         let response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
-        return this.extend (this.parseOrder (response), {
+        return this.extend (this.parseOrder (response['data']), {
             'status': 'canceled',
         });
     }
@@ -235,7 +235,7 @@ module.exports = class boaexchange extends Exchange {
         await this.loadMarkets ();
         let request = { 'orderId': ids.join (',') };
         let response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
-        return this.extend (this.parseOrder (response), {
+        return this.extend (this.parseOrder (response['data']), {
             'status': 'canceled',
         });
     }
