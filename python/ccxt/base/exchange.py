@@ -110,11 +110,18 @@ class Exchange(object):
     symbols = None
     fees = {
         'trading': {
-            'fee_loaded': False,
             'percentage': True,  # subclasses should rarely have to redefine this
         },
         'funding': {
-            'fee_loaded': False,
+            'withdraw': {},
+            'deposit': {},
+        },
+    }
+    loaded_fees = {
+        'trading': {
+            'percentage': True,
+        },
+        'funding': {
             'withdraw': {},
             'deposit': {},
         },
@@ -231,6 +238,8 @@ class Exchange(object):
         'fetchTrades': True,
         'fetchTradingFee': False,
         'fetchTradingFees': False,
+        'fetchFundingFee': False,
+        'fetchFundingFees': False,
         'fetchTradingLimits': False,
         'fetchTransactions': False,
         'fetchWithdrawals': False,
@@ -1093,31 +1102,12 @@ class Exchange(object):
         self.accountsById = self.index_by(self.accounts, 'id')
         return self.accounts
 
-    def populate_fees(self):
-        if not (hasattr(self, 'markets') or hasattr(self, 'currencies')):
-            return
-
-        for currency, data in self.currencies.items():  # try load withdrawal fees from currencies
-            if 'fee' in data and data['fee'] is not None:
-                self.fees['funding']['withdraw'][currency] = data['fee']
-                self.fees['funding']['fee_loaded'] = True
-
-        # find a way to populate trading fees from markets
-
-    def load_fees(self):
-        self.load_markets()
-        self.populate_fees()
-        if not (self.has['fetchTradingFees'] or self.has['fetchFundingFees']):
-            return self.fees
-
-        fetched_fees = self.fetch_fees()
-        if fetched_fees['funding']:
-            self.fees['funding']['fee_loaded'] = True
-        if fetched_fees['trading']:
-            self.fees['trading']['fee_loaded'] = True
-
-        self.fees = self.deep_extend(self.fees, fetched_fees)
-        return self.fees
+    def load_fees(self, reload=False):
+        if not reload:
+            if self.loaded_fees != Exchange.loaded_fees:
+                return self.loaded_fees
+        self.loaded_fees = self.deep_extend(self.loaded_fees, self.fetch_fees())
+        return self.loaded_fees
 
     def fetch_markets(self, params={}):
         # markets are returned as a list
@@ -1136,20 +1126,10 @@ class Exchange(object):
     def fetch_fees(self):
         trading = {}
         funding = {}
-        try:
+        if self.has['fetchTradingFees']:
             trading = self.fetch_trading_fees()
-        except AuthenticationError:
-            pass
-        except AttributeError:
-            pass
-
-        try:
+        if self.has['fetchFundingFees']:
             funding = self.fetch_funding_fees()
-        except AuthenticationError:
-            pass
-        except AttributeError:
-            pass
-
         return {
             'trading': trading,
             'funding': funding,
@@ -1277,13 +1257,21 @@ class Exchange(object):
     def fetch_total_balance(self, params={}):
         return self.fetch_partial_balance('total', params)
 
-    def fetch_trading_fees(self, params={}):
+    def fetch_trading_fees(self, symbol, params={}):
         self.raise_error(NotSupported, details='fetch_trading_fees() not supported yet')
 
     def fetch_trading_fee(self, symbol, params={}):
         if not self.has['fetchTradingFees']:
             self.raise_error(NotSupported, details='fetch_trading_fee() not supported yet')
         return self.fetch_trading_fees(params)
+
+    def fetch_funding_fees(self, params={}):
+        self.raise_error(NotSupported, details='fetch_funding_fees() not supported yet')
+
+    def fetch_funding_fee(self, code, params={}):
+        if not self.has['fetchFundingFees']:
+            self.raise_error(NotSupported, details='fetch_funding_fee() not supported yet')
+        return self.fetch_funding_fees(params)
 
     def load_trading_limits(self, symbols=None, reload=False, params={}):
         if self.has['fetchTradingLimits']:
