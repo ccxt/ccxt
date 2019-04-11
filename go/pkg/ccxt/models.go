@@ -18,19 +18,6 @@ type ExchangeConfig struct {
 	EnableRateLimit bool          `json:"enableRateLimit"`
 }
 
-// UnmarshalJSON accepts strings and links to the appropaite error method:
-func (e ExchangeConfig) UnmarshalJSON(b []byte) error {
-	var conf map[string]interface{}
-	err := json.Unmarshal(b, &conf)
-	if err != nil {
-		return err
-	}
-	if timeout, ok := conf["timeout"].(time.Duration); ok {
-		e.Timeout = timeout * time.Millisecond
-	}
-	return nil
-}
-
 // ExchangeInfo for the exchange
 type ExchangeInfo struct {
 	ID              string            `json:"id"`
@@ -72,7 +59,7 @@ type APIMethods struct {
 type URLs struct {
 	API  APIURLs     `json:"api"`
 	Logo StringSlice `json:"logo"`
-	WWW  StringSlice `json:"www"`
+	WWW  string      `json:"www"`
 	Doc  StringSlice `json:"doc"`
 	Fees StringSlice `json:"fees"`
 }

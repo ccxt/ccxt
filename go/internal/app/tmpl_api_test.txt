@@ -26,7 +26,6 @@ func init() {
 		panic(err)
 	}
 	config := configKeys["{{.ID}}"]
-	var err error
 	c, err = Init(config)
     if err != nil {
 	    panic(err)

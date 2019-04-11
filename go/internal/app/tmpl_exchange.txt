@@ -30,7 +30,7 @@ func Init(conf ccxt.ExchangeConfig) (*Exchange, error) {
 	json.NewDecoder(f).Decode(&info)
 	timeout := 10 * time.Second
 	if conf.Timeout > 0 {
-		timeout = conf.Timeout
+		timeout = conf.Timeout * time.Millisecond
 	}
 	client := &http.Client{Timeout: timeout}
 	exchange := Exchange{

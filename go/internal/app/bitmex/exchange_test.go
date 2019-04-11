@@ -10,13 +10,13 @@ import (
 )
 
 func TestExchangeInit(t *testing.T) {
-	x, err := Init(ccxt.ExchangeConfig{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if x.Info.ID != "bitmex" {
-		t.Fatal("Did not load ID bitmex correctly")
-	}
+    x, err := Init(ccxt.ExchangeConfig{})
+    if err != nil {
+        t.Fatal(err)
+    }
+    if x.Info.ID != "bitmex" {
+        t.Fatal("Did not load ID bitmex correctly")
+    }
 }
 
 func TestExchangeInitPrivate(t *testing.T) {

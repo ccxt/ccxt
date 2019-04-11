@@ -63,7 +63,7 @@
     },
     "private": {
       "get": {
-        "apiKey": "APIKey",
+        "apiKey": "[]APIKey",
         "chat": "[]Chat",
         "chat/channels": "[]ChatChannel",
         "chat/connected": "ConnectedUsers",

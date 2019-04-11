@@ -45,19 +45,20 @@ func (c *Exchange) apiRequest(method string, reqURL string, params *url.Values, 
             return nil, err
         }
     }
-    // TODO: Implement headers for auth or extras
     req.Header.Add("Accept", "application/json")
+	c.SignRequest(req, method, baseURL, body.Bytes())
 	res, err := c.Client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	if res.StatusCode >= 300 {
-		return nil, fmt.Errorf("HTTP Response %d: %s", res.StatusCode, http.StatusText(res.StatusCode))
-	}
 	resBody, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
+	}
+	if res.StatusCode >= 300 {
+		err = fmt.Errorf("HTTP Response %d: %s", res.StatusCode, http.StatusText(res.StatusCode))
+		return nil, handleBodyErr(resBody, err)
 	}
 	return resBody, nil
 }

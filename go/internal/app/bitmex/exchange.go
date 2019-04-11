@@ -14,13 +14,13 @@ import (
 // Exchange struct
 type Exchange struct {
 	Client *http.Client
-	Info   ccxt.ExchangeInfo
+    Info ccxt.ExchangeInfo
 	Config ccxt.ExchangeConfig
 }
 
 // Init Exchange
 func Init(conf ccxt.ExchangeConfig) (*Exchange, error) {
-	var info ccxt.ExchangeInfo
+    var info ccxt.ExchangeInfo
 	configFile := "bitmex.json"
 	f, err := os.Open(configFile)
 	defer f.Close()
@@ -30,7 +30,7 @@ func Init(conf ccxt.ExchangeConfig) (*Exchange, error) {
 	json.NewDecoder(f).Decode(&info)
 	timeout := 10 * time.Second
 	if conf.Timeout > 0 {
-		timeout = conf.Timeout
+		timeout = conf.Timeout * time.Millisecond
 	}
 	client := &http.Client{Timeout: timeout}
 	exchange := Exchange{
