@@ -17,19 +17,19 @@ class gdax extends Exchange {
             'rateLimit' => 1000,
             'userAgent' => $this->userAgents['chrome'],
             'has' => array (
+                'cancelAllOrders' => true,
                 'CORS' => true,
-                'fetchOHLCV' => true,
                 'deposit' => true,
-                'withdraw' => true,
                 'fetchAccounts' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => true,
-                'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
                 'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrders' => true,
                 'fetchTransactions' => true,
-                'cancelAllOrders' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array (
                 '1m' => 60,
@@ -80,6 +80,7 @@ class gdax extends Exchange {
                         'funding',
                         'orders',
                         'orders/{id}',
+                        'otc/orders',
                         'payment-methods',
                         'position',
                         'reports/{id}',
@@ -109,8 +110,8 @@ class gdax extends Exchange {
                 'trading' => array (
                     'tierBased' => true, // complicated tier system per coin
                     'percentage' => true,
-                    'maker' => 0.0,
-                    'taker' => 0.3 / 100, // tiered fee starts at 0.3%
+                    'maker' => 0.15 / 100, // highest fee of all tiers
+                    'taker' => 0.25 / 100, // highest fee of all tiers
                 ),
                 'funding' => array (
                     'tierBased' => false,
@@ -173,11 +174,7 @@ class gdax extends Exchange {
             if (($base === 'ETH') || ($base === 'LTC')) {
                 $taker = 0.003;
             }
-            $accessible = true;
-            if (is_array ($market) && array_key_exists ('accessible', $market)) {
-                $accessible = $this->safe_value($market, 'accessible');
-            }
-            $active = ($market['status'] === 'online') && $accessible;
+            $active = $market['status'] === 'online';
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -546,7 +543,7 @@ class gdax extends Exchange {
         return $this->privateDeleteOrdersId (array ( 'id' => $id ));
     }
 
-    public function cancel_all_orders ($params = array ()) {
+    public function cancel_all_orders ($symbol = null, $params = array ()) {
         return $this->privateDeleteOrders ($params);
     }
 

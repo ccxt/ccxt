@@ -805,6 +805,8 @@ class liqui extends Exchange {
                 $exact = $this->exceptions['exact'];
                 if (is_array ($exact) && array_key_exists ($code, $exact)) {
                     throw new $exact[$code] ($feedback);
+                } else if (is_array ($exact) && array_key_exists ($message, $exact)) {
+                    throw new $exact[$message] ($feedback);
                 }
                 $broad = $this->exceptions['broad'];
                 $broadKey = $this->findBroadlyMatchedKey ($broad, $message);

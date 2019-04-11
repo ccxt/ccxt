@@ -36,6 +36,8 @@ class bibox (Exchange):
                 'CORS': False,
                 'publicAPI': False,
                 'fetchBalance': True,
+                'fetchDeposits': True,
+                'fetchWithdrawals': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchFundingFees': True,
@@ -54,6 +56,9 @@ class bibox (Exchange):
                 '15m': '15min',
                 '30m': '30min',
                 '1h': '1hour',
+                '2h': '2hour',
+                '4h': '4hour',
+                '6h': '6hour',
                 '12h': '12hour',
                 '1d': 'day',
                 '1w': 'week',
@@ -227,9 +232,10 @@ class bibox (Exchange):
         return tickers
 
     def fetch_tickers(self, symbols=None, params={}):
-        response = self.publicGetMdata(self.extend({
+        request = {
             'cmd': 'marketAll',
-        }, params))
+        }
+        response = self.publicGetMdata(self.extend(request, params))
         tickers = self.parse_tickers(response['result'], symbols)
         return self.index_by(tickers, 'symbol')
 
@@ -288,33 +294,35 @@ class bibox (Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        size = limit if (limit) else 200
-        response = self.publicGetMdata(self.extend({
+        request = {
             'cmd': 'deals',
             'pair': market['id'],
-            'size': size,
-        }, params))
+        }
+        if limit is not None:
+            request['size'] = limit  # default = 200
+        response = self.publicGetMdata(self.extend(request, params))
         return self.parse_trades(response['result'], market, since, limit)
 
-    def fetch_order_book(self, symbol, limit=200, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
             'cmd': 'depth',
             'pair': market['id'],
         }
-        request['size'] = limit  # default = 200 ?
+        if limit is not None:
+            request['size'] = limit  # default = 200
         response = self.publicGetMdata(self.extend(request, params))
         return self.parse_order_book(response['result'], self.safe_float(response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume')
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
             ohlcv['time'],
-            ohlcv['open'],
-            ohlcv['high'],
-            ohlcv['low'],
-            ohlcv['close'],
-            ohlcv['vol'],
+            self.safe_float(ohlcv, 'open'),
+            self.safe_float(ohlcv, 'high'),
+            self.safe_float(ohlcv, 'low'),
+            self.safe_float(ohlcv, 'close'),
+            self.safe_float(ohlcv, 'vol'),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1000, params={}):
@@ -329,6 +337,8 @@ class bibox (Exchange):
         return self.parse_ohlcvs(response['result'], market, timeframe, since, limit)
 
     def fetch_currencies(self, params={}):
+        if not self.apiKey or not self.secret:
+            raise AuthenticationError(self.id + " fetchCurrencies is an authenticated endpoint, therefore it requires 'apiKey' and 'secret' credentials. If you don't need currency details, set exchange.has['fetchCurrencies'] = False before calling its methods.")
         response = self.privatePostTransfer({
             'cmd': 'transfer/coinList',
             'body': {},
@@ -408,6 +418,126 @@ class bibox (Exchange):
                 account['total'] = self.sum(account['free'], account['used'])
             result[code] = account
         return self.parse_balance(result)
+
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        currency = None
+        request = {
+            'page': 1,
+        }
+        if code is not None:
+            currency = self.currency(code)
+            request['symbol'] = currency['id']
+        if limit is not None:
+            request['size'] = limit  # default = 100
+        response = self.privatePostTransfer({
+            'cmd': 'transfer/transferInList',
+            'body': self.extend(request, params),
+        })
+        deposits = self.safe_value(response['result'], 'items', [])
+        for i in range(0, len(deposits)):
+            deposits[i]['type'] = 'deposit'
+        return self.parseTransactions(deposits, currency, since, limit)
+
+    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        currency = None
+        request = {
+            'page': 1,
+        }
+        if code is not None:
+            currency = self.currency(code)
+            request['symbol'] = currency['id']
+        if limit is not None:
+            request['size'] = limit  # default = 100
+        response = self.privatePostTransfer({
+            'cmd': 'transfer/transferOutList',
+            'body': self.extend(request, params),
+        })
+        withdrawals = self.safe_value(response['result'], 'items', [])
+        for i in range(0, len(withdrawals)):
+            withdrawals[i]['type'] = 'withdrawal'
+        return self.parseTransactions(withdrawals, currency, since, limit)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # fetchDeposits
+        #
+        #     {
+        #         'id': 1023291,
+        #         'coin_symbol': 'ETH',
+        #         'to_address': '0x7263....',
+        #         'amount': '0.49170000',
+        #         'confirmCount': '16',
+        #         'createdAt': 1553123867000,
+        #         'status': 2
+        #     }
+        #
+        # fetchWithdrawals
+        #
+        #     {
+        #         'id': 521844,
+        #         'coin_symbol': 'ETH',
+        #         'to_address': '0xfd4e....',
+        #         'addr_remark': '',
+        #         'amount': '0.39452750',
+        #         'fee': '0.00600000',
+        #         'createdAt': 1553226906000,
+        #         'memo': '',
+        #         'status': 3
+        #     }
+        #
+        id = self.safe_string(transaction, 'id')
+        address = self.safe_string(transaction, 'to_address')
+        code = None
+        currencyId = self.safe_string(transaction, 'coin_symbol')
+        if currencyId in self.currencies_by_id:
+            currency = self.currencies_by_id[currencyId]
+        else:
+            code = self.common_currency_code(currencyId)
+        if currency is not None:
+            code = currency['code']
+        timestamp = self.safe_string(transaction, 'createdAt')
+        tag = self.safe_string(transaction, 'addr_remark')
+        type = self.safe_string(transaction, 'type')
+        status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
+        amount = self.safe_float(transaction, 'amount')
+        feeCost = self.safe_float(transaction, 'fee')
+        if type == 'deposit':
+            feeCost = 0
+            tag = None
+        fee = {
+            'cost': feeCost,
+            'currency': code,
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'address': address,
+            'tag': tag,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': None,
+            'fee': fee,
+        }
+
+    def parse_transaction_status_by_type(self, status, type=None):
+        statuses = {
+            'deposit': {
+                '1': 'pending',
+                '2': 'ok',
+            },
+            'withdrawal': {
+                '0': 'pending',
+                '3': 'ok',
+            },
+        }
+        return self.safe_string(self.safe_value(statuses, type, {}), status, status)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

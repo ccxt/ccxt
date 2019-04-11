@@ -168,6 +168,7 @@ class bittrex extends Exchange {
                 'UUID_INVALID' => '\\ccxt\\OrderNotFound',
                 'RATE_NOT_PROVIDED' => '\\ccxt\\InvalidOrder', // createLimitBuyOrder ('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP' => '\\ccxt\\PermissionDenied',
+                'DUST_TRADE_DISALLOWED_MIN_VALUE' => '\\ccxt\\InvalidOrder',
             ),
             'options' => array (
                 // price precision by quote currency code
@@ -477,12 +478,14 @@ class bittrex extends Exchange {
             }
         }
         return array (
-            'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
+            'id' => $id,
+            'order' => null,
             'type' => 'limit',
+            'takerOrMaker' => null,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
@@ -850,10 +853,8 @@ class bittrex extends Exchange {
                 $price = $cost / $filled;
         }
         $average = $this->safe_float($order, 'PricePerUnit');
-        $id = $this->safe_string($order, 'OrderUuid');
-        if ($id === null)
-            $id = $this->safe_string($order, 'OrderId');
-        $result = array (
+        $id = $this->safe_string_2($order, 'OrderUuid', 'OrderId');
+        return array (
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -871,7 +872,6 @@ class bittrex extends Exchange {
             'status' => $status,
             'fee' => $fee,
         );
-        return $result;
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
@@ -1054,8 +1054,12 @@ class bittrex extends Exchange {
                         throw new AuthenticationError ($feedback);
                     }
                 }
-                if ($message === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
-                    throw new InvalidOrder ($this->id . ' order cost should be over 50k satoshi ' . $this->json ($response));
+                // https://github.com/ccxt/ccxt/issues/4932
+                // the following two lines are now redundant, see line 171 in describe()
+                //
+                //     if ($message === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
+                //         throw new InvalidOrder ($this->id . ' order cost should be over 50k satoshi ' . $this->json ($response));
+                //
                 if ($message === 'INVALID_ORDER') {
                     // Bittrex will return an ambiguous INVALID_ORDER $message
                     // upon canceling already-canceled and closed orders

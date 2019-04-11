@@ -273,6 +273,7 @@ class binance (Exchange):
                 },
             },
             'commonCurrencies': {
+                'BCC': 'BCC',  # kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
                 'YOYO': 'YOYOW',
             },
             # exchange-specific options
@@ -293,6 +294,10 @@ class binance (Exchange):
                 },
             },
             'exceptions': {
+                'API key does not exist': AuthenticationError,
+                'Order would trigger immediately.': InvalidOrder,
+                'Account has insufficient balance for requested action.': InsufficientFunds,
+                'Rest API trading is not enabled.': ExchangeNotAvailable,
                 '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
                 '-1013': InvalidOrder,  # createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
                 '-1021': InvalidNonce,  # 'your time is ahead of server'
@@ -369,17 +374,17 @@ class binance (Exchange):
             }
             if 'PRICE_FILTER' in filters:
                 filter = filters['PRICE_FILTER']
-                # PRICE_FILTER reports zero values for minPrice and maxPrice
+                # PRICE_FILTER reports zero values for maxPrice
                 # since they updated filter types in November 2018
                 # https://github.com/ccxt/ccxt/issues/4286
-                # therefore limits['price']['min'] and limits['price']['max]
-                # don't have any meaningful value except None
-                #
-                #     entry['limits']['price'] = {
-                #         'min': self.safe_float(filter, 'minPrice'),
-                #         'max': self.safe_float(filter, 'maxPrice'),
-                #     }
-                #
+                # therefore limits['price']['max'] doesn't have any meaningful value except None
+                entry['limits']['price'] = {
+                    'min': self.safe_float(filter, 'minPrice'),
+                    'max': None,
+                }
+                maxPrice = self.safe_float(filter, 'maxPrice')
+                if (maxPrice is not None) and(maxPrice > 0):
+                    entry['limits']['price']['max'] = maxPrice
                 entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
             if 'LOT_SIZE' in filters:
                 filter = filters['LOT_SIZE']
@@ -605,8 +610,8 @@ class binance (Exchange):
             'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
-            'cost': price * amount,
             'amount': amount,
+            'cost': price * amount,
             'fee': fee,
         }
 
@@ -1200,23 +1205,20 @@ class binance (Exchange):
                             parsedMessage = None
                         if parsedMessage is not None:
                             response = parsedMessage
+                exceptions = self.exceptions
+                message = self.safe_string(response, 'msg')
+                if message in exceptions:
+                    ExceptionClass = exceptions[message]
+                    raise ExceptionClass(self.id + ' ' + message)
                 # checks against error codes
                 error = self.safe_string(response, 'code')
                 if error is not None:
-                    exceptions = self.exceptions
                     if error in exceptions:
                         # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
                         # despite that their message is very confusing, it is raised by Binance
                         # on a temporary ban(the API key is valid, but disabled for a while)
                         if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
                             raise DDoSProtection(self.id + ' temporary banned: ' + body)
-                        message = self.safe_string(response, 'msg')
-                        if message == 'Order would trigger immediately.':
-                            raise InvalidOrder(self.id + ' ' + body)
-                        elif message == 'Account has insufficient balance for requested action.':
-                            raise InsufficientFunds(self.id + ' ' + body)
-                        elif message == 'Rest API trading is not enabled.':
-                            raise ExchangeNotAvailable(self.id + ' ' + body)
                         raise exceptions[error](self.id + ' ' + body)
                     else:
                         raise ExchangeError(self.id + ' ' + body)

@@ -86,11 +86,15 @@ module.exports = class kucoin extends Exchange {
                         'accounts/{accountId}/holds',
                         'deposit-addresses',
                         'deposits',
+                        'hist-deposits',
+                        'hist-orders',
+                        'hist-withdrawals',
                         'withdrawals',
                         'withdrawals/quotas',
                         'orders',
                         'orders/{orderId}',
                         'fills',
+                        'limit/fills',
                     ],
                     'post': [
                         'accounts',
@@ -122,6 +126,10 @@ module.exports = class kucoin extends Exchange {
                 '1w': '1week',
             },
             'exceptions': {
+                'order_not_exist': OrderNotFound, // {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
+                'order_not_exist_or_not_allow_to_cancel': InvalidOrder, // {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
+                'Order size below the minimum requirement.': InvalidOrder, // {"code":"400100","msg":"Order size below the minimum requirement."}
+                'The withdrawal amount is below the minimum requirement.': ExchangeError, // {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
                 '400': BadRequest,
                 '401': AuthenticationError,
                 '403': NotSupported,
@@ -131,6 +139,7 @@ module.exports = class kucoin extends Exchange {
                 '500': ExchangeError,
                 '503': ExchangeNotAvailable,
                 '200004': InsufficientFunds,
+                '260100': InsufficientFunds, // {"code":"260100","msg":"account.noBalance"}
                 '300000': InvalidOrder,
                 '400001': AuthenticationError,
                 '400002': InvalidNonce,
@@ -143,9 +152,6 @@ module.exports = class kucoin extends Exchange {
                 '400100': ArgumentsRequired,
                 '411100': AccountSuspended,
                 '500000': ExchangeError,
-                'order_not_exist': OrderNotFound, // {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
-                'order_not_exist_or_not_allow_to_cancel': InvalidOrder, // {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
-                'Order size below the minimum requirement.': InvalidOrder, // {"code":"400100","msg":"Order size below the minimum requirement."}
             },
             'fees': {
                 'trading': {
@@ -160,6 +166,9 @@ module.exports = class kucoin extends Exchange {
                     'withdraw': {},
                     'deposit': {},
                 },
+            },
+            'commonCurrencies': {
+                'HOT': 'HOTNOW',
             },
             'options': {
                 'version': 'v1',
@@ -197,7 +206,7 @@ module.exports = class kucoin extends Exchange {
         //   baseCurrency: 'KCS' }
         //
         const data = response['data'];
-        const result = {};
+        const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = market['name'];
@@ -211,7 +220,7 @@ module.exports = class kucoin extends Exchange {
             const baseMinSize = this.safeFloat (market, 'baseMinSize');
             const quoteMaxSize = this.safeFloat (market, 'quoteMaxSize');
             const quoteMinSize = this.safeFloat (market, 'quoteMinSize');
-            const quoteIncrement = this.safeFloat (market, 'quoteIncrement');
+            // const quoteIncrement = this.safeFloat (market, 'quoteIncrement');
             const precision = {
                 'amount': this.precisionFromString (this.safeString (market, 'baseIncrement')),
                 'price': this.precisionFromString (this.safeString (market, 'priceIncrement')),
@@ -222,7 +231,7 @@ module.exports = class kucoin extends Exchange {
                     'max': baseMaxSize,
                 },
                 'price': {
-                    'min': Math.max (quoteMinSize / baseMinSize, quoteIncrement),
+                    'min': this.safeFloat (market, 'priceIncrement'),
                     'max': quoteMaxSize / baseMinSize,
                 },
                 'cost': {
@@ -230,7 +239,7 @@ module.exports = class kucoin extends Exchange {
                     'max': quoteMaxSize,
                 },
             };
-            result[symbol] = {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'baseId': baseId,
@@ -241,7 +250,7 @@ module.exports = class kucoin extends Exchange {
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-            };
+            });
         }
         return result;
     }
@@ -603,17 +612,60 @@ module.exports = class kucoin extends Exchange {
             request['pageSize'] = limit;
         }
         const response = await this.privateGetOrders (this.extend (request, params));
+        //
+        //     {
+        //         code: '200000',
+        //         data: {
+        //             "currentPage": 1,
+        //             "pageSize": 1,
+        //             "totalNum": 153408,
+        //             "totalPage": 153408,
+        //             "items": [
+        //                 {
+        //                     "id": "5c35c02703aa673ceec2a168",   //orderid
+        //                     "symbol": "BTC-USDT",   //symbol
+        //                     "opType": "DEAL",      // operation type,deal is pending order,cancel is cancel order
+        //                     "type": "limit",       // order type,e.g. limit,markrt,stop_limit.
+        //                     "side": "buy",         // transaction direction,include buy and sell
+        //                     "price": "10",         // order price
+        //                     "size": "2",           // order quantity
+        //                     "funds": "0",          // order funds
+        //                     "dealFunds": "0.166",  // deal funds
+        //                     "dealSize": "2",       // deal quantity
+        //                     "fee": "0",            // fee
+        //                     "feeCurrency": "USDT", // charge fee currency
+        //                     "stp": "",             // self trade prevention,include CN,CO,DC,CB
+        //                     "stop": "",            // stop type
+        //                     "stopTriggered": false,  // stop order is triggered
+        //                     "stopPrice": "0",      // stop price
+        //                     "timeInForce": "GTC",  // time InForce,include GTC,GTT,IOC,FOK
+        //                     "postOnly": false,     // postOnly
+        //                     "hidden": false,       // hidden order
+        //                     "iceberg": false,      // iceberg order
+        //                     "visibleSize": "0",    // display quantity for iceberg order
+        //                     "cancelAfter": 0,      // cancel orders time，requires timeInForce to be GTT
+        //                     "channel": "IOS",      // order source
+        //                     "clientOid": "",       // user-entered order unique mark
+        //                     "remark": "",          // remark
+        //                     "tags": "",            // tag order source
+        //                     "isActive": false,     // status before unfilled or uncancelled
+        //                     "cancelExist": false,   // order cancellation transaction record
+        //                     "createdAt": 1547026471000  // time
+        //                 },
+        //             ]
+        //         }
+        //    }
         const responseData = this.safeValue (response, 'data', {});
         const orders = this.safeValue (responseData, 'items', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrdersByStatus ('done', symbol, since, limit, params);
+        return await this.fetchOrdersByStatus ('done', symbol, since, limit, params);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrdersByStatus ('active', symbol, since, limit, params);
+        return await this.fetchOrdersByStatus ('active', symbol, since, limit, params);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -632,35 +684,39 @@ module.exports = class kucoin extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        //   { "id": "5c35c02703aa673ceec2a168",
-        //     "symbol": "BTC-USDT",
-        //     "opType": "DEAL",
-        //     "type": "limit",
-        //     "side": "buy",
-        //     "price": "10",
-        //     "size": "2",
-        //     "funds": "0",
-        //     "dealFunds": "0.166",
-        //     "dealSize": "2",
-        //     "fee": "0",
-        //     "feeCurrency": "USDT",
-        //     "stp": "",
-        //     "stop": "",
-        //     "stopTriggered": false,
-        //     "stopPrice": "0",
-        //     "timeInForce": "GTC",
-        //     "postOnly": false,
-        //     "hidden": false,
-        //     "iceberge": false,
-        //     "visibleSize": "0",
-        //     "cancelAfter": 0,
-        //     "channel": "IOS",
-        //     "clientOid": "",
-        //     "remark": "",
-        //     "tags": "",
-        //     "isActive": false,
-        //     "cancelExist": false,
-        //     "createdAt": 1547026471000 }
+        // fetchOpenOrders, fetchClosedOrders
+        //
+        //     {
+        //         "id": "5c35c02703aa673ceec2a168",   //orderid
+        //         "symbol": "BTC-USDT",   //symbol
+        //         "opType": "DEAL",      // operation type,deal is pending order,cancel is cancel order
+        //         "type": "limit",       // order type,e.g. limit,markrt,stop_limit.
+        //         "side": "buy",         // transaction direction,include buy and sell
+        //         "price": "10",         // order price
+        //         "size": "2",           // order quantity
+        //         "funds": "0",          // order funds
+        //         "dealFunds": "0.166",  // deal funds
+        //         "dealSize": "2",       // deal quantity
+        //         "fee": "0",            // fee
+        //         "feeCurrency": "USDT", // charge fee currency
+        //         "stp": "",             // self trade prevention,include CN,CO,DC,CB
+        //         "stop": "",            // stop type
+        //         "stopTriggered": false,  // stop order is triggered
+        //         "stopPrice": "0",      // stop price
+        //         "timeInForce": "GTC",  // time InForce,include GTC,GTT,IOC,FOK
+        //         "postOnly": false,     // postOnly
+        //         "hidden": false,       // hidden order
+        //         "iceberg": false,      // iceberg order
+        //         "visibleSize": "0",    // display quantity for iceberg order
+        //         "cancelAfter": 0,      // cancel orders time，requires timeInForce to be GTT
+        //         "channel": "IOS",      // order source
+        //         "clientOid": "",       // user-entered order unique mark
+        //         "remark": "",          // remark
+        //         "tags": "",            // tag order source
+        //         "isActive": false,     // status before unfilled or uncancelled
+        //         "cancelExist": false,   // order cancellation transaction record
+        //         "createdAt": 1547026471000  // time
+        //     }
         //
         let symbol = undefined;
         const marketId = this.safeString (order, 'symbol');
@@ -685,7 +741,7 @@ module.exports = class kucoin extends Exchange {
         const type = this.safeString (order, 'type');
         const timestamp = this.safeInteger (order, 'createdAt');
         const datetime = this.iso8601 (timestamp);
-        const price = this.safeFloat (order, 'price');
+        let price = this.safeFloat (order, 'price');
         const side = this.safeString (order, 'side');
         const feeCurrencyId = this.safeString (order, 'feeCurrency');
         const feeCurrency = this.commonCurrencyCode (feeCurrencyId);
@@ -700,6 +756,15 @@ module.exports = class kucoin extends Exchange {
             'currency': feeCurrency,
             'cost': feeCost,
         };
+        if (type === 'market') {
+            if (price === 0.0) {
+                if ((cost !== undefined) && (filled !== undefined)) {
+                    if ((cost > 0) && (filled > 0)) {
+                        price = cost / filled;
+                    }
+                }
+            }
+        }
         return {
             'id': orderId,
             'symbol': symbol,
@@ -726,13 +791,62 @@ module.exports = class kucoin extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        if (since !== undefined) {
-            request['startAt'] = since;
-        }
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await this.privateGetFills (this.extend (request, params));
+        let method = 'privateGetFills';
+        if (since !== undefined) {
+            // if since is earlier than 2019-02-18T00:00:00Z
+            if (since < 1550448000000) {
+                request['startAt'] = parseInt (since / 1000);
+                // despite that this endpoint is called `HistOrders`
+                // it returns historical trades instead of orders
+                method = 'privateGetHistOrders';
+            } else {
+                request['startAt'] = since;
+            }
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "currentPage": 1,
+        //         "pageSize": 50,
+        //         "totalNum": 1,
+        //         "totalPage": 1,
+        //         "items": [
+        //             {
+        //                 "symbol":"BTC-USDT",       // symbol
+        //                 "tradeId":"5c35c02709e4f67d5266954e",        // trade id
+        //                 "orderId":"5c35c02703aa673ceec2a168",        // order id
+        //                 "counterOrderId":"5c1ab46003aa676e487fa8e3", // counter order id
+        //                 "side":"buy",              // transaction direction,include buy and sell
+        //                 "liquidity":"taker",       // include taker and maker
+        //                 "forceTaker":true,         // forced to become taker
+        //                 "price":"0.083",           // order price
+        //                 "size":"0.8424304",        // order quantity
+        //                 "funds":"0.0699217232",    // order funds
+        //                 "fee":"0",                 // fee
+        //                 "feeRate":"0",             // fee rate
+        //                 "feeCurrency":"USDT",      // charge fee currency
+        //                 "stop":"",                 // stop type
+        //                 "type":"limit",            // order type, e.g. limit, market, stop_limit.
+        //                 "createdAt":1547026472000  // time
+        //             },
+        //             //------------------------------------------------------
+        //             // v1 (historical) trade response structure
+        //             {
+        //                 "symbol": "SNOV-ETH",
+        //                 "dealPrice": "0.0000246",
+        //                 "dealValue": "0.018942",
+        //                 "amount": "770",
+        //                 "fee": "0.00001137",
+        //                 "side": "sell",
+        //                 "createdAt": 1540080199
+        //                 "id":"5c4d389e4c8c60413f78e2e5",
+        //             }
+        //         ]
+        //     }
+        //
         const data = this.safeValue (response, 'data', {});
         const trades = this.safeValue (data, 'items', []);
         return this.parseTrades (trades, market, since, limit);
@@ -751,6 +865,7 @@ module.exports = class kucoin extends Exchange {
             request['pageSize'] = limit;
         }
         const response = await this.publicGetMarketHistories (this.extend (request, params));
+        //
         //     {
         //         "code": "200000",
         //         "data": [
@@ -780,7 +895,7 @@ module.exports = class kucoin extends Exchange {
         //         "time":1548848575203567174
         //     }
         //
-        // fetchMyTrades (private)
+        // fetchMyTrades (private) v2
         //
         //     {
         //         "symbol":"BTC-USDT",
@@ -801,6 +916,19 @@ module.exports = class kucoin extends Exchange {
         //         "createdAt":1547026472000
         //     }
         //
+        // fetchMyTrades (private) v1 (historical)
+        //
+        //     {
+        //         "symbol": "SNOV-ETH",
+        //         "dealPrice": "0.0000246",
+        //         "dealValue": "0.018942",
+        //         "amount": "770",
+        //         "fee": "0.00001137",
+        //         "side": "sell",
+        //         "createdAt": 1540080199
+        //         "id":"5c4d389e4c8c60413f78e2e5",
+        //     }
+        //
         let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
         if (marketId !== undefined) {
@@ -813,37 +941,54 @@ module.exports = class kucoin extends Exchange {
                 const quote = this.commonCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             }
-            market = this.safeValue (this.markets_by_id, marketId);
         }
         if (symbol === undefined) {
             if (market !== undefined) {
                 symbol = market['symbol'];
             }
         }
-        let id = this.safeString (trade, 'tradeId');
+        let id = this.safeString2 (trade, 'tradeId', 'id');
         if (id !== undefined) {
             id = id.toString ();
         }
         const orderId = this.safeString (trade, 'orderId');
-        const amount = this.safeFloat (trade, 'size');
+        const takerOrMaker = this.safeString (trade, 'liquidity');
+        const amount = this.safeFloat2 (trade, 'size', 'amount');
         let timestamp = this.safeInteger (trade, 'time');
         if (timestamp !== undefined) {
             timestamp = parseInt (timestamp / 1000000);
         } else {
             timestamp = this.safeInteger (trade, 'createdAt');
+            // if it's a historical v1 trade, the exchange returns timestamp in seconds
+            if (takerOrMaker === undefined && timestamp !== undefined) {
+                timestamp = timestamp * 1000;
+            }
         }
-        const price = this.safeFloat (trade, 'price');
+        const price = this.safeFloat2 (trade, 'price', 'dealPrice');
         const side = this.safeString (trade, 'side');
-        const fee = {
-            'cost': this.safeFloat (trade, 'fee'),
-            'rate': this.safeFloat (trade, 'feeRate'),
-            'currency': this.safeString (trade, 'feeCurrency'),
-        };
+        let fee = undefined;
+        const feeCost = this.safeFloat (trade, 'fee');
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'feeCurrency');
+            let feeCurrency = this.commonCurrencyCode (feeCurrencyId);
+            if (feeCurrency === undefined) {
+                if (market !== undefined) {
+                    feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
+                }
+            }
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+                'rate': this.safeFloat (trade, 'feeRate'),
+            };
+        }
         const type = this.safeString (trade, 'type');
-        let cost = this.safeFloat (trade, 'funds');
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = amount * price;
+        let cost = this.safeFloat2 (trade, 'funds', 'dealValue');
+        if (cost === undefined) {
+            if (amount !== undefined) {
+                if (price !== undefined) {
+                    cost = amount * price;
+                }
             }
         }
         return {
@@ -854,6 +999,7 @@ module.exports = class kucoin extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': type,
+            'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'amount': amount,
@@ -878,10 +1024,9 @@ module.exports = class kucoin extends Exchange {
         //
         // { "withdrawalId": "5bffb63303aa675e8bbe18f9" }
         //
-        const responseData = response['data'];
         return {
-            'id': this.safeString (responseData, 'withdrawalId'),
-            'info': responseData,
+            'id': this.safeString (response, 'withdrawalId'),
+            'info': response,
         };
     }
 
@@ -896,29 +1041,36 @@ module.exports = class kucoin extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         //
-        // Deposits
-        //   { "address": "0x5f047b29041bcfdbf0e4478cdfa753a336ba6989",
-        //     "memo": "5c247c8a03aa677cea2a251d",
-        //     "amount": 1,
-        //     "fee": 0.0001,
-        //     "currency": "KCS",
-        //     "isInner": false,
-        //     "walletTxId": "5bbb57386d99522d9f954c5a@test004",
-        //     "status": "SUCCESS",
-        //     "createdAt": 1544178843000,
-        //     "updatedAt": 1544178891000 }
-        // Withdrawals
-        //   { "id": "5c2dc64e03aa675aa263f1ac",
-        //     "address": "0x5bedb060b8eb8d823e2414d82acce78d38be7fe9",
-        //     "memo": "",
-        //     "currency": "ETH",
-        //     "amount": 1.0000000,
-        //     "fee": 0.0100000,
-        //     "walletTxId": "3e2414d82acce78d38be7fe9",
-        //     "isInner": false,
-        //     "status": "FAILURE",
-        //     "createdAt": 1546503758000,
-        //     "updatedAt": 1546504603000 }
+        // fetchDeposits
+        //
+        //     {
+        //         "address": "0x5f047b29041bcfdbf0e4478cdfa753a336ba6989",
+        //         "memo": "5c247c8a03aa677cea2a251d",
+        //         "amount": 1,
+        //         "fee": 0.0001,
+        //         "currency": "KCS",
+        //         "isInner": false,
+        //         "walletTxId": "5bbb57386d99522d9f954c5a@test004",
+        //         "status": "SUCCESS",
+        //         "createdAt": 1544178843000,
+        //         "updatedAt": 1544178891000
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "id": "5c2dc64e03aa675aa263f1ac",
+        //         "address": "0x5bedb060b8eb8d823e2414d82acce78d38be7fe9",
+        //         "memo": "",
+        //         "currency": "ETH",
+        //         "amount": 1.0000000,
+        //         "fee": 0.0100000,
+        //         "walletTxId": "3e2414d82acce78d38be7fe9",
+        //         "isInner": false,
+        //         "status": "FAILURE",
+        //         "createdAt": 1546503758000,
+        //         "updatedAt": 1546504603000
+        //     }
         //
         let code = undefined;
         let currencyId = this.safeString (transaction, 'currency');
@@ -928,22 +1080,54 @@ module.exports = class kucoin extends Exchange {
         } else {
             code = this.commonCurrencyCode (currencyId);
         }
-        const address = this.safeString (transaction, 'address');
+        let address = this.safeString (transaction, 'address');
         const amount = this.safeFloat (transaction, 'amount');
-        const txid = this.safeString (transaction, 'walletTxId');
-        const type = txid === undefined ? 'withdrawal' : 'deposit';
+        let txid = this.safeString (transaction, 'walletTxId');
+        if (txid !== undefined) {
+            const txidParts = txid.split ('@');
+            const numTxidParts = txidParts.length;
+            if (numTxidParts > 1) {
+                if (address === undefined) {
+                    if (txidParts[1].length > 1) {
+                        address = txidParts[1];
+                    }
+                }
+            }
+            txid = txidParts[0];
+        }
+        let type = txid === undefined ? 'withdrawal' : 'deposit';
         const rawStatus = this.safeString (transaction, 'status');
         const status = this.parseTransactionStatus (rawStatus);
-        let fees = {
-            'cost': this.safeFloat (transaction, 'fee'),
-        };
-        if (fees['cost'] !== undefined && amount !== undefined) {
-            fees['rate'] = fees['cost'] / amount;
+        let fee = undefined;
+        const feeCost = this.safeFloat (transaction, 'fee');
+        if (feeCost !== undefined) {
+            let rate = undefined;
+            if (amount !== undefined) {
+                rate = feeCost / amount;
+            }
+            fee = {
+                'cost': feeCost,
+                'rate': rate,
+                'currency': code,
+            };
         }
         const tag = this.safeString (transaction, 'memo');
-        const timestamp = this.safeInteger2 (transaction, 'updatedAt', 'createdAt');
-        const datetime = this.iso8601 (timestamp);
+        let timestamp = this.safeInteger2 (transaction, 'createdAt', 'createAt');
+        const id = this.safeString (transaction, 'id');
+        let updated = this.safeInteger (transaction, 'updatedAt');
+        const isV1 = !('createdAt' in transaction);
+        // if it's a v1 structure
+        if (isV1) {
+            type = ('address' in transaction) ? 'withdrawal' : 'deposit';
+            if (timestamp !== undefined) {
+                timestamp = timestamp * 1000;
+            }
+            if (updated !== undefined) {
+                updated = updated * 1000;
+            }
+        }
         return {
+            'id': id,
             'address': address,
             'tag': tag,
             'currency': code,
@@ -951,9 +1135,10 @@ module.exports = class kucoin extends Exchange {
             'txid': txid,
             'type': type,
             'status': status,
-            'fee': fees,
+            'fee': fee,
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
+            'updated': updated,
             'info': transaction,
         };
     }
@@ -966,26 +1151,59 @@ module.exports = class kucoin extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        if (since !== undefined) {
-            request['startAt'] = since;
-        }
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await this.privateGetDeposits (this.extend (request, params));
+        let method = 'privateGetDeposits';
+        if (since !== undefined) {
+            // if since is earlier than 2019-02-18T00:00:00Z
+            if (since < 1550448000000) {
+                request['startAt'] = parseInt (since / 1000);
+                method = 'privateGetHistDeposits';
+            } else {
+                request['startAt'] = since;
+            }
+        }
+        const response = await this[method] (this.extend (request, params));
         //
-        // paginated
-        // { code: '200000',
-        //   data:
-        //    { totalNum: 0,
-        //      totalPage: 0,
-        //      pageSize: 10,
-        //      currentPage: 1,
-        //      items: [...]
-        //     } }
+        //     {
+        //         code: '200000',
+        //         data: {
+        //             "currentPage": 1,
+        //             "pageSize": 5,
+        //             "totalNum": 2,
+        //             "totalPage": 1,
+        //             "items": [
+        //                 //--------------------------------------------------
+        //                 // version 2 deposit response structure
+        //                 {
+        //                     "address": "0x5f047b29041bcfdbf0e4478cdfa753a336ba6989",
+        //                     "memo": "5c247c8a03aa677cea2a251d",
+        //                     "amount": 1,
+        //                     "fee": 0.0001,
+        //                     "currency": "KCS",
+        //                     "isInner": false,
+        //                     "walletTxId": "5bbb57386d99522d9f954c5a@test004",
+        //                     "status": "SUCCESS",
+        //                     "createdAt": 1544178843000,
+        //                     "updatedAt": 1544178891000
+        //                 },
+        //                 //--------------------------------------------------
+        //                 // version 1 (historical) deposit response structure
+        //                 {
+        //                     "currency": "BTC",
+        //                     "createAt": 1528536998,
+        //                     "amount": "0.03266638",
+        //                     "walletTxId": "55c643bc2c68d6f17266383ac1be9e454038864b929ae7cee0bc408cc5c869e8@12ffGWmMMD1zA1WbFm7Ho3JZ1w6NYXjpFk@234",
+        //                     "isInner": false,
+        //                     "status": "SUCCESS",
+        //                 }
+        //             ]
+        //         }
+        //     }
         //
         const responseData = response['data']['items'];
-        return this.parseTransactions (responseData, currency, since, limit);
+        return this.parseTransactions (responseData, currency, since, limit, { 'type': 'deposit' });
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -996,25 +1214,61 @@ module.exports = class kucoin extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        if (since !== undefined) {
-            request['startAt'] = since;
-        }
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await this.privateGetWithdrawals (this.extend (request, params));
+        let method = 'privateGetWithdrawals';
+        if (since !== undefined) {
+            // if since is earlier than 2019-02-18T00:00:00Z
+            if (since < 1550448000000) {
+                request['startAt'] = parseInt (since / 1000);
+                method = 'privateGetHistWithdrawals';
+            } else {
+                request['startAt'] = since;
+            }
+        }
+        const response = await this[method] (this.extend (request, params));
         //
-        // paginated
-        // { code: '200000',
-        //   data:
-        //    { totalNum: 0,
-        //      totalPage: 0,
-        //      pageSize: 10,
-        //      currentPage: 1,
-        //      items: [...] } }
+        //     {
+        //         code: '200000',
+        //         data: {
+        //             "currentPage": 1,
+        //             "pageSize": 5,
+        //             "totalNum": 2,
+        //             "totalPage": 1,
+        //             "items": [
+        //                 //--------------------------------------------------
+        //                 // version 2 withdrawal response structure
+        //                 {
+        //                     "id": "5c2dc64e03aa675aa263f1ac",
+        //                     "address": "0x5bedb060b8eb8d823e2414d82acce78d38be7fe9",
+        //                     "memo": "",
+        //                     "currency": "ETH",
+        //                     "amount": 1.0000000,
+        //                     "fee": 0.0100000,
+        //                     "walletTxId": "3e2414d82acce78d38be7fe9",
+        //                     "isInner": false,
+        //                     "status": "FAILURE",
+        //                     "createdAt": 1546503758000,
+        //                     "updatedAt": 1546504603000
+        //                 },
+        //                 //--------------------------------------------------
+        //                 // version 1 (historical) withdrawal response structure
+        //                 {
+        //                     "currency": "BTC",
+        //                     "createAt": 1526723468,
+        //                     "amount": "0.534",
+        //                     "address": "33xW37ZSW4tQvg443Pc7NLCAs167Yc2XUV",
+        //                     "walletTxId": "aeacea864c020acf58e51606169240e96774838dcd4f7ce48acf38e3651323f4",
+        //                     "isInner": false,
+        //                     "status": "SUCCESS"
+        //                 }
+        //             ]
+        //         }
+        //     }
         //
         const responseData = response['data']['items'];
-        return this.parseTransactions (responseData, currency, since, limit);
+        return this.parseTransactions (responseData, currency, since, limit, { 'type': 'withdrawal' });
     }
 
     async fetchBalance (params = {}) {

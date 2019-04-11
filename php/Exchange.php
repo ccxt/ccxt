@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.352';
+$version = '1.18.458';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.352';
+    const VERSION = '1.18.458';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -86,9 +86,11 @@ class Exchange {
         'anxpro',
         'anybits',
         'bcex',
+        'bequant',
         'bibox',
         'bigone',
         'binance',
+        'binanceje',
         'bit2c',
         'bitbank',
         'bitbay',
@@ -153,11 +155,11 @@ class Exchange {
         'exmo',
         'exx',
         'fcoin',
+        'fcoinjp',
         'flowbtc',
         'foxbit',
         'fybse',
         'fybsg',
-        'gatecoin',
         'gateio',
         'gdax',
         'gemini',
@@ -184,6 +186,7 @@ class Exchange {
         'livecoin',
         'luno',
         'lykke',
+        'mandala',
         'mercado',
         'mixcoins',
         'negociecoins',
@@ -210,7 +213,6 @@ class Exchange {
         'virwox',
         'xbtce',
         'yobit',
-        'yunbi',
         'zaif',
         'zb',
     );
@@ -1342,10 +1344,10 @@ class Exchange {
             }
             return $this->markets;
         }
-        $markets = $this->fetch_markets ($params);
         $currencies = null;
         if (array_key_exists ('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'])
             $currencies = $this->fetch_currencies ();
+        $markets = $this->fetch_markets ($params);
         return $this->set_markets ($markets, $currencies);
     }
 
@@ -1562,18 +1564,20 @@ class Exchange {
         return $this->parse_ledger ($items, $currency, $since, $limit);
     }
 
-    public function parse_transactions ($transactions, $currency = null, $since = null, $limit = null) {
+    public function parse_transactions ($transactions, $currency = null, $since = null, $limit = null, $params = array ()) {
         $array = is_array ($transactions) ? array_values ($transactions) : array ();
         $result = array ();
-        foreach ($array as $transaction)
-            $result[] = $this->parse_transaction ($transaction, $currency);
+        foreach ($array as $transaction) {
+            var_dump ($params);
+            $result[] = array_merge ($this->parse_transaction ($transaction, $currency), $params);
+        }
         $result = $this->sort_by ($result, 'timestamp');
         $code = isset ($currency) ? $currency['code'] : null;
         return $this->filter_by_currency_since_limit ($result, $code, $since, $limit);
     }
 
-    public function parseTransactions ($transactions, $currency = null, $since = null, $limit = null) {
-        return $this->parse_transactions ($transactions, $currency, $since, $limit);
+    public function parseTransactions ($transactions, $currency = null, $since = null, $limit = null, $params = array ()) {
+        return $this->parse_transactions ($transactions, $currency, $since, $limit, $params);
     }
 
     public function parse_orders ($orders, $market = null, $since = null, $limit = null) {
@@ -2217,7 +2221,7 @@ class Exchange {
 
         // Special handling for negative precision
         if ($numPrecisionDigits < 0) {
-            $toNearest = 10 ** abs ($numPrecisionDigits);
+            $toNearest = pow (10, abs ($numPrecisionDigits));
             if ($roundingMode === ROUND) {
                 $result = (string) ($toNearest * static::decimal_to_precision ($x / $toNearest, $roundingMode, 0, DECIMAL_PLACES, $paddingMode));
             }

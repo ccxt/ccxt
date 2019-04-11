@@ -187,6 +187,7 @@ class bittrex (Exchange):
                 'UUID_INVALID': OrderNotFound,
                 'RATE_NOT_PROVIDED': InvalidOrder,  # createLimitBuyOrder('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP': PermissionDenied,
+                'DUST_TRADE_DISALLOWED_MIN_VALUE': InvalidOrder,
             },
             'options': {
                 # price precision by quote currency code
@@ -470,12 +471,14 @@ class bittrex (Exchange):
             if price is not None:
                 cost = price * amount
         return {
-            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
+            'id': id,
+            'order': None,
             'type': 'limit',
+            'takerOrMaker': None,
             'side': side,
             'price': price,
             'amount': amount,
@@ -809,10 +812,8 @@ class bittrex (Exchange):
             if cost and filled:
                 price = cost / filled
         average = self.safe_float(order, 'PricePerUnit')
-        id = self.safe_string(order, 'OrderUuid')
-        if id is None:
-            id = self.safe_string(order, 'OrderId')
-        result = {
+        id = self.safe_string_2(order, 'OrderUuid', 'OrderId')
+        return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -830,7 +831,6 @@ class bittrex (Exchange):
             'status': status,
             'fee': fee,
         }
-        return result
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -991,8 +991,12 @@ class bittrex (Exchange):
                         raise DDoSProtection(feedback)
                     else:
                         raise AuthenticationError(feedback)
-                if message == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT':
-                    raise InvalidOrder(self.id + ' order cost should be over 50k satoshi ' + self.json(response))
+                # https://github.com/ccxt/ccxt/issues/4932
+                # the following two lines are now redundant, see line 171 in describe()
+                #
+                #     if message == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT':
+                #         raise InvalidOrder(self.id + ' order cost should be over 50k satoshi ' + self.json(response))
+                #
                 if message == 'INVALID_ORDER':
                     # Bittrex will return an ambiguous INVALID_ORDER message
                     # upon canceling already-canceled and closed orders

@@ -28,13 +28,14 @@ class bigone (Exchange):
             'countries': ['GB'],
             'version': 'v2',
             'has': {
-                'fetchTickers': True,
-                'fetchOpenOrders': True,
-                'fetchMyTrades': True,
-                'fetchDepositAddress': True,
-                'withdraw': True,
-                'fetchOHLCV': False,
+                'cancelAllOrders': True,
                 'createMarketOrder': False,
+                'fetchDepositAddress': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': False,
+                'fetchOpenOrders': True,
+                'fetchTickers': True,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/42803606-27c2b5ec-89af-11e8-8d15-9c8c245e8b2c.jpg',
@@ -479,10 +480,10 @@ class bigone (Exchange):
         #         }
         #     }
         #
-        order = response['data']
+        order = self.safe_value(response, 'data')
         return self.parse_order(order)
 
-    async def cancel_all_orders(self, symbols=None, params={}):
+    async def cancel_all_orders(self, symbol=None, params={}):
         await self.load_markets()
         response = await self.privatePostOrdersOrderIdCancel(params)
         #

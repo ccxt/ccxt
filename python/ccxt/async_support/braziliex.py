@@ -79,6 +79,8 @@ class braziliex (Exchange):
         })
 
     async def fetch_currencies_from_cache(self, params={}):
+        # self method is now redundant
+        # currencies are now fetched before markets
         options = self.safe_value(self.options, 'fetchCurrencies', {})
         timestamp = self.safe_integer(options, 'timestamp')
         expires = self.safe_integer(options, 'expires', 1000)
@@ -87,7 +89,7 @@ class braziliex (Exchange):
             response = await self.publicGetCurrencies(params)
             self.options['fetchCurrencies'] = self.extend(options, {
                 'response': response,
-                'timestamp': timestamp,
+                'timestamp': now,
             })
         return self.safe_value(self.options['fetchCurrencies'], 'response')
 

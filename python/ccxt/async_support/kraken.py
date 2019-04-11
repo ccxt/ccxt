@@ -194,18 +194,22 @@ class kraken (Exchange):
                 'private': {
                     'post': [
                         'AddOrder',
+                        'AddExport',
                         'Balance',
                         'CancelOrder',
                         'ClosedOrders',
                         'DepositAddresses',
                         'DepositMethods',
                         'DepositStatus',
+                        'ExportStatus',
                         'Ledgers',
                         'OpenOrders',
                         'OpenPositions',
                         'QueryLedgers',
                         'QueryOrders',
                         'QueryTrades',
+                        'RetrieveExport',
+                        'RemoveExport',
                         'TradeBalance',
                         'TradesHistory',
                         'TradeVolume',
@@ -539,6 +543,16 @@ class kraken (Exchange):
         ohlcvs = response['result'][market['id']]
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
+    def parse_ledger_entry_type(self, type):
+        types = {
+            'trade': 'trade',
+            'withdrawal': 'transaction',
+            'deposit': 'transaction',
+            'transfer': 'transfer',
+            'margin': 'margin',
+        }
+        return self.safe_string(types, type, type)
+
     def parse_ledger_entry(self, item, currency=None):
         # {'LTFK7F-N2CUX-PNY4SX': {  refid: "TSJTGT-DT7WN-GPPQMJ",
         #                               time:  1520102320.555,
@@ -553,18 +567,7 @@ class kraken (Exchange):
         account = None
         referenceId = self.safe_string(item, 'refid')
         referenceAccount = None
-        type = None
-        itemType = self.safe_string(item, 'type')
-        if itemType == 'trade':
-            type = 'trade'
-        elif itemType == 'withdrawal':
-            type = 'transaction'
-        elif itemType == 'deposit':
-            type = 'transaction'
-        elif itemType == 'margin':
-            type = 'margin'  # ← self needs to be unified
-        else:
-            raise ExchangeError(self.id + ' unsupported ledger item type: ' + itemType)
+        type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
         code = self.safeCurrencyCode(item, 'asset', currency)
         amount = self.safe_float(item, 'amount')
         if amount < 0:
@@ -621,7 +624,8 @@ class kraken (Exchange):
         #                                                 amount: "-0.2805800000",
         #                                                    fee: "0.0050000000",
         #                                                balance: "0.0000051000"           },
-        ledger = response['result']['ledger']
+        result = self.safe_value(response, 'result', {})
+        ledger = self.safe_value(result, 'ledger', {})
         keys = list(ledger.keys())
         items = []
         for i in range(0, len(keys)):
@@ -631,7 +635,7 @@ class kraken (Exchange):
             items.append(value)
         return self.parse_ledger(items, currency, since, limit)
 
-    async def fetch_ledger_entrys_by_ids(self, ids, code=None, params={}):
+    async def fetch_ledger_entries_by_ids(self, ids, code=None, params={}):
         # https://www.kraken.com/features/api#query-ledgers
         await self.load_markets()
         ids = ','.join(ids)
@@ -659,7 +663,7 @@ class kraken (Exchange):
         return self.parse_ledger(items)
 
     async def fetch_ledger_entry(self, id, code=None, params={}):
-        items = await self.fetch_ledger_entrys_by_ids([id], code, params)
+        items = await self.fetchLedgerEntrysByIds([id], code, params)
         return items[0]
 
     def parse_trade(self, trade, market=None):
@@ -934,12 +938,28 @@ class kraken (Exchange):
         await self.load_markets()
         response = await self.privatePostQueryOrders(self.extend({
             'trades': True,  # whether or not to include trades in output(optional, default False)
-            'txid': id,  # comma delimited list of transaction ids to query info about(20 maximum)
+            'txid': id,  # do not comma separate a list of ids - use fetchOrdersByIds instead
             # 'userref': 'optional',  # restrict results to given user reference id(optional)
         }, params))
         orders = response['result']
         order = self.parse_order(self.extend({'id': id}, orders[id]))
         return self.extend({'info': response}, order)
+
+    async def fetch_orders_by_ids(self, ids, symbol=None, params={}):
+        await self.load_markets()
+        response = await self.privatePostQueryOrders(self.extend({
+            'trades': True,  # whether or not to include trades in output(optional, default False)
+            'txid': ','.join(ids),  # comma delimited list of transaction ids to query info about(20 maximum)
+        }, params))
+        result = self.safe_value(response, 'result', {})
+        orders = []
+        orderIds = list(result.keys())
+        for i in range(0, len(orderIds)):
+            id = orderIds[i]
+            item = result[id]
+            order = self.parse_order(self.extend({'id': id}, item))
+            orders.append(order)
+        return orders
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1120,6 +1140,7 @@ class kraken (Exchange):
         return self.filterByCurrencySinceLimit(result, code, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
         # https://www.kraken.com/en-us/help/api#deposit-status
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchDeposits requires a currency code argument')
@@ -1144,6 +1165,7 @@ class kraken (Exchange):
         return self.parse_transactions_by_type('deposit', response['result'], code, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
         # https://www.kraken.com/en-us/help/api#withdraw-status
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawals requires a currency code argument')

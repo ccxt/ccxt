@@ -148,16 +148,22 @@ class bitstamp extends Exchange {
                 ),
             ),
             'exceptions' => array (
-                'No permission found' => '\\ccxt\\PermissionDenied',
-                'API key not found' => '\\ccxt\\AuthenticationError',
-                'IP address not allowed' => '\\ccxt\\PermissionDenied',
-                'Invalid nonce' => '\\ccxt\\InvalidNonce',
-                'Invalid signature' => '\\ccxt\\AuthenticationError',
-                'Authentication failed' => '\\ccxt\\AuthenticationError',
-                'Missing key, signature and nonce parameters' => '\\ccxt\\AuthenticationError',
-                'Your account is frozen' => '\\ccxt\\PermissionDenied',
-                'Please update your profile with your FATCA information, before using API.' => '\\ccxt\\PermissionDenied',
-                'Order not found' => '\\ccxt\\OrderNotFound',
+                'exact' => array (
+                    'No permission found' => '\\ccxt\\PermissionDenied',
+                    'API key not found' => '\\ccxt\\AuthenticationError',
+                    'IP address not allowed' => '\\ccxt\\PermissionDenied',
+                    'Invalid nonce' => '\\ccxt\\InvalidNonce',
+                    'Invalid signature' => '\\ccxt\\AuthenticationError',
+                    'Authentication failed' => '\\ccxt\\AuthenticationError',
+                    'Missing key, signature and nonce parameters' => '\\ccxt\\AuthenticationError',
+                    'Your account is frozen' => '\\ccxt\\PermissionDenied',
+                    'Please update your profile with your FATCA information, before using API.' => '\\ccxt\\PermissionDenied',
+                    'Order not found' => '\\ccxt\\OrderNotFound',
+                ),
+                'broad' => array (
+                    'Check your account balance for details.' => '\\ccxt\\InsufficientFunds', // You have only 0.00100000 BTC available. Check your account balance for details.
+                    'Ensure this value has at least' => '\\ccxt\\InvalidAddress', // Ensure this value has at least 25 characters (it has 4).
+                ),
             ),
         ));
     }
@@ -344,12 +350,19 @@ class bitstamp extends Exchange {
         //
         // fetchMyTrades, trades returned within fetchOrder (private)
         //
-        //     ...
+        //     {
+        //         "usd" => "6.0134400000000000",
+        //         "$price" => "4008.96000000",
+        //         "datetime" => "2019-03-28 23:07:37.233599",
+        //         "$fee" => "0.02",
+        //         "btc" => "0.00150000",
+        //         "tid" => 84452058,
+        //         "$type" => 2
+        //     }
         //
         $id = $this->safe_string_2($trade, 'id', 'tid');
         $symbol = null;
         $side = null;
-        $timestamp = null;
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $orderId = $this->safe_string($trade, 'order_id');
@@ -379,9 +392,19 @@ class bitstamp extends Exchange {
             $feeCurrency = $market['quote'];
             $symbol = $market['symbol'];
         }
+        $timestamp = $this->safe_string_2($trade, 'date', 'datetime');
+        if ($timestamp !== null) {
+            if (mb_strpos ($timestamp, ' ') !== false) {
+                // iso8601
+                $timestamp = $this->parse8601 ($timestamp);
+            } else {
+                // string unix epoch in seconds
+                $timestamp = intval ($timestamp);
+                $timestamp = $timestamp * 1000;
+            }
+        }
         // if it is a private $trade
         if (is_array ($trade) && array_key_exists ('id', $trade)) {
-            $timestamp = $this->parse8601 ($trade['datetime']);
             if ($amount !== null) {
                 if ($amount < 0) {
                     $side = 'sell';
@@ -391,7 +414,6 @@ class bitstamp extends Exchange {
                 }
             }
         } else {
-            $timestamp = intval ($trade['date']) * 1000;
             $side = $this->safe_string($trade, 'type');
             if ($side === '1') {
                 $side = 'sell';
@@ -521,7 +543,8 @@ class bitstamp extends Exchange {
 
     public function fetch_order_status ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostOrderStatus (array_merge (array ( 'id' => $id ), $params));
+        $request = array ( 'id' => $id );
+        $response = $this->privatePostOrderStatus (array_merge ($request, $params));
         return $this->parse_order_status($this->safe_string($response, 'status'));
     }
 
@@ -531,7 +554,24 @@ class bitstamp extends Exchange {
         if ($symbol !== null) {
             $market = $this->market ($symbol);
         }
-        $response = $this->privatePostOrderStatus (array_merge (array ( 'id' => $id ), $params));
+        $request = array ( 'id' => $id );
+        $response = $this->privatePostOrderStatus (array_merge ($request, $params));
+        //
+        //     {
+        //         "status" => "Finished",
+        //         "$id" => 3047704374,
+        //         "transactions" => array (
+        //             {
+        //                 "usd" => "6.0134400000000000",
+        //                 "price" => "4008.96000000",
+        //                 "datetime" => "2019-03-28 23:07:37.233599",
+        //                 "fee" => "0.02",
+        //                 "btc" => "0.00150000",
+        //                 "tid" => 84452058,
+        //                 "type" => 2
+        //             }
+        //         )
+        //     }
         return $this->parse_order($response, $market);
     }
 
@@ -960,26 +1000,55 @@ class bitstamp extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
-        if (gettype ($body) !== 'string')
-            return; // fallback to default $error handler
-        if (strlen ($body) < 2)
-            return; // fallback to default $error handler
-        if (($body[0] === '{') || ($body[0] === '[')) {
-            // fetchDepositAddress returns array ("$error" => "No permission found") on apiKeys that don't have the permission required
-            $error = $this->safe_string($response, 'error');
-            $exceptions = $this->exceptions;
-            if (is_array ($exceptions) && array_key_exists ($error, $exceptions)) {
-                throw new $exceptions[$error] ($this->id . ' ' . $body);
-            }
-            $status = $this->safe_string($response, 'status');
-            if ($status === 'error') {
-                $code = $this->safe_string($response, 'code');
-                if ($code !== null) {
-                    if ($code === 'API0005')
-                        throw new AuthenticationError ($this->id . ' invalid signature, use the uid for the main account if you have subaccounts');
+        if ($response === null) {
+            return;
+        }
+        // fetchDepositAddress returns array ("$error" => "No permission found") on apiKeys that don't have the permission required
+        $status = $this->safe_string($response, 'status');
+        $error = $this->safe_value($response, 'error');
+        if ($status === 'error' || $error) {
+            $errors = array ();
+            if (gettype ($error) === 'string') {
+                $errors[] = $error;
+            } else {
+                $keys = is_array ($error) ? array_keys ($error) : array ();
+                for ($i = 0; $i < count ($keys); $i++) {
+                    $key = $keys[$i];
+                    $value = $this->safe_value($error, $key);
+                    if (gettype ($value) === 'array' && count (array_filter (array_keys ($value), 'is_string')) == 0) {
+                        $errors = $this->array_concat($errors, $value);
+                    } else {
+                        $errors[] = $value;
+                    }
                 }
-                throw new ExchangeError ($this->id . ' ' . $body);
             }
+            $reason = $this->safe_value($response, 'reason', array ());
+            $all = $this->safe_value($reason, '__all__');
+            if ($all !== null) {
+                if (gettype ($all) === 'array' && count (array_filter (array_keys ($all), 'is_string')) == 0) {
+                    for ($i = 0; $i < count ($all); $i++) {
+                        $errors[] = $all[$i];
+                    }
+                }
+            }
+            $code = $this->safe_string($response, 'code');
+            if ($code === 'API0005') {
+                throw new AuthenticationError ($this->id . ' invalid signature, use the uid for the main account if you have subaccounts');
+            }
+            $exact = $this->exceptions['exact'];
+            $broad = $this->exceptions['broad'];
+            $feedback = $this->id . ' ' . $body;
+            for ($i = 0; $i < count ($errors); $i++) {
+                $value = $errors[$i];
+                if (is_array ($exact) && array_key_exists ($value, $exact)) {
+                    throw new $exact[$value] ($feedback);
+                }
+                $broadKey = $this->findBroadlyMatchedKey ($broad, $value);
+                if ($broadKey !== null) {
+                    throw new $broad[$broadKey] ($feedback);
+                }
+            }
+            throw new ExchangeError ($feedback);
         }
     }
 }

@@ -46,6 +46,7 @@ class livecoin (Exchange):
                 'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchMyTrades': True,
                 'withdraw': True,
             },
             'urls': {
@@ -367,26 +368,130 @@ class livecoin (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
-        timestamp = trade['time'] * 1000
+        #
+        # fetchTrades(public)
+        #
+        #     {
+        #         "time": 1409935047,
+        #         "id": 99451,
+        #         "price": 350,
+        #         "quantity": 2.85714285,
+        #         "type": "BUY"
+        #     }
+        #
+        # fetchMyTrades(private)
+        #
+        #     {
+        #         "datetime": 1435844369,
+        #         "id": 30651619,
+        #         "type": "sell",
+        #         "symbol": "BTC/EUR",
+        #         "price": 230,
+        #         "quantity": 0.1,
+        #         "commission": 0,
+        #         "clientorderid": 1472837650
+        #     }
+        timestamp = self.safe_string_2(trade, 'time', 'datetime')
+        if timestamp is not None:
+            timestamp = timestamp * 1000
+        fee = None
+        feeCost = self.safe_float(trade, 'commission')
+        if feeCost is not None:
+            feeCurrency = market['quote'] if market else None
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            }
+        orderId = self.safe_string(trade, 'clientorderid')
+        id = self.safe_string(trade, 'id')
+        side = self.safe_string(trade, 'type')
+        if side is not None:
+            side = side.lower()
+        amount = self.safe_float(trade, 'quantity')
+        price = self.safe_float(trade, 'price')
+        cost = None
+        if amount is not None:
+            if price is not None:
+                cost = amount * price
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
-            'id': str(trade['id']),
-            'order': None,
+            'id': id,
+            'order': orderId,
             'type': None,
-            'side': trade['type'].lower(),
-            'price': trade['price'],
-            'amount': trade['quantity'],
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
         }
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'currencyPair': market['id'],
+            # orderDesc': 'true',  # or 'false', if True then new orders will be first, otherwise old orders will be first.
+            # 'offset': 0,  # page offset, position of the first item on the page
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.privateGetExchangeTrades(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "datetime": 1435844369,
+        #             "id": 30651619,
+        #             "type": "sell",
+        #             "symbol": "BTC/EUR",
+        #             "price": 230,
+        #             "quantity": 0.1,
+        #             "commission": 0,
+        #             "clientorderid": 1472837650
+        #         },
+        #         {
+        #             "datetime": 1435844356,
+        #             "id": 30651618,
+        #             "type": "sell",
+        #             "symbol": "BTC/EUR",
+        #             "price": 230,
+        #             "quantity": 0.2,
+        #             "commission": 0.092,
+        #             "clientorderid": 1472837651
+        #         }
+        #     ]
+        #
+        return self.parse_trades(response, market, since, limit)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetExchangeLastTrades(self.extend({
+        request = {
             'currencyPair': market['id'],
-        }, params))
+        }
+        response = await self.publicGetExchangeLastTrades(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "time": 1409935047,
+        #             "id": 99451,
+        #             "price": 350,
+        #             "quantity": 2.85714285,
+        #             "type": "BUY"
+        #         },
+        #         {
+        #             "time": 1409934792,
+        #             "id": 99450,
+        #             "price": 350,
+        #             "quantity": 0.57142857,
+        #             "type": "SELL"
+        #         }
+        #     ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_order(self, id, symbol=None, params={}):
@@ -405,9 +510,7 @@ class livecoin (Exchange):
             'CANCELLED': 'canceled',
             'PARTIALLY_FILLED_AND_CANCELLED': 'canceled',
         }
-        if status in statuses:
-            return statuses[status]
-        return status
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         timestamp = None
@@ -499,28 +602,28 @@ class livecoin (Exchange):
         return self.sort_by(result, 'timestamp')
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        result = await self.fetch_orders(symbol, since, limit, self.extend({
+        request = {
             'openClosed': 'OPEN',
-        }, params))
-        return result
+        }
+        return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        result = await self.fetch_orders(symbol, since, limit, self.extend({
+        request = {
             'openClosed': 'CLOSED',
-        }, params))
-        return result
+        }
+        return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         method = 'privatePostExchange' + self.capitalize(side) + type
         market = self.market(symbol)
-        order = {
+        request = {
             'quantity': self.amount_to_precision(symbol, amount),
             'currencyPair': market['id'],
         }
         if type == 'limit':
-            order['price'] = self.price_to_precision(symbol, price)
-        response = await getattr(self, method)(self.extend(order, params))
+            request['price'] = self.price_to_precision(symbol, price)
+        response = await getattr(self, method)(self.extend(request, params))
         result = {
             'info': response,
             'id': str(response['orderId']),

@@ -94,7 +94,7 @@ class coinex extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
-                    'maker' => 0.0,
+                    'maker' => 0.001,
                     'taker' => 0.001,
                 ),
                 'funding' => array (
@@ -194,7 +194,7 @@ class coinex extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'vol'),
+            'baseVolume' => $this->safe_float($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
         );

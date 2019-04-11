@@ -20,13 +20,14 @@ class upbit extends Exchange {
             // new metainfo interface
             'has' => array (
                 'CORS' => true,
-                'fetchOrderBooks' => true,
+                'createDepositAddress' => true,
                 'createMarketOrder' => false,
                 'fetchDepositAddress' => true,
                 'fetchClosedOrders' => true,
                 'fetchMyTrades' => false,
                 'fetchOHLCV' => true,
                 'fetchOrder' => true,
+                'fetchOrderBooks' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrders' => false,
                 'fetchTickers' => true,
@@ -137,6 +138,9 @@ class upbit extends Exchange {
                 'tradingFeesByQuoteCurrency' => array (
                     'KRW' => 0.0005,
                 ),
+            ),
+            'commonCurrencies' => array (
+                'CPT' => 'Contents Protocol', // conflict with CPT (Cryptaur) https://github.com/ccxt/ccxt/issues/4920
             ),
         ));
     }

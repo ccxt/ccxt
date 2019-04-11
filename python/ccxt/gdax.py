@@ -26,19 +26,19 @@ class gdax (Exchange):
             'rateLimit': 1000,
             'userAgent': self.userAgents['chrome'],
             'has': {
+                'cancelAllOrders': True,
                 'CORS': True,
-                'fetchOHLCV': True,
                 'deposit': True,
-                'withdraw': True,
                 'fetchAccounts': True,
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
                 'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrders': True,
                 'fetchTransactions': True,
-                'cancelAllOrders': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': 60,
@@ -89,6 +89,7 @@ class gdax (Exchange):
                         'funding',
                         'orders',
                         'orders/{id}',
+                        'otc/orders',
                         'payment-methods',
                         'position',
                         'reports/{id}',
@@ -118,8 +119,8 @@ class gdax (Exchange):
                 'trading': {
                     'tierBased': True,  # complicated tier system per coin
                     'percentage': True,
-                    'maker': 0.0,
-                    'taker': 0.3 / 100,  # tiered fee starts at 0.3%
+                    'maker': 0.15 / 100,  # highest fee of all tiers
+                    'taker': 0.25 / 100,  # highest fee of all tiers
                 },
                 'funding': {
                     'tierBased': False,
@@ -180,10 +181,7 @@ class gdax (Exchange):
             taker = self.fees['trading']['taker']  # does not seem right
             if (base == 'ETH') or (base == 'LTC'):
                 taker = 0.003
-            accessible = True
-            if 'accessible' in market:
-                accessible = self.safe_value(market, 'accessible')
-            active = (market['status'] == 'online') and accessible
+            active = market['status'] == 'online'
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -520,7 +518,7 @@ class gdax (Exchange):
         self.load_markets()
         return self.privateDeleteOrdersId({'id': id})
 
-    def cancel_all_orders(self, params={}):
+    def cancel_all_orders(self, symbol=None, params={}):
         return self.privateDeleteOrders(params)
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):

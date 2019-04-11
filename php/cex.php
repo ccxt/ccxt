@@ -359,11 +359,21 @@ class cex extends Exchange {
         return $this->privatePostCancelOrder (array ( 'id' => $id ));
     }
 
+    public function parse_order_status ($status) {
+        $statuses = array (
+            'a' => 'open',
+            'cd' => 'canceled',
+            'c' => 'canceled',
+            'd' => 'closed',
+        );
+        return $this->safe_value($statuses, $status, $status);
+    }
+
     public function parse_order ($order, $market = null) {
         // Depending on the call, 'time' can be a unix int, unix string or ISO string
         // Yes, really
-        $timestamp = $order['time'];
-        if (gettype ($order['time']) === 'string' && mb_strpos ($order['time'], 'T') !== false) {
+        $timestamp = $this->safe_value($order, 'time');
+        if (gettype ($timestamp) === 'string' && mb_strpos ($timestamp, 'T') !== false) {
             // ISO8601 string
             $timestamp = $this->parse8601 ($timestamp);
         } else {
@@ -481,9 +491,10 @@ class cex extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostGetOrder (array_merge (array (
+        $request = array (
             'id' => (string) $id,
-        ), $params));
+        );
+        $response = $this->privatePostGetOrder (array_merge ($request, $params));
         return $this->parse_order($response);
     }
 

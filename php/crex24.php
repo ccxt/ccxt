@@ -18,26 +18,27 @@ class crex24 extends Exchange {
             'version' => 'v2',
             // new metainfo interface
             'has' => array (
+                'cancelAllOrders' => true,
+                'CORS' => false,
+                'editOrder' => true,
+                'fetchBidsAsks' => true,
+                'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
-                'CORS' => false,
-                'fetchBidsAsks' => true,
-                'fetchTickers' => true,
-                'fetchOHLCV' => false,
+                'fetchDeposits' => true,
+                'fetchFundingFees' => false,
                 'fetchMyTrades' => true,
+                'fetchOHLCV' => false,
+                'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => false,
-                'fetchOpenOrders' => true,
-                'fetchClosedOrders' => true,
-                'withdraw' => true,
+                'fetchOrderTrades' => true,
+                'fetchTickers' => true,
                 'fetchTradingFee' => false, // actually, true, but will be implemented later
                 'fetchTradingFees' => false, // actually, true, but will be implemented later
-                'fetchFundingFees' => false,
-                'fetchDeposits' => true,
-                'fetchWithdrawals' => true,
                 'fetchTransactions' => true,
-                'fetchOrderTrades' => true,
-                'editOrder' => true,
+                'fetchWithdrawals' => true,
+                'withdraw' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg',
@@ -922,7 +923,7 @@ class crex24 extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_all_orders ($symbols = null, $params = array ()) {
+    public function cancel_all_orders ($symbol = null, $params = array ()) {
         $response = $this->tradingPostCancelAllOrders ($params);
         //
         //     array (

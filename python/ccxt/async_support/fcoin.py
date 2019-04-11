@@ -36,7 +36,7 @@ class fcoin (Exchange):
             'version': 'v2',
             'accounts': None,
             'accountsById': None,
-            'hostname': 'api.fcoin.com',
+            'hostname': 'fcoin.com',
             'has': {
                 'CORS': False,
                 'fetchDepositAddress': False,
@@ -64,11 +64,11 @@ class fcoin (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/42244210-c8c42e1e-7f1c-11e8-8710-a5fb63b165c4.jpg',
-                'api': 'https://api.fcoin.com',
+                'api': 'https://api.{hostname}',
                 'www': 'https://www.fcoin.com',
                 'referral': 'https://www.fcoin.com/i/Z5P7V',
                 'doc': 'https://developer.fcoin.com',
-                'fees': 'https://support.fcoin.com/hc/en-us/articles/360003715514-Trading-Rules',
+                'fees': 'https://fcoinjp.zendesk.com/hc/en-us/articles/360018727371',
             },
             'api': {
                 'market': {
@@ -169,6 +169,7 @@ class fcoin (Exchange):
                     'max': math.pow(10, precision['price']),
                 },
             }
+            active = self.safe_value(market, 'tradable', False)
             if symbol in self.options['limits']:
                 limits = self.extend(self.options['limits'][symbol], limits)
             result.append({
@@ -178,7 +179,7 @@ class fcoin (Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': True,
+                'active': active,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
@@ -481,7 +482,10 @@ class fcoin (Exchange):
         request += '' if (api == 'private') else (api + '/')
         request += self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        url = self.urls['api'] + request
+        url = self.implode_params(self.urls['api'], {
+            'hostname': self.hostname,
+        })
+        url += request
         if (api == 'public') or (api == 'market'):
             if query:
                 url += '?' + self.urlencode(query)

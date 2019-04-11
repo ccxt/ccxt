@@ -252,7 +252,7 @@ class poloniex (Exchange):
             symbol = base + '/' + quote
             limits = self.extend(self.limits, {
                 'cost': {
-                    'min': self.safe_value(self.options['limits']['cost']['min'][quote]),
+                    'min': self.safe_value(self.options['limits']['cost']['min'], quote),
                 },
             })
             result.append(self.extend(self.fees['trading'], {

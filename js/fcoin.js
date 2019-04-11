@@ -18,7 +18,7 @@ module.exports = class fcoin extends Exchange {
             'version': 'v2',
             'accounts': undefined,
             'accountsById': undefined,
-            'hostname': 'api.fcoin.com',
+            'hostname': 'fcoin.com',
             'has': {
                 'CORS': false,
                 'fetchDepositAddress': false,
@@ -46,11 +46,11 @@ module.exports = class fcoin extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/42244210-c8c42e1e-7f1c-11e8-8710-a5fb63b165c4.jpg',
-                'api': 'https://api.fcoin.com',
+                'api': 'https://api.{hostname}',
                 'www': 'https://www.fcoin.com',
                 'referral': 'https://www.fcoin.com/i/Z5P7V',
                 'doc': 'https://developer.fcoin.com',
-                'fees': 'https://support.fcoin.com/hc/en-us/articles/360003715514-Trading-Rules',
+                'fees': 'https://fcoinjp.zendesk.com/hc/en-us/articles/360018727371',
             },
             'api': {
                 'market': {
@@ -152,6 +152,7 @@ module.exports = class fcoin extends Exchange {
                     'max': Math.pow (10, precision['price']),
                 },
             };
+            const active = this.safeValue (market, 'tradable', false);
             if (symbol in this.options['limits']) {
                 limits = this.extend (this.options['limits'][symbol], limits);
             }
@@ -162,7 +163,7 @@ module.exports = class fcoin extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': true,
+                'active': active,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
@@ -510,7 +511,10 @@ module.exports = class fcoin extends Exchange {
         request += (api === 'private') ? '' : (api + '/');
         request += this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'] + request;
+        let url = this.implodeParams (this.urls['api'], {
+            'hostname': this.hostname,
+        });
+        url += request;
         if ((api === 'public') || (api === 'market')) {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);

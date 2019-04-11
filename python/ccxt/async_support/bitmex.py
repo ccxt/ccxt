@@ -280,9 +280,13 @@ class bitmex (Exchange):
         for o in range(0, len(orderbook)):
             order = orderbook[o]
             side = 'asks' if (order['side'] == 'Sell') else 'bids'
-            amount = order['size']
-            price = order['price']
-            result[side].append([price, amount])
+            amount = self.safe_float(order, 'size')
+            price = self.safe_float(order, 'price')
+            # https://github.com/ccxt/ccxt/issues/4926
+            # https://github.com/ccxt/ccxt/issues/4927
+            # the exchange sometimes returns null price in the orderbook
+            if price is not None:
+                result[side].append([price, amount])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
@@ -757,9 +761,12 @@ class bitmex (Exchange):
         if amount is not None:
             if filled is not None:
                 remaining = max(amount - filled, 0.0)
+        average = self.safe_float(order, 'avgPx')
         cost = None
-        if price is not None:
-            if filled is not None:
+        if filled is not None:
+            if average is not None:
+                cost = average * filled
+            elif price is not None:
                 cost = price * filled
         result = {
             'info': order,
@@ -773,6 +780,7 @@ class bitmex (Exchange):
             'price': price,
             'amount': amount,
             'cost': cost,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
@@ -922,19 +930,14 @@ class bitmex (Exchange):
             self.check_required_credentials()
             auth = method + query
             expires = self.safe_integer(self.options, 'api-expires')
-            nonce = str(self.nonce())
             headers = {
                 'Content-Type': 'application/json',
                 'api-key': self.apiKey,
             }
-            if expires is not None:
-                expires = self.sum(self.seconds(), expires)
-                expires = str(expires)
-                auth += expires
-                headers['api-expires'] = expires
-            else:
-                auth += nonce
-                headers['api-nonce'] = nonce
+            expires = self.sum(self.seconds(), expires)
+            expires = str(expires)
+            auth += expires
+            headers['api-expires'] = expires
             if method == 'POST' or method == 'PUT':
                 if params:
                     body = self.json(params)

@@ -85,8 +85,8 @@ class btctradeua (Exchange):
             },
         })
 
-    def sign_in(self):
-        return self.privatePostAuth()
+    def sign_in(self, params={}):
+        return self.privatePostAuth(params)
 
     def fetch_balance(self, params={}):
         response = self.privatePostBalance()
