@@ -54,7 +54,7 @@ func apiResultTest(s string) string {
 			return "data == nil"
 		}
 	}
-	return fmt.Sprintf("reflect.DeepEqual(data, (models.%s{})", s)
+	return fmt.Sprintf("reflect.DeepEqual(data, (models.%s{}))", s)
 }
 
 // ParseAPITemplate print template for exchange APIs
