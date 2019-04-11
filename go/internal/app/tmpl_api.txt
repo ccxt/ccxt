@@ -5,13 +5,28 @@ package {{.ID}}
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 
-    "github.com/ccxt/ccxt/go/internal/app/{{.ID}}/models"
+	"github.com/ccxt/ccxt/go/internal/app/bitmex/models"
 )
 
-func (c *Exchange) apiRequest(method string, reqURL string, params *url.Values, body bytes.Buffer) (res *http.Response, err error) {
+func handleBodyErr(body []byte, err error) error {
+    var exErr models.Error
+	if err2 := json.Unmarshal(body, &exErr); err2 == nil {
+		return fmt.Errorf("%s: %s", exErr.Error.Name, exErr.Error.Message)
+	}
+	var any interface{}
+	_ = json.Unmarshal(body, &any)
+	if exErr, ok := any.(models.Error); ok {
+		return fmt.Errorf("%s: %s", exErr.Error.Name, exErr.Error.Message)
+	}
+	return fmt.Errorf("Error with decoding: %+v", any)
+}
+
+func (c *Exchange) apiRequest(method string, reqURL string, params *url.Values, body bytes.Buffer) ([]byte, error) {
     baseURL, err := url.Parse(reqURL)
 	if err != nil {
 		return nil, err
@@ -32,11 +47,19 @@ func (c *Exchange) apiRequest(method string, reqURL string, params *url.Values, 
     }
     // TODO: Implement headers for auth or extras
     req.Header.Add("Accept", "application/json")
-	res, err = c.Client.Do(req)
+	res, err := c.Client.Do(req)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
-	return res, nil
+	defer res.Body.Close()
+	if res.StatusCode >= 300 {
+		return nil, fmt.Errorf("HTTP Response %d: %s", res.StatusCode, http.StatusText(res.StatusCode))
+	}
+	resBody, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	return resBody, nil
 }
 {{$baseURL := .URLs.API.Public}}{{range $api, $dataModel := .API.Public.Get}}
 // PublicGet{{apiToFuncName $api}} method for {{$baseURL}}/{{$api}}
@@ -46,12 +69,11 @@ func (c *Exchange) PublicGet{{apiToFuncName $api}}(params *url.Values) (data {{a
     if err != nil {
         return data, err
     }
-    defer res.Body.Close()
-	err = json.NewDecoder(res.Body).Decode(&data)
+	err = json.Unmarshal(res, &data)
 	if err != nil {
-		return data, err
+		return data, handleBodyErr(res, err)
 	}
-    return data, nil
+	return data, nil
 }
 {{end}}{{range $api, $dataModel := .API.Public.Post}}
 // PublicPost{{apiToFuncName $api}} method for {{$baseURL}}/{{$api}}
@@ -61,12 +83,11 @@ func (c *Exchange) PublicPost{{apiToFuncName $api}}(params *url.Values, body byt
     if err != nil {
         return data, err
     }
-    defer res.Body.Close()
-	err = json.NewDecoder(res.Body).Decode(&data)
+	err = json.Unmarshal(res, &data)
 	if err != nil {
-		return data, err
+		return data, handleBodyErr(res, err)
 	}
-    return data, nil
+	return data, nil
 }
 {{end}}{{range $api, $dataModel := .API.Public.Put}}
 // PublicPut{{apiToFuncName $api}} method for {{$baseURL}}/{{$api}}
@@ -76,12 +97,11 @@ func (c *Exchange) PublicPut{{apiToFuncName $api}}(params *url.Values, body byte
     if err != nil {
         return data, err
     }
-    defer res.Body.Close()
-	err = json.NewDecoder(res.Body).Decode(&data)
+	err = json.Unmarshal(res, &data)
 	if err != nil {
-		return data, err
+		return data, handleBodyErr(res, err)
 	}
-    return data, nil
+	return data, nil
 }
 {{end}}{{range $api, $dataModel := .API.Public.Delete}}
 // PublicDelete{{apiToFuncName $api}} method for {{$baseURL}}/{{$api}}
@@ -91,12 +111,11 @@ func (c *Exchange) PublicDelete{{apiToFuncName $api}}(params *url.Values) (data 
     if err != nil {
         return data, err
     }
-    defer res.Body.Close()
-	err = json.NewDecoder(res.Body).Decode(&data)
+	err = json.Unmarshal(res, &data)
 	if err != nil {
-		return data, err
+		return data, handleBodyErr(res, err)
 	}
-    return data, nil
+	return data, nil
 }
 {{end}}{{range $api, $dataModel := .API.Private.Get}}
 // PrivateGet{{apiToFuncName $api}} method for {{$baseURL}}/{{$api}}
@@ -106,12 +125,11 @@ func (c *Exchange) PrivateGet{{apiToFuncName $api}}(params *url.Values) (data {{
     if err != nil {
         return data, err
     }
-    defer res.Body.Close()
-	err = json.NewDecoder(res.Body).Decode(&data)
+	err = json.Unmarshal(res, &data)
 	if err != nil {
-		return data, err
+		return data, handleBodyErr(res, err)
 	}
-    return data, nil
+	return data, nil
 }
 {{end}}{{range $api, $dataModel := .API.Private.Post}}
 // PrivatePost{{apiToFuncName $api}} method for {{$baseURL}}/{{$api}}
@@ -121,12 +139,11 @@ func (c *Exchange) PrivatePost{{apiToFuncName $api}}(params *url.Values, body by
     if err != nil {
         return data, err
     }
-    defer res.Body.Close()
-	err = json.NewDecoder(res.Body).Decode(&data)
+	err = json.Unmarshal(res, &data)
 	if err != nil {
-		return data, err
+		return data, handleBodyErr(res, err)
 	}
-    return data, nil
+	return data, nil
 }
 {{end}}{{range $api, $dataModel := .API.Private.Put}}
 // PrivatePut{{apiToFuncName $api}} method for {{$baseURL}}/{{$api}}
@@ -136,12 +153,11 @@ func (c *Exchange) PrivatePut{{apiToFuncName $api}}(params *url.Values, body byt
     if err != nil {
         return data, err
     }
-    defer res.Body.Close()
-	err = json.NewDecoder(res.Body).Decode(&data)
+	err = json.Unmarshal(res, &data)
 	if err != nil {
-		return data, err
+		return data, handleBodyErr(res, err)
 	}
-    return data, nil
+	return data, nil
 }
 {{end}}{{range $api, $dataModel := .API.Private.Delete}}
 // PrivateDelete{{apiToFuncName $api}} method for {{$baseURL}}/{{$api}}
@@ -151,11 +167,10 @@ func (c *Exchange) PrivateDelete{{apiToFuncName $api}}(params *url.Values) (data
     if err != nil {
         return data, err
     }
-    defer res.Body.Close()
-	err = json.NewDecoder(res.Body).Decode(&data)
+	err = json.Unmarshal(res, &data)
 	if err != nil {
-		return data, err
+		return data, handleBodyErr(res, err)
 	}
-    return data, nil
+	return data, nil
 }
 {{end}}

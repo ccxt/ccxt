@@ -99,7 +99,7 @@ func TestPublicGetInstrumentActiveIntervals(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if data == nil {
+	if reflect.DeepEqual(data, (models.InstrumentInterval{})) {
 		t.Fatal("Did not return data")
 	}
 }
@@ -243,7 +243,7 @@ func TestPublicGetSettlement(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if reflect.DeepEqual(data, (models.Settlement{})) {
+	if data == nil {
 		t.Fatal("Did not return data")
 	}
 }

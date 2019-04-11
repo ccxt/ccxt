@@ -4,8 +4,10 @@ package {{.ID}}
 import (
 	"bytes"
 	"net/url"
-    "reflect"
+	"reflect"
 	"testing"
+
+	"github.com/ccxt/ccxt/go/internal/app/bitmex/models"
 )
 
 var c *Exchange
