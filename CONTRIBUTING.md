@@ -51,7 +51,7 @@ If you found a security issue or a critical vulnerability and reporting it in pu
 - **PLEASE, SUBMIT ATOMIC EDITS, ONE PULL REQUEST PER ONE EXCHANGE, DO NOT MIX THEM**
 - **MAKE SURE YOUR CODE PASSES ALL SYNTAX CHECKS BY RUNNING `npm run build`**
 
-### Pending Tasks
+## Pending Tasks
 
 Below is a list of functionality we would like to have implemented in the library in the first place. Most of these tasks are already in progress, implemented for some exchanges, but not all of them:
 
@@ -80,7 +80,7 @@ If your proposal, suggestion or improvement does not relate to the above list of
 
 The following is a set of rules for contributing to the ccxt library codebase.
 
-### What You Need To Have
+## What You Need To Have
 
 The easiest way is to use Docker to run an isolated build & test enviroment with all the dependencies installed:
 
@@ -109,9 +109,9 @@ If you choose the hard way, here is the list of the dependencies you will need. 
   - bcmath (php<7.1)
 - [Pandoc](https://pandoc.org/installing.html) 1.19+
 
-### What You Need To Know
+## What You Need To Know
 
-#### Repository Structure
+### Repository Structure
 
 The contents of the repository are structured as follows:
 
@@ -157,7 +157,7 @@ The contents of the repository are structured as follows:
 /wiki/                     # the source of all docs (edits go here)
 ```
 
-#### Multilanguage Support
+### Multilanguage Support
 
 The ccxt library is available in three different languages (more to come). We encourage developers to design *portable* code, so that a single-language user can read code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
 
@@ -172,16 +172,16 @@ The module entry points are:
 
 Generated versions and docs are transpiled from the source `ccxt.js` file and files in `./js/` by the `npm run build` command.
 
-#### Transpiled (generated) files
+### Transpiled (generated) files
 
 - All derived exchange classes are transpiled automatically from source JS files. The source files are language-agnostic, easily mapped line-to-line to any other language and written in a cross-language-compatible way. Any coder can read it (by design).
 - All base classes are **not** transpiled, those are language-specific.
 
-##### JavaScript
+#### JavaScript
 
 The `ccxt.browser.js` is generated with Babel from source.
 
-##### Python
+#### Python
 
 These files containing derived exchange classes are transpiled from JS into Python:
 
@@ -194,7 +194,7 @@ These Python base classes and files are not transpiled:
 - `python/ccxt/base/*`
 - `python/ccxt/async/base/*`
 
-##### PHP
+#### PHP
 
 These files containing derived exchange classes are transpiled from JS into PHP:
 
@@ -204,15 +204,15 @@ These PHP base classes and files are not transpiled:
 
 - `php/base/*`
 
-##### Typescript
+#### Typescript
 
 - `js/[_a-z].js` → `ccxt.d.ts`
 
-#### Base Class
+### Base Class
 
 ```UNDER CONSTRUCTION```
 
-#### Derived Exchange Classes
+### Derived Exchange Classes
 
 Transpiler is regex-based and heavily relies on specific formatting rules. If you break them then the transpiler will either
 fail to generate Python/PHP classes at all or will generate malformed Python/PHP syntax.
@@ -259,7 +259,7 @@ And structurally:
 - **don't access non-existent keys, `array['key'] || {}` won't work in other languages!**
 - keep it simple, don't do more than one statement in one line
 
-##### Accessing Dictionary Keys
+#### Accessing Dictionary Keys
 
 In JavaScript, dictionary keys can be accessed in two notations:
 
@@ -272,7 +272,7 @@ While the above does work in JavaScript, it will not work in Python or PHP. In m
 
 To keep the code transpileable, please, remeber this simple rule: *always use the single-quoted string key notation `object['key']` for accessing all associative dictionary keys in all languages everywhere throughout this library!*
 
-##### Sanitizing Input With Safe Methods
+#### Sanitizing Input With Safe Methods
 
 JavaScript is less restrictive than other languages. It will tolerate an attempt to dereference a non-existent key where other languages will throw an Exception:
 
@@ -341,7 +341,7 @@ if ('foo' in params) {
 }
 ```
 
-##### Working With Array Lengths
+#### Working With Array Lengths
 
 In JavaScript the common syntax to get a length of a string or an array is to reference the `.length` property like shown here:
 
@@ -381,19 +381,19 @@ const arrayLength = someArray.length;
 
 That `.length;` line ending does the trick. The only case when the array `.length` is preferred over the string `.length` is the `for` loop. In the header of the `for` loop, the `.length` always refers to array length (not string length).
 
-##### Adding Numbers And Concatenating Strings
+#### Adding Numbers And Concatenating Strings
 
 In JS the arithmetic addition `+` operator handles both strings and numbers. So, it can concatenate strings with `+` and can sum up numbers with `+` as well. The same is true with Python. With PHP this is different, so it has different operators for string concatenation (the "dot" operator `.`) and for arithmetic addition (the "plus" operator `+`). Once again, because the transpiler does no code introspection it cannot tell if you're adding up variables or strings in JS. This works fine until you want to transpile this to other languages, be it PHP or whatever other language it is. In order to help the transpiler we have to use `this.sum` for arithmetic additions.
 
 The rule of thumb is: **`+` is for string concatenation only (!)** and **`this.sum (a, b, c, ...)` is for arithmetic additions**.
 
-##### Formatting Decimal Numbers To Precision
+#### Formatting Decimal Numbers To Precision
 
 The `.toFixed ()` method has [known rounding bugs](https://www.google.com/search?q=toFixed+bug) in JavaScript, and so do the other rounding methods in the other languages as well. In order to work with number formatting consistently, we need to use the [`decimalToPrecision` method as described in the Manual](https://github.com/ccxt/ccxt/wiki/Manual#methods-for-formatting-decimals).
 
 ---
 
-#### New Exchange Integrations
+### New Exchange Integrations
 
 Please, see the following document for new integrations: https://github.com/ccxt/ccxt/wiki/Requirements
 
@@ -436,7 +436,7 @@ The basic JSON-skeleton for a new exchange integration is as follows:
 }
 ```
 
-#### Implicit API Methods
+### Implicit API Methods
 
 In the code for each exchange, you'll notice that the functions that make API requests aren't explicitly defined. This is because the `api` definition in the exchange description JSON is used to create *magic functions* (aka *partial functions* or *closures*) inside the exchange subclass. That implicit injection is done by the `defineRestApi/define_rest_api` base exchange method.
 
@@ -450,7 +450,7 @@ Upon instantiation the base exchange class takes each URL from its list of endpo
 
 ```UNDER CONSTRUCTION```
 
-#### Continuous Integration
+### Continuous Integration
 
 Builds are automated with [Travis CI](https://travis-ci.org/ccxt/ccxt). The build steps for Travis CI are described in the [`.travis.yml`](https://github.com/ccxt/ccxt/blob/master/.travis.yml) file.
 
@@ -458,7 +458,7 @@ Windows builds are automated with [Appveyor](https://ci.appveyor.com/project/ccx
 
 Incoming pull requests are automatically validated by the CI service. You can watch the build process online here: [travis-ci.org/ccxt/ccxt/builds](https://travis-ci.org/ccxt/ccxt/builds).
 
-#### How To Build & Run Tests On Your Local Machine
+### How To Build & Run Tests On Your Local Machine
 
 Before building for the first time, install Node dependencies (skip this step if you're running our Docker image):
 
