@@ -37,11 +37,32 @@ func apiResult(s string) string {
 	return s
 }
 
+func apiResultTest(s string) string {
+	if strings.Contains(s, "[]") {
+		return "data == nil"
+	}
+	re := regexp.MustCompile(`^(string|float|int)`)
+	if re.Match([]byte(s)) {
+		switch s {
+		case "string":
+			return "data == \"\""
+		case "float64":
+			return "data == 0.0"
+		case "int64":
+			return "data == 0"
+		case "interface{}":
+			return "data == nil"
+		}
+	}
+	return fmt.Sprintf("reflect.DeepEqual(data, (models.%s{})", s)
+}
+
 // ParseAPITemplate print template for exchange APIs
 func ParseAPITemplate(info ccxt.ExchangeInfo, dir string, file string, buildTest *bool) error {
 	funcMap := template.FuncMap{
 		"apiToFuncName": apiToFuncName,
 		"apiResult":     apiResult,
+		"apiResultTest": apiResultTest,
 		"title":         strings.Title,
 	}
 	tmplName := file

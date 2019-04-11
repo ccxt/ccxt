@@ -2,29 +2,38 @@ package bitmex
 
 // AUTOMATICALLY GENERATED, BUT NEEDS TO BE MODIFIED:
 import (
-    "bytes"
-	"encoding/json"
-    "os"
-    "testing"
-
-    "github.com/ccxt/ccxt/go/pkg/ccxt"
+	"bytes"
+	"net/url"
+    "reflect"
+	"testing"
 )
 
-var info ccxt.ExchangeInfo
-var c Exchange
+var c *Exchange
 
 func init() {
-	f, err := os.Open("bitmex")
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	json.NewDecoder(f).Decode(&info)
+	var err error
+	c, err = Init()
+    if err != nil {
+	    panic(err)
+    }
 }
 
+func TestPublicGetAnnouncement(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PublicGetAnnouncement(&params)
+    t.Logf("%+v", data)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if data == nil {
+        t.Fatal("Did not return data")
+    }
+}
 
-func TestPublicGet[]Announcement(t *testing.T) {
-    data, err := c.PublicGet[]Announcement()
+func TestPublicGetAnnouncementUrgent(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PublicGetAnnouncementUrgent(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -32,8 +41,11 @@ func TestPublicGet[]Announcement(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPublicGet[]Announcement(t *testing.T) {
-    data, err := c.PublicGet[]Announcement()
+
+func TestPublicGetFunding(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PublicGetFunding(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -41,8 +53,11 @@ func TestPublicGet[]Announcement(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPublicGet[]Funding(t *testing.T) {
-    data, err := c.PublicGet[]Funding()
+
+func TestPublicGetInstrument(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PublicGetInstrument(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -50,8 +65,11 @@ func TestPublicGet[]Funding(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPublicGet[]Instrument(t *testing.T) {
-    data, err := c.PublicGet[]Instrument()
+
+func TestPublicGetInstrumentActive(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PublicGetInstrumentActive(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -59,8 +77,11 @@ func TestPublicGet[]Instrument(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPublicGet[]Instrument(t *testing.T) {
-    data, err := c.PublicGet[]Instrument()
+
+func TestPublicGetInstrumentActiveAndIndices(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PublicGetInstrumentActiveAndIndices(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -68,8 +89,11 @@ func TestPublicGet[]Instrument(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPublicGet[]Instrument(t *testing.T) {
-    data, err := c.PublicGet[]Instrument()
+
+func TestPublicGetInstrumentActiveIntervals(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PublicGetInstrumentActiveIntervals(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -77,8 +101,11 @@ func TestPublicGet[]Instrument(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPublicGet[]Instrument(t *testing.T) {
-    data, err := c.PublicGet[]Instrument()
+
+func TestPublicGetInstrumentCompositeIndex(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PublicGetInstrumentCompositeIndex(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -86,8 +113,11 @@ func TestPublicGet[]Instrument(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPublicGet[]Instrument(t *testing.T) {
-    data, err := c.PublicGet[]Instrument()
+
+func TestPublicGetInstrumentIndices(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PublicGetInstrumentIndices(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -95,8 +125,11 @@ func TestPublicGet[]Instrument(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPublicGet[]Instrument(t *testing.T) {
-    data, err := c.PublicGet[]Instrument()
+
+func TestPublicGetInsurance(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PublicGetInsurance(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -104,26 +137,11 @@ func TestPublicGet[]Instrument(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPublicGet[]Insurance(t *testing.T) {
-    data, err := c.PublicGet[]Insurance()
-    if err != nil {
-        t.Fatal(err)
-    }
-    if data == nil {
-        t.Fatal("Did not return data")
-    }
-}
-func TestPublicGet[]Leaderboard(t *testing.T) {
-    data, err := c.PublicGet[]Leaderboard()
-    if err != nil {
-        t.Fatal(err)
-    }
-    if data == nil {
-        t.Fatal("Did not return data")
-    }
-}
+
 func TestPublicGetLeaderboard(t *testing.T) {
-    data, err := c.PublicGetLeaderboard()
+    params := url.Values{}
+    data, err := c.PublicGetLeaderboard(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -131,8 +149,23 @@ func TestPublicGetLeaderboard(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPublicGet[]Liquidation(t *testing.T) {
-    data, err := c.PublicGet[]Liquidation()
+
+func TestPublicGetLeaderboardName(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PublicGetLeaderboardName(&params)
+    t.Logf("%+v", data)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if reflect.DeepEqual(data, (models.Leaderboard{}) {
+        t.Fatal("Did not return data")
+    }
+}
+
+func TestPublicGetLiquidation(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PublicGetLiquidation(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -140,8 +173,11 @@ func TestPublicGet[]Liquidation(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPublicGet[]OrderBookL2(t *testing.T) {
-    data, err := c.PublicGet[]OrderBookL2()
+
+func TestPublicGetOrderBookL2(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PublicGetOrderBookL2(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -149,8 +185,11 @@ func TestPublicGet[]OrderBookL2(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPublicGet[]Quote(t *testing.T) {
-    data, err := c.PublicGet[]Quote()
+
+func TestPublicGetQuote(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PublicGetQuote(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -158,8 +197,11 @@ func TestPublicGet[]Quote(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPublicGet[]Quote(t *testing.T) {
-    data, err := c.PublicGet[]Quote()
+
+func TestPublicGetQuoteBucketed(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PublicGetQuoteBucketed(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -167,8 +209,11 @@ func TestPublicGet[]Quote(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPublicGetInterface{}(t *testing.T) {
-    data, err := c.PublicGetInterface{}()
+
+func TestPublicGetSchema(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PublicGetSchema(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -176,8 +221,11 @@ func TestPublicGetInterface{}(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPublicGetInterface{}(t *testing.T) {
-    data, err := c.PublicGetInterface{}()
+
+func TestPublicGetSchemaWebsocketHelp(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PublicGetSchemaWebsocketHelp(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -185,44 +233,23 @@ func TestPublicGetInterface{}(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
+
 func TestPublicGetSettlement(t *testing.T) {
-    data, err := c.PublicGetSettlement()
+    params := url.Values{}
+    data, err := c.PublicGetSettlement(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
-    if data == nil {
+    if reflect.DeepEqual(data, (models.Settlement{}) {
         t.Fatal("Did not return data")
     }
 }
-func TestPublicGet[]Stats(t *testing.T) {
-    data, err := c.PublicGet[]Stats()
-    if err != nil {
-        t.Fatal(err)
-    }
-    if data == nil {
-        t.Fatal("Did not return data")
-    }
-}
-func TestPublicGet[]StatsHistory(t *testing.T) {
-    data, err := c.PublicGet[]StatsHistory()
-    if err != nil {
-        t.Fatal(err)
-    }
-    if data == nil {
-        t.Fatal("Did not return data")
-    }
-}
-func TestPublicGet[]Trade(t *testing.T) {
-    data, err := c.PublicGet[]Trade()
-    if err != nil {
-        t.Fatal(err)
-    }
-    if data == nil {
-        t.Fatal("Did not return data")
-    }
-}
-func TestPublicGet[]TradeBin(t *testing.T) {
-    data, err := c.PublicGet[]TradeBin()
+
+func TestPublicGetStats(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PublicGetStats(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -231,10 +258,34 @@ func TestPublicGet[]TradeBin(t *testing.T) {
     }
 }
 
+func TestPublicGetStatsHistory(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PublicGetStatsHistory(&params)
+    t.Logf("%+v", data)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if data == nil {
+        t.Fatal("Did not return data")
+    }
+}
 
+func TestPublicGetTrade(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PublicGetTrade(&params)
+    t.Logf("%+v", data)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if data == nil {
+        t.Fatal("Did not return data")
+    }
+}
 
-func TestPrivateGetAPIKey(t *testing.T) {
-    data, err := c.PrivateGetAPIKey()
+func TestPublicGetTradeBucketed(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PublicGetTradeBucketed(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -242,8 +293,23 @@ func TestPrivateGetAPIKey(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivateGet[]Chat(t *testing.T) {
-    data, err := c.PrivateGet[]Chat()
+
+func TestPrivateGetApiKey(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PrivateGetApiKey(&params)
+    t.Logf("%+v", data)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if reflect.DeepEqual(data, (models.APIKey{}) {
+        t.Fatal("Did not return data")
+    }
+}
+
+func TestPrivateGetChat(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PrivateGetChat(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -251,8 +317,11 @@ func TestPrivateGet[]Chat(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivateGet[]ChatChannel(t *testing.T) {
-    data, err := c.PrivateGet[]ChatChannel()
+
+func TestPrivateGetChatChannels(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PrivateGetChatChannels(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -260,8 +329,23 @@ func TestPrivateGet[]ChatChannel(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivateGetConnectedUsers(t *testing.T) {
-    data, err := c.PrivateGetConnectedUsers()
+
+func TestPrivateGetChatConnected(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PrivateGetChatConnected(&params)
+    t.Logf("%+v", data)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if reflect.DeepEqual(data, (models.ConnectedUsers{}) {
+        t.Fatal("Did not return data")
+    }
+}
+
+func TestPrivateGetExecution(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PrivateGetExecution(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -269,8 +353,11 @@ func TestPrivateGetConnectedUsers(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivateGet[]Execution(t *testing.T) {
-    data, err := c.PrivateGet[]Execution()
+
+func TestPrivateGetExecutionTradeHistory(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PrivateGetExecutionTradeHistory(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -278,8 +365,11 @@ func TestPrivateGet[]Execution(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivateGet[]Execution(t *testing.T) {
-    data, err := c.PrivateGet[]Execution()
+
+func TestPrivateGetGlobalNotification(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PrivateGetGlobalNotification(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -287,8 +377,11 @@ func TestPrivateGet[]Execution(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivateGet[]GlobalNotification(t *testing.T) {
-    data, err := c.PrivateGet[]GlobalNotification()
+
+func TestPrivateGetOrder(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PrivateGetOrder(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -296,8 +389,11 @@ func TestPrivateGet[]GlobalNotification(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivateGet[]Order(t *testing.T) {
-    data, err := c.PrivateGet[]Order()
+
+func TestPrivateGetPosition(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PrivateGetPosition(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -305,107 +401,71 @@ func TestPrivateGet[]Order(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivateGet[]Position(t *testing.T) {
-    data, err := c.PrivateGet[]Position()
-    if err != nil {
-        t.Fatal(err)
-    }
-    if data == nil {
-        t.Fatal("Did not return data")
-    }
-}
+
 func TestPrivateGetUser(t *testing.T) {
-    data, err := c.PrivateGetUser()
+    params := url.Values{}
+    data, err := c.PrivateGetUser(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
-    if data == nil {
+    if reflect.DeepEqual(data, (models.User{}) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivateGetAffiliate(t *testing.T) {
-    data, err := c.PrivateGetAffiliate()
+
+func TestPrivateGetUserAffiliateStatus(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PrivateGetUserAffiliateStatus(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
-    if data == nil {
+    if reflect.DeepEqual(data, (models.Affiliate{}) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivateGetFloat64(t *testing.T) {
-    data, err := c.PrivateGetFloat64()
+
+func TestPrivateGetUserCheckReferralCode(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PrivateGetUserCheckReferralCode(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
-    if data == nil {
+    if data == 0.0 {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivateGetUserCommissionsBySymbol(t *testing.T) {
-    data, err := c.PrivateGetUserCommissionsBySymbol()
+
+func TestPrivateGetUserCommission(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PrivateGetUserCommission(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
-    if data == nil {
+    if reflect.DeepEqual(data, (models.UserCommissionsBySymbol{}) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivateGetString(t *testing.T) {
-    data, err := c.PrivateGetString()
+
+func TestPrivateGetUserDepositAddress(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PrivateGetUserDepositAddress(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
-    if data == nil {
+    if data == "" {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivateGet[]Execution(t *testing.T) {
-    data, err := c.PrivateGet[]Execution()
-    if err != nil {
-        t.Fatal(err)
-    }
-    if data == nil {
-        t.Fatal("Did not return data")
-    }
-}
-func TestPrivateGetMargin(t *testing.T) {
-    data, err := c.PrivateGetMargin()
-    if err != nil {
-        t.Fatal(err)
-    }
-    if data == nil {
-        t.Fatal("Did not return data")
-    }
-}
-func TestPrivateGetInterface{}(t *testing.T) {
-    data, err := c.PrivateGetInterface{}()
-    if err != nil {
-        t.Fatal(err)
-    }
-    if data == nil {
-        t.Fatal("Did not return data")
-    }
-}
-func TestPrivateGetWallet(t *testing.T) {
-    data, err := c.PrivateGetWallet()
-    if err != nil {
-        t.Fatal(err)
-    }
-    if data == nil {
-        t.Fatal("Did not return data")
-    }
-}
-func TestPrivateGet[]Transaction(t *testing.T) {
-    data, err := c.PrivateGet[]Transaction()
-    if err != nil {
-        t.Fatal(err)
-    }
-    if data == nil {
-        t.Fatal("Did not return data")
-    }
-}
-func TestPrivateGet[]Transaction(t *testing.T) {
-    data, err := c.PrivateGet[]Transaction()
+
+func TestPrivateGetUserExecutionHistory(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PrivateGetUserExecutionHistory(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -414,10 +474,22 @@ func TestPrivateGet[]Transaction(t *testing.T) {
     }
 }
 
-func TestPrivatePostAPIKey(t *testing.T) {
-    // TODO: Fill POST body
-    body := bytes.Buffer{}
-    data, err := c.PrivatePostAPIKey(body)
+func TestPrivateGetUserMargin(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PrivateGetUserMargin(&params)
+    t.Logf("%+v", data)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if reflect.DeepEqual(data, (models.Margin{}) {
+        t.Fatal("Did not return data")
+    }
+}
+
+func TestPrivateGetUserMinWithdrawalFee(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PrivateGetUserMinWithdrawalFee(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -425,10 +497,23 @@ func TestPrivatePostAPIKey(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivatePostAPIKey(t *testing.T) {
-    // TODO: Fill POST body
-    body := bytes.Buffer{}
-    data, err := c.PrivatePostAPIKey(body)
+
+func TestPrivateGetUserWallet(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PrivateGetUserWallet(&params)
+    t.Logf("%+v", data)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if reflect.DeepEqual(data, (models.Wallet{}) {
+        t.Fatal("Did not return data")
+    }
+}
+
+func TestPrivateGetUserWalletHistory(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PrivateGetUserWalletHistory(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -436,10 +521,11 @@ func TestPrivatePostAPIKey(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivatePostAPIKey(t *testing.T) {
-    // TODO: Fill POST body
-    body := bytes.Buffer{}
-    data, err := c.PrivatePostAPIKey(body)
+
+func TestPrivateGetUserWalletSummary(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PrivateGetUserWalletSummary(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -447,32 +533,83 @@ func TestPrivatePostAPIKey(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
+
+func TestPrivatePostApiKey(t *testing.T) {
+    // TODO: Fill POST body
+    params := url.Values{}
+    body := bytes.Buffer{}
+    data, err := c.PrivatePostApiKey(&params, body)
+    t.Logf("%+v", data)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if reflect.DeepEqual(data, (models.APIKey{}) {
+        t.Fatal("Did not return data")
+    }
+}
+
+func TestPrivatePostApiKeyDisable(t *testing.T) {
+    // TODO: Fill POST body
+    params := url.Values{}
+    body := bytes.Buffer{}
+    data, err := c.PrivatePostApiKeyDisable(&params, body)
+    t.Logf("%+v", data)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if reflect.DeepEqual(data, (models.APIKey{}) {
+        t.Fatal("Did not return data")
+    }
+}
+
+func TestPrivatePostApiKeyEnable(t *testing.T) {
+    // TODO: Fill POST body
+    params := url.Values{}
+    body := bytes.Buffer{}
+    data, err := c.PrivatePostApiKeyEnable(&params, body)
+    t.Logf("%+v", data)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if reflect.DeepEqual(data, (models.APIKey{}) {
+        t.Fatal("Did not return data")
+    }
+}
+
 func TestPrivatePostChat(t *testing.T) {
     // TODO: Fill POST body
+    params := url.Values{}
     body := bytes.Buffer{}
-    data, err := c.PrivatePostChat(body)
+    data, err := c.PrivatePostChat(&params, body)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
-    if data == nil {
+    if reflect.DeepEqual(data, (models.Chat{}) {
         t.Fatal("Did not return data")
     }
 }
+
 func TestPrivatePostOrder(t *testing.T) {
     // TODO: Fill POST body
+    params := url.Values{}
     body := bytes.Buffer{}
-    data, err := c.PrivatePostOrder(body)
+    data, err := c.PrivatePostOrder(&params, body)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
-    if data == nil {
+    if reflect.DeepEqual(data, (models.Order{}) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivatePost[]Order(t *testing.T) {
+
+func TestPrivatePostOrderBulk(t *testing.T) {
     // TODO: Fill POST body
+    params := url.Values{}
     body := bytes.Buffer{}
-    data, err := c.PrivatePost[]Order(body)
+    data, err := c.PrivatePostOrderBulk(&params, body)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -480,10 +617,13 @@ func TestPrivatePost[]Order(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivatePostInterface{}(t *testing.T) {
+
+func TestPrivatePostOrderCancelAllAfter(t *testing.T) {
     // TODO: Fill POST body
+    params := url.Values{}
     body := bytes.Buffer{}
-    data, err := c.PrivatePostInterface{}(body)
+    data, err := c.PrivatePostOrderCancelAllAfter(&params, body)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -491,65 +631,83 @@ func TestPrivatePostInterface{}(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivatePostPosition(t *testing.T) {
+
+func TestPrivatePostPositionIsolate(t *testing.T) {
     // TODO: Fill POST body
+    params := url.Values{}
     body := bytes.Buffer{}
-    data, err := c.PrivatePostPosition(body)
+    data, err := c.PrivatePostPositionIsolate(&params, body)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
-    if data == nil {
+    if reflect.DeepEqual(data, (models.Position{}) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivatePostPosition(t *testing.T) {
+
+func TestPrivatePostPositionLeverage(t *testing.T) {
     // TODO: Fill POST body
+    params := url.Values{}
     body := bytes.Buffer{}
-    data, err := c.PrivatePostPosition(body)
+    data, err := c.PrivatePostPositionLeverage(&params, body)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
-    if data == nil {
+    if reflect.DeepEqual(data, (models.Position{}) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivatePostPosition(t *testing.T) {
+
+func TestPrivatePostPositionRiskLimit(t *testing.T) {
     // TODO: Fill POST body
+    params := url.Values{}
     body := bytes.Buffer{}
-    data, err := c.PrivatePostPosition(body)
+    data, err := c.PrivatePostPositionRiskLimit(&params, body)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
-    if data == nil {
+    if reflect.DeepEqual(data, (models.Position{}) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivatePostPosition(t *testing.T) {
+
+func TestPrivatePostPositionTransferMargin(t *testing.T) {
     // TODO: Fill POST body
+    params := url.Values{}
     body := bytes.Buffer{}
-    data, err := c.PrivatePostPosition(body)
+    data, err := c.PrivatePostPositionTransferMargin(&params, body)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
-    if data == nil {
+    if reflect.DeepEqual(data, (models.Position{}) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivatePostTransaction(t *testing.T) {
+
+func TestPrivatePostUserCancelWithdrawal(t *testing.T) {
     // TODO: Fill POST body
+    params := url.Values{}
     body := bytes.Buffer{}
-    data, err := c.PrivatePostTransaction(body)
+    data, err := c.PrivatePostUserCancelWithdrawal(&params, body)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
-    if data == nil {
+    if reflect.DeepEqual(data, (models.Transaction{}) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivatePost[]CommunicationToken(t *testing.T) {
+
+func TestPrivatePostUserCommunicationToken(t *testing.T) {
     // TODO: Fill POST body
+    params := url.Values{}
     body := bytes.Buffer{}
-    data, err := c.PrivatePost[]CommunicationToken(body)
+    data, err := c.PrivatePostUserCommunicationToken(&params, body)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -557,32 +715,41 @@ func TestPrivatePost[]CommunicationToken(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivatePostAccessToken(t *testing.T) {
+
+func TestPrivatePostUserConfirmEmail(t *testing.T) {
     // TODO: Fill POST body
+    params := url.Values{}
     body := bytes.Buffer{}
-    data, err := c.PrivatePostAccessToken(body)
+    data, err := c.PrivatePostUserConfirmEmail(&params, body)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
-    if data == nil {
+    if reflect.DeepEqual(data, (models.AccessToken{}) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivatePostTransaction(t *testing.T) {
+
+func TestPrivatePostUserConfirmWithdrawal(t *testing.T) {
     // TODO: Fill POST body
+    params := url.Values{}
     body := bytes.Buffer{}
-    data, err := c.PrivatePostTransaction(body)
+    data, err := c.PrivatePostUserConfirmWithdrawal(&params, body)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
-    if data == nil {
+    if reflect.DeepEqual(data, (models.Transaction{}) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivatePostInterface{}(t *testing.T) {
+
+func TestPrivatePostUserLogout(t *testing.T) {
     // TODO: Fill POST body
+    params := url.Values{}
     body := bytes.Buffer{}
-    data, err := c.PrivatePostInterface{}(body)
+    data, err := c.PrivatePostUserLogout(&params, body)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -590,43 +757,55 @@ func TestPrivatePostInterface{}(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
+
 func TestPrivatePostUserPreferences(t *testing.T) {
     // TODO: Fill POST body
+    params := url.Values{}
     body := bytes.Buffer{}
-    data, err := c.PrivatePostUserPreferences(body)
+    data, err := c.PrivatePostUserPreferences(&params, body)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
-    if data == nil {
+    if reflect.DeepEqual(data, (models.UserPreferences{}) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivatePostTransaction(t *testing.T) {
+
+func TestPrivatePostUserRequestWithdrawal(t *testing.T) {
     // TODO: Fill POST body
+    params := url.Values{}
     body := bytes.Buffer{}
-    data, err := c.PrivatePostTransaction(body)
+    data, err := c.PrivatePostUserRequestWithdrawal(&params, body)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
-    if data == nil {
+    if reflect.DeepEqual(data, (models.Transaction{}) {
         t.Fatal("Did not return data")
     }
 }
+
 func TestPrivatePutOrder(t *testing.T) {
     // TODO: Fill PUT body
+    params := url.Values{}
     body := bytes.Buffer{}
-    data, err := c.PrivatePutOrder(body)
+    data, err := c.PrivatePutOrder(&params, body)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
-    if data == nil {
+    if reflect.DeepEqual(data, (models.Order{}) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivatePut[]Order(t *testing.T) {
+
+func TestPrivatePutOrderBulk(t *testing.T) {
     // TODO: Fill PUT body
+    params := url.Values{}
     body := bytes.Buffer{}
-    data, err := c.PrivatePut[]Order(body)
+    data, err := c.PrivatePutOrderBulk(&params, body)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -634,8 +813,11 @@ func TestPrivatePut[]Order(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivateDeleteInterface{}(t *testing.T) {
-    data, err := c.PrivateDeleteInterface{}()
+
+func TestPrivateDeleteApiKey(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PrivateDeleteApiKey(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -643,8 +825,11 @@ func TestPrivateDeleteInterface{}(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivateDelete[]Order(t *testing.T) {
-    data, err := c.PrivateDelete[]Order()
+
+func TestPrivateDeleteOrder(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PrivateDeleteOrder(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -652,8 +837,11 @@ func TestPrivateDelete[]Order(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-func TestPrivateDelete[]Order(t *testing.T) {
-    data, err := c.PrivateDelete[]Order()
+
+func TestPrivateDeleteOrderAll(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PrivateDeleteOrderAll(&params)
+    t.Logf("%+v", data)
     if err != nil {
         t.Fatal(err)
     }
@@ -661,3 +849,4 @@ func TestPrivateDelete[]Order(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
+
