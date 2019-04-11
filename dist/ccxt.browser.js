@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.458'
+const version = '1.18.459'
 
 Exchange.ccxtVersion = version
 
@@ -17586,6 +17586,9 @@ module.exports = class bittrex extends Exchange {
         let filled = undefined;
         if (amount !== undefined && remaining !== undefined) {
             filled = amount - remaining;
+            if ((status === 'closed') && (remaining > 0)) {
+                status = 'canceled';
+            }
         }
         if (!cost) {
             if (price && filled)

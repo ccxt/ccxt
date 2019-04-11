@@ -843,6 +843,9 @@ class bittrex extends Exchange {
         $filled = null;
         if ($amount !== null && $remaining !== null) {
             $filled = $amount - $remaining;
+            if (($status === 'closed') && ($remaining > 0)) {
+                $status = 'canceled';
+            }
         }
         if (!$cost) {
             if ($price && $filled)
