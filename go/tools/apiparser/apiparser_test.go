@@ -17,7 +17,7 @@ func TestParseAPITemplate(t *testing.T) {
 	defer f.Close()
 	json.NewDecoder(f).Decode(&info)
 	buildTest := false
-	err = ParseAPITemplate(info, "", &buildTest)
+	err = ParseAPITemplate(info, "", "tmpl_api", &buildTest)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -36,7 +36,7 @@ func TestParseAPITestTemplate(t *testing.T) {
 	defer f.Close()
 	json.NewDecoder(f).Decode(&info)
 	buildTest := true
-	err = ParseAPITemplate(info, "", &buildTest)
+	err = ParseAPITemplate(info, "", "tmpl_api", &buildTest)
 	if err != nil {
 		t.Fatal(err)
 	}
