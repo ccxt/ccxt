@@ -3,18 +3,31 @@ package {{.ID}}
 // AUTOMATICALLY GENERATED, BUT NEEDS TO BE MODIFIED:
 import (
 	"bytes"
+    "encoding/json"
+	"io/ioutil"
 	"net/url"
 	"reflect"
 	"testing"
 
 	"github.com/ccxt/ccxt/go/internal/app/bitmex/models"
+    "github.com/ccxt/ccxt/go/pkg/ccxt"
 )
 
 var c *Exchange
 
 func init() {
+    keys, err := ioutil.ReadFile("../../../keys.json")
+	if err != nil {
+		panic(err)
+	}
+	var configKeys map[string]ccxt.ExchangeConfig
+	err = json.Unmarshal(keys, &configKeys)
+	if err != nil {
+		panic(err)
+	}
+	config := configKeys["{{.ID}}"]
 	var err error
-	c, err = Init()
+	c, err = Init(config)
     if err != nil {
 	    panic(err)
     }

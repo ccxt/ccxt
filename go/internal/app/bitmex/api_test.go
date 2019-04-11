@@ -8,13 +8,14 @@ import (
 	"testing"
 
 	"github.com/ccxt/ccxt/go/internal/app/bitmex/models"
+	"github.com/ccxt/ccxt/go/pkg/ccxt"
 )
 
 var c *Exchange
 
 func init() {
 	var err error
-	c, err = Init()
+	c, err = Init(ccxt.ExchangeConfig{})
 	if err != nil {
 		panic(err)
 	}

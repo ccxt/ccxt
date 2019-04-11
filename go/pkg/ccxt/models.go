@@ -9,6 +9,28 @@ import (
 	"github.com/ccxt/ccxt/go/internal/util"
 )
 
+// ExchangeConfig for main configuration
+// Timeout takes json value in milliseconds
+type ExchangeConfig struct {
+	APIKey          string        `json:"apiKey"`
+	Secret          string        `json:"secret"`
+	Timeout         time.Duration `json:"timeout"`
+	EnableRateLimit bool          `json:"enableRateLimit"`
+}
+
+// UnmarshalJSON accepts strings and links to the appropaite error method:
+func (e ExchangeConfig) UnmarshalJSON(b []byte) error {
+	var conf map[string]interface{}
+	err := json.Unmarshal(b, &conf)
+	if err != nil {
+		return err
+	}
+	if timeout, ok := conf["timeout"].(time.Duration); ok {
+		e.Timeout = timeout * time.Millisecond
+	}
+	return nil
+}
+
 // ExchangeInfo for the exchange
 type ExchangeInfo struct {
 	ID              string            `json:"id"`
