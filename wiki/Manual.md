@@ -677,14 +677,14 @@ Examples:
 
 The user is required to stay within all limits and precision! The values of the order should satisfy the following conditions:
 
-  - Order `amount` > `limits['min']['amount']`
-  - Order `amount` < `limits['max']['amount']`
-  - Order `price` > `limits['min']['price']`
-  - Order `price` < `limits['max']['price']`
-  - Order `cost` (`amount * price`) > `limits['min']['cost']`
-  - Order `cost` (`amount * price`) < `limits['max']['cost']`
-  - Precision of `amount` must be <= `precision['amount']`
-  - Precision of `price` must be <= `precision['price']`
+- Order `amount` > `limits['min']['amount']`
+- Order `amount` < `limits['max']['amount']`
+- Order `price` > `limits['min']['price']`
+- Order `price` < `limits['max']['price']`
+- Order `cost` (`amount * price`) > `limits['min']['cost']`
+- Order `cost` (`amount * price`) < `limits['max']['cost']`
+- Precision of `amount` must be <= `precision['amount']`
+- Precision of `price` must be <= `precision['price']`
 
 The above values can be missing with some exchanges that don't provide info on limits from their API or don't have it implemented yet.
 
