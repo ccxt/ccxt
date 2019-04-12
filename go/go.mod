@@ -8,4 +8,5 @@ require (
 	github.com/go-openapi/strfmt v0.19.0
 	github.com/go-openapi/swag v0.19.0
 	github.com/go-openapi/validate v0.19.0
+	github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a
 )
