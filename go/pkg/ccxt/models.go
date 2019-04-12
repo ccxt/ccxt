@@ -369,8 +369,10 @@ type Ticker struct {
 
 // Currency struct
 type Currency struct {
-	ID   string `json:"id"`
-	Code string `json:"code"`
+	ID        string `json:"id"`
+	Code      string `json:"code"`
+	NumericID string `json:"numericId"`
+	Precision int    `json:"precision"`
 }
 
 // DepositAddress struct
