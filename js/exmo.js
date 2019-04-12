@@ -96,7 +96,7 @@ module.exports = class exmo extends Exchange {
                 },
             },
             'options': {
-                'useWebapiForFetchingFees': true, // TODO: figure why Exmo bans us when we try to fetch() their web urls
+                'useWebapiForFetchingFees': false, // TODO: figure why Exmo bans us when we try to fetch() their web urls
                 'feesAndLimits': {
                     'success': 1,
                     'ctlr': 'feesAndLimits',
