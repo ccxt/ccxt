@@ -35,6 +35,6 @@ func TestExchangeInitPrivate(t *testing.T) {
 		t.Fatal(err)
 	}
 	if x.Config.APIKey != config.APIKey {
-		t.Fatal("Did not load bitmex APIKey correctly")
+		t.Fatal("Did not load {{.ID}} APIKey correctly")
 	}
 }

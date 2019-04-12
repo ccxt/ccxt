@@ -48,6 +48,27 @@ func Init(conf ccxt.ExchangeConfig) (*Exchange, error) {
 	return &exchange, nil
 }
 
+// FetchCurrencies returns ccxt.Currency
+func (x *Exchange) FetchCurrencies() ([]ccxt.Currency, error) {
+	currencies := x.Currencies
+	return currencies, nil
+}
+
+// GetInfo returns ccxt.ExchangeInfo
+func (x *Exchange) GetInfo() ccxt.ExchangeInfo {
+	return x.Info
+}
+
+// GetMarkets returns []ccxt.Market
+func (x *Exchange) GetMarkets() []ccxt.Market {
+	return x.Markets
+}
+
+// GetCurrencies returns []ccxt.Currency
+func (x *Exchange) GetCurrencies() []ccxt.Currency {
+	return x.Currencies
+}
+
 // FetchMarkets and insert into the Exchange
 func (x *Exchange) FetchMarkets(params *url.Values) ([]ccxt.Market, error) {
 	instruments, err := x.PublicGetInstrumentActiveAndIndices(params)
@@ -181,25 +202,4 @@ func (x *Exchange) SetMarkets(markets []ccxt.Market, currencies []ccxt.Currency)
 		x.CurrenciesByID[currency.ID] = currency
 	}
 	return x.Markets
-}
-
-// FetchCurrencies returns ccxt.Currency
-func (x *Exchange) FetchCurrencies() ([]ccxt.Currency, error) {
-	currencies := x.Currencies
-	return currencies, nil
-}
-
-// GetInfo returns ccxt.ExchangeInfo
-func (x *Exchange) GetInfo() ccxt.ExchangeInfo {
-	return x.Info
-}
-
-// GetMarkets returns []ccxt.Market
-func (x *Exchange) GetMarkets() []ccxt.Market {
-	return x.Markets
-}
-
-// GetCurrencies returns []ccxt.Currency
-func (x *Exchange) GetCurrencies() []ccxt.Currency {
-	return x.Currencies
 }
