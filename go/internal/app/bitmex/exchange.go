@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ccxt/ccxt/go/internal/app/bitmex/models"
 	"github.com/ccxt/ccxt/go/pkg/ccxt"
 )
 
@@ -202,4 +203,42 @@ func (x *Exchange) SetMarkets(markets []ccxt.Market, currencies []ccxt.Currency)
 		x.CurrenciesByID[currency.ID] = currency
 	}
 	return x.Markets
+}
+
+// FetchBalance from exchange
+func (x *Exchange) FetchBalance(params *url.Values) (ccxt.Account, error) {
+	account := ccxt.Account{}
+	_, err := ccxt.LoadMarkets(x, false, &url.Values{})
+	if err != nil {
+		return account, err
+	}
+	if params.Get("currency") == "" {
+		params.Set("currency", "all")
+	}
+	var response interface{}
+	response, err = x.PrivateGetUserMargin(params)
+	if err != nil {
+		return account, err
+	}
+	// info := response.(map[string]interface{})
+	margin := response.([]models.Margin)
+	result := map[string]ccxt.Balance{}
+	// balance := margin.(models.Margin)
+	for _, balance := range margin {
+		currencyID := balance.Currency
+		currencyID = strings.ToUpper(currencyID)
+		code := currencyID // TODO: commonCurrencyCode()
+		wallet := ccxt.Balance{
+			Free:  float64(balance.AvailableMargin),
+			Used:  0.0,
+			Total: float64(balance.MarginBalance),
+		}
+		if code == "BTC" {
+			wallet.Free = wallet.Free * 0.00000001
+			wallet.Total = wallet.Total * 0.00000001
+		}
+		wallet.Used = wallet.Total - wallet.Free
+		result[code] = wallet
+	}
+	return ccxt.ParseBalance(x, result, response), nil
 }

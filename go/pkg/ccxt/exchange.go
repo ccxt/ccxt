@@ -74,3 +74,34 @@ func LoadMarkets(x Exchange, reload bool, params *url.Values) ([]Market, error) 
 	}
 	return x.SetMarkets(markets, currencies), nil
 }
+
+func getCurrencyUsedOnOpenOrders(currency string) float64 {
+	// TODO: implement getCurrencyUsedOnOpenOrders()
+	return 0.0
+}
+
+// ParseBalance into the correct struct
+func ParseBalance(x Exchange, balances map[string]Balance, info interface{}) Account {
+	account := Account{
+		Free:  make(map[string]float64),
+		Used:  make(map[string]float64),
+		Total: make(map[string]float64),
+	}
+	for currency, balance := range balances {
+		if balance.Free == 0 && balance.Used == 0 {
+			// exchange reports only 'free' balance -> try to derive 'used' funds from open orders cache
+			if x.GetInfo().DontGetUsedBalanceFromStaleCache {
+				// liqui exchange reports number of open orders with balance response
+				// use it to validate the cache
+				// TODO: implement info open_orders here
+			} else {
+				balance.Used = getCurrencyUsedOnOpenOrders(currency)
+				balance.Total = balance.Used + balance.Free
+			}
+		}
+		account.Free[currency] = balance.Free
+		account.Used[currency] = balance.Used
+		account.Total[currency] = balance.Total
+	}
+	return account
+}

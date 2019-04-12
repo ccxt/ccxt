@@ -13,6 +13,7 @@ import (
 )
 
 var x *bitmex.Exchange
+var p *url.Values
 
 func loadKeys() (config ccxt.ExchangeConfig, err error) {
 	keys, err := ioutil.ReadFile("../../keys.json")
@@ -38,6 +39,7 @@ func setup() {
 	if err != nil {
 		panic(err)
 	}
+	p = &url.Values{}
 }
 
 func TestMain(m *testing.M) {
@@ -57,7 +59,7 @@ func TestLoadMarkets(t *testing.T) {
 			So(x.Markets, ShouldBeEmpty)
 		})
 		Convey("Loading the Markets", func() {
-			markets, err := ccxt.LoadMarkets(x, false, &(url.Values{}))
+			markets, err := ccxt.LoadMarkets(x, false, p)
 			if err != nil {
 				t.Fatal(err)
 			}

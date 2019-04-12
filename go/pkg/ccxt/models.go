@@ -20,25 +20,26 @@ type ExchangeConfig struct {
 
 // ExchangeInfo for the exchange
 type ExchangeInfo struct {
-	ID              string            `json:"id"`
-	Name            string            `json:"name"`
-	Countries       StringSlice       `json:"countries"`
-	Version         string            `json:"version"`
-	EnableRateLimit bool              `json:"enableRateLimit"`
-	RateLimit       int               `json:"rateLimit"`
-	Has             HasDescription    `json:"has"`
-	URLs            URLs              `json:"urls"`
-	API             APIs              `json:"api"`
-	Timeframes      map[string]string `json:"timeframes"`
-	Fees            Fees              `json:"fees"`
-	UserAgents      map[string]string `json:"userAgents"`
-	Header          http.Header       `json:"header"`
-	Proxy           string            `json:"proxy"`
-	Origin          string            `json:"origin"`
-	Verbose         bool              `json:"verbose"`
-	Limits          Limits            `json:"limits"`
-	Precision       Precision         `json:"precision"`
-	Exceptions      Exceptions        `json:"exceptions"`
+	ID                               string            `json:"id"`
+	Name                             string            `json:"name"`
+	Countries                        StringSlice       `json:"countries"`
+	Version                          string            `json:"version"`
+	EnableRateLimit                  bool              `json:"enableRateLimit"`
+	RateLimit                        int               `json:"rateLimit"`
+	Has                              HasDescription    `json:"has"`
+	URLs                             URLs              `json:"urls"`
+	API                              APIs              `json:"api"`
+	Timeframes                       map[string]string `json:"timeframes"`
+	Fees                             Fees              `json:"fees"`
+	UserAgents                       map[string]string `json:"userAgents"`
+	Header                           http.Header       `json:"header"`
+	Proxy                            string            `json:"proxy"`
+	Origin                           string            `json:"origin"`
+	Verbose                          bool              `json:"verbose"`
+	Limits                           Limits            `json:"limits"`
+	Precision                        Precision         `json:"precision"`
+	Exceptions                       Exceptions        `json:"exceptions"`
+	DontGetUsedBalanceFromStaleCache bool              `json:"dontGetUsedBalanceFromStaleCache"`
 }
 
 // APIs public and private methods
@@ -217,9 +218,9 @@ type FundingFees struct {
 
 // Account details
 type Account struct {
-	Free  float64 `json:"free"`
-	Used  float64 `json:"used"`
-	Total float64 `json:"total"`
+	Free  map[string]float64 `json:"free"`
+	Used  map[string]float64 `json:"used"`
+	Total map[string]float64 `json:"total"`
 }
 
 // Balance details
