@@ -229,7 +229,7 @@ All-in-one browser bundle (dependencies included), served from a CDN of your cho
 * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.456/dist/ccxt.browser.js
 * unpkg: https://unpkg.com/ccxt@1.18.456/dist/ccxt.browser.js
 
-Please keep in mind that we are not responsible for the correct operation of those CDN servers.
+If you want to use the most recent version by default, remove the version number from the CDN URL. Please keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.456/dist/ccxt.browser.js"></script>
