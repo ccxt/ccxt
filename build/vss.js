@@ -39,7 +39,7 @@ function vss (filename, template) {
 
 //-----------------------------------------------------------------------------
 
-vss ('./php/Exchange.php',                           "$version = '{version}")
+vss ('./php/Exchange.php',                           "$version = '{version}'")
 vss ('./php/Exchange.php',                           "VERSION = '{version}'")
 vss ('./ccxt.js',                                    "const version = '{version}'")
 vss ('./python/ccxt/__init__.py',                    "__version__ = '{version}'")
