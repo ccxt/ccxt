@@ -47,6 +47,9 @@ vss ('./python/ccxt/async_support/__init__.py',      "__version__ = '{version}'"
 vss ('./python/ccxt/base/exchange.py',               "__version__ = '{version}'")
 vss ('./python/ccxt/async_support/base/exchange.py', "__version__ = '{version}'")
 
+vss ('./README.md',       "ccxt@{version}")
+vss ('./wiki/Install.md', "ccxt@{version}")
+
 //-----------------------------------------------------------------------------
 
 execSync ('cp ./package.json ./LICENSE.txt ./keys.json ./python/')
