@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.459'
+const version = '1.18.460'
 
 Exchange.ccxtVersion = version
 
@@ -37386,7 +37386,7 @@ module.exports = class exmo extends Exchange {
                 },
             },
             'options': {
-                'useWebapiForFetchingFees': true, // TODO: figure why Exmo bans us when we try to fetch() their web urls
+                'useWebapiForFetchingFees': false, // TODO: figure why Exmo bans us when we try to fetch() their web urls
                 'feesAndLimits': {
                     'success': 1,
                     'ctlr': 'feesAndLimits',
