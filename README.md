@@ -229,7 +229,7 @@ All-in-one browser bundle (dependencies included), served from a CDN of your cho
 * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.456/dist/ccxt.browser.js
 * unpkg: https://unpkg.com/ccxt@1.18.456/dist/ccxt.browser.js
 
-CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is therefore not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
+CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.456/dist/ccxt.browser.js"></script>
