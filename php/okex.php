@@ -34,6 +34,7 @@ class okex extends okcoinusd {
                 'fees' => 'https://www.okex.com/pages/products/fees.html',
             ),
             'commonCurrencies' => array (
+                // 'AE' => 'AET', // https://github.com/ccxt/ccxt/issues/4981
                 'FAIR' => 'FairGame',
                 'HOT' => 'Hydro Protocol',
                 'HSR' => 'HC',
