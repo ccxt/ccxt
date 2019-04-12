@@ -13,6 +13,9 @@ import (
 // SignRequest takes the req and adds the correct headers
 func (c *Exchange) SignRequest(req *http.Request, method string, u *url.URL, data []byte) error {
 	path := u.Path
+	if u.RawQuery != "" {
+		path += "?" + u.RawQuery
+	}
 	expires := time.Now().Add(time.Second * 2).Unix()
 	payload := fmt.Sprintf("%s%s%d%s", method, path, expires, string(data))
 	signature, err := util.HMAC(payload, c.Config.Secret, "sha256", "hex")
