@@ -26,7 +26,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'fetchDepositAddress': false,
                 'fetchClosedOrders': false,
                 'fetchFundingFees': false,
-                'fetchMyTrades': false, // has to be false https://github.com/ccxt/ccxt/issues/4971
+                'fetchMyTrades': false, // has to be false https://github.com/ccxt/ccxt/issues/4971
                 'fetchOHLCV': true,
                 'fetchOpenOrders': false,
                 'fetchOrder': true,
