@@ -32,6 +32,7 @@ module.exports = class okex extends okcoinusd {
                 'fees': 'https://www.okex.com/pages/products/fees.html',
             },
             'commonCurrencies': {
+                'AE': 'AET',
                 'FAIR': 'FairGame',
                 'HOT': 'Hydro Protocol',
                 'HSR': 'HC',
