@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -191,6 +192,8 @@ func (x *Exchange) SetMarkets(markets []ccxt.Market, currencies []ccxt.Currency)
 		x.Symbols[i] = market.Symbol
 		x.IDs[i] = market.ID
 	}
+	sort.Strings(x.Symbols)
+	sort.Strings(x.IDs)
 	if currencies != nil {
 		x.Currencies = currencies
 	} else {

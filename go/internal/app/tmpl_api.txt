@@ -62,10 +62,19 @@ func (c *Exchange) apiRequest(method string, reqURL string, params *url.Values, 
 	}
 	return resBody, nil
 }
-{{$baseURL := .URLs.API.Public}}{{range $api, $dataModel := .API.Public.Get}}
-// PublicGet{{apiToFuncName $api}} method for {{$baseURL}}/{{$api}}
+
+func (c *Exchange) parseEndpoint(endpoint string) string {
+	baseURL := c.Info.URLs.WWW
+	if c.Config.Test {
+		baseURL = c.Info.URLs.Test
+	}
+	return baseURL + c.Info.URLs.API + endpoint
+}
+
+{{range $api, $dataModel := .API.Public.Get}}
+// PublicGet{{apiToFuncName $api}} method for /{{$api}}
 func (c *Exchange) PublicGet{{apiToFuncName $api}}(params *url.Values) (data {{apiResult $dataModel}}, err error) {
-    reqURL := "{{$baseURL}}/{{$api}}"
+	reqURL := c.parseEndpoint("{{$api}}")
     res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
     if err != nil {
         return data, err
@@ -76,10 +85,11 @@ func (c *Exchange) PublicGet{{apiToFuncName $api}}(params *url.Values) (data {{a
 	}
 	return data, nil
 }
-{{end}}{{range $api, $dataModel := .API.Public.Post}}
-// PublicPost{{apiToFuncName $api}} method for {{$baseURL}}/{{$api}}
+{{end}}
+{{range $api, $dataModel := .API.Public.Post}}
+// PublicPost{{apiToFuncName $api}} method for /{{$api}}
 func (c *Exchange) PublicPost{{apiToFuncName $api}}(params *url.Values, body bytes.Buffer) (data {{apiResult $dataModel}}, err error) {
-    reqURL := "{{$baseURL}}/{{$api}}"
+    reqURL := c.parseEndpoint("{{$api}}")
     res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
     if err != nil {
         return data, err
@@ -90,10 +100,11 @@ func (c *Exchange) PublicPost{{apiToFuncName $api}}(params *url.Values, body byt
 	}
 	return data, nil
 }
-{{end}}{{range $api, $dataModel := .API.Public.Put}}
-// PublicPut{{apiToFuncName $api}} method for {{$baseURL}}/{{$api}}
+{{end}}
+{{range $api, $dataModel := .API.Public.Put}}
+// PublicPut{{apiToFuncName $api}} method for /{{$api}}
 func (c *Exchange) PublicPut{{apiToFuncName $api}}(params *url.Values, body bytes.Buffer) (data {{apiResult $dataModel}}, err error) {
-    reqURL := "{{$baseURL}}/{{$api}}"
+    reqURL := c.parseEndpoint("{{$api}}")
     res, err := c.apiRequest("PUT", reqURL, params, bytes.Buffer{})
     if err != nil {
         return data, err
@@ -104,10 +115,11 @@ func (c *Exchange) PublicPut{{apiToFuncName $api}}(params *url.Values, body byte
 	}
 	return data, nil
 }
-{{end}}{{range $api, $dataModel := .API.Public.Delete}}
-// PublicDelete{{apiToFuncName $api}} method for {{$baseURL}}/{{$api}}
+{{end}}
+{{range $api, $dataModel := .API.Public.Delete}}
+// PublicDelete{{apiToFuncName $api}} method for /{{$api}}
 func (c *Exchange) PublicDelete{{apiToFuncName $api}}(params *url.Values) (data {{apiResult $dataModel}}, err error) {
-    reqURL := "{{$baseURL}}/{{$api}}"
+    reqURL := c.parseEndpoint("{{$api}}")
     res, err := c.apiRequest("DELETE", reqURL, params, bytes.Buffer{})
     if err != nil {
         return data, err
@@ -118,10 +130,11 @@ func (c *Exchange) PublicDelete{{apiToFuncName $api}}(params *url.Values) (data 
 	}
 	return data, nil
 }
-{{end}}{{range $api, $dataModel := .API.Private.Get}}
-// PrivateGet{{apiToFuncName $api}} method for {{$baseURL}}/{{$api}}
+{{end}}
+{{range $api, $dataModel := .API.Private.Get}}
+// PrivateGet{{apiToFuncName $api}} method for /{{$api}}
 func (c *Exchange) PrivateGet{{apiToFuncName $api}}(params *url.Values) (data {{apiResult $dataModel}}, err error) {
-    reqURL := "{{$baseURL}}/{{$api}}"
+    reqURL := c.parseEndpoint("{{$api}}")
     res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
     if err != nil {
         return data, err
@@ -132,10 +145,11 @@ func (c *Exchange) PrivateGet{{apiToFuncName $api}}(params *url.Values) (data {{
 	}
 	return data, nil
 }
-{{end}}{{range $api, $dataModel := .API.Private.Post}}
-// PrivatePost{{apiToFuncName $api}} method for {{$baseURL}}/{{$api}}
+{{end}}
+{{range $api, $dataModel := .API.Private.Post}}
+// PrivatePost{{apiToFuncName $api}} method for /{{$api}}
 func (c *Exchange) PrivatePost{{apiToFuncName $api}}(params *url.Values, body bytes.Buffer) (data {{apiResult $dataModel}}, err error) {
-    reqURL := "{{$baseURL}}/{{$api}}"
+    reqURL := c.parseEndpoint("{{$api}}")
     res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
     if err != nil {
         return data, err
@@ -146,10 +160,11 @@ func (c *Exchange) PrivatePost{{apiToFuncName $api}}(params *url.Values, body by
 	}
 	return data, nil
 }
-{{end}}{{range $api, $dataModel := .API.Private.Put}}
-// PrivatePut{{apiToFuncName $api}} method for {{$baseURL}}/{{$api}}
+{{end}}
+{{range $api, $dataModel := .API.Private.Put}}
+// PrivatePut{{apiToFuncName $api}} method for /{{$api}}
 func (c *Exchange) PrivatePut{{apiToFuncName $api}}(params *url.Values, body bytes.Buffer) (data {{apiResult $dataModel}}, err error) {
-    reqURL := "{{$baseURL}}/{{$api}}"
+    reqURL := c.parseEndpoint("{{$api}}")
     res, err := c.apiRequest("PUT", reqURL, params, bytes.Buffer{})
     if err != nil {
         return data, err
@@ -160,10 +175,11 @@ func (c *Exchange) PrivatePut{{apiToFuncName $api}}(params *url.Values, body byt
 	}
 	return data, nil
 }
-{{end}}{{range $api, $dataModel := .API.Private.Delete}}
-// PrivateDelete{{apiToFuncName $api}} method for {{$baseURL}}/{{$api}}
+{{end}}
+{{range $api, $dataModel := .API.Private.Delete}}
+// PrivateDelete{{apiToFuncName $api}} method for /{{$api}}
 func (c *Exchange) PrivateDelete{{apiToFuncName $api}}(params *url.Values) (data {{apiResult $dataModel}}, err error) {
-    reqURL := "{{$baseURL}}/{{$api}}"
+    reqURL := c.parseEndpoint("{{$api}}")
     res, err := c.apiRequest("DELETE", reqURL, params, bytes.Buffer{})
     if err != nil {
         return data, err

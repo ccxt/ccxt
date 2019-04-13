@@ -24,7 +24,7 @@
   "urls": {
     "test": "https://testnet.bitmex.com",
     "logo": "https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg",
-    "api": "https://www.bitmex.com/api/v1",
+    "api": "/api/v1/",
     "www": "https://www.bitmex.com",
     "doc": [
       "https://www.bitmex.com/app/apiOverview",

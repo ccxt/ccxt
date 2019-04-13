@@ -16,6 +16,7 @@ type ExchangeConfig struct {
 	Secret          string        `json:"secret"`
 	Timeout         time.Duration `json:"timeout"`
 	EnableRateLimit bool          `json:"enableRateLimit"`
+	Test            bool          `json:"test"`
 }
 
 // ExchangeInfo for the exchange
@@ -58,9 +59,10 @@ type APIMethods struct {
 
 // URLs for exchange
 type URLs struct {
-	API  APIURLs     `json:"api"`
-	Logo StringSlice `json:"logo"`
 	WWW  string      `json:"www"`
+	Test string      `json:"test"`
+	API  string      `json:"api"`
+	Logo StringSlice `json:"logo"`
 	Doc  StringSlice `json:"doc"`
 	Fees StringSlice `json:"fees"`
 }

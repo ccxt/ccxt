@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
+	"sort"
 	"testing"
 
 	"github.com/ccxt/ccxt/go/internal/app/bitmex"
@@ -66,8 +67,21 @@ func TestLoadMarkets(t *testing.T) {
 			Convey("Markets should be returned", func() {
 				So(markets, ShouldNotBeEmpty)
 			})
+			marketLength := len(markets)
 			Convey("Markets should be loaded into exchange.Markets", func() {
-				So(len(markets), ShouldEqual, len(x.Markets))
+				So(marketLength, ShouldEqual, len(x.Markets))
+			})
+			checkLenAndSorted := func(length int, list []string) {
+				So(length, ShouldEqual, len(list))
+				Convey("slice should be sorted in increasing order", func() {
+					So(sort.StringsAreSorted(list), ShouldBeTrue)
+				})
+			}
+			Convey("IDs should be loaded into exchange.IDs", func() {
+				checkLenAndSorted(marketLength, x.Symbols)
+			})
+			Convey("Symbols should be loaded into exchange.Symbols", func() {
+				checkLenAndSorted(marketLength, x.Symbols)
 			})
 		})
 	})

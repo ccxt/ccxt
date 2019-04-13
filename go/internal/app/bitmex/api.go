@@ -63,9 +63,17 @@ func (c *Exchange) apiRequest(method string, reqURL string, params *url.Values, 
 	return resBody, nil
 }
 
-// PublicGetAnnouncement method for https://www.bitmex.com/api/v1/announcement
+func (c *Exchange) parseEndpoint(endpoint string) string {
+	baseURL := c.Info.URLs.WWW
+	if c.Config.Test {
+		baseURL = c.Info.URLs.Test
+	}
+	return baseURL + c.Info.URLs.API + endpoint
+}
+
+// PublicGetAnnouncement method for /announcement
 func (c *Exchange) PublicGetAnnouncement(params *url.Values) (data []models.Announcement, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/announcement"
+	reqURL := c.parseEndpoint("announcement")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -77,9 +85,9 @@ func (c *Exchange) PublicGetAnnouncement(params *url.Values) (data []models.Anno
 	return data, nil
 }
 
-// PublicGetAnnouncementUrgent method for https://www.bitmex.com/api/v1/announcement/urgent
+// PublicGetAnnouncementUrgent method for /announcement/urgent
 func (c *Exchange) PublicGetAnnouncementUrgent(params *url.Values) (data []models.Announcement, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/announcement/urgent"
+	reqURL := c.parseEndpoint("announcement/urgent")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -91,9 +99,9 @@ func (c *Exchange) PublicGetAnnouncementUrgent(params *url.Values) (data []model
 	return data, nil
 }
 
-// PublicGetFunding method for https://www.bitmex.com/api/v1/funding
+// PublicGetFunding method for /funding
 func (c *Exchange) PublicGetFunding(params *url.Values) (data []models.Funding, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/funding"
+	reqURL := c.parseEndpoint("funding")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -105,9 +113,9 @@ func (c *Exchange) PublicGetFunding(params *url.Values) (data []models.Funding, 
 	return data, nil
 }
 
-// PublicGetInstrument method for https://www.bitmex.com/api/v1/instrument
+// PublicGetInstrument method for /instrument
 func (c *Exchange) PublicGetInstrument(params *url.Values) (data []models.Instrument, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/instrument"
+	reqURL := c.parseEndpoint("instrument")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -119,9 +127,9 @@ func (c *Exchange) PublicGetInstrument(params *url.Values) (data []models.Instru
 	return data, nil
 }
 
-// PublicGetInstrumentActive method for https://www.bitmex.com/api/v1/instrument/active
+// PublicGetInstrumentActive method for /instrument/active
 func (c *Exchange) PublicGetInstrumentActive(params *url.Values) (data []models.Instrument, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/instrument/active"
+	reqURL := c.parseEndpoint("instrument/active")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -133,9 +141,9 @@ func (c *Exchange) PublicGetInstrumentActive(params *url.Values) (data []models.
 	return data, nil
 }
 
-// PublicGetInstrumentActiveAndIndices method for https://www.bitmex.com/api/v1/instrument/activeAndIndices
+// PublicGetInstrumentActiveAndIndices method for /instrument/activeAndIndices
 func (c *Exchange) PublicGetInstrumentActiveAndIndices(params *url.Values) (data []models.Instrument, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/instrument/activeAndIndices"
+	reqURL := c.parseEndpoint("instrument/activeAndIndices")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -147,9 +155,9 @@ func (c *Exchange) PublicGetInstrumentActiveAndIndices(params *url.Values) (data
 	return data, nil
 }
 
-// PublicGetInstrumentActiveIntervals method for https://www.bitmex.com/api/v1/instrument/activeIntervals
+// PublicGetInstrumentActiveIntervals method for /instrument/activeIntervals
 func (c *Exchange) PublicGetInstrumentActiveIntervals(params *url.Values) (data models.InstrumentInterval, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/instrument/activeIntervals"
+	reqURL := c.parseEndpoint("instrument/activeIntervals")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -161,9 +169,9 @@ func (c *Exchange) PublicGetInstrumentActiveIntervals(params *url.Values) (data 
 	return data, nil
 }
 
-// PublicGetInstrumentCompositeIndex method for https://www.bitmex.com/api/v1/instrument/compositeIndex
+// PublicGetInstrumentCompositeIndex method for /instrument/compositeIndex
 func (c *Exchange) PublicGetInstrumentCompositeIndex(params *url.Values) (data []models.Instrument, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/instrument/compositeIndex"
+	reqURL := c.parseEndpoint("instrument/compositeIndex")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -175,9 +183,9 @@ func (c *Exchange) PublicGetInstrumentCompositeIndex(params *url.Values) (data [
 	return data, nil
 }
 
-// PublicGetInstrumentIndices method for https://www.bitmex.com/api/v1/instrument/indices
+// PublicGetInstrumentIndices method for /instrument/indices
 func (c *Exchange) PublicGetInstrumentIndices(params *url.Values) (data []models.Instrument, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/instrument/indices"
+	reqURL := c.parseEndpoint("instrument/indices")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -189,9 +197,9 @@ func (c *Exchange) PublicGetInstrumentIndices(params *url.Values) (data []models
 	return data, nil
 }
 
-// PublicGetInsurance method for https://www.bitmex.com/api/v1/insurance
+// PublicGetInsurance method for /insurance
 func (c *Exchange) PublicGetInsurance(params *url.Values) (data []models.Insurance, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/insurance"
+	reqURL := c.parseEndpoint("insurance")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -203,9 +211,9 @@ func (c *Exchange) PublicGetInsurance(params *url.Values) (data []models.Insuran
 	return data, nil
 }
 
-// PublicGetLeaderboard method for https://www.bitmex.com/api/v1/leaderboard
+// PublicGetLeaderboard method for /leaderboard
 func (c *Exchange) PublicGetLeaderboard(params *url.Values) (data []models.Leaderboard, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/leaderboard"
+	reqURL := c.parseEndpoint("leaderboard")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -217,9 +225,9 @@ func (c *Exchange) PublicGetLeaderboard(params *url.Values) (data []models.Leade
 	return data, nil
 }
 
-// PublicGetLeaderboardName method for https://www.bitmex.com/api/v1/leaderboard/name
+// PublicGetLeaderboardName method for /leaderboard/name
 func (c *Exchange) PublicGetLeaderboardName(params *url.Values) (data models.Leaderboard, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/leaderboard/name"
+	reqURL := c.parseEndpoint("leaderboard/name")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -231,9 +239,9 @@ func (c *Exchange) PublicGetLeaderboardName(params *url.Values) (data models.Lea
 	return data, nil
 }
 
-// PublicGetLiquidation method for https://www.bitmex.com/api/v1/liquidation
+// PublicGetLiquidation method for /liquidation
 func (c *Exchange) PublicGetLiquidation(params *url.Values) (data []models.Liquidation, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/liquidation"
+	reqURL := c.parseEndpoint("liquidation")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -245,9 +253,9 @@ func (c *Exchange) PublicGetLiquidation(params *url.Values) (data []models.Liqui
 	return data, nil
 }
 
-// PublicGetOrderBookL2 method for https://www.bitmex.com/api/v1/orderBook/L2
+// PublicGetOrderBookL2 method for /orderBook/L2
 func (c *Exchange) PublicGetOrderBookL2(params *url.Values) (data []models.OrderBookL2, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/orderBook/L2"
+	reqURL := c.parseEndpoint("orderBook/L2")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -259,9 +267,9 @@ func (c *Exchange) PublicGetOrderBookL2(params *url.Values) (data []models.Order
 	return data, nil
 }
 
-// PublicGetQuote method for https://www.bitmex.com/api/v1/quote
+// PublicGetQuote method for /quote
 func (c *Exchange) PublicGetQuote(params *url.Values) (data []models.Quote, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/quote"
+	reqURL := c.parseEndpoint("quote")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -273,9 +281,9 @@ func (c *Exchange) PublicGetQuote(params *url.Values) (data []models.Quote, err 
 	return data, nil
 }
 
-// PublicGetQuoteBucketed method for https://www.bitmex.com/api/v1/quote/bucketed
+// PublicGetQuoteBucketed method for /quote/bucketed
 func (c *Exchange) PublicGetQuoteBucketed(params *url.Values) (data []models.Quote, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/quote/bucketed"
+	reqURL := c.parseEndpoint("quote/bucketed")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -287,9 +295,9 @@ func (c *Exchange) PublicGetQuoteBucketed(params *url.Values) (data []models.Quo
 	return data, nil
 }
 
-// PublicGetSchema method for https://www.bitmex.com/api/v1/schema
+// PublicGetSchema method for /schema
 func (c *Exchange) PublicGetSchema(params *url.Values) (data interface{}, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/schema"
+	reqURL := c.parseEndpoint("schema")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -301,9 +309,9 @@ func (c *Exchange) PublicGetSchema(params *url.Values) (data interface{}, err er
 	return data, nil
 }
 
-// PublicGetSchemaWebsocketHelp method for https://www.bitmex.com/api/v1/schema/websocketHelp
+// PublicGetSchemaWebsocketHelp method for /schema/websocketHelp
 func (c *Exchange) PublicGetSchemaWebsocketHelp(params *url.Values) (data interface{}, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/schema/websocketHelp"
+	reqURL := c.parseEndpoint("schema/websocketHelp")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -315,9 +323,9 @@ func (c *Exchange) PublicGetSchemaWebsocketHelp(params *url.Values) (data interf
 	return data, nil
 }
 
-// PublicGetSettlement method for https://www.bitmex.com/api/v1/settlement
+// PublicGetSettlement method for /settlement
 func (c *Exchange) PublicGetSettlement(params *url.Values) (data []models.Settlement, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/settlement"
+	reqURL := c.parseEndpoint("settlement")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -329,9 +337,9 @@ func (c *Exchange) PublicGetSettlement(params *url.Values) (data []models.Settle
 	return data, nil
 }
 
-// PublicGetStats method for https://www.bitmex.com/api/v1/stats
+// PublicGetStats method for /stats
 func (c *Exchange) PublicGetStats(params *url.Values) (data []models.Stats, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/stats"
+	reqURL := c.parseEndpoint("stats")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -343,9 +351,9 @@ func (c *Exchange) PublicGetStats(params *url.Values) (data []models.Stats, err 
 	return data, nil
 }
 
-// PublicGetStatsHistory method for https://www.bitmex.com/api/v1/stats/history
+// PublicGetStatsHistory method for /stats/history
 func (c *Exchange) PublicGetStatsHistory(params *url.Values) (data []models.StatsHistory, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/stats/history"
+	reqURL := c.parseEndpoint("stats/history")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -357,9 +365,9 @@ func (c *Exchange) PublicGetStatsHistory(params *url.Values) (data []models.Stat
 	return data, nil
 }
 
-// PublicGetTrade method for https://www.bitmex.com/api/v1/trade
+// PublicGetTrade method for /trade
 func (c *Exchange) PublicGetTrade(params *url.Values) (data []models.Trade, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/trade"
+	reqURL := c.parseEndpoint("trade")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -371,9 +379,9 @@ func (c *Exchange) PublicGetTrade(params *url.Values) (data []models.Trade, err 
 	return data, nil
 }
 
-// PublicGetTradeBucketed method for https://www.bitmex.com/api/v1/trade/bucketed
+// PublicGetTradeBucketed method for /trade/bucketed
 func (c *Exchange) PublicGetTradeBucketed(params *url.Values) (data []models.TradeBin, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/trade/bucketed"
+	reqURL := c.parseEndpoint("trade/bucketed")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -385,9 +393,9 @@ func (c *Exchange) PublicGetTradeBucketed(params *url.Values) (data []models.Tra
 	return data, nil
 }
 
-// PrivateGetApiKey method for https://www.bitmex.com/api/v1/apiKey
+// PrivateGetApiKey method for /apiKey
 func (c *Exchange) PrivateGetApiKey(params *url.Values) (data []models.APIKey, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/apiKey"
+	reqURL := c.parseEndpoint("apiKey")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -399,9 +407,9 @@ func (c *Exchange) PrivateGetApiKey(params *url.Values) (data []models.APIKey, e
 	return data, nil
 }
 
-// PrivateGetChat method for https://www.bitmex.com/api/v1/chat
+// PrivateGetChat method for /chat
 func (c *Exchange) PrivateGetChat(params *url.Values) (data []models.Chat, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/chat"
+	reqURL := c.parseEndpoint("chat")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -413,9 +421,9 @@ func (c *Exchange) PrivateGetChat(params *url.Values) (data []models.Chat, err e
 	return data, nil
 }
 
-// PrivateGetChatChannels method for https://www.bitmex.com/api/v1/chat/channels
+// PrivateGetChatChannels method for /chat/channels
 func (c *Exchange) PrivateGetChatChannels(params *url.Values) (data []models.ChatChannel, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/chat/channels"
+	reqURL := c.parseEndpoint("chat/channels")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -427,9 +435,9 @@ func (c *Exchange) PrivateGetChatChannels(params *url.Values) (data []models.Cha
 	return data, nil
 }
 
-// PrivateGetChatConnected method for https://www.bitmex.com/api/v1/chat/connected
+// PrivateGetChatConnected method for /chat/connected
 func (c *Exchange) PrivateGetChatConnected(params *url.Values) (data models.ConnectedUsers, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/chat/connected"
+	reqURL := c.parseEndpoint("chat/connected")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -441,9 +449,9 @@ func (c *Exchange) PrivateGetChatConnected(params *url.Values) (data models.Conn
 	return data, nil
 }
 
-// PrivateGetExecution method for https://www.bitmex.com/api/v1/execution
+// PrivateGetExecution method for /execution
 func (c *Exchange) PrivateGetExecution(params *url.Values) (data []models.Execution, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/execution"
+	reqURL := c.parseEndpoint("execution")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -455,9 +463,9 @@ func (c *Exchange) PrivateGetExecution(params *url.Values) (data []models.Execut
 	return data, nil
 }
 
-// PrivateGetExecutionTradeHistory method for https://www.bitmex.com/api/v1/execution/tradeHistory
+// PrivateGetExecutionTradeHistory method for /execution/tradeHistory
 func (c *Exchange) PrivateGetExecutionTradeHistory(params *url.Values) (data []models.Execution, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/execution/tradeHistory"
+	reqURL := c.parseEndpoint("execution/tradeHistory")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -469,9 +477,9 @@ func (c *Exchange) PrivateGetExecutionTradeHistory(params *url.Values) (data []m
 	return data, nil
 }
 
-// PrivateGetGlobalNotification method for https://www.bitmex.com/api/v1/globalNotification
+// PrivateGetGlobalNotification method for /globalNotification
 func (c *Exchange) PrivateGetGlobalNotification(params *url.Values) (data []models.GlobalNotification, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/globalNotification"
+	reqURL := c.parseEndpoint("globalNotification")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -483,9 +491,9 @@ func (c *Exchange) PrivateGetGlobalNotification(params *url.Values) (data []mode
 	return data, nil
 }
 
-// PrivateGetOrder method for https://www.bitmex.com/api/v1/order
+// PrivateGetOrder method for /order
 func (c *Exchange) PrivateGetOrder(params *url.Values) (data []models.Order, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/order"
+	reqURL := c.parseEndpoint("order")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -497,9 +505,9 @@ func (c *Exchange) PrivateGetOrder(params *url.Values) (data []models.Order, err
 	return data, nil
 }
 
-// PrivateGetPosition method for https://www.bitmex.com/api/v1/position
+// PrivateGetPosition method for /position
 func (c *Exchange) PrivateGetPosition(params *url.Values) (data []models.Position, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/position"
+	reqURL := c.parseEndpoint("position")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -511,9 +519,9 @@ func (c *Exchange) PrivateGetPosition(params *url.Values) (data []models.Positio
 	return data, nil
 }
 
-// PrivateGetUser method for https://www.bitmex.com/api/v1/user
+// PrivateGetUser method for /user
 func (c *Exchange) PrivateGetUser(params *url.Values) (data models.User, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/user"
+	reqURL := c.parseEndpoint("user")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -525,9 +533,9 @@ func (c *Exchange) PrivateGetUser(params *url.Values) (data models.User, err err
 	return data, nil
 }
 
-// PrivateGetUserAffiliateStatus method for https://www.bitmex.com/api/v1/user/affiliateStatus
+// PrivateGetUserAffiliateStatus method for /user/affiliateStatus
 func (c *Exchange) PrivateGetUserAffiliateStatus(params *url.Values) (data models.Affiliate, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/user/affiliateStatus"
+	reqURL := c.parseEndpoint("user/affiliateStatus")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -539,9 +547,9 @@ func (c *Exchange) PrivateGetUserAffiliateStatus(params *url.Values) (data model
 	return data, nil
 }
 
-// PrivateGetUserCheckReferralCode method for https://www.bitmex.com/api/v1/user/checkReferralCode
+// PrivateGetUserCheckReferralCode method for /user/checkReferralCode
 func (c *Exchange) PrivateGetUserCheckReferralCode(params *url.Values) (data float64, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/user/checkReferralCode"
+	reqURL := c.parseEndpoint("user/checkReferralCode")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -553,9 +561,9 @@ func (c *Exchange) PrivateGetUserCheckReferralCode(params *url.Values) (data flo
 	return data, nil
 }
 
-// PrivateGetUserCommission method for https://www.bitmex.com/api/v1/user/commission
+// PrivateGetUserCommission method for /user/commission
 func (c *Exchange) PrivateGetUserCommission(params *url.Values) (data models.UserCommissionsBySymbol, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/user/commission"
+	reqURL := c.parseEndpoint("user/commission")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -567,9 +575,9 @@ func (c *Exchange) PrivateGetUserCommission(params *url.Values) (data models.Use
 	return data, nil
 }
 
-// PrivateGetUserDepositAddress method for https://www.bitmex.com/api/v1/user/depositAddress
+// PrivateGetUserDepositAddress method for /user/depositAddress
 func (c *Exchange) PrivateGetUserDepositAddress(params *url.Values) (data string, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/user/depositAddress"
+	reqURL := c.parseEndpoint("user/depositAddress")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -581,9 +589,9 @@ func (c *Exchange) PrivateGetUserDepositAddress(params *url.Values) (data string
 	return data, nil
 }
 
-// PrivateGetUserExecutionHistory method for https://www.bitmex.com/api/v1/user/executionHistory
+// PrivateGetUserExecutionHistory method for /user/executionHistory
 func (c *Exchange) PrivateGetUserExecutionHistory(params *url.Values) (data []models.Execution, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/user/executionHistory"
+	reqURL := c.parseEndpoint("user/executionHistory")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -595,9 +603,9 @@ func (c *Exchange) PrivateGetUserExecutionHistory(params *url.Values) (data []mo
 	return data, nil
 }
 
-// PrivateGetUserMargin method for https://www.bitmex.com/api/v1/user/margin
+// PrivateGetUserMargin method for /user/margin
 func (c *Exchange) PrivateGetUserMargin(params *url.Values) (data []models.Margin, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/user/margin"
+	reqURL := c.parseEndpoint("user/margin")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -609,9 +617,9 @@ func (c *Exchange) PrivateGetUserMargin(params *url.Values) (data []models.Margi
 	return data, nil
 }
 
-// PrivateGetUserMinWithdrawalFee method for https://www.bitmex.com/api/v1/user/minWithdrawalFee
+// PrivateGetUserMinWithdrawalFee method for /user/minWithdrawalFee
 func (c *Exchange) PrivateGetUserMinWithdrawalFee(params *url.Values) (data interface{}, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/user/minWithdrawalFee"
+	reqURL := c.parseEndpoint("user/minWithdrawalFee")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -623,9 +631,9 @@ func (c *Exchange) PrivateGetUserMinWithdrawalFee(params *url.Values) (data inte
 	return data, nil
 }
 
-// PrivateGetUserWallet method for https://www.bitmex.com/api/v1/user/wallet
+// PrivateGetUserWallet method for /user/wallet
 func (c *Exchange) PrivateGetUserWallet(params *url.Values) (data models.Wallet, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/user/wallet"
+	reqURL := c.parseEndpoint("user/wallet")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -637,9 +645,9 @@ func (c *Exchange) PrivateGetUserWallet(params *url.Values) (data models.Wallet,
 	return data, nil
 }
 
-// PrivateGetUserWalletHistory method for https://www.bitmex.com/api/v1/user/walletHistory
+// PrivateGetUserWalletHistory method for /user/walletHistory
 func (c *Exchange) PrivateGetUserWalletHistory(params *url.Values) (data []models.Transaction, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/user/walletHistory"
+	reqURL := c.parseEndpoint("user/walletHistory")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -651,9 +659,9 @@ func (c *Exchange) PrivateGetUserWalletHistory(params *url.Values) (data []model
 	return data, nil
 }
 
-// PrivateGetUserWalletSummary method for https://www.bitmex.com/api/v1/user/walletSummary
+// PrivateGetUserWalletSummary method for /user/walletSummary
 func (c *Exchange) PrivateGetUserWalletSummary(params *url.Values) (data []models.Transaction, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/user/walletSummary"
+	reqURL := c.parseEndpoint("user/walletSummary")
 	res, err := c.apiRequest("GET", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -665,9 +673,9 @@ func (c *Exchange) PrivateGetUserWalletSummary(params *url.Values) (data []model
 	return data, nil
 }
 
-// PrivatePostApiKey method for https://www.bitmex.com/api/v1/apiKey
+// PrivatePostApiKey method for /apiKey
 func (c *Exchange) PrivatePostApiKey(params *url.Values, body bytes.Buffer) (data models.APIKey, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/apiKey"
+	reqURL := c.parseEndpoint("apiKey")
 	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -679,9 +687,9 @@ func (c *Exchange) PrivatePostApiKey(params *url.Values, body bytes.Buffer) (dat
 	return data, nil
 }
 
-// PrivatePostApiKeyDisable method for https://www.bitmex.com/api/v1/apiKey/disable
+// PrivatePostApiKeyDisable method for /apiKey/disable
 func (c *Exchange) PrivatePostApiKeyDisable(params *url.Values, body bytes.Buffer) (data models.APIKey, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/apiKey/disable"
+	reqURL := c.parseEndpoint("apiKey/disable")
 	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -693,9 +701,9 @@ func (c *Exchange) PrivatePostApiKeyDisable(params *url.Values, body bytes.Buffe
 	return data, nil
 }
 
-// PrivatePostApiKeyEnable method for https://www.bitmex.com/api/v1/apiKey/enable
+// PrivatePostApiKeyEnable method for /apiKey/enable
 func (c *Exchange) PrivatePostApiKeyEnable(params *url.Values, body bytes.Buffer) (data models.APIKey, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/apiKey/enable"
+	reqURL := c.parseEndpoint("apiKey/enable")
 	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -707,9 +715,9 @@ func (c *Exchange) PrivatePostApiKeyEnable(params *url.Values, body bytes.Buffer
 	return data, nil
 }
 
-// PrivatePostChat method for https://www.bitmex.com/api/v1/chat
+// PrivatePostChat method for /chat
 func (c *Exchange) PrivatePostChat(params *url.Values, body bytes.Buffer) (data models.Chat, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/chat"
+	reqURL := c.parseEndpoint("chat")
 	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -721,9 +729,9 @@ func (c *Exchange) PrivatePostChat(params *url.Values, body bytes.Buffer) (data 
 	return data, nil
 }
 
-// PrivatePostOrder method for https://www.bitmex.com/api/v1/order
+// PrivatePostOrder method for /order
 func (c *Exchange) PrivatePostOrder(params *url.Values, body bytes.Buffer) (data models.Order, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/order"
+	reqURL := c.parseEndpoint("order")
 	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -735,9 +743,9 @@ func (c *Exchange) PrivatePostOrder(params *url.Values, body bytes.Buffer) (data
 	return data, nil
 }
 
-// PrivatePostOrderBulk method for https://www.bitmex.com/api/v1/order/bulk
+// PrivatePostOrderBulk method for /order/bulk
 func (c *Exchange) PrivatePostOrderBulk(params *url.Values, body bytes.Buffer) (data []models.Order, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/order/bulk"
+	reqURL := c.parseEndpoint("order/bulk")
 	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -749,9 +757,9 @@ func (c *Exchange) PrivatePostOrderBulk(params *url.Values, body bytes.Buffer) (
 	return data, nil
 }
 
-// PrivatePostOrderCancelAllAfter method for https://www.bitmex.com/api/v1/order/cancelAllAfter
+// PrivatePostOrderCancelAllAfter method for /order/cancelAllAfter
 func (c *Exchange) PrivatePostOrderCancelAllAfter(params *url.Values, body bytes.Buffer) (data interface{}, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/order/cancelAllAfter"
+	reqURL := c.parseEndpoint("order/cancelAllAfter")
 	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -763,9 +771,9 @@ func (c *Exchange) PrivatePostOrderCancelAllAfter(params *url.Values, body bytes
 	return data, nil
 }
 
-// PrivatePostPositionIsolate method for https://www.bitmex.com/api/v1/position/isolate
+// PrivatePostPositionIsolate method for /position/isolate
 func (c *Exchange) PrivatePostPositionIsolate(params *url.Values, body bytes.Buffer) (data models.Position, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/position/isolate"
+	reqURL := c.parseEndpoint("position/isolate")
 	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -777,9 +785,9 @@ func (c *Exchange) PrivatePostPositionIsolate(params *url.Values, body bytes.Buf
 	return data, nil
 }
 
-// PrivatePostPositionLeverage method for https://www.bitmex.com/api/v1/position/leverage
+// PrivatePostPositionLeverage method for /position/leverage
 func (c *Exchange) PrivatePostPositionLeverage(params *url.Values, body bytes.Buffer) (data models.Position, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/position/leverage"
+	reqURL := c.parseEndpoint("position/leverage")
 	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -791,9 +799,9 @@ func (c *Exchange) PrivatePostPositionLeverage(params *url.Values, body bytes.Bu
 	return data, nil
 }
 
-// PrivatePostPositionRiskLimit method for https://www.bitmex.com/api/v1/position/riskLimit
+// PrivatePostPositionRiskLimit method for /position/riskLimit
 func (c *Exchange) PrivatePostPositionRiskLimit(params *url.Values, body bytes.Buffer) (data models.Position, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/position/riskLimit"
+	reqURL := c.parseEndpoint("position/riskLimit")
 	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -805,9 +813,9 @@ func (c *Exchange) PrivatePostPositionRiskLimit(params *url.Values, body bytes.B
 	return data, nil
 }
 
-// PrivatePostPositionTransferMargin method for https://www.bitmex.com/api/v1/position/transferMargin
+// PrivatePostPositionTransferMargin method for /position/transferMargin
 func (c *Exchange) PrivatePostPositionTransferMargin(params *url.Values, body bytes.Buffer) (data models.Position, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/position/transferMargin"
+	reqURL := c.parseEndpoint("position/transferMargin")
 	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -819,9 +827,9 @@ func (c *Exchange) PrivatePostPositionTransferMargin(params *url.Values, body by
 	return data, nil
 }
 
-// PrivatePostUserCancelWithdrawal method for https://www.bitmex.com/api/v1/user/cancelWithdrawal
+// PrivatePostUserCancelWithdrawal method for /user/cancelWithdrawal
 func (c *Exchange) PrivatePostUserCancelWithdrawal(params *url.Values, body bytes.Buffer) (data models.Transaction, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/user/cancelWithdrawal"
+	reqURL := c.parseEndpoint("user/cancelWithdrawal")
 	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -833,9 +841,9 @@ func (c *Exchange) PrivatePostUserCancelWithdrawal(params *url.Values, body byte
 	return data, nil
 }
 
-// PrivatePostUserCommunicationToken method for https://www.bitmex.com/api/v1/user/communicationToken
+// PrivatePostUserCommunicationToken method for /user/communicationToken
 func (c *Exchange) PrivatePostUserCommunicationToken(params *url.Values, body bytes.Buffer) (data []models.CommunicationToken, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/user/communicationToken"
+	reqURL := c.parseEndpoint("user/communicationToken")
 	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -847,9 +855,9 @@ func (c *Exchange) PrivatePostUserCommunicationToken(params *url.Values, body by
 	return data, nil
 }
 
-// PrivatePostUserConfirmEmail method for https://www.bitmex.com/api/v1/user/confirmEmail
+// PrivatePostUserConfirmEmail method for /user/confirmEmail
 func (c *Exchange) PrivatePostUserConfirmEmail(params *url.Values, body bytes.Buffer) (data models.AccessToken, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/user/confirmEmail"
+	reqURL := c.parseEndpoint("user/confirmEmail")
 	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -861,9 +869,9 @@ func (c *Exchange) PrivatePostUserConfirmEmail(params *url.Values, body bytes.Bu
 	return data, nil
 }
 
-// PrivatePostUserConfirmWithdrawal method for https://www.bitmex.com/api/v1/user/confirmWithdrawal
+// PrivatePostUserConfirmWithdrawal method for /user/confirmWithdrawal
 func (c *Exchange) PrivatePostUserConfirmWithdrawal(params *url.Values, body bytes.Buffer) (data models.Transaction, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/user/confirmWithdrawal"
+	reqURL := c.parseEndpoint("user/confirmWithdrawal")
 	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -875,9 +883,9 @@ func (c *Exchange) PrivatePostUserConfirmWithdrawal(params *url.Values, body byt
 	return data, nil
 }
 
-// PrivatePostUserLogout method for https://www.bitmex.com/api/v1/user/logout
+// PrivatePostUserLogout method for /user/logout
 func (c *Exchange) PrivatePostUserLogout(params *url.Values, body bytes.Buffer) (data interface{}, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/user/logout"
+	reqURL := c.parseEndpoint("user/logout")
 	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -889,9 +897,9 @@ func (c *Exchange) PrivatePostUserLogout(params *url.Values, body bytes.Buffer) 
 	return data, nil
 }
 
-// PrivatePostUserPreferences method for https://www.bitmex.com/api/v1/user/preferences
+// PrivatePostUserPreferences method for /user/preferences
 func (c *Exchange) PrivatePostUserPreferences(params *url.Values, body bytes.Buffer) (data models.UserPreferences, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/user/preferences"
+	reqURL := c.parseEndpoint("user/preferences")
 	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -903,9 +911,9 @@ func (c *Exchange) PrivatePostUserPreferences(params *url.Values, body bytes.Buf
 	return data, nil
 }
 
-// PrivatePostUserRequestWithdrawal method for https://www.bitmex.com/api/v1/user/requestWithdrawal
+// PrivatePostUserRequestWithdrawal method for /user/requestWithdrawal
 func (c *Exchange) PrivatePostUserRequestWithdrawal(params *url.Values, body bytes.Buffer) (data models.Transaction, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/user/requestWithdrawal"
+	reqURL := c.parseEndpoint("user/requestWithdrawal")
 	res, err := c.apiRequest("POST", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -917,9 +925,9 @@ func (c *Exchange) PrivatePostUserRequestWithdrawal(params *url.Values, body byt
 	return data, nil
 }
 
-// PrivatePutOrder method for https://www.bitmex.com/api/v1/order
+// PrivatePutOrder method for /order
 func (c *Exchange) PrivatePutOrder(params *url.Values, body bytes.Buffer) (data models.Order, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/order"
+	reqURL := c.parseEndpoint("order")
 	res, err := c.apiRequest("PUT", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -931,9 +939,9 @@ func (c *Exchange) PrivatePutOrder(params *url.Values, body bytes.Buffer) (data 
 	return data, nil
 }
 
-// PrivatePutOrderBulk method for https://www.bitmex.com/api/v1/order/bulk
+// PrivatePutOrderBulk method for /order/bulk
 func (c *Exchange) PrivatePutOrderBulk(params *url.Values, body bytes.Buffer) (data []models.Order, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/order/bulk"
+	reqURL := c.parseEndpoint("order/bulk")
 	res, err := c.apiRequest("PUT", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -945,9 +953,9 @@ func (c *Exchange) PrivatePutOrderBulk(params *url.Values, body bytes.Buffer) (d
 	return data, nil
 }
 
-// PrivateDeleteApiKey method for https://www.bitmex.com/api/v1/apiKey
+// PrivateDeleteApiKey method for /apiKey
 func (c *Exchange) PrivateDeleteApiKey(params *url.Values) (data interface{}, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/apiKey"
+	reqURL := c.parseEndpoint("apiKey")
 	res, err := c.apiRequest("DELETE", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -959,9 +967,9 @@ func (c *Exchange) PrivateDeleteApiKey(params *url.Values) (data interface{}, er
 	return data, nil
 }
 
-// PrivateDeleteOrder method for https://www.bitmex.com/api/v1/order
+// PrivateDeleteOrder method for /order
 func (c *Exchange) PrivateDeleteOrder(params *url.Values) (data []models.Order, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/order"
+	reqURL := c.parseEndpoint("order")
 	res, err := c.apiRequest("DELETE", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
@@ -973,9 +981,9 @@ func (c *Exchange) PrivateDeleteOrder(params *url.Values) (data []models.Order, 
 	return data, nil
 }
 
-// PrivateDeleteOrderAll method for https://www.bitmex.com/api/v1/order/all
+// PrivateDeleteOrderAll method for /order/all
 func (c *Exchange) PrivateDeleteOrderAll(params *url.Values) (data []models.Order, err error) {
-	reqURL := "https://www.bitmex.com/api/v1/order/all"
+	reqURL := c.parseEndpoint("order/all")
 	res, err := c.apiRequest("DELETE", reqURL, params, bytes.Buffer{})
 	if err != nil {
 		return data, err
