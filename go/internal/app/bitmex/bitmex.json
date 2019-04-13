@@ -78,7 +78,7 @@
         "user/commission": "UserCommissionsBySymbol",
         "user/depositAddress": "string",
         "user/executionHistory": "[]Execution",
-        "user/margin": "Margin",
+        "user/margin": "[]Margin",
         "user/minWithdrawalFee": "interface{}",
         "user/wallet": "Wallet",
         "user/walletHistory": "[]Transaction",
