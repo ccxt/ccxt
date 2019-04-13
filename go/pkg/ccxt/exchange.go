@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"sort"
 )
 
 // Exchange is a common interface of methods
@@ -20,16 +21,24 @@ type Exchange interface {
 	// FetchClosedOrders(symbol *string, since *util.JSONTime, limit *int, params map[string]interface{}) ([]Order, error)
 	// FetchMyTrades(symbol *string, since *util.JSONTime, limit *int, params map[string]interface{}) ([]Trade, error)
 	// FetchBalance(params map[string]interface{}) (Balances, error)
-	FetchCurrencies() ([]Currency, error)
+	FetchCurrencies() (map[string]Currency, error)
 	FetchMarkets(params *url.Values) ([]Market, error)
-	SetMarkets(markets []Market, currencies []Currency) []Market
 
 	// CreateOrder(symbol, t, side string, amount float64, price *float64, params map[string]interface{}) (Order, error)
 	// CancelOrder(id string, symbol *string, params map[string]interface{}) error
 
 	GetInfo() ExchangeInfo
-	GetMarkets() []Market
-	GetCurrencies() []Currency
+	GetMarkets() map[string]Market
+	SetMarkets(map[string]Market)
+	GetMarketsByID() map[string]Market
+	SetMarketsByID(map[string]Market)
+	GetCurrencies() map[string]Currency
+	SetCurrencies(map[string]Currency)
+	GetCurrenciesByID() map[string]Currency
+	SetCurrenciesByID(map[string]Currency)
+	SetSymbols([]string)
+	SetIDs([]string)
+	// GetOrders() []Order
 	// LoadMarkets(reload bool, params *url.Values) (map[string]Market, error)
 	// GetMarket(symbol string) (Market, error)
 	// CreateLimitBuyOrder(symbol string, amount float64, price *float64, params map[string]interface{}) (Order, error)
@@ -56,11 +65,11 @@ func Info(x Exchange) {
 }
 
 // LoadMarkets from the exchange that are active and available
-func LoadMarkets(x Exchange, reload bool, params *url.Values) ([]Market, error) {
+func LoadMarkets(x Exchange, reload bool, params *url.Values) (map[string]Market, error) {
 	if !reload && x.GetMarkets() != nil {
 		return x.GetMarkets(), nil
 	}
-	var currencies []Currency
+	var currencies map[string]Currency
 	var err error
 	if x.GetInfo().Has.FetchCurrencies {
 		currencies, err = x.FetchCurrencies()
@@ -72,7 +81,7 @@ func LoadMarkets(x Exchange, reload bool, params *url.Values) ([]Market, error) 
 	if err != nil {
 		return nil, err
 	}
-	return x.SetMarkets(markets, currencies), nil
+	return setMarkets(x, markets, currencies), nil
 }
 
 func getCurrencyUsedOnOpenOrders(currency string) float64 {
@@ -80,8 +89,112 @@ func getCurrencyUsedOnOpenOrders(currency string) float64 {
 	return 0.0
 }
 
+// setMarkets sets Markets, MarketsByID, Symbols, SymbolsByIDs, IDs,
+// Currencies, CurrenciesByIDs into the Exchange struct
+func setMarkets(x Exchange, markets []Market, currencies map[string]Currency) map[string]Market {
+	symbols := make([]string, len(markets))
+	IDs := make([]string, len(markets))
+	marketsBySymbol := x.GetMarkets()
+	if len(marketsBySymbol) == 0 {
+		marketsBySymbol = make(map[string]Market, len(markets))
+	}
+	marketsByID := x.GetMarketsByID()
+	if len(marketsByID) == 0 {
+		marketsByID = make(map[string]Market, len(markets))
+	}
+	baseCurrencies := make([]Currency, 0)
+	quoteCurrencies := make([]Currency, 0)
+	for i, market := range markets {
+		marketsBySymbol[market.Symbol] = market
+		marketsByID[market.ID] = market
+		symbols[i] = market.Symbol
+		IDs[i] = market.ID
+		// currency logic
+		baseCurrency := new(Currency)
+		if market.Base != "" {
+			baseCurrency.ID = market.BaseID
+			if baseCurrency.ID == "" {
+				baseCurrency.ID = market.Base
+			}
+			baseCurrency.NumericID = market.BaseNumericID
+			baseCurrency.Code = market.Base
+			switch {
+			case market.Precision.Base != 0:
+				baseCurrency.Precision = market.Precision.Base
+			case market.Precision.Amount != 0:
+				baseCurrency.Precision = market.Precision.Amount
+			default:
+				baseCurrency.Precision = 8
+			}
+		}
+		baseCurrencies = append(baseCurrencies, *baseCurrency)
+		quoteCurrency := new(Currency)
+		if market.Quote != "" {
+			quoteCurrency.ID = market.QuoteID
+			if baseCurrency.ID == "" {
+				quoteCurrency.ID = market.Quote
+			}
+			quoteCurrency.NumericID = market.QuoteNumericID
+			quoteCurrency.Code = market.Quote
+			switch {
+			case market.Precision.Base != 0:
+				quoteCurrency.Precision = market.Precision.Base
+			case market.Precision.Amount != 0:
+				quoteCurrency.Precision = market.Precision.Amount
+			default:
+				quoteCurrency.Precision = 8
+			}
+		}
+		quoteCurrencies = append(quoteCurrencies, *quoteCurrency)
+	}
+	allCurrencies := append(baseCurrencies, quoteCurrencies...)
+	groupedCurrencies := make(map[string][]Currency)
+	for _, currency := range allCurrencies {
+		groupedCurrencies[currency.Code] = append(groupedCurrencies[currency.Code], currency)
+	}
+	sortedCurrencies := make(map[string]Currency)
+	for code, currencies := range groupedCurrencies {
+		for _, currency := range currencies {
+			if sortedCurrencies[code].ID == "" {
+				sortedCurrencies[code] = currency
+			}
+			if sortedCurrencies[code].Precision < currency.Precision {
+				sortedCurrencies[code] = currency
+			}
+		}
+	}
+
+	sort.Strings(symbols)
+	sort.Strings(IDs)
+	x.SetSymbols(symbols)
+	x.SetIDs(IDs)
+	x.SetMarkets(marketsBySymbol)
+	x.SetMarketsByID(marketsByID)
+	if len(currencies) == 0 {
+		xCurrencies := x.GetCurrencies()
+		if xCurrencies == nil {
+			xCurrencies = make(map[string]Currency)
+		}
+		for code, currency := range sortedCurrencies {
+			xCurrencies[code] = currency
+		}
+		x.SetCurrencies(xCurrencies)
+	} else {
+		x.SetCurrencies(sortedCurrencies)
+	}
+	currenciesByID := x.GetCurrenciesByID()
+	if len(currenciesByID) == 0 {
+		currenciesByID = make(map[string]Currency, len(currencies))
+	}
+	for _, currency := range sortedCurrencies {
+		currenciesByID[currency.ID] = currency
+	}
+	x.SetCurrenciesByID(currenciesByID)
+	return x.GetMarkets()
+}
+
 // ParseBalance into the correct struct
-func ParseBalance(x Exchange, balances map[string]Balance, info interface{}) Account {
+func ParseBalance(x Exchange, balances map[string]Balance, raw map[string]interface{}) Account {
 	account := Account{
 		Free:  make(map[string]float64),
 		Used:  make(map[string]float64),
@@ -90,10 +203,16 @@ func ParseBalance(x Exchange, balances map[string]Balance, info interface{}) Acc
 	for currency, balance := range balances {
 		if balance.Free == 0 && balance.Used == 0 {
 			// exchange reports only 'free' balance -> try to derive 'used' funds from open orders cache
-			if x.GetInfo().DontGetUsedBalanceFromStaleCache {
+			if _, ok := raw["open_orders"]; ok && x.GetInfo().DontGetUsedBalanceFromStaleCache {
 				// liqui exchange reports number of open orders with balance response
 				// use it to validate the cache
-				// TODO: implement info open_orders here
+				exchangeOrdersCount := raw["open_orders"]
+				// TODO: implement this.orders here
+				cachedOrdersCount := 0
+				if exchangeOrdersCount == cachedOrdersCount {
+					balance.Used = getCurrencyUsedOnOpenOrders(currency)
+					balance.Total = balance.Used + balance.Free
+				}
 			} else {
 				balance.Used = getCurrencyUsedOnOpenOrders(currency)
 				balance.Total = balance.Used + balance.Free

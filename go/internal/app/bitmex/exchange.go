@@ -6,11 +6,9 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"sort"
 	"strings"
 	"time"
 
-	"github.com/ccxt/ccxt/go/internal/app/bitmex/models"
 	"github.com/ccxt/ccxt/go/pkg/ccxt"
 )
 
@@ -19,11 +17,11 @@ type Exchange struct {
 	Client         *http.Client
 	Info           ccxt.ExchangeInfo
 	Config         ccxt.ExchangeConfig
-	Markets        []ccxt.Market
+	Markets        map[string]ccxt.Market
 	MarketsByID    map[string]ccxt.Market
 	IDs            []string
 	Symbols        []string
-	Currencies     []ccxt.Currency
+	Currencies     map[string]ccxt.Currency
 	CurrenciesByID map[string]ccxt.Currency
 }
 
@@ -51,7 +49,7 @@ func Init(conf ccxt.ExchangeConfig) (*Exchange, error) {
 }
 
 // FetchCurrencies returns ccxt.Currency
-func (x *Exchange) FetchCurrencies() ([]ccxt.Currency, error) {
+func (x *Exchange) FetchCurrencies() (map[string]ccxt.Currency, error) {
 	currencies := x.Currencies
 	return currencies, nil
 }
@@ -62,13 +60,53 @@ func (x *Exchange) GetInfo() ccxt.ExchangeInfo {
 }
 
 // GetMarkets returns []ccxt.Market
-func (x *Exchange) GetMarkets() []ccxt.Market {
+func (x *Exchange) GetMarkets() map[string]ccxt.Market {
 	return x.Markets
 }
 
+// SetMarkets sets to Markets key
+func (x *Exchange) SetMarkets(markets map[string]ccxt.Market) {
+	x.Markets = markets
+}
+
 // GetCurrencies returns []ccxt.Currency
-func (x *Exchange) GetCurrencies() []ccxt.Currency {
+func (x *Exchange) GetCurrencies() map[string]ccxt.Currency {
 	return x.Currencies
+}
+
+// SetCurrencies sets to Currencies key
+func (x *Exchange) SetCurrencies(currencies map[string]ccxt.Currency) {
+	x.Currencies = currencies
+}
+
+// SetSymbols sets to Symbols key
+func (x *Exchange) SetSymbols(slice []string) {
+	x.Symbols = slice
+}
+
+// SetIDs sets to Symbols key
+func (x *Exchange) SetIDs(slice []string) {
+	x.IDs = slice
+}
+
+// GetMarketsByID returns map[string]ccxt.Market
+func (x *Exchange) GetMarketsByID() map[string]ccxt.Market {
+	return x.MarketsByID
+}
+
+// SetMarketsByID sets to MarketsByID key
+func (x *Exchange) SetMarketsByID(markets map[string]ccxt.Market) {
+	x.MarketsByID = markets
+}
+
+// GetCurrenciesByID returns map[string]ccxt.Currency
+func (x *Exchange) GetCurrenciesByID() map[string]ccxt.Currency {
+	return x.CurrenciesByID
+}
+
+// SetCurrenciesByID sets to CurrenciesByID key
+func (x *Exchange) SetCurrenciesByID(currencies map[string]ccxt.Currency) {
+	x.CurrenciesByID = currencies
 }
 
 // FetchMarkets and insert into the Exchange
@@ -179,35 +217,6 @@ func (x *Exchange) FetchMarkets(params *url.Values) ([]ccxt.Market, error) {
 	return result, nil
 }
 
-// SetMarkets from exchange
-func (x *Exchange) SetMarkets(markets []ccxt.Market, currencies []ccxt.Currency) []ccxt.Market {
-	x.Markets = markets
-	x.Symbols = make([]string, len(markets))
-	x.IDs = make([]string, len(markets))
-	if x.MarketsByID == nil {
-		x.MarketsByID = make(map[string]ccxt.Market, len(markets))
-	}
-	for i, market := range markets {
-		x.MarketsByID[market.ID] = market
-		x.Symbols[i] = market.Symbol
-		x.IDs[i] = market.ID
-	}
-	sort.Strings(x.Symbols)
-	sort.Strings(x.IDs)
-	if currencies != nil {
-		x.Currencies = currencies
-	} else {
-		// TODO: currencies
-	}
-	if x.CurrenciesByID == nil {
-		x.CurrenciesByID = make(map[string]ccxt.Currency, len(currencies))
-	}
-	for _, currency := range currencies {
-		x.CurrenciesByID[currency.ID] = currency
-	}
-	return x.Markets
-}
-
 // FetchBalance from exchange
 func (x *Exchange) FetchBalance(params *url.Values) (ccxt.Account, error) {
 	account := ccxt.Account{}
@@ -218,16 +227,21 @@ func (x *Exchange) FetchBalance(params *url.Values) (ccxt.Account, error) {
 	if params.Get("currency") == "" {
 		params.Set("currency", "all")
 	}
-	var response interface{}
-	response, err = x.PrivateGetUserMargin(params)
+	margins, err := x.PrivateGetUserMargin(params)
 	if err != nil {
 		return account, err
 	}
-	// info := response.(map[string]interface{})
-	margin := response.([]models.Margin)
+	var raw []map[string]interface{}
+	tmp, err := json.Marshal(margins)
+	if err != nil {
+		return account, err
+	}
+	err = json.Unmarshal(tmp, &raw)
+	if err != nil {
+		return account, err
+	}
 	result := map[string]ccxt.Balance{}
-	// balance := margin.(models.Margin)
-	for _, balance := range margin {
+	for _, balance := range margins {
 		currencyID := balance.Currency
 		currencyID = strings.ToUpper(currencyID)
 		code := currencyID // TODO: commonCurrencyCode()
@@ -243,5 +257,5 @@ func (x *Exchange) FetchBalance(params *url.Values) (ccxt.Account, error) {
 		wallet.Used = wallet.Total - wallet.Free
 		result[code] = wallet
 	}
-	return ccxt.ParseBalance(x, result, response), nil
+	return ccxt.ParseBalance(x, result, raw[0]), nil
 }

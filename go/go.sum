@@ -7,6 +7,7 @@ github.com/asaskevich/govalidator v0.0.0-20180720115003-f9ffefc3facf/go.mod h1:l
 github.com/ccxt/ccxt v0.0.0-20190409115740-6d0f856a1833 h1:yhJ7kX/jtbt21JdpRY2yGyx64R5lIRpxQKXYP6uO/Jo=
 github.com/ccxt/ccxt v0.0.0-20190409160357-2fc1214d3033 h1:0woM8seZc4z0f9J6+oooFUVgLie1pKlnX7ZiQnA2BfA=
 github.com/ccxt/ccxt v0.0.0-20190412104213-6c06ec45982a h1:UqjMwpc69hF7r5r2VRbZHDudr7cpMxYQEJn6PDBiCes=
+github.com/ccxt/ccxt v0.0.0-20190412222708-99640fa758d0 h1:4J8OMzGE2zSWueG9u8b4/bcyj4nmQq1Ly/hQ8Q+Epj0=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible h1:7qlOGliEKZXTDg6OTjfoBKDXWrumCAMpl/TFQ4/5kLM=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=

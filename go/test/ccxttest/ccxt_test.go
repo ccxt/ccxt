@@ -56,8 +56,13 @@ func shutdown() {
 
 func TestLoadMarkets(t *testing.T) {
 	Convey("ccxt.LoadMarkets()", t, func() {
-		Convey("The exchange.Markets should be empty", func() {
+		Convey("The exchange should be empty", func() {
 			So(x.Markets, ShouldBeEmpty)
+			So(x.MarketsByID, ShouldBeEmpty)
+			So(x.IDs, ShouldBeEmpty)
+			So(x.Symbols, ShouldBeEmpty)
+			So(x.Currencies, ShouldBeEmpty)
+			So(x.CurrenciesByID, ShouldBeEmpty)
 		})
 		Convey("Loading the Markets", func() {
 			markets, err := ccxt.LoadMarkets(x, false, p)
@@ -67,21 +72,35 @@ func TestLoadMarkets(t *testing.T) {
 			Convey("Markets should be returned", func() {
 				So(markets, ShouldNotBeEmpty)
 			})
+			Convey("Exchange should be filled", func() {
+				So(x.Markets, ShouldNotBeEmpty)
+				So(x.MarketsByID, ShouldNotBeEmpty)
+				So(x.IDs, ShouldNotBeEmpty)
+				So(x.Symbols, ShouldNotBeEmpty)
+				So(x.Currencies, ShouldNotBeEmpty)
+				So(x.CurrenciesByID, ShouldNotBeEmpty)
+			})
 			marketLength := len(markets)
-			Convey("Markets should be loaded into exchange.Markets", func() {
+			Convey("Returned markets should match saved markets", func() {
 				So(marketLength, ShouldEqual, len(x.Markets))
+				So(marketLength, ShouldEqual, len(x.MarketsByID))
 			})
 			checkLenAndSorted := func(length int, list []string) {
 				So(length, ShouldEqual, len(list))
-				Convey("slice should be sorted in increasing order", func() {
+				Convey("Slice should be sorted in increasing order", func() {
 					So(sort.StringsAreSorted(list), ShouldBeTrue)
 				})
 			}
 			Convey("IDs should be loaded into exchange.IDs", func() {
-				checkLenAndSorted(marketLength, x.Symbols)
+				checkLenAndSorted(marketLength, x.IDs)
 			})
 			Convey("Symbols should be loaded into exchange.Symbols", func() {
 				checkLenAndSorted(marketLength, x.Symbols)
+			})
+			Convey("All IDs should be in MarketsByID keys", func() {
+				for _, id := range x.IDs {
+					So(x.MarketsByID, ShouldContainKey, id)
+				}
 			})
 		})
 	})
