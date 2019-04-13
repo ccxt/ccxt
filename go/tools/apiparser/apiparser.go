@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"go/format"
 	"io/ioutil"
 	"os"
 	"path"
@@ -86,17 +88,28 @@ func ParseAPITemplate(info ccxt.ExchangeInfo, dir string, file string, buildTest
 		return fmt.Errorf("Unable to create %s\n%v", goPath, err)
 	}
 	defer output.Close()
-	err = tmpl.Execute(output, info)
+	src := new(bytes.Buffer)
+	err = tmpl.Execute(src, info)
 	if err != nil {
 		return fmt.Errorf("Unable to execute %s\n%v", tmplName, err)
+	}
+	srcFormatted, err := format.Source(src.Bytes())
+	if err != nil {
+		return err
+	}
+	_, err = output.Write(srcFormatted)
+	if err != nil {
+		return err
 	}
 	return nil
 }
 
 func main() {
 	buildTest := flag.Bool("testfiles", false, "build _test.go files")
+	filename := flag.String("name", "", "base template name")
 	flag.Parse()
 	root := "../../internal/app"
+	tmplFile := "tmpl_" + *filename
 	files, err := ioutil.ReadDir(root)
 	if err != nil {
 		panic(err)
@@ -113,11 +126,7 @@ func main() {
 			}
 			defer f.Close()
 			json.NewDecoder(f).Decode(&info)
-			err = ParseAPITemplate(info, exchangePath, "tmpl_exchange", buildTest)
-			if err != nil {
-				panic(err)
-			}
-			err = ParseAPITemplate(info, exchangePath, "tmpl_api", buildTest)
+			err = ParseAPITemplate(info, exchangePath, tmplFile, buildTest)
 			if err != nil {
 				panic(err)
 			}
