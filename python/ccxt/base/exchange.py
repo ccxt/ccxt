@@ -61,9 +61,14 @@ from decimal import Decimal
 # -----------------------------------------------------------------------------
 
 try:
-    basestring  # basestring was removed in python 3.0
+    basestring  # basestring was removed in Python 3
 except NameError:
     basestring = str
+
+try:
+    long  # long integer was removed in Python 3
+except NameError:
+    long = int
 
 # -----------------------------------------------------------------------------
 
@@ -832,7 +837,7 @@ class Exchange(object):
     def iso8601(timestamp=None):
         if timestamp is None:
             return timestamp
-        if not isinstance(timestamp, int):
+        if not isinstance(timestamp, (int, long)):
             return None
         if int(timestamp) < 0:
             return None
