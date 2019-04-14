@@ -82,6 +82,7 @@ func ParseAPITemplate(info ccxt.ExchangeInfo, dir string, file string, buildTest
 		goName += "_test"
 	}
 	goName += ".go"
+	dir = strings.Replace(dir, "template", "go", 1)
 	goPath := path.Join(dir, goName)
 	output, err := os.Create(goPath)
 	if err != nil {
@@ -108,7 +109,7 @@ func main() {
 	buildTest := flag.Bool("testfiles", false, "build _test.go files")
 	filename := flag.String("name", "", "base template name")
 	flag.Parse()
-	root := "../../internal/app"
+	root := "../../../templates/internal/app"
 	tmplFile := "tmpl_" + *filename
 	files, err := ioutil.ReadDir(root)
 	if err != nil {

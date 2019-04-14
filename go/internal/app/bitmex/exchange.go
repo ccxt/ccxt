@@ -28,7 +28,7 @@ type Exchange struct {
 // Init Exchange
 func Init(conf ccxt.ExchangeConfig) (*Exchange, error) {
 	var info ccxt.ExchangeInfo
-	configFile := "/Users/stefan/Github/ccxt/go/internal/app/bitmex/bitmex.json"
+	configFile := "/Users/stefan/Github/ccxt/templates/internal/app/bitmex/bitmex.json"
 	f, err := os.Open(configFile)
 	defer f.Close()
 	if err != nil {
