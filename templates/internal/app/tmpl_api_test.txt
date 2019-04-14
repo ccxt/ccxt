@@ -31,7 +31,7 @@ func init() {
 	    panic(err)
     }
 }
-{{$baseURL := .URLs.API.Public}}{{range $api, $dataModel := .API.Public.Get}}
+{{range $api, $dataModel := .API.Public.Get}}
 func TestPublicGet{{apiToFuncName $api}}(t *testing.T) {
     params := url.Values{}
     data, err := c.PublicGet{{apiToFuncName $api}}(&params)
@@ -43,7 +43,8 @@ func TestPublicGet{{apiToFuncName $api}}(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-{{end}}{{range $api, $dataModel := .API.Public.Post}}
+{{end}}
+{{range $api, $dataModel := .API.Public.Post}}
 func TestPublicPost{{apiToFuncName $api}}(t *testing.T) {
     // TODO: Fill POST body
     params := url.Values{}
@@ -57,7 +58,8 @@ func TestPublicPost{{apiToFuncName $api}}(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-{{end}}{{range $api, $dataModel := .API.Public.Put}}
+{{end}}
+{{range $api, $dataModel := .API.Public.Put}}
 func TestPublicPut{{apiToFuncName $api}}(t *testing.T) {
     // TODO: Fill PUT body
     params := url.Values{}
@@ -71,7 +73,8 @@ func TestPublicPut{{apiToFuncName $api}}(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-{{end}}{{range $api, $dataModel := .API.Public.Delete}}
+{{end}}
+{{range $api, $dataModel := .API.Public.Delete}}
 func TestPublicDelete{{apiToFuncName $api}}(t *testing.T) {
     params := url.Values{}
     data, err := c.PublicDelete{{apiToFuncName $api}}(&params)
@@ -83,7 +86,8 @@ func TestPublicDelete{{apiToFuncName $api}}(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-{{end}}{{range $api, $dataModel := .API.Private.Get}}
+{{end}}
+{{range $api, $dataModel := .API.Private.Get}}
 func TestPrivateGet{{apiToFuncName $api}}(t *testing.T) {
     params := url.Values{}
     data, err := c.PrivateGet{{apiToFuncName $api}}(&params)
@@ -95,7 +99,8 @@ func TestPrivateGet{{apiToFuncName $api}}(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-{{end}}{{range $api, $dataModel := .API.Private.Post}}
+{{end}}
+{{range $api, $dataModel := .API.Private.Post}}
 func TestPrivatePost{{apiToFuncName $api}}(t *testing.T) {
     // TODO: Fill POST body
     params := url.Values{}
@@ -109,7 +114,8 @@ func TestPrivatePost{{apiToFuncName $api}}(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-{{end}}{{range $api, $dataModel := .API.Private.Put}}
+{{end}}
+{{range $api, $dataModel := .API.Private.Put}}
 func TestPrivatePut{{apiToFuncName $api}}(t *testing.T) {
     // TODO: Fill PUT body
     params := url.Values{}
@@ -123,7 +129,8 @@ func TestPrivatePut{{apiToFuncName $api}}(t *testing.T) {
         t.Fatal("Did not return data")
     }
 }
-{{end}}{{range $api, $dataModel := .API.Private.Delete}}
+{{end}}
+{{range $api, $dataModel := .API.Private.Delete}}
 func TestPrivateDelete{{apiToFuncName $api}}(t *testing.T) {
     params := url.Values{}
     data, err := c.PrivateDelete{{apiToFuncName $api}}(&params)
