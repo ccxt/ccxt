@@ -82,7 +82,7 @@ func ParseAPITemplate(info ccxt.ExchangeInfo, dir string, file string, buildTest
 		goName += "_test"
 	}
 	goName += ".go"
-	dir = strings.Replace(dir, "template", "go", 1)
+	dir = strings.Replace(dir, "templates", "go", 1)
 	goPath := path.Join(dir, goName)
 	output, err := os.Create(goPath)
 	if err != nil {
