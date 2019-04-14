@@ -611,7 +611,7 @@ module.exports = class bitfinex extends Exchange {
             if (feeCurrency in this.currencies_by_id) {
                 feeCurrency = this.currencies_by_id[feeCurrency]['code'];
             } else {
-                feeCurrency = this.commonCurrencyCode (feeCurrency)
+                feeCurrency = this.commonCurrencyCode (feeCurrency);
             }
             fee = {
                 'cost': feeCost,
