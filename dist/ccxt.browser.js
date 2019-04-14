@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.466'
+const version = '1.18.467'
 
 Exchange.ccxtVersion = version
 
@@ -10115,8 +10115,11 @@ module.exports = class bitfinex extends Exchange {
         if ('fee_amount' in trade) {
             let feeCost = -this.safeFloat (trade, 'fee_amount');
             let feeCurrency = this.safeString (trade, 'fee_currency');
-            if (feeCurrency in this.currencies_by_id)
+            if (feeCurrency in this.currencies_by_id) {
                 feeCurrency = this.currencies_by_id[feeCurrency]['code'];
+            } else {
+                feeCurrency = this.commonCurrencyCode (feeCurrency);
+            }
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
