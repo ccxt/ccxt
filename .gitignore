@@ -33,3 +33,4 @@ python/LICENSE.txt
 .env
 go/keys.json
 sandbox.go
+ts/dist
