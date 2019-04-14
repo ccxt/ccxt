@@ -604,6 +604,8 @@ class bitfinex (Exchange):
             feeCurrency = self.safe_string(trade, 'fee_currency')
             if feeCurrency in self.currencies_by_id:
                 feeCurrency = self.currencies_by_id[feeCurrency]['code']
+            else:
+                feeCurrency = self.common_currency_code(feeCurrency)
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
