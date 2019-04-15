@@ -4,13 +4,19 @@ const { numberToString, decimalToPrecision, ROUND, TRUNCATE, DECIMAL_PLACES, PAD
 const assert = require ('assert');
 
 // ----------------------------------------------------------------------------
-// numberToString works, not supported in Python and PHP yet
+// numberToString
 
-// assert (numberToString (-7.9e-7) === '-0.0000007899999999999999');
-// assert (numberToString ( 7.9e-7) ===  '0.0000007899999999999999');
-// assert (numberToString (-12.345) === '-12.345');
-// assert (numberToString ( 12.345) === '12.345');
-// assert (numberToString (0) === '0');
+assert (numberToString (-7.8e-7) === '-0.00000078');
+assert (numberToString (7.8e-7) === '0.00000078');
+assert (numberToString (-17.805e-7) === '-0.0000017805');
+assert (numberToString (17.805e-7) === '0.0000017805');
+assert (numberToString (-7.0005e27) === '-7000500000000000000000000000');
+assert (numberToString (7.0005e27) === '7000500000000000000000000000');
+assert (numberToString (-7.9e27) === '-7900000000000000000000000000');
+assert (numberToString (7.9e27) === '7900000000000000000000000000');
+assert (numberToString (-12.345) === '-12.345');
+assert (numberToString (12.345) === '12.345');
+assert (numberToString (0) === '0');
 
 // ----------------------------------------------------------------------------
 // testDecimalToPrecisionTruncationToNDigitsAfterDot

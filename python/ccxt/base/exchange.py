@@ -21,6 +21,7 @@ from ccxt.base.errors import InvalidAddress
 
 from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TRUNCATE, ROUND
+from ccxt.base.decimal_to_precision import number_to_string
 
 # -----------------------------------------------------------------------------
 
@@ -294,6 +295,7 @@ class Exchange(object):
         self.currencies = dict() if self.currencies is None else self.currencies
         self.options = dict() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
         self.decimal_to_precision = decimal_to_precision
+        self.number_to_string = number_to_string
 
         # version = '.'.join(map(str, sys.version_info[:3]))
         # self.userAgent = {

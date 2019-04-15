@@ -114,3 +114,27 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
                 if precision > 0:
                     return precise + '.' + precision * '0'
             return precise
+
+
+def number_to_string(x):
+    # avoids scientific notation for too large and too small numbers
+    s = str(x)
+    if 'e' not in s:
+        return s
+    number, exp = s.split('e')
+    exp = int(exp)
+    len_after_dot = 0
+    if '.' in number:
+        before_dot, after_dot = number.split('.')
+        len_after_dot = len(after_dot)
+    number = number.replace('.', '').replace('-', '')
+    sign = '-' if x < 0 else ''
+    if exp > 0:
+        zeros = '0' * (abs(exp) - len_after_dot)
+        s = '{sign}{number}{zeros}'.format(
+            sign=sign, number=number, zeros=zeros)
+    else:
+        zeros = '0' * (abs(exp) - 1)
+        s = '{sign}0.{zeros}{number}'.format(
+            sign=sign, number=number, zeros=zeros)
+    return s
