@@ -183,6 +183,20 @@ module.exports = class dx extends Exchange {
                 'baseId': instrument['asset']['baseCurrencyId'],
                 'quoteId': instrument['asset']['quotedCurrencyId'],
                 'info': instrument,
+                'limits': {
+                    'amount': {
+                        'min': instrument['minOrderQuantity'],
+                        'max': instrument['maxOrderQuantity'],
+                    },
+                    'price': {
+                        'min': 0,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': 0,
+                        'max': undefined,
+                    },
+                },
             });
         }
         return result;
