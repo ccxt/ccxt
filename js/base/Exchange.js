@@ -1691,4 +1691,9 @@ module.exports = class Exchange {
             throw new ExchangeError (this.id + ' this.twofa has not been set')
         }
     }
+
+    static setDefault (object, property, defaultValue) {
+        return Object.prototype.hasOwnProperty.call (object, property)
+            ? object[property] : (object[property] = defaultValue)
+    }
 }

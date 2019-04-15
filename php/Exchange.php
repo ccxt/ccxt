@@ -2521,4 +2521,12 @@ class Exchange {
         $otp = $code % pow(10, 6);
         return str_pad((string) $otp, 6, '0', STR_PAD_LEFT);
     }
+
+    public static function setDefault($array, $key, $default_value) {
+        return is_array($array) && array_key_exists($key, $array) ? $array[$key] : $array[$key] = $default_value;
+    }
+
+    public static function set_default ($array, $key, $default_value) {
+        return static::setDefault($array, $key, $default_value);
+    }
 }
