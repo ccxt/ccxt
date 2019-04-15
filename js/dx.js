@@ -410,17 +410,7 @@ module.exports = class dx extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        // There is a problem with the API, it does not work with the externalOrderId
-        // We need to find the internal id first
-        let openOrders = await this.fetchOpenOrders ();
-        for (let i = 0; i < openOrders.length; i++) {
-            let order = openOrders[i];
-            if (order['id'] === id) {
-                let internal_id = order['info']['id'];
-                return await this.privatePostOrderManagementCancel ({ 'id': internal_id });
-            }
-        }
-        throw new BadRequest ('Cannot find open order with id ' + id);
+        return await this.privatePostOrderManagementCancel ({ 'externalOrderId': id });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
