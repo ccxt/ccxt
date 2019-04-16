@@ -509,11 +509,18 @@ class bitfinex extends Exchange {
                 $currency = $balance['currency'];
                 $uppercase = strtoupper ($currency);
                 $uppercase = $this->common_currency_code($uppercase);
-                $account = $this->account ();
-                $account['free'] = floatval ($balance['available']);
-                $account['total'] = floatval ($balance['amount']);
-                $account['used'] = $account['total'] - $account['free'];
-                $result[$uppercase] = $account;
+                // bitfinex had BCH previously, now it's BAB, but the old
+                // BCH symbol is kept for backward-compatibility
+                // we need a workaround here so that the old BCH $balance
+                // would not override the new BAB $balance (BAB is unified to BCH)
+                // https://github.com/ccxt/ccxt/issues/4989
+                if (!(is_array ($result) && array_key_exists ($uppercase, $result))) {
+                    $account = $this->account ();
+                    $account['free'] = floatval ($balance['available']);
+                    $account['total'] = floatval ($balance['amount']);
+                    $account['used'] = $account['total'] - $account['free'];
+                    $result[$uppercase] = $account;
+                }
             }
         }
         return $this->parse_balance($result);
