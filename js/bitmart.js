@@ -79,6 +79,21 @@ module.exports = class bitmart extends Exchange {
                     ],
                 },
             },
+            'timeframes': {
+                '1m': 1,
+                '3m': 3,
+                '5m': 5,
+                '15m': 15,
+                '30m': 30,
+                '45m': 45,
+                '1h': 60,
+                '2h': 120,
+                '3h': 180,
+                '4h': 240,
+                '1d': 1440,
+                '1w': 10080,
+                '1M': 43200,
+            },
         });
     }
 
@@ -251,12 +266,13 @@ module.exports = class bitmart extends Exchange {
             request['offset'] = 0;
         }
         let response = await this.privateGetTrades (this.extend (request, params));
-        return this.parseTrades (response['trades'], market, since, limit);
+        let trades = this.safeValue (response, 'trades');
+        return this.parseTrades (trades, market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            parseInt (ohlcv['timestamp']) * 100,
+            this.safeInteger (ohlcv, 'timestamp') * 100,
             this.safeFloat (ohlcv, 'open_price'),
             this.safeFloat (ohlcv, 'highest_price'),
             this.safeFloat (ohlcv, 'lowest_price'),
@@ -274,15 +290,23 @@ module.exports = class bitmart extends Exchange {
         //    to : end time of k-line data (in milliseconds) : [required]
         //    step : steps of sampling (in minutes, default 1 minute) : [optional]
         //
+        if (limit === undefined) {
+            limit = 1;
+        }
+        // convert timeframe minutes to milliseconds
+        let step = (this.timeframes[timeframe] * 60 * 1000);
+        let to = this.milliseconds ();
+        if (since === undefined) {
+            since = to - (step * limit);
+        } else {
+            to = this.sum (since, step * limit);
+        }
         let request = {
             'symbol': this.marketId (symbol),
+            'to': to,
+            'from': since,
+            'step': this.timeframes[timeframe],
         };
-        request['from'] = since;
-        if (since === undefined)
-            request['from'] = this.milliseconds () - 86400000;
-        if (params['to'] === undefined) {
-            request['to'] = this.milliseconds ();
-        }
         let response = await this.publicGetSymbolsSymbolKline (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
@@ -339,11 +363,13 @@ module.exports = class bitmart extends Exchange {
     }
 
     mapOrderResponse (order, market = undefined) {
-        if (order['original_amount'] !== undefined) {
-            order['amount'] = this.safeFloat (order, 'original_amount');
+        let originalAmount = this.safeFloat (order, 'original_amount');
+        if (originalAmount !== undefined) {
+            order['amount'] = originalAmount;
         }
-        if (order['entrust_id'] !== undefined) {
-            order['id'] = this.safeInteger (order, 'entrust_id');
+        let entrustId = this.safeInteger (order, 'entrust_id');
+        if (entrustId !== undefined) {
+            order['id'] = entrustId;
         }
         return order;
     }
@@ -413,7 +439,8 @@ module.exports = class bitmart extends Exchange {
         // pending & partially filled orders
         request['status'] = 5;
         let response = await this.privateGetOrders (this.extend (request, params));
-        return this.parseOrders (response['orders'], market, since, limit);
+        let orders = this.safeValue (response, 'orders');
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -434,7 +461,8 @@ module.exports = class bitmart extends Exchange {
         // successful and canceled orders
         request['status'] = 6;
         let response = await this.privateGetOrders (this.extend (request, params));
-        return this.parseOrders (response['orders'], market, since, limit);
+        let orders = this.safeValue (response, 'orders');
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
