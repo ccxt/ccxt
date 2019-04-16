@@ -925,6 +925,7 @@ from ccxt.base.decimal_to_precision import DECIMAL_PLACES        # noqa F401\n\
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS    # noqa F401\n\
 from ccxt.base.decimal_to_precision import PAD_WITH_ZERO         # noqa F401\n\
 from ccxt.base.decimal_to_precision import NO_PADDING            # noqa F401\n\
+from ccxt.base.decimal_to_precision import number_to_string      # noqa F401\n\
 \n\
 # ----------------------------------------------------------------------------\n\
 \n\
@@ -946,6 +947,9 @@ from ccxt.base.decimal_to_precision import NO_PADDING            # noqa F401\n\
 \n\
 function decimal_to_precision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {\n\
     return Exchange::decimal_to_precision ($x, $roundingMode, $numPrecisionDigits, $countingMode, $paddingMode);\n\
+}\n\
+function number_to_string ($x) {\n\
+    return Exchange::number_to_string ($x);\n\
 }\n\
 "
 
