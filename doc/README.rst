@@ -26,10 +26,7 @@ Sponsored Promotion
 
 Want this place? Contact us: info@ccxt.trade
 
-.. figure:: https://user-images.githubusercontent.com/1707/48204972-43569e00-e37c-11e8-9cf3-b86e3dc19ee9.png
-   :alt: Placehodler
-
-   Placehodler
+`Placehodler <https://ccxt.trade/advertise/>`__
 
 Certified Cryptocurrency Exchanges
 ----------------------------------
@@ -57,7 +54,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 134 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 135 cryptocurrency exchange markets and trading APIs:
 
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 |        logo                                                                             | id                 | name                                                                                    | ver   | doc                                                                                                 | certified                                                            |
@@ -120,7 +117,7 @@ The ccxt library currently supports the following 134 cryptocurrency exchange ma
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `bittrex <https://bittrex.com>`__                                                       | bittrex            | `Bittrex <https://bittrex.com>`__                                                       | 1.1   | `API <https://bittrex.github.io/api/>`__                                                            | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `bitz <https://u.bit-z.com/register?invite_code=1429193>`__                             | bitz               | `Bit-Z <https://u.bit-z.com/register?invite_code=1429193>`__                            | 2     | `API <https://apidoc.bit-z.com/en>`__                                                               |                                                                      |
+| `bitz <https://u.bit-z.com/register?invite_code=1429193>`__                             | bitz               | `Bit-Z <https://u.bit-z.com/register?invite_code=1429193>`__                            | 2     | `API <https://apidoc.bit-z.com/en/>`__                                                              |                                                                      |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `bl3p <https://bl3p.eu>`__                                                              | bl3p               | `BL3P <https://bl3p.eu>`__                                                              | 1     | `API <https://github.com/BitonicNL/bl3p-api/tree/master/docs>`__                                    |                                                                      |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -272,6 +269,8 @@ The ccxt library currently supports the following 134 cryptocurrency exchange ma
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `lykke <https://www.lykke.com>`__                                                       | lykke              | `Lykke <https://www.lykke.com>`__                                                       | 1     | `API <https://hft-api.lykke.com/swagger/ui/>`__                                                     |                                                                      |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
+| `mandala <https://trade.mandalaex.com/?ref=564377>`__                                   | mandala            | `Mandala <https://trade.mandalaex.com/?ref=564377>`__                                   | 1.1   | `API <https://documenter.getpostman.com/view/6273708/RznBP1Hh>`__                                   |                                                                      |
++-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `mercado <https://www.mercadobitcoin.com.br>`__                                         | mercado            | `Mercado Bitcoin <https://www.mercadobitcoin.com.br>`__                                 | 3     | `API <https://www.mercadobitcoin.com.br/api-doc>`__                                                 |                                                                      |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `mixcoins <https://mixcoins.com>`__                                                     | mixcoins           | `MixCoins <https://mixcoins.com>`__                                                     | 1     | `API <https://mixcoins.com/help/api/>`__                                                            |                                                                      |
@@ -376,11 +375,16 @@ JavaScript version of CCXT works in both Node and web browsers. Requires ES6 and
 JavaScript (for use with the ``<script>`` tag):
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-`All-in-one browser bundle <https://unpkg.com/ccxt>`__ (dependencies included), served from `unpkg CDN <https://unpkg.com/>`__, which is a fast, global content delivery network for everything on NPM.
+All-in-one browser bundle (dependencies included), served from a CDN of your choice:
+
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.471/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.471/dist/ccxt.browser.js
+
+CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://unpkg.com/ccxt"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.471/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

@@ -174,11 +174,7 @@ class gdax extends Exchange {
             if (($base === 'ETH') || ($base === 'LTC')) {
                 $taker = 0.003;
             }
-            $accessible = true;
-            if (is_array ($market) && array_key_exists ('accessible', $market)) {
-                $accessible = $this->safe_value($market, 'accessible');
-            }
-            $active = ($market['status'] === 'online') && $accessible;
+            $active = $market['status'] === 'online';
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,

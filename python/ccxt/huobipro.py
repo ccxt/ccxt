@@ -164,6 +164,9 @@ class huobipro (Exchange):
                 'createOrderMethod': 'privatePostOrderOrdersPlace',
                 'language': 'en-US',
             },
+            'commonCurrencies': {
+                'HOT': 'Hydro Protocol',  # conflict with HOT(Holo) https://github.com/ccxt/ccxt/issues/4929
+            },
         })
 
     def fetch_trading_limits(self, symbols=None, params={}):

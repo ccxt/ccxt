@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.426';
+$version = '1.18.471';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.426';
+    const VERSION = '1.18.471';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -186,6 +186,7 @@ class Exchange {
         'livecoin',
         'luno',
         'lykke',
+        'mandala',
         'mercado',
         'mixcoins',
         'negociecoins',
@@ -1563,18 +1564,20 @@ class Exchange {
         return $this->parse_ledger ($items, $currency, $since, $limit);
     }
 
-    public function parse_transactions ($transactions, $currency = null, $since = null, $limit = null) {
+    public function parse_transactions ($transactions, $currency = null, $since = null, $limit = null, $params = array ()) {
         $array = is_array ($transactions) ? array_values ($transactions) : array ();
         $result = array ();
-        foreach ($array as $transaction)
-            $result[] = $this->parse_transaction ($transaction, $currency);
+        foreach ($array as $transaction) {
+            var_dump ($params);
+            $result[] = array_merge ($this->parse_transaction ($transaction, $currency), $params);
+        }
         $result = $this->sort_by ($result, 'timestamp');
         $code = isset ($currency) ? $currency['code'] : null;
         return $this->filter_by_currency_since_limit ($result, $code, $since, $limit);
     }
 
-    public function parseTransactions ($transactions, $currency = null, $since = null, $limit = null) {
-        return $this->parse_transactions ($transactions, $currency, $since, $limit);
+    public function parseTransactions ($transactions, $currency = null, $since = null, $limit = null, $params = array ()) {
+        return $this->parse_transactions ($transactions, $currency, $since, $limit, $params);
     }
 
     public function parse_orders ($orders, $market = null, $since = null, $limit = null) {
@@ -2218,7 +2221,7 @@ class Exchange {
 
         // Special handling for negative precision
         if ($numPrecisionDigits < 0) {
-            $toNearest = 10 ** abs ($numPrecisionDigits);
+            $toNearest = pow (10, abs ($numPrecisionDigits));
             if ($roundingMode === ROUND) {
                 $result = (string) ($toNearest * static::decimal_to_precision ($x / $toNearest, $roundingMode, 0, DECIMAL_PLACES, $paddingMode));
             }
@@ -2307,6 +2310,32 @@ class Exchange {
             $result = substr ($result, 1);
         }
         return $result;
+    }
+
+    public static function number_to_string ($x) {
+        # avoids scientific notation for too large and too small numbers
+        $s = (string) $x;
+        if (strpos ($x, 'E') === false) {
+            return $s;
+        }
+        $splitted = explode ('E', $s);
+        $number = $splitted[0];
+        $exp = (int) $splitted[1];
+        $len_after_dot = 0;
+        if (strpos ($number, '.') !== false) {
+            $splitted = explode ('.', $number);
+            $len_after_dot = strlen ($splitted[1]);
+        }
+        $number = str_replace (array ('.', '-'), '', $number);
+        $sign = ($x < 0) ? '-' : '';
+        if ($exp > 0) {
+            $zeros = str_repeat ('0', abs ($exp) - $len_after_dot);
+            $s = $sign . $number . $zeros;
+        } else {
+            $zeros = str_repeat ('0', abs ($exp) - 1);
+            $s = $sign . '0.' . $zeros . $number;
+        }
+        return $s;
     }
 
     // ------------------------------------------------------------------------

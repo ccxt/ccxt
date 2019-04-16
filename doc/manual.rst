@@ -55,7 +55,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 Exchanges
 =========
 
-The ccxt library currently supports the following 134 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 135 cryptocurrency exchange markets and trading APIs:
 
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 |        logo                                                                             | id                 | name                                                                                    | ver   | doc                                                                                                 | certified                                                            |
@@ -118,7 +118,7 @@ The ccxt library currently supports the following 134 cryptocurrency exchange ma
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `bittrex <https://bittrex.com>`__                                                       | bittrex            | `Bittrex <https://bittrex.com>`__                                                       | 1.1   | `API <https://bittrex.github.io/api/>`__                                                            | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `bitz <https://u.bit-z.com/register?invite_code=1429193>`__                             | bitz               | `Bit-Z <https://u.bit-z.com/register?invite_code=1429193>`__                            | 2     | `API <https://apidoc.bit-z.com/en>`__                                                               |                                                                      |
+| `bitz <https://u.bit-z.com/register?invite_code=1429193>`__                             | bitz               | `Bit-Z <https://u.bit-z.com/register?invite_code=1429193>`__                            | 2     | `API <https://apidoc.bit-z.com/en/>`__                                                              |                                                                      |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `bl3p <https://bl3p.eu>`__                                                              | bl3p               | `BL3P <https://bl3p.eu>`__                                                              | 1     | `API <https://github.com/BitonicNL/bl3p-api/tree/master/docs>`__                                    |                                                                      |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -270,6 +270,8 @@ The ccxt library currently supports the following 134 cryptocurrency exchange ma
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `lykke <https://www.lykke.com>`__                                                       | lykke              | `Lykke <https://www.lykke.com>`__                                                       | 1     | `API <https://hft-api.lykke.com/swagger/ui/>`__                                                     |                                                                      |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
+| `mandala <https://trade.mandalaex.com/?ref=564377>`__                                   | mandala            | `Mandala <https://trade.mandalaex.com/?ref=564377>`__                                   | 1.1   | `API <https://documenter.getpostman.com/view/6273708/RznBP1Hh>`__                                   |                                                                      |
++-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `mercado <https://www.mercadobitcoin.com.br>`__                                         | mercado            | `Mercado Bitcoin <https://www.mercadobitcoin.com.br>`__                                 | 3     | `API <https://www.mercadobitcoin.com.br/api-doc>`__                                                 |                                                                      |
 +-----------------------------------------------------------------------------------------+--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `mixcoins <https://mixcoins.com>`__                                                     | mixcoins           | `MixCoins <https://mixcoins.com>`__                                                     | 1     | `API <https://mixcoins.com/help/api/>`__                                                            |                                                                      |
@@ -420,6 +422,46 @@ The ccxt library in PHP uses builtin UTC/GMT time functions, therefore you are r
        'timeout' => 30000,
        'enableRateLimit' => true,
    ));
+
+Overriding Exchange Properties Upon Instantiation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Most of exchange properties as well as specific options can be overrided upon exchange class instantiation or afterwards, like shown below:
+
+.. code:: javascript
+
+   // JavaScript
+   const exchange = new ccxt.binance ({
+       'rateLimit': 10000, // unified exchange property
+       'options': {
+           'adjustForTimeDifference': true, // exchange-specific option
+       }
+   })
+   exchange.options['adjustForTimeDifference'] = false
+
+.. code:: python
+
+   # Python
+   exchange = ccxt.binance ({
+       'rateLimit': 10000,  # unified exchange property
+       'options': {
+           'adjustForTimeDifference': True,  # exchange-specific option
+       }
+   })
+   exchange.options['adjustForTimeDifference'] = False
+
+.. code:: php
+
+   // PHP
+   $exchange_id = 'binance';
+   $exchange_class = "\\ccxt\\$exchange_id";
+   $exchange = new $exchange_class (array (
+       'rateLimit' => 10000, // unified exchange property
+       'options' => array (
+           'adjustForTimeDifference' => true, // exchange-specific option
+       ),
+   ));
+   $exchange->options['adjustForTimeDifference'] = false;
 
 Exchange Structure
 ------------------
@@ -789,6 +831,66 @@ In the second example the **price** of any order placed on the market **must sat
       - bad: 9.5, ... 10.1, ..., 11, ... 200.71, ...
 
 *The ``precision`` and ``limits`` params are currently under heavy development, some of these fields may be missing here and there until the unification process is complete. This does not influence most of the orders but can be significant in extreme cases of very large or very small orders. The ``active`` flag is not yet supported and/or implemented by all markets.*
+
+Notes On Precision And Limits
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The user is required to stay within all limits and precision! The values of the order should satisfy the following conditions:
+
+-  Order ``amount`` > ``limits['min']['amount']``
+-  Order ``amount`` < ``limits['max']['amount']``
+-  Order ``price`` > ``limits['min']['price']``
+-  Order ``price`` < ``limits['max']['price']``
+-  Order ``cost`` (``amount * price``) > ``limits['min']['cost']``
+-  Order ``cost`` (``amount * price``) < ``limits['max']['cost']``
+-  Precision of ``amount`` must be <= ``precision['amount']``
+-  Precision of ``price`` must be <= ``precision['price']``
+
+The above values can be missing with some exchanges that don’t provide info on limits from their API or don’t have it implemented yet.
+
+Methods For Foramtting Decimals
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The exchange base class contains the ``decimalToPrecision`` method to help format values to the required decimal precision with support for different rounding, counting and padding modes.
+
+.. code:: javascript
+
+   // JavaScript
+   function decimalToPrecision (x, roundingMode, numPrecisionDigits, countingMode = DECIMAL_PLACES, paddingMode = NO_PADDING)
+
+.. code:: python
+
+   # Python
+   # WARNING! The `decimal_to_precision` method is susceptible to getcontext().prec!
+   def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=DECIMAL_PLACES, padding_mode=NO_PADDING):
+
+.. code:: php
+
+   // PHP
+   function decimalToPrecision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING)
+
+Supported rounding modes are:
+
+-  ``ROUND`` – will round the last decimal digits to precision
+-  ``TRUNCATE``– will cut off the digits after certain precision
+
+Supported counting modes are:
+
+-  ``DECIMAL_PLACES`` – counts all digits, 99% of exchanges use this counting mode
+-  ``SIGNIFICANT_DIGITS`` – counts non-zero digits only, some exchanges (``bitfinex`` and maybe a few other) implement this mode of counting decimals
+
+Supported padding modes are:
+
+-  ``NO_PADDING`` – default for most cases
+-  ``PAD_WITH_ZERO`` – appends zero characters up to precision
+
+For examples of how to use the ``decimalToPrecision`` to format strings and floats, please, see the following files:
+
+-  JavaScript: https://github.com/ccxt/ccxt/blob/master/js/test/base/functions/test.number.js
+-  Python: https://github.com/ccxt/ccxt/blob/master/python/test/test_decimal_to_precision.py
+-  PHP: https://github.com/ccxt/ccxt/blob/master/php/test/decimal_to_precision.php
+
+**Python WARNING! The ``decimal_to_precision`` method is susceptible to getcontext().prec!**
 
 Loading Markets
 ---------------
