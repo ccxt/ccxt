@@ -1231,7 +1231,7 @@ class binance extends Exchange {
                 'X-MBX-APIKEY' => $this->apiKey,
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
-        } else if (($api === 'private') || ($api === 'wapi')) {
+        } else if (($api === 'private') || ($api === 'wapi' && $path !== 'systemStatus')) {
             $this->check_required_credentials();
             $query = $this->urlencode (array_merge (array (
                 'timestamp' => $this->nonce (),
