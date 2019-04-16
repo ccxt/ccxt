@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadRequest, NotSupported, DDoSProtection, AuthenticationError, PermissionDenied, ArgumentsRequired, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce } = require ('./base/errors');
+const { AccountSuspended, BadRequest, BadResponse, NetworkError, NotSupported, DDoSProtection, AuthenticationError, PermissionDenied, ArgumentsRequired, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce } = require ('./base/errors');
 const { DECIMAL_PLACES } = require ('./base/functions/number');
 // const log = require ('ololog');
 
@@ -127,7 +127,7 @@ module.exports = class digifinex extends Exchange {
         this.checkResponse (response, 'fetchMarkets');
         // console.log (response);
         let result = [];
-        let keys = Object.keys(response['data']);
+        let keys = Object.keys (response['data']);
         for (let i = 0; i < keys.length; i++) {
             let symbol = keys[i];
             let id = symbol.toUpperCase ();
@@ -207,7 +207,7 @@ module.exports = class digifinex extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         let response = await this.publicGetTicker ();
         // log.bright.yellow.error (response);
-        this.checkResponse(response, 'fetchTicker');
+        this.checkResponse (response, 'fetchTicker');
         let result = {};
         let keys = Object.keys (response['ticker']);
         for (let i = 0; i < keys.length; i++) {
@@ -223,7 +223,7 @@ module.exports = class digifinex extends Exchange {
             'symbol': symbol,
         }, params));
         // console.log (response);
-        this.checkResponse(response, 'fetchTicker');
+        this.checkResponse (response, 'fetchTicker');
         let result = 0;
         let keys = Object.keys (response['ticker']);
         for (let i = 0; i < keys.length; i++) {
@@ -361,11 +361,11 @@ module.exports = class digifinex extends Exchange {
     parseOrder (order, market = undefined) {
         let side = order['type'];
         let status = undefined;
-        if (order.status == 0 || order.status == 1) {
+        if (order.status === 0 || order.status === 1) {
             status = 'open';
-        } else if (order.status == 2) {
+        } else if (order.status === 2) {
             status = 'closed';
-        } else if (order.status == 3 || order.status == 4) {
+        } else if (order.status === 3 || order.status === 4) {
             status = 'canceled';
         }
         let symbol = undefined;
@@ -399,49 +399,34 @@ module.exports = class digifinex extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol)
-            params.symbol = symbol;
-        let page = 1;
-        let items = [];
-        while (true) {
-            params.page = page;
-            let response = await this.privateGetOpenOrders (params);
-            this.checkResponse (response, 'fetchOpenOrders');
-            items = items.concat (response['orders']);
-            if (response['orders'].length == 0) { // no more available
-                break;
-            }
-            if (limit == undefined || items.length >= limit) { // limit reached
-                break;
-            }
-            page -= -1;
-        }
-        let orders = this.parseOrders (items, undefined, since, limit);
+        // exchange-specific non-unified parameters: page, type
+        // page: Page Num, page=1 for 1st page. None for 1st page by default.
+        // type：buy/sell/buy_market/sell_market，none for all types
+        let request = {
+            'symbol': symbol,
+        };
+        let response = await this.privateGetOpenOrders (this.extend (request, params));
+        this.checkResponse (response, 'fetchOpenOrders');
+        let orders = this.parseOrders (response['orders'], undefined, since, limit);
         return orders;
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol)
-            params.symbol = symbol;
-        if (since)
-            params.date = this.dateUTC8 (since);
-        let page = 1;
-        let items = [];
-        while (true) {
-            params.page = page;
-            let response = await this.privateGetOrderHistory (params);
-            this.checkResponse (response, 'fetchClosedOrders');
-            let filtered = this.parseOrders (response['orders'], undefined, since, limit);
-            items = items.concat (filtered);
-            if (response['orders'].length == 0) { // no more available
-                break;
-            }
-            if (limit == undefined || items.length >= limit) { // limit reached
-                break;
-            }
-            page -= -1;
+        // Only supports historical orders of last 3 days
+        // `since` has only date precision in digifinex
+        // exchange-specific non-unified parameters: page, type
+        // page: Page Num, page=1 for 1st page. None for 1st page by default.
+        // type：buy/sell/buy_market/sell_market，none for all types
+        let request = {
+            'symbol': symbol,
+        };
+        if (since) {
+            request['date'] = this.dateUTC8 (since);
         }
-        return items;
+        let response = await this.privateGetOrderHistory (params);
+        this.checkResponse (response, 'fetchClosedOrders');
+        let filtered = this.parseOrders (response['orders'], undefined, since, limit);
+        return filtered;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -496,8 +481,8 @@ module.exports = class digifinex extends Exchange {
                 let s = params[key].toString ();
                 arr.push (s);
             }
-            var s = arr.join ('');
-            var sign = this.hash (this.encode (s), 'md5');
+            let s = arr.join ('');
+            let sign = this.hash (this.encode (s), 'md5');
             params['sign'] = sign;
         }
         let url = this.urls['api'] + '/' + path;
@@ -506,8 +491,7 @@ module.exports = class digifinex extends Exchange {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
-        }
-        else if (method === 'POST') {
+        } else if (method === 'POST') {
             if (Object.keys (params).length) {
                 body = this.urlencode (params);
             }
@@ -519,7 +503,8 @@ module.exports = class digifinex extends Exchange {
     }
 
     dateUTC8 (timestampMS) {
-        return this.iso8601 (timestampMS + 8 * 60 * 60 * 1000).substr(0, 10);
+        const timedelta = this.safeValue (this.options, 'timedelta', 8 * 60 * 60 * 1000); // eight hours
+        return this.ymd (timestampMS + timedelta);
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
@@ -552,81 +537,81 @@ module.exports = class digifinex extends Exchange {
 
     checkResponse (response, caller) {
         let code = response['code'];
-        if (code == 0)
+        if (code === 0)
             return;
         caller = '[' + caller + '] ';
-        if (code == undefined)
-            throw new BadResponse (caller + "bad response: " + response);
-        if (code == 10001) {
+        if (code === undefined)
+            throw new BadResponse (caller + 'bad response: ' + response);
+        if (code === 10001) {
             throw new BadRequest (caller + "Wrong request method, please check it's a GET ot POST request");
         }
-        if (code == 10002) {
+        if (code === 10002) {
             throw new AuthenticationError (caller + 'Invalid ApiKey');
         }
-        if (code == 10003) {
+        if (code === 10003) {
             throw new AuthenticationError (caller + "Sign doesn't match");
         }
-        if (code == 10004) {
+        if (code === 10004) {
             throw new ArgumentsRequired (caller + 'Illegal request parameters');
         }
-        if (code == 10005) {
+        if (code === 10005) {
             throw new DDoSProtection (caller + 'Request frequency exceeds the limit');
         }
-        if (code == 10006) {
+        if (code === 10006) {
             throw new PermissionDenied (caller + 'Unauthorized to execute this request');
         }
-        if (code == 10007) {
+        if (code === 10007) {
             throw new PermissionDenied (caller + 'IP address Unauthorized');
         }
-        if (code == 10008) {
+        if (code === 10008) {
             throw new InvalidNonce (caller + 'Timestamp for this request is invalid, timestamp must within 1 minute');
         }
-        if (code == 10009) {
+        if (code === 10009) {
             throw new NetworkError (caller + 'Unexist endpoint, please check endpoint URL');
         }
-        if (code == 10011) {
+        if (code === 10011) {
             throw new AccountSuspended (caller + 'ApiKey expired. Please go to client side to re-create an ApiKey');
         }
-        if (code == 20001) {
+        if (code === 20001) {
             throw new PermissionDenied (caller + 'Trade is not open for this trading pair');
         }
-        if (code == 20002) {
+        if (code === 20002) {
             throw new PermissionDenied (caller + 'Trade of this trading pair is suspended');
         }
-        if (code == 20003) {
+        if (code === 20003) {
             throw new InvalidOrder (caller + 'Invalid price or amount');
         }
-        if (code == 20007) {
+        if (code === 20007) {
             throw new InvalidOrder (caller + 'Price precision error');
         }
-        if (code == 20008) {
+        if (code === 20008) {
             throw new InvalidOrder (caller + 'Amount precision error');
         }
-        if (code == 20009) {
+        if (code === 20009) {
             throw new InvalidOrder (caller + 'Amount is less than the minimum requirement');
         }
-        if (code == 20010) {
+        if (code === 20010) {
             throw new InvalidOrder (caller + 'Cash Amount is less than the minimum requirement');
         }
-        if (code == 20011) {
+        if (code === 20011) {
             throw new InsufficientFunds (caller + 'Insufficient balance');
         }
-        if (code == 20012) {
-                throw new BadRequest (caller + 'Invalid trade type (valid value: buy/sell)');
+        if (code === 20012) {
+            throw new BadRequest (caller + 'Invalid trade type (valid value: buy/sell)');
         }
-        if (code == 20013) {
+        if (code === 20013) {
             throw new InvalidOrder (caller + 'No order info found');
         }
-        if (code == 20014) {
+        if (code === 20014) {
             throw new BadRequest (caller + 'Invalid date (Valid format: 2018-07-25)');
         }
-        if (code == 20015) {
+        if (code === 20015) {
             throw new BadRequest (caller + 'Date exceeds the limit');
         }
-        if (code == 20018) {
+        if (code === 20018) {
             throw new PermissionDenied (caller + 'Your trading rights have been banned by the system');
         }
-        if (code == 20019) {
+        if (code === 20019) {
             throw new BadRequest (caller + 'Wrong trading pair symbol. Correct format:"usdt_btc". Quote asset is in the front');
         }
         throw new ExchangeError (caller + 'Unknown error code: ' + code);
