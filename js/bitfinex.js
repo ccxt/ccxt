@@ -509,11 +509,18 @@ module.exports = class bitfinex extends Exchange {
                 let currency = balance['currency'];
                 let uppercase = currency.toUpperCase ();
                 uppercase = this.commonCurrencyCode (uppercase);
-                let account = this.account ();
-                account['free'] = parseFloat (balance['available']);
-                account['total'] = parseFloat (balance['amount']);
-                account['used'] = account['total'] - account['free'];
-                result[uppercase] = account;
+                // bitfinex had BCH previously, now it's BAB, but the old
+                // BCH symbol is kept for backward-compatibility
+                // we need a workaround here so that the old BCH balance
+                // would not override the new BAB balance (BAB is unified to BCH)
+                // https://github.com/ccxt/ccxt/issues/4989
+                if (!(uppercase in result)) {
+                    let account = this.account ();
+                    account['free'] = parseFloat (balance['available']);
+                    account['total'] = parseFloat (balance['amount']);
+                    account['used'] = account['total'] - account['free'];
+                    result[uppercase] = account;
+                }
             }
         }
         return this.parseBalance (result);
