@@ -18,18 +18,25 @@ from ccxt.base.decimal_to_precision import DECIMAL_PLACES        # noqa F401
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS    # noqa F401
 from ccxt.base.decimal_to_precision import PAD_WITH_ZERO         # noqa F401
 from ccxt.base.decimal_to_precision import NO_PADDING            # noqa F401
+from ccxt.base.decimal_to_precision import number_to_string      # noqa F401
 
 # ----------------------------------------------------------------------------
 
 
 # ----------------------------------------------------------------------------
-# number_to_string works, not supported in Python and PHP yet
+# number_to_string
 
-# assert(number_to_string(-7.9e-7) == '-0.0000007899999999999999')
-# assert(number_to_string( 7.9e-7) ==  '0.0000007899999999999999')
-# assert(number_to_string(-12.345) == '-12.345')
-# assert(number_to_string( 12.345) == '12.345')
-# assert(number_to_string(0) == '0')
+assert(number_to_string(-7.8e-7) == '-0.00000078')
+assert(number_to_string(7.8e-7) == '0.00000078')
+assert(number_to_string(-17.805e-7) == '-0.0000017805')
+assert(number_to_string(17.805e-7) == '0.0000017805')
+assert(number_to_string(-7.0005e27) == '-7000500000000000000000000000')
+assert(number_to_string(7.0005e27) == '7000500000000000000000000000')
+assert(number_to_string(-7.9e27) == '-7900000000000000000000000000')
+assert(number_to_string(7.9e27) == '7900000000000000000000000000')
+assert(number_to_string(-12.345) == '-12.345')
+assert(number_to_string(12.345) == '12.345')
+assert(number_to_string(0) == '0')
 
 # ----------------------------------------------------------------------------
 # testDecimalToPrecisionTruncationToNDigitsAfterDot
