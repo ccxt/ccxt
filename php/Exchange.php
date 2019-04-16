@@ -2314,26 +2314,26 @@ class Exchange {
 
     public static function number_to_string ($x) {
         # avoids scientific notation for too large and too small numbers
-        $s = (string)$x;
-        if (strpos($x, 'E') === false) {
+        $s = (string) $x;
+        if (strpos ($x, 'E') === false) {
             return $s;
         }
-        $splitted = explode('E', $s);
+        $splitted = explode ('E', $s);
         $number = $splitted[0];
-        $exp = (int)$splitted[1];
+        $exp = (int) $splitted[1];
         $len_after_dot = 0;
-        if (strpos($number, '.') !== false) {
-            $splitted = explode('.', $number);
-            $len_after_dot = strlen($splitted[1]);
+        if (strpos ($number, '.') !== false) {
+            $splitted = explode ('.', $number);
+            $len_after_dot = strlen ($splitted[1]);
         }
-        $number = str_replace(['.', '-'], '', $number);
+        $number = str_replace (array ('.', '-'), '', $number);
         $sign = ($x < 0) ? '-' : '';
         if ($exp > 0) {
-            $zeros = str_repeat('0', abs($exp) - $len_after_dot);
-            $s = $sign.$number.$zeros;
+            $zeros = str_repeat ('0', abs ($exp) - $len_after_dot);
+            $s = $sign . $number . $zeros;
         } else {
-            $zeros = str_repeat('0', abs($exp) - 1);
-            $s = $sign.'0.'.$zeros.$number;
+            $zeros = str_repeat ('0', abs ($exp) - 1);
+            $s = $sign . '0.' . $zeros . $number;
         }
         return $s;
     }
