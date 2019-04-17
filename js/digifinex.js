@@ -107,7 +107,6 @@ module.exports = class digifinex extends Exchange {
         let response = await this.privateGetTradePairs ();
         // if (response.code != 0)
         //     log.info ('[fetchMarkets] error: ' + response.code);
-        this.checkResponse (response, 'fetchMarkets');
         // console.log (response);
         let result = [];
         let keys = Object.keys (response['data']);
@@ -156,7 +155,6 @@ module.exports = class digifinex extends Exchange {
 
     async fetchBalance (params = {}) {
         let response = await this.privateGetMyposition ();
-        this.checkResponse (response, 'fetchBalance');
         let result = { 'info': response };
         let free = response['free'];
         let frozen = response['frozen'];
@@ -183,14 +181,12 @@ module.exports = class digifinex extends Exchange {
             'symbol': symbol,
         };
         let response = await this.privateGetDepth (this.extend (request, params));
-        this.checkResponse (response, 'fetchOrderBook');
         return this.parseOrderBook (response, parseInt (response['date']) * 1000);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         let response = await this.publicGetTicker ();
         // log.bright.yellow.error (response);
-        this.checkResponse (response, 'fetchTicker');
         let result = {};
         let keys = Object.keys (response['ticker']);
         for (let i = 0; i < keys.length; i++) {
@@ -206,7 +202,6 @@ module.exports = class digifinex extends Exchange {
             'symbol': symbol,
         }, params));
         // console.log (response);
-        this.checkResponse (response, 'fetchTicker');
         let result = 0;
         let keys = Object.keys (response['ticker']);
         for (let i = 0; i < keys.length; i++) {
@@ -270,7 +265,6 @@ module.exports = class digifinex extends Exchange {
             'symbol': symbol,
         };
         let response = await this.privateGetTradeDetail (this.extend (request, params));
-        this.checkResponse (response, 'fetchTrades');
         return this.parseTrades (response['data'], request, since, limit);
     }
 
@@ -288,7 +282,6 @@ module.exports = class digifinex extends Exchange {
             throw new InvalidOrder ('market order not supported');
         }
         let response = await this.privatePostTrade (this.extend (order, params));
-        this.checkResponse (response, 'createOrder');
         let result = {
             'info': response,
             'id': response['order_id'],
@@ -301,14 +294,12 @@ module.exports = class digifinex extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         // await this.loadMarkets ();
         let response = await this.privatePostCancelOrder ({ 'order_id': id });
-        this.checkResponse (response, 'cancelOrder');
         return response;
     }
 
     async CancelOrders (ids, symbol = undefined, params = {}) {
         // maximum 20 IDs supported
         let response = await this.privatePostCancelOrder ({ 'order_id': ids.join (',') });
-        this.checkResponse (response, 'CancelOrders');
         return response;
     }
 
@@ -360,7 +351,6 @@ module.exports = class digifinex extends Exchange {
             'symbol': symbol,
         };
         let response = await this.privateGetOpenOrders (this.extend (request, params));
-        this.checkResponse (response, 'fetchOpenOrders');
         let orders = this.parseOrders (response['orders'], undefined, since, limit);
         return orders;
     }
@@ -378,7 +368,6 @@ module.exports = class digifinex extends Exchange {
             request['date'] = this.dateUTC8 (since);
         }
         let response = await this.privateGetOrderHistory (params);
-        this.checkResponse (response, 'fetchClosedOrders');
         let filtered = this.parseOrders (response['orders'], undefined, since, limit);
         return filtered;
     }
@@ -407,7 +396,6 @@ module.exports = class digifinex extends Exchange {
             'type': 'kline_' + timeframe,
         };
         let response = await this.privateGetKline (this.extend (request, params));
-        this.checkResponse (response, 'fetchOHLCV');
         return this.parseOHLCVs (response['data'], undefined, timeframe, since, limit);
     }
 
@@ -455,11 +443,15 @@ module.exports = class digifinex extends Exchange {
         return this.ymd (timestampMS + timedelta);
     }
 
+    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response) {
+        this.checkResponse (response, '');
+    }
+
     checkResponse (response, caller) {
         let code = response['code'];
         if (code === 0)
             return;
-        caller = '[' + caller + '] ';
+        // caller = '[' + caller + '] ';
         if (code === undefined)
             throw new BadResponse (caller + 'bad response: ' + response);
         this.checkCode (code, caller);
