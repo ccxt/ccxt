@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, RequestTimeout } = require ('./base/errors');
+const { ROUND, DECIMAL_PLACES, NO_PADDING } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -145,16 +146,11 @@ module.exports = class dx extends Exchange {
     }
 
     numberToObject (number) {
-        let obj = {
-            'number': number,
-        };
-        // This is probably a problem, because safeString can return a
-        // number in scientific representation
-        let string = this.safeString (obj, 'number', undefined);
+        let string = this.decimalToPrecision (number, ROUND, 10, DECIMAL_PLACES, NO_PADDING);
         let decimals = this.precisionFromString (string);
-        obj['value'] = number * Math.pow (10, decimals);
+        let valueStr = string.replace ('.', '');
         return {
-            'value': this.safeInteger (obj, 'value', undefined),
+            'value': this.safeInteger ({ 'a': valueStr }, 'a', undefined),
             'decimals': decimals,
         };
     }
