@@ -132,6 +132,7 @@ module.exports = class dx extends Exchange {
             'commonCurrencies': {
                 'BCH': 'Bitcoin Cash',
             },
+            'precisionMode': DECIMAL_PLACES,
             'options': {
                 'orderTypes': {
                     'market': 1,
@@ -183,6 +184,10 @@ module.exports = class dx extends Exchange {
                 'baseId': instrument['asset']['baseCurrencyId'],
                 'quoteId': instrument['asset']['quotedCurrencyId'],
                 'info': instrument,
+                'precision': {
+                    'amount': undefined,
+                    'price': instrument['asset']['tailDigits'],
+                },
                 'limits': {
                     'amount': {
                         'min': instrument['minOrderQuantity'],
