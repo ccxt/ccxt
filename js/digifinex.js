@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AccountSuspended, BadRequest, BadResponse, NetworkError, NotSupported, DDoSProtection, AuthenticationError, PermissionDenied, ArgumentsRequired, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce } = require ('./base/errors');
+const { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, AuthenticationError, PermissionDenied, ArgumentsRequired, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce } = require ('./base/errors');
 const { DECIMAL_PLACES } = require ('./base/functions/number');
 // const log = require ('ololog');
 
@@ -20,7 +20,9 @@ module.exports = class digifinex extends Exchange {
             'certified': false,
             // new metainfo interface
             'has': {
-                'cancelAllOrders': false,
+                // 'cancelAllOrders': false,
+                'cancelOrders': true,
+                'createMarketOrder': false,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchTradingFee': false,
@@ -87,36 +89,17 @@ module.exports = class digifinex extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    'temporarily_unavailable': ExchangeNotAvailable, // Sorry, the service is temporarily unavailable. See https://www.bitfinex.com/ for more info.
-                    'Order could not be cancelled.': OrderNotFound, // non-existent order
-                    'No such order found.': OrderNotFound, // ?
-                    'Order price must be positive.': InvalidOrder, // on price <= 0
-                    'Could not find a key matching the given X-BFX-APIKEY.': AuthenticationError,
-                    'Key price should be a decimal number, e.g. "123.456"': InvalidOrder, // on isNaN (price)
-                    'Key amount should be a decimal number, e.g. "123.456"': InvalidOrder, // on isNaN (amount)
-                    'ERR_RATE_LIMIT': DDoSProtection,
-                    'Ratelimit': DDoSProtection,
-                    'Nonce is too small.': InvalidNonce,
-                    'No summary found.': ExchangeError, // fetchTradingFees (summary) endpoint can give this vague error message
-                    'Cannot evaluate your available balance, please try again': ExchangeNotAvailable,
                 },
                 'broad': {
-                    'This API key does not have permission': PermissionDenied, // authenticated but not authorized
-                    'Invalid order: not enough exchange balance for ': InsufficientFunds, // when buying cost is greater than the available quote currency
-                    'Invalid order: minimum size for ': InvalidOrder, // when amount below limits.amount.min
-                    'Invalid order': InvalidOrder, // ?
-                    'The available balance is only': InsufficientFunds, // {"status":"error","message":"Cannot withdraw 1.0027 ETH from your exchange wallet. The available balance is only 0.0 ETH. If you have limit orders, open positions, unused or active margin funding, this will decrease your available balance. To increase it, you can cancel limit orders or reduce/close your positions.","withdrawal_id":0,"fees":"0.0027"}
                 },
             },
             'precisionMode': DECIMAL_PLACES,
             'options': {
                 'orderTypes': {
-                    'limit': 'exchange limit',
-                    'market': 'exchange market',
                 },
             },
-            'apiKey': '15c90635b41849',
-            'secret': '9ca622d7ad701db91feb5b4155273af905c90635b',
+            'apiKey': '15cb6aad284ab8',
+            'secret': '48cad555befb5de238f6688b440a803f05cb6aad2',
         });
     }
 
@@ -291,71 +274,42 @@ module.exports = class digifinex extends Exchange {
         return this.parseTrades (response['data'], request, since, limit);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined)
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = { 'symbol': market['id'] };
-        if (limit !== undefined)
-            request['limit_trades'] = limit;
-        if (since !== undefined)
-            request['timestamp'] = this.dateFromUTC8 (since);
-        let response = await this.privatePostMytrades (this.extend (request, params));
-        return this.parseTrades (response, market, since, limit);
-    }
-
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        // exchange-specific parameters: post_only
+        // post-only: 1: yes, 0: no. A post_only order will only be created as a maker order. If it cannot be placed into order book immediately, it will be cancelled automatically.
         await this.loadMarkets ();
         const order = {
-            'symbol': this.marketId (symbol),
-            'side': side,
+            'symbol': symbol,
+            'price': this.priceToPrecision (symbol, price),
             'amount': this.amountToPrecision (symbol, amount),
-            'type': this.safeString (this.options['orderTypes'], type, type),
-            'ocoorder': false,
-            'buy_price_oco': 0,
-            'sell_price_oco': 0,
+            'type': side,
         };
         if (type === 'market') {
-            order['price'] = this.nonce ().toString ();
-        } else {
-            order['price'] = this.priceToPrecision (symbol, price);
+            throw new InvalidOrder ('market order not supported');
         }
-        let result = await this.privatePostOrderNew (this.extend (order, params));
-        return this.parseOrder (result);
-    }
-
-    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets ();
-        const order = {
-            'order_id': id,
+        let response = await this.privatePostTrade (this.extend (order, params));
+        this.checkResponse (response, 'createOrder');
+        let result = {
+            'info': response,
+            'id': response['order_id'],
+            'symbol': symbol,
+            'side': side,
         };
-        if (price !== undefined) {
-            order['price'] = this.priceToPrecision (symbol, price);
-        }
-        if (amount !== undefined) {
-            order['amount'] = this.amountToPrecision (symbol, amount);
-        }
-        if (symbol !== undefined) {
-            order['symbol'] = this.marketId (symbol);
-        }
-        if (side !== undefined) {
-            order['side'] = side;
-        }
-        if (type !== undefined) {
-            order['type'] = this.safeString (this.options['orderTypes'], type, type);
-        }
-        const result = await this.privatePostOrderCancelReplace (this.extend (order, params));
-        return this.parseOrder (result);
+        return result;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        return await this.privatePostOrderCancel ({ 'order_id': parseInt (id) });
+        // await this.loadMarkets ();
+        let response = await this.privatePostCancelOrder ({ 'order_id': id });
+        this.checkResponse (response, 'cancelOrder');
+        return response;
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
-        return await this.privatePostOrderCancelAll (params);
+    async CancelOrders (ids, symbol = undefined, params = {}) {
+        // maximum 20 IDs supported
+        let response = await this.privatePostCancelOrder ({ 'order_id': ids.join (',') });
+        this.checkResponse (response, 'CancelOrders');
+        return response;
     }
 
     parseOrder (order, market = undefined) {
@@ -457,12 +411,6 @@ module.exports = class digifinex extends Exchange {
         return this.parseOHLCVs (response['data'], undefined, timeframe, since, limit);
     }
 
-    getCurrencyName (code) {
-        if (code in this.options['currencyNames'])
-            return this.options['currencyNames'][code];
-        throw new NotSupported (this.id + ' ' + code + ' not supported for withdrawal');
-    }
-
     nonce () {
         return this.milliseconds ();
     }
@@ -507,34 +455,6 @@ module.exports = class digifinex extends Exchange {
         return this.ymd (timestampMS + timedelta);
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
-        if (body.length < 2)
-            return;
-        if (code >= 400) {
-            if (body[0] === '{') {
-                const feedback = this.id + ' ' + this.json (response);
-                let message = undefined;
-                if ('message' in response) {
-                    message = response['message'];
-                } else if ('error' in response) {
-                    message = response['error'];
-                } else {
-                    throw new ExchangeError (feedback); // malformed (to our knowledge) response
-                }
-                const exact = this.exceptions['exact'];
-                if (message in exact) {
-                    throw new exact[message] (feedback);
-                }
-                const broad = this.exceptions['broad'];
-                const broadKey = this.findBroadlyMatchedKey (broad, message);
-                if (broadKey !== undefined) {
-                    throw new broad[broadKey] (feedback);
-                }
-                throw new ExchangeError (feedback); // unknown message
-            }
-        }
-    }
-
     checkResponse (response, caller) {
         let code = response['code'];
         if (code === 0)
@@ -542,6 +462,10 @@ module.exports = class digifinex extends Exchange {
         caller = '[' + caller + '] ';
         if (code === undefined)
             throw new BadResponse (caller + 'bad response: ' + response);
+        this.checkCode (code, caller);
+    }
+
+    checkCode (code, caller) {
         if (code === 10001) {
             throw new BadRequest (caller + "Wrong request method, please check it's a GET ot POST request");
         }
