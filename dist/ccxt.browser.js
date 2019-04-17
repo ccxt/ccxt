@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.471'
+const version = '1.18.472'
 
 Exchange.ccxtVersion = version
 
@@ -41622,11 +41622,11 @@ module.exports = class gdax extends Exchange {
         let order = {
             'product_id': this.marketId (symbol),
             'side': side,
-            'size': amount,
+            'size': this.amountToPrecision (symbol, amount),
             'type': type,
         };
         if (type === 'limit')
-            order['price'] = price;
+            order['price'] = this.priceToPrecision (symbol, price);
         let response = await this.privatePostOrders (this.extend (order, params));
         return this.parseOrder (response);
     }
