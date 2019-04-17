@@ -1,0 +1,7 @@
+{{if (condLang 0)}}package models
+{{end}}
+// InstrumentInterval instrument interval
+{{if (condLang 1)}}export default {{end}}{{typeInit "InstrumentInterval"}}
+    {{typeMethod "intervals" "[]string"}}
+	{{typeMethod "symbols" "[]string"}}
+}

@@ -70,8 +70,8 @@ type URLs struct {
 // Exceptions takes exact/broad errors and classifies
 // them to general errors
 type Exceptions struct {
-	Exact map[string]Exception `json:"exact"`
-	Broad map[string]Exception `json:"broad"`
+	Exact Exception `json:"exact"`
+	Broad Exception `json:"broad"`
 }
 
 // Exception takes the string and applies the error method
@@ -85,6 +85,9 @@ func (e Exception) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	for msg, errType := range errTypes {
+		if e == nil {
+			e = make(map[string]error)
+		}
 		e[msg] = TypedError(errType, msg)
 	}
 	return nil

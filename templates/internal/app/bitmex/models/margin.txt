@@ -1,0 +1,46 @@
+{{if (condLang 0)}}package models
+{{end}}
+// Margin margin
+{{if (condLang 1)}}export default {{end}}{{typeInit "Margin"}}
+	{{typeMethod "account" "int64"}}
+	{{typeMethod "action" "string"}}
+	{{typeMethod "amount" "int64"}}
+	{{typeMethod "availableMargin" "int64"}}
+	{{typeMethod "comission" "float64"}}
+	{{typeMethod "confirmedDebit" "int64"}}
+	{{typeMethod "currency" "string"}}
+	{{typeMethod "excessMargin" "int64"}}
+	{{typeMethod "excessMarginPcnt" "float64"}}
+	{{typeMethod "grossComm" "int64"}}
+	{{typeMethod "grossExecCost" "int64"}}
+	{{typeMethod "grossLastValue" "int64"}}
+	{{typeMethod "grossMarkValue" "int64"}}
+	{{typeMethod "grossOpenCost" "int64"}}
+	{{typeMethod "grossOpenPremium" "int64"}}
+	{{typeMethod "indicativeTax" "int64"}}
+	{{typeMethod "initMargin" "int64"}}
+	{{typeMethod "maintMargin" "int64"}}
+	{{typeMethod "marginBalance" "int64"}}
+	{{typeMethod "marginBalancePcnt" "float64"}}
+	{{typeMethod "marginLeverage" "float64"}}
+	{{typeMethod "marginUsedPcnt" "float64"}}
+	{{typeMethod "pendingCredit" "int64"}}
+	{{typeMethod "pendingDebit" "int64"}}
+	{{typeMethod "prevRealisedPnl" "int64"}}
+	{{typeMethod "prevState" "string"}}
+	{{typeMethod "prevUnrealisedPnl" "int64"}}
+	{{typeMethod "realisedPnl" "int64"}}
+	{{typeMethod "riskLimit" "int64"}}
+	{{typeMethod "riskValue" "int64"}}
+	{{typeMethod "sessionMargin" "int64"}}
+	{{typeMethod "state" "string"}}
+	{{typeMethod "syntheticMargin" "int64"}}
+	{{typeMethod "targetExcessMargin" "int64"}}
+	{{typeMethod "taxableMargin" "int64"}}
+	{{typeMethod "timestamp" "time.Time"}}
+	{{typeMethod "unrealisedPnl" "int64"}}
+	{{typeMethod "unrealisedProfit" "int64"}}
+	{{typeMethod "varMargin" "int64"}}
+	{{typeMethod "walletBalance" "int64"}}
+	{{typeMethod "withdrawableMargin" "int64"}}
+}

@@ -1,0 +1,10 @@
+{{if (condLang 0)}}package models
+{{end}}
+// Liquidation Active Liquidations
+{{if (condLang 1)}}export default {{end}}{{typeInit "Liquidation"}}
+	{{typeMethod "leavesQty" "int64"}}
+	{{typeMethod "orderID" "string"}}
+	{{typeMethod "price" "float64"}}
+	{{typeMethod "side" "string"}}
+	{{typeMethod "symbol" "string"}}
+}

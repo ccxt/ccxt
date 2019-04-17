@@ -75,7 +75,7 @@
         "user": "User",
         "user/affiliateStatus": "Affiliate",
         "user/checkReferralCode": "float64",
-        "user/commission": "UserCommissionsBySymbol",
+        "user/commission": "map[string]UserCommission",
         "user/depositAddress": "string",
         "user/executionHistory": "[]Execution",
         "user/margin": "[]Margin",

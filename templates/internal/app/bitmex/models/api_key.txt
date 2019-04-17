@@ -1,0 +1,14 @@
+{{if (condLang 0)}}package models
+{{end}}
+// APIKey Persistent API Keys for Developers
+{{if (condLang 1)}}export default {{end}}{{typeInit "APIKey"}}
+    {{typeMethod "cidr" "string"}}
+    {{typeMethod "created" "time.Time"}}
+    {{typeMethod "enabled" "bool"}}
+    {{typeMethod "id" "string"}}
+    {{typeMethod "name" "string"}}
+    {{typeMethod "nonce" "int64"}}
+    {{typeMethod "permissions" "[]interface{}"}}
+    {{typeMethod "secret" "string"}}
+    {{typeMethod "userId" "int32"}}
+}

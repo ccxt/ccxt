@@ -1,4 +1,4 @@
-package {{.ID}}
+package {{.Info.ID}}
 
 // AUTOMATICALLY GENERATED, BUT NEEDS TO BE MODIFIED:
 import (
@@ -28,7 +28,7 @@ type Exchange struct {
 // Init Exchange
 func Init(conf ccxt.ExchangeConfig) (*Exchange, error) {
     var info ccxt.ExchangeInfo
-	configFile := "/Users/stefan/Github/ccxt/templates/internal/app/{{.ID}}/{{.ID}}.json"
+	configFile := "/Users/stefan/Github/ccxt/templates/internal/app/{{.Info.ID}}/{{.Info.ID}}.json"
 	f, err := os.Open(configFile)
 	defer f.Close()
 	if err != nil {
