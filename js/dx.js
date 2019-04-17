@@ -156,7 +156,11 @@ module.exports = class dx extends Exchange {
     }
 
     objectToNumber (obj) {
-        return obj['value'] * Math.pow (10, -obj['decimals']);
+        let value = this.decimalToPrecision (obj['value'], ROUND, 0, DECIMAL_PLACES, NO_PADDING);
+        let decimals = this.decimalToPrecision (-obj['decimals'], ROUND, 0, DECIMAL_PLACES, NO_PADDING);
+        return this.safeFloat ({
+            'a': value + 'e' + decimals,
+        }, 'a', undefined);
     }
 
     async fetchMarkets (params = {}) {
