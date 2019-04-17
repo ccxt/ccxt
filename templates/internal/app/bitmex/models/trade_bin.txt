@@ -1,0 +1,18 @@
+{{if (condLang 0)}}package models
+{{end}}
+// TradeBin trade bin
+{{if (condLang 1)}}export default {{end}}{{typeInit "TradeBin"}}
+	{{typeMethod "close" "float64"}}
+	{{typeMethod "foreignNotional" "float64"}}
+	{{typeMethod "high" "float64"}}
+	{{typeMethod "homeNotional" "float64"}}
+	{{typeMethod "lastSize" "int64"}}
+	{{typeMethod "low" "float64"}}
+	{{typeMethod "open" "float64"}}
+	{{typeMethod "symbol" "string"}}
+	{{typeMethod "timestamp" "time.Time"}}
+	{{typeMethod "trades" "int64"}}
+	{{typeMethod "turnover" "int64"}}
+	{{typeMethod "volume" "int64"}}
+	{{typeMethod "vwap" "float64"}}
+}

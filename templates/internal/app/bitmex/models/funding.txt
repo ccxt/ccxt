@@ -1,0 +1,10 @@
+{{if (condLang 0)}}package models
+{{end}}
+// Funding Swap Funding History
+{{if (condLang 1)}}export default {{end}}{{typeInit "Funding"}}
+    {{typeMethod "fundingInterval" "time.Time"}}
+	{{typeMethod "fundingRate" "float64"}}
+	{{typeMethod "fundingRateDaily" "float64"}}
+	{{typeMethod "symbol" "string"}}
+	{{typeMethod "timestamp" "time.Time"}}
+}

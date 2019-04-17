@@ -5,43 +5,43 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ccxt/ccxt/go/pkg/ccxt"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestParseAPITemplate(t *testing.T) {
-	var info ccxt.ExchangeInfo
-	f, err := os.Open("test.json")
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	json.NewDecoder(f).Decode(&info)
-	buildTest := false
-	err = ParseAPITemplate(info, "", "tmpl_api", &buildTest)
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = os.Remove("api.go")
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestParseAPITestTemplate(t *testing.T) {
-	var info ccxt.ExchangeInfo
-	f, err := os.Open("test.json")
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	json.NewDecoder(f).Decode(&info)
-	buildTest := true
-	err = ParseAPITemplate(info, "", "tmpl_api", &buildTest)
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = os.Remove("api_test.go")
-	if err != nil {
-		t.Fatal(err)
-	}
+func TestAPIParser(t *testing.T) {
+	Convey("Setup apiparser", t, func() {
+		p := Parser{
+			Lang: GO,
+		}
+		p.FuncMap = FuncMap(&p)
+		f, err := os.Open("test.json")
+		So(err, ShouldBeNil)
+		defer f.Close()
+		err = json.NewDecoder(f).Decode(&p.Info)
+		So(err, ShouldBeNil)
+		Convey("Parse go file", func() {
+			err = p.Transcribe("../api.txt")
+			So(err, ShouldBeNil)
+		})
+		Convey("Parse go test file", func() {
+			err = p.Transcribe("../api_test.txt")
+			So(err, ShouldBeNil)
+		})
+		Convey("Parse ts file", func() {
+			p.Lang = TS
+			err = p.Transcribe("../api.txt")
+			So(err, ShouldBeNil)
+		})
+		Convey("Parse ts test file", func() {
+			p.Lang = TS
+			err = p.Transcribe("../api_test.txt")
+			So(err, ShouldBeNil)
+		})
+		Reset(func() {
+			err := os.RemoveAll("../bitmex")
+			if err != nil {
+				t.Fatal(err)
+			}
+		})
+	})
 }

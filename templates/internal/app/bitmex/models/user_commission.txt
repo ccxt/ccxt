@@ -1,0 +1,9 @@
+{{if (condLang 0)}}package models
+{{end}}
+// UserCommission user commission
+{{if (condLang 1)}}export default {{end}}{{typeInit "UserCommission"}}
+	{{typeMethod "makerFee" "float64"}}
+	{{typeMethod "maxFee" "float64"}}
+	{{typeMethod "settlementFee" "float64"}}
+	{{typeMethod "takerFee" "float64"}}
+}

@@ -1,0 +1,46 @@
+package {{.Info.ID}}
+
+// AUTOMATICALLY GENERATED, BUT NEEDS TO BE MODIFIED:
+import (
+	"bytes"
+    "encoding/json"
+	"io/ioutil"
+	"net/url"
+	"reflect"
+	"testing"
+
+	"github.com/ccxt/ccxt/go/internal/app/bitmex/models"
+    "github.com/ccxt/ccxt/go/pkg/ccxt"
+)
+
+var c *Exchange
+
+func init() {
+    keys, err := ioutil.ReadFile("../../../keys.json")
+	if err != nil {
+		panic(err)
+	}
+	var configKeys map[string]ccxt.ExchangeConfig
+	err = json.Unmarshal(keys, &configKeys)
+	if err != nil {
+		panic(err)
+	}
+	config := configKeys["{{.Info.ID}}"]
+	c, err = Init(config)
+    if err != nil {
+	    panic(err)
+    }
+}
+{{range $api, $dataModel := .Info.API.Public.Get}}
+func TestPublicGet{{apiToFuncName $api}}(t *testing.T) {
+    params := url.Values{}
+    data, err := c.PublicGet{{apiToFuncName $api}}(&params)
+    t.Logf("%+v", data)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if {{apiResultTest $dataModel}} {
+        t.Fatal("Did not return data")
+    }
+}
+{{end}}

@@ -1,4 +1,4 @@
-package {{.ID}}
+package {{.Info.ID}}
 
 // AUTOMATICALLY GENERATED, BUT NEEDS TO BE MODIFIED:
 import (
@@ -14,8 +14,8 @@ func TestExchangeInit(t *testing.T) {
     if err != nil {
         t.Fatal(err)
     }
-    if x.Info.ID != "{{.ID}}" {
-        t.Fatal("Did not load ID {{.ID}} correctly")
+    if x.Info.ID != "{{.Info.ID}}" {
+        t.Fatal("Did not load ID {{.Info.ID}} correctly")
     }
 }
 
@@ -29,12 +29,12 @@ func TestExchangeInitPrivate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	config := configKeys["{{.ID}}"]
+	config := configKeys["{{.Info.ID}}"]
 	x, err := Init(config)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if x.Config.APIKey != config.APIKey {
-		t.Fatal("Did not load {{.ID}} APIKey correctly")
+		t.Fatal("Did not load {{.Info.ID}} APIKey correctly")
 	}
 }

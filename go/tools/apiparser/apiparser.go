@@ -2,135 +2,106 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
-	"flag"
 	"fmt"
 	"go/format"
-	"io/ioutil"
 	"os"
 	"path"
-	"regexp"
 	"strings"
 	"text/template"
 
 	"github.com/ccxt/ccxt/go/pkg/ccxt"
 )
 
-// apiToFuncName converts the URL endpoint to a go func name
-func apiToFuncName(m string) string {
-	x := strings.ReplaceAll(m, "/", " ")
-	x = strings.Title(x)
-	x = strings.ReplaceAll(x, " ", "")
-	return x
+// Language enum
+const (
+	GO = iota
+	TS
+	JS
+	PYTHON
+	PHP
+)
+
+// Parser for building language files
+type Parser struct {
+	Lang    int
+	Test    bool
+	Info    ccxt.ExchangeInfo
+	FuncMap template.FuncMap
 }
 
-// apiResult takes the endpoint val and links to the appropriate data type
-func apiResult(s string) string {
-	re := regexp.MustCompile(`^(string|float|int)`)
-	if re.Match([]byte(s)) {
-		return s
-	}
-	if strings.Contains(s, "[]") {
-		s = strings.TrimLeft(s, "[]")
-		s = "[]models." + s
-	} else {
-		s = "models." + s
-	}
-	return s
+// ParserData sends data for the template engine
+type ParserData struct {
+	Info ccxt.ExchangeInfo
+	Lang int
 }
 
-func apiResultTest(s string) string {
-	if strings.Contains(s, "[]") {
-		return "data == nil"
+// Transcribe template for set language
+func (p *Parser) Transcribe(filepath string) error {
+	if !p.Test && strings.Contains(filepath, "_test") {
+		return nil
 	}
-	re := regexp.MustCompile(`^(string|float|int)`)
-	if re.Match([]byte(s)) {
-		switch s {
-		case "string":
-			return "data == \"\""
-		case "float64":
-			return "data == 0.0"
-		case "int64":
-			return "data == 0"
-		case "interface{}":
-			return "data == nil"
-		}
-	}
-	return fmt.Sprintf("reflect.DeepEqual(data, (models.%s{}))", s)
-}
-
-// ParseAPITemplate print template for exchange APIs
-func ParseAPITemplate(info ccxt.ExchangeInfo, dir string, file string, buildTest *bool) error {
-	funcMap := template.FuncMap{
-		"apiToFuncName": apiToFuncName,
-		"apiResult":     apiResult,
-		"apiResultTest": apiResultTest,
-		"title":         strings.Title,
-	}
-	tmplName := file
-	if *buildTest {
-		tmplName += "_test"
-	}
-	tmplName += ".txt"
-	tmplPath := path.Join(dir, "../", tmplName)
-	tmpl, err := template.New(tmplName).Funcs(funcMap).ParseFiles(tmplPath)
+	fmt.Println(filepath)
+	tmpl, err := template.New(path.Base(filepath)).Funcs(p.FuncMap).ParseFiles(filepath)
 	if err != nil {
-		return fmt.Errorf("Unable to parse %s\n%v", tmplPath, err)
+		return err
 	}
-	goName := strings.TrimPrefix(file, "tmpl_")
-	if *buildTest {
-		goName += "_test"
+	var outFile string
+	switch p.Lang {
+	case GO:
+		outFile = strings.Replace(filepath, "templates", "go", 1)
+		outFile = strings.Replace(outFile, ".txt", ".go", 1)
+	case TS:
+		outFile = strings.Replace(filepath, "templates", "ts", 1)
+		outFile = strings.Replace(outFile, ".txt", ".ts", 1)
+	case JS:
+		outFile = strings.Replace(filepath, "templates", "js", 1)
+		outFile = strings.Replace(outFile, ".txt", ".js", 1)
+	case PYTHON:
+		outFile = strings.Replace(filepath, "templates", "python", 1)
+		outFile = strings.Replace(outFile, ".txt", ".py", 1)
+	case PHP:
+		outFile = strings.Replace(filepath, "templates", "php", 1)
+		outFile = strings.Replace(outFile, ".txt", ".php", 1)
 	}
-	goName += ".go"
-	dir = strings.Replace(dir, "templates", "go", 1)
-	goPath := path.Join(dir, goName)
-	output, err := os.Create(goPath)
+	if !strings.Contains(outFile, p.Info.ID) {
+		filename := path.Base(outFile)
+		outFile = strings.Replace(outFile,
+			filename,
+			p.Info.ID+"/"+filename, 1)
+	}
+	outDir := path.Dir(outFile)
+	if _, err := os.Stat(outDir); os.IsNotExist(err) {
+		os.MkdirAll(outDir, os.ModePerm)
+	}
+	output, err := os.Create(outFile)
 	if err != nil {
-		return fmt.Errorf("Unable to create %s\n%v", goPath, err)
+		return err
 	}
 	defer output.Close()
-	src := new(bytes.Buffer)
-	err = tmpl.Execute(src, info)
-	if err != nil {
-		return fmt.Errorf("Unable to execute %s\n%v", tmplName, err)
+	data := ParserData{
+		Info: p.Info,
+		Lang: p.Lang,
 	}
-	srcFormatted, err := format.Source(src.Bytes())
-	if err != nil {
-		return err
-	}
-	_, err = output.Write(srcFormatted)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func main() {
-	buildTest := flag.Bool("testfiles", false, "build _test.go files")
-	filename := flag.String("name", "", "base template name")
-	flag.Parse()
-	root := "../../../templates/internal/app"
-	tmplFile := "tmpl_" + *filename
-	files, err := ioutil.ReadDir(root)
-	if err != nil {
-		panic(err)
-	}
-	for _, file := range files {
-		if file.IsDir() {
-			var info ccxt.ExchangeInfo
-			exchangePath := path.Join(root, file.Name())
-			configName := fmt.Sprintf("%s.json", file.Name())
-			config := path.Join(root, exchangePath, configName)
-			f, err := os.Open(config)
-			if err != nil {
-				panic(err)
-			}
-			defer f.Close()
-			json.NewDecoder(f).Decode(&info)
-			err = ParseAPITemplate(info, exchangePath, tmplFile, buildTest)
-			if err != nil {
-				panic(err)
-			}
+	// use gofmt if the output is *.go
+	if p.Lang == GO {
+		src := new(bytes.Buffer)
+		err = tmpl.Execute(src, data)
+		if err != nil {
+			return err
+		}
+		srcFormatted, err := format.Source(src.Bytes())
+		if err != nil {
+			return err
+		}
+		_, err = output.Write(srcFormatted)
+		if err != nil {
+			return err
+		}
+	} else {
+		err = tmpl.Execute(output, data)
+		if err != nil {
+			return err
 		}
 	}
+	return nil
 }
