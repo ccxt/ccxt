@@ -1144,7 +1144,7 @@ module.exports = class poloniex extends Exchange {
             }
             status = this.parseTransactionStatus (status);
         }
-        const type = (id !== undefined) ? 'withdrawal' : 'deposit';
+        const type = this.safeString (transaction, 'type');
         const id = type === 'withdrawal' ? this.safeString (transaction, 'withdrawalNumber') : this.safeString (transaction, 'depositNumber');
         let amount = this.safeFloat (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
