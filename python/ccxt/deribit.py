@@ -442,7 +442,7 @@ class deribit (Exchange):
             self.check_required_credentials()
             nonce = str(self.nonce())
             auth = '_=' + nonce + '&_ackey=' + self.apiKey + '&_acsec=' + self.secret + '&_action=' + query
-            if params > 0:
+            if params:
                 params = self.keysort(params)
                 auth += '&' + self.urlencode(params)
             hash = self.hash(self.encode(auth), 'sha256', 'base64')
@@ -453,7 +453,7 @@ class deribit (Exchange):
             if method != 'GET':
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
                 body = self.urlencode(params)
-            elif params > 0:
+            elif params:
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
