@@ -1,6 +1,6 @@
-import { ccxt, models } from './pkg';
+import * as ccxt from './pkg';
 
-const config: models.ExchangeConfig = {
+const config: ccxt.ExchangeConfig = {
   apiKey: '',
   secret: '',
   timeout: 0,
@@ -8,4 +8,11 @@ const config: models.ExchangeConfig = {
   test: true,
 };
 const ex = ccxt.bitmex(config);
-console.log(ex);
+(async function() {
+  try {
+    const instruments = await ex.PublicGetInstrumentActive({});
+    console.log(instruments[0]);
+  } catch (e) {
+    console.error(e);
+  }
+})();

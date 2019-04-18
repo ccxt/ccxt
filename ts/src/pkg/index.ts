@@ -1,8 +1,33 @@
-import * as models from './ccxt/models';
-import * as bitmexModel from '../internal/app/bitmex';
+import { ExchangeConfig } from './ccxt/models';
+export {
+  ExchangeInfo,
+  ExchangeConfig,
+  APIs,
+  APIMethods,
+  URLs,
+  Exceptions,
+  HasDescription,
+  APIURLs,
+  Fees,
+  TradingFees,
+  TradingFeesTiers,
+  FundingFees,
+  Account,
+  Balance,
+  Balances,
+  Order,
+  OrderBook,
+  BookEntry,
+  Trade,
+  Ticker,
+  Currency,
+  DepositAddress,
+  OHLCV,
+  Market,
+  Precision,
+  Limits,
+  MinMax,
+} from './ccxt/models';
+import bitmexInit from '../internal/app/bitmex';
 
-const ccxt = {
-  bitmex: bitmexModel.Init,
-};
-
-export { ccxt, models };
+export const bitmex = (config: ExchangeConfig) => new bitmexInit(config);
