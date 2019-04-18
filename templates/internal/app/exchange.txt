@@ -1,4 +1,4 @@
-package {{.Info.ID}}
+{{if (codeLang 0)}}package {{.Info.ID}}
 
 // AUTOMATICALLY GENERATED, BUT NEEDS TO BE MODIFIED:
 import (
@@ -118,4 +118,13 @@ func (x *Exchange) FetchMarkets(params *url.Values) ([]ccxt.Market, error) {
 func (x *Exchange) FetchBalance(params *url.Values) (ccxt.Account, error) {
 	// TODO: Complete FetchBalance
 	return ccxt.Account{}, nil
+}{{else if (codeLang 1)}}// AUTOMATICALLY GENERATED, BUT NEEDS TO BE MODIFIED:
+import * as ccxt from '../../../pkg/ccxt/models';
+import ExchangeAPI from './api';
+
+export default class Exchange extends ExchangeAPI {
+  constructor(config: ccxt.ExchangeConfig) {
+    super(config);
+  }
 }
+{{end}}

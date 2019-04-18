@@ -28,6 +28,6 @@ export {
   Limits,
   MinMax,
 } from './ccxt/models';
-import bitmexInit from '../internal/app/bitmex';
+import bitmexInit from '../internal/app/bitmex/exchange';
 
 export const bitmex = (config: ExchangeConfig) => new bitmexInit(config);
