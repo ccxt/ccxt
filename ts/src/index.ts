@@ -1,11 +1,11 @@
-import * as ccxt from './pkg';
+import * as ccxt from "./pkg";
 
 const config: ccxt.ExchangeConfig = {
-  apiKey: '',
-  secret: '',
+  apiKey: "",
+  secret: "",
   timeout: 0,
   enableRateLimit: true,
-  test: true,
+  test: true
 };
 const ex = ccxt.bitmex(config);
 (async function() {

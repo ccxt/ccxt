@@ -1,6 +1,5 @@
-
 // ConnectedUsers connected users
 export default interface ConnectedUsers {
-    bots: number;
-	users: number;
+  bots: number;
+  users: number;
 }

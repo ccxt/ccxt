@@ -1,4 +1,4 @@
-import { ExchangeConfig } from './ccxt/models';
+import { ExchangeConfig } from "./ccxt/models";
 export {
   ExchangeInfo,
   ExchangeConfig,
@@ -26,8 +26,8 @@ export {
   Market,
   Precision,
   Limits,
-  MinMax,
-} from './ccxt/models';
-import bitmexInit from '../internal/app/bitmex/exchange';
+  MinMax
+} from "./ccxt/models";
+import bitmexInit from "../internal/app/bitmex/exchange";
 
 export const bitmex = (config: ExchangeConfig) => new bitmexInit(config);

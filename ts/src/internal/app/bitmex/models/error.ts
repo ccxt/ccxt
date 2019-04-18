@@ -1,7 +1,6 @@
-
-import ErrorError from './errorerror';
+import ErrorError from "./errorerror";
 
 // Error error
 export default interface Error {
-    error: ErrorError;
+  error: ErrorError;
 }

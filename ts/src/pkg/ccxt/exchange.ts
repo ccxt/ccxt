@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance } from "axios";
 
 const reDatestring = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/;
 
@@ -14,12 +14,12 @@ export default class Exchange {
     this.client = axios.create({
       transformResponse: function(json) {
         return JSON.parse(json, (_, v) => {
-          if (typeof v === 'string' && reDatestring.test(v)) {
+          if (typeof v === "string" && reDatestring.test(v)) {
             return new Date(v);
           }
           return v;
         });
-      },
+      }
     });
     this.markets = {};
     this.marketsById = {};
