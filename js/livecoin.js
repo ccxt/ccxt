@@ -757,9 +757,9 @@ module.exports = class livecoin extends Exchange {
             address = this.safeString (transaction, 'externalKey');
             txid = this.safeString (transaction, 'id');
         }
-        let status = this.safeString (transaction, 'status');
+        let status = undefined;
         if (type === 'deposit') {
-            status = 'ok';
+            status = 'ok'; // Deposits is not registered until they are in account. Withdrawals are left as undefined, not entirely sure about theyre status.
         }
         return {
             'info': transaction,
