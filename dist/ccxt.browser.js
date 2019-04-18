@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.472'
+const version = '1.18.475'
 
 Exchange.ccxtVersion = version
 
@@ -36340,7 +36340,7 @@ module.exports = class deribit extends Exchange {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let auth = '_=' + nonce + '&_ackey=' + this.apiKey + '&_acsec=' + this.secret + '&_action=' + query;
-            if (method === 'POST') {
+            if (Object.keys (params).length) {
                 params = this.keysort (params);
                 auth += '&' + this.urlencode (params);
             }
@@ -36352,6 +36352,8 @@ module.exports = class deribit extends Exchange {
             if (method !== 'GET') {
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
                 body = this.urlencode (params);
+            } else if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -39123,6 +39125,7 @@ module.exports = class fcoin extends Exchange {
             'commonCurrencies': {
                 'DAG': 'DAGX',
                 'PAI': 'PCHAIN',
+                'MT': 'Mariana Token',
             },
         });
     }
@@ -59248,7 +59251,8 @@ module.exports = class okex extends okcoinusd {
                 'fees': 'https://www.okex.com/pages/products/fees.html',
             },
             'commonCurrencies': {
-                // 'AE': 'AET', // https://github.com/ccxt/ccxt/issues/4981
+                // OKEX refers to ERC20 version of Aeternity (AEToken)
+                'AE': 'AET', // https://github.com/ccxt/ccxt/issues/4981
                 'FAIR': 'FairGame',
                 'HOT': 'Hydro Protocol',
                 'HSR': 'HC',

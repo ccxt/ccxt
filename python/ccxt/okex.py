@@ -33,7 +33,8 @@ class okex (okcoinusd):
                 'fees': 'https://www.okex.com/pages/products/fees.html',
             },
             'commonCurrencies': {
-                # 'AE': 'AET',  # https://github.com/ccxt/ccxt/issues/4981
+                # OKEX refers to ERC20 version of Aeternity(AEToken)
+                'AE': 'AET',  # https://github.com/ccxt/ccxt/issues/4981
                 'FAIR': 'FairGame',
                 'HOT': 'Hydro Protocol',
                 'HSR': 'HC',
