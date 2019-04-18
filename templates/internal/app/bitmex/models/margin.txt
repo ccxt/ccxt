@@ -1,7 +1,7 @@
-{{if (condLang 0)}}package models
+{{if (codeLang 0)}}package models
 {{end}}
 // Margin margin
-{{if (condLang 1)}}export default {{end}}{{typeInit "Margin"}}
+{{if (codeLang 1)}}export default {{end}}{{typeInit "Margin"}}
 	{{typeMethod "account" "int64"}}
 	{{typeMethod "action" "string"}}
 	{{typeMethod "amount" "int64"}}

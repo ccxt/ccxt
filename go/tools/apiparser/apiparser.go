@@ -51,7 +51,7 @@ func (p *Parser) Transcribe(filepath string) error {
 		outFile = strings.Replace(filepath, "templates", "go", 1)
 		outFile = strings.Replace(outFile, ".txt", ".go", 1)
 	case TS:
-		outFile = strings.Replace(filepath, "templates", "ts", 1)
+		outFile = strings.Replace(filepath, "templates", "ts/src", 1)
 		outFile = strings.Replace(outFile, ".txt", ".ts", 1)
 	case JS:
 		outFile = strings.Replace(filepath, "templates", "js", 1)

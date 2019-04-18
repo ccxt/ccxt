@@ -1,7 +1,7 @@
-{{if (condLang 0)}}package models
+{{if (codeLang 0)}}package models
 {{end}}
 // Wallet wallet
-{{if (condLang 1)}}export default {{end}}{{typeInit "Wallet"}}
+{{if (codeLang 1)}}export default {{end}}{{typeInit "Wallet"}}
 	{{typeMethod "account" "int64"}}
 	{{typeMethod "addr" "string"}}
 	{{typeMethod "amount" "int64"}}

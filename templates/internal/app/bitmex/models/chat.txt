@@ -1,7 +1,7 @@
-{{if (condLang 0)}}package models
+{{if (codeLang 0)}}package models
 {{end}}
 // Chat Trollbox Data
-{{if (condLang 1)}}export default {{end}}{{typeInit "Chat"}}
+{{if (codeLang 1)}}export default {{end}}{{typeInit "Chat"}}
     {{typeMethod "channelID" "float64"}}
     {{typeMethod "date" "time.Time"}}
     {{typeMethod "fromBot" "bool"}}

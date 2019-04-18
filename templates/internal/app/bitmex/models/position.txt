@@ -1,7 +1,7 @@
-{{if (condLang 0)}}package models
+{{if (codeLang 0)}}package models
 {{end}}
 // Position Summary of Open and Closed Positions
-{{if (condLang 1)}}export default {{end}}{{typeInit "Position"}}
+{{if (codeLang 1)}}export default {{end}}{{typeInit "Position"}}
 	{{typeMethod "account" "int64"}}
 	{{typeMethod "avgCostPrice" "float64"}}
 	{{typeMethod "avgEntryPrice" "float64"}}

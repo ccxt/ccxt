@@ -1,7 +1,7 @@
-{{if (condLang 0)}}package models
+{{if (codeLang 0)}}package models
 {{end}}
 // Announcement Public Announcements
-{{if (condLang 1)}}export default {{end}}{{typeInit "Announcement"}}
+{{if (codeLang 1)}}export default {{end}}{{typeInit "Announcement"}}
     {{typeMethod "content" "string"}}
     {{typeMethod "date" "time.Time"}}
     {{typeMethod "id" "int32"}}

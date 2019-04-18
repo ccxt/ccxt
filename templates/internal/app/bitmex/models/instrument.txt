@@ -1,7 +1,7 @@
-{{if (condLang 0)}}package models
+{{if (codeLang 0)}}package models
 {{end}}
 // Instrument Tradeable Contracts, Indices, and History
-{{if (condLang 1)}}export default {{end}}{{typeInit "Instrument"}}
+{{if (codeLang 1)}}export default {{end}}{{typeInit "Instrument"}}
     {{typeMethod "askPrice" "float64"}}
 	{{typeMethod "bankruptLimitDownPrice" "float64"}}
 	{{typeMethod "bankruptLimitUpPrice" "float64"}}

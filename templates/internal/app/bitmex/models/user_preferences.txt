@@ -1,7 +1,7 @@
-{{if (condLang 0)}}package models
+{{if (codeLang 0)}}package models
 {{end}}
 // UserPreferences user preferences
-{{if (condLang 1)}}export default {{end}}{{typeInit "UserPreferences"}}
+{{if (codeLang 1)}}export default {{end}}{{typeInit "UserPreferences"}}
 	{{typeMethod "alertOnLiquidations" "bool"}}
 	{{typeMethod "animationsEnabled" "bool"}}
 	{{typeMethod "announcementsLastSeen" "time.Time"}}

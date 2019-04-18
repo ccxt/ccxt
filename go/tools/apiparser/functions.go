@@ -15,7 +15,7 @@ func FuncMap(p *Parser) template.FuncMap {
 		"apiResultTest": apiResultTest,
 		"title":         strings.Title,
 		"apiFunc":       p.apiFunc,
-		"condLang":      p.condLang,
+		"codeLang":      p.codeLang,
 		"typeInit":      p.typeInit,
 		"typeMethod":    p.typeMethod,
 	}
@@ -56,7 +56,7 @@ func (p *Parser) typeMethod(name string, res string) string {
 	}
 }
 
-func (p *Parser) condLang(lang int) bool {
+func (p *Parser) codeLang(lang int) bool {
 	if p.Lang == lang {
 		return true
 	}
@@ -113,12 +113,12 @@ func (p *Parser) apiFunc(baseName string, endpoint string, output string) string
 			method,
 			apiRequestBody)
 	case TS:
-		apiRequestBody := "undefined"
+		apiRequestBody := "{}"
 		if addBody {
 			body = ", body: Object"
 			apiRequestBody = "body"
 		}
-		return fmt.Sprintf(`%sconst %s = async (params: Object%s): Promise<%s> => {
+		return fmt.Sprintf(`%sasync %s(params: Object%s): Promise<%s> {
 	const reqUrl = this.parseEndpoint("%s");
 	try {
 		const res = await this.apiRequest("%s", reqUrl, params, %s)

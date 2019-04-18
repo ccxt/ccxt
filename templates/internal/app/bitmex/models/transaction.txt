@@ -1,7 +1,7 @@
-{{if (condLang 0)}}package models
+{{if (codeLang 0)}}package models
 {{end}}
 // Transaction transaction
-{{if (condLang 1)}}export default {{end}}{{typeInit "Transaction"}}
+{{if (codeLang 1)}}export default {{end}}{{typeInit "Transaction"}}
 	{{typeMethod "account" "int64"}}
 	{{typeMethod "address" "string"}}
 	{{typeMethod "amount" "int64"}}

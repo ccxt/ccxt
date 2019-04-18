@@ -1,9 +1,9 @@
-{{if (condLang 0)}}package models
-{{else if (condLang 1)}}
+{{if (codeLang 0)}}package models
+{{else if (codeLang 1)}}
 import UserPreferences from './user_preferences';
 {{end}}
 // User Account Operations
-{{if (condLang 1)}}export default {{end}}{{typeInit "User"}}
+{{if (codeLang 1)}}export default {{end}}{{typeInit "User"}}
 	{{typeMethod "TFAEnabled" "string"}}
 	{{typeMethod "affiliateID" "string"}}
 	{{typeMethod "country" "string"}}
@@ -21,6 +21,6 @@ import UserPreferences from './user_preferences';
 	{{typeMethod "restrictedEngineFields" "interface{}"}}
 	{{typeMethod "typ" "string"}}
 	{{typeMethod "username" "string"}}
-	{{if (condLang 0)}}Preferences UserPreferences `json:"preferences,omitempty"`{{end}}
-	{{if (condLang 1)}}preferences: UserPreferences;{{end}}
+	{{if (codeLang 0)}}Preferences UserPreferences `json:"preferences,omitempty"`{{end}}
+	{{if (codeLang 1)}}preferences: UserPreferences;{{end}}
 }

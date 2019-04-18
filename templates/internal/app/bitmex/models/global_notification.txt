@@ -1,7 +1,7 @@
-{{if (condLang 0)}}package models
+{{if (codeLang 0)}}package models
 {{end}}
 // GlobalNotification Account Notifications
-{{if (condLang 1)}}export default {{end}}{{typeInit "GlobalNotification"}}
+{{if (codeLang 1)}}export default {{end}}{{typeInit "GlobalNotification"}}
     {{typeMethod "body" "string"}}
 	{{typeMethod "closable" "bool"}}
 	{{typeMethod "date" "time.Time"}}

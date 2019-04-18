@@ -1,7 +1,7 @@
-{{if (condLang 0)}}package models
+{{if (codeLang 0)}}package models
 {{end}}
 // Trade Individual & Bucketed Trades
-{{if (condLang 1)}}export default {{end}}{{typeInit "Trade"}}
+{{if (codeLang 1)}}export default {{end}}{{typeInit "Trade"}}
 	{{typeMethod "foreignNotional" "float64"}}
 	{{typeMethod "grossValue" "int64"}}
 	{{typeMethod "homeNotional" "float64"}}

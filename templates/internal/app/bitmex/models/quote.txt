@@ -1,7 +1,7 @@
-{{if (condLang 0)}}package models
+{{if (codeLang 0)}}package models
 {{end}}
 // Quote Best Bid/Offer Snapshots & Historical Bins
-{{if (condLang 1)}}export default {{end}}{{typeInit "Quote"}}
+{{if (codeLang 1)}}export default {{end}}{{typeInit "Quote"}}
 	{{typeMethod "askPrice" "float64"}}
 	{{typeMethod "askSize" "int64"}}
 	{{typeMethod "bidPrice" "float64"}}

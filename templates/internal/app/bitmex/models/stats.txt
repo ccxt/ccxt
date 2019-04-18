@@ -1,7 +1,7 @@
-{{if (condLang 0)}}package models
+{{if (codeLang 0)}}package models
 {{end}}
 // Stats Exchange Statistics
-{{if (condLang 1)}}export default {{end}}{{typeInit "Stats"}}
+{{if (codeLang 1)}}export default {{end}}{{typeInit "Stats"}}
 	{{typeMethod "currency" "string"}}
 	{{typeMethod "openInterest" "int64"}}
 	{{typeMethod "openValue" "int64"}}

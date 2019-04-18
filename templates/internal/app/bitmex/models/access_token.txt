@@ -1,7 +1,7 @@
-{{if (condLang 0)}}package models
+{{if (codeLang 0)}}package models
 {{end}}
 // AccessToken access token
-{{if (condLang 1)}}export default {{end}}{{typeInit "AccessToken"}}
+{{if (codeLang 1)}}export default {{end}}{{typeInit "AccessToken"}}
     {{typeMethod "created" "time.Time"}}
     {{typeMethod "id" "string"}}
     {{typeMethod "ttl" "float64"}}

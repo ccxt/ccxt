@@ -1,7 +1,7 @@
-{{if (condLang 0)}}package models
+{{if (codeLang 0)}}package models
 {{end}}
 // CommunicationToken User communication SNS token
-{{if (condLang 1)}}export default {{end}}{{typeInit "CommunicationToken"}}
+{{if (codeLang 1)}}export default {{end}}{{typeInit "CommunicationToken"}}
     {{typeMethod "channel" "string"}}
     {{typeMethod "deviceToken" "string"}}
     {{typeMethod "id" "string"}}

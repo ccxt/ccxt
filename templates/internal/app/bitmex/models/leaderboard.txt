@@ -1,7 +1,7 @@
-{{if (condLang 0)}}package models
+{{if (codeLang 0)}}package models
 {{end}}
 // Leaderboard Information on Top Users
-{{if (condLang 1)}}export default {{end}}{{typeInit "Leaderboard"}}
+{{if (codeLang 1)}}export default {{end}}{{typeInit "Leaderboard"}}
 	{{typeMethod "isRealName" "bool"}}
 	{{typeMethod "name" "string"}}
 	{{typeMethod "profit" "float64"}}

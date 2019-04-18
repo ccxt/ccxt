@@ -1,7 +1,7 @@
-{{if (condLang 0)}}package models
+{{if (codeLang 0)}}package models
 {{end}}
 // TradeBin trade bin
-{{if (condLang 1)}}export default {{end}}{{typeInit "TradeBin"}}
+{{if (codeLang 1)}}export default {{end}}{{typeInit "TradeBin"}}
 	{{typeMethod "close" "float64"}}
 	{{typeMethod "foreignNotional" "float64"}}
 	{{typeMethod "high" "float64"}}

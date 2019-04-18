@@ -1,7 +1,7 @@
-{{if (condLang 0)}}package models
+{{if (codeLang 0)}}package models
 {{end}}
 // Execution Raw Order and Balance Data
-{{if (condLang 1)}}export default {{end}}{{typeInit "Execution"}}
+{{if (codeLang 1)}}export default {{end}}{{typeInit "Execution"}}
     {{typeMethod "account" "int64"}}
 	{{typeMethod "avgPx" "float64"}}
 	{{typeMethod "clOrdID" "string"}}
