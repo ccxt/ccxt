@@ -9,17 +9,17 @@ This tool uses [goconvey](https://github.com/smartystreets/goconvey) to spin up 
 This tool leverages the `text/template` package from go to help build the exchange packages via a JSON file.
 
 ```text
-$ buildApis.sh
-Takes the exchange JSON config in the go/internal/app/exchanges/ folders and uses
-tmpl_*.txt to build the api.go and exchange.go files
+$ buildGo.sh
+Takes the exchange JSON config in the templates/internal/app/exchanges/ folders and uses
+*.txt to build the api.go and exchange.go files
 ```
 
 ```text
-$ buildApisTests.sh
-Same as above but creates the _test.go files from the tmpl_*_test.txt
+$ buildGoTest.sh
+Same as above but creates the _test.go files from the *_test.txt
 ```
 
 ```text
-$ buildExchanges.sh
-Same as running both scripts above
+$ buildTS.sh
+Same as above but generates typescript files
 ```

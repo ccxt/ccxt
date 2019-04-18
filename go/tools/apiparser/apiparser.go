@@ -83,7 +83,8 @@ func (p *Parser) Transcribe(filepath string) error {
 		Lang: p.Lang,
 	}
 	// use gofmt if the output is *.go
-	if p.Lang == GO {
+	switch p.Lang {
+	case GO:
 		src := new(bytes.Buffer)
 		err = tmpl.Execute(src, data)
 		if err != nil {
@@ -97,7 +98,7 @@ func (p *Parser) Transcribe(filepath string) error {
 		if err != nil {
 			return err
 		}
-	} else {
+	default:
 		err = tmpl.Execute(output, data)
 		if err != nil {
 			return err

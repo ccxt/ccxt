@@ -3,15 +3,18 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 )
 
 func main() {
-	buildTest := flag.Bool("testfiles", false, "build _test.go files")
-	// filename := flag.String("name", "", "base template name")
+	buildTest := flag.Bool("test", false, "build _test.go files")
+	lang := flag.Int("lang", 0, "language to build")
 	flag.Parse()
 	root := "../../../templates/internal/app"
 	files, err := ioutil.ReadDir(root)
@@ -65,12 +68,12 @@ func main() {
 			}
 		}
 	}
+	p := Parser{
+		Lang: *lang,
+		Test: *buildTest,
+	}
+	p.FuncMap = FuncMap(&p)
 	for pkg, files := range pkgs {
-		p := Parser{
-			Lang: TS,
-			Test: *buildTest,
-		}
-		p.FuncMap = FuncMap(&p)
 
 		config := path.Join(root, pkg, pkg+".json")
 		f, err := os.Open(config)
@@ -89,5 +92,15 @@ func main() {
 				panic(err)
 			}
 		}
+	}
+	if p.Lang == TS {
+		fmt.Println("RUN TS PRETTIER")
+		cmd := exec.Command("npx", "prettier", "--write", "src/**/*.ts")
+		cmd.Dir = "../../../ts"
+		out, err := cmd.Output()
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(string(out))
 	}
 }

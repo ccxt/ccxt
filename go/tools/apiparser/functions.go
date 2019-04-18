@@ -119,9 +119,9 @@ func (p *Parser) apiFunc(baseName string, endpoint string, output string) string
 			apiRequestBody = "body"
 		}
 		return fmt.Sprintf(`%sasync %s(params: Object%s): Promise<%s> {
-	const reqUrl = this.parseEndpoint("%s");
+	const reqUrl = this.parseEndpoint('%s');
 	try {
-		const res = await this.apiRequest("%s", reqUrl, params, %s)
+		const res = await this.apiRequest('%s', reqUrl, params, %s);
 		return res.data;
 	} catch (e) {
 		throw e;
