@@ -31,7 +31,7 @@ class bitfinex2 (bitfinex):
                 'fetchDepositAddress': False,
                 'fetchClosedOrders': False,
                 'fetchFundingFees': False,
-                'fetchMyTrades': False,
+                'fetchMyTrades': False,  # has to be False https://github.com/ccxt/ccxt/issues/4971
                 'fetchOHLCV': True,
                 'fetchOpenOrders': False,
                 'fetchOrder': True,
@@ -515,11 +515,12 @@ class bitfinex2 (bitfinex):
         raise NotSupported(self.id + ' withdraw not implemented yet')
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        # self.has['fetchMyTrades'] is set to False
+        # https://github.com/ccxt/ccxt/issues/4971
         await self.load_markets()
         market = None
         request = {
             'end': self.milliseconds(),
-            '_bfx': 1,
         }
         if since is not None:
             request['start'] = since

@@ -805,6 +805,8 @@ class bittrex (Exchange):
         filled = None
         if amount is not None and remaining is not None:
             filled = amount - remaining
+            if (status == 'closed') and(remaining > 0):
+                status = 'canceled'
         if not cost:
             if price and filled:
                 cost = price * filled

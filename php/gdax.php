@@ -529,11 +529,11 @@ class gdax extends Exchange {
         $order = array (
             'product_id' => $this->market_id($symbol),
             'side' => $side,
-            'size' => $amount,
+            'size' => $this->amount_to_precision($symbol, $amount),
             'type' => $type,
         );
         if ($type === 'limit')
-            $order['price'] = $price;
+            $order['price'] = $this->price_to_precision($symbol, $price);
         $response = $this->privatePostOrders (array_merge ($order, $params));
         return $this->parse_order($response);
     }

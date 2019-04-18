@@ -506,11 +506,11 @@ class gdax (Exchange):
         order = {
             'product_id': self.market_id(symbol),
             'side': side,
-            'size': amount,
+            'size': self.amount_to_precision(symbol, amount),
             'type': type,
         }
         if type == 'limit':
-            order['price'] = price
+            order['price'] = self.price_to_precision(symbol, price)
         response = self.privatePostOrders(self.extend(order, params))
         return self.parse_order(response)
 
