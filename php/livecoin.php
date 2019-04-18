@@ -18,6 +18,7 @@ class livecoin extends Exchange {
             'userAgent' => $this->userAgents['chrome'],
             'has' => array (
                 'fetchDepositAddress' => true,
+                'fetchDeposits' => true,
                 'CORS' => false,
                 'fetchTickers' => true,
                 'fetchCurrencies' => true,
@@ -28,6 +29,7 @@ class livecoin extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchMyTrades' => true,
+                'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
             'urls' => array (
@@ -715,6 +717,111 @@ class livecoin extends Exchange {
             'info' => $response,
             'id' => $id,
         );
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        //    array (
+        //        "$id" => "c853093d5aa06df1c92d79c2...", (tx on deposits, $address on withdrawals)
+        //        "$type" => "DEPOSIT",
+        //        "date" => 1553186482676,
+        //        "$amount" => 712.61266,
+        //        "fee" => 0,
+        //        "fixedCurrency" => "XVG",
+        //        "taxCurrency" => "XVG",
+        //        "variableAmount" => null,
+        //        "variableCurrency" => null,
+        //        "external" => "Coin",
+        //        "login" => "USERNAME",
+        //        "externalKey" => "....87diPBy......3hTtuwUT78Yi", ($address on deposits, tx on withdrawals)
+        //        "documentId" => 1110662453
+        //    ),
+        $code = null;
+        $txid = null;
+        $address = null;
+        $id = $this->safe_string($transaction, 'documentId');
+        $amount = $this->safe_float($transaction, 'amount');
+        $timestamp = $this->safe_integer($transaction, 'date');
+        $type = strtolower ($this->safe_string($transaction, 'type'));
+        $currencyId = $this->safe_string($transaction, 'fixedCurrency');
+        $feeCost = $this->safe_float($transaction, 'fee');
+        $currency = $this->safe_value($this->currencies_by_id, $currencyId);
+        if ($currency !== null) {
+            $code = $currency['code'];
+        } else {
+            $code = $this->common_currency_code($currencyId);
+        }
+        if ($type === 'withdrawal') {
+            $txid = $this->safe_string($transaction, 'externalKey');
+            $address = $this->safe_string($transaction, 'id');
+        } else if ($type === 'deposit') {
+            $address = $this->safe_string($transaction, 'externalKey');
+            $txid = $this->safe_string($transaction, 'id');
+        }
+        $status = null;
+        if ($type === 'deposit') {
+            $status = 'ok'; // Deposits is not registered until they are in account. Withdrawals are left as null, not entirely sure about theyre $status->
+        }
+        return array (
+            'info' => $transaction,
+            'id' => $id,
+            'currency' => $code,
+            'amount' => $amount,
+            'address' => $address,
+            'tag' => null,
+            'status' => $status,
+            'type' => $type,
+            'updated' => null,
+            'txid' => $txid,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'fee' => array (
+                'currency' => $code,
+                'cost' => $feeCost,
+            ),
+        );
+    }
+
+    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $endtime = 2505600000; // 29 days - exchange has maximum 30 days.
+        $now = $this->milliseconds ();
+        $request = array (
+            'types' => 'DEPOSIT',
+            'end' => $now,
+            'start' => ($since !== null) ? intval ($since) : $now - $endtime,
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default is 100
+        }
+        $response = $this->privateGetPaymentHistoryTransactions (array_merge ($request, $params));
+        return $this->parseTransactions ($response, $currency, $since, $limit);
+    }
+
+    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $endtime = 2505600000; // 29 days - exchange has maximum 30 days.
+        $now = $this->milliseconds ();
+        $request = array (
+            'types' => 'WITHDRAWAL',
+            'end' => $now,
+            'start' => ($since !== null) ? intval ($since) : $now - $endtime,
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default is 100
+        }
+        if ($since !== null) {
+            $request['start'] = $since;
+        }
+        $response = $this->privateGetPaymentHistoryTransactions (array_merge ($request, $params));
+        return $this->parseTransactions ($response, $currency, $since, $limit);
     }
 
     public function fetch_deposit_address ($currency, $params = array ()) {

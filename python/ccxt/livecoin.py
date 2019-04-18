@@ -37,6 +37,7 @@ class livecoin (Exchange):
             'userAgent': self.userAgents['chrome'],
             'has': {
                 'fetchDepositAddress': True,
+                'fetchDeposits': True,
                 'CORS': False,
                 'fetchTickers': True,
                 'fetchCurrencies': True,
@@ -47,6 +48,7 @@ class livecoin (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchMyTrades': True,
+                'fetchWithdrawals': True,
                 'withdraw': True,
             },
             'urls': {
@@ -679,6 +681,100 @@ class livecoin (Exchange):
             'info': response,
             'id': id,
         }
+
+    def parse_transaction(self, transaction, currency=None):
+        #    {
+        #        "id": "c853093d5aa06df1c92d79c2...",(tx on deposits, address on withdrawals)
+        #        "type": "DEPOSIT",
+        #        "date": 1553186482676,
+        #        "amount": 712.61266,
+        #        "fee": 0,
+        #        "fixedCurrency": "XVG",
+        #        "taxCurrency": "XVG",
+        #        "variableAmount": null,
+        #        "variableCurrency": null,
+        #        "external": "Coin",
+        #        "login": "USERNAME",
+        #        "externalKey": "....87diPBy......3hTtuwUT78Yi",(address on deposits, tx on withdrawals)
+        #        "documentId": 1110662453
+        #    },
+        code = None
+        txid = None
+        address = None
+        id = self.safe_string(transaction, 'documentId')
+        amount = self.safe_float(transaction, 'amount')
+        timestamp = self.safe_integer(transaction, 'date')
+        type = self.safe_string(transaction, 'type').lower()
+        currencyId = self.safe_string(transaction, 'fixedCurrency')
+        feeCost = self.safe_float(transaction, 'fee')
+        currency = self.safe_value(self.currencies_by_id, currencyId)
+        if currency is not None:
+            code = currency['code']
+        else:
+            code = self.common_currency_code(currencyId)
+        if type == 'withdrawal':
+            txid = self.safe_string(transaction, 'externalKey')
+            address = self.safe_string(transaction, 'id')
+        elif type == 'deposit':
+            address = self.safe_string(transaction, 'externalKey')
+            txid = self.safe_string(transaction, 'id')
+        status = None
+        if type == 'deposit':
+            status = 'ok'  # Deposits is not registered until they are in account. Withdrawals are left as None, not entirely sure about theyre status.
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': None,
+            'status': status,
+            'type': type,
+            'updated': None,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+            },
+        }
+
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        endtime = 2505600000  # 29 days - exchange has maximum 30 days.
+        now = self.milliseconds()
+        request = {
+            'types': 'DEPOSIT',
+            'end': now,
+            'start': int(since) if (since is not None) else now - endtime,
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        if limit is not None:
+            request['limit'] = limit  # default is 100
+        response = self.privateGetPaymentHistoryTransactions(self.extend(request, params))
+        return self.parseTransactions(response, currency, since, limit)
+
+    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        endtime = 2505600000  # 29 days - exchange has maximum 30 days.
+        now = self.milliseconds()
+        request = {
+            'types': 'WITHDRAWAL',
+            'end': now,
+            'start': int(since) if (since is not None) else now - endtime,
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        if limit is not None:
+            request['limit'] = limit  # default is 100
+        if since is not None:
+            request['start'] = since
+        response = self.privateGetPaymentHistoryTransactions(self.extend(request, params))
+        return self.parseTransactions(response, currency, since, limit)
 
     def fetch_deposit_address(self, currency, params={}):
         request = {
