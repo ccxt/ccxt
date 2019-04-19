@@ -1063,13 +1063,13 @@ module.exports = class binance extends Exchange {
         let side = undefined;
         if (tradedCurrencyIsQuote) {
             symbol = earnedCurrency + '/' + tradedCurrency;
-            amount = this.safeFloat (trade, 'transferedAmount') + fee['cost'];
+            amount = this.sum (this.safeFloat (trade, 'transferedAmount'), fee['cost']);
             cost = this.safeFloat (trade, 'amount');
             side = 'buy';
         } else {
             symbol = tradedCurrency + '/' + earnedCurrency;
             amount = this.safeFloat (trade, 'amount');
-            cost = this.safeFloat (trade, 'transferedAmount') + fee['cost'];
+            cost = this.sum (this.safeFloat (trade, 'transferedAmount'), fee['cost']);
             side = 'sell';
         }
         let price = cost / amount;
