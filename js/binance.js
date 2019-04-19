@@ -280,6 +280,13 @@ module.exports = class binance extends Exchange {
                     'market': 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit': 'RESULT', // we change it from 'ACK' by default to 'RESULT'
                 },
+                'quoteCurrencyIds': [
+                    'BTC',
+                    'ETH',
+                    'USDT',
+                    'PAX',
+                    'USDC',
+                ],
             },
             'exceptions': {
                 'API key does not exist': AuthenticationError,
