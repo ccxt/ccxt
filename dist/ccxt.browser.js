@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.475'
+const version = '1.18.478'
 
 Exchange.ccxtVersion = version
 
@@ -53663,6 +53663,7 @@ module.exports = class livecoin extends Exchange {
             'userAgent': this.userAgents['chrome'],
             'has': {
                 'fetchDepositAddress': true,
+                'fetchDeposits': true,
                 'CORS': false,
                 'fetchTickers': true,
                 'fetchCurrencies': true,
@@ -53673,6 +53674,7 @@ module.exports = class livecoin extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': true,
+                'fetchWithdrawals': true,
                 'withdraw': true,
             },
             'urls': {
@@ -54360,6 +54362,111 @@ module.exports = class livecoin extends Exchange {
             'info': response,
             'id': id,
         };
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //    {
+        //        "id": "c853093d5aa06df1c92d79c2...", (tx on deposits, address on withdrawals)
+        //        "type": "DEPOSIT",
+        //        "date": 1553186482676,
+        //        "amount": 712.61266,
+        //        "fee": 0,
+        //        "fixedCurrency": "XVG",
+        //        "taxCurrency": "XVG",
+        //        "variableAmount": null,
+        //        "variableCurrency": null,
+        //        "external": "Coin",
+        //        "login": "USERNAME",
+        //        "externalKey": "....87diPBy......3hTtuwUT78Yi", (address on deposits, tx on withdrawals)
+        //        "documentId": 1110662453
+        //    },
+        let code = undefined;
+        let txid = undefined;
+        let address = undefined;
+        const id = this.safeString (transaction, 'documentId');
+        const amount = this.safeFloat (transaction, 'amount');
+        const timestamp = this.safeInteger (transaction, 'date');
+        const type = this.safeString (transaction, 'type').toLowerCase ();
+        const currencyId = this.safeString (transaction, 'fixedCurrency');
+        const feeCost = this.safeFloat (transaction, 'fee');
+        currency = this.safeValue (this.currencies_by_id, currencyId);
+        if (currency !== undefined) {
+            code = currency['code'];
+        } else {
+            code = this.commonCurrencyCode (currencyId);
+        }
+        if (type === 'withdrawal') {
+            txid = this.safeString (transaction, 'externalKey');
+            address = this.safeString (transaction, 'id');
+        } else if (type === 'deposit') {
+            address = this.safeString (transaction, 'externalKey');
+            txid = this.safeString (transaction, 'id');
+        }
+        let status = undefined;
+        if (type === 'deposit') {
+            status = 'ok'; // Deposits is not registered until they are in account. Withdrawals are left as undefined, not entirely sure about theyre status.
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': undefined,
+            'status': status,
+            'type': type,
+            'updated': undefined,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+            },
+        };
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const endtime = 2505600000; // 29 days - exchange has maximum 30 days.
+        const now = this.milliseconds ();
+        const request = {
+            'types': 'DEPOSIT',
+            'end': now,
+            'start': (since !== undefined) ? parseInt (since) : now - endtime,
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default is 100
+        }
+        const response = await this.privateGetPaymentHistoryTransactions (this.extend (request, params));
+        return this.parseTransactions (response, currency, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const endtime = 2505600000; // 29 days - exchange has maximum 30 days.
+        const now = this.milliseconds ();
+        const request = {
+            'types': 'WITHDRAWAL',
+            'end': now,
+            'start': (since !== undefined) ? parseInt (since) : now - endtime,
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default is 100
+        }
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        const response = await this.privateGetPaymentHistoryTransactions (this.extend (request, params));
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     async fetchDepositAddress (currency, params = {}) {
@@ -59652,6 +59759,7 @@ module.exports = class poloniex extends Exchange {
                         'returnOpenLoanOffers',
                         'returnOpenOrders',
                         'returnOrderTrades',
+                        'returnOrderStatus',
                         'returnTradableBalances',
                         'returnTradeHistory',
                         'sell',
@@ -60649,24 +60757,34 @@ module.exports = class poloniex extends Exchange {
         //
         // deposits
         //
-        //      {      currency: "BTC",
-        //              address: "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
-        //               amount: "0.01063000",
-        //        confirmations:  1,
-        //                 txid: "6b2b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
-        //            timestamp:  1507916888,
-        //               status: "COMPLETE"                                                          }
+        //     {
+        //         "txid": "f49d489616911db44b740612d19464521179c76ebe9021af85b6de1e2f8d68cd",
+        //         "type": "deposit",
+        //         "amount": "49798.01987021",
+        //         "status": "COMPLETE",
+        //         "address": "DJVJZ58tJC8UeUv9Tqcdtn6uhWobouxFLT",
+        //         "currency": "DOGE",
+        //         "timestamp": 1524321838,
+        //         "confirmations": 3371,
+        //         "depositNumber": 134587098
+        //     }
         //
         // withdrawals
         //
-        //      { withdrawalNumber:  9290444,
-        //                currency: "ETH",
-        //                 address: "0x731015ff2e75261d50433fbd05bd57e942336149",
-        //                  amount: "0.15500000",
-        //                     fee: "0.00500000",
-        //               timestamp:  1514099289,
-        //                  status: "COMPLETE: 0x74d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
-        //               ipAddress: "5.228.227.214"                                                                 },
+        //     {
+        //         "fee": "0.00050000",
+        //         "type": "withdrawal",
+        //         "amount": "0.40234387",
+        //         "status": "COMPLETE: fbabb2bf7d81c076f396f3441166d5f60f6cea5fdfe69e02adcc3b27af8c2746",
+        //         "address": "1EdAqY4cqHoJGAgNfUFER7yZpg1Jc9DUa3",
+        //         "currency": "BTC",
+        //         "canCancel": 0,
+        //         "ipAddress": "185.230.101.31",
+        //         "paymentID": null,
+        //         "timestamp": 1523834337,
+        //         "canResendEmail": 0,
+        //         "withdrawalNumber": 11162900
+        //     }
         //
         let timestamp = this.safeInteger (transaction, 'timestamp');
         if (timestamp !== undefined) {
@@ -60692,8 +60810,8 @@ module.exports = class poloniex extends Exchange {
             }
             status = this.parseTransactionStatus (status);
         }
-        const id = this.safeString (transaction, 'withdrawalNumber');
-        const type = (id !== undefined) ? 'withdrawal' : 'deposit';
+        const type = this.safeString (transaction, 'type');
+        const id = this.safeString2 (transaction, 'withdrawalNumber', 'depositNumber');
         let amount = this.safeFloat (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
         let feeCost = this.safeFloat (transaction, 'fee');

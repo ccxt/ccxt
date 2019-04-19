@@ -94,6 +94,7 @@ class poloniex extends Exchange {
                         'returnOpenLoanOffers',
                         'returnOpenOrders',
                         'returnOrderTrades',
+                        'returnOrderStatus',
                         'returnTradableBalances',
                         'returnTradeHistory',
                         'sell',
@@ -1091,24 +1092,34 @@ class poloniex extends Exchange {
         //
         // deposits
         //
-        //      {      $currency => "BTC",
-        //              $address => "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
-        //               $amount => "0.01063000",
-        //        confirmations =>  1,
-        //                 $txid => "6b2b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
-        //            $timestamp =>  1507916888,
-        //               $status => "COMPLETE"                                                          }
+        //     {
+        //         "$txid" => "f49d489616911db44b740612d19464521179c76ebe9021af85b6de1e2f8d68cd",
+        //         "$type" => "deposit",
+        //         "$amount" => "49798.01987021",
+        //         "$status" => "COMPLETE",
+        //         "$address" => "DJVJZ58tJC8UeUv9Tqcdtn6uhWobouxFLT",
+        //         "$currency" => "DOGE",
+        //         "$timestamp" => 1524321838,
+        //         "confirmations" => 3371,
+        //         "depositNumber" => 134587098
+        //     }
         //
         // withdrawals
         //
-        //      array ( withdrawalNumber =>  9290444,
-        //                $currency => "ETH",
-        //                 $address => "0x731015ff2e75261d50433fbd05bd57e942336149",
-        //                  $amount => "0.15500000",
-        //                     fee => "0.00500000",
-        //               $timestamp =>  1514099289,
-        //                  $status => "COMPLETE => 0x74d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
-        //               ipAddress => "5.228.227.214"                                                                 ),
+        //     {
+        //         "fee" => "0.00050000",
+        //         "$type" => "withdrawal",
+        //         "$amount" => "0.40234387",
+        //         "$status" => "COMPLETE => fbabb2bf7d81c076f396f3441166d5f60f6cea5fdfe69e02adcc3b27af8c2746",
+        //         "$address" => "1EdAqY4cqHoJGAgNfUFER7yZpg1Jc9DUa3",
+        //         "$currency" => "BTC",
+        //         "canCancel" => 0,
+        //         "ipAddress" => "185.230.101.31",
+        //         "paymentID" => null,
+        //         "$timestamp" => 1523834337,
+        //         "canResendEmail" => 0,
+        //         "withdrawalNumber" => 11162900
+        //     }
         //
         $timestamp = $this->safe_integer($transaction, 'timestamp');
         if ($timestamp !== null) {
@@ -1134,8 +1145,8 @@ class poloniex extends Exchange {
             }
             $status = $this->parse_transaction_status ($status);
         }
-        $id = $this->safe_string($transaction, 'withdrawalNumber');
-        $type = ($id !== null) ? 'withdrawal' : 'deposit';
+        $type = $this->safe_string($transaction, 'type');
+        $id = $this->safe_string_2($transaction, 'withdrawalNumber', 'depositNumber');
         $amount = $this->safe_float($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
         $feeCost = $this->safe_float($transaction, 'fee');
