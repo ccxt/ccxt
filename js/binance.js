@@ -1039,8 +1039,8 @@ module.exports = class binance extends Exchange {
         let tradedCurrency = this.safeCurrencyCode (trade, 'fromAsset');
         let earnedCurrency = this.currency ('BNB')['code'];
         let tradedCurrencyIsQuote = false;
-        for (let i = 0; i < this.options.quoteCurrencyIds.length; i++) {
-            let asset = this.options.quoteCurrencyIds[i];
+        for (let i = 0; i < this.options['quoteCurrencyIds'].length; i++) {
+            let asset = this.options['quoteCurrencyIds'][i];
             if (tradedCurrency === this.currency (asset)['code']) {
                 tradedCurrencyIsQuote = true;
                 break;
