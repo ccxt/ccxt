@@ -486,7 +486,9 @@ module.exports = class poloniex extends Exchange {
         //         category: 'exchange'
         //     }
         //
-        let timestamp = this.parse8601 (trade['date']);
+        const id = this.safeString (trade, 'globalTradeID');
+        const orderId = this.safeString (trade, 'orderNumber');
+        const timestamp = this.parse8601 (this.safeString (trade, 'date'));
         let symbol = undefined;
         let base = undefined;
         let quote = undefined;
@@ -506,10 +508,11 @@ module.exports = class poloniex extends Exchange {
             base = market['base'];
             quote = market['quote'];
         }
-        let side = trade['type'];
+        const side = this.safeString (trade, 'type');
         let fee = undefined;
-        let cost = this.safeFloat (trade, 'total');
-        let amount = this.safeFloat (trade, 'amount');
+        const price = this.safeString (trade, 'rate');
+        const cost = this.safeFloat (trade, 'total');
+        const amount = this.safeFloat (trade, 'amount');
         if ('fee' in trade) {
             let rate = this.safeFloat (trade, 'fee');
             let feeCost = undefined;
@@ -529,8 +532,6 @@ module.exports = class poloniex extends Exchange {
                 'currency': currency,
             };
         }
-        const id = this.safeString (trade, 'globalTradeID');
-        const orderId = this.safeString (trade, 'orderNumber');
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -540,7 +541,7 @@ module.exports = class poloniex extends Exchange {
             'order': orderId,
             'type': 'limit',
             'side': side,
-            'price': this.safeFloat (trade, 'rate'),
+            'price': price,
             'amount': amount,
             'cost': cost,
             'fee': fee,
