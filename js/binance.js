@@ -1014,6 +1014,75 @@ module.exports = class binance extends Exchange {
         return this.filterBySinceLimit (trades, since, limit);
     }
 
+    parseDustTrade (info, currency = undefined) {
+        // {              tranId:  2701371634,
+        //   serviceChargeAmount: "0.00012819",
+        //                   uid: "35103861",
+        //                amount: "0.8012",
+        //           operateTime: "2018-10-07 17:56:07",
+        //      transferedAmount: "0.00628141",
+        //             fromAsset: "ADA"                  },
+        let order = this.safeString (info, 'tranId');
+        let time = this.safeString (info, 'operateTime');
+        let timestamp = this.parse8601 (time.replace (' ', 'T') + 'Z');
+        let datetime = this.datetime (timestamp);
+        let tradedCurrency = this.safeCurrencyCode (info, 'fromAsset');
+        let earnedCurrency = this.currency ('BNB')['code'];
+        let tradedCurrencyIsQuote = false;
+        for (let i = 0; i < this.options.quoteCurrencyIds.length; i++) {
+            let asset = this.options.quoteCurrencyIds[i];
+            if (tradedCurrency === this.currency (asset)['code']) {
+                tradedCurrencyIsQuote = true;
+                break;
+            }
+        }
+        /**
+         * Warning!
+         * Binance dust trade `fee` is already excluded from the `BNB` earning reported in the `Dust Log`.
+         * So the parser should either set the `fee.cost` to `0` or add it on top of the earned
+         * BNB `amount` (or `cost` depending on the trade `side`). The second of the above options
+         * is much more illustrative and therefore preferable.
+         */
+        let fee = {
+            'currency': earnedCurrency,
+            'cost': this.safeFloat (info, 'serviceChargeAmount'),
+        };
+        let symbol = undefined;
+        let amount = undefined;
+        let cost = undefined;
+        let side = undefined;
+        if (tradedCurrencyIsQuote) {
+            symbol = earnedCurrency + '/' + tradedCurrency;
+            amount = this.safeFloat (info, 'transferedAmount') + fee['cost'];
+            cost = this.safeFloat (info, 'amount');
+            side = 'buy';
+        } else {
+            symbol = tradedCurrency + '/' + earnedCurrency;
+            amount = this.safeFloat (info, 'amount');
+            cost = this.safeFloat (info, 'transferedAmount') + fee['cost'];
+            side = 'sell';
+        }
+        let price = cost / amount;
+        let id = undefined;
+        let type = undefined;
+        let takerOrMaker = undefined;
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'symbol': symbol,
+            'order': order,
+            'type': type,
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'amount': amount,
+            'price': price,
+            'cost': cost,
+            'fee': fee,
+            'info': info,
+        };
+    }
+
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = undefined;
