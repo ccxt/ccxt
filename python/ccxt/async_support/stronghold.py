@@ -54,6 +54,7 @@ class stronghold (Exchange):
                 'fetchTicker': False,
                 'fetchTickers': False,
                 'fetchAccounts': True,
+                'fetchTransactions': True,
             },
             'api': {
                 'public': {
@@ -120,6 +121,7 @@ class stronghold (Exchange):
                     'XLM': 'stellar',
                     'XRP': 'ripple',
                     'LTC': 'litecoin',
+                    'SHX': 'stellar',
                 },
             },
             'exceptions': {
