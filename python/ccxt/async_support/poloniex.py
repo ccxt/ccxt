@@ -449,7 +449,37 @@ class poloniex (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.parse8601(trade['date'])
+        #
+        # fetchMyTrades(symbol defined, specific market)
+        #
+        #     {
+        #         globalTradeID: 394698946,
+        #         tradeID: 45210255,
+        #         date: '2018-10-23 17:28:55',
+        #         type: 'sell',
+        #         rate: '0.03114126',
+        #         amount: '0.00018753',
+        #         total: '0.00000583'
+        #     }
+        #
+        # fetchMyTrades(symbol None, all markets)
+        #
+        #     {
+        #         globalTradeID: 394131412,
+        #         tradeID: '5455033',
+        #         date: '2018-10-16 18:05:17',
+        #         rate: '0.06935244',
+        #         amount: '1.40308443',
+        #         total: '0.09730732',
+        #         fee: '0.00100000',
+        #         orderNumber: '104768235081',
+        #         type: 'sell',
+        #         category: 'exchange'
+        #     }
+        #
+        id = self.safe_string(trade, 'globalTradeID')
+        orderId = self.safe_string(trade, 'orderNumber')
+        timestamp = self.parse8601(self.safe_string(trade, 'date'))
         symbol = None
         base = None
         quote = None
@@ -466,8 +496,9 @@ class poloniex (Exchange):
             symbol = market['symbol']
             base = market['base']
             quote = market['quote']
-        side = trade['type']
+        side = self.safe_string(trade, 'type')
         fee = None
+        price = self.safe_string(trade, 'rate')
         cost = self.safe_float(trade, 'total')
         amount = self.safe_float(trade, 'amount')
         if 'fee' in trade:
@@ -492,11 +523,11 @@ class poloniex (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': self.safe_string(trade, 'tradeID'),
-            'order': self.safe_string(trade, 'orderNumber'),
+            'id': id,
+            'order': orderId,
             'type': 'limit',
             'side': side,
-            'price': self.safe_float(trade, 'rate'),
+            'price': price,
             'amount': amount,
             'cost': cost,
             'fee': fee,
@@ -528,6 +559,58 @@ class poloniex (Exchange):
         if limit is not None:
             request['limit'] = int(limit)
         response = await self.privatePostReturnTradeHistory(self.extend(request, params))
+        #
+        # specific market(symbol defined)
+        #
+        #     [
+        #         {
+        #             globalTradeID: 394700861,
+        #             tradeID: 45210354,
+        #             date: '2018-10-23 18:01:58',
+        #             type: 'buy',
+        #             rate: '0.03117266',
+        #             amount: '0.00000652',
+        #             total: '0.00000020'
+        #         },
+        #         {
+        #             globalTradeID: 394698946,
+        #             tradeID: 45210255,
+        #             date: '2018-10-23 17:28:55',
+        #             type: 'sell',
+        #             rate: '0.03114126',
+        #             amount: '0.00018753',
+        #             total: '0.00000583'
+        #         }
+        #     ]
+        #
+        # all markets(symbol None)
+        #
+        #     {
+        #         BTC_BCH: [{
+        #             globalTradeID: 394131412,
+        #             tradeID: '5455033',
+        #             date: '2018-10-16 18:05:17',
+        #             rate: '0.06935244',
+        #             amount: '1.40308443',
+        #             total: '0.09730732',
+        #             fee: '0.00100000',
+        #             orderNumber: '104768235081',
+        #             type: 'sell',
+        #             category: 'exchange'
+        #         }, {
+        #             globalTradeID: 394126818,
+        #             tradeID: '5455007',
+        #             date: '2018-10-16 16:55:34',
+        #             rate: '0.06935244',
+        #             amount: '0.00155709',
+        #             total: '0.00010798',
+        #             fee: '0.00200000',
+        #             orderNumber: '104768179137',
+        #             type: 'sell',
+        #             category: 'exchange'
+        #         }],
+        #     }
+        #
         result = []
         if market is not None:
             result = self.parse_trades(response, market)

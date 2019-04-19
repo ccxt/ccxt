@@ -459,7 +459,37 @@ class poloniex extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->parse8601 ($trade['date']);
+        //
+        // fetchMyTrades ($symbol defined, specific $market)
+        //
+        //     {
+        //         globalTradeID => 394698946,
+        //         tradeID => 45210255,
+        //         date => '2018-10-23 17:28:55',
+        //         type => 'sell',
+        //         $rate => '0.03114126',
+        //         $amount => '0.00018753',
+        //         total => '0.00000583'
+        //     }
+        //
+        // fetchMyTrades ($symbol null, all markets)
+        //
+        //     {
+        //         globalTradeID => 394131412,
+        //         tradeID => '5455033',
+        //         date => '2018-10-16 18:05:17',
+        //         $rate => '0.06935244',
+        //         $amount => '1.40308443',
+        //         total => '0.09730732',
+        //         $fee => '0.00100000',
+        //         orderNumber => '104768235081',
+        //         type => 'sell',
+        //         category => 'exchange'
+        //     }
+        //
+        $id = $this->safe_string($trade, 'globalTradeID');
+        $orderId = $this->safe_string($trade, 'orderNumber');
+        $timestamp = $this->parse8601 ($this->safe_string($trade, 'date'));
         $symbol = null;
         $base = null;
         $quote = null;
@@ -479,8 +509,9 @@ class poloniex extends Exchange {
             $base = $market['base'];
             $quote = $market['quote'];
         }
-        $side = $trade['type'];
+        $side = $this->safe_string($trade, 'type');
         $fee = null;
+        $price = $this->safe_string($trade, 'rate');
         $cost = $this->safe_float($trade, 'total');
         $amount = $this->safe_float($trade, 'amount');
         if (is_array ($trade) && array_key_exists ('fee', $trade)) {
@@ -507,11 +538,11 @@ class poloniex extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'id' => $this->safe_string($trade, 'tradeID'),
-            'order' => $this->safe_string($trade, 'orderNumber'),
+            'id' => $id,
+            'order' => $orderId,
             'type' => 'limit',
             'side' => $side,
-            'price' => $this->safe_float($trade, 'rate'),
+            'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
             'fee' => $fee,
@@ -547,6 +578,58 @@ class poloniex extends Exchange {
         if ($limit !== null)
             $request['limit'] = intval ($limit);
         $response = $this->privatePostReturnTradeHistory (array_merge ($request, $params));
+        //
+        // specific $market ($symbol defined)
+        //
+        //     array (
+        //         array (
+        //             globalTradeID => 394700861,
+        //             tradeID => 45210354,
+        //             date => '2018-10-23 18:01:58',
+        //             type => 'buy',
+        //             rate => '0.03117266',
+        //             amount => '0.00000652',
+        //             total => '0.00000020'
+        //         ),
+        //         {
+        //             globalTradeID => 394698946,
+        //             tradeID => 45210255,
+        //             date => '2018-10-23 17:28:55',
+        //             type => 'sell',
+        //             rate => '0.03114126',
+        //             amount => '0.00018753',
+        //             total => '0.00000583'
+        //         }
+        //     )
+        //
+        // all markets ($symbol null)
+        //
+        //     {
+        //         BTC_BCH => [array (
+        //             globalTradeID => 394131412,
+        //             tradeID => '5455033',
+        //             date => '2018-10-16 18:05:17',
+        //             rate => '0.06935244',
+        //             amount => '1.40308443',
+        //             total => '0.09730732',
+        //             fee => '0.00100000',
+        //             orderNumber => '104768235081',
+        //             type => 'sell',
+        //             category => 'exchange'
+        //         ), array (
+        //             globalTradeID => 394126818,
+        //             tradeID => '5455007',
+        //             date => '2018-10-16 16:55:34',
+        //             rate => '0.06935244',
+        //             amount => '0.00155709',
+        //             total => '0.00010798',
+        //             fee => '0.00200000',
+        //             orderNumber => '104768179137',
+        //             type => 'sell',
+        //             category => 'exchange'
+        //         )],
+        //     }
+        //
         $result = array ();
         if ($market !== null) {
             $result = $this->parse_trades($response, $market);
