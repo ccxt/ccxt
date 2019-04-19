@@ -1027,7 +1027,7 @@ module.exports = class binance extends Exchange {
         //             fromAsset: "ADA"                  },
         let order = this.safeString (trade, 'tranId');
         let time = this.safeString (trade, 'operateTime');
-        let timestamp = this.parse8601 (time.replace (' ', 'T') + 'Z');
+        let timestamp = this.parse8601 (time);
         let datetime = this.iso8601 (timestamp);
         let tradedCurrency = this.safeCurrencyCode (trade, 'fromAsset');
         let earnedCurrency = this.currency ('BNB')['code'];
@@ -1052,7 +1052,7 @@ module.exports = class binance extends Exchange {
         let cost = undefined;
         let side = undefined;
         if (tradedCurrencyIsQuote) {
-            symbol = earnedCurrency + '/' + tradedCurrency;
+            symbol = applicantSymbol;
             amount = this.sum (this.safeFloat (trade, 'transferedAmount'), fee['cost']);
             cost = this.safeFloat (trade, 'amount');
             side = 'buy';
