@@ -545,6 +545,9 @@ module.exports = class binance extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        if ('isDustTrade' in trade) {
+            return this.parseDustTrade (trade, market);
+        }
         //
         // aggregate trades
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
@@ -1021,7 +1024,7 @@ module.exports = class binance extends Exchange {
         return this.filterBySinceLimit (trades, since, limit);
     }
 
-    parseDustTrade (info, currency = undefined) {
+    parseDustTrade (trade, market = undefined) {
         // {              tranId:  2701371634,
         //   serviceChargeAmount: "0.00012819",
         //                   uid: "35103861",
@@ -1029,11 +1032,11 @@ module.exports = class binance extends Exchange {
         //           operateTime: "2018-10-07 17:56:07",
         //      transferedAmount: "0.00628141",
         //             fromAsset: "ADA"                  },
-        let order = this.safeString (info, 'tranId');
-        let time = this.safeString (info, 'operateTime');
+        let order = this.safeString (trade, 'tranId');
+        let time = this.safeString (trade, 'operateTime');
         let timestamp = this.parse8601 (time.replace (' ', 'T') + 'Z');
         let datetime = this.datetime (timestamp);
-        let tradedCurrency = this.safeCurrencyCode (info, 'fromAsset');
+        let tradedCurrency = this.safeCurrencyCode (trade, 'fromAsset');
         let earnedCurrency = this.currency ('BNB')['code'];
         let tradedCurrencyIsQuote = false;
         for (let i = 0; i < this.options.quoteCurrencyIds.length; i++) {
@@ -1052,7 +1055,7 @@ module.exports = class binance extends Exchange {
          */
         let fee = {
             'currency': earnedCurrency,
-            'cost': this.safeFloat (info, 'serviceChargeAmount'),
+            'cost': this.safeFloat (trade, 'serviceChargeAmount'),
         };
         let symbol = undefined;
         let amount = undefined;
@@ -1060,13 +1063,13 @@ module.exports = class binance extends Exchange {
         let side = undefined;
         if (tradedCurrencyIsQuote) {
             symbol = earnedCurrency + '/' + tradedCurrency;
-            amount = this.safeFloat (info, 'transferedAmount') + fee['cost'];
-            cost = this.safeFloat (info, 'amount');
+            amount = this.safeFloat (trade, 'transferedAmount') + fee['cost'];
+            cost = this.safeFloat (trade, 'amount');
             side = 'buy';
         } else {
             symbol = tradedCurrency + '/' + earnedCurrency;
-            amount = this.safeFloat (info, 'amount');
-            cost = this.safeFloat (info, 'transferedAmount') + fee['cost'];
+            amount = this.safeFloat (trade, 'amount');
+            cost = this.safeFloat (trade, 'transferedAmount') + fee['cost'];
             side = 'sell';
         }
         let price = cost / amount;
@@ -1086,7 +1089,7 @@ module.exports = class binance extends Exchange {
             'price': price,
             'cost': cost,
             'fee': fee,
-            'info': info,
+            'info': trade,
         };
     }
 
