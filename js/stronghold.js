@@ -45,6 +45,7 @@ module.exports = class stronghold extends Exchange {
                 'fetchTicker': false,
                 'fetchTickers': false,
                 'fetchAccounts': true,
+                'fetchTransactions': true,
             },
             'api': {
                 'public': {
