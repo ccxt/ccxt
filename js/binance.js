@@ -990,10 +990,12 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchMyDustTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        //
         // Bianance provides an opportunity to trade insignificant (i.e. non-tradable and non-withdrawable)
         // token leftovers (of any asset) into `BNB` coin which in turn can be used to pay trading fees with it.
         // The corresponding trades history is called the `Dust Log` and can be requested via the following end-point:
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
+        //
         let request = this.extend ({}, params);
         let response = await this.wapiGetUserAssetDribbletLog (request);
         // { success:    true,
@@ -1044,11 +1046,13 @@ module.exports = class binance extends Exchange {
                 break;
             }
         }
-        // Warning!
+        //
+        // Warning
         // Binance dust trade `fee` is already excluded from the `BNB` earning reported in the `Dust Log`.
         // So the parser should either set the `fee.cost` to `0` or add it on top of the earned
         // BNB `amount` (or `cost` depending on the trade `side`). The second of the above options
         // is much more illustrative and therefore preferable.
+        //
         let fee = {
             'currency': earnedCurrency,
             'cost': this.safeFloat (trade, 'serviceChargeAmount'),
