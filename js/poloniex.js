@@ -458,6 +458,34 @@ module.exports = class poloniex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchMyTrades (symbol defined, specific market)
+        //
+        //     {
+        //         globalTradeID: 394698946,
+        //         tradeID: 45210255,
+        //         date: '2018-10-23 17:28:55',
+        //         type: 'sell',
+        //         rate: '0.03114126',
+        //         amount: '0.00018753',
+        //         total: '0.00000583'
+        //     }
+        //
+        // fetchMyTrades (symbol undefined, all markets)
+        //
+        //     {
+        //         globalTradeID: 394131412,
+        //         tradeID: '5455033',
+        //         date: '2018-10-16 18:05:17',
+        //         rate: '0.06935244',
+        //         amount: '1.40308443',
+        //         total: '0.09730732',
+        //         fee: '0.00100000',
+        //         orderNumber: '104768235081',
+        //         type: 'sell',
+        //         category: 'exchange'
+        //     }
+        //
         let timestamp = this.parse8601 (trade['date']);
         let symbol = undefined;
         let base = undefined;
@@ -501,13 +529,15 @@ module.exports = class poloniex extends Exchange {
                 'currency': currency,
             };
         }
+        const id = this.safeString (trade, 'globalTradeID');
+        const orderId = this.safeString (trade, 'orderNumber');
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': this.safeString (trade, 'tradeID'),
-            'order': this.safeString (trade, 'orderNumber'),
+            'id': id,
+            'order': orderId,
             'type': 'limit',
             'side': side,
             'price': this.safeFloat (trade, 'rate'),
@@ -546,6 +576,58 @@ module.exports = class poloniex extends Exchange {
         if (limit !== undefined)
             request['limit'] = parseInt (limit);
         let response = await this.privatePostReturnTradeHistory (this.extend (request, params));
+        //
+        // specific market (symbol defined)
+        //
+        //     [
+        //         {
+        //             globalTradeID: 394700861,
+        //             tradeID: 45210354,
+        //             date: '2018-10-23 18:01:58',
+        //             type: 'buy',
+        //             rate: '0.03117266',
+        //             amount: '0.00000652',
+        //             total: '0.00000020'
+        //         },
+        //         {
+        //             globalTradeID: 394698946,
+        //             tradeID: 45210255,
+        //             date: '2018-10-23 17:28:55',
+        //             type: 'sell',
+        //             rate: '0.03114126',
+        //             amount: '0.00018753',
+        //             total: '0.00000583'
+        //         }
+        //     ]
+        //
+        // all markets (symbol undefined)
+        //
+        //     {
+        //         BTC_BCH: [{
+        //             globalTradeID: 394131412,
+        //             tradeID: '5455033',
+        //             date: '2018-10-16 18:05:17',
+        //             rate: '0.06935244',
+        //             amount: '1.40308443',
+        //             total: '0.09730732',
+        //             fee: '0.00100000',
+        //             orderNumber: '104768235081',
+        //             type: 'sell',
+        //             category: 'exchange'
+        //         }, {
+        //             globalTradeID: 394126818,
+        //             tradeID: '5455007',
+        //             date: '2018-10-16 16:55:34',
+        //             rate: '0.06935244',
+        //             amount: '0.00155709',
+        //             total: '0.00010798',
+        //             fee: '0.00200000',
+        //             orderNumber: '104768179137',
+        //             type: 'sell',
+        //             category: 'exchange'
+        //         }],
+        //     }
+        //
         let result = [];
         if (market !== undefined) {
             result = this.parseTrades (response, market);
