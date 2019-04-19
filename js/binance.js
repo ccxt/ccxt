@@ -280,13 +280,6 @@ module.exports = class binance extends Exchange {
                     'market': 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit': 'RESULT', // we change it from 'ACK' by default to 'RESULT'
                 },
-                'quoteCurrencyIds': [
-                    'BTC',
-                    'ETH',
-                    'USDT',
-                    'PAX',
-                    'USDC',
-                ],
             },
             'exceptions': {
                 'API key does not exist': AuthenticationError,
@@ -1038,13 +1031,10 @@ module.exports = class binance extends Exchange {
         let datetime = this.iso8601 (timestamp);
         let tradedCurrency = this.safeCurrencyCode (trade, 'fromAsset');
         let earnedCurrency = this.currency ('BNB')['code'];
+        let applicantSymbol = earnedCurrency + '/' + tradedCurrency;
         let tradedCurrencyIsQuote = false;
-        for (let i = 0; i < this.options['quoteCurrencyIds'].length; i++) {
-            let asset = this.options['quoteCurrencyIds'][i];
-            if (tradedCurrency === this.currency (asset)['code']) {
-                tradedCurrencyIsQuote = true;
-                break;
-            }
+        if (applicantSymbol in this.markets) {
+            tradedCurrencyIsQuote = true;
         }
         //
         // Warning
