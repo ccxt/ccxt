@@ -19,6 +19,7 @@ module.exports = class bitso extends Exchange {
                 'CORS': true,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
+                'fetchOrder': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg',
