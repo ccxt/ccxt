@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.480'
+const version = '1.18.481'
 
 Exchange.ccxtVersion = version
 
@@ -7428,6 +7428,9 @@ module.exports = class binance extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        if ('isDustTrade' in trade) {
+            return this.parseDustTrade (trade, market);
+        }
         //
         // aggregate trades
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
@@ -7867,6 +7870,107 @@ module.exports = class binance extends Exchange {
         //     ]
         //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchMyDustTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        //
+        // Bianance provides an opportunity to trade insignificant (i.e. non-tradable and non-withdrawable)
+        // token leftovers (of any asset) into `BNB` coin which in turn can be used to pay trading fees with it.
+        // The corresponding trades history is called the `Dust Log` and can be requested via the following end-point:
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
+        //
+        let request = this.extend ({}, params);
+        let response = await this.wapiGetUserAssetDribbletLog (request);
+        // { success:    true,
+        //   results: { total:    1,
+        //               rows: [ {     transfered_total: "1.06468458",
+        //                         service_charge_total: "0.02172826",
+        //                                      tran_id: 2701371634,
+        //                                         logs: [ {              tranId:  2701371634,
+        //                                                   serviceChargeAmount: "0.00012819",
+        //                                                                   uid: "35103861",
+        //                                                                amount: "0.8012",
+        //                                                           operateTime: "2018-10-07 17:56:07",
+        //                                                      transferedAmount: "0.00628141",
+        //                                                             fromAsset: "ADA"                  } ],
+        //                                 operate_time: "2018-10-07 17:56:06"                                } ] } }
+        let rows = response['results']['rows'];
+        let data = [];
+        for (let i = 0; i < rows.length; i++) {
+            let logs = rows[i]['logs'];
+            for (let j = 0; j < logs.length; j++) {
+                logs[j]['isDustTrade'] = true;
+                data.push (logs[j]);
+            }
+        }
+        const trades = this.parseTrades (data, undefined, since, limit);
+        return this.filterBySinceLimit (trades, since, limit);
+    }
+
+    parseDustTrade (trade, market = undefined) {
+        // {              tranId:  2701371634,
+        //   serviceChargeAmount: "0.00012819",
+        //                   uid: "35103861",
+        //                amount: "0.8012",
+        //           operateTime: "2018-10-07 17:56:07",
+        //      transferedAmount: "0.00628141",
+        //             fromAsset: "ADA"                  },
+        let order = this.safeString (trade, 'tranId');
+        let time = this.safeString (trade, 'operateTime');
+        let timestamp = this.parse8601 (time);
+        let datetime = this.iso8601 (timestamp);
+        let tradedCurrency = this.safeCurrencyCode (trade, 'fromAsset');
+        let earnedCurrency = this.currency ('BNB')['code'];
+        let applicantSymbol = earnedCurrency + '/' + tradedCurrency;
+        let tradedCurrencyIsQuote = false;
+        if (applicantSymbol in this.markets) {
+            tradedCurrencyIsQuote = true;
+        }
+        //
+        // Warning
+        // Binance dust trade `fee` is already excluded from the `BNB` earning reported in the `Dust Log`.
+        // So the parser should either set the `fee.cost` to `0` or add it on top of the earned
+        // BNB `amount` (or `cost` depending on the trade `side`). The second of the above options
+        // is much more illustrative and therefore preferable.
+        //
+        let fee = {
+            'currency': earnedCurrency,
+            'cost': this.safeFloat (trade, 'serviceChargeAmount'),
+        };
+        let symbol = undefined;
+        let amount = undefined;
+        let cost = undefined;
+        let side = undefined;
+        if (tradedCurrencyIsQuote) {
+            symbol = applicantSymbol;
+            amount = this.sum (this.safeFloat (trade, 'transferedAmount'), fee['cost']);
+            cost = this.safeFloat (trade, 'amount');
+            side = 'buy';
+        } else {
+            symbol = tradedCurrency + '/' + earnedCurrency;
+            amount = this.safeFloat (trade, 'amount');
+            cost = this.sum (this.safeFloat (trade, 'transferedAmount'), fee['cost']);
+            side = 'sell';
+        }
+        let price = cost / amount;
+        let id = undefined;
+        let type = undefined;
+        let takerOrMaker = undefined;
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'symbol': symbol,
+            'order': order,
+            'type': type,
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'amount': amount,
+            'price': price,
+            'cost': cost,
+            'fee': fee,
+            'info': trade,
+        };
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {

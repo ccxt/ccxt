@@ -538,6 +538,9 @@ class binance extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
+        if (is_array ($trade) && array_key_exists ('isDustTrade', $trade)) {
+            return $this->parse_dust_trade ($trade, $market);
+        }
         //
         // aggregate trades
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
@@ -977,6 +980,107 @@ class binance extends Exchange {
         //     )
         //
         return $this->parse_trades($response, $market, $since, $limit);
+    }
+
+    public function fetch_my_dust_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        //
+        // Bianance provides an opportunity to trade insignificant ($i->e. non-tradable and non-withdrawable)
+        // token leftovers (of any asset) into `BNB` coin which in turn can be used to pay trading fees with it.
+        // The corresponding $trades history is called the `Dust Log` and can be requested via the following end-point:
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
+        //
+        $request = array_merge (array (), $params);
+        $response = $this->wapiGetUserAssetDribbletLog ($request);
+        // { success =>    true,
+        //   results => { total =>    1,
+        //               $rows => array ( {     transfered_total => "1.06468458",
+        //                         service_charge_total => "0.02172826",
+        //                                      tran_id => 2701371634,
+        //                                         $logs => array ( {              tranId =>  2701371634,
+        //                                                   serviceChargeAmount => "0.00012819",
+        //                                                                   uid => "35103861",
+        //                                                                amount => "0.8012",
+        //                                                           operateTime => "2018-10-07 17:56:07",
+        //                                                      transferedAmount => "0.00628141",
+        //                                                             fromAsset => "ADA"                  } ),
+        //                                 operate_time => "2018-10-07 17:56:06"                                } ) } }
+        $rows = $response['results']['rows'];
+        $data = array ();
+        for ($i = 0; $i < count ($rows); $i++) {
+            $logs = $rows[$i]['logs'];
+            for ($j = 0; $j < count ($logs); $j++) {
+                $logs[$j]['isDustTrade'] = true;
+                $data[] = $logs[$j];
+            }
+        }
+        $trades = $this->parse_trades($data, null, $since, $limit);
+        return $this->filter_by_since_limit($trades, $since, $limit);
+    }
+
+    public function parse_dust_trade ($trade, $market = null) {
+        // array (              tranId =>  2701371634,
+        //   serviceChargeAmount => "0.00012819",
+        //                   uid => "35103861",
+        //                $amount => "0.8012",
+        //           operateTime => "2018-10-07 17:56:07",
+        //      transferedAmount => "0.00628141",
+        //             fromAsset => "ADA"                  ),
+        $order = $this->safe_string($trade, 'tranId');
+        $time = $this->safe_string($trade, 'operateTime');
+        $timestamp = $this->parse8601 ($time);
+        $datetime = $this->iso8601 ($timestamp);
+        $tradedCurrency = $this->safeCurrencyCode ($trade, 'fromAsset');
+        $earnedCurrency = $this->currency ('BNB')['code'];
+        $applicantSymbol = $earnedCurrency . '/' . $tradedCurrency;
+        $tradedCurrencyIsQuote = false;
+        if (is_array ($this->markets) && array_key_exists ($applicantSymbol, $this->markets)) {
+            $tradedCurrencyIsQuote = true;
+        }
+        //
+        // Warning
+        // Binance dust $trade `$fee` is already excluded from the `BNB` earning reported in the `Dust Log`.
+        // So the parser should either set the `$fee->cost` to `0` or add it on top of the earned
+        // BNB `$amount` (or `$cost` depending on the $trade `$side`). The second of the above options
+        // is much more illustrative and therefore preferable.
+        //
+        $fee = array (
+            'currency' => $earnedCurrency,
+            'cost' => $this->safe_float($trade, 'serviceChargeAmount'),
+        );
+        $symbol = null;
+        $amount = null;
+        $cost = null;
+        $side = null;
+        if ($tradedCurrencyIsQuote) {
+            $symbol = $applicantSymbol;
+            $amount = $this->sum ($this->safe_float($trade, 'transferedAmount'), $fee['cost']);
+            $cost = $this->safe_float($trade, 'amount');
+            $side = 'buy';
+        } else {
+            $symbol = $tradedCurrency . '/' . $earnedCurrency;
+            $amount = $this->safe_float($trade, 'amount');
+            $cost = $this->sum ($this->safe_float($trade, 'transferedAmount'), $fee['cost']);
+            $side = 'sell';
+        }
+        $price = $cost / $amount;
+        $id = null;
+        $type = null;
+        $takerOrMaker = null;
+        return array (
+            'id' => $id,
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
+            'symbol' => $symbol,
+            'order' => $order,
+            'type' => $type,
+            'takerOrMaker' => $takerOrMaker,
+            'side' => $side,
+            'amount' => $amount,
+            'price' => $price,
+            'cost' => $cost,
+            'fee' => $fee,
+            'info' => $trade,
+        );
     }
 
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {

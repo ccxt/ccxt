@@ -526,6 +526,8 @@ class binance (Exchange):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
+        if 'isDustTrade' in trade:
+            return self.parse_dust_trade(trade, market)
         #
         # aggregate trades
         # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
@@ -922,6 +924,101 @@ class binance (Exchange):
         #     ]
         #
         return self.parse_trades(response, market, since, limit)
+
+    async def fetch_my_dust_trades(self, symbol=None, since=None, limit=None, params={}):
+        #
+        # Bianance provides an opportunity to trade insignificant(i.e. non-tradable and non-withdrawable)
+        # token leftovers(of any asset) into `BNB` coin which in turn can be used to pay trading fees with it.
+        # The corresponding trades history is called the `Dust Log` and can be requested via the following end-point:
+        # https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
+        #
+        request = self.extend({}, params)
+        response = await self.wapiGetUserAssetDribbletLog(request)
+        # {success:    True,
+        #   results: {total:    1,
+        #               rows: [{    transfered_total: "1.06468458",
+        #                         service_charge_total: "0.02172826",
+        #                                      tran_id: 2701371634,
+        #                                         logs: [{             tranId:  2701371634,
+        #                                                   serviceChargeAmount: "0.00012819",
+        #                                                                   uid: "35103861",
+        #                                                                amount: "0.8012",
+        #                                                           operateTime: "2018-10-07 17:56:07",
+        #                                                      transferedAmount: "0.00628141",
+        #                                                             fromAsset: "ADA"                  }],
+        #                                 operate_time: "2018-10-07 17:56:06"                                }]} }
+        rows = response['results']['rows']
+        data = []
+        for i in range(0, len(rows)):
+            logs = rows[i]['logs']
+            for j in range(0, len(logs)):
+                logs[j]['isDustTrade'] = True
+                data.append(logs[j])
+        trades = self.parse_trades(data, None, since, limit)
+        return self.filter_by_since_limit(trades, since, limit)
+
+    def parse_dust_trade(self, trade, market=None):
+        # {             tranId:  2701371634,
+        #   serviceChargeAmount: "0.00012819",
+        #                   uid: "35103861",
+        #                amount: "0.8012",
+        #           operateTime: "2018-10-07 17:56:07",
+        #      transferedAmount: "0.00628141",
+        #             fromAsset: "ADA"                  },
+        order = self.safe_string(trade, 'tranId')
+        time = self.safe_string(trade, 'operateTime')
+        timestamp = self.parse8601(time)
+        datetime = self.iso8601(timestamp)
+        tradedCurrency = self.safeCurrencyCode(trade, 'fromAsset')
+        earnedCurrency = self.currency('BNB')['code']
+        applicantSymbol = earnedCurrency + '/' + tradedCurrency
+        tradedCurrencyIsQuote = False
+        if applicantSymbol in self.markets:
+            tradedCurrencyIsQuote = True
+        #
+        # Warning
+        # Binance dust trade `fee` is already excluded from the `BNB` earning reported in the `Dust Log`.
+        # So the parser should either set the `fee.cost` to `0` or add it on top of the earned
+        # BNB `amount`(or `cost` depending on the trade `side`). The second of the above options
+        # is much more illustrative and therefore preferable.
+        #
+        fee = {
+            'currency': earnedCurrency,
+            'cost': self.safe_float(trade, 'serviceChargeAmount'),
+        }
+        symbol = None
+        amount = None
+        cost = None
+        side = None
+        if tradedCurrencyIsQuote:
+            symbol = applicantSymbol
+            amount = self.sum(self.safe_float(trade, 'transferedAmount'), fee['cost'])
+            cost = self.safe_float(trade, 'amount')
+            side = 'buy'
+        else:
+            symbol = tradedCurrency + '/' + earnedCurrency
+            amount = self.safe_float(trade, 'amount')
+            cost = self.sum(self.safe_float(trade, 'transferedAmount'), fee['cost'])
+            side = 'sell'
+        price = cost / amount
+        id = None
+        type = None
+        takerOrMaker = None
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'symbol': symbol,
+            'order': order,
+            'type': type,
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'amount': amount,
+            'price': price,
+            'cost': cost,
+            'fee': fee,
+            'info': trade,
+        }
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
