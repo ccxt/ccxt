@@ -319,17 +319,20 @@ module.exports = class bitso extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = undefined;
         const marketId = this.safeString (order, 'book');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-
-        }
-        if (market === undefined) {
-            let marketId = order['book'];
-            if (marketId in this.markets_by_id)
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.commonCurrencyCode (baseId.toUpperCase ());
+                const quote = this.commonCurrencyCode (quoteId.toUpperCase ());
+                symbol = base + '/' + quote;
+            }
         }
-        if (market !== undefined) {
-            symbol = market['symbol'];
+        if (symbol === undefined) {
+            if (market !== undefined) {
+                symbol = market['symbol'];
+            }
         }
         const orderType = this.safeString (order, 'type');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
