@@ -344,7 +344,7 @@ module.exports = class bitso extends Exchange {
             if (remaining !== undefined) {
                 filled = amount - remaining;
             }
-        }        
+        }
         return {
             'info': order,
             'id': id,
@@ -400,7 +400,7 @@ module.exports = class bitso extends Exchange {
         if (Array.isArray (payload)) {
             const numOrders = response['payload'].length;
             if (numOrders === 1) {
-                return this.parseOrder (payload[0]); 
+                return this.parseOrder (payload[0]);
             }
         }
         throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
