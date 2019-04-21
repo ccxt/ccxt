@@ -426,6 +426,7 @@ module.exports = class stronghold extends Exchange {
     parseTransactionStatus (status) {
         let statuses = {
             'queued': 'pending',
+            'settling': 'pending',
         };
         return this.safeString (statuses, status, status);
     }
@@ -465,6 +466,8 @@ module.exports = class stronghold extends Exchange {
             feeRate = feeCost / amount;
         }
         const direction = this.safeString (transaction, 'direction');
+        const datetime = this.safeString (transaction, 'updatedAt');
+        const timestamp = this.parse8601 (datetime);
         const type = (direction === 'outgoing' || direction === 'withdrawal') ? 'withdrawal' : 'deposit';
         const fee = {
             'cost': feeCost,
@@ -482,8 +485,8 @@ module.exports = class stronghold extends Exchange {
             'updated': undefined,
             'address': undefined,
             'txid': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': datetime,
         };
     }
 
