@@ -529,7 +529,7 @@ class cex extends Exchange {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (!$response) {
             throw new NullResponse ($this->id . ' returned ' . $this->json ($response));
-        } else if ($response === true) {
+        } else if ($response === true || $response === 'true') {
             return $response;
         } else if (is_array ($response) && array_key_exists ('e', $response)) {
             if (is_array ($response) && array_key_exists ('ok', $response))
