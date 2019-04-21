@@ -465,7 +465,7 @@ module.exports = class stronghold extends Exchange {
             feeRate = feeCost / amount;
         }
         const direction = this.safeString (transaction, 'direction');
-        const type = (direction === 'outgoing' || direction === 'withdrawal') ? 'withdraw' : 'deposit';
+        const type = (direction === 'outgoing' || direction === 'withdrawal') ? 'withdrawal' : 'deposit';
         const fee = {
             'cost': feeCost,
             'rate': feeRate,
