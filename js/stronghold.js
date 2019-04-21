@@ -466,8 +466,9 @@ module.exports = class stronghold extends Exchange {
             feeRate = feeCost / amount;
         }
         const direction = this.safeString (transaction, 'direction');
-        const datetime = this.safeString (transaction, 'updatedAt');
+        const datetime = this.safeString (transaction, 'requestedAt');
         const timestamp = this.parse8601 (datetime);
+        const updated = this.parse8601 (this.safeString (transaction, 'updatedAt'));
         const type = (direction === 'outgoing' || direction === 'withdrawal') ? 'withdrawal' : 'deposit';
         const fee = {
             'cost': feeCost,
@@ -482,7 +483,7 @@ module.exports = class stronghold extends Exchange {
             'fee': fee,
             'tag': undefined,
             'type': type,
-            'updated': undefined,
+            'updated': updated,
             'address': undefined,
             'txid': undefined,
             'timestamp': timestamp,
