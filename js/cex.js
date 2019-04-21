@@ -528,7 +528,7 @@ module.exports = class cex extends Exchange {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if (!response) {
             throw new NullResponse (this.id + ' returned ' + this.json (response));
-        } else if (response === true) {
+        } else if (response === true || response === 'true') {
             return response;
         } else if ('e' in response) {
             if ('ok' in response)
