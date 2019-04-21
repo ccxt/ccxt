@@ -418,6 +418,7 @@ class stronghold (Exchange):
     def parse_transaction_status(self, status):
         statuses = {
             'queued': 'pending',
+            'settling': 'pending',
         }
         return self.safe_string(statuses, status, status)
 
@@ -453,7 +454,10 @@ class stronghold (Exchange):
         if feeCost is not None:
             feeRate = feeCost / amount
         direction = self.safe_string(transaction, 'direction')
-        type = 'withdraw' if (direction == 'outgoing') else 'deposit'
+        datetime = self.safe_string(transaction, 'requestedAt')
+        timestamp = self.parse8601(datetime)
+        updated = self.parse8601(self.safe_string(transaction, 'updatedAt'))
+        type = 'withdrawal' if (direction == 'outgoing' or direction == 'withdrawal') else 'deposit'
         fee = {
             'cost': feeCost,
             'rate': feeRate,
@@ -467,11 +471,11 @@ class stronghold (Exchange):
             'fee': fee,
             'tag': None,
             'type': type,
-            'updated': None,
+            'updated': updated,
             'address': None,
             'txid': None,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': datetime,
         }
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
