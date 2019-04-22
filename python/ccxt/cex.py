@@ -497,7 +497,7 @@ class cex (Exchange):
         response = self.fetch2(path, api, method, params, headers, body)
         if not response:
             raise NullResponse(self.id + ' returned ' + self.json(response))
-        elif response is True:
+        elif response is True or response == 'true':
             return response
         elif 'e' in response:
             if 'ok' in response:
