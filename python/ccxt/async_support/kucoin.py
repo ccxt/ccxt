@@ -576,7 +576,7 @@ class kucoin (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         request = {'orderId': id}
-        response = self.privateDeleteOrdersOrderId(self.extend(request, params))
+        response = await self.privateDeleteOrdersOrderId(self.extend(request, params))
         return response
 
     async def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
