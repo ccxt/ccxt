@@ -1405,7 +1405,7 @@ This is the type of pagination currently used throughout the CCXT Unified API. T
            const limit = 20 // change for your limit
            const trades = await exchange.fetchTrades (symbol, since, limit)
            if (trades.length) {
-               since = trades[trades.length - 1]
+               since = trades[trades.length - 1]['timestamp']
                allTrades.push (trades)
            } else {
                break
@@ -1426,7 +1426,7 @@ This is the type of pagination currently used throughout the CCXT Unified API. T
            limit = 20  # change for your limit
            orders = await exchange.fetch_orders(symbol, since, limit)
            if len(orders):
-               since = orders[len(orders) - 1]
+               since = orders[len(orders) - 1]['timestamp']
                all_orders += orders
            else:
                break
@@ -1437,14 +1437,14 @@ This is the type of pagination currently used throughout the CCXT Unified API. T
    if ($exchange->has['fetchMyTrades']) {
        $since = exchange->milliseconds () - 86400000; // -1 day from now
        // alternatively, fetch from a certain starting datetime
-       // $since = $exchange->parse8601 ('2018-01-01T00:00:00Z')
+       // $since = $exchange->parse8601 ('2018-01-01T00:00:00Z');
        $all_trades = array ();
        while (since < exchange->milliseconds ()) {
            $symbol = null; // change for your symbol
            $limit = 20; // change for your limit
            $trades = $exchange->fetchMyTrades ($symbol, $since, $limit);
            if (count($trades)) {
-               $since = $trades[count($trades) - 1];
+               $since = $trades[count($trades) - 1]['timestamp'];
                $all_trades = array_merge ($all_trades, $trades);
            } else {
                break;
