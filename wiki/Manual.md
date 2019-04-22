@@ -1217,7 +1217,7 @@ if (exchange.has['fetchTrades']) {
         const limit = 20 // change for your limit
         const trades = await exchange.fetchTrades (symbol, since, limit)
         if (trades.length) {
-            since = trades[trades.length - 1]
+            since = trades[trades.length - 1]['timestamp']
             allTrades.push (trades)
         } else {
             break
@@ -1238,7 +1238,7 @@ if exchange.has['fetchOrders']:
         limit = 20  # change for your limit
         orders = await exchange.fetch_orders(symbol, since, limit)
         if len(orders):
-            since = orders[len(orders) - 1]
+            since = orders[len(orders) - 1]['timestamp']
             all_orders += orders
         else:
             break
