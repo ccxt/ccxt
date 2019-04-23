@@ -8,7 +8,6 @@ cache:
    - node_modules
 
 before_install:
-- travis cache --delete
 - set -e
 - . $HOME/.nvm/nvm.sh
 # - nvm ls
