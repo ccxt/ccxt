@@ -1,11 +1,11 @@
 language: python
 python:
   - "3.6"
-cache:
-  directories:
-    # - $HOME/.cache/pip
-    - $HOME/.npm
-    - node_modules
+# cache:
+#  directories:
+#    # - $HOME/.cache/pip
+#    - $HOME/.npm
+#    - node_modules
 
 before_install:
 - set -e
@@ -26,7 +26,7 @@ before_install:
 - sudo -H pip3 install --upgrade pip wheel requests pyopenssl
 - sudo -H pip3 install --ignore-installed six
 - sudo -H pip3 install --upgrade tox twine
-- pip install --upgrade setuptools 
+- pip install --upgrade setuptools
 - pip install --upgrade web3 aiohttp requests pyopenssl
 - pip2 install requests[security]
 script:
