@@ -1,13 +1,14 @@
 language: python
 python:
   - "3.6"
-# cache:
-#  directories:
-#    # - $HOME/.cache/pip
-#    - $HOME/.npm
-#    - node_modules
+cache:
+ directories:
+   # - $HOME/.cache/pip
+   - $HOME/.npm
+   - node_modules
 
 before_install:
+- travis cache --delete
 - set -e
 - . $HOME/.nvm/nvm.sh
 # - nvm ls
