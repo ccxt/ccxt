@@ -126,6 +126,7 @@ class bitfinex2 (bitfinex):
                         'auth/w/alert/set',
                         'auth/w/alert/{type}:{symbol}:{price}/del',
                         'auth/calc/order/avail',
+                        'auth/r/ledgers/hist',
                         'auth/r/ledgers/{symbol}/hist',
                         'auth/r/settings',
                         'auth/w/settings/set',
