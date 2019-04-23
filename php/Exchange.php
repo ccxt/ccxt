@@ -2175,7 +2175,10 @@ class Exchange {
             $this->define_rest_api ($this->api, 'request');
     }
 
-    public function has ($feature) {
+    public function has ($feature = null) {
+        if (!$feature) {
+            return $this->has;
+        }
         $feature = strtolower ($feature);
         $new_feature_map = array_change_key_case ($this->has, CASE_LOWER);
         if (array_key_exists ($feature, $new_feature_map)) {
