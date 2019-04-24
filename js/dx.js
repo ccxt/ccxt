@@ -173,6 +173,10 @@ module.exports = class dx extends Exchange {
             let id = instrument['id'];
             let symbol = instrument['asset']['fullName'];
             let [ base, quote ] = symbol.split ('/');
+            let amountPrecision = 0;
+            if (instrument['meQuantityMultiplier'] !== 0) {
+                amountPrecision = Math.log10 (instrument['meQuantityMultiplier']);
+            }
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             symbol = base + '/' + quote;
@@ -185,7 +189,7 @@ module.exports = class dx extends Exchange {
                 'quoteId': instrument['asset']['quotedCurrencyId'],
                 'info': instrument,
                 'precision': {
-                    'amount': undefined,
+                    'amount': amountPrecision,
                     'price': instrument['asset']['tailDigits'],
                 },
                 'limits': {
