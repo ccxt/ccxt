@@ -836,8 +836,13 @@ module.exports = class kraken extends Exchange {
             }
         }
         return {
-            'info': response,
             'id': id,
+            'info': response,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': order['price'],
+            'amount': order['volume'],
         };
     }
 
