@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.488'
+const version = '1.18.490'
 
 Exchange.ccxtVersion = version
 
@@ -26811,6 +26811,7 @@ module.exports = class coinegg extends Exchange {
                 'www': 'https://www.coinegg.com',
                 'doc': 'https://www.coinegg.com/explain.api.html',
                 'fees': 'https://www.coinegg.com/fee.html',
+                'referral': 'http://www.coinegg.com/user/register?invite=523218',
             },
             'api': {
                 'web': {
@@ -49313,8 +49314,23 @@ module.exports = class kraken extends Exchange {
             }
         }
         return {
-            'info': response,
             'id': id,
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'average': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'status': undefined,
+            'fee': undefined,
+            'trades': undefined,
         };
     }
 
