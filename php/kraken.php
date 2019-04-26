@@ -836,8 +836,23 @@ class kraken extends Exchange {
             }
         }
         return array (
-            'info' => $response,
             'id' => $id,
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+            'lastTradeTimestamp' => null,
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => null,
+            'average' => null,
+            'filled' => null,
+            'remaining' => null,
+            'status' => null,
+            'fee' => null,
+            'trades' => null,
         );
     }
 
