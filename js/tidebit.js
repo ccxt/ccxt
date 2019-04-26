@@ -43,6 +43,7 @@ module.exports = class tidebit extends Exchange {
                     'https://www.tidebit.com/documents/api/guide',
                     'https://www.tidebit.com/swagger/#/default',
                 ],
+                'referral': 'http://bit.ly/2IX0LrM',
             },
             'api': {
                 'public': {
