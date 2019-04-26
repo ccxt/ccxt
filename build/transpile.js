@@ -112,6 +112,7 @@ const commonRegexes = [
     [ /\.fetchTickers\s/g, '.fetch_tickers'],
     [ /\.fetchTicker\s/g, '.fetch_ticker'],
     [ /\.fetchCurrencies\s/g, '.fetch_currencies'],
+    [ /\.numberToString\s/g, 'number_to_string' ],
     [ /\.decimalToPrecision\s/g, '.decimal_to_precision'],
     [ /\.priceToPrecision\s/g, '.price_to_precision'],
     [ /\.amountToPrecision\s/g, '.amount_to_precision'],
