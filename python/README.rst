@@ -303,7 +303,7 @@ The ccxt library currently supports the following 135 cryptocurrency exchange ma
 +--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | therock            | `TheRockTrading <https://therocktrading.com>`__                                         | 1     | `API <https://api.therocktrading.com/doc/v1/index.html>`__                                          |                                                                      |
 +--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| tidebit            | `TideBit <https://www.tidebit.com>`__                                                   | 2     | `API <https://www.tidebit.com/documents/api/guide>`__                                               |                                                                      |
+| tidebit            | `TideBit <http://bit.ly/2IX0LrM>`__                                                     | 2     | `API <https://www.tidebit.com/documents/api/guide>`__                                               |                                                                      |
 +--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | tidex              | `Tidex <https://tidex.com>`__                                                           | 3     | `API <https://tidex.com/exchange/public-api>`__                                                     |                                                                      |
 +--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -377,14 +377,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.490/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.18.490/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.491/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.491/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.490/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.491/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
