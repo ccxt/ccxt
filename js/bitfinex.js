@@ -447,7 +447,7 @@ module.exports = class bitfinex extends Exchange {
             let symbol = base + '/' + quote;
             let precision = {
                 'price': market['price_precision'],
-                'amount': market['price_precision'],
+                'amount': undefined,
             };
             let limits = {
                 'amount': {
@@ -673,7 +673,7 @@ module.exports = class bitfinex extends Exchange {
         const order = {
             'symbol': this.marketId (symbol),
             'side': side,
-            'amount': this.amountToPrecision (symbol, amount),
+            'amount': this.numberToString (amount),
             'type': this.safeString (this.options['orderTypes'], type, type),
             'ocoorder': false,
             'buy_price_oco': 0,
