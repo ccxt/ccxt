@@ -193,7 +193,7 @@ module.exports = class coinex extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'baseVolume': this.safeFloat2 (ticker, 'vol', 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
         };
