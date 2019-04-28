@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.491'
+const version = '1.18.492'
 
 Exchange.ccxtVersion = version
 
@@ -11819,8 +11819,8 @@ module.exports = class bitforex extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.0,
-                    'taker': 0.05 / 100,
+                    'maker': 0.1 / 100,
+                    'taker': 0.1 / 100,
                 },
                 'funding': {
                     'tierBased': false,

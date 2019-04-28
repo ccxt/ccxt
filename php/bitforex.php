@@ -62,8 +62,8 @@ class bitforex extends Exchange {
                 'trading' => array (
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.0,
-                    'taker' => 0.05 / 100,
+                    'maker' => 0.1 / 100,
+                    'taker' => 0.1 / 100,
                 ),
                 'funding' => array (
                     'tierBased' => false,
