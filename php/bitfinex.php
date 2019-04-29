@@ -447,7 +447,7 @@ class bitfinex extends Exchange {
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'price' => $market['price_precision'],
-                'amount' => $market['price_precision'],
+                'amount' => null,
             );
             $limits = array (
                 'amount' => array (
@@ -673,7 +673,7 @@ class bitfinex extends Exchange {
         $order = array (
             'symbol' => $this->market_id($symbol),
             'side' => $side,
-            'amount' => $this->amount_to_precision($symbol, $amount),
+            'amount' => $this->number_to_string($amount),
             'type' => $this->safe_string($this->options['orderTypes'], $type, $type),
             'ocoorder' => false,
             'buy_price_oco' => 0,
