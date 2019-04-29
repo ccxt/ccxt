@@ -995,7 +995,7 @@ module.exports = class bitmex extends Exchange {
             expires = expires.toString ();
             auth += expires;
             headers['api-expires'] = expires;
-            if (method === 'POST' || method === 'PUT') {
+            if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
                 if (Object.keys (params).length) {
                     body = this.json (params);
                     auth += body;
