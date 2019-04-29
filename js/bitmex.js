@@ -137,6 +137,8 @@ module.exports = class bitmex extends Exchange {
                     'Access Denied': PermissionDenied,
                     'Duplicate clOrdID': InvalidOrder,
                     'Signature not valid': AuthenticationError,
+                    'orderQty is invalid': InvalidOrder,
+                    'Invalid price': InvalidOrder,
                 },
                 'broad': {
                     'overloaded': ExchangeNotAvailable,
