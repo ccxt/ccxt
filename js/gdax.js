@@ -757,9 +757,7 @@ module.exports = class gdax extends Exchange {
             'id': account['id'],
         }, params));
         let address = this.safeString (response, 'address');
-        // todo: figure this out
-        // let tag = this.safeString (response, 'addressTag');
-        let tag = undefined;
+        let tag = this.safeString (response, 'destination_tag');
         return {
             'currency': code,
             'address': this.checkAddress (address),
