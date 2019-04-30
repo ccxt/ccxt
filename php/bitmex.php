@@ -138,6 +138,8 @@ class bitmex extends Exchange {
                     'Access Denied' => '\\ccxt\\PermissionDenied',
                     'Duplicate clOrdID' => '\\ccxt\\InvalidOrder',
                     'Signature not valid' => '\\ccxt\\AuthenticationError',
+                    'orderQty is invalid' => '\\ccxt\\InvalidOrder',
+                    'Invalid price' => '\\ccxt\\InvalidOrder',
                 ),
                 'broad' => array (
                     'overloaded' => '\\ccxt\\ExchangeNotAvailable',
@@ -994,7 +996,7 @@ class bitmex extends Exchange {
             $expires = (string) $expires;
             $auth .= $expires;
             $headers['api-expires'] = $expires;
-            if ($method === 'POST' || $method === 'PUT') {
+            if ($method === 'POST' || $method === 'PUT' || $method === 'DELETE') {
                 if ($params) {
                     $body = $this->json ($params);
                     $auth .= $body;

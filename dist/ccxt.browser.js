@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.495'
+const version = '1.18.496'
 
 Exchange.ccxtVersion = version
 
@@ -13682,6 +13682,8 @@ module.exports = class bitmex extends Exchange {
                     'Access Denied': PermissionDenied,
                     'Duplicate clOrdID': InvalidOrder,
                     'Signature not valid': AuthenticationError,
+                    'orderQty is invalid': InvalidOrder,
+                    'Invalid price': InvalidOrder,
                 },
                 'broad': {
                     'overloaded': ExchangeNotAvailable,
@@ -14538,7 +14540,7 @@ module.exports = class bitmex extends Exchange {
             expires = expires.toString ();
             auth += expires;
             headers['api-expires'] = expires;
-            if (method === 'POST' || method === 'PUT') {
+            if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
                 if (Object.keys (params).length) {
                     body = this.json (params);
                     auth += body;
