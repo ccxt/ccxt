@@ -190,11 +190,28 @@ module.exports = class bitmex extends Exchange {
             };
             const lotSize = this.safeFloat (market, 'lotSize');
             const tickSize = this.safeFloat (market, 'tickSize');
+            // price_to_precision/amount_to_precision has no understanding of ticksize
+            // if the tickSize is 0.2, 0.1 has the same precision, but gets
+            // rejected by the API.
+            // So we need to reduce the precision to create valid prices/amounts
             if (lotSize !== undefined) {
-                precision['amount'] = this.precisionFromString (this.truncate_to_string (lotSize, 16));
+                let lotSizeStr = this.truncate_to_string (lotSize, 16);
+                let amountPrecision = this.precisionFromString (lotSizeStr);
+                let lastCharPos = lotSizeStr.length - 1;
+                if (lotSizeStr[lastCharPos] !== '1') {
+                    amountPrecision -= 1;
+                }
+                precision['amount'] = amountPrecision;
             }
             if (tickSize !== undefined) {
-                precision['price'] = this.precisionFromString (this.truncate_to_string (tickSize, 16));
+                let tickSizeStr = this.truncate_to_string (tickSize, 16);
+                let pricePrecision = this.precisionFromString (tickSizeStr);
+                let lastCharPos = tickSizeStr.length - 1;
+                let lastChar = tickSizeStr[lastCharPos];
+                if (lastChar !== '1') {
+                    pricePrecision -= 1;
+                }
+                precision['price'] = pricePrecision;
             }
             const limits = {
                 'amount': {
