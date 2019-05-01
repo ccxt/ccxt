@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.497'
+const version = '1.18.498'
 
 Exchange.ccxtVersion = version
 
@@ -57549,7 +57549,7 @@ module.exports = class mercado extends Exchange {
         let market = this.market (symbol);
         let request = {
             'precision': this.timeframes[timeframe],
-            'coin': market.id.toLowerCase (),
+            'coin': market['id'].toLowerCase (),
         };
         if (limit !== undefined && since !== undefined) {
             request['from'] = parseInt (since / 1000);

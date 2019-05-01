@@ -421,7 +421,7 @@ class mercado extends Exchange {
         $market = $this->market ($symbol);
         $request = array (
             'precision' => $this->timeframes[$timeframe],
-            'coin' => strtolower ($market->id),
+            'coin' => strtolower ($market['id']),
         );
         if ($limit !== null && $since !== null) {
             $request['from'] = intval ($since / 1000);
