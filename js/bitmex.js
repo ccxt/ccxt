@@ -980,9 +980,15 @@ module.exports = class bitmex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = '/api/' + this.version + '/' + path;
-        if (method !== 'PUT')
-            if (Object.keys (params).length)
+        if (method === 'GET') {
+            if (Object.keys (params).length) {
                 query += '?' + this.urlencode (params);
+            }
+        } else {
+            if (this.safeString2 (params, '_format', undefined) !== undefined) {
+                query += '?' + this.urlencode ({ '_format': params['_format'] });
+            }
+        }
         let url = this.urls['api'] + query;
         if (api === 'private') {
             this.checkRequiredCredentials ();
