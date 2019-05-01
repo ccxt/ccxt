@@ -456,7 +456,7 @@ class bitfinex (Exchange):
             symbol = base + '/' + quote
             precision = {
                 'price': market['price_precision'],
-                'amount': market['price_precision'],
+                'amount': None,
             }
             limits = {
                 'amount': {
@@ -661,7 +661,7 @@ class bitfinex (Exchange):
         order = {
             'symbol': self.market_id(symbol),
             'side': side,
-            'amount': self.amount_to_precision(symbol, amount),
+            'amount': self.number_to_string(amount),
             'type': self.safe_string(self.options['orderTypes'], type, type),
             'ocoorder': False,
             'buy_price_oco': 0,

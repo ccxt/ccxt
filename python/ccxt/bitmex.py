@@ -146,6 +146,8 @@ class bitmex (Exchange):
                     'Access Denied': PermissionDenied,
                     'Duplicate clOrdID': InvalidOrder,
                     'Signature not valid': AuthenticationError,
+                    'orderQty is invalid': InvalidOrder,
+                    'Invalid price': InvalidOrder,
                 },
                 'broad': {
                     'overloaded': ExchangeNotAvailable,
@@ -938,7 +940,7 @@ class bitmex (Exchange):
             expires = str(expires)
             auth += expires
             headers['api-expires'] = expires
-            if method == 'POST' or method == 'PUT':
+            if method == 'POST' or method == 'PUT' or method == 'DELETE':
                 if params:
                     body = self.json(params)
                     auth += body

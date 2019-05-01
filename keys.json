@@ -42,6 +42,7 @@
     "cryptopia":     { "skip": true },
     "dsx":           { "skip": true },
     "exx":           { "skip": true },
+    "fcoin":         { "skip": true },
     "flowbtc":       { "skip": true },
     "foxbit":        { "skip": true },
     "fybse":         { "skip": true },

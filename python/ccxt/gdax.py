@@ -642,6 +642,7 @@ class gdax (Exchange):
         amount = self.safe_float(transaction, 'amount')
         type = self.safe_string(transaction, 'type')
         address = self.safe_string(details, 'crypto_address')
+        tag = self.safe_string(details, 'destination_tag')
         address = self.safe_string(transaction, 'crypto_address', address)
         if type == 'withdraw':
             type = 'withdrawal'
@@ -653,7 +654,7 @@ class gdax (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'address': address,
-            'tag': None,
+            'tag': tag,
             'type': type,
             'amount': amount,
             'currency': code,
@@ -707,9 +708,7 @@ class gdax (Exchange):
             'id': account['id'],
         }, params))
         address = self.safe_string(response, 'address')
-        # todo: figure self out
-        # tag = self.safe_string(response, 'addressTag')
-        tag = None
+        tag = self.safe_string(response, 'destination_tag')
         return {
             'currency': code,
             'address': self.check_address(address),

@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.493'
+const version = '1.18.497'
 
 Exchange.ccxtVersion = version
 
@@ -1763,8 +1763,8 @@ module.exports = class anybits extends bitsane {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.15 / 100,
-                    'taker': 0.25 / 100,
+                    'maker': 0.1 / 100,
+                    'taker': 0.2 / 100,
                 },
             },
         });
@@ -10058,7 +10058,7 @@ module.exports = class bitfinex extends Exchange {
             let symbol = base + '/' + quote;
             let precision = {
                 'price': market['price_precision'],
-                'amount': market['price_precision'],
+                'amount': undefined,
             };
             let limits = {
                 'amount': {
@@ -10284,7 +10284,7 @@ module.exports = class bitfinex extends Exchange {
         const order = {
             'symbol': this.marketId (symbol),
             'side': side,
-            'amount': this.amountToPrecision (symbol, amount),
+            'amount': this.numberToString (amount),
             'type': this.safeString (this.options['orderTypes'], type, type),
             'ocoorder': false,
             'buy_price_oco': 0,
@@ -13682,6 +13682,8 @@ module.exports = class bitmex extends Exchange {
                     'Access Denied': PermissionDenied,
                     'Duplicate clOrdID': InvalidOrder,
                     'Signature not valid': AuthenticationError,
+                    'orderQty is invalid': InvalidOrder,
+                    'Invalid price': InvalidOrder,
                 },
                 'broad': {
                     'overloaded': ExchangeNotAvailable,
@@ -14538,7 +14540,7 @@ module.exports = class bitmex extends Exchange {
             expires = expires.toString ();
             auth += expires;
             headers['api-expires'] = expires;
-            if (method === 'POST' || method === 'PUT') {
+            if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
                 if (Object.keys (params).length) {
                     body = this.json (params);
                     auth += body;
@@ -41903,6 +41905,7 @@ module.exports = class gdax extends Exchange {
         const amount = this.safeFloat (transaction, 'amount');
         let type = this.safeString (transaction, 'type');
         let address = this.safeString (details, 'crypto_address');
+        let tag = this.safeString (details, 'destination_tag');
         address = this.safeString (transaction, 'crypto_address', address);
         if (type === 'withdraw') {
             type = 'withdrawal';
@@ -41915,7 +41918,7 @@ module.exports = class gdax extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': address,
-            'tag': undefined,
+            'tag': tag,
             'type': type,
             'amount': amount,
             'currency': code,
@@ -41977,9 +41980,7 @@ module.exports = class gdax extends Exchange {
             'id': account['id'],
         }, params));
         let address = this.safeString (response, 'address');
-        // todo: figure this out
-        // let tag = this.safeString (response, 'addressTag');
-        let tag = undefined;
+        let tag = this.safeString (response, 'destination_tag');
         return {
             'currency': code,
             'address': this.checkAddress (address),
