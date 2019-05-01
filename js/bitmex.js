@@ -139,6 +139,7 @@ module.exports = class bitmex extends Exchange {
                     'Signature not valid': AuthenticationError,
                     'orderQty is invalid': InvalidOrder,
                     'Invalid price': InvalidOrder,
+                    'Invalid stopPx for ordType': InvalidOrder,
                 },
                 'broad': {
                     'overloaded': ExchangeNotAvailable,
