@@ -148,6 +148,7 @@ class bitmex (Exchange):
                     'Signature not valid': AuthenticationError,
                     'orderQty is invalid': InvalidOrder,
                     'Invalid price': InvalidOrder,
+                    'Invalid stopPx for ordType': InvalidOrder,
                 },
                 'broad': {
                     'overloaded': ExchangeNotAvailable,
@@ -924,9 +925,14 @@ class bitmex (Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = '/api/' + self.version + '/' + path
-        if method != 'PUT':
+        if method == 'GET':
             if params:
                 query += '?' + self.urlencode(params)
+        else:
+            format = self.safe_string_2(params, '_format')
+            if format is not None:
+                query += '?' + self.urlencode({'_format': format})
+                params = self.omit(params, '_format')
         url = self.urls['api'] + query
         if api == 'private':
             self.check_required_credentials()
