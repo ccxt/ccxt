@@ -73,6 +73,7 @@
     "qryptos":       { "skip": true },
     "rightbtc":      { "skip": true },
     "southxchange":  { "skip": true },
+    "stronghold":    { "skip": true },
     "surbitcoin":    { "skip": true },
     "theocean":      { "skip": true },
     "tidebit":       { "skip": true },
