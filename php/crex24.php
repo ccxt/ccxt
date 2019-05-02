@@ -1086,8 +1086,8 @@ class crex24 extends Exchange {
             $code = $currency['code'];
         }
         $type = $this->safe_string($transaction, 'type');
-        $timestamp = $this->parse8601 ($transaction, 'createdAt');
-        $updated = $this->parse8601 ($transaction, 'processedAt');
+        $timestamp = $this->parse8601 ($this->safe_string($transaction, 'createdAt'));
+        $updated = $this->parse8601 ($this->safe_string($transaction, 'processedAt'));
         $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
         $amount = $this->safe_float($transaction, 'amount');
         $feeCost = $this->safe_float($transaction, 'fee');

@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.497'
+const version = '1.18.500'
 
 Exchange.ccxtVersion = version
 
@@ -13684,6 +13684,7 @@ module.exports = class bitmex extends Exchange {
                     'Signature not valid': AuthenticationError,
                     'orderQty is invalid': InvalidOrder,
                     'Invalid price': InvalidOrder,
+                    'Invalid stopPx for ordType': InvalidOrder,
                 },
                 'broad': {
                     'overloaded': ExchangeNotAvailable,
@@ -14524,9 +14525,17 @@ module.exports = class bitmex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = '/api/' + this.version + '/' + path;
-        if (method !== 'PUT')
-            if (Object.keys (params).length)
+        if (method === 'GET') {
+            if (Object.keys (params).length) {
                 query += '?' + this.urlencode (params);
+            }
+        } else {
+            const format = this.safeString2 (params, '_format');
+            if (format !== undefined) {
+                query += '?' + this.urlencode ({ '_format': format });
+                params = this.omit (params, '_format');
+            }
+        }
         let url = this.urls['api'] + query;
         if (api === 'private') {
             this.checkRequiredCredentials ();
@@ -34540,8 +34549,8 @@ module.exports = class crex24 extends Exchange {
             code = currency['code'];
         }
         let type = this.safeString (transaction, 'type');
-        let timestamp = this.parse8601 (transaction, 'createdAt');
-        let updated = this.parse8601 (transaction, 'processedAt');
+        let timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
+        let updated = this.parse8601 (this.safeString (transaction, 'processedAt'));
         let status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         let amount = this.safeFloat (transaction, 'amount');
         const feeCost = this.safeFloat (transaction, 'fee');
@@ -57549,7 +57558,7 @@ module.exports = class mercado extends Exchange {
         let market = this.market (symbol);
         let request = {
             'precision': this.timeframes[timeframe],
-            'coin': market.id.toLowerCase (),
+            'coin': market['id'].toLowerCase (),
         };
         if (limit !== undefined && since !== undefined) {
             request['from'] = parseInt (since / 1000);

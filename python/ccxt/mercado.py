@@ -392,7 +392,7 @@ class mercado (Exchange):
         market = self.market(symbol)
         request = {
             'precision': self.timeframes[timeframe],
-            'coin': market.id.lower(),
+            'coin': market['id'].lower(),
         }
         if limit is not None and since is not None:
             request['from'] = int(since / 1000)
