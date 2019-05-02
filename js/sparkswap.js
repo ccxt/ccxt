@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest } = require ('./base/errors');
+const { BadRequest } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 // ----------------------------------------------------------------------------
@@ -317,7 +317,7 @@ module.exports = class sparkswap extends Exchange {
         }
         const response = {
             'info': order,
-            'id': id,
+            'id': order.order_id,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'status': status,
@@ -339,7 +339,7 @@ module.exports = class sparkswap extends Exchange {
             response.trades.push ({
                 'id': order.open_orders[i].order_id,
                 'symbol': order.market,
-                'order': id,
+                'order': order.order_id,
                 'amount': this.safeFloat (order.open_orders[i], 'amount'),
                 'price': this.safeFloat (order.open_orders[i], 'price'),
                 'info': order.open_orders[i],
@@ -349,7 +349,7 @@ module.exports = class sparkswap extends Exchange {
             response.trades.push ({
                 'id': order.fills[y].order_id,
                 'symbol': order.market,
-                'order': id,
+                'order': order.order_id,
                 'amount': this.safeFloat (order.fills[y], 'amount'),
                 'price': this.safeFloat (order.fills[y], 'price'),
                 'info': order.fills[y],
