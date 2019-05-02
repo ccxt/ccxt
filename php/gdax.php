@@ -154,13 +154,15 @@ class gdax extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $markets = $this->publicGetProducts ();
+        $response = $this->publicGetProducts ($params);
         $result = array ();
-        for ($p = 0; $p < count ($markets); $p++) {
-            $market = $markets[$p];
-            $id = $market['id'];
-            $base = $market['base_currency'];
-            $quote = $market['quote_currency'];
+        for ($i = 0; $i < count ($response); $i++) {
+            $market = $response[$i];
+            $id = $this->safe_string($market, 'id');
+            $baseId = $this->safe_string($market, 'base_currency');
+            $quoteId = $this->safe_string($market, 'quote_currency');
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $priceLimits = array (
                 'min' => $this->safe_float($market, 'quote_increment'),
@@ -178,6 +180,8 @@ class gdax extends Exchange {
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'base' => $base,
                 'quote' => $quote,
                 'precision' => $precision,

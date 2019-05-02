@@ -162,13 +162,15 @@ class gdax (Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        markets = await self.publicGetProducts()
+        response = await self.publicGetProducts(params)
         result = []
-        for p in range(0, len(markets)):
-            market = markets[p]
-            id = market['id']
-            base = market['base_currency']
-            quote = market['quote_currency']
+        for i in range(0, len(response)):
+            market = response[i]
+            id = self.safe_string(market, 'id')
+            baseId = self.safe_string(market, 'base_currency')
+            quoteId = self.safe_string(market, 'quote_currency')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             priceLimits = {
                 'min': self.safe_float(market, 'quote_increment'),
@@ -185,6 +187,8 @@ class gdax (Exchange):
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
                 'precision': precision,
