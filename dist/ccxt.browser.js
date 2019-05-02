@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.499'
+const version = '1.18.500'
 
 Exchange.ccxtVersion = version
 
@@ -34549,8 +34549,8 @@ module.exports = class crex24 extends Exchange {
             code = currency['code'];
         }
         let type = this.safeString (transaction, 'type');
-        let timestamp = this.parse8601 (transaction, 'createdAt');
-        let updated = this.parse8601 (transaction, 'processedAt');
+        let timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
+        let updated = this.parse8601 (this.safeString (transaction, 'processedAt'));
         let status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         let amount = this.safeFloat (transaction, 'amount');
         const feeCost = this.safeFloat (transaction, 'fee');
