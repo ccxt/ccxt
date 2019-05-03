@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.502'
+const version = '1.18.503'
 
 Exchange.ccxtVersion = version
 
@@ -39353,17 +39353,17 @@ module.exports = class fcoin extends Exchange {
     async fetchOrderBook (symbol = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (limit !== undefined) {
-            if ((limit === 20) || (limit === 100)) {
+            if ((limit === 20) || (limit === 150)) {
                 limit = 'L' + limit.toString ();
             } else {
-                throw new ExchangeError (this.id + ' fetchOrderBook supports limit of 20, 100 or no limit. Other values are not accepted');
+                throw new ExchangeError (this.id + ' fetchOrderBook supports limit of 20 or 150. Other values are not accepted');
             }
         } else {
-            limit = 'full';
+            limit = 'L20';
         }
         let request = this.extend ({
             'symbol': this.marketId (symbol),
-            'level': limit, // L20, L100, full
+            'level': limit, // L20, L150
         }, params);
         let response = await this.marketGetDepthLevelSymbol (request);
         let orderbook = response['data'];
