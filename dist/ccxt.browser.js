@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.500'
+const version = '1.18.503'
 
 Exchange.ccxtVersion = version
 
@@ -7879,6 +7879,7 @@ module.exports = class binance extends Exchange {
         // The corresponding trades history is called the `Dust Log` and can be requested via the following end-point:
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
         //
+        await this.loadMarkets ();
         let request = this.extend ({}, params);
         let response = await this.wapiGetUserAssetDribbletLog (request);
         // { success:    true,
@@ -39352,17 +39353,17 @@ module.exports = class fcoin extends Exchange {
     async fetchOrderBook (symbol = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (limit !== undefined) {
-            if ((limit === 20) || (limit === 100)) {
+            if ((limit === 20) || (limit === 150)) {
                 limit = 'L' + limit.toString ();
             } else {
-                throw new ExchangeError (this.id + ' fetchOrderBook supports limit of 20, 100 or no limit. Other values are not accepted');
+                throw new ExchangeError (this.id + ' fetchOrderBook supports limit of 20 or 150. Other values are not accepted');
             }
         } else {
-            limit = 'full';
+            limit = 'L20';
         }
         let request = this.extend ({
             'symbol': this.marketId (symbol),
-            'level': limit, // L20, L100, full
+            'level': limit, // L20, L150
         }, params);
         let response = await this.marketGetDepthLevelSymbol (request);
         let orderbook = response['data'];
@@ -41385,19 +41386,21 @@ module.exports = class gdax extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let markets = await this.publicGetProducts ();
-        let result = [];
-        for (let p = 0; p < markets.length; p++) {
-            let market = markets[p];
-            let id = market['id'];
-            let base = market['base_currency'];
-            let quote = market['quote_currency'];
-            let symbol = base + '/' + quote;
-            let priceLimits = {
+        const response = await this.publicGetProducts (params);
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const market = response[i];
+            const id = this.safeString (market, 'id');
+            const baseId = this.safeString (market, 'base_currency');
+            const quoteId = this.safeString (market, 'quote_currency');
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const priceLimits = {
                 'min': this.safeFloat (market, 'quote_increment'),
                 'max': undefined,
             };
-            let precision = {
+            const precision = {
                 'amount': 8,
                 'price': this.precisionFromString (this.safeString (market, 'quote_increment')),
             };
@@ -41409,6 +41412,8 @@ module.exports = class gdax extends Exchange {
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
                 'precision': precision,

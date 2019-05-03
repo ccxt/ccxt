@@ -217,17 +217,17 @@ class fcoin extends Exchange {
     public function fetch_order_book ($symbol = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($limit !== null) {
-            if (($limit === 20) || ($limit === 100)) {
+            if (($limit === 20) || ($limit === 150)) {
                 $limit = 'L' . (string) $limit;
             } else {
-                throw new ExchangeError ($this->id . ' fetchOrderBook supports $limit of 20, 100 or no $limit-> Other values are not accepted');
+                throw new ExchangeError ($this->id . ' fetchOrderBook supports $limit of 20 or 150. Other values are not accepted');
             }
         } else {
-            $limit = 'full';
+            $limit = 'L20';
         }
         $request = array_merge (array (
             'symbol' => $this->market_id($symbol),
-            'level' => $limit, // L20, L100, full
+            'level' => $limit, // L20, L150
         ), $params);
         $response = $this->marketGetDepthLevelSymbol ($request);
         $orderbook = $response['data'];

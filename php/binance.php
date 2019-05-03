@@ -989,6 +989,7 @@ class binance extends Exchange {
         // The corresponding $trades history is called the `Dust Log` and can be requested via the following end-point:
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
         //
+        $this->load_markets();
         $request = array_merge (array (), $params);
         $response = $this->wapiGetUserAssetDribbletLog ($request);
         // { success =>    true,

@@ -932,6 +932,7 @@ class binance (Exchange):
         # The corresponding trades history is called the `Dust Log` and can be requested via the following end-point:
         # https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
         #
+        self.load_markets()
         request = self.extend({}, params)
         response = self.wapiGetUserAssetDribbletLog(request)
         # {success:    True,
