@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.501'
+const version = '1.18.502'
 
 Exchange.ccxtVersion = version
 
@@ -7879,6 +7879,7 @@ module.exports = class binance extends Exchange {
         // The corresponding trades history is called the `Dust Log` and can be requested via the following end-point:
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
         //
+        await this.loadMarkets ();
         let request = this.extend ({}, params);
         let response = await this.wapiGetUserAssetDribbletLog (request);
         // { success:    true,
