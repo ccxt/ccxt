@@ -261,6 +261,7 @@ class bitfinex extends Exchange {
                 'DAD' => 'DADI',
                 'DAT' => 'DATA',
                 'DSH' => 'DASH',
+                'GSD' => 'GUSD',
                 'HOT' => 'Hydro Protocol',
                 'IOS' => 'IOST',
                 'IOT' => 'IOTA',
@@ -276,9 +277,12 @@ class bitfinex extends Exchange {
                 'SNG' => 'SNGLS',
                 'SPK' => 'SPANK',
                 'STJ' => 'STORJ',
+                'TSD' => 'TUSD',
                 'YYW' => 'YOYOW',
+                'UDC' => 'USDC',
                 'UST' => 'USDT',
                 'UTN' => 'UTNP',
+                'XCH' => 'XCHF',
             ),
             'exceptions' => array (
                 'exact' => array (
