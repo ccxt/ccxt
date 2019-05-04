@@ -848,7 +848,7 @@ The user is required to stay within all limits and precision! The values of the 
 
 The above values can be missing with some exchanges that don’t provide info on limits from their API or don’t have it implemented yet.
 
-Methods For Foramtting Decimals
+Methods For Formatting Decimals
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The exchange base class contains the ``decimalToPrecision`` method to help format values to the required decimal precision with support for different rounding, counting and padding modes.
