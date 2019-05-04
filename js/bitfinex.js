@@ -261,6 +261,7 @@ module.exports = class bitfinex extends Exchange {
                 'DAD': 'DADI',
                 'DAT': 'DATA',
                 'DSH': 'DASH',
+                'GSD': 'GUSD',
                 'HOT': 'Hydro Protocol',
                 'IOS': 'IOST',
                 'IOT': 'IOTA',
@@ -281,6 +282,7 @@ module.exports = class bitfinex extends Exchange {
                 'UDC': 'USDC',
                 'UST': 'USDT',
                 'UTN': 'UTNP',
+                'XCH': 'XCHF',
             },
             'exceptions': {
                 'exact': {
