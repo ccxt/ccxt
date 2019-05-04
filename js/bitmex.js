@@ -985,7 +985,7 @@ module.exports = class bitmex extends Exchange {
                 query += '?' + this.urlencode (params);
             }
         } else {
-            const format = this.safeString2 (params, '_format');
+            const format = this.safeString (params, '_format');
             if (format !== undefined) {
                 query += '?' + this.urlencode ({ '_format': format });
                 params = this.omit (params, '_format');
