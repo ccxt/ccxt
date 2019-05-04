@@ -986,7 +986,7 @@ class bitmex extends Exchange {
                 $query .= '?' . $this->urlencode ($params);
             }
         } else {
-            $format = $this->safe_string_2($params, '_format');
+            $format = $this->safe_string($params, '_format');
             if ($format !== null) {
                 $query .= '?' . $this->urlencode (array ( '_format' => $format ));
                 $params = $this->omit ($params, '_format');

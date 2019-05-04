@@ -929,7 +929,7 @@ class bitmex (Exchange):
             if params:
                 query += '?' + self.urlencode(params)
         else:
-            format = self.safe_string_2(params, '_format')
+            format = self.safe_string(params, '_format')
             if format is not None:
                 query += '?' + self.urlencode({'_format': format})
                 params = self.omit(params, '_format')
