@@ -175,6 +175,7 @@ const pythonRegexes = [
     [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
     [ /this\.stringToBase64\s/g, 'base64.b64encode' ],
     [ /this\.base64ToBinary\s/g, 'base64.b64decode' ],
+    [ /\.shift\s*\(\)/g, '.pop (0)' ],
 
 // insert common regexes in the middle (critical)
 ].concat (commonRegexes).concat ([
@@ -290,6 +291,8 @@ const phpRegexes = [
     [ /this\.stringToBase64/g, 'base64_encode' ],
     [ /this\.base64ToBinary/g, 'base64_decode' ],
     [ /this\.deepExtend/g, 'array_replace_recursive'],
+    [ /(\w+)\.shift\s*\(\)/g, 'array_shift ($1)' ],
+    [ /(\w+)\.pop\s*\(\)/g, 'array_pop ($1)' ],
 
 // insert common regexes in the middle (critical)
 ].concat (commonRegexes).concat ([
