@@ -175,7 +175,7 @@ const pythonRegexes = [
     [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
     [ /this\.stringToBase64\s/g, 'base64.b64encode' ],
     [ /this\.base64ToBinary\s/g, 'base64.b64decode' ],
-    [ /\.shift\s*\(\)/g, '.pop (0)' ],
+    [ /\.shift\s*\(\)/g, '.pop(0)' ],
 
 // insert common regexes in the middle (critical)
 ].concat (commonRegexes).concat ([
