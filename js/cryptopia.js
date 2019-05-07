@@ -849,6 +849,9 @@ module.exports = class cryptopia extends Exchange {
             let nonce = this.nonce ().toString ();
             body = this.json (query, { 'convertArraysToObjects': true });
             let hash = this.hash (this.encode (body), 'md5', 'base64');
+            if (this.secret.length % 4) {
+                this.secret += '=' * (4 - this.secret.length % 4);
+            }
             let secret = this.base64ToBinary (this.secret);
             let uri = this.encodeURIComponent (url);
             let lowercase = uri.toLowerCase ();
