@@ -328,8 +328,8 @@ class gateio (Exchange):
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': self.safe_float(ticker, 'quoteVolume'),
-            'quoteVolume': self.safe_float(ticker, 'baseVolume'),
+            'baseVolume': self.safe_float(ticker, 'baseVolume'),
+            'quoteVolume': self.safe_float(ticker, 'quoteVolume'),
             'info': ticker,
         }
 
