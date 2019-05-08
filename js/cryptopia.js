@@ -492,6 +492,7 @@ module.exports = class cryptopia extends Exchange {
     }
 
     async fetchTransactionsByType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let request = {
             'type': (type === 'deposit') ? 'Deposit' : 'Withdraw',
         };
