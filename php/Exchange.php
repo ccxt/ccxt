@@ -191,7 +191,6 @@ class Exchange {
         'okcoincny',
         'okcoinusd',
         'okex',
-        'okex3',
         'paymium',
         'poloniex',
         'quadrigacx',
