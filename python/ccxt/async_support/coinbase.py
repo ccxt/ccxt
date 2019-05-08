@@ -11,7 +11,6 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -47,6 +46,7 @@ class coinbase (Exchange):
                 'fetchOpenOrders': False,
                 'fetchOrder': False,
                 'fetchOrderBook': False,
+                'fetchL2OrderBook': False,
                 'fetchOrders': False,
                 'fetchTicker': True,
                 'fetchTickers': False,
@@ -170,20 +170,9 @@ class coinbase (Exchange):
         data = response['data']
         return self.parse8601(data['iso'])
 
-    async def load_accounts(self, reload=False):
-        if reload:
-            self.accounts = await self.fetch_accounts()
-        else:
-            if self.accounts:
-                return self.accounts
-            else:
-                self.accounts = await self.fetch_accounts()
-                self.accountsById = self.index_by(self.accounts, 'id')
-        return self.accounts
-
-    async def fetch_accounts(self):
+    async def fetch_accounts(self, params={}):
         await self.load_markets()
-        response = await self.privateGetAccounts()
+        response = await self.privateGetAccounts(params)
         return response['data']
 
     async def fetch_my_sells(self, symbol=None, since=None, limit=None, params={}):
@@ -549,7 +538,6 @@ class coinbase (Exchange):
         if len(body) < 2:
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
             feedback = self.id + ' ' + body
             #
             #    {"error": "invalid_request", "error_description": "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed."}

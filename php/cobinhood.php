@@ -182,6 +182,7 @@ class cobinhood extends Exchange {
                 'invalid_nonce' => '\\ccxt\\InvalidNonce',
                 'unauthorized_scope' => '\\ccxt\\PermissionDenied',
                 'invalid_address' => '\\ccxt\\InvalidAddress',
+                'parameter_error' => '\\ccxt\\OrderNotFound',
             ),
             'commonCurrencies' => array (
                 'SMT' => 'SocialMedia.Market',
@@ -365,8 +366,8 @@ class cobinhood extends Exchange {
         $amount = $this->safe_float($trade, 'size');
         $cost = $price * $amount;
         // you can't determine your $side from maker/taker $side and vice versa
-        // you can't determine if your order/$trade was a maker or a taker based
-        // on just the $side of your order/$trade
+        // you can't determine if your order/trade was a maker or a taker based
+        // on just the $side of your order/trade
         // https://github.com/ccxt/ccxt/issues/4300
         // $side = ($trade['maker_side'] === 'bid') ? 'sell' : 'buy';
         $side = null;
@@ -603,8 +604,17 @@ class cobinhood extends Exchange {
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $result = $this->privateGetTradingOrderHistory ($params);
-        $orders = $this->parse_orders($result['result']['orders'], null, $since, $limit);
+        $request = array ();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['trading_pair_id'] = $market['id'];
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 50, max 100
+        }
+        $result = $this->privateGetTradingOrderHistory (array_merge ($request, $params));
+        $orders = $this->parse_orders($result['result']['orders'], $market, $since, $limit);
         if ($symbol !== null) {
             return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
         }
@@ -704,7 +714,7 @@ class cobinhood extends Exchange {
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($code === null) {
-            throw new ExchangeError ($this->id . ' fetchDeposits() requires a $currency $code arguemnt');
+            throw new ExchangeError ($this->id . ' fetchDeposits() requires a $currency $code argument');
         }
         $currency = $this->currency ($code);
         $request = array (
@@ -717,7 +727,7 @@ class cobinhood extends Exchange {
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($code === null) {
-            throw new ExchangeError ($this->id . ' fetchWithdrawals() requires a $currency $code arguemnt');
+            throw new ExchangeError ($this->id . ' fetchWithdrawals() requires a $currency $code argument');
         }
         $currency = $this->currency ($code);
         $request = array (
@@ -823,7 +833,6 @@ class cobinhood extends Exchange {
         if ($body[0] !== '{') {
             throw new ExchangeError ($this->id . ' ' . $body);
         }
-        $response = json_decode ($body, $as_associative_array = true);
         $feedback = $this->id . ' ' . $this->json ($response);
         $errorCode = $this->safe_value($response['error'], 'error_code');
         if ($method === 'DELETE' || $method === 'GET') {

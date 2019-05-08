@@ -29,6 +29,7 @@ module.exports = class coinegg extends Exchange {
                 'www': 'https://www.coinegg.com',
                 'doc': 'https://www.coinegg.com/explain.api.html',
                 'fees': 'https://www.coinegg.com/fee.html',
+                'referral': 'http://www.coinegg.com/user/register?invite=523218',
             },
             'api': {
                 'web': {
@@ -509,7 +510,6 @@ module.exports = class coinegg extends Exchange {
             return;
         if (body[0] !== '{')
             return;
-        response = JSON.parse (body);
         // private endpoints return the following structure:
         // {"result":true,"data":{...}} - success
         // {"result":false,"code":"103"} - failure

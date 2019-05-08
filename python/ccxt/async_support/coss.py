@@ -575,8 +575,8 @@ class coss (Exchange):
                 base = self.common_currency_code(baseId)
                 quote = self.common_currency_code(quoteId)
                 symbol = base + '/' + quote
-            else:
-                symbol = market['symbol']
+        elif market is not None:
+            symbol = market['symbol']
         cost = None
         price = self.safe_float(trade, 'price')
         amount = self.safe_float_2(trade, 'qty', 'quantity')

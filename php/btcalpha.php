@@ -416,7 +416,6 @@ class btcalpha extends Exchange {
         if (strlen ($body) < 2)
             return; // fallback to default error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             $message = $this->id . ' ' . $this->safe_value($response, 'detail', $body);
             if ($code === 401 || $code === 403) {
                 throw new AuthenticationError ($message);

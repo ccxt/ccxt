@@ -12,7 +12,6 @@ try:
 except NameError:
     basestring = str  # Python 2
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InvalidOrder
@@ -396,7 +395,6 @@ class btcalpha (Exchange):
         if len(body) < 2:
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
             message = self.id + ' ' + self.safe_value(response, 'detail', body)
             if code == 401 or code == 403:
                 raise AuthenticationError(message)

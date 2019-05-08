@@ -100,6 +100,7 @@ class coinmarketcap extends Exchange {
             'Bitgem' => 'Bitgem',
             'BlazeCoin' => 'BlazeCoin',
             'BlockCAT' => 'BlockCAT',
+            'Blocktrade Token' => 'Blocktrade Token',
             'Catcoin' => 'Catcoin',
             'CanYaCoin' => 'CanYaCoin', // conflict with CAN (Content and AD Network)
             'Comet' => 'Comet', // conflict with CMT (CyberMiles)
@@ -211,8 +212,8 @@ class coinmarketcap extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => null,
+            'change' => null,
+            'percentage' => $change,
             'average' => null,
             'baseVolume' => null,
             'quoteVolume' => $volume,

@@ -759,7 +759,6 @@ module.exports = class liqui extends Exchange {
     handleErrors (httpCode, reason, url, method, headers, body, response) {
         if (!this.isJsonEncodedObject (body))
             return; // fallback to default error handler
-        response = JSON.parse (body);
         if ('success' in response) {
             //
             // 1 - Liqui only returns the integer 'success' key from their private API
@@ -801,6 +800,8 @@ module.exports = class liqui extends Exchange {
                 const exact = this.exceptions['exact'];
                 if (code in exact) {
                     throw new exact[code] (feedback);
+                } else if (message in exact) {
+                    throw new exact[message] (feedback);
                 }
                 const broad = this.exceptions['broad'];
                 const broadKey = this.findBroadlyMatchedKey (broad, message);

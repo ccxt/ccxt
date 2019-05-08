@@ -67,16 +67,94 @@ class braziliex extends Exchange {
                 'amount' => 8,
                 'price' => 8,
             ),
+            'options' => array (
+                'fetchCurrencies' => array (
+                    'expires' => 1000, // 1 second
+                ),
+            ),
         ));
     }
 
+    public function fetch_currencies_from_cache ($params = array ()) {
+        // this method is $now redundant
+        // currencies are $now fetched before markets
+        $options = $this->safe_value($this->options, 'fetchCurrencies', array ());
+        $timestamp = $this->safe_integer($options, 'timestamp');
+        $expires = $this->safe_integer($options, 'expires', 1000);
+        $now = $this->milliseconds ();
+        if (($timestamp === null) || (($now - $timestamp) > $expires)) {
+            $response = $this->publicGetCurrencies ($params);
+            $this->options['fetchCurrencies'] = array_merge ($options, array (
+                'response' => $response,
+                'timestamp' => $now,
+            ));
+        }
+        return $this->safe_value($this->options['fetchCurrencies'], 'response');
+    }
+
     public function fetch_currencies ($params = array ()) {
-        $currencies = $this->publicGetCurrencies ($params);
-        $ids = is_array ($currencies) ? array_keys ($currencies) : array ();
+        $response = $this->fetch_currencies_from_cache ($params);
+        //
+        //     {
+        //         brl => array (
+        //             name => "Real",
+        //             withdrawal_txFee =>  0.0075,
+        //             txWithdrawalFee =>  9,
+        //             MinWithdrawal =>  30,
+        //             minConf =>  1,
+        //             minDeposit =>  0,
+        //             txDepositFee =>  0,
+        //             txDepositPercentageFee =>  0,
+        //             minAmountTradeFIAT =>  5,
+        //             minAmountTradeBTC =>  0.0001,
+        //             minAmountTradeUSDT =>  0.0001,
+        //             decimal =>  8,
+        //             decimal_withdrawal =>  8,
+        //             $active =>  1,
+        //             dev_active =>  1,
+        //             under_maintenance =>  0,
+        //             order => "010",
+        //             is_withdrawal_active =>  1,
+        //             is_deposit_active =>  1,
+        //             is_token_erc20 =>  0,
+        //             is_fiat =>  1,
+        //             gateway =>  0,
+        //         ),
+        //         btc => {
+        //             name => "Bitcoin",
+        //             txWithdrawalMinFee =>  0.000125,
+        //             txWithdrawalFee =>  0.00015625,
+        //             MinWithdrawal =>  0.0005,
+        //             minConf =>  1,
+        //             minDeposit =>  0,
+        //             txDepositFee =>  0,
+        //             txDepositPercentageFee =>  0,
+        //             minAmountTradeFIAT =>  5,
+        //             minAmountTradeBTC =>  0.0001,
+        //             minAmountTradeUSDT =>  0.0001,
+        //             decimal =>  8,
+        //             decimal_withdrawal =>  8,
+        //             $active =>  1,
+        //             dev_active =>  1,
+        //             under_maintenance =>  0,
+        //             order => "011",
+        //             is_withdrawal_active =>  1,
+        //             is_deposit_active =>  1,
+        //             is_token_erc20 =>  0,
+        //             is_fiat =>  0,
+        //             gateway =>  1,
+        //         }
+        //     }
+        //
+        $this->options['currencies'] = array (
+            'timestamp' => $this->milliseconds (),
+            'response' => $response,
+        );
+        $ids = is_array ($response) ? array_keys ($response) : array ();
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $currency = $currencies[$id];
+            $currency = $response[$id];
             $precision = $this->safe_integer($currency, 'decimal');
             $uppercase = strtoupper ($id);
             $code = $this->common_currency_code($uppercase);
@@ -87,8 +165,9 @@ class braziliex extends Exchange {
             }
             $canWithdraw = $this->safe_integer($currency, 'is_withdrawal_active') === 1;
             $canDeposit = $this->safe_integer($currency, 'is_deposit_active') === 1;
-            if (!$canWithdraw || !$canDeposit)
+            if (!$canWithdraw || !$canDeposit) {
                 $active = false;
+            }
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
@@ -98,16 +177,16 @@ class braziliex extends Exchange {
                 'funding' => array (
                     'withdraw' => array (
                         'active' => $canWithdraw,
-                        'fee' => $currency['txWithdrawalFee'],
+                        'fee' => $this->safe_float($currency, 'txWithdrawalFee'),
                     ),
                     'deposit' => array (
                         'active' => $canDeposit,
-                        'fee' => $currency['txDepositFee'],
+                        'fee' => $this->safe_float($currency, 'txDepositFee'),
                     ),
                 ),
                 'limits' => array (
                     'amount' => array (
-                        'min' => $currency['minAmountTrade'],
+                        'min' => pow (10, -$precision),
                         'max' => pow (10, $precision),
                     ),
                     'price' => array (
@@ -119,11 +198,11 @@ class braziliex extends Exchange {
                         'max' => null,
                     ),
                     'withdraw' => array (
-                        'min' => $currency['MinWithdrawal'],
+                        'min' => $this->safe_float($currency, 'MinWithdrawal'),
                         'max' => pow (10, $precision),
                     ),
                     'deposit' => array (
-                        'min' => $currency['minDeposit'],
+                        'min' => $this->safe_float($currency, 'minDeposit'),
                         'max' => null,
                     ),
                 ),
@@ -134,19 +213,49 @@ class braziliex extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $markets = $this->publicGetTicker ();
-        $ids = is_array ($markets) ? array_keys ($markets) : array ();
+        $currencies = $this->fetch_currencies_from_cache ($params);
+        $response = $this->publicGetTicker ();
+        //
+        //     {
+        //         btc_brl => array (
+        //             $active => 1,
+        //             $market => 'btc_brl',
+        //             last => 14648,
+        //             percentChange => -0.95,
+        //             baseVolume24 => 27.856,
+        //             quoteVolume24 => 409328.039,
+        //             baseVolume => 27.856,
+        //             quoteVolume => 409328.039,
+        //             highestBid24 => 14790,
+        //             lowestAsk24 => 14450.01,
+        //             highestBid => 14450.37,
+        //             lowestAsk => 14699.98
+        //         ),
+        //         ...
+        //     }
+        //
+        $ids = is_array ($response) ? array_keys ($response) : array ();
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $market = $markets[$id];
+            $market = $response[$id];
             list ($baseId, $quoteId) = explode ('_', $id);
-            $base = strtoupper ($baseId);
-            $quote = strtoupper ($quoteId);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $uppercaseBaseId = strtoupper ($baseId);
+            $uppercaseQuoteId = strtoupper ($quoteId);
+            $base = $this->common_currency_code($uppercaseBaseId);
+            $quote = $this->common_currency_code($uppercaseQuoteId);
             $symbol = $base . '/' . $quote;
-            $active = $this->safe_integer($market, 'active') === 1;
+            $baseCurrency = $this->safe_value($currencies, $baseId, array ());
+            $quoteCurrency = $this->safe_value($currencies, $quoteId, array ());
+            $quoteIsFiat = $this->safe_integer($quoteCurrency, 'is_fiat', 0);
+            $minCost = null;
+            if ($quoteIsFiat) {
+                $minCost = $this->safe_float($baseCurrency, 'minAmountTradeFIAT');
+            } else {
+                $minCost = $this->safe_float($baseCurrency, 'minAmountTrade' . $uppercaseQuoteId);
+            }
+            $isActive = $this->safe_integer($market, 'active');
+            $active = ($isActive === 1);
             $precision = array (
                 'amount' => 8,
                 'price' => 8,
@@ -170,7 +279,7 @@ class braziliex extends Exchange {
                         'max' => pow (10, $precision['price']),
                     ),
                     'cost' => array (
-                        'min' => null,
+                        'min' => $minCost,
                         'max' => null,
                     ),
                 ),

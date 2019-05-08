@@ -1,12 +1,13 @@
 environment:
   matrix:
-    - nodejs_version: '8'
+    - nodejs_version: '9'
 install:
   - ps: Install-Product node $env:nodejs_version
   - set CI=true
   - npm install --global npm@latest
   - set PATH=%APPDATA%\npm;%PATH%
   - npm install
+  - python -m pip install --upgrade pip setuptools
   - pip install tox
   - pip install requests
   - cinst -y curl

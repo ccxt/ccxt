@@ -18,25 +18,27 @@ class crex24 extends Exchange {
             'version' => 'v2',
             // new metainfo interface
             'has' => array (
+                'cancelAllOrders' => true,
+                'CORS' => false,
+                'editOrder' => true,
+                'fetchBidsAsks' => true,
+                'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
-                'CORS' => false,
-                'fetchBidsAsks' => true,
-                'fetchTickers' => true,
-                'fetchOHLCV' => false,
+                'fetchDeposits' => true,
+                'fetchFundingFees' => false,
                 'fetchMyTrades' => true,
+                'fetchOHLCV' => false,
+                'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => false,
-                'fetchOpenOrders' => true,
-                'fetchClosedOrders' => true,
-                'withdraw' => true,
-                'fetchTradingFees' => false, // actually, true, but will be implemented later
-                'fetchFundingFees' => false,
-                'fetchDeposits' => true,
-                'fetchWithdrawals' => true,
-                'fetchTransactions' => true,
                 'fetchOrderTrades' => true,
-                'editOrder' => true,
+                'fetchTickers' => true,
+                'fetchTradingFee' => false, // actually, true, but will be implemented later
+                'fetchTradingFees' => false, // actually, true, but will be implemented later
+                'fetchTransactions' => true,
+                'fetchWithdrawals' => true,
+                'withdraw' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg',
@@ -921,7 +923,7 @@ class crex24 extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_all_orders ($symbols = null, $params = array ()) {
+    public function cancel_all_orders ($symbol = null, $params = array ()) {
         $response = $this->tradingPostCancelAllOrders ($params);
         //
         //     array (
@@ -1084,8 +1086,8 @@ class crex24 extends Exchange {
             $code = $currency['code'];
         }
         $type = $this->safe_string($transaction, 'type');
-        $timestamp = $this->parse8601 ($transaction, 'createdAt');
-        $updated = $this->parse8601 ($transaction, 'processedAt');
+        $timestamp = $this->parse8601 ($this->safe_string($transaction, 'createdAt'));
+        $updated = $this->parse8601 ($this->safe_string($transaction, 'processedAt'));
         $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
         $amount = $this->safe_float($transaction, 'amount');
         $feeCost = $this->safe_float($transaction, 'fee');
@@ -1190,7 +1192,6 @@ class crex24 extends Exchange {
         if (($code >= 200) && ($code < 300)) {
             return; // no error
         }
-        $response = json_decode ($body, $as_associative_array = true);
         $message = $this->safe_string($response, 'errorDescription');
         $feedback = $this->id . ' ' . $this->json ($response);
         $exact = $this->exceptions['exact'];

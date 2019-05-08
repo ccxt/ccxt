@@ -13,7 +13,6 @@ except NameError:
     basestring = str  # Python 2
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -41,6 +40,7 @@ class zb (Exchange):
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchOHLCV': True,
+                'fetchTickers': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -574,7 +574,6 @@ class zb (Exchange):
         if len(body) < 2:
             return  # fallback to default error handler
         if body[0] == '{':
-            response = json.loads(body)
             feedback = self.id + ' ' + self.json(response)
             if 'code' in response:
                 code = self.safe_string(response, 'code')

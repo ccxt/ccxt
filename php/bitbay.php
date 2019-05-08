@@ -311,7 +311,6 @@ class bitbay extends Exchange {
         if (strlen ($body) < 2)
             return;
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             if (is_array ($response) && array_key_exists ('code', $response)) {
                 //
                 // bitbay returns the integer 'success' => 1 key from their private API

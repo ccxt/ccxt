@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidAddress, InsufficientFunds, InvalidNonce, InvalidOrder, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, InvalidAddress, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -181,6 +181,7 @@ module.exports = class cobinhood extends Exchange {
                 'invalid_nonce': InvalidNonce,
                 'unauthorized_scope': PermissionDenied,
                 'invalid_address': InvalidAddress,
+                'parameter_error': OrderNotFound,
             },
             'commonCurrencies': {
                 'SMT': 'SocialMedia.Market',
@@ -592,8 +593,8 @@ module.exports = class cobinhood extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let result = await this.privateGetTradingOrders (params);
-        let orders = this.parseOrders (result['result']['orders'], undefined, since, limit);
+        const result = await this.privateGetTradingOrders (params);
+        const orders = this.parseOrders (result['result']['orders'], undefined, since, limit);
         if (symbol !== undefined) {
             return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
         }
@@ -602,8 +603,17 @@ module.exports = class cobinhood extends Exchange {
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let result = await this.privateGetTradingOrderHistory (params);
-        let orders = this.parseOrders (result['result']['orders'], undefined, since, limit);
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['trading_pair_id'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 50, max 100
+        }
+        const result = await this.privateGetTradingOrderHistory (this.extend (request, params));
+        const orders = this.parseOrders (result['result']['orders'], market, since, limit);
         if (symbol !== undefined) {
             return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
         }
@@ -612,36 +622,36 @@ module.exports = class cobinhood extends Exchange {
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetTradingOrdersOrderIdTrades (this.extend ({
+        const response = await this.privateGetTradingOrdersOrderIdTrades (this.extend ({
             'order_id': id,
         }, params));
-        let market = (symbol === undefined) ? undefined : this.market (symbol);
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
         return this.parseTrades (response['result']['trades'], market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {};
+        const market = this.market (symbol);
+        const request = {};
         if (symbol !== undefined) {
             request['trading_pair_id'] = market['id'];
         }
-        let response = await this.privateGetTradingTrades (this.extend (request, params));
+        const response = await this.privateGetTradingTrades (this.extend (request, params));
         return this.parseTrades (response['result']['trades'], market, since, limit);
     }
 
     async createDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
+        const currency = this.currency (code);
         // 'ledger_type' is required, see: https://cobinhood.github.io/api-public/#create-new-deposit-address
-        let ledgerType = this.safeString (params, 'ledger_type', 'exchange');
-        let request = {
+        const ledgerType = this.safeString (params, 'ledger_type', 'exchange');
+        const request = {
             'currency': currency['id'],
             'ledger_type': ledgerType,
         };
-        let response = await this.privatePostWalletDepositAddresses (this.extend (request, params));
-        let address = this.safeString (response['result']['deposit_address'], 'address');
-        let tag = this.safeString (response['result']['deposit_address'], 'memo');
+        const response = await this.privatePostWalletDepositAddresses (this.extend (request, params));
+        const address = this.safeString (response['result']['deposit_address'], 'address');
+        const tag = this.safeString (response['result']['deposit_address'], 'memo');
         this.checkAddress (address);
         return {
             'currency': code,
@@ -653,8 +663,8 @@ module.exports = class cobinhood extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let response = await this.privateGetWalletDepositAddresses (this.extend ({
+        const currency = this.currency (code);
+        const response = await this.privateGetWalletDepositAddresses (this.extend ({
             'currency': currency['id'],
         }, params));
         //
@@ -666,7 +676,7 @@ module.exports = class cobinhood extends Exchange {
         //                                                  memo: "12345678",
         //                                                  type: "exchange"      } ] } }
         //
-        let addresses = this.safeValue (response['result'], 'deposit_addresses', []);
+        const addresses = this.safeValue (response['result'], 'deposit_addresses', []);
         let address = undefined;
         let tag = undefined;
         if (addresses.length > 0) {
@@ -684,7 +694,7 @@ module.exports = class cobinhood extends Exchange {
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
+        const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
             'amount': amount,
@@ -693,7 +703,7 @@ module.exports = class cobinhood extends Exchange {
         if (tag !== undefined) {
             request['memo'] = tag;
         }
-        let response = await this.privatePostWalletWithdrawals (this.extend (request, params));
+        const response = await this.privatePostWalletWithdrawals (this.extend (request, params));
         return {
             'id': undefined,
             'info': response,
@@ -703,31 +713,31 @@ module.exports = class cobinhood extends Exchange {
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (code === undefined) {
-            throw new ExchangeError (this.id + ' fetchDeposits() requires a currency code arguemnt');
+            throw new ExchangeError (this.id + ' fetchDeposits() requires a currency code argument');
         }
-        let currency = this.currency (code);
-        let request = {
+        const currency = this.currency (code);
+        const request = {
             'currency': currency['id'],
         };
-        let response = await this.privateGetWalletDeposits (this.extend (request, params));
+        const response = await this.privateGetWalletDeposits (this.extend (request, params));
         return this.parseTransactions (response['result']['deposits'], currency);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (code === undefined) {
-            throw new ExchangeError (this.id + ' fetchWithdrawals() requires a currency code arguemnt');
+            throw new ExchangeError (this.id + ' fetchWithdrawals() requires a currency code argument');
         }
-        let currency = this.currency (code);
-        let request = {
+        const currency = this.currency (code);
+        const request = {
             'currency': currency['id'],
         };
-        let response = await this.privateGetWalletWithdrawals (this.extend (request, params));
+        const response = await this.privateGetWalletWithdrawals (this.extend (request, params));
         return this.parseTransactions (response['result']['withdrawals'], currency);
     }
 
     parseTransactionStatus (status) {
-        let statuses = {
+        const statuses = {
             'tx_pending_two_factor_auth': 'pending',
             'tx_pending_email_auth': 'pending',
             'tx_pending_approval': 'pending',
@@ -822,7 +832,6 @@ module.exports = class cobinhood extends Exchange {
         if (body[0] !== '{') {
             throw new ExchangeError (this.id + ' ' + body);
         }
-        response = JSON.parse (body);
         const feedback = this.id + ' ' + this.json (response);
         let errorCode = this.safeValue (response['error'], 'error_code');
         if (method === 'DELETE' || method === 'GET') {

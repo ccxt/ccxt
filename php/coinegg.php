@@ -30,6 +30,7 @@ class coinegg extends Exchange {
                 'www' => 'https://www.coinegg.com',
                 'doc' => 'https://www.coinegg.com/explain.api.html',
                 'fees' => 'https://www.coinegg.com/fee.html',
+                'referral' => 'http://www.coinegg.com/user/register?invite=523218',
             ),
             'api' => array (
                 'web' => array (
@@ -510,7 +511,6 @@ class coinegg extends Exchange {
             return;
         if ($body[0] !== '{')
             return;
-        $response = json_decode ($body, $as_associative_array = true);
         // private endpoints return the following structure:
         // array ("$result":true,"data":{...)} - success
         // array ("$result":false,"$code":"103") - failure

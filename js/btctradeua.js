@@ -84,8 +84,8 @@ module.exports = class btctradeua extends Exchange {
         });
     }
 
-    signIn () {
-        return this.privatePostAuth ();
+    async signIn (params = {}) {
+        return await this.privatePostAuth (params);
     }
 
     async fetchBalance (params = {}) {

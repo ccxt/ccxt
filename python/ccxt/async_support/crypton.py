@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
-import json
 from ccxt.base.errors import ExchangeError
 
 
@@ -373,7 +372,6 @@ class crypton (Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response):
         if body[0] == '{':
-            response = json.loads(body)
             success = self.safe_value(response, 'success')
             if not success:
                 raise ExchangeError(self.id + ' ' + body)

@@ -176,8 +176,9 @@ class bitbank (Exchange):
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         symbol = market['symbol']
-        cost = self.cost_to_precision(symbol, price * amount)
+        cost = float(self.cost_to_precision(symbol, price * amount))
         id = self.safe_string(trade, 'transaction_id')
+        takerOrMaker = self.safe_string(trade, 'maker_taker')
         if not id:
             id = self.safe_string(trade, 'trade_id')
         fee = None
@@ -194,6 +195,7 @@ class bitbank (Exchange):
             'order': self.safe_string(trade, 'order_id'),
             'type': self.safe_string(trade, 'type'),
             'side': trade['side'],
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,

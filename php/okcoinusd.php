@@ -121,11 +121,11 @@ class okcoinusd extends Exchange {
                 'api' => array (
                     'web' => 'https://www.okcoin.com/v2',
                     'public' => 'https://www.okcoin.com/api',
-                    'private' => 'https://www.okcoin.com/api',
+                    'private' => 'https://www.okcoin.com',
                 ),
                 'www' => 'https://www.okcoin.com',
                 'doc' => array (
-                    'https://www.okcoin.com/rest_getStarted.html',
+                    'https://www.okcoin.com/docs/en/',
                     'https://www.npmjs.com/package/okcoin.com',
                 ),
             ),
@@ -963,7 +963,6 @@ class okcoinusd extends Exchange {
         if (strlen ($body) < 2)
             return; // fallback to default $error handler
         if ($body[0] === '{') {
-            $response = json_decode ($body, $as_associative_array = true);
             if (is_array ($response) && array_key_exists ('error_code', $response)) {
                 $error = $this->safe_string($response, 'error_code');
                 $message = $this->id . ' ' . $this->json ($response);

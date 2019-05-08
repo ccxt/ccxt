@@ -93,6 +93,7 @@ module.exports = class huobipro extends Exchange {
                         'order/matchresults', // 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
                         'dw/deposit-virtual/addresses',
+                        'dw/deposit-virtual/sharedAddressWithTag', // https://github.com/ccxt/ccxt/issues/4851
                         'query/deposit-withdraw',
                         'margin/loan-orders', // 借贷订单
                         'margin/accounts/balance', // 借贷账户详情
@@ -128,6 +129,7 @@ module.exports = class huobipro extends Exchange {
                 },
             },
             'exceptions': {
+                'gateway-internal-error': ExchangeNotAvailable, // {"status":"error","err-code":"gateway-internal-error","err-msg":"Failed to load data. Try again later.","data":null}
                 'account-frozen-balance-insufficient-error': InsufficientFunds, // {"status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left: `0.0027`","data":null}
                 'invalid-amount': InvalidOrder, // eg "Paramemter `amount` is invalid."
                 'order-limitorder-amount-min-error': InvalidOrder, // limit order amount error, min: `0.001`
@@ -146,6 +148,9 @@ module.exports = class huobipro extends Exchange {
                 'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod': 'privatePostOrderOrdersPlace',
                 'language': 'en-US',
+            },
+            'commonCurrencies': {
+                'HOT': 'Hydro Protocol', // conflict with HOT (Holo) https://github.com/ccxt/ccxt/issues/4929
             },
         });
     }
@@ -505,23 +510,9 @@ module.exports = class huobipro extends Exchange {
         return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
     }
 
-    async loadAccounts (reload = false) {
-        if (reload) {
-            this.accounts = await this.fetchAccounts ();
-        } else {
-            if (this.accounts) {
-                return this.accounts;
-            } else {
-                this.accounts = await this.fetchAccounts ();
-                this.accountsById = this.indexBy (this.accounts, 'id');
-            }
-        }
-        return this.accounts;
-    }
-
-    async fetchAccounts () {
+    async fetchAccounts (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetAccountAccounts ();
+        let response = await this.privateGetAccountAccounts (params);
         return response['data'];
     }
 
@@ -636,6 +627,23 @@ module.exports = class huobipro extends Exchange {
             request['symbol'] = market['id'];
         }
         let response = await this.privateGetOrderOrders (this.extend (request, params));
+        //
+        //     { status:   "ok",
+        //         data: [ {                  id:  13997833014,
+        //                                symbol: "ethbtc",
+        //                          'account-id':  3398321,
+        //                                amount: "0.045000000000000000",
+        //                                 price: "0.034014000000000000",
+        //                          'created-at':  1545836976871,
+        //                                  type: "sell-limit",
+        //                        'field-amount': "0.045000000000000000",
+        //                   'field-cash-amount': "0.001530630000000000",
+        //                          'field-fees': "0.000003061260000000",
+        //                         'finished-at':  1545837948214,
+        //                                source: "spot-api",
+        //                                 state: "filled",
+        //                         'canceled-at':  0                      }  ] }
+        //
         return this.parseOrders (response['data'], market, since, limit);
     }
 
@@ -671,6 +679,37 @@ module.exports = class huobipro extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //     {                  id:  13997833014,
+        //                    symbol: "ethbtc",
+        //              'account-id':  3398321,
+        //                    amount: "0.045000000000000000",
+        //                     price: "0.034014000000000000",
+        //              'created-at':  1545836976871,
+        //                      type: "sell-limit",
+        //            'field-amount': "0.045000000000000000",
+        //       'field-cash-amount': "0.001530630000000000",
+        //              'field-fees': "0.000003061260000000",
+        //             'finished-at':  1545837948214,
+        //                    source: "spot-api",
+        //                     state: "filled",
+        //             'canceled-at':  0                      }
+        //
+        //     {                  id:  20395337822,
+        //                    symbol: "ethbtc",
+        //              'account-id':  5685075,
+        //                    amount: "0.001000000000000000",
+        //                     price: "0.0",
+        //              'created-at':  1545831584023,
+        //                      type: "buy-market",
+        //            'field-amount': "0.029100000000000000",
+        //       'field-cash-amount': "0.000999788700000000",
+        //              'field-fees': "0.000058200000000000",
+        //             'finished-at':  1545831584181,
+        //                    source: "spot-api",
+        //                     state: "filled",
+        //             'canceled-at':  0                      }
+        //
         let id = this.safeString (order, 'id');
         let side = undefined;
         let type = undefined;
@@ -696,12 +735,17 @@ module.exports = class huobipro extends Exchange {
         let timestamp = this.safeInteger (order, 'created-at');
         let amount = this.safeFloat (order, 'amount');
         let filled = this.safeFloat (order, 'field-amount'); // typo in their API, filled amount
+        if ((type === 'market') && (side === 'buy')) {
+            amount = (status === 'closed') ? filled : undefined;
+        }
         let price = this.safeFloat (order, 'price');
+        if (price === 0.0) {
+            price = undefined;
+        }
         let cost = this.safeFloat (order, 'field-cash-amount'); // same typo
         let remaining = undefined;
         let average = undefined;
         if (filled !== undefined) {
-            average = 0;
             if (amount !== undefined) {
                 remaining = amount - filled;
             }
@@ -709,6 +753,18 @@ module.exports = class huobipro extends Exchange {
             if ((cost !== undefined) && (filled > 0)) {
                 average = cost / filled;
             }
+        }
+        const feeCost = this.safeFloat (order, 'field-fees'); // typo in their API, filled fees
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            let feeCurrency = undefined;
+            if (market !== undefined) {
+                feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
+            }
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
         }
         let result = {
             'info': order,
@@ -726,7 +782,7 @@ module.exports = class huobipro extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': undefined,
+            'fee': fee,
         };
         return result;
     }
@@ -746,6 +802,11 @@ module.exports = class huobipro extends Exchange {
                 if (price === undefined) {
                     throw new InvalidOrder (this.id + " market buy order requires price argument to calculate cost (total amount of quote currency to spend for buying, amount * price). To switch off this warning exception and specify cost in the amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
                 } else {
+                    // despite that cost = amount * price is in quote currency and should have quote precision
+                    // the exchange API requires the cost supplied in 'amount' to be of base precision
+                    // more about it here: https://github.com/ccxt/ccxt/pull/4395
+                    // we use priceToPrecision instead of amountToPrecision here
+                    // because in this case the amount is in the quote currency
                     request['amount'] = this.priceToPrecision (symbol, parseFloat (amount) * parseFloat (price));
                 }
             }
@@ -777,7 +838,7 @@ module.exports = class huobipro extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        let response = await this.privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
+        const response = await this.privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
         //
         //     let response = {
         //         'status': 'ok',
@@ -792,16 +853,55 @@ module.exports = class huobipro extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let response = await this.privateGetDwDepositVirtualAddresses (this.extend ({
+        const currency = this.currency (code);
+        // if code == 'EOS':
+        //     res = huobi.request('/dw/deposit-virtual/sharedAddressWithTag', 'private', 'GET', {'currency': 'eos', 'chain': 'eos1'})
+        //     address_info = res['data']
+        // else:
+        //     address_info = self.broker.fetch_deposit_address(code)
+        const request = {
             'currency': currency['id'].toLowerCase (),
-        }, params));
-        let address = this.safeString (response, 'data');
+        };
+        // https://github.com/ccxt/ccxt/issues/4851
+        const info = this.safeValue (currency, 'info', {});
+        const currencyAddressWithTag = this.safeValue (info, 'currency-addr-with-tag');
+        let method = 'privateGetDwDepositVirtualAddresses';
+        if (currencyAddressWithTag) {
+            method = 'privateGetDwDepositVirtualSharedAddressWithTag';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // privateGetDwDepositVirtualSharedAddressWithTag
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "address": "huobideposit",
+        //             "tag": "1937002"
+        //         }
+        //     }
+        //
+        // privateGetDwDepositVirtualAddresses
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": "0xd7842ec9ba2bc20354e12f0e925a4e285a64187b"
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        let address = undefined;
+        let tag = undefined;
+        if (currencyAddressWithTag) {
+            address = this.safeString (data, 'address');
+            tag = this.safeString (data, 'tag');
+        } else {
+            address = this.safeString (response, 'data');
+        }
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
-            'tag': undefined,
+            'tag': tag,
             'info': response,
         };
     }
@@ -900,7 +1000,6 @@ module.exports = class huobipro extends Exchange {
         if (body.length < 2)
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
-            response = JSON.parse (body);
             if ('status' in response) {
                 //
                 //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}

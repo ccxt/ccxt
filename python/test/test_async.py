@@ -269,6 +269,7 @@ async def test_exchange(exchange):
     symbol = keys[0]
     symbols = [
         'BTC/USD',
+        'BTC/USDT',
         'BTC/CNY',
         'BTC/EUR',
         'BTC/ETH',
@@ -293,8 +294,8 @@ async def test_exchange(exchange):
         return
 
     # move to testnet/sandbox if possible before accessing the balance if possible
-    if 'test' in exchange.urls:
-        exchange.urls['api'] = exchange.urls['test']
+    # if 'test' in exchange.urls:
+    #     exchange.urls['api'] = exchange.urls['test']
 
     await exchange.fetch_balance()
     dump(green(exchange.id), 'fetched balance')
@@ -386,7 +387,7 @@ with open(keys_file) as file:
 
 # instantiate all exchanges
 for id in ccxt.exchanges:
-    if id == 'theocean':
+    if id == 'theocean' or id == 'theocean1':
         continue
     exchange = getattr(ccxt, id)
     exchange_config = {'verbose': argv.verbose}
@@ -403,7 +404,7 @@ async def main():
 
     if argv.exchange:
 
-        if argv.exchange != 'theocean':
+        if argv.exchange != 'theocean' and argv.exchange != 'theocean1':
 
             exchange = exchanges[argv.exchange]
             symbol = argv.symbol

@@ -61,8 +61,8 @@ module.exports = class bitforex extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.0,
-                    'taker': 0.05 / 100,
+                    'maker': 0.1 / 100,
+                    'taker': 0.1 / 100,
                 },
                 'funding': {
                     'tierBased': false,
@@ -424,7 +424,12 @@ module.exports = class bitforex extends Exchange {
         let remaining = amount - filled;
         let status = this.parseOrderStatus (this.safeString (order, 'orderState'));
         let cost = filled * price;
-        let fee = this.safeFloat (order, 'tradeFee');
+        const feeSide = (side === 'buy') ? 'base' : 'quote';
+        const feeCurrency = market[feeSide];
+        let fee = {
+            'cost': this.safeFloat (order, 'tradeFee'),
+            'currency': feeCurrency,
+        };
         let result = {
             'info': order,
             'id': id,
@@ -546,7 +551,6 @@ module.exports = class bitforex extends Exchange {
             return; // fallback to default error handler
         }
         if ((body[0] === '{') || (body[0] === '[')) {
-            response = JSON.parse (body);
             let feedback = this.id + ' ' + body;
             let success = this.safeValue (response, 'success');
             if (success !== undefined) {

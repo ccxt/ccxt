@@ -26,6 +26,7 @@ class luno (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchMyTrades': True,
+                'fetchTradingFee': True,
                 'fetchTradingFees': True,
             },
             'urls': {

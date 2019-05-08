@@ -99,6 +99,7 @@ module.exports = class coinmarketcap extends Exchange {
             'Bitgem': 'Bitgem',
             'BlazeCoin': 'BlazeCoin',
             'BlockCAT': 'BlockCAT',
+            'Blocktrade Token': 'Blocktrade Token',
             'Catcoin': 'Catcoin',
             'CanYaCoin': 'CanYaCoin', // conflict with CAN (Content and AD Network)
             'Comet': 'Comet', // conflict with CMT (CyberMiles)
@@ -210,8 +211,8 @@ module.exports = class coinmarketcap extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
-            'percentage': undefined,
+            'change': undefined,
+            'percentage': change,
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': volume,

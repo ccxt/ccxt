@@ -600,9 +600,9 @@ module.exports = class coss extends Exchange {
                 const base = this.commonCurrencyCode (baseId);
                 const quote = this.commonCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
-            } else {
-                symbol = market['symbol'];
             }
+        } else if (market !== undefined) {
+            symbol = market['symbol'];
         }
         let cost = undefined;
         const price = this.safeFloat (trade, 'price');

@@ -35,6 +35,7 @@ module.exports = class coinbase extends Exchange {
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
                 'fetchOrderBook': false,
+                'fetchL2OrderBook': false,
                 'fetchOrders': false,
                 'fetchTicker': true,
                 'fetchTickers': false,
@@ -160,23 +161,9 @@ module.exports = class coinbase extends Exchange {
         return this.parse8601 (data['iso']);
     }
 
-    async loadAccounts (reload = false) {
-        if (reload) {
-            this.accounts = await this.fetchAccounts ();
-        } else {
-            if (this.accounts) {
-                return this.accounts;
-            } else {
-                this.accounts = await this.fetchAccounts ();
-                this.accountsById = this.indexBy (this.accounts, 'id');
-            }
-        }
-        return this.accounts;
-    }
-
-    async fetchAccounts () {
+    async fetchAccounts (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetAccounts ();
+        let response = await this.privateGetAccounts (params);
         return response['data'];
     }
 
@@ -571,7 +558,6 @@ module.exports = class coinbase extends Exchange {
         if (body.length < 2)
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
-            response = JSON.parse (body);
             let feedback = this.id + ' ' + body;
             //
             //    {"error": "invalid_request", "error_description": "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed."}

@@ -51,6 +51,7 @@ class liquid extends Exchange {
                     'get' => array (
                         'accounts/balance',
                         'accounts/main_asset',
+                        'accounts/{id}',
                         'crypto_accounts',
                         'executions/me',
                         'fiat_accounts',
@@ -661,11 +662,8 @@ class liquid extends Exchange {
         if ($code === 429) {
             throw new DDoSProtection ($this->id . ' ' . $body);
         }
-        if (!$this->is_json_encoded_object($body)) {
-            return; // fallback to default error handler
-        }
         if ($response === null) {
-            $response = json_decode ($body, $as_associative_array = true);
+            return;
         }
         $feedback = $this->id . ' ' . $body;
         $message = $this->safe_string($response, 'message');

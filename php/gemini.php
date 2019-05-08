@@ -79,8 +79,8 @@ class gemini extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
-                    'taker' => 0.0025,
-                    'maker' => 0.0025,
+                    'taker' => 0.0035,
+                    'maker' => 0.001,
                 ),
             ),
         ));
@@ -109,10 +109,15 @@ class gemini extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetBookSymbol (array_merge (array (
+        $request = array (
             'symbol' => $this->market_id($symbol),
-        ), $params));
-        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'amount');
+        );
+        if ($limit !== null) {
+            $request['limit_bids'] = $limit;
+            $request['limit_asks'] = $limit;
+        }
+        $response = $this->publicGetBookSymbol (array_merge ($request, $params));
+        return $this->parse_order_book($response, null, 'bids', 'asks', 'price', 'amount');
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

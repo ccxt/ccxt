@@ -24,7 +24,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': 'emulated',
                 'fetchOHLCV': true,
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
@@ -52,12 +52,12 @@ module.exports = class bittrex extends Exchange {
                 },
                 'www': 'https://bittrex.com',
                 'doc': [
-                    'https://bittrex.com/Home/Api',
-                    'https://www.npmjs.org/package/node.bittrex.api',
+                    'https://bittrex.github.io/api/',
+                    'https://www.npmjs.com/package/bittrex-node',
                 ],
                 'fees': [
-                    'https://bittrex.com/Fees',
-                    'https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-',
+                    'https://bittrex.zendesk.com/hc/en-us/articles/115003684371-BITTREX-SERVICE-FEES-AND-WITHDRAWAL-LIMITATIONS',
+                    'https://bittrex.zendesk.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-',
                 ],
             },
             'api': {
@@ -116,7 +116,7 @@ module.exports = class bittrex extends Exchange {
                     'tierBased': false,
                     'percentage': false,
                     'withdraw': {
-                        'BTC': 0.001,
+                        'BTC': 0.0005,
                         'LTC': 0.01,
                         'DOGE': 2,
                         'VTC': 0.02,
@@ -124,8 +124,14 @@ module.exports = class bittrex extends Exchange {
                         'FTC': 0.2,
                         'RDD': 2,
                         'NXT': 2,
-                        'DASH': 0.002,
+                        'DASH': 0.05,
                         'POT': 0.002,
+                        'BLK': 0.02,
+                        'EMC2': 0.2,
+                        'XMY': 0.2,
+                        'GLD': 0.0002,
+                        'SLR': 0.2,
+                        'GRS': 0.2,
                     },
                     'deposit': {
                         'BTC': 0,
@@ -138,6 +144,12 @@ module.exports = class bittrex extends Exchange {
                         'NXT': 0,
                         'DASH': 0,
                         'POT': 0,
+                        'BLK': 0,
+                        'EMC2': 0,
+                        'XMY': 0,
+                        'GLD': 0,
+                        'SLR': 0,
+                        'GRS': 0,
                     },
                 },
             },
@@ -156,6 +168,7 @@ module.exports = class bittrex extends Exchange {
                 'UUID_INVALID': OrderNotFound,
                 'RATE_NOT_PROVIDED': InvalidOrder, // createLimitBuyOrder ('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP': PermissionDenied,
+                'DUST_TRADE_DISALLOWED_MIN_VALUE': InvalidOrder,
             },
             'options': {
                 // price precision by quote currency code
@@ -165,6 +178,25 @@ module.exports = class bittrex extends Exchange {
                 'parseOrderStatus': false,
                 'hasAlreadyAuthenticatedSuccessfully': false, // a workaround for APIKEY_INVALID
                 'symbolSeparator': '-',
+                // With certain currencies, like
+                // AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP
+                // an additional tag / memo / payment id is usually required by exchanges.
+                // With Bittrex some currencies imply the "base address + tag" logic.
+                // The base address for depositing is stored on this.currencies[code]
+                // The base address identifies the exchange as the recipient
+                // while the tag identifies the user account within the exchange
+                // and the tag is retrieved with fetchDepositAddress.
+                'tag': {
+                    'NXT': true, // NXT, BURST
+                    'CRYPTO_NOTE_PAYMENTID': true, // AEON, XMR
+                    'BITSHAREX': true, // BTS
+                    'RIPPLE': true, // XRP
+                    'NEM': true, // XEM
+                    'STELLAR': true, // XLM
+                    'STEEM': true, // SBD, GOLOS
+                    // https://github.com/ccxt/ccxt/issues/4794
+                    // 'LISK': true, // LSK
+                },
             },
             'commonCurrencies': {
                 'BITS': 'SWIFT',
@@ -244,9 +276,14 @@ module.exports = class bittrex extends Exchange {
             let currency = this.commonCurrencyCode (id);
             let account = this.account ();
             let balance = indexed[id];
-            let free = parseFloat (balance['Available']);
-            let total = parseFloat (balance['Balance']);
-            let used = total - free;
+            let free = this.safeFloat (balance, 'Available', 0);
+            let total = this.safeFloat (balance, 'Balance', 0);
+            let used = undefined;
+            if (total !== undefined) {
+                if (free !== undefined) {
+                    used = total - free;
+                }
+            }
             account['free'] = free;
             account['used'] = used;
             account['total'] = total;
@@ -323,18 +360,39 @@ module.exports = class bittrex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        let response = await this.publicGetCurrencies (params);
-        let currencies = response['result'];
-        let result = {};
+        const response = await this.publicGetCurrencies (params);
+        //
+        //     {
+        //         "success": true,
+        //         "message": "",
+        //         "result": [
+        //             {
+        //                 "Currency": "BTC",
+        //                 "CurrencyLong":"Bitcoin",
+        //                 "MinConfirmation":2,
+        //                 "TxFee":0.00050000,
+        //                 "IsActive":true,
+        //                 "IsRestricted":false,
+        //                 "CoinType":"BITCOIN",
+        //                 "BaseAddress":"1N52wHoVR79PMDishab2XmRHsbekCdGquK",
+        //                 "Notice":null
+        //             },
+        //             ...,
+        //         ]
+        //     }
+        //
+        const currencies = this.safeValue (response, 'result', []);
+        const result = {};
         for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let id = currency['Currency'];
+            const currency = currencies[i];
+            const id = this.safeString (currency, 'Currency');
             // todo: will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            let code = this.commonCurrencyCode (id);
-            let precision = 8; // default precision, todo: fix "magic constants"
-            let address = this.safeValue (currency, 'BaseAddress');
+            const code = this.commonCurrencyCode (id);
+            const precision = 8; // default precision, todo: fix "magic constants"
+            const address = this.safeValue (currency, 'BaseAddress');
+            const fee = this.safeFloat (currency, 'TxFee'); // todo: redesign
             result[code] = {
                 'id': id,
                 'code': code,
@@ -343,7 +401,7 @@ module.exports = class bittrex extends Exchange {
                 'type': currency['CoinType'],
                 'name': currency['CurrencyLong'],
                 'active': currency['IsActive'],
-                'fee': this.safeFloat (currency, 'TxFee'), // todo: redesign
+                'fee': fee,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -359,7 +417,7 @@ module.exports = class bittrex extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': currency['TxFee'],
+                        'min': fee,
                         'max': Math.pow (10, precision),
                     },
                 },
@@ -420,12 +478,14 @@ module.exports = class bittrex extends Exchange {
             }
         }
         return {
-            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
+            'id': id,
+            'order': undefined,
             'type': 'limit',
+            'takerOrMaker': undefined,
             'side': side,
             'price': price,
             'amount': amount,
@@ -708,11 +768,9 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let side = this.safeString (order, 'OrderType');
-        if (side === undefined)
-            side = this.safeString (order, 'Type');
-        let isBuyOrder = (side === 'LIMIT_BUY') || (side === 'BUY');
-        let isSellOrder = (side === 'LIMIT_SELL') || (side === 'SELL');
+        let side = this.safeString2 (order, 'OrderType', 'Type');
+        const isBuyOrder = (side === 'LIMIT_BUY') || (side === 'BUY');
+        const isSellOrder = (side === 'LIMIT_SELL') || (side === 'SELL');
         if (isBuyOrder) {
             side = 'buy';
         }
@@ -780,11 +838,14 @@ module.exports = class bittrex extends Exchange {
         }
         let price = this.safeFloat (order, 'Limit');
         let cost = this.safeFloat (order, 'Price');
-        let amount = this.safeFloat (order, 'Quantity');
-        let remaining = this.safeFloat (order, 'QuantityRemaining');
+        const amount = this.safeFloat (order, 'Quantity');
+        const remaining = this.safeFloat (order, 'QuantityRemaining');
         let filled = undefined;
         if (amount !== undefined && remaining !== undefined) {
             filled = amount - remaining;
+            if ((status === 'closed') && (remaining > 0)) {
+                status = 'canceled';
+            }
         }
         if (!cost) {
             if (price && filled)
@@ -794,11 +855,9 @@ module.exports = class bittrex extends Exchange {
             if (cost && filled)
                 price = cost / filled;
         }
-        let average = this.safeFloat (order, 'PricePerUnit');
-        let id = this.safeString (order, 'OrderUuid');
-        if (id === undefined)
-            id = this.safeString (order, 'OrderId');
-        let result = {
+        const average = this.safeFloat (order, 'PricePerUnit');
+        const id = this.safeString2 (order, 'OrderUuid', 'OrderId');
+        return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -816,7 +875,6 @@ module.exports = class bittrex extends Exchange {
             'status': status,
             'fee': fee,
         };
-        return result;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -841,6 +899,38 @@ module.exports = class bittrex extends Exchange {
         return this.parseOrder (response['result']);
     }
 
+    orderToTrade (order) {
+        // this entire method should be moved to the base class
+        const timestamp = this.safeInteger2 (order, 'lastTradeTimestamp', 'timestamp');
+        return {
+            'id': this.safeString (order, 'id'),
+            'side': this.safeString (order, 'side'),
+            'order': this.safeString (order, 'id'),
+            'price': this.safeFloat (order, 'average'),
+            'amount': this.safeFloat (order, 'filled'),
+            'cost': this.safeFloat (order, 'cost'),
+            'symbol': this.safeString (order, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': this.safeValue (order, 'fee'),
+            'info': order,
+        };
+    }
+
+    ordersToTrades (orders) {
+        // this entire method should be moved to the base class
+        const result = [];
+        for (let i = 0; i < orders.length; i++) {
+            result.push (this.orderToTrade (orders[i]));
+        }
+        return result;
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const orders = await this.fetchClosedOrders (symbol, since, limit, params);
+        return this.ordersToTrades (orders);
+    }
+
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
@@ -858,16 +948,26 @@ module.exports = class bittrex extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let response = await this.accountGetDepositaddress (this.extend ({
+        const currency = this.currency (code);
+        const request = {
             'currency': currency['id'],
-        }, params));
+        };
+        const response = await this.accountGetDepositaddress (this.extend (request, params));
+        //
+        //     { "success": false, "message": "ADDRESS_GENERATING", "result": null }
+        //
+        //     { success:    true,
+        //       message:   "",
+        //        result: { Currency: "INCNT",
+        //                   Address: "3PHvQt9bK21f7eVQVdJzrNPcsMzXabEA5Ha" } } }
+        //
         let address = this.safeString (response['result'], 'Address');
-        let message = this.safeString (response, 'message');
-        if (!address || message === 'ADDRESS_GENERATING')
+        const message = this.safeString (response, 'message');
+        if (!address || message === 'ADDRESS_GENERATING') {
             throw new AddressPending (this.id + ' the address for ' + code + ' is being generated (pending, not ready yet, retry again later)');
+        }
         let tag = undefined;
-        if ((code === 'XRP') || (code === 'XLM') || (code === 'LSK')) {
+        if (currency['type'] in this.options['tag']) {
             tag = address;
             address = currency['address'];
         }
@@ -938,7 +1038,6 @@ module.exports = class bittrex extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response) {
         if (body[0] === '{') {
-            response = JSON.parse (body);
             // { success: false, message: "message" }
             let success = this.safeValue (response, 'success');
             if (success === undefined)
@@ -958,8 +1057,12 @@ module.exports = class bittrex extends Exchange {
                         throw new AuthenticationError (feedback);
                     }
                 }
-                if (message === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
-                    throw new InvalidOrder (this.id + ' order cost should be over 50k satoshi ' + this.json (response));
+                // https://github.com/ccxt/ccxt/issues/4932
+                // the following two lines are now redundant, see line 171 in describe()
+                //
+                //     if (message === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
+                //         throw new InvalidOrder (this.id + ' order cost should be over 50k satoshi ' + this.json (response));
+                //
                 if (message === 'INVALID_ORDER') {
                     // Bittrex will return an ambiguous INVALID_ORDER message
                     // upon canceling already-canceled and closed orders

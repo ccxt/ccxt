@@ -474,7 +474,6 @@ class coinone extends Exchange {
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             if (is_array ($response) && array_key_exists ('result', $response)) {
                 $result = $response['result'];
                 if ($result !== 'success') {

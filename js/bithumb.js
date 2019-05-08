@@ -224,7 +224,8 @@ module.exports = class bithumb extends Exchange {
                 symbol = market['symbol'];
             }
             let ticker = tickers[id];
-            if (!Array.isArray (ticker)) {
+            let isArray = Array.isArray (ticker);
+            if (!isArray) {
                 ticker['date'] = timestamp;
                 result[symbol] = this.parseTicker (ticker, market);
             }
@@ -382,7 +383,6 @@ module.exports = class bithumb extends Exchange {
         if (body.length < 2)
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
-            response = JSON.parse (body);
             if ('status' in response) {
                 //
                 //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}

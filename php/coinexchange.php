@@ -18,6 +18,7 @@ class coinexchange extends Exchange {
             // new metainfo interface
             'has' => array (
                 'privateAPI' => false,
+                'fetchBalance' => false,
                 'createOrder' => false,
                 'createMarketOrder' => false,
                 'createLimitOrder' => false,
@@ -660,8 +661,8 @@ class coinexchange extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_float($ticker, 'Change'),
-            'percentage' => null,
+            'change' => null,
+            'percentage' => $this->safe_float($ticker, 'Change'),
             'average' => null,
             'baseVolume' => null,
             'quoteVolume' => $this->safe_float($ticker, 'Volume'),

@@ -14,7 +14,7 @@ const asTable   = require ('as-table')
     , ansi      = require ('ansicolor').nice
     , fs        = require ('fs')
     , ccxt      = require ('../../ccxt.js')
-    , countries = require ('../../countries.js')
+    , countries = require ('../../build/countries.js')
     , chai      = require ('chai')
     , expect    = chai.expect
     , assert    = chai.assert
@@ -146,6 +146,7 @@ let loadExchange = async exchange => {
     let symbols = [
         'BTC/CNY',
         'BTC/USD',
+        'BTC/USDT',
         'BTC/EUR',
         'BTC/ETH',
         'ETH/BTC',
@@ -185,6 +186,7 @@ let testExchange = async exchange => {
     let symbol = exchange.symbols[0]
     let symbols = [
         'BTC/USD',
+        'BTC/USDT',
         'BTC/CNY',
         'BTC/EUR',
         'BTC/ETH',
@@ -218,8 +220,8 @@ let testExchange = async exchange => {
     exchange.checkRequiredCredentials ()
 
     // move to testnet/sandbox if possible before accessing the balance if possible
-    if (exchange.urls['test'])
-        exchange.urls['api'] = exchange.urls['test']
+    // if (exchange.urls['test'])
+    //    exchange.urls['api'] = exchange.urls['test']
 
     let balance = await tests['fetchBalance'] (exchange)
 
@@ -230,6 +232,10 @@ let testExchange = async exchange => {
     await tests['fetchOpenOrders']   (exchange, symbol)
     await tests['fetchClosedOrders'] (exchange, symbol)
     await tests['fetchMyTrades']     (exchange, symbol)
+
+    if ('fetchLedger' in tests) {
+        await tests['fetchLedger'] (exchange)
+    }
 
     // const code = exchange.markets[symbol]['quote']
     // await tests['fetchTransactions'] (exchange, code)

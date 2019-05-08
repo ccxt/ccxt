@@ -23,6 +23,7 @@ module.exports = class zb extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchOHLCV': true,
+                'fetchTickers': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -592,7 +593,6 @@ module.exports = class zb extends Exchange {
         if (body.length < 2)
             return; // fallback to default error handler
         if (body[0] === '{') {
-            response = JSON.parse (body);
             let feedback = this.id + ' ' + this.json (response);
             if ('code' in response) {
                 let code = this.safeString (response, 'code');

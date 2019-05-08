@@ -12,7 +12,6 @@ try:
 except NameError:
     basestring = str  # Python 2
 import hashlib
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -418,9 +417,6 @@ class indodax (Exchange):
         # {success: 0, error: "invalid order."}
         # or
         # [{data, ...}, {...}, ...]
-        if response is None:
-            if body[0] == '{' or body[0] == '[':
-                response = json.loads(body)
         if isinstance(response, list):
             return  # public endpoints may return []-arrays
         if not('success' in list(response.keys())):
