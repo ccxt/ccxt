@@ -473,6 +473,7 @@ class cryptopia (Exchange):
         return self.safe_string(types, type, type)
 
     def fetch_transactions_by_type(self, type, code=None, since=None, limit=None, params={}):
+        self.load_markets()
         request = {
             'type': 'Deposit' if (type == 'deposit') else 'Withdraw',
         }

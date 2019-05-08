@@ -493,6 +493,7 @@ class cryptopia extends Exchange {
     }
 
     public function fetch_transactions_by_type ($type, $code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $request = array (
             'type' => ($type === 'deposit') ? 'Deposit' : 'Withdraw',
         );
