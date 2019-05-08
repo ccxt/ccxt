@@ -639,7 +639,7 @@ class gateio (Exchange):
         request = {}
         if since is not None:
             request['start'] = since
-        response = self.privatePostDepositswithdrawals(self.extend(request, params))
+        response = self.privatePostDepositsWithdrawals(self.extend(request, params))
         transactions = None
         if type is None:
             deposits = self.safe_value(response, 'deposits', [])
