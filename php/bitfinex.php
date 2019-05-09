@@ -701,7 +701,7 @@ class bitfinex extends Exchange {
             $order['price'] = $this->price_to_precision($symbol, $price);
         }
         if ($amount !== null) {
-            $order['amount'] = $this->amount_to_precision($symbol, $amount);
+            $order['amount'] = $this->number_to_string($amount);
         }
         if ($symbol !== null) {
             $order['symbol'] = $this->market_id($symbol);

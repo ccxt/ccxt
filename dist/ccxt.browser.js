@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.514'
+const version = '1.18.515'
 
 Exchange.ccxtVersion = version
 
@@ -10196,7 +10196,7 @@ module.exports = class bitfinex extends Exchange {
             order['price'] = this.priceToPrecision (symbol, price);
         }
         if (amount !== undefined) {
-            order['amount'] = this.amountToPrecision (symbol, amount);
+            order['amount'] = this.numberToString (amount);
         }
         if (symbol !== undefined) {
             order['symbol'] = this.marketId (symbol);
