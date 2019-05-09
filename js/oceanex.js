@@ -3,13 +3,13 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { DECIMAL_PLACES } = require ('./base/functions/number');
+const { ExchangeError } = require ('./base/errors');
 
-module.exports = class OceanEx extends Exchange {
+module.exports = class oceanex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'oceanex',
-            'name': 'OceanEx',
+            'name': 'oceanex',
             'countries': [ 'SG' ],
             'urls': {
                 'api': 'https://api.oceanex.pro/v1/',
@@ -20,7 +20,7 @@ module.exports = class OceanEx extends Exchange {
                 'public': {
                     'get': [
                         'markets',
-                        'tickers',
+                        'tickers/{pair}/',
                         'tickers_multi',
                         'order_book',
                         'order_book/multi',
@@ -56,7 +56,8 @@ module.exports = class OceanEx extends Exchange {
                 'fetchTradingLimits': false,
                 'fetchTradingFees': true,
                 'fetchFundingFees': false,
-                'fetchOrder': true,
+                'fetchTime': true,
+                'fetchOrders': true,
                 'fetchBalance': true,
                 'createOrder': true,
                 'cancelOrder': true,
@@ -76,7 +77,7 @@ module.exports = class OceanEx extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = {}) {
         let response = await this.publicGetMarkets ();
         const result = [];
         const markets = this.safeValue (response, 'data');
@@ -105,17 +106,9 @@ module.exports = class OceanEx extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
-        let response = await this.publicGetTickers ({ 'market': symbol });
-        this.isValidResponse (response);
+        let response = await this.publicGetTickersPair (this.extend ({ 'pair': symbol }), params);
         const data = response['data'];
         return this.parseTicker (data, symbol);
-    }
-
-    async fetchTickers(symbol = undefined, params = {}) {
-        let response = await this.publicGetTickersMulti (this.extend (params));
-        this.isValidResponse (response);
-        const data = response['data'];
-        return this.parseTicker (data, );
     }
 
     parseTicker (data, market = undefined) {
@@ -191,18 +184,19 @@ module.exports = class OceanEx extends Exchange {
         };
     }
 
-    async fetchTime () {
+    async fetchTime (params = {}) {
         let response = await this.publicGetTimestamp ();
         return response['data'];
     }
 
-    async fetchTradingFees () {
+    async fetchTradingFees (params = {}) {
         let response = await this.publicGetFeesTrading ();
         return response['data'];
     }
 
-    // private method input value {'user_jwt': encrypted_data}
     async fetchKey (params = {}) {
+        // private method input value {'user_jwt': encrypted_jwt_token}
+        // jwt_token should be RS256 encoded
         let response = await this.privateGetKey (this.extend (params));
         return response['data'];
     }
@@ -223,12 +217,11 @@ module.exports = class OceanEx extends Exchange {
             account['total'] = total;
             result[currency] = account;
         }
-        return this.parseBalance(result);
+        return this.parseBalance (result);
     }
 
-    async createOrder (params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let response = await this.privatePostOrders (this.extend (params));
-        this.isValidResponse (response);
         const data = response['data'];
         let result = {
             'info': data,
@@ -241,9 +234,8 @@ module.exports = class OceanEx extends Exchange {
         return result;
     }
 
-    async fetchOrders (params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let response = await this.privateGetOrders (this.extend (params));
-        this.isValidResponse (response);
         const data = response['data'];
         return this.parseOrders (data);
     }
@@ -271,58 +263,61 @@ module.exports = class OceanEx extends Exchange {
 
     async createMultiOrders (params = {}) {
         let response = await this.privatePostOrdersMulti (this.extend (params));
-        this.isValidResponse (response);
         const data = response['data'];
         return this.parseOrders (data);
     }
 
     async filterOrders (params = {}) {
         let response = await this.privateGetOrdersFilter (this.extend (params));
-        this.isValidResponse (response);
         const data = response['data'];
         return this.parseOrders (data);
     }
 
-    async cancelOrder (params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         let response = await this.privatePostOrderDelete (this.extend (params));
-        this.isValidResponse (response);
         const data = response['data'];
         return this.parseOrder (data);
     }
 
-    async cancelMultiOrders (params = {}) {
+    async cancelMulitOrders (params = {}) {
         let response = await this.privatePostOrderDeleteMulti (this.extend (params));
-        this.isValidResponse (response);
         const data = response['data'];
         return this.parseOrders (data);
     }
 
-    async clearOrder (params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         let response = await this.privatePostOrdersClear (this.extend (params));
-        this.isValidResponse (response);
         const data = response['data'];
         return this.parseOrders (data);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'];
-        headers = { 'Content-Type': 'application/json-rpc' };
-        if (Object.keys (params).length) {
-            if (path === 'tickers') {
-                url += path + '/' + params['market'];
-            } else {
-                url += path + '?' + this.urlencode (params);
-            }
-        } else {
-            url += path;
+        let url = this.urls['api'] + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (Object.keys (query).length) {
+            url += '?' + this.urlencode (query);
         }
+        headers = { 'Content-Type': 'application/json' };
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    isValidResponse (response) {
-        if (response['code'] !== 0) {
-            throw invalidResponseError (response['message']);
+    handleErrors (code, reason, url, method, headers, body, response) {
+        // API response structure
+        // HTTP code : 200 (success to send request to API) / 201 (success to create order)
+        // {"code": , (success return 0. other code indicate error)
+        //  "message": "", (if error, contain error message report)
+        //  "data": []}
+        if (response === undefined) {
+            return;
         }
-        return true;
+        if (code === 200 || code === 201) {
+            const resCode = this.safeValue (response, 'code');
+            if (resCode === undefined) {
+                throw new ExchangeError (response);
+            }
+            if (resCode !== 0) {
+                throw new ExchangeError (response['message']);
+            }
+        }
     }
 };
