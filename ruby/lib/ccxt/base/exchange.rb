@@ -27,12 +27,12 @@ module Ccxt
     attr_accessor :requiredCredentials, :has, :precisionMode, :minFundingAddressLength
     attr_accessor :substituteCommonCurrencyCodes, :lastRestRequestTimestamp, :lastRestPollTimestamp, :restRequestQueue
     attr_accessor :restPollerLoopIsRunning, :rateLimitTokens, :rateLimitMaxTokens, :rateLimitUpdateTime
-    attr_accessor :enableLastHttpResponse, :enableLastJsonResponse, :enableLastResponseHeaders  
+    attr_accessor :enableLastHttpResponse, :enableLastJsonResponse, :enableLastResponseHeaders
     attr_accessor :last_http_response, :last_json_response, :last_response_headers, :web3
     attr_accessor :commonCurrencies, :name, :countries, :timeframes, :urls
     attr_accessor :tokenBucket
-  
-    def initialize( config = {} )
+
+    def initialize(config = {})
       @id = nil
       @version = "1.00a"
       @certified = false
@@ -153,11 +153,11 @@ module Ccxt
       @rateLimitTokens = 16
       @rateLimitMaxTokens = 16
       @rateLimitUpdateTime = 0
-    
+
       @enableLastHttpResponse = true
       @enableLastJsonResponse = true
       @enableLastResponseHeaders = true
-    
+
       @last_http_response = nil
       @last_json_response = nil
       @last_response_headers = nil
@@ -168,19 +168,8 @@ module Ccxt
         'BCC' => 'BCH',
         'DRK' => 'DASH',
       }
-    
-      @precision = {}
-      @limits = {}
-      @exceptions = {}
-      @headers = {}
-      @balance = {}
-      @orderbooks = {}
-      @orders = {}
-      @trades = {}
-      @transactions = {}
-      @currencies = {}
-      @options = {}
-    
+
+
       settings = self.deep_extend(self.describe(), config)
       settings.each do |key, value|
         if self.instance_variable_defined?("@#{key}") && self.instance_variable_get("@#{key}").is_a?(Hash)
@@ -189,11 +178,11 @@ module Ccxt
           send "#{key}=", value
         end
       end
-    
+
       if self.api
         define_rest_api('request') if self.api
       end
-    
+
       if self.markets
         self.set_markets(self.markets)
       end
@@ -209,7 +198,7 @@ module Ccxt
     def describe
       return {}
     end
-  
+
     ### API
 
     # PUBLIC
@@ -233,17 +222,17 @@ module Ccxt
     # fetchMyTrades
     # deposit
     # withdraw
-  
+
     ## PUBLIC
-  
-    def load_markets( reload=false, params = {} )
+
+    def load_markets(reload = false, params = {})
       if (not reload) && self.markets
         puts "load_markets: already set." if verbose
         if not self.markets_by_id
           return self.set_markets(markets)
         end
         return self.markets
-      end    
+      end
       puts "load_markets: loading markets." if verbose
       currencies = fetch_currencies() if has['fetchCurrencies']
       markets = self.fetch_markets(params)
@@ -258,19 +247,19 @@ module Ccxt
       return self.currencies
     end
 
-    def fetch_ticker(symbol=nil, params={})
+    def fetch_ticker(symbol = nil, params={})
       raise Exchange::NotSupported, 'fetch_ticker is not supported yet.'
     end
-  
-    def fetch_tickers(symbols=nil, params={})
+
+    def fetch_tickers(symbols = nil, params={})
       raise Exchange::NotSupported, 'API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now'
     end
 
     def fetch_order_book()
       raise Exchange::NotSupported, 'fetch_order_book is not supported yet.'
     end
-  
-    def fetch_OHLCV(symbol, timeframe='1m', since=nil, limit=nil, params={})
+
+    def fetch_OHLCV(symbol, timeframe = '1m', since = nil, limit = nil, params={})
       raise(NotSupported, 'fetch_ohlcv() is not supported yet.') unless self.has['fetchTrades']
       self.load_markets()
       trades = self.fetch_trades(symbol, since, limit, params)
@@ -291,52 +280,52 @@ module Ccxt
         'funding' => funding,
       }
     end
-    
+
     ## PRIVATE
-  
+
     def fetch_balance
     end
 
-    def create_order(symbol, type, side, amount, price=nil, params={})
+    def create_order(symbol, type, side, amount, price = nil, params={})
       raise Exchange::NotSupported, 'create_order is not supported yet.'
     end
 
-    def cancel_order(id, symbol=nil, params={})
+    def cancel_order(id, symbol = nil, params={})
       raise Exchange::NotSupported, 'cancel_order is not supported yet.'
     end
 
-    def fetch_order(id, symbol=nil, params={})
+    def fetch_order(id, symbol = nil, params={})
       raise Exchange::NotSupported, 'fetch_order is not supported yet.'
     end
 
-    def fetch_orders(symbol=nil, since=nil, limit=nil, params={})
+    def fetch_orders(symbol = nil, since = nil, limit = nil, params={})
       raise Exchange::NotSupported, 'fetch_orders() is not supported yet'
     end
 
-    def fetch_open_orders(symbol=nil, since=nil, limit=nil, params={})
+    def fetch_open_orders(symbol = nil, since = nil, limit = nil, params={})
       raise Exchange::NotSupported, 'fetch_open_orders() is not supported yet'
     end
 
-    def fetch_closed_orders(symbol=nil, since=nil, limit=nil, params={})
+    def fetch_closed_orders(symbol = nil, since = nil, limit = nil, params={})
       raise Exchange::NotSupported, 'fetch_closed_orders() is not supported yet'
     end
 
-    # def fetch_order_trades(id, symbol=None, params={})
+    # def fetch_order_trades(id, symbol = None, params={})
     #   raise Exchange::NotSupported, 'fetch_order_trades() is not supported yet'
     # end
-  
-    def fetch_my_trades(symbol=nil, since=nil, limit=nil, params={})
+
+    def fetch_my_trades(symbol = nil, since = nil, limit = nil, params={})
       raise Exchange::NotSupported, 'fetch_my_trades() is not supported yet'
     end
 
     def deposit
       raise Exchange::NotSupported, 'deposit() is not supported yet'
     end
-  
+
     def withdrawal
       raise Exchange::NotSupported, 'withdrawal() is not supported yet'
     end
-  
+
     def fetch_transactions
       raise Exchange::NotSupported, 'fetch_transactions() is not supported yet'
     end
@@ -345,28 +334,28 @@ module Ccxt
       raise Exchange::NotSupported, 'fetch_deposits() is not supported yet'
     end
 
-    def fetch_withdrawals(symbol=nil, since=nil, limit=nil, params={})
+    def fetch_withdrawals(symbol = nil, since = nil, limit = nil, params={})
       raise Exchange::NotSupported, 'fetch_withdrawals() is not supported yet'
     end
 
-    def parse_ohlcv(ohlcv, market=nil, timeframe='1m', since=nil, limit=nil)
+    def parse_ohlcv(ohlcv, market = nil, timeframe = '1m', since = nil, limit = nil)
       return ohlcv.is_a?(Array) ? ohlcv[0..6] : ohlcv
     end
-  
-    def parse_ohlcvs(ohlcvs, market=nil, timeframe='1m', since=nil, limit=nil)
+
+    def parse_ohlcvs(ohlcvs, market = nil, timeframe = '1m', since = nil, limit = nil)
       result = []
-    
+
       ohlcvs.each do |o|
         break if limit && result.size >= limit
-        
+
         ohlcv = self.parse_ohlcv(o, market, timeframe, since, limit)
         continue if since and (ohlcv[0] < since)
         result.push(ohlcv)
       end
       return self.sort_by(result, 0)
     end
-  
-    def fetch_bids_asks(symbols=nil, params={})
+
+    def fetch_bids_asks(symbols = nil, params={})
       raise Exchange::NotSupported, 'API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now'
     end
 
@@ -384,11 +373,11 @@ module Ccxt
         self.urls.delete['api_backup']
       end
     end
-  
+
     # supporting
-  
+
     # TODO: Rewrite set_markets because it is not intuitive
-    def set_markets(markets, currencies=nil)
+    def set_markets(markets, currencies = nil)
       if markets.is_a?(Hash)
         values = markets.values
       else
@@ -415,20 +404,20 @@ module Ccxt
               'id' => market.has_key?('baseId') ? market['baseId'] : market['base'],
               'numericId' => market.has_key?('baseNumericId') ? market['baseNumericId'] : nil,
               'code' => market['base'],
-              'precision' => ( 
+              'precision' => (
                 if market['precision'] # this could be nil
-                  if market['precision'].has_key?('base') 
+                  if market['precision'].has_key?('base')
                     market['precision']['base']
                   elsif market['precision'].has_key?('amount')
                     market['precision']['amount']
-                  else 
+                  else
                     nil
                   end
                 else
                   8
                 end
                 )
-              } 
+              }
           else
             8
           end
@@ -439,13 +428,13 @@ module Ccxt
               'id' => market.has_key?('quoteId') ? market['quoteId'] : market['quote'],
               'numericId' => market.has_key?('quoteNumericId') ? market['quoteNumericId'] : nil,
               'code' => market['base'],
-              'precision' => ( 
+              'precision' => (
                 if market['precision']
-                  if market['precision'].has_key?('quote') 
+                  if market['precision'].has_key?('quote')
                     market['precision']['quote']
                   elsif market['precision'].has_key?('price')
                     market['precision']['price']
-                  else 
+                  else
                     nil
                   end
                 else
@@ -466,8 +455,8 @@ module Ccxt
       self.currencies_by_id = self.index_by(self.currencies, 'id')
       return self.markets
     end
-  
-    def build_ohlcv(trades, timeframe='1m', since=nil, limit=nil)
+
+    def build_ohlcv(trades, timeframe = '1m', since = nil, limit = nil)
       ms = self.parse_timeframe(timeframe) * 1000
       ohlcvs = []
       high, low, close, volume = [2, 3, 4, 5]
@@ -476,7 +465,7 @@ module Ccxt
       [0..oldest].each do |i|
         trade = trades[i]
         next if since && (trade['timestamp'] < since )
-        
+
         opening_time = (math.floor(trade['timestamp'] / ms) * ms).to_i  # Shift the edge of the m/h/d (but not M)
         j = ohlcvs.size
         if (j == 0) or opening_time >= ohlcvs[j - 1][0] + ms
@@ -503,7 +492,7 @@ module Ccxt
     ###
     # REQUEST METHODS
     ###
-  
+
     def prepare_request_headers(headers={})
       headers.update(self.headers)
       if self.userAgent
@@ -517,21 +506,21 @@ module Ccxt
       headers.update({'Accept-Encoding' => 'gzip, deflate'})
       headers
     end
-  
-    def fetch2(path, api='public', method='GET', params={}, headers=nil, body=nil)
+
+    def fetch2(path, api = 'public', method = 'GET', params={}, headers = nil, body = nil)
       throttle if enableRateLimit
       self.lastRestRequestTimestamp = milliseconds
       request = sign(path, api, method, params, headers, body)
       return fetch(request['url'], request['method'], request['headers'], request['body'])
     end
-  
-    def fetch(path, method='GET', headers={}, payload={})
+
+    def fetch(path, method = 'GET', headers={}, payload={})
       headers = prepare_request_headers
-    
+
       puts "\nRequest:\nmethod:#{method}\npath: #{path}\nheaders:#{headers}\npayload:#{payload}" if self.verbose
-    
+
       # RestClient::Request expects a symbol for a method, but #sign is implemented by individual exchanges in JS.
-      # Therefore, fetch converts the method from a string to a symbol here.    
+      # Therefore, fetch converts the method from a string to a symbol here.
       response = nil
       http_response = nil
       json_response = nil
@@ -545,12 +534,12 @@ module Ccxt
         http_response = response.body
         json_response = self.is_json_encoded_object(http_response) ? JSON.parse(http_response) : nil
         headers = response.headers
-      
+
         self.last_http_response = http_response if self.enableLastHttpResponse
         self.last_json_response = json_response if self.enableLastJsonResponse
         self.last_response_headers = headers if self.enableLastResponseHeaders
         puts "\nResponse:\nmethod:#{method}\npath: #{path}\nstatus: #{response.code}\nheaders:#{headers}\nhttp_response:#{http_response}" if self.verbose
-      
+
         # rescue Timeout
         #    except Timeout as e:
         #        self.raise_error(RequestTimeout, method, url, e)
@@ -583,7 +572,7 @@ module Ccxt
         raise e, response.inspect
         return e
       end
-    
+
       handle_errors(response.code, response.body, path, method, headers, http_response, json_response)
       handle_rest_response(http_response, json_response, path, method, headers, payload)
       if json_response != nil
@@ -591,12 +580,12 @@ module Ccxt
       end
       return http_response
     end
-  
+
     # def handle_errors(self, code, reason, url, method, headers, body, response):
     #       pass
     def handle_errors(code, reason, url, method, headers, body, response); end
-    
-    def handle_rest_response(response, json_response, url, method='GET', headers=nil, body=nil)
+
+    def handle_rest_response(response, json_response, url, method = 'GET', headers = nil, body = nil)
       if self.is_json_encoded_object(response) && json_response.nil?
         ddos_protection = response =~ /(cloudflare|incapsula|overload|ddos)/i
         exchange_not_available = response =~ /(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)/i
@@ -610,16 +599,16 @@ module Ccxt
         self.raise_error(ExchangeError, method, url, ValueError('failed to decode json'), response)
       end
     end
-  
-    def sign(path, api='public', method='GET', params={}, headers=nil, body=nil)
+
+    def sign(path, api = 'public', method = 'GET', params={}, headers = nil, body = nil)
       raise Exchange::NotSupported "#{self.id}: sign() pure method must be redefined in derived classes"
     end
-    
+
     # request is the main function for define_rest_api()
-    def request( path, api='public', method = 'GET', params = {}, headers = nil, body = nil )
+    def request(path, api = 'public', method = 'GET', params = {}, headers = nil, body = nil )
       return fetch2(path, api, method, params, headers, body)
     end
-  
+
     def define_rest_api(method_name, options = {})
       delimiters = Regexp.compile('[^a-zA-Z0-9]')
       self.api.each do |api_type, methods|
@@ -644,7 +633,7 @@ module Ccxt
                 camelcase += options['suffixes']['underscore']
               end
             end
-          
+
             proc = self.method(:request).curry
             self.class.send(:define_method, underscore) do |*args|
               proc.call(url, api_type, uppercase_method, *args)
@@ -653,15 +642,15 @@ module Ccxt
           end
         end
       end
-    end   
-  
+    end
+
   #  class << self
-  
+
       ### THESE ARE REQUIRED TO TRANSPILE THE JAVASCRIPT FILES
-  
+
       ### CRYPTO FUNCTIONS
-  
-      def hash(request, secret, algorithm='md5', digest='hex')
+
+      def hash(request, secret, algorithm = 'md5', digest = 'hex')
         h = OpenSSL::Digest.digest(algorithm, request)
         if digest == 'hex'
           return h.hexdigest
@@ -671,7 +660,7 @@ module Ccxt
         raise "Unsupported digest in HMAC"
       end
 
-      def hmac(request, secret, algorithm='md5', digest='hex')
+      def hmac(request, secret, algorithm = 'md5', digest = 'hex')
         ssl_digest = OpenSSL::Digest.new(algorithm)
         # h = OpenSSL::HMAC.digest(ssl_digest, secret, request)
         if digest == 'hex'
@@ -682,7 +671,7 @@ module Ccxt
         raise "Unsupported digest in HMAC"
       end
 
-      def jwt(request, secret, algorithm=nil)
+      def jwt(request, secret, algorithm = nil)
         header = Exchange.encode(Exchange.json({
           'alg'=> alg,
           'typ' => 'JWT'
@@ -703,7 +692,7 @@ module Ccxt
       #             return b''
       #
       #     def hex_to_dec(n):
-      #         return int(n, base=16)
+      #         return int(n, base = 16)
       #
       #     def base32_to_bytes(n):
       #         missing_padding = len(n) % 8
@@ -722,8 +711,8 @@ module Ccxt
       end
 
       ### ENCODE
-  
-      def json(data, params=nil)
+
+      def json(data, params = nil)
         return JSON.dumps(data)
       end
 
@@ -738,7 +727,7 @@ module Ccxt
       def binary_to_string(string)
         return string.encode('ascii')
       end
-  
+
       #
       # Encode a query for a URL, but not encoding special characters.
       #
@@ -749,13 +738,13 @@ module Ccxt
       def rawencode(params={})
         return Addressable::URI.encode_component(params, /./)
       end
-  
+
       def base64urlencode(s)
         return Exchange.decode(Base64.urlsafe_encode64(s, padding:false))
       end
 
       ### GENERIC
-  
+
       def aggregate(bidasks)
         ordered = Exchange.ordered({})
         bidasks.each do |price, volume|
@@ -808,7 +797,7 @@ module Ccxt
           result
         else
           {}
-        end 
+        end
       end
 
       def extract_params(string)
@@ -822,11 +811,11 @@ module Ccxt
         return string
       end
 
-      def filterBy(array, key, value=nil)
+      def filterBy(array, key, value = nil)
         return Exchange.filter_by(array, key, value)
       end
 
-      def filter_by(array, key, value=nil)
+      def filter_by(array, key, value = nil)
         if value
           grouped = Exchange.group_by(array, key)
           return grouped[value] if grouped.has_key? value
@@ -858,7 +847,7 @@ module Ccxt
         return haystack.include?(needle)
       end
 
-      def index_by( array, key )
+      def index_by(array, key)
         result = {}
         array = self.keysort(array).values if array.is_a?(Hash)
         array.each do |element|
@@ -868,19 +857,19 @@ module Ccxt
           end
         end
         result
-      end  
+      end
 
       def is_empty(object)
         return object.empty?
       end
 
       def is_json_encoded_object(input)
-        return (input.is_a?(String) and 
+        return (input.is_a?(String) and
                (input.length >= 2) and
                ((input[0] == '{') or (input[0] == '[')))
       end
 
-      def keysort( hash )
+      def keysort(hash)
         return hash.sort_by{|k,v| k}.to_h
       end
 
@@ -902,7 +891,7 @@ module Ccxt
         return Hash(array)
       end
 
-      def pluck( array, key )
+      def pluck(array, key)
         return array.delete_if{|a| not a.has_key?(key)}.map{|a| a[key]}
       end
 
@@ -941,7 +930,7 @@ module Ccxt
         return self.safe_either(method(:safe_integer), hash, key1, key2, default_value)
       end
 
-      def safe_string(hash, key, default_value=nil)
+      def safe_string(hash, key, default_value = nil)
         if hash.is_a?(Hash) && hash.has_key?(key)
           value = hash[key].to_s
         else
@@ -953,7 +942,7 @@ module Ccxt
       def safe_string_2(hash, key1, key2, default_value = nil)
         return self.safe_either(method(:safe_string), hash, key1, key2, default_value)
       end
-    
+
       def safe_value(hash, key, default_value = nil)
         if hash.is_a?(Hash) && hash.has_key?(key)
           value = hash[key]
@@ -967,8 +956,8 @@ module Ccxt
         return self.safe_either(method(:safe_string), hash, key1, key2, default_value)
       end
 
-      def sort_by(array, key, descending=false)
-        # return sorted(array, key=lambda k: k[key] if k[key] is not None else "", reverse=descending)
+      def sort_by(array, key, descending = false)
+        # return sorted(array, key = lambda k: k[key] if k[key] is not None else "", reverse = descending)
         result = array.sort_by!{|k| k[key] ? k[key] : "" }
         descending ? result.reverse : result
       end
@@ -990,7 +979,7 @@ module Ccxt
       end
 
       # Deprecated, todo: remove references from subclasses
-      def truncate_to_string(num, precision=0)
+      def truncate_to_string(num, precision = 0)
         return num.truncate(precision).to_s
       end
 
@@ -1035,7 +1024,7 @@ module Ccxt
       def uuid
         return SecureRandom::base64
       end
-  
+
       def microseconds
         return (Time.now.to_f * 1000000.0).to_i
       end
@@ -1047,11 +1036,11 @@ module Ccxt
       def msec
         return self.milliseconds
       end
-      
+
       def iso8601(timestamp = nil)
         return nil unless timestamp.is_a?(Integer)
         return nil if timestamp.to_i < 0
-    
+
         return Time.at(timestamp / 1000.0).round(3).utc.iso8601(3)
       end
 
@@ -1064,7 +1053,7 @@ module Ccxt
         return DateTime.iso8601(timestamp).strftime('%Q').to_i rescue nil
       end
 
-      def parse_date(timestamp=nil)
+      def parse_date(timestamp = nil)
         return nil unless timestamp.is_a?(String)
         return DateTime.parse(timestamp).strftime('%Q').to_i rescue nil
       end
@@ -1078,16 +1067,16 @@ module Ccxt
         utc_datetime = Time.at(timestamp.to_i).utc
         return utc_datetime.strftime('%Y-%m-%d' + infix + '%H:%M:%S')
       end
-  
-      def raise_error( exception, url=nil, method=nil, error=nil, details=nil)    
+
+      def raise_error( exception, url = nil, method = nil, error = nil, details = nil)
         output = ' ' + self.id + [url, method, error, details].compact.join(' ')
         raise exception(output)
       end
-  
+
       # Ruby default capitalize will capitalize the first letter and lower the others.
       def capitalize(string)
         if string.length > 1
-          return (string[0].upcase + string[1..-1]) 
+          return (string[0].upcase + string[1..-1])
         else
           return string.upcase
         end
@@ -1102,7 +1091,7 @@ module Ccxt
         end
       end
   #  end
-  
+
     def common_currency_code(currency)
       if not self.substituteCommonCurrencyCodes
         return currency
@@ -1122,7 +1111,7 @@ module Ccxt
       parts = string.sub(/0+$/, '').split('.')
       return (parts.size > 1 ) ? parts[1].size : 0
     end
-    
+
     def cost_to_precision(symbol, cost)
       return self.decimal_to_precision(cost, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
     end
@@ -1130,7 +1119,7 @@ module Ccxt
     def price_to_precision(symbol, price)
       return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
     end
-    
+
     def amount_to_precision(symbol, amount)
       return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], self.precisionMode)
     end
@@ -1138,7 +1127,7 @@ module Ccxt
     def fee_to_precision(symbol, fee)
       return self.decimal_to_precision(fee, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
     end
-    
+
     def currency_to_precision(currency, fee)
       return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'], self.precisionMode)
     end
@@ -1152,7 +1141,7 @@ module Ccxt
       return nil
     end
 
-    def check_required_credentials(error=true)
+    def check_required_credentials(error = true)
       self.requiredCredentials.keys.each do |key|
         if self.requiredCredentials[key] && (not self.instance_variable_get("@#{key}"))
           if error
@@ -1163,13 +1152,13 @@ module Ccxt
         end
       end
     end
-        
+
     def check_address(address)
       # Checks an address is not the same character repeated or an empty sequence
       if address.nil?
         raise InvalidAddress, '#{self.id} address is nil'
       end
-    
+
       ## check the address is not the same letter like 'aaaaa' nor too short nor has a space
       if (address.chars.uniq.length == 1) or
         (address.length < self.minFundingAddressLength) or
@@ -1186,15 +1175,15 @@ module Ccxt
         'total' => 0.0,
       }
     end
-  
+
     def find_market(string)
       if not self.markets
         raise Exchange::ExchangeError "#{self.id} markets not loaded."
       end
-      if string.is_a?(String) 
+      if string.is_a?(String)
         if self.markets_by_id.has_key?(string)
           return self.markets_by_id[string]
-        end    
+        end
         if self.markets.include?(string)
           return self.markets[string]
         end
@@ -1202,7 +1191,7 @@ module Ccxt
       return string
     end
 
-    def find_symbol(string, market=nil)
+    def find_symbol(string, market = nil)
       if market.nil?
         market = self.find_market(string)
       end
@@ -1231,7 +1220,7 @@ module Ccxt
       return market ? market['id'] : symbol
     end
 
-    def calculate_fee(symbol, type, side, amount, price, takerOrMaker='taker', params={})
+    def calculate_fee(symbol, type, side, amount, price, takerOrMaker = 'taker', params={})
       market = self.markets[symbol]
       rate = market[takerOrMaker]
       cost = self.cost_to_precision(symbol, amount * price).to_f
@@ -1242,7 +1231,7 @@ module Ccxt
         'cost' => self.fee_to_precision(symbol, rate * cost).to_f,
       }
     end
-  
+
     def edit_limit_buy_order(id, symbol, *args)
       return self.edit_limit_order(id, symbol, 'buy', *args)
     end
@@ -1250,11 +1239,11 @@ module Ccxt
     def edit_limit_sell_order(id, symbol, *args)
       return self.edit_limit_order(id, symbol, 'sell', *args)
     end
-  
+
     def edit_limit_order(id, symbol, *args)
       return self.edit_order(id, symbol, 'limit', *args)
     end
-  
+
     def edit_order(id, symbol, *args)
       if not self.enableRateLimit
         raise Exchange::ExchangeError "#{self.id}: edit_order() requires enableRateLimit = true'"
@@ -1262,7 +1251,7 @@ module Ccxt
       self.cancel_order(id, symbol)
       return self.create_order(symbol, *args)
     end
-  
+
     def create_limit_order(symbol, *args)
       return self.create_order(symbol, 'limit', *args)
     end
@@ -1270,15 +1259,15 @@ module Ccxt
     def create_market_order(symbol, *args)
       return self.create_order(symbol, 'market', *args)
     end
-  
+
     def create_limit_buy_order(symbol, *args)
       return self.create_order(symbol, 'limit', 'buy', *args)
     end
-  
+
     def create_limit_sell_order(symbol, *args)
       return self.create_order(symbol, 'limit', 'sell', *args)
     end
-  
+
     def create_market_buy_order(symbol, amount, params={})
       return self.create_order(symbol, 'market', 'buy', amount, nil, params)
     end
@@ -1287,35 +1276,35 @@ module Ccxt
       return self.create_order(symbol, 'market', 'sell', amount, nil, params)
     end
 
-    def parse_trades(trades, market=nil, since=nil, limit=nil)
+    def parse_trades(trades, market = nil, since = nil, limit = nil)
       array = trades.collect{ |trade| self.parse_trade(trade, market)}
       array = self.sort_by(array, 'timestamp')
       symbol = market ? market['symbol'] : nil
       return self.filter_by_symbol_since_limit(array, symbol, since, limit)
     end
 
-    def parse_ledger(data, currency=nil, since=nil, limit=nil)
+    def parse_ledger(data, currency = nil, since = nil, limit = nil)
       array = data.collect{ |item| self.parse_ledger_entry(item, currency)}
       array = self.sort_by(array, 'timestamp')
       code = currency ? currency['code'] : nil
       return self.filter_by_currency_since_limit(array, code, since, limit)
     end
-  
-    def parse_transactions(transactions, currency=nil, since=nil, limit=nil, params={})
+
+    def parse_transactions(transactions, currency = nil, since = nil, limit = nil, params={})
       array = transactions.collect{|transaction| self.parse_transaction(transaction, currency)}
       array = self.sort_by(array, 'timestamp')
       code = currency ? currency['code'] : nil
       return self.filter_by_currency_since_limit(array, code, since, limit)
     end
-  
-    def parse_orders(orders, market=nil, since=nil, limit=nil)
+
+    def parse_orders(orders, market = nil, since = nil, limit = nil)
       array = orders.collect{|order| self.parse_order(order, market)}
       array = self.sort_by(array, 'timestamp')
       symbol = market ? market['symbol'] : nil
-      return self.filter_by_symbol_since_limit(array, symbol, since, limit)  
+      return self.filter_by_symbol_since_limit(array, symbol, since, limit)
     end
-  
-    def filter_by_value_since_limit(array, field, value=nil, since=nil, limit=nil)
+
+    def filter_by_value_since_limit(array, field, value = nil, since = nil, limit = nil)
       if value
         array = array.select{|entry| entry[field] == value}
       end
@@ -1327,16 +1316,16 @@ module Ccxt
       end
       return array
     end
-  
-    def filter_by_symbol_since_limit(array, symbol=nil, since=nil, limit=nil)
+
+    def filter_by_symbol_since_limit(array, symbol = nil, since = nil, limit = nil)
       return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit)
     end
-  
-    def filter_by_currency_since_limit(array, code=nil, since=nil, limit=nil)
+
+    def filter_by_currency_since_limit(array, code = nil, since = nil, limit = nil)
       return self.filter_by_value_since_limit(array, 'currency', code, since, limit)
     end
-    
-    def filter_by_since_limit(array, since=nil, limit=nil)
+
+    def filter_by_since_limit(array, since = nil, limit = nil)
       if since
         array = array.select{|entry| entry['timestamp'] >= since}
       end
@@ -1345,8 +1334,8 @@ module Ccxt
       end
       return array
     end
-  
-    def filter_by_symbol(array, symbol=nil)
+
+    def filter_by_symbol(array, symbol = nil)
       array = self.to_array(array)
       if symbol
         return attray.select{|entry| entry['symbol'] == symbol}
@@ -1354,7 +1343,7 @@ module Ccxt
       return array
     end
 
-    def filter_by_array(objects, key, values=nil, indexed=true)
+    def filter_by_array(objects, key, values = nil, indexed = true)
       # return all of them if no values were passed in
       if values.nil?
         return indexed ? self.index_by(objects, key) : objects
@@ -1369,8 +1358,8 @@ module Ccxt
       end
       return indexed ? self.index_by(result, key) : result
     end
-  
-  
+
+
   end
 
 end
