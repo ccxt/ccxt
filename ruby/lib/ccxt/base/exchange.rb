@@ -34,7 +34,7 @@ module Ccxt
 
     def initialize(config = {})
       @id = nil
-      @version = "1.00a"
+      @version = nil
       @certified = false
 
       # rate limiter settings
@@ -43,8 +43,9 @@ module Ccxt
       @timeout = 10000   # milliseconds = seconds * 1000
       @asyncio_loop = nil
       @aiohttp_proxy = nil
-      @session = nil 
-      @logger = nil 
+      @aiohttp_trust_env = false
+      @session = nil
+      @logger = nil
       @userAgent = nil
       @userAgents = {
         'chrome' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -71,13 +72,14 @@ module Ccxt
       @proxy = ''
       @origin = '*'  # CORS origin
       @proxies = nil
+      @hostname = nil # in case of inaccessibility of the "main" domain
       @apiKey = ''
       @secret = ''
       @password = ''
       @uid = ''
       @privateKey = ''  # a "0x"-prefixed hexstring private key for a wallet
       @walletAddress = ''  # the wallet address "0x"-prefixed hexstring
-      @twofa = false
+      @twofa = nil
       @marketsById = nil
       @markets_by_id = nil
       @currencies_by_id = nil
@@ -93,6 +95,7 @@ module Ccxt
       @transactions = {}
       @currencies = {}
       @options = {}
+      @accounts = {}
 
       @requiredCredentials = {
         'apiKey' => true,
@@ -161,14 +164,17 @@ module Ccxt
       @last_http_response = nil
       @last_json_response = nil
       @last_response_headers = nil
+
+      @requiresWeb3 = false
       @web3 = nil
 
       @commonCurrencies = {
         'XBT' => 'BTC',
         'BCC' => 'BCH',
         'DRK' => 'DASH',
+        'BCHABC' => 'BCH',
+        'BCHSV'=> 'BSV',
       }
-
 
       settings = self.deep_extend(self.describe(), config)
       settings.each do |key, value|
