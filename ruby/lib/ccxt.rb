@@ -12,7 +12,7 @@ module Ccxt
     end
   end
   
-  @exchanges = ['bitmex']
+  @exchanges = ['bitmex'].freeze
 end
 
 require 'ccxt/version'
