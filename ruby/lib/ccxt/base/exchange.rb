@@ -198,31 +198,12 @@ module Ccxt
         self.set_markets(self.markets)
       end
 
-      # # convert all properties from underscore notation foo_bar to camelcase notation fooBar
-      # cls = type(self)
-      # for name in dir(self):
-      #     if name[0] != '_' and name[-1] != '_' and '_' in name:
-      #         parts = name.split('_')
-      #         camelcase = parts[0] + ''.join(self.capitalize(i) for i in parts[1:])
-      #         attr = getattr(self, name)
-      #         if isinstance(attr, types.MethodType):
-      #             setattr(cls, camelcase, getattr(cls, name))
-      #         else:
-      #             setattr(self, camelcase, attr)
-
       self.tokenBucket = {
         'refillRate' => 1.0 / self.rateLimit,
         'delay' => 0.001,
         'capacity' => 1.0,
         'defaultCost' => 1.0,
       }
-
-      # self.session = self.session if self.session else Session()
-      # self.logger = self.logger if self.logger else logging.getLogger(__name__)
-      #
-      # if self.requiresWeb3 and Web3 and not self.web3:
-      #     # self.web3 = w3 if w3 else Web3(HTTPProvider())
-      #     self.web3 = Web3(HTTPProvider())    
     end
 
     def describe

@@ -1,5 +1,20 @@
-# require "ccxt/version"
-
 module Ccxt
-  VERSION = "0.1.0"
+  class << self
+    attr_accessor :exchanges
+  end
+  
+  def self.[](key)
+    if Ccxt.exchanges.include? key
+      class_name = key.split('_').collect(&:capitalize).join
+      return const_get class_name
+    else
+      return nil
+    end
+  end
+  
+  @exchanges = ['bitmex']
 end
+
+require 'ccxt/version'
+require 'ccxt/base/exchange'
+require 'ccxt/bitmex'
