@@ -18,7 +18,7 @@ module.exports = class coinegg extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': 'emulated',
                 'fetchMyTrades': true,
-                'fetchTickers': 'emulated',
+                'fetchTickers': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg',
