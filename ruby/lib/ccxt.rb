@@ -2,7 +2,7 @@ module Ccxt
   class << self
     attr_accessor :exchanges
   end
-  
+
   def self.[](key)
     if Ccxt.exchanges.include? key
       class_name = key.split('_').collect(&:capitalize).join
@@ -11,7 +11,7 @@ module Ccxt
       return nil
     end
   end
-  
+
   @exchanges = ['bitmex'].freeze
 end
 
