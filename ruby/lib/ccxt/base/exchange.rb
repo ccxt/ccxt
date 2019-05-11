@@ -245,7 +245,7 @@ module Ccxt
       return set_markets(markets, currencies)
     end
 
-    def load_accounts(reload=false, params={})
+    def load_accounts(reload=false, params = {})
       if reload
         self.accounts = self.fetch_accounts(params)
       else
@@ -322,42 +322,42 @@ module Ccxt
       return balance
     end
 
-    def fetch_partial_balance(part, params={})
+    def fetch_partial_balance(part, params = {})
       balance = self.fetch_balance(params)
       return balance[part]
     end
 
-    def fetch_free_balance(params={})
+    def fetch_free_balance(params = {})
       return self.fetch_partial_balance('free', params)
     end
 
-    def fetch_used_balance(params={})
+    def fetch_used_balance(params = {})
       return self.fetch_partial_balance('used', params)
     end
 
-    def fetch_total_balance(params={})
+    def fetch_total_balance(params = {})
       return self.fetch_partial_balance('total', params)
     end
 
-    def fetch_trading_fees(symbol, params={})
-      self.raise_error(NotSupported, details='fetch_trading_fees() not supported yet')
+    def fetch_trading_fees(symbol, params = {})
+      self.raise_error(NotSupported, 'fetch_trading_fees() not supported yet')
     end
 
-    def fetch_trading_fee(symbol, params={})
-      self.raise_error(NotSupported, details='fetch_trading_fee() not supported yet') unless self.has['fetchTradingFees']
+    def fetch_trading_fee(symbol, params = {})
+      self.raise_error(NotSupported, 'fetch_trading_fee() not supported yet') unless self.has['fetchTradingFees']
       return self.fetch_trading_fees(params)
     end
 
-    def fetch_funding_fees(params={})
-      self.raise_error(NotSupported, details='fetch_funding_fees() not supported yet')
+    def fetch_funding_fees(params = {})
+      self.raise_error(NotSupported, 'fetch_funding_fees() not supported yet')
     end
 
-    def fetch_funding_fee(code, params={})
-      self.raise_error(NotSupported, details='fetch_funding_fee() not supported yet') unless self.has['fetchFundingFees']
+    def fetch_funding_fee(code, params = {})
+      self.raise_error(NotSupported, 'fetch_funding_fee() not supported yet') unless self.has['fetchFundingFees']
       return self.fetch_funding_fees(params)
     end
 
-    def load_trading_limits(symbols=nil, reload=false, params={})
+    def load_trading_limits(symbols = nil, reload = false, params = {})
       if self.has['fetchTradingLimits']
         if reload or not(self.options.keys.include?('limitsLoaded'))
           response = self.fetch_trading_limits(symbols)
@@ -1576,14 +1576,14 @@ module Ccxt
 
     # TODO: find a reliable web3/ethereum library for Ruby.
 
-    # def decryptAccount(self, key, password):
+    # def decryptAccount(key, password):
     #     return self.web3.eth.accounts.decrypt(key, password)
     #
-    # def decryptAccountFromPrivateKey(self, privateKey):
+    # def decryptAccountFromPrivateKey(privateKey):
     #     return self.web3.eth.accounts.privateKeyToAccount(privateKey)
     #
 
-    def eth_decimals(unit='ether')
+    def eth_decimals(unit = 'ether')
       units = {
         'wei'=> 0,          # 1
         'kwei'=> 3,         # 1000
@@ -1612,28 +1612,28 @@ module Ccxt
       return self.safe_value(units, unit)
     end
 
-    def eth_unit(decimals=18)
+    def eth_unit(decimals = 18)
       units = {
-          0=> 'wei',      # 1000000000000000000
-          3=> 'kwei',     # 1000000000000000
-          6=> 'mwei',     # 1000000000000
-          9=> 'gwei',     # 1000000000
-          12=> 'szabo',   # 1000000
-          15=> 'finney',  # 1000
-          18=> 'ether',   # 1
-          21=> 'kether',  # 0.001
-          24=> 'mether',  # 0.000001
-          27=> 'gether',  # 0.000000001
-          30=> 'tether',  # 0.000000000001
+        0=> 'wei',      # 1000000000000000000
+        3=> 'kwei',     # 1000000000000000
+        6=> 'mwei',     # 1000000000000
+        9=> 'gwei',     # 1000000000
+        12=> 'szabo',   # 1000000
+        15=> 'finney',  # 1000
+        18=> 'ether',   # 1
+        21=> 'kether',  # 0.001
+        24=> 'mether',  # 0.000001
+        27=> 'gether',  # 0.000000001
+        30=> 'tether',  # 0.000000000001
       }
       return self.safe_value(units, decimals)
     end
 
-    def fromWei(amount, unit='ether', decimals=18)
+    def fromWei(amount, unit = 'ether', decimals = 18)
       raise ExchangeError, "Not implemented."
     end
 
-    def toWei(amount, unit='ether', decimals=18)
+    def toWei(amount, unit = 'ether', decimals = 18)
       raise ExchangeError, "Not implemented."
     end
   end
