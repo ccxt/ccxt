@@ -297,24 +297,29 @@ module Ccxt
       end
       return balance
     end
-    
+
+
     def fetch_partial_balance(part, params={})
       balance = self.fetch_balance(params)
       return balance[part]
     end
-    
+
+
     def fetch_free_balance(params={})
       return self.fetch_partial_balance('free', params)
     end
-    
+
+
     def fetch_used_balance(params={})
       return self.fetch_partial_balance('used', params)
     end
-    
+
+
     def fetch_total_balance(params={})
       return self.fetch_partial_balance('total', params)
     end
-       
+
+
     def fetch_trading_fees(self, symbol, params={}):
         self.raise_error(NotSupported, details='fetch_trading_fees() not supported yet')
 
@@ -322,11 +327,13 @@ module Ccxt
       self.raise_error(NotSupported, details='fetch_trading_fee() not supported yet') unless self.has['fetchTradingFees']
       return self.fetch_trading_fees(params)
     end
-    
+
+
     def fetch_funding_fees(self, params={})
       self.raise_error(NotSupported, details='fetch_funding_fees() not supported yet')
     end
-    
+
+
     def fetch_funding_fee(self, code, params={})
       self.raise_error(NotSupported, details='fetch_funding_fee() not supported yet') unless self.has['fetchFundingFees']
       return self.fetch_funding_fees(params)
@@ -344,13 +351,15 @@ module Ccxt
       end
       return self.markets
     end
-    
+
+
     ## PRIVATE
 
     def fetch_balance
     end
 
-    
+
+
     def create_order(symbol, type, side, amount, price = nil, params = {})
       raise Exchange::NotSupported, 'create_order is not supported yet.'
     end
@@ -582,7 +591,8 @@ module Ccxt
       end
       return results
     end
-    
+
+
     def convert_ohlcv_to_trading_view(ohlcvs)
       result = {
         't' => [],
@@ -602,7 +612,8 @@ module Ccxt
       end
       return result
     end
-    
+
+
     ###
     # REQUEST METHODS
     ###
@@ -1462,7 +1473,6 @@ module Ccxt
     end
 
     def currency(code)
-      
       unless self.currencies
         raise Exchange::ExchangeError, 'Currencies not loaded.'
       end
@@ -1473,14 +1483,14 @@ module Ccxt
     end
 
     # Ethereum accepts three types of keys: private key, account or address, and UTC JSON keystore.
-    
+
     # Creates an account object from a private key.
     #   private_key: The private key hex string beginning with 0x.
     def decrypt_account_from_private_key(private_key)
       raise Exchange::ExchangeError, "Not implemented yet."
       return nil
     end
-    
+
     # Creates an account object from an account/address
     def decrypt_account(value, password)
       return Eth::key.decrypt(value, password)
@@ -1492,67 +1502,67 @@ module Ccxt
       return self.decrypt_account(value_to_decrypt, password)
     end
 
-      # TODO: find a reliable web3/ethereum library for Ruby.
-      
-      # def decryptAccount(self, key, password):
-      #     return self.web3.eth.accounts.decrypt(key, password)
-      #
-      # def decryptAccountFromPrivateKey(self, privateKey):
-      #     return self.web3.eth.accounts.privateKeyToAccount(privateKey)
-      #
-      
-      def eth_decimals(unit='ether')
-        units = {
-          'wei'=> 0,          # 1
-          'kwei'=> 3,         # 1000
-          'babbage'=> 3,      # 1000
-          'femtoether'=> 3,   # 1000
-          'mwei'=> 6,         # 1000000
-          'lovelace'=> 6,     # 1000000
-          'picoether'=> 6,    # 1000000
-          'gwei'=> 9,         # 1000000000
-          'shannon'=> 9,      # 1000000000
-          'nanoether'=> 9,    # 1000000000
-          'nano'=> 9,         # 1000000000
-          'szabo'=> 12,       # 1000000000000
-          'microether'=> 12,  # 1000000000000
-          'micro'=> 12,       # 1000000000000
-          'finney'=> 15,      # 1000000000000000
-          'milliether'=> 15,  # 1000000000000000
-          'milli'=> 15,       # 1000000000000000
-          'ether'=> 18,       # 1000000000000000000
-          'kether'=> 21,      # 1000000000000000000000
-          'grand'=> 21,       # 1000000000000000000000
-          'mether'=> 24,      # 1000000000000000000000000
-          'gether'=> 27,      # 1000000000000000000000000000
-          'tether'=> 30,      # 1000000000000000000000000000000
-        }
-        return self.safe_value(units, unit)
-      end
-        
-      def eth_unit(decimals=18)
-        units = {
-            0=> 'wei',      # 1000000000000000000
-            3=> 'kwei',     # 1000000000000000
-            6=> 'mwei',     # 1000000000000
-            9=> 'gwei',     # 1000000000
-            12=> 'szabo',   # 1000000
-            15=> 'finney',  # 1000
-            18=> 'ether',   # 1
-            21=> 'kether',  # 0.001
-            24=> 'mether',  # 0.000001
-            27=> 'gether',  # 0.000000001
-            30=> 'tether',  # 0.000000000001
-        }
-        return self.safe_value(units, decimals)
-      end
-      
-      def fromWei(amount, unit='ether', decimals=18)
-        raise ExchangeError, "Not implemented."
-      end
+    # TODO: find a reliable web3/ethereum library for Ruby.
 
-      def toWei(self, amount, unit='ether', decimals=18):
-        raise ExchangeError, "Not implemented."
-      end     
+    # def decryptAccount(self, key, password):
+    #     return self.web3.eth.accounts.decrypt(key, password)
+    #
+    # def decryptAccountFromPrivateKey(self, privateKey):
+    #     return self.web3.eth.accounts.privateKeyToAccount(privateKey)
+    #
+
+    def eth_decimals(unit='ether')
+      units = {
+        'wei'=> 0,          # 1
+        'kwei'=> 3,         # 1000
+        'babbage'=> 3,      # 1000
+        'femtoether'=> 3,   # 1000
+        'mwei'=> 6,         # 1000000
+        'lovelace'=> 6,     # 1000000
+        'picoether'=> 6,    # 1000000
+        'gwei'=> 9,         # 1000000000
+        'shannon'=> 9,      # 1000000000
+        'nanoether'=> 9,    # 1000000000
+        'nano'=> 9,         # 1000000000
+        'szabo'=> 12,       # 1000000000000
+        'microether'=> 12,  # 1000000000000
+        'micro'=> 12,       # 1000000000000
+        'finney'=> 15,      # 1000000000000000
+        'milliether'=> 15,  # 1000000000000000
+        'milli'=> 15,       # 1000000000000000
+        'ether'=> 18,       # 1000000000000000000
+        'kether'=> 21,      # 1000000000000000000000
+        'grand'=> 21,       # 1000000000000000000000
+        'mether'=> 24,      # 1000000000000000000000000
+        'gether'=> 27,      # 1000000000000000000000000000
+        'tether'=> 30,      # 1000000000000000000000000000000
+      }
+      return self.safe_value(units, unit)
+    end
+
+    def eth_unit(decimals=18)
+      units = {
+          0=> 'wei',      # 1000000000000000000
+          3=> 'kwei',     # 1000000000000000
+          6=> 'mwei',     # 1000000000000
+          9=> 'gwei',     # 1000000000
+          12=> 'szabo',   # 1000000
+          15=> 'finney',  # 1000
+          18=> 'ether',   # 1
+          21=> 'kether',  # 0.001
+          24=> 'mether',  # 0.000001
+          27=> 'gether',  # 0.000000001
+          30=> 'tether',  # 0.000000000001
+      }
+      return self.safe_value(units, decimals)
+    end
+
+    def fromWei(amount, unit='ether', decimals=18)
+      raise ExchangeError, "Not implemented."
+    end
+
+    def toWei(self, amount, unit='ether', decimals=18):
+      raise ExchangeError, "Not implemented."
+    end     
   end
 end
