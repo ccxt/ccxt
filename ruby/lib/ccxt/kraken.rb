@@ -1346,14 +1346,14 @@ module Ccxt
         end
       elsif api == 'private'
         self.check_required_credentials()
-        nonce = str(self.nonce())
+        nonce = self.nonce.to_s
         body = self.urlencode({'nonce' => nonce}.merge params)
         auth = self.encode(nonce + body)
         hash = self.hash(auth, 'sha256', 'binary')
         binary = self.encode(url)
         binhash = self.binary_concat(binary, hash)
-        secret = base64.b64decode(self.secret)
-        signature = self.hmac(binhash, secret, hashlib.sha512, 'base64')
+        secret = Base64.decode64(self.secret)
+        signature = self.hmac(binhash, secret, 'sha512', 'base64')
         headers = {
           'API-Key' => self.apiKey,
           'API-Sign' => self.decode(signature),
