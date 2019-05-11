@@ -1478,7 +1478,7 @@ module Ccxt
     #   private_key: The private key hex string beginning with 0x.
     def decrypt_account_from_private_key(private_key)
       raise Exchange::ExchangeError, "Not implemented yet."
-      return Eth::nothing
+      return nil
     end
     
     # Creates an account object from an account/address
