@@ -245,19 +245,19 @@ module Ccxt
       return set_markets(markets, currencies)
     end
 
-    def fetch_markets(params={})
+    def fetch_markets(params = {})
       return self.markets.to_a
     end
 
-    def fetch_currencies(params={})
+    def fetch_currencies(params = {})
       return self.currencies
     end
 
-    def fetch_ticker(symbol = nil, params={})
+    def fetch_ticker(symbol = nil, params = {})
       raise Exchange::NotSupported, 'fetch_ticker is not supported yet.'
     end
 
-    def fetch_tickers(symbols = nil, params={})
+    def fetch_tickers(symbols = nil, params = {})
       raise Exchange::NotSupported, 'API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now'
     end
 
@@ -265,7 +265,7 @@ module Ccxt
       raise Exchange::NotSupported, 'fetch_order_book is not supported yet.'
     end
 
-    def fetch_OHLCV(symbol, timeframe = '1m', since = nil, limit = nil, params={})
+    def fetch_OHLCV(symbol, timeframe = '1m', since = nil, limit = nil, params = {})
       raise(NotSupported, 'fetch_ohlcv() is not supported yet.') unless self.has['fetchTrades']
       self.load_markets()
       trades = self.fetch_trades(symbol, since, limit, params)
@@ -292,35 +292,35 @@ module Ccxt
     def fetch_balance
     end
 
-    def create_order(symbol, type, side, amount, price = nil, params={})
+    def create_order(symbol, type, side, amount, price = nil, params = {})
       raise Exchange::NotSupported, 'create_order is not supported yet.'
     end
 
-    def cancel_order(id, symbol = nil, params={})
+    def cancel_order(id, symbol = nil, params = {})
       raise Exchange::NotSupported, 'cancel_order is not supported yet.'
     end
 
-    def fetch_order(id, symbol = nil, params={})
+    def fetch_order(id, symbol = nil, params = {})
       raise Exchange::NotSupported, 'fetch_order is not supported yet.'
     end
 
-    def fetch_orders(symbol = nil, since = nil, limit = nil, params={})
+    def fetch_orders(symbol = nil, since = nil, limit = nil, params = {})
       raise Exchange::NotSupported, 'fetch_orders() is not supported yet'
     end
 
-    def fetch_open_orders(symbol = nil, since = nil, limit = nil, params={})
+    def fetch_open_orders(symbol = nil, since = nil, limit = nil, params = {})
       raise Exchange::NotSupported, 'fetch_open_orders() is not supported yet'
     end
 
-    def fetch_closed_orders(symbol = nil, since = nil, limit = nil, params={})
+    def fetch_closed_orders(symbol = nil, since = nil, limit = nil, params = {})
       raise Exchange::NotSupported, 'fetch_closed_orders() is not supported yet'
     end
 
-    # def fetch_order_trades(id, symbol = None, params={})
+    # def fetch_order_trades(id, symbol = None, params = {})
     #   raise Exchange::NotSupported, 'fetch_order_trades() is not supported yet'
     # end
 
-    def fetch_my_trades(symbol = nil, since = nil, limit = nil, params={})
+    def fetch_my_trades(symbol = nil, since = nil, limit = nil, params = {})
       raise Exchange::NotSupported, 'fetch_my_trades() is not supported yet'
     end
 
@@ -340,7 +340,7 @@ module Ccxt
       raise Exchange::NotSupported, 'fetch_deposits() is not supported yet'
     end
 
-    def fetch_withdrawals(symbol = nil, since = nil, limit = nil, params={})
+    def fetch_withdrawals(symbol = nil, since = nil, limit = nil, params = {})
       raise Exchange::NotSupported, 'fetch_withdrawals() is not supported yet'
     end
 
@@ -361,7 +361,7 @@ module Ccxt
       return self.sort_by(result, 0)
     end
 
-    def fetch_bids_asks(symbols = nil, params={})
+    def fetch_bids_asks(symbols = nil, params = {})
       raise Exchange::NotSupported, 'API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now'
     end
 
@@ -456,7 +456,7 @@ module Ccxt
     # REQUEST METHODS
     ###
 
-    def prepare_request_headers(headers={})
+    def prepare_request_headers(headers = {})
       headers.update(self.headers)
       if self.userAgent
         if self.userAgent.is_a?(String)
@@ -470,14 +470,14 @@ module Ccxt
       headers
     end
 
-    def fetch2(path, api = 'public', method = 'GET', params={}, headers = nil, body = nil)
+    def fetch2(path, api = 'public', method = 'GET', params = {}, headers = nil, body = nil)
       throttle if enableRateLimit
       self.lastRestRequestTimestamp = milliseconds
       request = sign(path, api, method, params, headers, body)
       return fetch(request['url'], request['method'], request['headers'], request['body'])
     end
 
-    def fetch(path, method = 'GET', headers={}, payload={})
+    def fetch(path, method = 'GET', headers = {}, payload = {})
       headers = prepare_request_headers
 
       puts "\nRequest:\nmethod:#{method}\npath: #{path}\nheaders:#{headers}\npayload:#{payload}" if self.verbose
@@ -563,7 +563,7 @@ module Ccxt
       end
     end
 
-    def sign(path, api = 'public', method = 'GET', params={}, headers = nil, body = nil)
+    def sign(path, api = 'public', method = 'GET', params = {}, headers = nil, body = nil)
       raise Exchange::NotSupported "#{self.id}: sign() pure method must be redefined in derived classes"
     end
 
@@ -695,10 +695,10 @@ module Ccxt
       # Encode a query for a URL, but not encoding special characters.
       #
       # @staticmethod
-      # def rawencode(params={}):
+      # def rawencode(params = {}):
       #     return _urlencode.unquote(Exchange.urlencode(params))
 
-      def rawencode(params={})
+      def rawencode(params = {})
         return Addressable::URI.encode_component(params, /./)
       end
 
@@ -940,7 +940,7 @@ module Ccxt
         return array.uniq
       end
 
-      def url(path, params={})
+      def url(path, params = {})
         result = Exchange.implode_params(path, params)
         query = Exchange.omit(params, Exchange.extract_params(path))
         if query
@@ -952,7 +952,7 @@ module Ccxt
       #
       # Encode a query for a URL, encoding special characters as necessary.
       #
-      def urlencode(params={})
+      def urlencode(params = {})
         if params.is_a?(Hash)
           return RestClient::Utils.encode_query_string(params)
         else
@@ -1173,7 +1173,7 @@ module Ccxt
       return market ? market['id'] : symbol
     end
 
-    def calculate_fee(symbol, type, side, amount, price, takerOrMaker = 'taker', params={})
+    def calculate_fee(symbol, type, side, amount, price, takerOrMaker = 'taker', params = {})
       market = self.markets[symbol]
       rate = market[takerOrMaker]
       cost = self.cost_to_precision(symbol, amount * price).to_f
@@ -1221,11 +1221,11 @@ module Ccxt
       return self.create_order(symbol, 'limit', 'sell', *args)
     end
 
-    def create_market_buy_order(symbol, amount, params={})
+    def create_market_buy_order(symbol, amount, params = {})
       return self.create_order(symbol, 'market', 'buy', amount, nil, params)
     end
 
-    def create_market_sell_order(symbol, amount, params={})
+    def create_market_sell_order(symbol, amount, params = {})
       return self.create_order(symbol, 'market', 'sell', amount, nil, params)
     end
 
@@ -1243,7 +1243,7 @@ module Ccxt
       return self.filter_by_currency_since_limit(array, code, since, limit)
     end
 
-    def parse_transactions(transactions, currency = nil, since = nil, limit = nil, params={})
+    def parse_transactions(transactions, currency = nil, since = nil, limit = nil, params = {})
       array = transactions.collect{|transaction| self.parse_transaction(transaction, currency)}
       array = self.sort_by(array, 'timestamp')
       code = currency ? currency['code'] : nil
