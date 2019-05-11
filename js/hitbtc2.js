@@ -1154,7 +1154,7 @@ module.exports = class hitbtc2 extends hitbtc {
             if (cost === undefined) {
                 cost = tradesCost;
             }
-            if ((cost !== undefined) && (filled !== undefined) && (filled > 0)) {
+            if ((filled !== undefined) && (filled > 0)) {
                 average = cost / filled;
                 if (type === 'market') {
                     if (price === undefined) {
