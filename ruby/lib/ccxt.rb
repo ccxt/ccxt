@@ -12,9 +12,10 @@ module Ccxt
     end
   end
 
-  @exchanges = ['bitmex'].freeze
+  @exchanges = ['bitmex', 'kraken'].freeze
 end
 
 require 'ccxt/version'
 require 'ccxt/base/exchange'
 require 'ccxt/bitmex'
+require 'ccxt/kraken'
