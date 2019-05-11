@@ -7,8 +7,8 @@ require 'openssl'
 require 'time'
 require "addressable/uri"
 require 'bigdecimal'
-require_relative 'errors.rb'
-require_relative 'decimal_to_precision.rb'
+require 'ccxt/base/errors'
+require 'ccxt/base/decimal_to_precision'
 
 module Ccxt
   # base class for the exchange
@@ -719,7 +719,7 @@ module Ccxt
       ### ENCODE
 
       def json(data, params = nil)
-        return JSON.dumps(data)
+        return JSON.dump(data)
       end
 
       def unjson(input)
