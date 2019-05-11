@@ -822,25 +822,29 @@ module Ccxt
 
       ### CRYPTO FUNCTIONS
 
-      def hash(request, secret, algorithm = 'md5', digest = 'hex')
+      def hash(request, algorithm = 'md5', digest = 'hex')
         h = OpenSSL::Digest.digest(algorithm, request)
-        if digest == 'hex'
-          return h.hexdigest
-        elsif digest == 'base64'
+        case digest
+        when 'hex'
+          h.hexdigest
+        when 'base64'
           return Base64.encode64(h)
+        else
+          h
         end
-        raise "Unsupported digest in HMAC"
       end
 
       def hmac(request, secret, algorithm = 'md5', digest = 'hex')
         ssl_digest = OpenSSL::Digest.new(algorithm)
         # h = OpenSSL::HMAC.digest(ssl_digest, secret, request)
-        if digest == 'hex'
-          return OpenSSL::HMAC.digest(ssl_digest, secret, request)
-        elsif digest == 'base64'
-          return Base64.encode64(OpenSSL::HMAC.digest(ssl_digest, secret, request))
+        case digest
+        when 'hex'
+          OpenSSL::HMAC.digest(ssl_digest, secret, request)
+        when 'base64'
+          Base64.encode64(OpenSSL::HMAC.digest(ssl_digest, secret, request))
+        else
+          raise "Unsupported digest in HMAC"
         end
-        raise "Unsupported digest in HMAC"
       end
 
       def jwt(request, secret, algorithm = nil)
@@ -893,7 +897,7 @@ module Ccxt
       end
 
       def binary_concat(*args)
-        return args.reduce(a,b){ a.concat(b) }
+        return args.reduce{|a,b| a.concat(b) }
       end
 
       def binary_to_string(string)
@@ -1196,7 +1200,7 @@ module Ccxt
       end
 
       def uuid
-        return SecureRandom::base64
+        return SecureRandom::uuid
       end
 
       def microseconds
