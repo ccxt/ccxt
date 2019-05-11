@@ -83,11 +83,11 @@
 |80|fetch_partial_balance|fetch_partial_balance|fetchPartialBalance|
 |81||fetch_ticker||
 |82|fetch_tickers|fetch_tickers|fetchTickers|
-|83|fetch_total_balance||fetchTotalBalance|
+|83|fetch_total_balance|fetch_total_balance|fetchTotalBalance|
 |84|fetch_trading_fee|fetch_trading_fee|fetchTradingFee|
 |85|fetch_trading_fees|fetch_trading_fee|fetchTradingFees|
 |86|fetch_transactions|fetch_transactions|fetchTransactions|
-|87|fetch_used_balance||fetchUsedBalance|
+|87|fetch_used_balance|fetch_used_balance|fetchUsedBalance|
 |88|fetch_withdrawals|fetch_withdrawals|fetchWithdrawals|
 |89|filterBy|filterBy|filterBy|
 |90|filter_by|filter_by||
@@ -128,7 +128,7 @@
 |126|iso8601|iso8601|iso8601|
 |127|json|json|json|
 |128|jwt|jwt|jwt|
-|129|||keys|
+|129|||~~keys~~|
 |130|keysort|keysort|keysort|
 |131|load_accounts|load_accounts|loadAccounts|
 |132|load_fees|load_fees||
@@ -142,7 +142,7 @@
 |140|milliseconds|milliseconds|milliseconds|
 |141|msec|msec||
 |142|nonce|nonce|nonce|
-|143|||numberToString|
+|143|||~~numberToString~~|
 |144|oath||oath|
 |145|omit|omit|omit|
 |146|ordered|ordered|ordered|
@@ -172,7 +172,7 @@
 |171|rawencode|rawencode|rawencode|
 |172|remove_0x_prefix|||
 |173|request|request|request|
-|174|safe_currency_code||safeCurrencyCode|
+|174|safe_currency_code|safe_currency_code|safeCurrencyCode|
 |175|safe_either|safe_either||
 |176|safe_float|safe_float|safeFloat|
 |177|safe_float_2|safe_float_2|safeFloat2|
