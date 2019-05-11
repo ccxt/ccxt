@@ -278,15 +278,15 @@ module Ccxt
     end
 
     def fetch_ticker(symbol = nil, params = {})
-      raise Exchange::NotSupported, 'fetch_ticker is not supported yet.'
+      raise NotSupported, 'fetch_ticker is not supported yet.'
     end
 
     def fetch_tickers(symbols = nil, params = {})
-      raise Exchange::NotSupported, 'API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now'
+      raise NotSupported, 'API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now'
     end
 
     def fetch_order_book()
-      raise Exchange::NotSupported, 'fetch_order_book is not supported yet.'
+      raise NotSupported, 'fetch_order_book is not supported yet.'
     end
 
     def fetch_OHLCV(symbol, timeframe = '1m', since = nil, limit = nil, params = {})
@@ -387,7 +387,7 @@ module Ccxt
         scale = 60 * 60 * 24 * 7
       when 'd'
         scale = 60 * 60 * 24
-      when 'h' 
+      when 'h'
         scale = 60 * 60
       else
         scale = 60  # 1m by default
@@ -401,60 +401,60 @@ module Ccxt
     end
 
     def create_order(symbol, type, side, amount, price = nil, params = {})
-      raise Exchange::NotSupported, 'create_order is not supported yet.'
+      raise NotSupported, 'create_order is not supported yet.'
     end
 
     def cancel_order(id, symbol = nil, params = {})
-      raise Exchange::NotSupported, 'cancel_order is not supported yet.'
+      raise NotSupported, 'cancel_order is not supported yet.'
     end
 
     def fetch_order(id, symbol = nil, params = {})
-      raise Exchange::NotSupported, 'fetch_order is not supported yet.'
+      raise NotSupported, 'fetch_order is not supported yet.'
     end
 
     def fetch_orders(symbol = nil, since = nil, limit = nil, params = {})
-      raise Exchange::NotSupported, 'fetch_orders() is not supported yet'
+      raise NotSupported, 'fetch_orders() is not supported yet'
     end
 
     def fetch_open_orders(symbol = nil, since = nil, limit = nil, params = {})
-      raise Exchange::NotSupported, 'fetch_open_orders() is not supported yet'
+      raise NotSupported, 'fetch_open_orders() is not supported yet'
     end
 
     def fetch_closed_orders(symbol = nil, since = nil, limit = nil, params = {})
-      raise Exchange::NotSupported, 'fetch_closed_orders() is not supported yet'
+      raise NotSupported, 'fetch_closed_orders() is not supported yet'
     end
 
-    def fetch_order_status(id, symbol=nil, params={})
+    def fetch_order_status(id, symbol = nil, params = {})
       order = self.fetch_order(id, symbol, params)
       return order['status']
     end
-    
+
     def fetch_order_trades(id, symbol = nil, params = {})
-      raise Exchange::NotSupported, 'fetch_order_trades() is not supported yet'
+      raise NotSupported, 'fetch_order_trades() is not supported yet'
     end
 
     def fetch_my_trades(symbol = nil, since = nil, limit = nil, params = {})
-      raise Exchange::NotSupported, 'fetch_my_trades() is not supported yet'
+      raise NotSupported, 'fetch_my_trades() is not supported yet'
     end
 
     def deposit
-      raise Exchange::NotSupported, 'deposit() is not supported yet'
+      raise NotSupported, 'deposit() is not supported yet'
     end
 
     def withdrawal
-      raise Exchange::NotSupported, 'withdrawal() is not supported yet'
+      raise NotSupported, 'withdrawal() is not supported yet'
     end
 
     def fetch_transactions
-      raise Exchange::NotSupported, 'fetch_transactions() is not supported yet'
+      raise NotSupported, 'fetch_transactions() is not supported yet'
     end
 
     def fetch_deposits
-      raise Exchange::NotSupported, 'fetch_deposits() is not supported yet'
+      raise NotSupported, 'fetch_deposits() is not supported yet'
     end
 
     def fetch_withdrawals(symbol = nil, since = nil, limit = nil, params = {})
-      raise Exchange::NotSupported, 'fetch_withdrawals() is not supported yet'
+      raise NotSupported, 'fetch_withdrawals() is not supported yet'
     end
 
     def parse_ohlcv(ohlcv, market = nil, timeframe = '1m', since = nil, limit = nil)
@@ -533,7 +533,7 @@ module Ccxt
     end
 
     def fetch_bids_asks(symbols = nil, params = {})
-      raise Exchange::NotSupported, 'API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now'
+      raise NotSupported, 'API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now'
     end
 
     def set_sandbox_mode(enabled)
@@ -542,7 +542,7 @@ module Ccxt
           self.urls['api_backup'] = self.urls['api']
           self.urls['api'] = self.urls['test']
         else
-          raise Exchange::NotSupported, self.id + ' does not have a sandbox URL'
+          raise NotSupported, self.id + ' does not have a sandbox URL'
         end
       elsif self.urls.include? 'api_backup'
         self.urls['api'] = self.urls['api_backup']
@@ -773,7 +773,7 @@ module Ccxt
     end
 
     def sign(path, api = 'public', method = 'GET', params = {}, headers = nil, body = nil)
-      raise Exchange::NotSupported "#{self.id}: sign() pure method must be redefined in derived classes"
+      raise NotSupported "#{self.id}: sign() pure method must be redefined in derived classes"
     end
 
     # request is the main function for define_rest_api()
@@ -883,7 +883,7 @@ module Ccxt
       #     return otp[-6:]
 
       def totp(key)
-        raise Exchange::NotSupported, "TOTP: Not implemented yet."
+        raise NotSupported, "TOTP: Not implemented yet."
       end
 
       ### ENCODE
@@ -1323,7 +1323,7 @@ module Ccxt
       self.requiredCredentials.keys.each do |key|
         if self.requiredCredentials[key] && (not self.instance_variable_get("@#{key}"))
           if error
-            raise Exchange::AuthenticationError, "#{self.id} requires #{key}."
+            raise AuthenticationError, "#{self.id} requires #{key}."
           else
             return error
           end
@@ -1341,7 +1341,7 @@ module Ccxt
       if (address.chars.uniq.length == 1) or
         (address.length < self.minFundingAddressLength) or
         (address.include?(' '))
-        raise Exchange::InvalidAddress, "#{self.id} address is invalid or has less than #{self.fminFundingAddressLength} characters: #{address.to_json}"
+        raise InvalidAddress, "#{self.id} address is invalid or has less than #{self.fminFundingAddressLength} characters: #{address.to_json}"
       end
       return address
     end
@@ -1356,7 +1356,7 @@ module Ccxt
 
     def find_market(string)
       if not self.markets
-        raise Exchange::ExchangeError "#{self.id} markets not loaded."
+        raise ExchangeError "#{self.id} markets not loaded."
       end
       if string.is_a?(String)
         if self.markets_by_id.has_key?(string)
@@ -1381,12 +1381,12 @@ module Ccxt
 
     def market(symbol)
       if not self.markets
-        raise Exchange::ExchangeError, "#{self.id}: Markets not loaded"
+        raise ExchangeError, "#{self.id}: Markets not loaded"
       end
       if symbol.is_a?(String) and (self.markets.include?(symbol))
         return self.markets[symbol]
       end
-      raise Exchange::ExchangeError, "#{self.id}: No market symbol #{symbol}"
+      raise ExchangeError, "#{self.id}: No market symbol #{symbol}"
     end
 
     def market_ids(symbols)
@@ -1424,7 +1424,7 @@ module Ccxt
 
     def edit_order(id, symbol, *args)
       if not self.enableRateLimit
-        raise Exchange::ExchangeError "#{self.id}: edit_order() requires enableRateLimit = true'"
+        raise ExchangeError "#{self.id}: edit_order() requires enableRateLimit = true'"
       end
       self.cancel_order(id, symbol)
       return self.create_order(symbol, *args)
@@ -1561,7 +1561,7 @@ module Ccxt
       return Eth::key.decrypt(value, password)
     end
 
-    # Creates an account object from a UTC JSON keystore    
+    # Creates an account object from a UTC JSON keystore
     def decrypt_account_from_json(value, password)
       value_to_decrypt = value.is_a?(String) ? JSON.load(value) : value
       return self.decrypt_account(value_to_decrypt, password)
@@ -1628,6 +1628,6 @@ module Ccxt
 
     def toWei(amount, unit='ether', decimals=18)
       raise ExchangeError, "Not implemented."
-    end     
+    end
   end
 end
