@@ -753,16 +753,6 @@ module Ccxt
         return URI.encode_www_form_component(uri)
       end
 
-      def extend(*args)
-        unless args.nil?
-          result = {}
-          args.each {|arg| result.update(arg)}
-          result
-        else
-          {}
-        end
-      end
-
       def extract_params(string)
         string.scan(/{([\w-]+)}/)
       end

@@ -131,7 +131,7 @@ module Ccxt
         }
       })
     end
-  
+
     def fetch_markets(params)
       response = self.publicGetInstrumentActiveAndIndices(params)
       result = []
@@ -141,7 +141,7 @@ module Ccxt
         id = market['symbol']
         baseId = market['underlying']
         quoteId = market['quoteCurrency']
-        basequote = baseId + quoteId      
+        basequote = baseId + quoteId
         base = self.common_currency_code(baseId)
         quote = self.common_currency_code(quoteId)
         swap = (id == basequote)
@@ -216,12 +216,12 @@ module Ccxt
       end
       return result
     end
-  
+
 
     def fetch_balance(params={})
       self.load_markets()
       request = {'currency': 'all'}
-      response = self.privateGetUserMargin(self.extend(request, params))
+      response = self.privateGetUserMargin(request.merge params)
       result = {'info': response}
       for b in (0 ... response.length)
         balance = response[b]
@@ -252,7 +252,7 @@ module Ccxt
       if limit != nil
         request['depth'] = limit
       end
-      orderbook = self.publicGetOrderBookL2(self.extend(request, params))
+      orderbook = self.publicGetOrderBookL2(request.merge params)
       result = {
         'bids': [],
         'asks': [],
@@ -286,7 +286,7 @@ module Ccxt
       end
       raise Exchange::OrderNotFound, self.id + ': The order ' + id + ' not found.'
     end
-  
+
     def fetch_orders(symbol=nil, since=nil, limit=nil, params={})
       self.load_markets()
       market = nil
@@ -311,14 +311,14 @@ module Ccxt
       response = self.privateGetOrder(request)
       return self.parse_orders(response, market, since, limit)
     end
-  
+
     def fetch_open_orders(symbol=nil, since=nil, limit=nil, params={})
       filter_params = {'filter': {'open': true}}
       return self.fetch_orders(symbol, since, limit, self.deep_extend(filter_params, params))
     end
 
     def fetch_closed_orders(symbol=nil, since=nil, limit=nil, params={})
-      # Bitmex barfs if you set 'open': false in the filter ... 
+      # Bitmex barfs if you set 'open': false in the filter ...
       orders = self.fetch_orders(symbol, since, limit, params)
       return self.filter_by(orders, 'status', 'closed')
     end
@@ -440,7 +440,7 @@ module Ccxt
       end
       return result
     end
-  
+
     def parse_ticker(ticker, market=nil)
       #
       #     {                        symbol: "ETHH19",
@@ -629,10 +629,10 @@ module Ccxt
         ymdhms = self.ymdhms(since)
         request['startTime'] = ymdhms  # starting date filter for results
       end
-      response = self.publicGetTradeBucketed(self.extend(request, params))
+      response = self.publicGetTradeBucketed(request.merge params)
       return self.parse_ohlcvs(response, market, timeframe, since, limit)
     end
-  
+
     def parse_trade(trade, market=nil)
       #
       # fetchTrades(public)
@@ -757,7 +757,7 @@ module Ccxt
         'fee' => fee,
       }
     end
-  
+
     def parse_order_status(status)
       statuses = {
         'New': 'open',
@@ -775,7 +775,7 @@ module Ccxt
       }
       return self.safe_string(statuses, status, status)
     end
-  
+
     def parse_order(order, market=nil)
       status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
       symbol = nil
@@ -842,7 +842,7 @@ module Ccxt
       if limit != nil
         request['count'] = limit
       end
-      response = self.publicGetTrade(self.extend(request, params))
+      response = self.publicGetTrade(request.merge params)
       #
       #     [
       #         {
@@ -874,7 +874,7 @@ module Ccxt
       # puts "Response: #{response}"
       return self.parse_trades(response, market, since, limit)
     end
-  
+
     def create_order(symbol, type, side, amount, price=nil, params={})
       self.load_markets()
       request = {
@@ -886,13 +886,13 @@ module Ccxt
       if price != nil
         request['price'] = price
       end
-      response = self.privatePostOrder(self.extend(request, params))
+      response = self.privatePostOrder(request.merge params)
       order = self.parse_order(response)
       id = order['id']
       self.orders[id] = order
-      return self.extend({'info': response}, order)
+      return {'info': response}.merge order
     end
-  
+
     def edit_order(id, symbol, type, side, amount=nil, price=nil, params={})
       self.load_markets()
       request = {
@@ -904,15 +904,15 @@ module Ccxt
       if price != nil
         request['price'] = price
       end
-      response = self.privatePutOrder(self.extend(request, params))
+      response = self.privatePutOrder(request.merge params)
       order = self.parse_order(response)
       self.orders[order['id']] = order
-      return self.extend({'info': response}, order)
+      return {'info': response}.merge order
     end
-  
+
     def cancel_order(id, symbol=nil, params={})
       self.load_markets()
-      response = self.privateDeleteOrder(self.extend({'orderID': id}, params))
+      response = self.privateDeleteOrder({'orderID': id}.merge params)
       order = response[0]
       error = self.safe_string(order, 'error')
       if error != nil
@@ -922,9 +922,9 @@ module Ccxt
       end
       order = self.parse_order(order)
       self.orders[order['id']] = order
-      return self.extend({'info': response}, order)
+      return {'info': response}.merge order
     end
-    
+
     def is_fiat(currency)
       if currency == 'EUR'
         return true
@@ -934,7 +934,7 @@ module Ccxt
       end
       return false
     end
-  
+
     def withdraw(code, amount, address, tag=nil, params={})
       self.check_address(address)
       self.load_markets()
@@ -949,13 +949,13 @@ module Ccxt
         # 'otpToken': '123456',  # requires if two-factor auth(OTP) is enabled
         # 'fee': 0.001,  # bitcoin network fee
       }
-      response = self.privatePostUserRequestWithdrawal(self.extend(request, params))
+      response = self.privatePostUserRequestWithdrawal(request.merge params)
       return {
         'info': response,
         'id': response['transactID'],
       }
     end
-  
+
     def handle_errors(code, reason, url, method, headers, body, response)
       if code == 429
         raise Exchange::Exchange::DDoSProtection, self.id + ' ' + body
@@ -983,11 +983,11 @@ module Ccxt
         end
       end
     end
-  
+
     def nonce
       return self.milliseconds
     end
-  
+
     def sign(path, api='public', method='GET', params={}, headers=nil, body=nil)
       query = '/api/' + self.version + '/' + path
       if method != 'PUT'
