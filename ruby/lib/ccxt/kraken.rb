@@ -255,7 +255,7 @@ module Ccxt
       parts.each do |part|
         chunks = part.split('</td>')
         amountAndCode = chunks[0]
-        if amountAndCode != 'To Be Announced'
+        if !['To Be Announced', '<strong>Order minimum</strong>'].include?(amountAndCode)
           pieces = amountAndCode.split(' ')
           numPieces = pieces.length
           if numPieces == 2
