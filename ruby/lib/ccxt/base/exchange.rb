@@ -376,13 +376,35 @@ module Ccxt
       return self.markets
     end
 
+    def nonce
+      return Exchange.milliseconds()
+    end
+
+
+    def parse_timeframe(timeframe)
+      amount = timeframe[0..-1].to_i
+      unit = timeframe[-1]
+      case unit
+      when 'y'
+        scale = 60 * 60 * 24 * 365
+      when 'M'
+        scale = 60 * 60 * 24 * 30
+      when 'w'
+        scale = 60 * 60 * 24 * 7
+      when 'd'
+        scale = 60 * 60 * 24
+      when 'h' 
+        scale = 60 * 60
+      else:
+        scale = 60  # 1m by default
+      end
+      return amount * scale
+    end
 
     ## PRIVATE
 
     def fetch_balance
     end
-
-
 
     def create_order(symbol, type, side, amount, price = nil, params = {})
       raise Exchange::NotSupported, 'create_order is not supported yet.'
@@ -451,6 +473,11 @@ module Ccxt
         result.push(ohlcv)
       end
       return self.sort_by(result, 0)
+    end
+
+    def parse_trading_view_ohlcv(ohlcvs, market=nil, timeframe='1m', since=nil, limit=nil)
+      result = self.convert_trading_view_to_ohlcv(ohlcvs)
+      return self.parse_ohlcvs(result, market, timeframe, since, limit)
     end
 
     def parse_bid_ask(bidask, price_key = 0, amount_key = 0)
@@ -602,7 +629,8 @@ module Ccxt
       # method assumes that all have the same length
       results = []
       entries = ohlcvs['t'].size
-      
+
+
       for i in 0..entries do
         results << {
           't' => ohlcvs['t'][i],

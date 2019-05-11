@@ -133,7 +133,7 @@
 |131|load_accounts|load_accounts|loadAccounts|
 |132|load_fees|load_fees||
 |133|load_markets|load_markets|loadMarkets|
-|134|load_trading_limits||loadTradingLimits|
+|134|load_trading_limits|load_trading_limits|loadTradingLimits|
 |135|market|market|market|
 |136|market_id|market_id|marketId|
 |137|market_ids|market_ids|marketIds|
@@ -141,7 +141,7 @@
 |139|microseconds|microseconds|microseconds|
 |140|milliseconds|milliseconds|milliseconds|
 |141|msec|msec||
-|142|nonce||nonce|
+|142|nonce|nonce|nonce|
 |143|||numberToString|
 |144|oath||oath|
 |145|omit|omit|omit|
@@ -152,16 +152,16 @@
 |150|parse_bid_ask|parse_bid_ask|parseBidAsk|
 |151|parse_bids_asks|parse_bids_asks|parseBidsAsks|
 |152|parse_date|parse_date|parseDate|
-|153|parse_json||parseJson|
+|153|parse_json|parse_json|parseJson|
 |154|parse_ledger|parse_ledger|parseLedger|
 |155|parse_ohlcv|parse_ohlcv|parseOHLCV|
 |156|parse_ohlcvs|parse_ohlcvs|parseOHLCVs|
 |157|parse_order_book|parse_order_book|parseOrderBook|
 |158|parse_orders|parse_orders|parseOrders|
 |159|||parseRestResponse|
-|160|parse_timeframe||parseTimeFrame|
+|160|parse_timeframe|parse_timeframe|parseTimeFrame|
 |161|parse_trades|parse_trades|parseTrades|
-|162|parse_trading_view_ohlcv||parseTradingViewOHLCV|
+|162|parse_trading_view_ohlcv|parse_trading_view_ohlcv|parseTradingViewOHLCV|
 |163|parse_transactions|parse_transactions|parseTransactions|
 |165|pluck|pluck|pluck|
 |166|precision_from_string|precision_from_string|precisionFromString|
