@@ -8,7 +8,7 @@
 |4|aggregate|aggregate|aggregate|
 |5|amount_to_precision|amount_to_precision|amountToPrecision|
 |6|array_concat|array_concat|arrayConcat|
-|7|base32_to_bytes|||
+|~~7~~|~~base32_to_bytes~~|||
 |8|base64urlencode|base64urlencode||
 |9|binary_concat|binary_concat|binaryConcat|
 |10|binary_to_string|binary_to_string|binaryToString|
@@ -21,8 +21,8 @@
 |17|check_required_credentials|check_required_credentials|checkRequiredCredentials|
 |18|check_required_dependencies||checkRequiredDependencies|
 |19|common_currency_code|common_currency_code|commonCurrencyCode|
-|20|convert_ohlcv_to_trading_view||convertOHLCVToTradingView|
-|21|convert_trading_view_to_ohlcv||convertTradingViewToOHLCV|
+|20|convert_ohlcv_to_trading_view|convert_ohlcv_to_trading_view|convertOHLCVToTradingView|
+|21|convert_trading_view_to_ohlcv|convert_trading_view_to_ohlcv|convertTradingViewToOHLCV|
 |22|cost_to_precision|cost_to_precision|costToPrecision|
 |23|create_limit_buy_order|create_limit_buy_order|createLimitBuyOrder|
 |24|create_limit_order|create_limit_order|createLimitOrder|
@@ -31,10 +31,10 @@
 |27|create_market_order|create_market_order|createMarketOrder|
 |28|create_market_sell_order|create_market_sell_order|createMarketSellOrder|
 |29|create_order|create_order||
-|30|currency||currency|
+|30|currency|currency|currency|
 |31|currency_id|currency_id|currencyId|
 |32|currency_to_precision|currency_to_precision|currencyToPrecision|
-|33|dec_to_bytes|||
+|~~33~~|~~dec_to_bytes~~|||
 |34|decimal_to_precision|decimal_to_precision|decimalToPrecision|
 |35|decode|decode||
 |36|decryptAccount||decryptAccount|
@@ -66,9 +66,9 @@
 |63|fetch_currencies|fetch_currencies|fetchCurrencies|
 |64|fetch_deposits|fetch_deposits|fetchDeposits|
 |65|fetch_fees|fetch_fees||
-|66|fetch_free_balance||fetchFreeBalance|
-|67|fetch_funding_fee|||
-|68|fetch_funding_fees|||
+|66|fetch_free_balance|fetch_free_balance|fetchFreeBalance|
+|67|fetch_funding_fee|fetch_funding_fee||
+|68|fetch_funding_fees|fetch_funding_fees||
 |69|fetch_l2_order_book|fetch_l2_order_book|fetchL2OrderBook|
 |70|fetch_markets|fetch_markets|fetchMarkets|
 |71|fetch_my_trades|fetch_my_trades|fetchMyTrades|
@@ -148,7 +148,7 @@
 |146|ordered|ordered|ordered|
 |147|pad_20_bytes_to_32|||
 |148|parse8601|parse8601|parse8601|
-|149|parse_balance||parseBalance|
+|149|parse_balance|parse_balance|parseBalance|
 |150|parse_bid_ask|parse_bid_ask|parseBidAsk|
 |151|parse_bids_asks|parse_bids_asks|parseBidsAsks|
 |152|parse_date|parse_date|parseDate|
