@@ -1158,8 +1158,8 @@ module.exports = class hitbtc2 extends hitbtc {
                 feeCost += trades[i]['fee']['cost'];
                 sumOfPrices += trades[i]['price'];
             }
-            if ((sumOfPrices !== undefined) && (filled !== undefined) && (filled > 0)) {
-                average = sumOfPrices / filled;
+            if ((cost !== undefined) && (filled !== undefined) && (filled > 0)) {
+                average = cost / filled;
                 if (type === 'market') {
                     if (price === undefined) {
                         price = average;
