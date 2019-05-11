@@ -380,85 +380,42 @@ module Ccxt
       end
     end
 
-    # supporting
-
-    # TODO: Rewrite set_markets because it is not intuitive
-    def set_markets(markets, currencies = nil)
-      if markets.is_a?(Hash)
-        values = markets.values
-      else
-        values = markets
+    def set_markets(markets_to_set, currencies_to_set = nil)
+      values = markets_to_set.is_a?(Hash) ? markets_to_set.values : markets_to_set
+      values.length.times do |i|
+        defaults = self.fees['trading'].merge 'precision' => self.precision, 'limits' => self.limits
+        values[i] = defaults.merge values[i]
       end
-      values.each do |v|
-        v['precision'] = self.precision
-        v['limits'] = self.limits
-        fees['trading'].each do | trading_k,trading_v |
-          v[trading_k] = trading_v
-        end
-      end
-      self.markets = index_by(values, 'symbol')
-      self.markets_by_id = index_by(values, 'id')
+      self.markets = self.index_by(values, 'symbol')
+      self.markets_by_id = self.index_by(values, 'id')
       self.marketsById = self.markets_by_id
       self.symbols = self.markets.keys.sort
       self.ids = self.markets_by_id.keys.sort
-      if currencies
-        self.currencies = self.deep_extend(currencies, self.currencies)
+      if currencies_to_set
+        self.currencies = self.deep_extend(currencies_to_set, self.currencies)
       else
-        base_currencies = values.collect do |market|
-          if market.has_key?('base')
-            {
-              'id' => market.has_key?('baseId') ? market['baseId'] : market['base'],
-              'numericId' => market.has_key?('baseNumericId') ? market['baseNumericId'] : nil,
-              'code' => market['base'],
-              'precision' => (
-                if market['precision'] # this could be nil
-                  if market['precision'].has_key?('base')
-                    market['precision']['base']
-                  elsif market['precision'].has_key?('amount')
-                    market['precision']['amount']
-                  else
-                    nil
-                  end
-                else
-                  8
-                end
-                )
-              }
-          else
-            8
-          end
+        base_currencies = values.select {|market| market['base']}.map do |market|
+          {
+            'id' => market['baseId'] || market['base'],
+            'numericId' => market['baseNumericId'],
+            'code' => market['base'],
+            'precision' => (market['precision'] && market['precision']['base']) ||
+              (market['precision'] && market['precision']['amount']) || 8,
+          }
         end
-        quote_currencies = values.collect do |market|
-          if market.has_key?('quote')
-            {
-              'id' => market.has_key?('quoteId') ? market['quoteId'] : market['quote'],
-              'numericId' => market.has_key?('quoteNumericId') ? market['quoteNumericId'] : nil,
-              'code' => market['base'],
-              'precision' => (
-                if market['precision']
-                  if market['precision'].has_key?('quote')
-                    market['precision']['quote']
-                  elsif market['precision'].has_key?('price')
-                    market['precision']['price']
-                  else
-                    nil
-                  end
-                else
-                  8
-                end
-                )
-              }
-          else
-            8
-          end
+        quote_currencies = values.select {|market| market['quote']}.map do |market|
+          {
+            'id' => market['quoteId'] || market['quote'],
+            'numericId' => market['quoteNumericId'],
+            'code' => market['quote'],
+            'precision' => (market['precision'] && market['precision']['quote']) ||
+              (market['precision'] && market['precision']['amount']) || 8,
+          }
         end
-        currencies = self.sort_by(base_currencies + quote_currencies, 'code')
-        tmp = self.index_by(currencies, 'code')
-        tmp = self.deep_extend(self.index_by(currencies, 'code'), self.currencies)
-        self.currencies = self.deep_extend(self.index_by(currencies, 'code'), self.currencies)
+        currencies_to_set = self.sort_by(base_currencies + quote_currencies, 'code')
+        self.currencies = self.deep_extend(self.index_by(currencies_to_set, 'code'), self.currencies)
       end
-
-      self.currencies_by_id = self.index_by(self.currencies, 'id')
+      self.currencies_by_id = self.index_by(self.currencies.values, 'id')
       return self.markets
     end
 
