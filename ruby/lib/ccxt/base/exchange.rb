@@ -322,43 +322,37 @@ module Ccxt
       return balance
     end
 
-
     def fetch_partial_balance(part, params={})
       balance = self.fetch_balance(params)
       return balance[part]
     end
 
-
     def fetch_free_balance(params={})
       return self.fetch_partial_balance('free', params)
     end
-
 
     def fetch_used_balance(params={})
       return self.fetch_partial_balance('used', params)
     end
 
-
     def fetch_total_balance(params={})
       return self.fetch_partial_balance('total', params)
     end
 
-
-    def fetch_trading_fees(self, symbol, params={}):
-        self.raise_error(NotSupported, details='fetch_trading_fees() not supported yet')
-
-    def fetch_trading_fee(self, symbol, params={})
+    def fetch_trading_fees(symbol, params={})
+      self.raise_error(NotSupported, details='fetch_trading_fees() not supported yet')
+    end
+    
+    def fetch_trading_fee(symbol, params={})
       self.raise_error(NotSupported, details='fetch_trading_fee() not supported yet') unless self.has['fetchTradingFees']
       return self.fetch_trading_fees(params)
     end
 
-
-    def fetch_funding_fees(self, params={})
+    def fetch_funding_fees(params={})
       self.raise_error(NotSupported, details='fetch_funding_fees() not supported yet')
     end
 
-
-    def fetch_funding_fee(self, code, params={})
+    def fetch_funding_fee(code, params={})
       self.raise_error(NotSupported, details='fetch_funding_fee() not supported yet') unless self.has['fetchFundingFees']
       return self.fetch_funding_fees(params)
     end
@@ -395,7 +389,7 @@ module Ccxt
         scale = 60 * 60 * 24
       when 'h' 
         scale = 60 * 60
-      else:
+      else
         scale = 60  # 1m by default
       end
       return amount * scale
@@ -542,16 +536,15 @@ module Ccxt
       raise Exchange::NotSupported, 'API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now'
     end
 
-
     def set_sandbox_mode(enabled)
       if enabled
-        if self.urls.includes? 'test'
+        if self.urls.include? 'test'
           self.urls['api_backup'] = self.urls['api']
           self.urls['api'] = self.urls['test']
         else
           raise Exchange::NotSupported, self.id + ' does not have a sandbox URL'
         end
-      elsif self.urls.includes? 'api_backup'
+      elsif self.urls.include? 'api_backup'
         self.urls['api'] = self.urls['api_backup']
         self.urls.delete['api_backup']
       end
@@ -635,7 +628,6 @@ module Ccxt
       results = []
       entries = ohlcvs['t'].size
 
-
       for i in 0..entries do
         results << {
           't' => ohlcvs['t'][i],
@@ -648,7 +640,6 @@ module Ccxt
       end
       return results
     end
-
 
     def convert_ohlcv_to_trading_view(ohlcvs)
       result = {
@@ -669,7 +660,6 @@ module Ccxt
       end
       return result
     end
-
 
     ###
     # REQUEST METHODS
@@ -1126,6 +1116,20 @@ module Ccxt
         return self.safe_either(method(:safe_string), hash, key1, key2, default_value)
       end
 
+      def safe_currency_code(data, key, currency=nil)
+        code = nil
+        currency_id = self.safe_string(data, key)
+        if self.currencies_by_id.include?(currency_id)
+          currency = self.currencies_by_id[currency_id]
+        else
+          code = self.common_currency_code(currency_id)
+        end
+        if !currency.nil?
+          code = currency['code']
+        end
+        return code
+      end
+      
       def sort_by(array, key, descending = false)
         # return sorted(array, key = lambda k: k[key] if k[key] is not nil else "", reverse = descending)
         result = array.sort_by!{|k| k[key] ? k[key] : "" }
@@ -1270,7 +1274,7 @@ module Ccxt
     end
 
     def currency_id(commonCode)
-      if self.currencies && self.currencies.includes?(commonCode)
+      if self.currencies && self.currencies.include?(commonCode)
         return self.currencies[commonCode]['id']
       end
       currencyIds = self.commonCurrencies.invert
@@ -1618,7 +1622,7 @@ module Ccxt
       raise ExchangeError, "Not implemented."
     end
 
-    def toWei(self, amount, unit='ether', decimals=18):
+    def toWei(amount, unit='ether', decimals=18)
       raise ExchangeError, "Not implemented."
     end     
   end
