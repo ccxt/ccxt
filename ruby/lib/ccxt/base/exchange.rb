@@ -342,7 +342,7 @@ module Ccxt
     def fetch_trading_fees(symbol, params={})
       self.raise_error(NotSupported, details='fetch_trading_fees() not supported yet')
     end
-    
+
     def fetch_trading_fee(symbol, params={})
       self.raise_error(NotSupported, details='fetch_trading_fee() not supported yet') unless self.has['fetchTradingFees']
       return self.fetch_trading_fees(params)
@@ -1140,7 +1140,7 @@ module Ccxt
         end
         return code
       end
-      
+
       def sort_by(array, key, descending = false)
         # return sorted(array, key = lambda k: k[key] if k[key] is not nil else "", reverse = descending)
         result = array.sort_by!{|k| k[key] ? k[key] : "" }
