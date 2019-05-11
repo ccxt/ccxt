@@ -201,7 +201,7 @@
 |200|sum|sum|sum|
 |201|||symbol|
 |202|throttle|throttle||
-|203|toWei||toWei|
+|203|toWei|to_wei|toWei|
 |204|to_array|to_array|toArray|
 |205|to_bytes|||
 |206|totp|totp|totp|
