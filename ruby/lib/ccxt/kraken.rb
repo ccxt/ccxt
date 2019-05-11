@@ -248,7 +248,7 @@ module Ccxt
       parts = html.split('<td class="wysiwyg-text-align-right">')
       numParts = parts.length
       if numParts < 3
-        raise ExchangeError(self.id + ' fetchMinOrderAmounts HTML page markup has changed: https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-')
+        raise ExchangeError, self.id + ' fetchMinOrderAmounts HTML page markup has changed: https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-'
       end
       result = {}
       # skip the part before the header and the header itself
@@ -452,7 +452,7 @@ module Ccxt
       self.load_markets()
       market = self.market(symbol)
       if market['darkpool']
-        raise ExchangeError(self.id + ' does not provide an order book for darkpool symbol ' + symbol)
+        raise ExchangeError, self.id + ' does not provide an order book for darkpool symbol ' + symbol
       end
 
       request = {
@@ -524,7 +524,7 @@ module Ccxt
       self.load_markets()
       darkpool = symbol.ends_with?('.d')
       if darkpool
-        raise ExchangeError(self.id + ' does not provide a ticker for darkpool symbol ' + symbol)
+        raise ExchangeError, self.id + ' does not provide a ticker for darkpool symbol ' + symbol
       end
       market = self.market(symbol)
       response = self.publicGetTicker({'pair' => market['id']}.merge params)
@@ -782,7 +782,7 @@ module Ccxt
       response = self.privatePostBalance(params)
       balances = self.safe_value(response, 'result')
       if balances.nil?
-        raise ExchangeNotAvailable(self.id + ' fetchBalance failed due to a malformed response ' + self.json(response))
+        raise ExchangeNotAvailable, self.id + ' fetchBalance failed due to a malformed response ' + self.json(response)
       end
       result = {'info' => balances}
       currencies = balances.keys
@@ -1083,7 +1083,7 @@ module Ccxt
         if self.last_http_response &&
           self.last_http_response.match('EOrder:Unknown order')
 
-          raise OrderNotFound(self.id + ' cancelOrder() error ' + self.last_http_response)
+          raise OrderNotFound, self.id + ' cancelOrder() error ' + self.last_http_response
         end
         raise ex
       end
@@ -1217,7 +1217,7 @@ module Ccxt
       self.load_markets()
       # https://www.kraken.com/en-us/help/api#deposit-status
       if code.nil?
-        raise ArgumentsRequired(self.id + ' fetchDeposits requires a currency code argument')
+        raise ArgumentsRequired, self.id + ' fetchDeposits requires a currency code argument'
       end
       currency = self.currency(code)
       request = {
@@ -1244,7 +1244,7 @@ module Ccxt
       self.load_markets()
       # https://www.kraken.com/en-us/help/api#withdraw-status
       if code.nil?
-        raise ArgumentsRequired(self.id + ' fetchWithdrawals requires a currency code argument')
+        raise ArgumentsRequired, self.id + ' fetchWithdrawals requires a currency code argument'
       end
       currency = self.currency(code)
       request = {
@@ -1294,7 +1294,7 @@ module Ccxt
           end
           deposit_method = self.options['depositMethods'][code][0]['method']
         else
-          raise ExchangeError(self.id + ' fetchDepositAddress() requires an extra `method` parameter. Use fetchDepositMethods("' + code + '") to get a list of available deposit methods or enable the exchange property .options["cacheDepositMethodsOnFetchDepositAddress"] = true')
+          raise ExchangeError, self.id + ' fetchDepositAddress() requires an extra `method` parameter. Use fetchDepositMethods("' + code + '") to get a list of available deposit methods or enable the exchange property .options["cacheDepositMethodsOnFetchDepositAddress"] = true'
         end
       end
       request = {
@@ -1305,7 +1305,7 @@ module Ccxt
       result = response['result']
       numResults = result.length
       if numResults < 1
-        raise InvalidAddress(self.id + ' privatePostDepositAddresses() returned no addresses')
+        raise InvalidAddress, self.id + ' privatePostDepositAddresses() returned no addresses'
       end
       address = self.safe_string(result[0], 'address')
       tag = self.safe_string_2(result[0], 'tag', 'memo')
@@ -1333,7 +1333,7 @@ module Ccxt
           'id' => response['result'],
         }
       end
-      raise ExchangeError(self.id + " withdraw requires a 'key' parameter(withdrawal key name, as set up on your account)")
+      raise ExchangeError, self.id + " withdraw requires a 'key' parameter(withdrawal key name, as set up on your account)"
     end
 
     def sign(path, api = 'public', method = 'GET', params = {}, headers = nil, body = nil)
@@ -1371,17 +1371,17 @@ module Ccxt
     def handle_errors(code, reason, url, method, headers, body, response)
       case
       when code == 520
-        raise ExchangeNotAvailable(self.id + ' ' + str(code) + ' ' + reason)
+        raise ExchangeNotAvailable, self.id + ' ' + str(code) + ' ' + reason
       when body.match('Invalid order')
-        raise InvalidOrder(self.id + ' ' + body)
+        raise InvalidOrder, self.id + ' ' + body
       when body.match('Invalid nonce')
-        raise InvalidNonce(self.id + ' ' + body)
+        raise InvalidNonce, self.id + ' ' + body
       when body.match('Insufficient funds')
-        raise InsufficientFunds(self.id + ' ' + body)
+        raise InsufficientFunds, self.id + ' ' + body
       when body.match('Cancel pending')
-        raise CancelPending(self.id + ' ' + body)
+        raise CancelPending, self.id + ' ' + body
       when body.match('Invalid arguments:volume')
-        raise InvalidOrder(self.id + ' ' + body)
+        raise InvalidOrder, self.id + ' ' + body
       when body[0] == '{'
         if not response.is_a?(String) &&
           response['error'] &&
@@ -1393,7 +1393,7 @@ module Ccxt
               raise self.exceptions[error], message
             end
           end
-          raise ExchangeError(message)
+          raise ExchangeError, message
         end
       end
     end
