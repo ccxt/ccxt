@@ -54,7 +54,7 @@
 |51|encode_uri_component|encode_uri_component|encodeURIComponent|
 |52|eth_decimals||ethDecimals|
 |53|eth_unit||ethUnit|
-|54|extend|extend|extend|
+|54|extend|-|extend|
 |55|extract_params|extract_params|extractParams|
 |56|fee_to_precision|fee_to_precision|feeToPrecision|
 |57|fetch|fetch|fetch|
@@ -69,7 +69,7 @@
 |66|fetch_free_balance||fetchFreeBalance|
 |67|fetch_funding_fee|||
 |68|fetch_funding_fees|||
-|69|fetch_l2_order_book||fetchL2OrderBook|
+|69|fetch_l2_order_book|fetch_l2_order_book|fetchL2OrderBook|
 |70|fetch_markets|fetch_markets|fetchMarkets|
 |71|fetch_my_trades|fetch_my_trades|fetchMyTrades|
 |72|fetch_ohlcv||fetchOHLCV|
@@ -149,14 +149,14 @@
 |147|pad_20_bytes_to_32|||
 |148|parse8601|parse8601|parse8601|
 |149|parse_balance||parseBalance|
-|150|parse_bid_ask||parseBidAsk|
-|151|parse_bids_asks||parseBidsAsks|
+|150|parse_bid_ask|parse_bid_ask|parseBidAsk|
+|151|parse_bids_asks|parse_bids_asks|parseBidsAsks|
 |152|parse_date|parse_date|parseDate|
 |153|parse_json||parseJson|
 |154|parse_ledger|parse_ledger|parseLedger|
 |155|parse_ohlcv|parse_ohlcv|parseOHLCV|
 |156|parse_ohlcvs|parse_ohlcvs|parseOHLCVs|
-|157|parse_order_book||parseOrderBook|
+|157|parse_order_book|parse_order_book|parseOrderBook|
 |158|parse_orders|parse_orders|parseOrders|
 |159|||parseRestResponse|
 |160|parse_timeframe||parseTimeFrame|
@@ -234,4 +234,4 @@
 |234|||precisionConstants|
 |235|||values|
 
-The JS ones at the bottom appear to be related to the JS version, not the API. 
+The JS ones at the bottom appear to be related to the JS version, not the API.

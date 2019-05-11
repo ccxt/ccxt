@@ -316,7 +316,7 @@ module Ccxt
       raise Exchange::NotSupported, 'fetch_closed_orders() is not supported yet'
     end
 
-    # def fetch_order_trades(id, symbol = None, params = {})
+    # def fetch_order_trades(id, symbol = nil, params = {})
     #   raise Exchange::NotSupported, 'fetch_order_trades() is not supported yet'
     # end
 
@@ -359,6 +359,59 @@ module Ccxt
         result.push(ohlcv)
       end
       return self.sort_by(result, 0)
+    end
+
+    def parse_bid_ask(bidask, price_key = 0, amount_key = 0)
+      return [bidask[price_key].to_f, bidask[amount_key].to_f]
+    end
+
+    def parse_bids_asks(bidasks, price_key = 0, amount_key = 1)
+      result = []
+      if bidasks
+        case bidasks[0]
+        when Array
+          bidasks.each do |bidask|
+            if bidask[price_key] and bidask[amount_key]
+              result << self.parse_bid_ask(bidask, price_key, amount_key)
+            end
+          end
+        when Hash
+          bidasks.each do |bidask|
+            if bidask[price_key] and bidask[amount_key]
+              result << self.parse_bid_ask(bidask, price_key, amount_key)
+            end
+          end
+        else
+          self.raise_error ExchangeError, "unrecognized bidask format: #{bidasks[0].inspect}"
+        end
+      end
+      return result
+    end
+
+    def fetch_l2_order_book(symbol, limit = nil, params = {})
+      orderbook = self.fetch_order_book(symbol, limit, params)
+      orderbook.merge(
+        'bids' => self.sort_by(self.aggregate(orderbook['bids']), 0, true),
+        'asks' => self.sort_by(self.aggregate(orderbook['asks']), 0),
+      )
+    end
+
+    def parse_order_book(orderbook, timestamp = nil, bids_key = 'bids', asks_key = 'asks', price_key = 0, amount_key = 1)
+      bids = if orderbook[bids_key] && orderbook[bids_key].is_a?(Array)
+        self.parse_bids_asks(orderbook[bids_key], price_key, amount_key)
+      else [] end
+      bids = self.sort_by(bids, 0, true)
+      asks = if orderbook[asks_key] && orderbook[asks_key].is_a?(Array)
+        self.parse_bids_asks(orderbook[asks_key], price_key, amount_key)
+      else [] end
+      asks = self.sort_by(asks, 0)
+      {
+        'bids' => bids,
+        'asks' => asks,
+        'timestamp' => timestamp,
+        'datetime' => timestamp ? self.iso8601(timestamp) : nil,
+        'nonce' => nil,
+      }
     end
 
     def fetch_bids_asks(symbols = nil, params = {})
@@ -544,7 +597,7 @@ module Ccxt
       return http_response
     end
 
-    # def handle_errors(self, code, reason, url, method, headers, body, response):
+    # def handle_errors(code, reason, url, method, headers, body, response):
     #       pass
     def handle_errors(code, reason, url, method, headers, body, response); end
 
@@ -709,16 +762,14 @@ module Ccxt
       ### GENERIC
 
       def aggregate(bidasks)
-        ordered = Exchange.ordered({})
+        ordered = {}
         bidasks.each do |price, volume|
           if volume > 0
             value = ordered.has_key?(price) ? ordered[price] : 0
             ordered[price] = value + volume
           end
         end
-        result = []
-        ordered.each { |k,v| result << [k,v] }
-        return result
+        ordered.sort
       end
 
       def array_concat(a, b)
@@ -910,7 +961,7 @@ module Ccxt
       end
 
       def sort_by(array, key, descending = false)
-        # return sorted(array, key = lambda k: k[key] if k[key] is not None else "", reverse = descending)
+        # return sorted(array, key = lambda k: k[key] if k[key] is not nil else "", reverse = descending)
         result = array.sort_by!{|k| k[key] ? k[key] : "" }
         descending ? result.reverse : result
       end
