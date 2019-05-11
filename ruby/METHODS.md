@@ -167,7 +167,7 @@
 |166|precision_from_string|precision_from_string|precisionFromString|
 |167|prepare_request_headers|prepare_request_headers||
 |168|price_to_precision|price_to_precision|priceToPrecision|
-|169|purge_cached_orders||purgeCachedOrders|
+|169|purge_cached_orders|purge_cached_orders|purgeCachedOrders|
 |170|raise_error|raise_error||
 |171|rawencode|rawencode|rawencode|
 |172|remove_0x_prefix|||
@@ -199,7 +199,7 @@
 |198|||sortby|
 |199|sort_by|sort_by||
 |200|sum|sum|sum|
-|201|||symbol|
+|201|||~~symbol~~|
 |202|throttle|throttle||
 |203|toWei|to_wei|toWei|
 |204|to_array|to_array|toArray|

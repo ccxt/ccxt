@@ -433,6 +433,13 @@ module Ccxt
       raise NotSupported, 'fetch_order_trades() is not supported yet'
     end
 
+    def purge_cached_orders(before)
+      orders = self.to_array(self.orders)
+      orders = orders.select{|order| (order['status'] == 'open') || (order['timestamp'] >= before)}
+      self.orders = self.index_by(orders, 'id')
+      return self.orders
+    end
+
     def fetch_my_trades(symbol = nil, since = nil, limit = nil, params = {})
       raise NotSupported, 'fetch_my_trades() is not supported yet'
     end
