@@ -430,9 +430,14 @@ module Ccxt
       raise Exchange::NotSupported, 'fetch_closed_orders() is not supported yet'
     end
 
-    # def fetch_order_trades(id, symbol = nil, params = {})
-    #   raise Exchange::NotSupported, 'fetch_order_trades() is not supported yet'
-    # end
+    def fetch_order_status(id, symbol=nil, params={})
+      order = self.fetch_order(id, symbol, params)
+      return order['status']
+    end
+    
+    def fetch_order_trades(id, symbol = nil, params = {})
+      raise Exchange::NotSupported, 'fetch_order_trades() is not supported yet'
+    end
 
     def fetch_my_trades(symbol = nil, since = nil, limit = nil, params = {})
       raise Exchange::NotSupported, 'fetch_my_trades() is not supported yet'

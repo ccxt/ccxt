@@ -77,8 +77,8 @@
 |74|fetch_open_orders|fetch_open_orders|fetchOpenOrders|
 |75|fetch_order|fetch_order|fetchOrder|
 |76||fetch_order_book||
-|77|fetch_order_status||fetchOrderStatus|
-|78|fetch_order_trades|||
+|77|fetch_order_status|fetch_order_status|fetchOrderStatus|
+|78|fetch_order_trades|fetch_order_trades||
 |79|fetch_orders|fetch_orders|fetchOrders|
 |80|fetch_partial_balance|fetch_partial_balance|fetchPartialBalance|
 |81||fetch_ticker||
