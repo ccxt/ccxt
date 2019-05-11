@@ -707,7 +707,9 @@ module Ccxt
         market = self.get_delisted_market_by_id(marketId)
       end
       symbol = market['symbol'] if market
-      if trade['ordertxid']
+
+      case
+      when trade.is_a?(Hash) && trade['ordertxid']
         order = trade['ordertxid']
         id = self.safe_string_2(trade, 'id', 'postxid')
         timestamp = (trade['time'] * 1000).to_i
@@ -723,7 +725,7 @@ module Ccxt
             'currency' => currency,
           }
         end
-      else
+      when trade.is_a?(Array)
         timestamp = (trade[2] * 1000).to_i
         side = (trade[3] == 's') ? 'sell' : 'buy'
         type =  (trade[4] == 'l') ? 'limit' : 'market'
