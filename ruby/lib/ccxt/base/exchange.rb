@@ -245,6 +245,30 @@ module Ccxt
       return set_markets(markets, currencies)
     end
 
+    def load_accounts(reload=false, params={})
+      if reload
+        self.accounts = self.fetch_accounts(params)
+      else
+        if self.accounts
+          return self.accounts
+        else
+          self.accounts = self.fetch_accounts(params)
+        end
+      end
+      self.accountsById = self.index_by(self.accounts, 'id')
+      return self.accounts
+    end
+
+    def load_fees(reload=false)
+      if !reload
+        if self.loaded_fees != Exchange.loaded_fees
+          return self.loaded_fees
+        end
+      end
+      self.loaded_fees = self.deep_extend(self.loaded_fees, self.fetch_fees())
+      return self.loaded_fees
+    end
+
     def fetch_markets(params = {})
       return self.markets.to_a
     end

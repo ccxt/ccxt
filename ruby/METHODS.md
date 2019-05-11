@@ -130,8 +130,8 @@
 |128|jwt|jwt|jwt|
 |129|||keys|
 |130|keysort|keysort|keysort|
-|131|load_accounts||loadAccounts|
-|132|load_fees|||
+|131|load_accounts|load_accounts|loadAccounts|
+|132|load_fees|load_fees||
 |133|load_markets|load_markets|loadMarkets|
 |134|load_trading_limits||loadTradingLimits|
 |135|market|market|market|
