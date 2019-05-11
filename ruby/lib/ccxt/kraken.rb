@@ -292,7 +292,7 @@ module Ccxt
         end
         base = self.common_currency_code(base)
         quote = self.common_currency_code(quote)
-        darkpool = id.ends_with?('.d')
+        darkpool = id.end_with?('.d')
         symbol = darkpool ? market['altname'] : (base + '/' + quote)
         maker = nil
         if market['fees_maker']
@@ -306,7 +306,7 @@ module Ccxt
         if limits[base]
           minAmount = limits[base]
         end
-        result.append({
+        result << {
           'id' => id,
           'symbol' => symbol,
           'base' => base,
@@ -334,7 +334,7 @@ module Ccxt
               'max' => nil,
             },
           },
-        })
+        }
       end
       result = self.append_inactive_markets(result)
       self.marketsByAltname = self.index_by(result, 'altname')
@@ -361,7 +361,7 @@ module Ccxt
         # {'id' => 'XXLMZEUR', 'symbol' => 'XLM/EUR', 'base' => 'XLM', 'quote' => 'EUR', 'altname' => 'XLMEUR'},
       ]
       markets.each do |market|
-        result.append(defaults.merge(market))
+        result << defaults.merge(market)
       end
       return result
     end
@@ -503,7 +503,7 @@ module Ccxt
       self.symbols.each do |symbol|
         market = self.markets[symbol]
         if market['active'] && !market['darkpool']
-          pairs.append(market['id'])
+          pairs << market['id']
         end
       end
       filter = pairs.join ','
@@ -522,7 +522,7 @@ module Ccxt
 
     def fetch_ticker(symbol, params = {})
       self.load_markets()
-      darkpool = symbol.ends_with?('.d')
+      darkpool = symbol.end_with?('.d')
       if darkpool
         raise ExchangeError, self.id + ' does not provide a ticker for darkpool symbol ' + symbol
       end
@@ -652,7 +652,7 @@ module Ccxt
       keys.each do |key|
         value = ledger[key]
         value['id'] = key
-        items.append(value)
+        items << value
       end
       return self.parse_ledger(items, currency, since, limit)
     end
@@ -678,7 +678,7 @@ module Ccxt
       keys.each do |key|
         value = result[key]
         value['id'] = key
-        items.append(value)
+        items << value
       end
       return self.parse_ledger(items)
     end
@@ -773,7 +773,7 @@ module Ccxt
       return [] if length <= 0
       lastTrade = trades[length - 1]
       lastTradeId = self.safe_string(result, 'last')
-      lastTrade.append(lastTradeId)
+      lastTrade << lastTradeId
       return self.parse_trades(trades, market, since, limit)
     end
 
@@ -990,7 +990,7 @@ module Ccxt
       ids = orders.keys
       ids.each do |id|
         order = {'id' => id}.merge orders[id]
-        result.append(self.parse_order(order, market))
+        result << self.parse_order(order, market)
       end
       return self.filter_by_since_limit(result, since, limit)
     end
@@ -1019,7 +1019,7 @@ module Ccxt
       orderIds.each do |id|
         item = result[id]
         order = self.parse_order({'id' => id}.merge item)
-        orders.append(order)
+        orders << order
       end
       return orders
     end
@@ -1208,7 +1208,7 @@ module Ccxt
       result = []
       transactions.each do |transaction|
         parsed_tx = self.parse_transaction({'type' => type}.merge transaction)
-        result.append(parsed_tx)
+        result << parsed_tx
       end
       return self.filterByCurrencySinceLimit(result, code, since, limit)
     end
@@ -1289,7 +1289,7 @@ module Ccxt
       if deposit_method.nil?
         if self.options['cacheDepositMethodsOnFetchDepositAddress']
           # cache depositMethods
-          if not(self.options['depositMethods'].keys.include? code)
+          if !(self.options['depositMethods'].keys.include? code)
             self.options['depositMethods'][code] = self.fetch_deposit_methods(code)
           end
           deposit_method = self.options['depositMethods'][code][0]['method']
@@ -1383,7 +1383,7 @@ module Ccxt
       when body.match('Invalid arguments:volume')
         raise InvalidOrder, self.id + ' ' + body
       when body[0] == '{'
-        if not response.is_a?(String) &&
+        if !response.is_a?(String) &&
           response['error'] &&
           !response['error'].empty?
 
@@ -1399,3 +1399,4 @@ module Ccxt
     end
   end
 end
+
