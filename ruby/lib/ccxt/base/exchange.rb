@@ -484,7 +484,7 @@ module Ccxt
 
         ohlcv = self.parse_ohlcv(o, market, timeframe, since, limit)
         continue if since && (ohlcv[0] < since)
-        result.append(ohlcv)
+        result << ohlcv
       end
       return self.class.sort_by(result, 0)
     end
