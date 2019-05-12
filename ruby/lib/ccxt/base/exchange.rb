@@ -830,14 +830,14 @@ module Ccxt
       ### CRYPTO FUNCTIONS
 
       def hash(request, algorithm = 'md5', digest = 'hex')
-        h = OpenSSL::Digest.digest(algorithm, request)
+        h = OpenSSL::Digest.new(algorithm, request)
         case digest
         when 'hex'
           h.hexdigest
         when 'base64'
-          return Base64.encode64(h)
+          h.base64digest
         else
-          h
+          h.digest
         end
       end
 
@@ -848,7 +848,7 @@ module Ccxt
         when 'hex'
           OpenSSL::HMAC.digest(ssl_digest, secret, request)
         when 'base64'
-          Base64.encode64(OpenSSL::HMAC.digest(ssl_digest, secret, request))
+          Base64.strict_encode64(OpenSSL::HMAC.digest(ssl_digest, secret, request))
         else
           raise "Unsupported digest in HMAC"
         end
