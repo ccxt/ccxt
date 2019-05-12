@@ -843,14 +843,15 @@ module Ccxt
 
       def hmac(request, secret, algorithm = 'md5', digest = 'hex')
         ssl_digest = OpenSSL::Digest.new(algorithm)
-        # h = OpenSSL::HMAC.digest(ssl_digest, secret, request)
+        h = OpenSSL::HMAC.new(secret, ssl_digest)
+        h.update request
         case digest
         when 'hex'
-          OpenSSL::HMAC.digest(ssl_digest, secret, request)
+          h.hexdigest
         when 'base64'
-          Base64.strict_encode64(OpenSSL::HMAC.digest(ssl_digest, secret, request))
+          Base64.strict_encode64(h.digest)
         else
-          raise "Unsupported digest in HMAC"
+          h.digest
         end
       end
 
