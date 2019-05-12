@@ -551,7 +551,7 @@ module Ccxt
         'interval' => self.timeframes[timeframe],
       }
       if since
-        request['since'] = int((since - 1) / 1000)
+        request['since'] = ((since - 1) / 1000).to_i
       end
       response = self.publicGetOHLC(request.merge(params))
       ohlcvs = response['result'][market['id']]
@@ -596,7 +596,7 @@ module Ccxt
       timestamp = nil
       datetime = nil
       if time
-        timestamp = int(time * 1000)
+        timestamp = (time * 1000).to_i
         datetime = self.iso8601(timestamp)
       end
       fee = {
@@ -935,7 +935,7 @@ module Ccxt
         # delisted market ids go here
         market = self.get_delisted_market_by_id(marketId)
       end
-      timestamp = int(order['opentm'] * 1000)
+      timestamp = (order['opentm'] * 1000).to_i
       amount = self.safe_float(order, 'vol')
       filled = self.safe_float(order, 'vol_exec')
       remaining = amount - filled
@@ -1036,7 +1036,7 @@ module Ccxt
         # 'ofs' = result offset
       }
       if since
-        request['start'] = int(since / 1000)
+        request['start'] = (since / 1000).to_i
       end
       response = self.privatePostTradesHistory(request.merge(params))
       #
@@ -1373,7 +1373,7 @@ module Ccxt
     def handle_errors(code, reason, url, method, headers, body, response)
       case
       when code == 520
-        raise ExchangeNotAvailable, self.id + ' ' + str(code) + ' ' + reason
+        raise ExchangeNotAvailable, self.id + ' ' + code.to_s + ' ' + reason
       when body.match('Invalid order')
         raise InvalidOrder, self.id + ' ' + body
       when body.match('Invalid nonce')
