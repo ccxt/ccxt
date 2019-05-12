@@ -13,6 +13,8 @@ require 'ccxt/base/decimal_to_precision'
 module Ccxt
   # base class for the exchange
   class Exchange
+    include DecimalToPrecision
+
     attr_accessor :id, :version, :certified, :enableRateLimit
     attr_accessor :rateLimit, :timeout, :asyncio_loop, :aiohttp_proxy
     attr_accessor :session, :logger, :userAgent
