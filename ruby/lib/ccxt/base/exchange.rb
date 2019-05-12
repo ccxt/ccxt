@@ -1525,7 +1525,7 @@ module Ccxt
     def filter_by_symbol(array, symbol = nil)
       array = self.to_array(array)
       if symbol
-        return attray.select{|entry| entry['symbol'] == symbol}
+        return array.select{|entry| entry['symbol'] == symbol}
       end
       return array
     end
