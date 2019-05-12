@@ -270,7 +270,11 @@ module Ccxt
     end
 
     def fetch_markets(params = {})
-      return self.markets.to_a
+      # markets are returned as a list
+      # currencies are returned as a dict
+      # this is for historical reasons
+      # and may be changed for consistency later
+      return self.to_array self.markets
     end
 
     def fetch_currencies(params = {})
@@ -470,14 +474,15 @@ module Ccxt
     end
 
     def parse_ohlcvs(ohlcvs, market = nil, timeframe = '1m', since = nil, limit = nil)
+      ohlcvs = self.to_array(ohlcvs)
       result = []
 
       ohlcvs.each do |o|
-        break if limit && result.size >= limit
+        break if limit && result.length >= limit
 
         ohlcv = self.parse_ohlcv(o, market, timeframe, since, limit)
-        continue if since and (ohlcv[0] < since)
-        result.push(ohlcv)
+        continue if since && (ohlcv[0] < since)
+        result.append(ohlcv)
       end
       return self.sort_by(result, 0)
     end
@@ -1004,10 +1009,10 @@ module Ccxt
 
       def group_by(array, key)
         result = {}
-    #    array = self.to_array(array)
-        array = array.collect{|entry| entry.has_key?(key) ? entry : nil}.compact
+        array = self.to_array(array)
+        array = array.collect{|entry| entry[key] ? entry : nil}.compact
         array.each do |entry|
-          result[entry[key]] = [] unless result.has_key?(entry[key])
+          result[entry[key]] ||= []
           result[entry[key]] << entry
         end
         return result
@@ -1464,34 +1469,39 @@ module Ccxt
     end
 
     def parse_trades(trades, market = nil, since = nil, limit = nil)
-      array = trades.collect{ |trade| self.parse_trade(trade, market)}
+      array = self.to_array(trades)
+      array = array.collect{|trade| self.parse_trade(trade, market)}
       array = self.sort_by(array, 'timestamp')
       symbol = market ? market['symbol'] : nil
       return self.filter_by_symbol_since_limit(array, symbol, since, limit)
     end
 
     def parse_ledger(data, currency = nil, since = nil, limit = nil)
-      array = data.collect{ |item| self.parse_ledger_entry(item, currency)}
+      array = self.to_array(data)
+      array = array.collect{|item| self.parse_ledger_entry(item, currency)}
       array = self.sort_by(array, 'timestamp')
       code = currency ? currency['code'] : nil
       return self.filter_by_currency_since_limit(array, code, since, limit)
     end
 
     def parse_transactions(transactions, currency = nil, since = nil, limit = nil, params = {})
-      array = transactions.collect{|transaction| self.parse_transaction(transaction, currency)}
+      array = self.to_array(transactions)
+      array = array.collect{|transaction| self.parse_transaction(transaction, currency)}
       array = self.sort_by(array, 'timestamp')
       code = currency ? currency['code'] : nil
       return self.filter_by_currency_since_limit(array, code, since, limit)
     end
 
     def parse_orders(orders, market = nil, since = nil, limit = nil)
-      array = orders.collect{|order| self.parse_order(order, market)}
+      array = self.to_array(orders)
+      array = array.collect{|order| self.parse_order(order, market)}
       array = self.sort_by(array, 'timestamp')
       symbol = market ? market['symbol'] : nil
       return self.filter_by_symbol_since_limit(array, symbol, since, limit)
     end
 
     def filter_by_value_since_limit(array, field, value = nil, since = nil, limit = nil)
+      array = self.to_array(array)
       if value
         array = array.select{|entry| entry[field] == value}
       end
@@ -1513,6 +1523,7 @@ module Ccxt
     end
 
     def filter_by_since_limit(array, since = nil, limit = nil)
+      array = self.to_array(array)
       if since
         array = array.select{|entry| entry['timestamp'] >= since}
       end
@@ -1531,6 +1542,9 @@ module Ccxt
     end
 
     def filter_by_array(objects, key, values = nil, indexed = true)
+
+      objects = self.to_array(objects)
+
       # return all of them if no values were passed in
       if values.nil?
         return indexed ? self.index_by(objects, key) : objects
@@ -1540,7 +1554,7 @@ module Ccxt
       objects.each do |object|
         value = object.has_key?(key) ? object[key] : nil
         if values.include?(value)
-          result.append(objects[i])
+          result.append(object)
         end
       end
       return indexed ? self.index_by(result, key) : result
