@@ -1305,23 +1305,23 @@ module Ccxt
     end
 
     def cost_to_precision(symbol, cost)
-      return self.decimal_to_precision(cost, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+      return self.class.decimal_to_precision(cost, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
     end
 
     def price_to_precision(symbol, price)
-      return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+      return self.class.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
     end
 
     def amount_to_precision(symbol, amount)
-      return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], self.precisionMode)
+      return self.class.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], self.precisionMode)
     end
 
     def fee_to_precision(symbol, fee)
-      return self.decimal_to_precision(fee, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+      return self.class.decimal_to_precision(fee, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
     end
 
     def currency_to_precision(currency, fee)
-      return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'], self.precisionMode)
+      return self.class.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'], self.precisionMode)
     end
 
     def find_broadly_matched_key(broad, string)
