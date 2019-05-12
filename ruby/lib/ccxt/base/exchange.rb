@@ -905,7 +905,7 @@ module Ccxt
       end
 
       def binary_concat(*args)
-        return args.reduce{|a,b| a.concat(b) }
+        return args.reduce{|a, b| a + b }
       end
 
       def binary_to_string(string)
