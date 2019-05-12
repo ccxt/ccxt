@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.520'
+const version = '1.18.521'
 
 Exchange.ccxtVersion = version
 
@@ -44590,23 +44590,19 @@ module.exports = class hitbtc2 extends hitbtc {
         if (trades !== undefined) {
             trades = this.parseTrades (trades, market);
             let feeCost = undefined;
-            let sumOfPrices = undefined;
             let numTrades = trades.length;
+            let tradesCost = 0;
             for (let i = 0; i < numTrades; i++) {
                 if (feeCost === undefined) {
                     feeCost = 0;
                 }
-                if (sumOfPrices === undefined) {
-                    sumOfPrices = 0;
-                }
-                if (cost === undefined) {
-                    cost = 0;
-                }
-                cost += trades[i]['cost'];
+                tradesCost += trades[i]['cost'];
                 feeCost += trades[i]['fee']['cost'];
-                sumOfPrices += trades[i]['price'];
             }
-            if ((cost !== undefined) && (filled !== undefined) && (filled > 0)) {
+            if (cost === undefined) {
+                cost = tradesCost;
+            }
+            if ((filled !== undefined) && (filled > 0)) {
                 average = cost / filled;
                 if (type === 'market') {
                     if (price === undefined) {
