@@ -584,11 +584,11 @@ module Ccxt
       referenceId = self.class.safe_string(item, 'refid')
       referenceAccount = nil
       type = self.parse_ledger_entry_type(self.class.safe_string(item, 'type'))
-      code = self.safeCurrencyCode(item, 'asset', currency)
+      code = self.safe_currency_code(item, 'asset', currency)
       amount = self.class.safe_float(item, 'amount')
       if amount < 0
         direction = 'out'
-        amount = abs(amount)
+        amount = amount.abs
       else
         direction = 'in'
       end
