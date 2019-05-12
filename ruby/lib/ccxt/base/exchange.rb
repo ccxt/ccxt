@@ -1136,20 +1136,6 @@ module Ccxt
         return self.safe_either(method(:safe_string), hash, key1, key2, default_value)
       end
 
-      def safe_currency_code(data, key, currency=nil)
-        code = nil
-        currency_id = self.safe_string(data, key)
-        if self.currencies_by_id.include?(currency_id)
-          currency = self.currencies_by_id[currency_id]
-        else
-          code = self.common_currency_code(currency_id)
-        end
-        if !currency.nil?
-          code = currency['code']
-        end
-        return code
-      end
-
       def sort_by(array, key, descending = false)
         # return sorted(array, key = lambda k: k[key] if k[key] is not nil else "", reverse = descending)
         result = array.sort_by{|k| k[key] ? k[key] : "" }
@@ -1262,11 +1248,6 @@ module Ccxt
         return utc_datetime.strftime('%Y-%m-%d' + infix + '%H:%M:%S')
       end
 
-      def raise_error( exception, url = nil, method = nil, error = nil, details = nil)
-        output = ' ' + self.id + [url, method, error, details].compact.join(' ')
-        raise exception(output)
-      end
-
       # Ruby default capitalize will capitalize the first letter and lower the others.
       def capitalize(string)
         if string.length > 1
@@ -1284,6 +1265,27 @@ module Ccxt
           sleep(delay / 1000.0)
         end
       end
+    end
+
+    # Depends on #id
+    def raise_error( exception, url = nil, method = nil, error = nil, details = nil)
+      output = ' ' + self.id + [url, method, error, details].compact.join(' ')
+      raise exception, output
+    end
+
+    # Depends on #currencies_by_id
+    def safe_currency_code(data, key, currency=nil)
+      code = nil
+      currency_id = self.class.safe_string(data, key)
+      if self.currencies_by_id.include?(currency_id)
+        currency = self.currencies_by_id[currency_id]
+      else
+        code = self.common_currency_code(currency_id)
+      end
+      if !currency.nil?
+        code = currency['code']
+      end
+      return code
     end
 
     def common_currency_code(currency)
