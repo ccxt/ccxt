@@ -693,10 +693,10 @@ module Ccxt
       return fetch(request['url'], request['method'], request['headers'], request['body'])
     end
 
-    def fetch(path, method = 'GET', headers = {}, payload = {})
-      headers = prepare_request_headers
+    def fetch(path, method = 'GET', request_headers = {}, payload = {})
+      request_headers = prepare_request_headers(request_headers || {})
 
-      puts "\nRequest:\nmethod:#{method}\npath: #{path}\nheaders:#{headers}\npayload:#{payload}" if self.verbose
+      puts "\nRequest:\nmethod: #{method.inspect}\npath: #{path.inspect}\nheaders: #{request_headers.inspect}\npayload: #{payload.inspect}" if self.verbose
 
       # RestClient::Request expects a symbol for a method, but #sign is implemented by individual exchanges in JS.
       # Therefore, fetch converts the method from a string to a symbol here.
@@ -707,7 +707,7 @@ module Ccxt
         response = RestClient::Request.execute(
           method: method.downcase.to_sym,
           url: path,
-          headers: headers,
+          headers: request_headers,
           payload: payload
         )
         http_response = response.body
@@ -717,7 +717,7 @@ module Ccxt
         self.last_http_response = http_response if self.enableLastHttpResponse
         self.last_json_response = json_response if self.enableLastJsonResponse
         self.last_response_headers = headers if self.enableLastResponseHeaders
-        puts "\nResponse:\nmethod:#{method}\npath: #{path}\nstatus: #{response.code}\nheaders:#{headers}\nhttp_response:#{http_response}" if self.verbose
+        puts "\nResponse:\nmethod: #{method.inspect}\npath: #{path.inspect}\nstatus: #{response.code.inspect}\nheaders: #{headers.inspect}\nhttp_response: #{http_response}" if self.verbose
 
         # rescue Timeout
         #    except Timeout as e:
