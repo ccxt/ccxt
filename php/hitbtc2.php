@@ -1152,9 +1152,7 @@ class hitbtc2 extends hitbtc {
                 $tradesCost .= $trades[$i]['cost'];
                 $feeCost .= $trades[$i]['fee']['cost'];
             }
-            if ($cost === null) {
-                $cost = $tradesCost;
-            }
+            $cost = $tradesCost;
             if (($filled !== null) && ($filled > 0)) {
                 $average = $cost / $filled;
                 if ($type === 'market') {
