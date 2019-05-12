@@ -1145,7 +1145,7 @@ module Ccxt
 
       def sort_by(array, key, descending = false)
         # return sorted(array, key = lambda k: k[key] if k[key] is not nil else "", reverse = descending)
-        result = array.sort_by!{|k| k[key] ? k[key] : "" }
+        result = array.sort_by{|k| k[key] ? k[key] : "" }
         descending ? result.reverse : result
       end
 
