@@ -21,7 +21,7 @@ module Ccxt
     attr_accessor :marketsByAltname
 
     def describe()
-      return self.deep_extend(super, {
+      return self.class.deep_extend(super, {
         'id' => 'kraken',
         'name' => 'Kraken',
         'countries' => ['US'],
@@ -337,7 +337,7 @@ module Ccxt
         }
       end
       result = self.append_inactive_markets(result)
-      self.marketsByAltname = self.index_by(result, 'altname')
+      self.marketsByAltname = self.class.index_by(result, 'altname')
       return result
     end
 
@@ -378,7 +378,7 @@ module Ccxt
       #         },
       #     }
       #
-      currencies = self.safe_value(response, 'result')
+      currencies = self.class.safe_value(response, 'result')
       ids = currencies.keys
       result = {}
       ids.each do |id|
@@ -387,8 +387,8 @@ module Ccxt
         # see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
         # to add support for multiple withdrawal/deposit methods and
         # differentiated fees for each particular method
-        code = self.common_currency_code(self.safe_string(currency, 'altname'))
-        precision = self.safe_integer(currency, 'decimals')
+        code = self.common_currency_code(self.class.safe_string(currency, 'altname'))
+        precision = self.class.safe_integer(currency, 'decimals')
         # assumes all currencies are active except those listed above
         active = !self.options['inactiveCurrencies'].include?(code)
         result[code] = {
@@ -426,7 +426,7 @@ module Ccxt
       self.load_markets()
       self.check_required_credentials()
       response = self.privatePostTradeVolume(params)
-      tradedVolume = self.safe_float(response['result'], 'volume')
+      tradedVolume = self.class.safe_float(response['result'], 'volume')
       tiers = self.fees['trading']['tiers']
       taker = tiers['taker'][1]
       maker = tiers['maker'][1]
@@ -465,7 +465,7 @@ module Ccxt
     end
 
     def parse_ticker(ticker, market = nil)
-      timestamp = self.milliseconds()
+      timestamp = self.class.milliseconds()
       symbol = nil
       symbol = market['symbol'] if market
       baseVolume = ticker['v'][1].to_f
@@ -476,7 +476,7 @@ module Ccxt
       return {
         'symbol' => symbol,
         'timestamp' => timestamp,
-        'datetime' => self.iso8601(timestamp),
+        'datetime' => self.class.iso8601(timestamp),
         'high' => ticker['h'][1].to_f,
         'low' => ticker['l'][1].to_f,
         'bid' => ticker['b'][0].to_f,
@@ -484,7 +484,7 @@ module Ccxt
         'ask' => ticker['a'][0].to_f,
         'askVolume' => nil,
         'vwap' => vwap,
-        'open' => self.safe_float(ticker, 'o'),
+        'open' => self.class.safe_float(ticker, 'o'),
         'close' => last,
         'last' => last,
         'previousClose' => nil,
@@ -566,7 +566,7 @@ module Ccxt
         'transfer' => 'transfer',
         'margin' => 'margin',
       }
-      return self.safe_string(types, type, type)
+      return self.class.safe_string(types, type, type)
     end
 
     def parse_ledger_entry(item, currency = nil)
@@ -578,33 +578,33 @@ module Ccxt
       #                             amount: "0.1087194600",
       #                                fee: "0.0000000000",
       #                            balance: "0.2855851000"         }, ...}
-      id = self.safe_string(item, 'id')
+      id = self.class.safe_string(item, 'id')
       direction = nil
       account = nil
-      referenceId = self.safe_string(item, 'refid')
+      referenceId = self.class.safe_string(item, 'refid')
       referenceAccount = nil
-      type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
+      type = self.parse_ledger_entry_type(self.class.safe_string(item, 'type'))
       code = self.safeCurrencyCode(item, 'asset', currency)
-      amount = self.safe_float(item, 'amount')
+      amount = self.class.safe_float(item, 'amount')
       if amount < 0
         direction = 'out'
         amount = abs(amount)
       else
         direction = 'in'
       end
-      time = self.safe_float(item, 'time')
+      time = self.class.safe_float(item, 'time')
       timestamp = nil
       datetime = nil
       if time
         timestamp = (time * 1000).to_i
-        datetime = self.iso8601(timestamp)
+        datetime = self.class.iso8601(timestamp)
       end
       fee = {
-        'cost' => self.safe_float(item, 'fee'),
+        'cost' => self.class.safe_float(item, 'fee'),
         'currency' => code,
       }
       before = nil
-      after = self.safe_float(item, 'balance')
+      after = self.class.safe_float(item, 'balance')
       return {
         'info' => item,
         'id' => id,
@@ -645,8 +645,8 @@ module Ccxt
       #                                                 amount: "-0.2805800000",
       #                                                    fee: "0.0050000000",
       #                                                balance: "0.0000051000"           },
-      result = self.safe_value(response, 'result', {})
-      ledger = self.safe_value(result, 'ledger', {})
+      result = self.class.safe_value(response, 'result', {})
+      ledger = self.class.safe_value(result, 'ledger', {})
       keys = ledger.keys
       items = []
       keys.each do |key|
@@ -697,7 +697,7 @@ module Ccxt
       id = nil
       order = nil
       fee = nil
-      marketId = self.safe_string(trade, 'pair')
+      marketId = self.class.safe_string(trade, 'pair')
       foundMarket = self.find_market_by_altname_or_id(marketId)
       symbol = nil
       if foundMarket
@@ -711,17 +711,17 @@ module Ccxt
       case
       when trade.is_a?(Hash) && trade['ordertxid']
         order = trade['ordertxid']
-        id = self.safe_string_2(trade, 'id', 'postxid')
+        id = self.class.safe_string_2(trade, 'id', 'postxid')
         timestamp = (trade['time'] * 1000).to_i
         side = trade['type']
         type = trade['ordertype']
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'vol')
+        price = self.class.safe_float(trade, 'price')
+        amount = self.class.safe_float(trade, 'vol')
         if trade['fee']
           currency = nil
           currency = market['quote'] if market
           fee = {
-            'cost' => self.safe_float(trade, 'fee'),
+            'cost' => self.class.safe_float(trade, 'fee'),
             'currency' => currency,
           }
         end
@@ -741,7 +741,7 @@ module Ccxt
         'order' => order,
         'info' => trade,
         'timestamp' => timestamp,
-        'datetime' => self.iso8601(timestamp),
+        'datetime' => self.class.iso8601(timestamp),
         'symbol' => symbol,
         'type' => type,
         'side' => side,
@@ -774,7 +774,7 @@ module Ccxt
       length = trades.length
       return [] if length <= 0
       lastTrade = trades[length - 1]
-      lastTradeId = self.safe_string(result, 'last')
+      lastTradeId = self.class.safe_string(result, 'last')
       lastTrade << lastTradeId
       return self.parse_trades(trades, market, since, limit)
     end
@@ -782,9 +782,9 @@ module Ccxt
     def fetch_balance(params = {})
       self.load_markets()
       response = self.privatePostBalance(params)
-      balances = self.safe_value(response, 'result')
+      balances = self.class.safe_value(response, 'result')
       if balances.nil?
-        raise ExchangeNotAvailable, self.id + ' fetchBalance failed due to a malformed response ' + self.json(response)
+        raise ExchangeNotAvailable, self.id + ' fetchBalance failed due to a malformed response ' + self.class.json(response)
       end
       result = {'info' => balances}
       currencies = balances.keys
@@ -829,7 +829,7 @@ module Ccxt
         order['price'] = self.price_to_precision(symbol, price)
       end
       response = self.privatePostAddOrder(order.merge params)
-      id = self.safe_value(response['result'], 'txid')
+      id = self.class.safe_value(response['result'], 'txid')
       if id && id.is_a?(Array)
         id = id.length > 1 ? id : id[0]
       end
@@ -866,7 +866,7 @@ module Ccxt
     def get_delisted_market_by_id(id)
       return unless id
 
-      market = self.safe_value(self.options['delistedMarketsById'], id)
+      market = self.class.safe_value(self.options['delistedMarketsById'], id)
 
       return market if market
 
@@ -919,14 +919,14 @@ module Ccxt
         'canceled' => 'canceled',
         'expired' => 'expired',
       }
-      return self.safe_string(statuses, status, status)
+      return self.class.safe_string(statuses, status, status)
     end
 
     def parse_order(order, market = nil)
       description = order['descr']
       side = description['type']
       type = description['ordertype']
-      marketId = self.safe_string(description, 'pair')
+      marketId = self.class.safe_string(description, 'pair')
       foundMarket = self.find_market_by_altname_or_id(marketId)
       symbol = nil
       if foundMarket
@@ -936,24 +936,24 @@ module Ccxt
         market = self.get_delisted_market_by_id(marketId)
       end
       timestamp = (order['opentm'] * 1000).to_i
-      amount = self.safe_float(order, 'vol')
-      filled = self.safe_float(order, 'vol_exec')
+      amount = self.class.safe_float(order, 'vol')
+      filled = self.class.safe_float(order, 'vol_exec')
       remaining = amount - filled
       fee = nil
-      cost = self.safe_float(order, 'cost')
-      price = self.safe_float(description, 'price')
+      cost = self.class.safe_float(order, 'cost')
+      price = self.class.safe_float(description, 'price')
       if (price.nil?) || (price == 0)
-        price = self.safe_float(description, 'price2')
+        price = self.class.safe_float(description, 'price2')
       end
       if (price.nil?) || (price == 0)
-        price = self.safe_float(order, 'price', price)
+        price = self.class.safe_float(order, 'price', price)
       end
-      average = self.safe_float(order, 'price')
+      average = self.class.safe_float(order, 'price')
       if market
         symbol = market['symbol']
         if order['fee']
           flags = order['oflags']
-          feeCost = self.safe_float(order, 'fee')
+          feeCost = self.class.safe_float(order, 'fee')
           fee = {
             'cost' => feeCost,
             'rate' => nil,
@@ -965,12 +965,12 @@ module Ccxt
           end
         end
       end
-      status = self.parse_order_status(self.safe_string(order, 'status'))
+      status = self.parse_order_status(self.class.safe_string(order, 'status'))
       return {
         'id' => order['id'],
         'info' => order,
         'timestamp' => timestamp,
-        'datetime' => self.iso8601(timestamp),
+        'datetime' => self.class.iso8601(timestamp),
         'lastTradeTimestamp' => nil,
         'status' => status,
         'symbol' => symbol,
@@ -1015,7 +1015,7 @@ module Ccxt
         'trades' => true,  # whether or not to include trades in output(optional, default false)
         'txid' => ids.join(','),  # comma delimited list of transaction ids to query info about(20 maximum)
       }.merge params)
-      result = self.safe_value(response, 'result', {})
+      result = self.class.safe_value(response, 'result', {})
       orders = []
       orderIds = result.keys
       orderIds.each do |id|
@@ -1135,7 +1135,7 @@ module Ccxt
         'Failure' => 'failed',
         'Partial' => 'ok',
       }
-      return self.safe_string(statuses, status, status)
+      return self.class.safe_string(statuses, status, status)
     end
 
     def parse_transaction(transaction, currency = nil)
@@ -1166,23 +1166,23 @@ module Ccxt
       #         time:  1530481750,
       #       status: "Success"                                                             }
       #
-      id = self.safe_string(transaction, 'refid')
-      txid = self.safe_string(transaction, 'txid')
-      timestamp = self.safe_integer(transaction, 'time')
+      id = self.class.safe_string(transaction, 'refid')
+      txid = self.class.safe_string(transaction, 'txid')
+      timestamp = self.class.safe_integer(transaction, 'time')
       timestamp = timestamp * 1000 if timestamp
       code = nil
-      currencyId = self.safe_string(transaction, 'asset')
-      currency = self.safe_value(self.currencies_by_id, currencyId)
+      currencyId = self.class.safe_string(transaction, 'asset')
+      currency = self.class.safe_value(self.currencies_by_id, currencyId)
       if currency
         code = currency['code']
       else
         code = self.common_currency_code(currencyId)
       end
-      address = self.safe_string(transaction, 'info')
-      amount = self.safe_float(transaction, 'amount')
-      status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-      type = self.safe_string(transaction, 'type')  # injected from the outside
-      feeCost = self.safe_float(transaction, 'fee')
+      address = self.class.safe_string(transaction, 'info')
+      amount = self.class.safe_float(transaction, 'amount')
+      status = self.parse_transaction_status(self.class.safe_string(transaction, 'status'))
+      type = self.class.safe_string(transaction, 'type')  # injected from the outside
+      feeCost = self.class.safe_float(transaction, 'fee')
       if feeCost.nil? && type == 'deposit'
         feeCost = 0
       end
@@ -1198,7 +1198,7 @@ module Ccxt
         'updated' => nil,
         'txid' => txid,
         'timestamp' => timestamp,
-        'datetime' => self.iso8601(timestamp),
+        'datetime' => self.class.iso8601(timestamp),
         'fee' => {
           'currency' => code,
           'cost' => feeCost,
@@ -1212,7 +1212,7 @@ module Ccxt
         parsed_tx = self.parse_transaction({'type' => type}.merge transaction)
         result << parsed_tx
       end
-      return self.filterByCurrencySinceLimit(result, code, since, limit)
+      return self.filter_by_currency_since_limit(result, code, since, limit)
     end
 
     def fetch_deposits(code = nil, since = nil, limit = nil, params = {})
@@ -1274,7 +1274,7 @@ module Ccxt
         'new' => 'true',
       }
       response = self.fetch_deposit_address(code, request.merge(params))
-      address = self.safe_string(response, 'address')
+      address = self.class.safe_string(response, 'address')
       self.check_address(address)
       return {
         'currency' => code,
@@ -1287,7 +1287,7 @@ module Ccxt
       self.load_markets()
       currency = self.currency(code)
       # eslint-disable-next-line quotes
-      deposit_method = self.safe_string(params, 'method')
+      deposit_method = self.class.safe_string(params, 'method')
       if deposit_method.nil?
         if self.options['cacheDepositMethodsOnFetchDepositAddress']
           # cache depositMethods
@@ -1309,8 +1309,8 @@ module Ccxt
       if numResults < 1
         raise InvalidAddress, self.id + ' privatePostDepositAddresses() returned no addresses'
       end
-      address = self.safe_string(result[0], 'address')
-      tag = self.safe_string_2(result[0], 'tag', 'memo')
+      address = self.class.safe_string(result[0], 'address')
+      tag = self.class.safe_string_2(result[0], 'tag', 'memo')
       self.check_address(address)
       return {
         'currency' => code,
@@ -1342,21 +1342,21 @@ module Ccxt
       url = '/' + self.version + '/' + api + '/' + path
       if api == 'public'
         if params
-          url += '?' + self.urlencode(params)
+          url += '?' + self.class.urlencode(params)
         end
       elsif api == 'private'
         self.check_required_credentials()
         nonce = self.nonce.to_s
-        body = self.urlencode({'nonce' => nonce}.merge params)
-        auth = self.encode(nonce + body)
-        hash = self.hash(auth, 'sha256', 'binary')
-        binary = self.encode(url)
-        binhash = self.binary_concat(binary, hash)
+        body = self.class.urlencode({'nonce' => nonce}.merge params)
+        auth = self.class.encode(nonce + body)
+        hash = self.class.hash(auth, 'sha256', 'binary')
+        binary = self.class.encode(url)
+        binhash = self.class.binary_concat(binary, hash)
         secret = Base64.decode64(self.secret)
-        signature = self.hmac(binhash, secret, 'sha512', 'base64')
+        signature = self.class.hmac(binhash, secret, 'sha512', 'base64')
         headers = {
           'API-Key' => self.apiKey,
-          'API-Sign' => self.decode(signature),
+          'API-Sign' => self.class.decode(signature),
           'Content-Type' => 'application/x-www-form-urlencoded',
         }
       else
@@ -1367,7 +1367,7 @@ module Ccxt
     end
 
     def nonce()
-      return self.milliseconds()
+      return self.class.milliseconds
     end
 
     def handle_errors(code, reason, url, method, headers, body, response)
@@ -1389,7 +1389,7 @@ module Ccxt
           response['error'] &&
           !response['error'].empty?
 
-          message = self.id + ' ' + self.json(response)
+          message = self.id + ' ' + self.class.json(response)
           response['error'].each do |error|
             if self.exceptions[error]
               raise self.exceptions[error], message

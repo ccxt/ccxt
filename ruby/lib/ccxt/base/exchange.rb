@@ -178,10 +178,10 @@ module Ccxt
         'BCHSV'=> 'BSV',
       }
 
-      settings = self.deep_extend(self.describe(), config)
+      settings = self.class.deep_extend(self.describe(), config)
       settings.each do |key, value|
         if self.instance_variable_defined?("@#{key}") && self.instance_variable_get("@#{key}").is_a?(Hash)
-            self.instance_variable_set("@#{key}", self.deep_extend(self.send(key), value))
+            self.instance_variable_set("@#{key}", self.class.deep_extend(self.send(key), value))
         else
           send "#{key}=", value
         end
@@ -257,7 +257,7 @@ module Ccxt
           self.accounts = self.fetch_accounts(params)
         end
       end
-      self.accountsById = self.index_by(self.accounts, 'id')
+      self.accountsById = self.class.index_by(self.accounts, 'id')
       return self.accounts
     end
 
@@ -267,7 +267,7 @@ module Ccxt
           return self.loaded_fees
         end
       end
-      self.loaded_fees = self.deep_extend(self.loaded_fees, self.fetch_fees())
+      self.loaded_fees = self.class.deep_extend(self.loaded_fees, self.fetch_fees())
       return self.loaded_fees
     end
 
@@ -276,7 +276,7 @@ module Ccxt
       # currencies are returned as a dict
       # this is for historical reasons
       # and may be changed for consistency later
-      return self.to_array self.markets
+      return self.class.to_array self.markets
     end
 
     def fetch_currencies(params = {})
@@ -318,7 +318,7 @@ module Ccxt
     end
 
     def parse_balance(balance)
-      currencies = self.omit(balance, 'info').keys
+      currencies = self.class.omit(balance, 'info').keys
       ['free', 'used', 'total'].each do |account|
         balance[account] = {}
         currencies.each do |currency|
@@ -368,9 +368,9 @@ module Ccxt
         if reload or not(self.options.keys.include?('limitsLoaded'))
           response = self.fetch_trading_limits(symbols)
           symbols.each do |symbol|
-            self.markets[symbol] = self.deep_extend(self.markets[symbol], response[symbol])
+            self.markets[symbol] = self.class.deep_extend(self.markets[symbol], response[symbol])
           end
-          self.options['limitsLoaded'] = self.milliseconds
+          self.options['limitsLoaded'] = self.class.milliseconds
         end
       end
       return self.markets
@@ -381,7 +381,7 @@ module Ccxt
     end
 
 
-    def parse_timeframe(timeframe)
+    def self.parse_timeframe(timeframe)
       amount = timeframe[0..-1].to_i
       unit = timeframe[-1]
       case unit
@@ -441,9 +441,9 @@ module Ccxt
     end
 
     def purge_cached_orders(before)
-      orders = self.to_array(self.orders)
+      orders = self.class.to_array(self.orders)
       orders = orders.select{|order| (order['status'] == 'open') || (order['timestamp'] >= before)}
-      self.orders = self.index_by(orders, 'id')
+      self.orders = self.class.index_by(orders, 'id')
       return self.orders
     end
 
@@ -476,7 +476,7 @@ module Ccxt
     end
 
     def parse_ohlcvs(ohlcvs, market = nil, timeframe = '1m', since = nil, limit = nil)
-      ohlcvs = self.to_array(ohlcvs)
+      ohlcvs = self.class.to_array(ohlcvs)
       result = []
 
       ohlcvs.each do |o|
@@ -486,7 +486,7 @@ module Ccxt
         continue if since && (ohlcv[0] < since)
         result.append(ohlcv)
       end
-      return self.sort_by(result, 0)
+      return self.class.sort_by(result, 0)
     end
 
     def parse_trading_view_ohlcv(ohlcvs, market=nil, timeframe='1m', since=nil, limit=nil)
@@ -524,8 +524,8 @@ module Ccxt
     def fetch_l2_order_book(symbol, limit = nil, params = {})
       orderbook = self.fetch_order_book(symbol, limit, params)
       orderbook.merge(
-        'bids' => self.sort_by(self.aggregate(orderbook['bids']), 0, true),
-        'asks' => self.sort_by(self.aggregate(orderbook['asks']), 0),
+        'bids' => self.class.sort_by(self.class.aggregate(orderbook['bids']), 0, true),
+        'asks' => self.class.sort_by(self.class.aggregate(orderbook['asks']), 0),
       )
     end
 
@@ -533,16 +533,16 @@ module Ccxt
       bids = if orderbook[bids_key] && orderbook[bids_key].is_a?(Array)
         self.parse_bids_asks(orderbook[bids_key], price_key, amount_key)
       else [] end
-      bids = self.sort_by(bids, 0, true)
+      bids = self.class.sort_by(bids, 0, true)
       asks = if orderbook[asks_key] && orderbook[asks_key].is_a?(Array)
         self.parse_bids_asks(orderbook[asks_key], price_key, amount_key)
       else [] end
-      asks = self.sort_by(asks, 0)
+      asks = self.class.sort_by(asks, 0)
       {
         'bids' => bids,
         'asks' => asks,
         'timestamp' => timestamp,
-        'datetime' => timestamp ? self.iso8601(timestamp) : nil,
+        'datetime' => timestamp ? self.class.iso8601(timestamp) : nil,
         'nonce' => nil,
       }
     end
@@ -571,13 +571,13 @@ module Ccxt
         defaults = self.fees['trading'].merge 'precision' => self.precision, 'limits' => self.limits
         values[i] = defaults.merge values[i]
       end
-      self.markets = self.index_by(values, 'symbol')
-      self.markets_by_id = self.index_by(values, 'id')
+      self.markets = self.class.index_by(values, 'symbol')
+      self.markets_by_id = self.class.index_by(values, 'id')
       self.marketsById = self.markets_by_id
       self.symbols = self.markets.keys.sort
       self.ids = self.markets_by_id.keys.sort
       if currencies_to_set
-        self.currencies = self.deep_extend(currencies_to_set, self.currencies)
+        self.currencies = self.class.deep_extend(currencies_to_set, self.currencies)
       else
         base_currencies = values.select {|market| market['base']}.map do |market|
           {
@@ -597,15 +597,15 @@ module Ccxt
               (market['precision'] && market['precision']['amount']) || 8,
           }
         end
-        currencies_to_set = self.sort_by(base_currencies + quote_currencies, 'code')
-        self.currencies = self.deep_extend(self.index_by(currencies_to_set, 'code'), self.currencies)
+        currencies_to_set = self.class.sort_by(base_currencies + quote_currencies, 'code')
+        self.currencies = self.class.deep_extend(self.class.index_by(currencies_to_set, 'code'), self.currencies)
       end
-      self.currencies_by_id = self.index_by(self.currencies.values, 'id')
+      self.currencies_by_id = self.class.index_by(self.currencies.values, 'id')
       return self.markets
     end
 
     def build_ohlcv(trades, timeframe = '1m', since = nil, limit = nil)
-      ms = self.parse_timeframe(timeframe) * 1000
+      ms = self.class.parse_timeframe(timeframe) * 1000
       ohlcvs = []
       high, low, close, volume = [2, 3, 4, 5]
       num_trades = trades.size
@@ -696,7 +696,7 @@ module Ccxt
 
     def fetch2(path, api = 'public', method = 'GET', params = {}, headers = nil, body = nil)
       throttle if enableRateLimit
-      self.lastRestRequestTimestamp = milliseconds
+      self.lastRestRequestTimestamp = Exchange.milliseconds
       request = sign(path, api, method, params, headers, body)
       return fetch(request['url'], request['method'], request['headers'], request['body'])
     end
@@ -719,7 +719,7 @@ module Ccxt
           payload: payload
         )
         http_response = response.body
-        json_response = self.is_json_encoded_object(http_response) ? JSON.parse(http_response) : nil
+        json_response = self.class.is_json_encoded_object(http_response) ? JSON.parse(http_response) : nil
         headers = response.headers
 
         self.last_http_response = http_response if self.enableLastHttpResponse
@@ -773,7 +773,7 @@ module Ccxt
     def handle_errors(code, reason, url, method, headers, body, response); end
 
     def handle_rest_response(response, json_response, url, method = 'GET', headers = nil, body = nil)
-      if self.is_json_encoded_object(response) && json_response.nil?
+      if self.class.is_json_encoded_object(response) && json_response.nil?
         ddos_protection = response =~ /(cloudflare|incapsula|overload|ddos)/i
         exchange_not_available = response =~ /(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)/i
         if ddos_protection
@@ -805,8 +805,8 @@ module Ccxt
             split_path = url.split(delimiters)
             uppercase_method = http_method.upcase
             lowercase_method = http_method.downcase
-            camelcase_method = capitalize(lowercase_method)
-            camelcase_suffix = split_path.map{|p| capitalize(p)}.join('')
+            camelcase_method = self.class.capitalize(lowercase_method)
+            camelcase_suffix = split_path.map{|p| self.class.capitalize(p)}.join('')
             underscore_suffix = split_path.map{|p| p.strip.downcase}.join('_')
 
             camelcase = api_type + camelcase_method + camelcase_suffix
@@ -831,7 +831,7 @@ module Ccxt
       end
     end
 
-  #  class << self
+   class << self
 
       ### THESE ARE REQUIRED TO TRANSPILE THE JAVASCRIPT FILES
 
@@ -959,7 +959,7 @@ module Ccxt
             result = {} if not result.is_a?(Hash)
             arg.keys.each do |k|
               target = result.has_key?(k) ? result[k] : nil
-              result[k] = self.deep_extend(target, arg[k])
+              result[k] = deep_extend(target, arg[k])
             end
           else
             result = arg
@@ -1284,13 +1284,13 @@ module Ccxt
           sleep(delay / 1000.0)
         end
       end
-  #  end
+    end
 
     def common_currency_code(currency)
       if not self.substituteCommonCurrencyCodes
         return currency
       end
-      return self.safe_string(self.commonCurrencies, currency, currency)
+      return self.class.safe_string(self.commonCurrencies, currency, currency)
     end
 
     def currency_id(commonCode)
@@ -1298,7 +1298,7 @@ module Ccxt
         return self.currencies[commonCode]['id']
       end
       currencyIds = self.commonCurrencies.invert
-      return self.safe_string(currencyIds, commonCode, commonCode)
+      return self.class.safe_string(currencyIds, commonCode, commonCode)
     end
 
     def precision_from_string(string)
@@ -1471,39 +1471,39 @@ module Ccxt
     end
 
     def parse_trades(trades, market = nil, since = nil, limit = nil)
-      array = self.to_array(trades)
+      array = self.class.to_array(trades)
       array = array.collect{|trade| self.parse_trade(trade, market)}
-      array = self.sort_by(array, 'timestamp')
+      array = self.class.sort_by(array, 'timestamp')
       symbol = market ? market['symbol'] : nil
       return self.filter_by_symbol_since_limit(array, symbol, since, limit)
     end
 
     def parse_ledger(data, currency = nil, since = nil, limit = nil)
-      array = self.to_array(data)
+      array = self.class.to_array(data)
       array = array.collect{|item| self.parse_ledger_entry(item, currency)}
-      array = self.sort_by(array, 'timestamp')
+      array = self.class.sort_by(array, 'timestamp')
       code = currency ? currency['code'] : nil
       return self.filter_by_currency_since_limit(array, code, since, limit)
     end
 
     def parse_transactions(transactions, currency = nil, since = nil, limit = nil, params = {})
-      array = self.to_array(transactions)
+      array = self.class.to_array(transactions)
       array = array.collect{|transaction| self.parse_transaction(transaction, currency)}
-      array = self.sort_by(array, 'timestamp')
+      array = self.class.sort_by(array, 'timestamp')
       code = currency ? currency['code'] : nil
       return self.filter_by_currency_since_limit(array, code, since, limit)
     end
 
     def parse_orders(orders, market = nil, since = nil, limit = nil)
-      array = self.to_array(orders)
+      array = self.class.to_array(orders)
       array = array.collect{|order| self.parse_order(order, market)}
-      array = self.sort_by(array, 'timestamp')
+      array = self.class.sort_by(array, 'timestamp')
       symbol = market ? market['symbol'] : nil
       return self.filter_by_symbol_since_limit(array, symbol, since, limit)
     end
 
     def filter_by_value_since_limit(array, field, value = nil, since = nil, limit = nil)
-      array = self.to_array(array)
+      array = self.class.to_array(array)
       if value
         array = array.select{|entry| entry[field] == value}
       end
@@ -1525,7 +1525,7 @@ module Ccxt
     end
 
     def filter_by_since_limit(array, since = nil, limit = nil)
-      array = self.to_array(array)
+      array = self.class.to_array(array)
       if since
         array = array.select{|entry| entry['timestamp'] >= since}
       end
@@ -1536,7 +1536,7 @@ module Ccxt
     end
 
     def filter_by_symbol(array, symbol = nil)
-      array = self.to_array(array)
+      array = self.class.to_array(array)
       if symbol
         return array.select{|entry| entry['symbol'] == symbol}
       end
@@ -1545,11 +1545,11 @@ module Ccxt
 
     def filter_by_array(objects, key, values = nil, indexed = true)
 
-      objects = self.to_array(objects)
+      objects = self.class.to_array(objects)
 
       # return all of them if no values were passed in
       if values.nil?
-        return indexed ? self.index_by(objects, key) : objects
+        return indexed ? self.class.index_by(objects, key) : objects
       end
 
       result = []
@@ -1559,7 +1559,7 @@ module Ccxt
           result.append(object)
         end
       end
-      return indexed ? self.index_by(result, key) : result
+      return indexed ? self.class.index_by(result, key) : result
     end
 
     def currency(code)
@@ -1627,7 +1627,7 @@ module Ccxt
         'gether'=> 27,      # 1000000000000000000000000000
         'tether'=> 30,      # 1000000000000000000000000000000
       }
-      return self.safe_value(units, unit)
+      return self.class.safe_value(units, unit)
     end
 
     def eth_unit(decimals = 18)
@@ -1644,7 +1644,7 @@ module Ccxt
         27=> 'gether',  # 0.000000001
         30=> 'tether',  # 0.000000000001
       }
-      return self.safe_value(units, decimals)
+      return self.class.safe_value(units, decimals)
     end
 
     def fromWei(amount, unit = 'ether', decimals = 18)
