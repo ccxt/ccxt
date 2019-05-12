@@ -398,6 +398,7 @@ module Ccxt
     ## PRIVATE
 
     def fetch_balance
+      raise NotSupported, 'fetch_balance is not supported yet.'
     end
 
     def create_order(symbol, type, side, amount, price = nil, params = {})
