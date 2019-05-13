@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.522'
+const version = '1.18.523'
 
 Exchange.ccxtVersion = version
 
@@ -45129,7 +45129,7 @@ module.exports = class huobipro extends Exchange {
                 'limits': {
                     'amount': {
                         'min': Math.pow (10, -precision['amount']),
-                        'max': Math.pow (10, precision['amount']),
+                        'max': undefined,
                     },
                     'price': {
                         'min': Math.pow (10, -precision['price']),
