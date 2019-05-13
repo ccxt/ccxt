@@ -236,11 +236,11 @@ module Ccxt
     end
 
     def cost_to_precision(symbol, cost)
-      return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['price'], DECIMAL_PLACES)
+      return self.class.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['price'], DECIMAL_PLACES)
     end
 
     def fee_to_precision(symbol, fee)
-      return self.decimal_to_precision(fee, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
+      return self.class.decimal_to_precision(fee, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
     end
 
     def fetch_min_order_amounts()
