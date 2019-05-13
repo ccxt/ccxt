@@ -439,10 +439,11 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let markets = await this.publicGetSymbolsDetails ();
+        let allMarkets = await this.publicGetSymbolsDetails ();
+        let markets = await this.publicGetSymbols ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
-            let market = markets[p];
+            let market = allMarkets.find (m => m.pair === markets[p]);
             let id = market['pair'].toUpperCase ();
             let baseId = id.slice (0, 3);
             let quoteId = id.slice (3, 6);
