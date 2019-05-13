@@ -445,7 +445,7 @@ module.exports = class bitfinex extends Exchange {
         for (let i = 0; i < details.length; i++) {
             const market = details[i];
             let id = this.safeString (market, 'pair');
-            if (!this.inArray (id, ids) {
+            if (!this.inArray (id, ids)) {
                 continue;
             }
             id = id.toUpperCase ();
