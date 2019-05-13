@@ -269,7 +269,7 @@ class huobipro (Exchange):
                 'limits': {
                     'amount': {
                         'min': math.pow(10, -precision['amount']),
-                        'max': math.pow(10, precision['amount']),
+                        'max': None,
                     },
                     'price': {
                         'min': math.pow(10, -precision['price']),

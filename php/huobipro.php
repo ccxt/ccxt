@@ -261,7 +261,7 @@ class huobipro extends Exchange {
                 'limits' => array (
                     'amount' => array (
                         'min' => pow (10, -$precision['amount']),
-                        'max' => pow (10, $precision['amount']),
+                        'max' => null,
                     ),
                     'price' => array (
                         'min' => pow (10, -$precision['price']),
