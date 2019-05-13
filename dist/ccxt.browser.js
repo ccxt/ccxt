@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.521'
+const version = '1.18.522'
 
 Exchange.ccxtVersion = version
 
@@ -44599,9 +44599,7 @@ module.exports = class hitbtc2 extends hitbtc {
                 tradesCost += trades[i]['cost'];
                 feeCost += trades[i]['fee']['cost'];
             }
-            if (cost === undefined) {
-                cost = tradesCost;
-            }
+            cost = tradesCost;
             if ((filled !== undefined) && (filled > 0)) {
                 average = cost / filled;
                 if (type === 'market') {
