@@ -701,10 +701,10 @@ module Ccxt
       return fetch(request['url'], request['method'], request['headers'], request['body'])
     end
 
-    def fetch(path, method = 'GET', request_headers = {}, payload = {})
+    def fetch(url, method = 'GET', request_headers = {}, payload = {})
       request_headers = prepare_request_headers(request_headers || {})
 
-      puts "\nRequest:\nmethod: #{method.inspect}\npath: #{path.inspect}\nheaders: #{request_headers.inspect}\npayload: #{payload.inspect}" if self.verbose
+      puts "\nRequest:\nmethod: #{method.inspect}\nurl: #{url.inspect}\nheaders: #{request_headers.inspect}\npayload: #{payload.inspect}" if self.verbose
 
       # RestClient::Request expects a symbol for a method, but #sign is implemented by individual exchanges in JS.
       # Therefore, fetch converts the method from a string to a symbol here.
@@ -714,7 +714,7 @@ module Ccxt
       begin
         response = RestClient::Request.execute(
           method: method.downcase.to_sym,
-          url: path,
+          url: url,
           headers: request_headers,
           payload: payload
         )
@@ -725,7 +725,7 @@ module Ccxt
         self.last_http_response = http_response if self.enableLastHttpResponse
         self.last_json_response = json_response if self.enableLastJsonResponse
         self.last_response_headers = headers if self.enableLastResponseHeaders
-        puts "\nResponse:\nmethod: #{method.inspect}\npath: #{path.inspect}\nstatus: #{response.code.inspect}\nheaders: #{headers.inspect}\nhttp_response: #{http_response}" if self.verbose
+        puts "\nResponse:\nmethod: #{method.inspect}\nurl: #{url.inspect}\nstatus: #{response.code.inspect}\nheaders: #{headers.inspect}\nhttp_response: #{http_response}" if self.verbose
 
         # rescue Timeout
         #    except Timeout as e:
@@ -760,8 +760,8 @@ module Ccxt
         return e
       end
 
-      handle_errors(response.code, response.body, path, method, headers, http_response, json_response)
-      handle_rest_response(http_response, json_response, path, method, headers, payload)
+      handle_errors(response.code, response.body, url, method, headers, http_response, json_response)
+      handle_rest_response(http_response, json_response, url, method, headers, payload)
       if json_response != nil
         return json_response
       end
