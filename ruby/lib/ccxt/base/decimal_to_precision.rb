@@ -14,17 +14,27 @@ module Ccxt
 
     def self.included(base)
       base.extend ClassMethods
-
-
       base.class_eval do
       end
     end
 
     module ClassMethods
-      def decimal_to_precision(n, rounding_mode=ROUND, precision=nil, counting_mode=DECIMAL_PLACES, padding_mode=NO_PADDING)
+      def decimal_to_precision(n, rounding_mode = ROUND, precision = nil, counting_mode = DECIMAL_PLACES, padding_mode = NO_PADDING)
+        unless precision.is_a?(Fixnum)
+          raise ArgumentError.new "precision #{precision.inspect} is invalid. Must be a Fixnum."
+        end
+        unless [TRUNCATE, ROUND].include?(rounding_mode)
+          raise ArgumentError.new "rounding_mode #{rounding_mode.inspect} is invalid. Must be TRUNCATE(#{TRUNCATE}) or ROUND(#{ROUND}."
+        end
+        unless [DECIMAL_PLACES, SIGNIFICANT_DIGITS].include?(counting_mode)
+          raise ArgumentError.new "counting_mode #{counting_mode.inspect} is invalid. Must be DECIMAL_PLACES(#{DECIMAL_PLACES}) or SIGNIFICANT_DIGITS(#{SIGNIFICANT_DIGITS}."
+        end
+        unless [NO_PADDING, PAD_WITH_ZERO].include?(padding_mode)
+          raise ArgumentError.new "padding_mode #{counting_mode.inspect} is invalid. Must be NO_PADDING(#{NO_PADDING}) or PAD_WITH_ZERO(#{PAD_WITH_ZERO}."
+        end
 
         # BigDecimal does not like the trailing dot
-        number = BigDecimal(n.sub(/\.$/, ''))
+        number = BigDecimal(n.to_s.sub(/\.$/, ''))
 
         # negative precision
         if precision < 0
