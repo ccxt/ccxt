@@ -9,6 +9,7 @@ require "addressable/uri"
 require 'bigdecimal'
 require 'ccxt/base/errors'
 require 'ccxt/base/decimal_to_precision'
+require 'eth'
 
 module Ccxt
   # base class for the exchange
@@ -1020,9 +1021,6 @@ module Ccxt
         return result
       end
 
-      # def has_web3
-      # end
-
       def in_array(needle, haystack)
         return haystack.include?(needle)
       end
@@ -1574,18 +1572,24 @@ module Ccxt
       raise Exchange::ExchangeError, 'Does not have currency code ' + code
     end
 
-    # Ethereum accepts three types of keys: private key, account or address, and UTC JSON keystore.
+    #
+    # WEB3
+    # 
+    
+    def self.has_web3
+      true
+    end
 
-    # Creates an account object from a private key.
-    #   private_key: The private key hex string beginning with 0x.
+    # NOTE: Ethereum accepts three types of keys: private key, account or address, and UTC JSON keystore.
     def decrypt_account_from_private_key(private_key)
-      raise Exchange::ExchangeError, "Not implemented yet."
-      return nil
+      key = Eth::Key.new( priv: Eth::Utils::remove_hex_prefix(private_key))
+      return key.address
     end
 
     # Creates an account object from an account/address
     def decrypt_account(value, password)
-      return Eth::key.decrypt(value, password)
+      private_key = Eth::Key.decrypt(value, password).private_key
+      return Eth::Utils::prefix_hex(private_key.key)
     end
 
     # Creates an account object from a UTC JSON keystore
@@ -1593,15 +1597,6 @@ module Ccxt
       value_to_decrypt = value.is_a?(String) ? JSON.load(value) : value
       return self.decrypt_account(value_to_decrypt, password)
     end
-
-    # TODO: find a reliable web3/ethereum library for Ruby.
-
-    # def decryptAccount(key, password):
-    #     return self.web3.eth.accounts.decrypt(key, password)
-    #
-    # def decryptAccountFromPrivateKey(privateKey):
-    #     return self.web3.eth.accounts.privateKeyToAccount(privateKey)
-    #
 
     def eth_decimals(unit = 'ether')
       units = {
@@ -1628,7 +1623,10 @@ module Ccxt
         'mether'=> 24,      # 1000000000000000000000000
         'gether'=> 27,      # 1000000000000000000000000000
         'tether'=> 30,      # 1000000000000000000000000000000
-      }
+      }.freeze
+      
+      # TODO: there is no default value, which results in nil/None.
+      # Perhaps we should raise an error that the eth unit is not valid.
       return self.class.safe_value(units, unit)
     end
 
@@ -1645,16 +1643,49 @@ module Ccxt
         24=> 'mether',  # 0.000001
         27=> 'gether',  # 0.000000001
         30=> 'tether',  # 0.000000000001
-      }
+      }.freeze
       return self.class.safe_value(units, decimals)
     end
 
+    # Takes a number of wei and converts it to any other ether unit.
+    # NOTE: if decimals is set and is not multiple of 3, the amount is changed and unit stays the same.
+    # If decimals is set and is a mulitple of 3, the amount stays the same and unit changes.
     def fromWei(amount, unit = 'ether', decimals = 18)
-      raise ExchangeError, "Not implemented."
+      return nil if amount.nil?
+      return BigDecimal(0) if amount == 0
+      
+      value = BigDecimal(amount)
+      if decimals != 18
+        if (decimals % 3 != 0)
+          value = value * 10 **(18 - decimals)
+          puts "Value changed to #{value}."
+        else
+          unit = self.eth_unit(decimals)
+          puts "Unit changed to #{unit}."
+        end
+      end
+      result_value = value / 10**self.eth_decimals(unit)
+      return result_value.to_s('F')
     end
 
+    # Takes a number of a unit and converts it to wei.
     def toWei(amount, unit = 'ether', decimals = 18)
-      raise ExchangeError, "Not implemented."
+      return nil if amount.nil?
+      return BigDecimal(0) if amount == 0
+
+      value = BigDecimal(amount)
+      if decimals != 18
+        if (decimals % 3 != 0)
+          value = value * 10 **(decimals - 18)
+          puts "Value changed to #{value}."
+        else
+          unit = self.eth_unit(decimals)
+          puts "Unit changed to #{unit}."
+        end
+      end
+
+      result_value = value * (10**self.eth_decimals(unit))
+      return result_value.to_i.to_s
     end
   end
 end

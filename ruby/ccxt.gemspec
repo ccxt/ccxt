@@ -44,4 +44,5 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency "rest-client", "~> 2.0"
   spec.add_runtime_dependency "addressable", "~> 2.6"
+  spec.add_runtime_dependency "eth", "~> 0.4.3"
 end
