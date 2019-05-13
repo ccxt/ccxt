@@ -439,11 +439,16 @@ class bitfinex extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $markets = $this->publicGetSymbolsDetails ();
+        $ids = $this->publicGetSymbols ();
+        $details = $this->publicGetSymbolsDetails ();
         $result = array ();
-        for ($p = 0; $p < count ($markets); $p++) {
-            $market = $markets[$p];
-            $id = strtoupper ($market['pair']);
+        for ($i = 0; $i < count ($details); $i++) {
+            $market = $details[$i];
+            $id = $this->safe_string($market, 'pair');
+            if (!$this->in_array($id, $ids)) {
+                continue;
+            }
+            $id = strtoupper ($id);
             $baseId = mb_substr ($id, 0, 3);
             $quoteId = mb_substr ($id, 3, 6);
             $base = $this->common_currency_code($baseId);
