@@ -1050,7 +1050,7 @@ module.exports = class huobipro extends Exchange {
         const request = {};
         let currency = this.currency (code);
         request['currency'] = currency['id'];
-        request['type'] = 'withdraw';
+        request['type'] = 'withdraw'; // Huobi uses withdraw for withdrawals
         request['from'] = 0; // From 'id' ... if you want to get results after a particular Transaction id, pass the id in params.from
         request['size'] = limit; // Maximum transfers that can be fetched is 100
         let response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
@@ -1058,7 +1058,42 @@ module.exports = class huobipro extends Exchange {
         return this.parseTransactions (response['data'], currency, since, limit);
     }
 
-    parseTransaction (transaction) {
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         'id': 8211029,
+        //         'type': 'deposit',
+        //         'currency': 'eth',
+        //         'chain': 'eth',
+        //         'tx-hash': 'bd315....',
+        //         'amount': 0.81162421,
+        //         'address': '4b8b....',
+        //         'address-tag': '',
+        //         'fee': 0,
+        //         'state': 'safe',
+        //         'created-at': 1542180380965,
+        //         'updated-at': 1542180788077
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         'id': 6908275,
+        //         'type': 'withdraw',
+        //         'currency': 'btc',
+        //         'chain': 'btc',
+        //         'tx-hash': 'c1a1a....',
+        //         'amount': 0.80257005,
+        //         'address': '1QR....',
+        //         'address-tag': '',
+        //         'fee': 0.0005,
+        //         'state': 'confirmed',
+        //         'created-at': 1552107295685,
+        //         'updated-at': 1552108032859
+        //     }
+        //
         let timestamp = this.safeInteger (transaction, 'created-at');
         if (timestamp !== undefined) {
             timestamp = parseInt (timestamp);
@@ -1067,10 +1102,18 @@ module.exports = class huobipro extends Exchange {
         if (updated !== undefined) {
             updated = parseInt (updated);
         }
-        let code = this.safeString (transaction, 'currency');
-        let type = this.safeString (transaction, 'type'); // deposit or withdraw
-        if (type !== undefined) {
-            type = type.toLowerCase ();
+        let code = this.safeCurrencyCode (transaction, 'currency');
+        if (currency === undefined) {
+            currency = this.safeValue (this.currencies_by_id, code);
+        }
+        if (currency !== undefined) {
+            code = currency['code'];
+        } else {
+            code = this.commonCurrencyCode (code);
+        }
+        let type = this.safeString (transaction, 'type');
+        if (type === 'withdraw') {
+            type = 'withdrawal';
         }
         let status = this.parseTransactionStatusByType (this.safeString (transaction, 'state'), type);
         let tag = this.safeString (transaction, 'address-tag');
@@ -1110,7 +1153,7 @@ module.exports = class huobipro extends Exchange {
                 'confirmed': 'ok',
                 'safe': 'ok',
             },
-            'withdraw': {
+            'withdrawal': {
                 'submitted': 'pending',
                 'canceled': 'canceled',
                 'reexamine': 'pending',
