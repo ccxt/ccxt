@@ -200,6 +200,11 @@ declare module 'ccxt' {
         cost: number;
     }
 
+    export interface WithdrawalResponse {
+        info: any;
+        id: string;
+    }
+
     // timestamp, open, high, low, close, volume
     export type OHLCV = [number, number, number, number, number, number];
 
@@ -313,7 +318,7 @@ declare module 'ccxt' {
         cancelOrder (id: string, symbol?: string, params?: {}): Promise<any>;
         createDepositAddress (currency: string, params?: {}): Promise<any>;
         fetchDepositAddress (currency: string, params?: {}): Promise<any>;
-        withdraw (currency: string, amount: number, address: string, tag?: string, params?: {}): Promise<any>;
+        withdraw (currency: string, amount: number, address: string, tag?: string, params?: {}): Promise<WithdrawalResponse>;
         request (path: string, api?: string, method?: string, params?: any, headers?: any, body?: any): Promise<any>;
         YmdHMS (timestamp: string, infix: string) : string;
         iso8601 (timestamp: string): string;

@@ -1143,24 +1143,18 @@ class hitbtc2 extends hitbtc {
         if ($trades !== null) {
             $trades = $this->parse_trades($trades, $market);
             $feeCost = null;
-            $sumOfPrices = null;
             $numTrades = is_array ($trades) ? count ($trades) : 0;
+            $tradesCost = 0;
             for ($i = 0; $i < $numTrades; $i++) {
                 if ($feeCost === null) {
                     $feeCost = 0;
                 }
-                if ($sumOfPrices === null) {
-                    $sumOfPrices = 0;
-                }
-                if ($cost === null) {
-                    $cost = 0;
-                }
-                $cost .= $trades[$i]['cost'];
+                $tradesCost .= $trades[$i]['cost'];
                 $feeCost .= $trades[$i]['fee']['cost'];
-                $sumOfPrices .= $trades[$i]['price'];
             }
-            if (($sumOfPrices !== null) && ($numTrades > 0)) {
-                $average = $sumOfPrices / $numTrades;
+            $cost = $tradesCost;
+            if (($filled !== null) && ($filled > 0)) {
+                $average = $cost / $filled;
                 if ($type === 'market') {
                     if ($price === null) {
                         $price = $average;

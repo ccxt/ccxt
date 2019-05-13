@@ -448,11 +448,15 @@ class bitfinex (Exchange):
         }
 
     def fetch_markets(self, params={}):
-        markets = self.publicGetSymbolsDetails()
+        ids = self.publicGetSymbols()
+        details = self.publicGetSymbolsDetails()
         result = []
-        for p in range(0, len(markets)):
-            market = markets[p]
-            id = market['pair'].upper()
+        for i in range(0, len(details)):
+            market = details[i]
+            id = self.safe_string(market, 'pair')
+            if not self.in_array(id, ids):
+                continue
+            id = id.upper()
             baseId = id[0:3]
             quoteId = id[3:6]
             base = self.common_currency_code(baseId)
@@ -686,7 +690,7 @@ class bitfinex (Exchange):
         if price is not None:
             order['price'] = self.price_to_precision(symbol, price)
         if amount is not None:
-            order['amount'] = self.amount_to_precision(symbol, amount)
+            order['amount'] = self.number_to_string(amount)
         if symbol is not None:
             order['symbol'] = self.market_id(symbol)
         if side is not None:

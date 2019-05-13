@@ -1113,20 +1113,16 @@ class hitbtc2 (hitbtc):
         if trades is not None:
             trades = self.parse_trades(trades, market)
             feeCost = None
-            sumOfPrices = None
             numTrades = len(trades)
+            tradesCost = 0
             for i in range(0, numTrades):
                 if feeCost is None:
                     feeCost = 0
-                if sumOfPrices is None:
-                    sumOfPrices = 0
-                if cost is None:
-                    cost = 0
-                cost += trades[i]['cost']
+                tradesCost += trades[i]['cost']
                 feeCost += trades[i]['fee']['cost']
-                sumOfPrices += trades[i]['price']
-            if (sumOfPrices is not None) and(numTrades > 0):
-                average = sumOfPrices / numTrades
+            cost = tradesCost
+            if (filled is not None) and(filled > 0):
+                average = cost / filled
                 if type == 'market':
                     if price is None:
                         price = average

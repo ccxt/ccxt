@@ -19,12 +19,12 @@ class coinegg extends Exchange {
                 'fetchOrders' => true,
                 'fetchOpenOrders' => 'emulated',
                 'fetchMyTrades' => true,
-                'fetchTickers' => true,
+                'fetchTickers' => false,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg',
                 'api' => array (
-                    'web' => 'https://www.coinegg.com/coin',
+                    'web' => 'https://trade.coinegg.com/web',
                     'rest' => 'https://api.coinegg.com/api/v1',
                 ),
                 'www' => 'https://www.coinegg.com',
@@ -35,7 +35,7 @@ class coinegg extends Exchange {
             'api' => array (
                 'web' => array (
                     'get' => array (
-                        '{quote}/allcoin',
+                        'symbol/ticker?right_coin={quote}',
                         '{quote}/trends',
                         '{quote}/{base}/order',
                         '{quote}/{base}/trades',
@@ -157,23 +157,20 @@ class coinegg extends Exchange {
         $result = array ();
         for ($b = 0; $b < count ($quoteIds); $b++) {
             $quoteId = $quoteIds[$b];
-            $bases = $this->webGetQuoteAllcoin (array (
+            $response = $this->webGetSymbolTickerRightCoinQuote (array (
                 'quote' => $quoteId,
             ));
-            if ($bases === null)
-                throw new ExchangeNotAvailable ($this->id . ' fetchMarkets() for "' . $quoteId . '" returned => "' . $this->json ($bases) . '"');
-            $baseIds = is_array ($bases) ? array_keys ($bases) : array ();
-            $numBaseIds = is_array ($baseIds) ? count ($baseIds) : 0;
-            if ($numBaseIds < 1)
-                throw new ExchangeNotAvailable ($this->id . ' fetchMarkets() for "' . $quoteId . '" returned => "' . $this->json ($bases) . '"');
-            for ($i = 0; $i < count ($baseIds); $i++) {
-                $baseId = $baseIds[$i];
-                $market = $bases[$baseId];
+            $tickers = $response->data;
+            if ($tickers === null)
+                throw new ExchangeNotAvailable ($this->id . ' fetchMarkets() for "' . $quoteId . '" returned => "' . $this->json ($response) . '"');
+            for ($i = 0; $i < count ($tickers); $i++) {
+                $ticker = $tickers[$i];
+                $id = $ticker['symbol'];
+                $baseId = explode ('_', $id)[0];
                 $base = strtoupper ($baseId);
                 $quote = strtoupper ($quoteId);
                 $base = $this->common_currency_code($base);
                 $quote = $this->common_currency_code($quote);
-                $id = $baseId . $quoteId;
                 $symbol = $base . '/' . $quote;
                 $precision = array (
                     'amount' => 8,
@@ -202,7 +199,7 @@ class coinegg extends Exchange {
                             'max' => null,
                         ),
                     ),
-                    'info' => $market,
+                    'info' => $ticker,
                 );
             }
         }
@@ -255,42 +252,6 @@ class coinegg extends Exchange {
             'quote' => $market['quoteId'],
         ), $params));
         return $this->parse_ticker($ticker, $market);
-    }
-
-    public function fetch_tickers ($symbols = null, $params = array ()) {
-        $this->load_markets();
-        $quoteIds = $this->options['quoteIds'];
-        $result = array ();
-        for ($b = 0; $b < count ($quoteIds); $b++) {
-            $quoteId = $quoteIds[$b];
-            $tickers = $this->webGetQuoteAllcoin (array (
-                'quote' => $quoteId,
-            ));
-            $baseIds = is_array ($tickers) ? array_keys ($tickers) : array ();
-            if (strlen (!$baseIds)) {
-                throw new ExchangeError ('fetchTickers failed');
-            }
-            for ($i = 0; $i < count ($baseIds); $i++) {
-                $baseId = $baseIds[$i];
-                $ticker = $tickers[$baseId];
-                $id = $baseId . $quoteId;
-                if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
-                    $market = $this->marketsById[$id];
-                    $symbol = $market['symbol'];
-                    $result[$symbol] = $this->parse_ticker(array (
-                        'high' => $ticker[4],
-                        'low' => $ticker[5],
-                        'buy' => $ticker[2],
-                        'sell' => $ticker[3],
-                        'last' => $ticker[1],
-                        'change' => $ticker[8],
-                        'vol' => $ticker[6],
-                        'quoteVol' => $ticker[7],
-                    ), $market);
-                }
-            }
-        }
-        return $result;
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
@@ -478,8 +439,6 @@ class coinegg extends Exchange {
         $url = $this->urls['api'][$apiType] . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'public' || $api === 'web') {
-            if ($api === 'web')
-                $query['t'] = $this->nonce ();
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {

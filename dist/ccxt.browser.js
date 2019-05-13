@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.511'
+const version = '1.18.524'
 
 Exchange.ccxtVersion = version
 
@@ -5766,7 +5766,9 @@ module.exports = class bibox extends Exchange {
             request['symbol'] = currency['id'];
         }
         if (limit !== undefined) {
-            request['size'] = limit; // default = 100
+            request['size'] = limit;
+        } else {
+            request['size'] = 100;
         }
         const response = await this.privatePostTransfer ({
             'cmd': 'transfer/transferInList',
@@ -5790,7 +5792,9 @@ module.exports = class bibox extends Exchange {
             request['symbol'] = currency['id'];
         }
         if (limit !== undefined) {
-            request['size'] = limit; // default = 100
+            request['size'] = limit;
+        } else {
+            request['size'] = 100;
         }
         const response = await this.privatePostTransfer ({
             'cmd': 'transfer/transferOutList',
@@ -9934,21 +9938,26 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let markets = await this.publicGetSymbolsDetails ();
-        let result = [];
-        for (let p = 0; p < markets.length; p++) {
-            let market = markets[p];
-            let id = market['pair'].toUpperCase ();
-            let baseId = id.slice (0, 3);
-            let quoteId = id.slice (3, 6);
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
-            let precision = {
+        const ids = await this.publicGetSymbols ();
+        const details = await this.publicGetSymbolsDetails ();
+        const result = [];
+        for (let i = 0; i < details.length; i++) {
+            const market = details[i];
+            let id = this.safeString (market, 'pair');
+            if (!this.inArray (id, ids)) {
+                continue;
+            }
+            id = id.toUpperCase ();
+            const baseId = id.slice (0, 3);
+            const quoteId = id.slice (3, 6);
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const precision = {
                 'price': market['price_precision'],
                 'amount': undefined,
             };
-            let limits = {
+            const limits = {
                 'amount': {
                     'min': this.safeFloat (market, 'minimum_order_size'),
                     'max': this.safeFloat (market, 'maximum_order_size'),
@@ -10196,7 +10205,7 @@ module.exports = class bitfinex extends Exchange {
             order['price'] = this.priceToPrecision (symbol, price);
         }
         if (amount !== undefined) {
-            order['amount'] = this.amountToPrecision (symbol, amount);
+            order['amount'] = this.numberToString (amount);
         }
         if (symbol !== undefined) {
             order['symbol'] = this.marketId (symbol);
@@ -11697,6 +11706,7 @@ module.exports = class bitforex extends Exchange {
                         'api/v1/fund/mainAccount',
                         'api/v1/fund/allAccount',
                         'api/v1/trade/placeOrder',
+                        'api/v1/trade/placeMultiOrder',
                         'api/v1/trade/cancelOrder',
                         'api/v1/trade/orderInfo',
                         'api/v1/trade/orderInfos',
@@ -26699,12 +26709,12 @@ module.exports = class coinegg extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': 'emulated',
                 'fetchMyTrades': true,
-                'fetchTickers': true,
+                'fetchTickers': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg',
                 'api': {
-                    'web': 'https://www.coinegg.com/coin',
+                    'web': 'https://trade.coinegg.com/web',
                     'rest': 'https://api.coinegg.com/api/v1',
                 },
                 'www': 'https://www.coinegg.com',
@@ -26715,7 +26725,7 @@ module.exports = class coinegg extends Exchange {
             'api': {
                 'web': {
                     'get': [
-                        '{quote}/allcoin',
+                        'symbol/ticker?right_coin={quote}',
                         '{quote}/trends',
                         '{quote}/{base}/order',
                         '{quote}/{base}/trades',
@@ -26837,23 +26847,20 @@ module.exports = class coinegg extends Exchange {
         let result = [];
         for (let b = 0; b < quoteIds.length; b++) {
             let quoteId = quoteIds[b];
-            let bases = await this.webGetQuoteAllcoin ({
+            let response = await this.webGetSymbolTickerRightCoinQuote ({
                 'quote': quoteId,
             });
-            if (bases === undefined)
-                throw new ExchangeNotAvailable (this.id + ' fetchMarkets() for "' + quoteId + '" returned: "' + this.json (bases) + '"');
-            let baseIds = Object.keys (bases);
-            let numBaseIds = baseIds.length;
-            if (numBaseIds < 1)
-                throw new ExchangeNotAvailable (this.id + ' fetchMarkets() for "' + quoteId + '" returned: "' + this.json (bases) + '"');
-            for (let i = 0; i < baseIds.length; i++) {
-                let baseId = baseIds[i];
-                let market = bases[baseId];
+            let tickers = response.data;
+            if (tickers === undefined)
+                throw new ExchangeNotAvailable (this.id + ' fetchMarkets() for "' + quoteId + '" returned: "' + this.json (response) + '"');
+            for (let i = 0; i < tickers.length; i++) {
+                let ticker = tickers[i];
+                let id = ticker['symbol'];
+                let baseId = id.split ('_')[0];
                 let base = baseId.toUpperCase ();
                 let quote = quoteId.toUpperCase ();
                 base = this.commonCurrencyCode (base);
                 quote = this.commonCurrencyCode (quote);
-                let id = baseId + quoteId;
                 let symbol = base + '/' + quote;
                 let precision = {
                     'amount': 8,
@@ -26882,7 +26889,7 @@ module.exports = class coinegg extends Exchange {
                             'max': undefined,
                         },
                     },
-                    'info': market,
+                    'info': ticker,
                 });
             }
         }
@@ -26935,42 +26942,6 @@ module.exports = class coinegg extends Exchange {
             'quote': market['quoteId'],
         }, params));
         return this.parseTicker (ticker, market);
-    }
-
-    async fetchTickers (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        let quoteIds = this.options['quoteIds'];
-        let result = {};
-        for (let b = 0; b < quoteIds.length; b++) {
-            let quoteId = quoteIds[b];
-            let tickers = await this.webGetQuoteAllcoin ({
-                'quote': quoteId,
-            });
-            let baseIds = Object.keys (tickers);
-            if (!baseIds.length) {
-                throw new ExchangeError ('fetchTickers failed');
-            }
-            for (let i = 0; i < baseIds.length; i++) {
-                let baseId = baseIds[i];
-                let ticker = tickers[baseId];
-                let id = baseId + quoteId;
-                if (id in this.markets_by_id) {
-                    let market = this.marketsById[id];
-                    let symbol = market['symbol'];
-                    result[symbol] = this.parseTicker ({
-                        'high': ticker[4],
-                        'low': ticker[5],
-                        'buy': ticker[2],
-                        'sell': ticker[3],
-                        'last': ticker[1],
-                        'change': ticker[8],
-                        'vol': ticker[6],
-                        'quoteVol': ticker[7],
-                    }, market);
-                }
-            }
-        }
-        return result;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -27158,8 +27129,6 @@ module.exports = class coinegg extends Exchange {
         let url = this.urls['api'][apiType] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public' || api === 'web') {
-            if (api === 'web')
-                query['t'] = this.nonce ();
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -30810,6 +30779,9 @@ module.exports = class coinone extends Exchange {
                 'ZIL/KRW': { 'id': 'zil', 'symbol': 'ZIL/KRW', 'base': 'ZIL', 'quote': 'KRW', 'baseId': 'zil', 'quoteId': 'krw' },
                 'KNC/KRW': { 'id': 'knc', 'symbol': 'KNC/KRW', 'base': 'KNC', 'quote': 'KRW', 'baseId': 'knc', 'quoteId': 'krw' },
                 'ZRX/KRW': { 'id': 'zrx', 'symbol': 'ZRX/KRW', 'base': 'ZRX', 'quote': 'KRW', 'baseId': 'zrx', 'quoteId': 'krw' },
+                'LUNA/KRW': { 'id': 'luna', 'symbol': 'LUNA/KRW', 'base': 'LUNA', 'quote': 'KRW', 'baseId': 'luna', 'quoteId': 'krw' },
+                'ATOM/KRW': { 'id': 'atom', 'symbol': 'ATOM/KRW', 'base': 'ATOM', 'quote': 'KRW', 'baseId': 'atom', 'quoteId': 'krw' },
+                'VNT/KRW': { 'id': 'vnt', 'symbol': 'vnt/KRW', 'base': 'VNT', 'quote': 'KRW', 'baseId': 'vnt', 'quoteId': 'krw' },
             },
             'fees': {
                 'trading': {
@@ -40991,7 +40963,7 @@ module.exports = class gateio extends Exchange {
         if (since !== undefined) {
             request['start'] = since;
         }
-        const response = this.privatePostDepositswithdrawals (this.extend (request, params));
+        const response = this.privatePostDepositsWithdrawals (this.extend (request, params));
         let transactions = undefined;
         if (type === undefined) {
             const deposits = this.safeValue (response, 'deposits', []);
@@ -44624,24 +44596,18 @@ module.exports = class hitbtc2 extends hitbtc {
         if (trades !== undefined) {
             trades = this.parseTrades (trades, market);
             let feeCost = undefined;
-            let sumOfPrices = undefined;
             let numTrades = trades.length;
+            let tradesCost = 0;
             for (let i = 0; i < numTrades; i++) {
                 if (feeCost === undefined) {
                     feeCost = 0;
                 }
-                if (sumOfPrices === undefined) {
-                    sumOfPrices = 0;
-                }
-                if (cost === undefined) {
-                    cost = 0;
-                }
-                cost += trades[i]['cost'];
+                tradesCost += trades[i]['cost'];
                 feeCost += trades[i]['fee']['cost'];
-                sumOfPrices += trades[i]['price'];
             }
-            if ((sumOfPrices !== undefined) && (numTrades > 0)) {
-                average = sumOfPrices / numTrades;
+            cost = tradesCost;
+            if ((filled !== undefined) && (filled > 0)) {
+                average = cost / filled;
                 if (type === 'market') {
                     if (price === undefined) {
                         price = average;
@@ -45169,7 +45135,7 @@ module.exports = class huobipro extends Exchange {
                 'limits': {
                     'amount': {
                         'min': Math.pow (10, -precision['amount']),
-                        'max': Math.pow (10, precision['amount']),
+                        'max': undefined,
                     },
                     'price': {
                         'min': Math.pow (10, -precision['price']),
@@ -49832,7 +49798,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchOHLCV': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/57369448-3cc3aa80-7196-11e9-883e-5ebeb35e4f57.jpg',
                 'referral': 'https://www.kucoin.com/ucenter/signup?rcode=E5wkqe',
                 'api': {
                     'public': 'https://openapi-v2.kucoin.com',

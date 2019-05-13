@@ -681,7 +681,7 @@ class gateio extends Exchange {
         if ($since !== null) {
             $request['start'] = $since;
         }
-        $response = $this->privatePostDepositswithdrawals (array_merge ($request, $params));
+        $response = $this->privatePostDepositsWithdrawals (array_merge ($request, $params));
         $transactions = null;
         if ($type === null) {
             $deposits = $this->safe_value($response, 'deposits', array ());
