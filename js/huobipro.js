@@ -456,12 +456,12 @@ module.exports = class huobipro extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
-            'symbol': market['id'],
-        };
-        let response = await this.privateGetOrderMatchresults (this.extend (request, params));
-        let trades = this.parseTrades (response['data'], market, since, limit);
+        let response = await this.privateGetOrderMatchresults (params);
+        let trades = this.parseTrades (response['data'], undefined, since, limit);
+        if (symbol !== undefined) {
+            let market = this.market (symbol);
+            trades = this.filterBySymbol (trades, market['symbol']);
+        }
         return trades;
     }
 
