@@ -270,6 +270,7 @@ class bitfinex (Exchange):
                 'ABS': 'ABYSS',
                 'AIO': 'AION',
                 'ATM': 'ATMI',
+                'ATO': 'ATOM',  # https://github.com/ccxt/ccxt/issues/5118
                 'BAB': 'BCH',
                 'CTX': 'CTXC',
                 'DAD': 'DADI',
