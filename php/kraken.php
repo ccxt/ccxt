@@ -199,6 +199,7 @@ class kraken extends Exchange {
             ),
             'commonCurrencies' => array (
                 'XDG' => 'DOGE',
+                'FEE' => 'KFEE',
             ),
             'options' => array (
                 'cacheDepositMethodsOnFetchDepositAddress' => true, // will issue up to two calls in fetchDepositAddress
