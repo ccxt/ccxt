@@ -1095,27 +1095,13 @@ module.exports = class huobipro extends Exchange {
         //     }
         //
         let timestamp = this.safeInteger (transaction, 'created-at');
-        if (timestamp !== undefined) {
-            timestamp = parseInt (timestamp);
-        }
         let updated = this.safeInteger (transaction, 'updated-at');
-        if (updated !== undefined) {
-            updated = parseInt (updated);
-        }
         let code = this.safeCurrencyCode (transaction, 'currency');
-        if (currency === undefined) {
-            currency = this.safeValue (this.currencies_by_id, code);
-        }
-        if (currency !== undefined) {
-            code = currency['code'];
-        } else {
-            code = this.commonCurrencyCode (code);
-        }
         let type = this.safeString (transaction, 'type');
         if (type === 'withdraw') {
             type = 'withdrawal';
         }
-        let status = this.parseTransactionStatusByType (this.safeString (transaction, 'state'), type);
+        let status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         let tag = this.safeString (transaction, 'address-tag');
         let feeCost = this.safeFloat (transaction, 'fee');
         if (feeCost !== undefined) {
@@ -1142,31 +1128,27 @@ module.exports = class huobipro extends Exchange {
         };
     }
 
-    parseTransactionStatusByType (status, type = undefined) {
-        if (type === undefined) {
-            return status;
-        }
+    parseTransactionStatus (status) {
         let statuses = {
-            'deposit': {
-                'unknown': 'pending',
-                'confirming': 'pending',
-                'confirmed': 'ok',
-                'safe': 'ok',
-            },
-            'withdrawal': {
-                'submitted': 'pending',
-                'canceled': 'canceled',
-                'reexamine': 'pending',
-                'reject': 'failed',
-                'pass': 'pending',
-                'wallet-reject': 'failed',
-                'confirmed': 'ok',
-                'confirm-error': 'failed',
-                'repealed': 'failed',
-                'wallet-transfer': 'pending',
-                'pre-transfer': 'pending',
-            },
+            // deposit statuses
+            'unknown': 'failed',
+            'confirming': 'pending',
+            'confirmed': 'ok',
+            'safe': 'ok',
+            'orphan': 'failed',
+            // withdrawal statuses
+            'submitted': 'pending',
+            'canceled': 'canceled',
+            'reexamine': 'pending',
+            'reject': 'failed',
+            'pass': 'pending',
+            'wallet-reject': 'failed',
+            // 'confirmed': 'ok', // present in deposit statuses
+            'confirm-error': 'failed',
+            'repealed': 'failed',
+            'wallet-transfer': 'pending',
+            'pre-transfer': 'pending',
         };
-        return (status in statuses[type]) ? statuses[type][status] : status;
+        return this.safeString (statuses, status, status);
     }
 };
