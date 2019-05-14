@@ -1056,13 +1056,13 @@ module.exports = class okex3 extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let request = {
+            'instrument_id': market['id'],
             // 'client_oid': 'abcdef1234567890', // [a-z0-9]{1,32}
             // 'order_type': '0', // 0: Normal limit order (Unfilled and 0 represent normal limit order) 1: Post only 2: Fill Or Kill 3: Immediatel Or Cancel
         };
         let method = undefined;
         if (market['future'] || market['swap']) {
             request = this.extend (request, {
-                'instrument_id': market['id'],
                 'type': type, // 1:open long 2:open short 3:close long 4:close short for futures
                 'side': this.amountToPrecision (symbol, amount),
                 'price': this.priceToPrecision (symbol, price),
@@ -1085,34 +1085,22 @@ module.exports = class okex3 extends Exchange {
             } else if (type === 'market') {
                 // for market buy it requires the amount of quote currency to spend
                 if (side === 'buy') {
-                    if (this.options['createMarketBuyOrderRequiresPrice']) {
-                        if (price === undefined) {
+                    let notional = this.safeFloat (params, 'notional');
+                    const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                    if (createMarketBuyOrderRequiresPrice) {
+                        if (price !== undefined) {
+                            if (notional === undefined) {
+                                notional = amount * price;
+                            }
+                        } else if (notional === undefined) {
                             throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'notional' extra parameter (the exchange-specific behaviour)");
-                        } else {
-                            amount = amount * price;
                         }
                     }
+                    request['notional'] = this.costToPrecision (symbol, notional);
                 } else {
                     request['size'] = this.amountToPrecision (symbol, amount);
                 }
             }
-            //         if (this.options['marketBuyPrice']) {
-            //             if (price === undefined) {
-            //                 // eslint-disable-next-line quotes
-            //                 throw new ExchangeError (this.id + " market buy orders require a price argument (the amount you want to spend or the cost of the order) when this.options['marketBuyPrice'] is true.");
-            //             }
-            //             request['price'] = price;
-            //         } else {
-            //             request['price'] = this.safeFloat (params, 'cost');
-            //             if (!request['price']) {
-            //                 // eslint-disable-next-line quotes
-            //                 throw new ExchangeError (this.id + " market buy orders require an additional cost parameter, cost = price * amount. If you want to pass the cost of the market order (the amount you want to spend) in the price argument (the default " + this.id + " behaviour), set this.options['marketBuyPrice'] = true. It will effectively suppress this warning exception as well.");
-            //             }
-            //         }
-            //     } else {
-            //         request['size'] = amount;
-            //     }
-            // }
             method = (marginTrading === '2') ? 'marginPostOrders' : 'spotPostOrders';
         }
         const response = await this[method] (this.extend (request, params));
@@ -1510,7 +1498,7 @@ module.exports = class okex3 extends Exchange {
         }
         const exact = this.exceptions['exact'];
         const message = this.safeString (response, 'message');
-        const errorCode = this.safeString (response, 'code');
+        const errorCode = this.safeString2 (response, 'code', 'error_code');
         if (errorCode in exact) {
             throw new exact[errorCode] (feedback);
         }
