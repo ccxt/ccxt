@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, BadRequest, DDoSProtection, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -117,6 +117,7 @@ module.exports = class okex3 extends Exchange {
                     ],
                     'delete': [
                         'cancel_orders',
+                        'cancel_orders/{order_id}',
                         'cancel_batch_orders',
                     ],
                 },
@@ -221,48 +222,192 @@ module.exports = class okex3 extends Exchange {
                 'password': true,
             },
             'exceptions': {
-                // Common Error Codes
+                // ------------------------------------------------------------
+                // http error codes
                 // 400 Bad Request — Invalid request format
                 // 401 Unauthorized — Invalid API Key
                 // 403 Forbidden — You do not have access to the requested resource
                 // 404 Not Found
                 // 500 Internal Server Error — We had a problem with our server
+                // ------------------------------------------------------------
                 'exact': {
-                    // Business Error Messages	Business Error Codes	http Status Code	Scenarios
-                    // withdrawal suspended	34001	400	withdrawal endpoint: account suspended
-                    // please add a withdrawal address	34002	400	withdrawal endpoint: address required
-                    // sorry, this token cannot be withdrawn to xx at the moment	34003	400	withdrawal endpoint: incorrect address
-                    // withdrawal fee is smaller than minimum limit	34004	400	withdrawal endpoint: incorrect fee
-                    // withdrawal fee exceeds the maximum limit	34005	400	withdrawal endpoint: incorrect withdrawal fee
-                    // withdrawal amount is lower than the minimum limit	34006	400	minimum withdrawal amount%} endpoint: incorrect amount
-                    // withdrawal amount exceeds the maximum limit	34007	400	maximum withdrawal amount endpoint: incorrect amount
-                    // insufficient balance	34008	400	transfer & withdrawal endpoint: insufficient balance
-                    // your withdrawal amount exceeds the daily limit	34009	400	withdrawal endpoint: withdrawal limit exceeded
-                    // transfer amount must be larger than 0	34010	400	transfer endpoint: incorrect amount
-                    // conditions not met	34011	400	transfer & withdrawal endpoint: conditions not met, e.g. KYC level
-                    // the minimum withdrawal amount for NEO is 1, and the amount must be an integer	34012	400	withdrawal endpoint: special requirements
-                    // please transfer	34013	400	transfer endpoint: Token margin trading instrument ID required
-                    // transfer limited	34014	400	transfer endpoint：Transfer limited
-                    // subaccount does not exist	34015	400	transfer endpoint: subaccount does not exist
-                    // transfer suspended	34016	400	transfer endpoint: either end of the account does not authorize the transfer
-                    // account suspended	34017	400	transfer & withdrawal endpoint: either end of the account does not authorize the transfer
-                    // incorrect trades password	34018	400	incorrect trades password
-                    // please bind your email before withdrawal	34019	400	withdrawal endpoint : email required
-                    // please bind your funds password before withdrawal	34020	400	withdrawal endpoint : funds password required
-                    // Not verified address	34021	400	withdrawal endpoint
-                    // Withdrawals are not available for sub accounts	34022	400	withdrawal endpoint
-                    // token does not exist	30031	400	token requested does not exist
-                    // Please enable futures trading before transferring your funds	34023	400	Please enable futures trading before transferring your funds
+                    // '0': ExchangeError, // {"code": 0,"message":"successful"}
+                    '1': ExchangeError, // {"code": 1,"message":"System error"}
+                    // --------------------------------------------------------
+                    // undocumented
                     'failure to get a peer from the ring-balancer': ExchangeError, // {"message":"failure to get a peer from the ring-balancer"}
-                    'The currency pair does not exist': BadRequest, // {"code":30032,"message":"The currency pair does not exist"}
-                    'OK-ACCESS-KEY header is required': AuthenticationError, // {"code":30001,"message":"OK-ACCESS-KEY header is required"}
-                    'Invalid Sign': AuthenticationError, // {"code":30013,"message":"Invalid Sign"}
-                    'User does not exist': AuthenticationError, // {"code":35005,"message":"User does not exist"}
-                    'OK-ACCESS-SIGN header is required': AuthenticationError, // {"code":30002,"message":"OK-ACCESS-SIGN header is required"}
-                    'OK-ACCESS-TIMESTAMP header is required': AuthenticationError, // {"code":30003,"message":"OK-ACCESS-TIMESTAMP header is required"}
-                    'OK-ACCESS-PASSPHRASE header is required': AuthenticationError, // {"code":30004,"message":"OK-ACCESS-PASSPHRASE header is required"}
-                    'Invalid OK-ACCESS-TIMESTAMP': AuthenticationError, // {"code":30005,"message":"Invalid OK-ACCESS-TIMESTAMP"}
-                    'Currency does not exist': BadRequest, // {"code":30031,"message":"Currency does not exist"}
+                    // --------------------------------------------------------
+                    // common
+                    '30001': AuthenticationError, // {"code": 30001,"message":"request header "OK_ACCESS_KEY" cannot be blank"}
+                    '30002': AuthenticationError, // {"code": 30002,"message":"request header "OK_ACCESS_SIGN" cannot be blank"}
+                    '30003': AuthenticationError, // {"code": 30003,"message":"request header "OK_ACCESS_TIMESTAMP" cannot be blank"}
+                    '30004': AuthenticationError, // {"code": 30004,"message":"request header "OK_ACCESS_PASSPHRASE" cannot be blank"}
+                    '30005': InvalidNonce, // {"code": 30005,"message":"invalid OK_ACCESS_TIMESTAMP"}
+                    '30006': AuthenticationError, // {"code": 30006,"message":"invalid OK_ACCESS_KEY"}
+                    '30007': BadRequest, // {"code": 30007,"message":"invalid Content_Type, please use "application/json" format"}
+                    '30008': RequestTimeout, // {"code": 30008,"message":"timestamp request expired"}
+                    '30009': ExchangeError, // {"code": 30009,"message":"system error"}
+                    '30010': AuthenticationError, // {"code": 30010,"message":"API validation failed"}
+                    '30011': PermissionDenied, // {"code": 30011,"message":"invalid IP"}
+                    '30012': AuthenticationError, // {"code": 30012,"message":"invalid authorization"}
+                    '30013': AuthenticationError, // {"code": 30013,"message":"invalid sign"}
+                    '30014': DDoSProtection, // {"code": 30014,"message":"request too frequent"}
+                    '30015': AuthenticationError, // {"code": 30015,"message":"request header "OK_ACCESS_PASSPHRASE" incorrect"}
+                    '30016': ExchangeError, // {"code": 30015,"message":"you are using v1 apiKey, please use v1 endpoint. If you would like to use v3 endpoint, please subscribe to v3 apiKey"}
+                    '30017': ExchangeError, // {"code": 30017,"message":"apikey's broker id does not match"}
+                    '30018': ExchangeError, // {"code": 30018,"message":"apikey's domain does not match"}
+                    '30019': ExchangeNotAvailable, // {"code": 30019,"message":"Api is offline or unavailable"}
+                    '30020': BadRequest, // {"code": 30020,"message":"body cannot be blank"}
+                    '30021': BadRequest, // {"code": 30021,"message":"Json data format error"}, {"code": 30021,"message":"json data format error"}
+                    '30022': PermissionDenied, // {"code": 30022,"message":"Api has been frozen"}
+                    '30023': BadRequest, // {"code": 30023,"message":"{0} parameter cannot be blank; required parameter cannot be blank"}
+                    '30024': BadRequest, // {"code": 30024,"message":"{0} parameter value error"}
+                    '30025': BadRequest, // {"code": 30025,"message":"{0} parameter category error"}
+                    '30026': DDoSProtection, // {"code": 30026,"message":"requested too frequent; endpoint limit exceeded"}
+                    '30027': AuthenticationError, // {"code": 30027,"message":"login failure"}
+                    '30028': PermissionDenied, // {"code": 30028,"message":"unauthorized execution"}
+                    '30029': AccountSuspended, // {"code": 30029,"message":"account suspended"}
+                    '30030': ExchangeError, // {"code": 30030,"message":"endpoint request failed. Please try again"}
+                    '30031': BadRequest, // {"code": 30031,"message":"token does not exist"}
+                    '30032': ExchangeError, // {"code": 30032,"message":"pair does not exist"}
+                    '30033': BadRequest, // {"code": 30033,"message":"exchange domain does not exist"}
+                    '30034': ExchangeError, // {"code": 30034,"message":"exchange ID does not exist"}
+                    '30035': ExchangeError, // {"code": 30035,"message":"trading is not supported in this website"}
+                    '30036': ExchangeError, // {"code": 30036,"message":"no relevant data"}
+                    '30038': AuthenticationError, // {"code": 30038,"message":"user does not exist"}
+                    '30037': ExchangeNotAvailable, // {"code": 30037,"message":"endpoint is offline or unavailable"}
+                    // --------------------------------------------------------
+                    // futures
+                    '32001': AccountSuspended, // {"code": 32001,"message":"futures account suspended"}
+                    '32002': PermissionDenied, // {"code": 32002,"message":"futures account does not exist"}
+                    '32003': CancelPending, // {"code": 32003,"message":"canceling, please wait"}
+                    '32004': ExchangeError, // {"code": 32004,"message":"you have no unfilled orders"}
+                    '32005': InvalidOrder, // {"code": 32005,"message":"max order quantity"}
+                    '32006': InvalidOrder, // {"code": 32006,"message":"the order price or trigger price exceeds USD 1 million"}
+                    '32007': InvalidOrder, // {"code": 32007,"message":"leverage level must be the same for orders on the same side of the contract"}
+                    '32008': InvalidOrder, // {"code": 32008,"message":"Max. positions to open (cross margin)"}
+                    '32009': InvalidOrder, // {"code": 32009,"message":"Max. positions to open (fixed margin)"}
+                    '32010': ExchangeError, // {"code": 32010,"message":"leverage cannot be changed with open positions"}
+                    '32011': ExchangeError, // {"code": 32011,"message":"futures status error"}
+                    '32012': ExchangeError, // {"code": 32012,"message":"futures order update error"}
+                    '32013': ExchangeError, // {"code": 32013,"message":"token type is blank"}
+                    '32014': ExchangeError, // {"code": 32014,"message":"your number of contracts closing is larger than the number of contracts available"}
+                    '32015': ExchangeError, // {"code": 32015,"message":"margin ratio is lower than 100% before opening positions"}
+                    '32016': ExchangeError, // {"code": 32016,"message":"margin ratio is lower than 100% after opening position"}
+                    '32017': ExchangeError, // {"code": 32017,"message":"no BBO"}
+                    '32018': ExchangeError, // {"code": 32018,"message":"the order quantity is less than 1, please try again"}
+                    '32019': ExchangeError, // {"code": 32019,"message":"the order price deviates from the price of the previous minute by more than 3%"}
+                    '32020': ExchangeError, // {"code": 32020,"message":"the price is not in the range of the price limit"}
+                    '32021': ExchangeError, // {"code": 32021,"message":"leverage error"}
+                    '32022': ExchangeError, // {"code": 32022,"message":"this function is not supported in your country or region according to the regulations"}
+                    '32023': ExchangeError, // {"code": 32023,"message":"this account has outstanding loan"}
+                    '32024': ExchangeError, // {"code": 32024,"message":"order cannot be placed during delivery"}
+                    '32025': ExchangeError, // {"code": 32025,"message":"order cannot be placed during settlement"}
+                    '32026': ExchangeError, // {"code": 32026,"message":"your account is restricted from opening positions"}
+                    '32029': ExchangeError, // {"code": 32029,"message":"order info does not exist"}
+                    '32028': ExchangeError, // {"code": 32028,"message":"account is suspended and liquidated"}
+                    '32027': ExchangeError, // {"code": 32027,"message":"cancelled over 20 orders"}
+                    '32044': ExchangeError, // {"code": 32044,"message":"The margin ratio after submitting this order is lower than the minimum requirement ({0}) for your tier."}
+                    // --------------------------------------------------------
+                    // token and margin trading
+                    '33001': PermissionDenied, // {"code": 33001,"message":"margin account for this pair is not enabled yet"}
+                    '33002': AccountSuspended, // {"code": 33002,"message":"margin account for this pair is suspended"}
+                    '33003': InsufficientFunds, // {"code": 33003,"message":"no loan balance"}
+                    '33004': ExchangeError, // {"code": 33004,"message":"loan amount cannot be smaller than the minimum limit"}
+                    '33005': ExchangeError, // {"code": 33005,"message":"repayment amount must exceed 0"}
+                    '33006': ExchangeError, // {"code": 33006,"message":"loan order not found"}
+                    '33007': ExchangeError, // {"code": 33007,"message":"status not found"}
+                    '33008': ExchangeError, // {"code": 33008,"message":"loan amount cannot exceed the maximum limit"}
+                    '33009': ExchangeError, // {"code": 33009,"message":"user ID is blank"}
+                    '33010': ExchangeError, // {"code": 33010,"message":"you cannot cancel an order during session 2 of call auction"}
+                    '33011': ExchangeError, // {"code": 33011,"message":"no new market data"}
+                    '33012': ExchangeError, // {"code": 33012,"message":"order cancellation failed"}
+                    '33013': InvalidOrder, // {"code": 33013,"message":"order placement failed"}
+                    '33014': OrderNotFound, // {"code": 33014,"message":"order does not exist"}
+                    '33015': InvalidOrder, // {"code": 33015,"message":"exceeded maximum limit"}
+                    '33016': ExchangeError, // {"code": 33016,"message":"margin trading is not open for this token"}
+                    '33017': InsufficientFunds, // {"code": 33017,"message":"insufficient balance"}
+                    '33018': ExchangeError, // {"code": 33018,"message":"this parameter must be smaller than 1"}
+                    '33020': ExchangeError, // {"code": 33020,"message":"request not supported"}
+                    '33021': BadRequest, // {"code": 33021,"message":"token and the pair do not match"}
+                    '33022': InvalidOrder, // {"code": 33022,"message":"pair and the order do not match"}
+                    '33023': ExchangeError, // {"code": 33023,"message":"you can only place market orders during call auction"}
+                    '33024': InvalidOrder, // {"code": 33024,"message":"trading amount too small"}
+                    '33025': InvalidOrder, // {"code": 33025,"message":"base token amount is blank"}
+                    '33026': ExchangeError, // {"code": 33026,"message":"transaction completed"}
+                    '33027': InvalidOrder, // {"code": 33027,"message":"cancelled order or order cancelling"}
+                    '33028': InvalidOrder, // {"code": 33028,"message":"the decimal places of the trading price exceeded the limit"}
+                    '33029': InvalidOrder, // {"code": 33029,"message":"the decimal places of the trading size exceeded the limit"}
+                    '33034': ExchangeError, // {"code": 33034,"message":"You can only place limit order after Call Auction has started"}
+                    '33059': BadRequest, // {"code": 33059,"message":"client_oid or order_id is required"}
+                    '33060': BadRequest, // {"code": 33060,"message":"Only fill in either parameter client_oid or order_id"}
+                    // --------------------------------------------------------
+                    // account
+                    '34001': PermissionDenied, // {"code": 34001,"message":"withdrawal suspended"}
+                    '34002': InvalidAddress, // {"code": 34002,"message":"please add a withdrawal address"}
+                    '34003': ExchangeError, // {"code": 34003,"message":"sorry, this token cannot be withdrawn to xx at the moment"}
+                    '34004': ExchangeError, // {"code": 34004,"message":"withdrawal fee is smaller than minimum limit"}
+                    '34005': ExchangeError, // {"code": 34005,"message":"withdrawal fee exceeds the maximum limit"}
+                    '34006': ExchangeError, // {"code": 34006,"message":"withdrawal amount is lower than the minimum limit"}
+                    '34007': ExchangeError, // {"code": 34007,"message":"withdrawal amount exceeds the maximum limit"}
+                    '34008': InsufficientFunds, // {"code": 34008,"message":"insufficient balance"}
+                    '34009': ExchangeError, // {"code": 34009,"message":"your withdrawal amount exceeds the daily limit"}
+                    '34010': ExchangeError, // {"code": 34010,"message":"transfer amount must be larger than 0"}
+                    '34011': ExchangeError, // {"code": 34011,"message":"conditions not met"}
+                    '34012': ExchangeError, // {"code": 34012,"message":"the minimum withdrawal amount for NEO is 1, and the amount must be an integer"}
+                    '34013': ExchangeError, // {"code": 34013,"message":"please transfer"}
+                    '34014': ExchangeError, // {"code": 34014,"message":"transfer limited"}
+                    '34015': ExchangeError, // {"code": 34015,"message":"subaccount does not exist"}
+                    '34016': PermissionDenied, // {"code": 34016,"message":"transfer suspended"}
+                    '34017': AccountSuspended, // {"code": 34017,"message":"account suspended"}
+                    '34018': AuthenticationError, // {"code": 34018,"message":"incorrect trades password"}
+                    '34019': PermissionDenied, // {"code": 34019,"message":"please bind your email before withdrawal"}
+                    '34020': PermissionDenied, // {"code": 34020,"message":"please bind your funds password before withdrawal"}
+                    '34021': InvalidAddress, // {"code": 34021,"message":"Not verified address"}
+                    '34022': ExchangeError, // {"code": 34022,"message":"Withdrawals are not available for sub accounts"}
+                    '34023': PermissionDenied, // {"code": 34023,"message":"Please enable futures trading before transferring your funds"}
+                    // --------------------------------------------------------
+                    // swap
+                    '35001': ExchangeError, // {"code": 35001,"message":"Contract does not exist"}
+                    '35002': ExchangeError, // {"code": 35002,"message":"Contract settling"}
+                    '35003': ExchangeError, // {"code": 35003,"message":"Contract paused"}
+                    '35004': ExchangeError, // {"code": 35004,"message":"Contract pending settlement"}
+                    '35005': AuthenticationError, // {"code": 35005,"message":"User does not exist"}
+                    '35008': InvalidOrder, // {"code": 35008,"message":"Risk ratio too high"}
+                    '35010': InvalidOrder, // {"code": 35010,"message":"Position closing too large"}
+                    '35012': InvalidOrder, // {"code": 35012,"message":"Incorrect order size"}
+                    '35014': InvalidOrder, // {"code": 35014,"message":"Order price is not within limit"}
+                    '35015': InvalidOrder, // {"code": 35015,"message":"Invalid leverage level"}
+                    '35017': ExchangeError, // {"code": 35017,"message":"Open orders exist"}
+                    '35019': InvalidOrder, // {"code": 35019,"message":"Order size too large"}
+                    '35020': InvalidOrder, // {"code": 35020,"message":"Order price too high"}
+                    '35021': InvalidOrder, // {"code": 35021,"message":"Order size exceeded current tier limit"}
+                    '35022': ExchangeError, // {"code": 35022,"message":"Contract status error"}
+                    '35024': ExchangeError, // {"code": 35024,"message":"Contract not initialized"}
+                    '35025': InsufficientFunds, // {"code": 35025,"message":"No account balance"}
+                    '35026': ExchangeError, // {"code": 35026,"message":"Contract settings not initialized"}
+                    '35029': OrderNotFound, // {"code": 35029,"message":"Order does not exist"}
+                    '35030': InvalidOrder, // {"code": 35030,"message":"Order size too large"}
+                    '35031': InvalidOrder, // {"code": 35031,"message":"Cancel order size too large"}
+                    '35032': ExchangeError, // {"code": 35032,"message":"Invalid user status"}
+                    '35039': ExchangeError, // {"code": 35039,"message":"Open order quantity exceeds limit"}
+                    '35044': ExchangeError, // {"code": 35044,"message":"Invalid order status"}
+                    '35046': InsufficientFunds, // {"code": 35046,"message":"Negative account balance"}
+                    '35047': InsufficientFunds, // {"code": 35047,"message":"Insufficient account balance"}
+                    '35048': ExchangeError, // {"code": 35048,"message":"User contract is frozen and liquidating"}
+                    '35049': InvalidOrder, // {"code": 35049,"message":"Invalid order type"}
+                    '35050': InvalidOrder, // {"code": 35050,"message":"Position settings are blank"}
+                    '35052': InsufficientFunds, // {"code": 35052,"message":"Insufficient cross margin"}
+                    '35053': ExchangeError, // {"code": 35053,"message":"Account risk too high"}
+                    '35055': InsufficientFunds, // {"code": 35055,"message":"Insufficient account balance"}
+                    '35057': ExchangeError, // {"code": 35057,"message":"No last traded price"}
+                    '35058': ExchangeError, // {"code": 35058,"message":"No limit"}
+                    '35059': BadRequest, // {"code": 35059,"message":"client_oid or order_id is required"}
+                    '35060': BadRequest, // {"code": 35060,"message":"Only fill in either parameter client_oid or order_id"}
+                    '35061': BadRequest, // {"code": 35061,"message":"Invalid instrument_id"}
+                    '35062': InvalidOrder, // {"code": 35062,"message":"Invalid match_price"}
+                    '35063': InvalidOrder, // {"code": 35063,"message":"Invalid order_size"}
+                    '35064': InvalidOrder, // {"code": 35064,"message":"Invalid client_oid"}
                 },
                 'broad': {
                 },
@@ -909,53 +1054,82 @@ module.exports = class okex3 extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let method = 'privatePost';
-        let order = {
-            'symbol': market['id'],
-            'type': side,
+        const market = this.market (symbol);
+        let request = {
+            // 'client_oid': 'abcdef1234567890', // [a-z0-9]{1,32}
+            // 'order_type': '0', // 0: Normal limit order (Unfilled and 0 represent normal limit order) 1: Post only 2: Fill Or Kill 3: Immediatel Or Cancel
         };
-        if (market['future']) {
-            method += 'Future';
-            order = this.extend (order, {
-                'contract_type': this.options['defaultContractType'], // this_week, next_week, quarter
-                'match_price': 0, // match best counter party price? 0 or 1, ignores price if 1
-                'lever_rate': 10, // leverage rate value: 10 or 20 (10 by default)
-                'price': price,
-                'amount': amount,
+        let method = undefined;
+        if (market['future'] || market['swap']) {
+            request = this.extend (request, {
+                'instrument_id': market['id'],
+                'type': type, // 1:open long 2:open short 3:close long 4:close short for futures
+                'side': this.amountToPrecision (symbol, amount),
+                'price': this.priceToPrecision (symbol, price),
+                // 'match_price': '0', // Order at best counter party price? (0:no 1:yes). The default is 0. If it is set as 1, the price parameter will be ignored. When posting orders at best bid price, order_type can only be 0 (regular order).
             });
+            if (market['future']) {
+                request['leverage'] = '10'; // or '20'
+            }
+            method = market['type'] + 'PostOrder';
         } else {
+            const marginTrading = this.safeString (params, 'margin_trading', '1');  // 1 = spot, 2 = margin
+            request = this.extend (request, {
+                'side': side,
+                'type': type, // limit/market
+                'margin_trading': marginTrading, // 1 = spot, 2 = margin
+            });
             if (type === 'limit') {
-                order['price'] = price;
-                order['amount'] = amount;
-            } else {
-                order['type'] += '_market';
+                request['price'] = this.priceToPrecision (symbol, price);
+                request['size'] = this.amountToPrecision (symbol, amount);
+            } else if (type === 'market') {
+                // for market buy it requires the amount of quote currency to spend
                 if (side === 'buy') {
-                    if (this.options['marketBuyPrice']) {
+                    if (this.options['createMarketBuyOrderRequiresPrice']) {
                         if (price === undefined) {
-                            // eslint-disable-next-line quotes
-                            throw new ExchangeError (this.id + " market buy orders require a price argument (the amount you want to spend or the cost of the order) when this.options['marketBuyPrice'] is true.");
-                        }
-                        order['price'] = price;
-                    } else {
-                        order['price'] = this.safeFloat (params, 'cost');
-                        if (!order['price']) {
-                            // eslint-disable-next-line quotes
-                            throw new ExchangeError (this.id + " market buy orders require an additional cost parameter, cost = price * amount. If you want to pass the cost of the market order (the amount you want to spend) in the price argument (the default " + this.id + " behaviour), set this.options['marketBuyPrice'] = true. It will effectively suppress this warning exception as well.");
+                            throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'notional' extra parameter (the exchange-specific behaviour)");
+                        } else {
+                            amount = amount * price;
                         }
                     }
                 } else {
-                    order['amount'] = amount;
+                    request['size'] = this.amountToPrecision (symbol, amount);
                 }
             }
+            //         if (this.options['marketBuyPrice']) {
+            //             if (price === undefined) {
+            //                 // eslint-disable-next-line quotes
+            //                 throw new ExchangeError (this.id + " market buy orders require a price argument (the amount you want to spend or the cost of the order) when this.options['marketBuyPrice'] is true.");
+            //             }
+            //             request['price'] = price;
+            //         } else {
+            //             request['price'] = this.safeFloat (params, 'cost');
+            //             if (!request['price']) {
+            //                 // eslint-disable-next-line quotes
+            //                 throw new ExchangeError (this.id + " market buy orders require an additional cost parameter, cost = price * amount. If you want to pass the cost of the market order (the amount you want to spend) in the price argument (the default " + this.id + " behaviour), set this.options['marketBuyPrice'] = true. It will effectively suppress this warning exception as well.");
+            //             }
+            //         }
+            //     } else {
+            //         request['size'] = amount;
+            //     }
+            // }
+            method = marginTrading ? 'marginPostOrders' : 'spotPostOrders';
         }
-        params = this.omit (params, 'cost');
-        method += 'Trade';
-        let response = await this[method] (this.extend (order, params));
-        let timestamp = this.milliseconds ();
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "client_oid":"oktspot79",
+        //         "error_code":"",
+        //         "error_message":"",
+        //         "order_id":"2510789768709120",
+        //         "result":true
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        const id = this.safeString (response, 'order_id');
         return {
             'info': response,
-            'id': response['order_id'].toString (),
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -974,8 +1148,21 @@ module.exports = class okex3 extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined)
+        if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
+
+        // POST /api/spot/v3/cancel_orders/<client_oid>
+
+        // End Certificate Request Sample
+        // 2018-10-12T07:34:30.223ZPOST/api/spot/v3/cancel_orders/a123{"instrument_id":"btc-usdt"}
+
+        // Request Parameters
+        // Parameters	Parameters Types	Required	Description
+        // instrument_id	String	Yes	By providing this parameter, the corresponding order of a designated trading pair will be cancelled. If not providing this parameter, it will be back to error code.
+        // client_oid	String	Yes	the order ID created by yourself, The client_oid type should be comprised of alphabets + numbers or only alphabets within 1 – 32 characters， both uppercase and lowercase letters are supported
+        // order_id	String	Yes	order ID
+
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -1086,21 +1273,18 @@ module.exports = class okex3 extends Exchange {
         if (symbol === undefined)
             throw new ExchangeError (this.id + ' fetchOrder requires a symbol parameter');
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let method = 'privatePost';
-        let request = {
+        const market = this.market (symbol);
+        const isFuturesOrSwap = (market['futures'] || market['swap']);
+        const instrumentId = isFuturesOrSwap ? 'InstrumentId' : '';
+        const method = market['type'] + 'GetOrders' + instrumentId + 'OrderId';
+        const request = {
             'order_id': id,
-            'symbol': market['id'],
-            // 'status': 0, // 0 for unfilled orders, 1 for filled orders
-            // 'current_page': 1, // current page number
-            // 'page_length': 200, // number of orders returned per page, maximum 200
+            'instrument_id': market['id'],
+            // 'client_oid': 'abcdef12345', // optional, [a-z0-9]{1,32}
         };
-        if (market['future']) {
-            method += 'Future';
-            request['contract_type'] = this.options['defaultContractType']; // this_week, next_week, quarter
-        }
-        method += 'OrderInfo';
-        let response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
+        console.log (response);
+        process.exit ();
         let ordersField = this.getOrdersField ();
         let numOrders = response[ordersField].length;
         if (numOrders > 0)
@@ -1127,7 +1311,7 @@ module.exports = class okex3 extends Exchange {
             'state': state,
         };
         let method = market['type'] + 'GetOrders';
-        if (market['type'] === 'swap' || market['type'] === 'futures') {
+        if (market['futures'] || market['swap']) {
             method += 'InstrumentId';
         }
         const response = await this[method] (this.extend (request, params));
