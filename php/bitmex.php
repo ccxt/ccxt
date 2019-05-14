@@ -137,12 +137,12 @@ class bitmex extends Exchange {
                     'Invalid API Key.' => '\\ccxt\\AuthenticationError',
                     'Access Denied' => '\\ccxt\\PermissionDenied',
                     'Duplicate clOrdID' => '\\ccxt\\InvalidOrder',
-                    'Signature not valid' => '\\ccxt\\AuthenticationError',
                     'orderQty is invalid' => '\\ccxt\\InvalidOrder',
                     'Invalid price' => '\\ccxt\\InvalidOrder',
                     'Invalid stopPx for ordType' => '\\ccxt\\InvalidOrder',
                 ),
                 'broad' => array (
+                    'Signature not valid' => '\\ccxt\\AuthenticationError',
                     'overloaded' => '\\ccxt\\ExchangeNotAvailable',
                     'Account has insufficient Available Balance' => '\\ccxt\\InsufficientFunds',
                 ),
