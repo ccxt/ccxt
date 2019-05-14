@@ -22,8 +22,9 @@ module.exports = class okex3 extends Exchange {
                 'fetchOrders': false,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchCurrencies': false, // not implemented yet, see below
                 'withdraw': true,
-                'futures': false,
+                'futures': true,
             },
             'timeframes': {
                 '1m': '60',
@@ -189,6 +190,7 @@ module.exports = class okex3 extends Exchange {
                         'cancel_batch_orders/{instrument_id}',
                     ],
                 },
+                // they have removed this part from public
                 'ett': {
                     'get': [
                         'accounts',
@@ -268,13 +270,13 @@ module.exports = class okex3 extends Exchange {
             'options': {
                 'fetchMarkets': [ 'spot', 'futures', 'swap' ],
                 'allTypes': [ 'spot', 'futures', 'swap' ],
-                'defaultType': [ 'spot', 'futures', 'swap' ],
+                'defaultType': 'spot',
             },
         });
     }
 
     async fetchMarkets (params = {}) {
-        const defaultType = this.safeValue (this.options, 'defaultType');
+        const defaultType = this.safeValue (this.options, 'fetchMarkets');
         const type = this.safeValue (params, 'type', defaultType);
         const types = Array.isArray (type) ? type : [ type ];
         let result = [];
@@ -298,13 +300,10 @@ module.exports = class okex3 extends Exchange {
         // spot markets
         //
         //     [ {   base_currency: "EOS",
-        //          base_increment: "0.000001",
-        //           base_min_size: "0.01",
         //           instrument_id: "EOS-OKB",
         //                min_size: "0.01",
         //              product_id: "EOS-OKB",
         //          quote_currency: "OKB",
-        //         quote_increment: "0.0001",
         //          size_increment: "0.000001",
         //               tick_size: "0.0001"        },
         //
@@ -366,16 +365,30 @@ module.exports = class okex3 extends Exchange {
         const base = this.commonCurrencyCode (baseId);
         const quote = this.commonCurrencyCode (quoteId);
         const symbol = spot ? (base + '/' + quote) : id;
+        let amountPrecision = this.safeString (market, 'size_increment');
+        if (amountPrecision !== undefined) {
+            amountPrecision = this.precisionFromString (amountPrecision);
+        }
+        let pricePrecision = this.safeString (market, 'tick_size');
+        if (pricePrecision !== undefined) {
+            pricePrecision = this.precisionFromString (pricePrecision);
+        }
         const precision = {
-            'amount': market['maxSizeDigit'],
-            'price': market['maxPriceDigit'],
+            'amount': amountPrecision,
+            'price': pricePrecision,
         };
-        const minAmount = market['minTradeSize'];
-        const minPrice = Math.pow (10, -precision['price']);
-        const active = (market['online'] !== 0);
-        const baseNumericId = market['baseCurrency'];
-        const quoteNumericId = market['quoteCurrency'];
-        // let market =
+        const minAmount = this.safeFloat (market, 'base_min_size');
+        let minPrice = this.safeFloat (market, 'tick_size');
+        if (precision['price'] !== undefined) {
+            minPrice = Math.pow (10, -precision['price']);
+        }
+        let minCost = this.safeFloat (market, 'min_size');
+        if (minCost === undefined) {
+            if (minAmount !== undefined && minPrice !== undefined) {
+                minCost = minAmount * minPrice;
+            }
+        }
+        const active = true;
         return this.extend (this.fees['trading'], {
             'id': id,
             'symbol': symbol,
@@ -383,8 +396,6 @@ module.exports = class okex3 extends Exchange {
             'quote': quote,
             'baseId': baseId,
             'quoteId': quoteId,
-            'baseNumericId': baseNumericId,
-            'quoteNumericId': quoteNumericId,
             'info': market,
             'type': marketType,
             'spot': spot,
@@ -402,7 +413,7 @@ module.exports = class okex3 extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': minAmount * minPrice,
+                    'min': minCost,
                     'max': undefined,
                 },
             },
@@ -464,47 +475,54 @@ module.exports = class okex3 extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        if (this.requiredCredentialsMissing ()) {
-            return; // the what ?
+        // has['fetchCurrencies'] is currently set to false
+        // despite that their docs say these endpoints are public:
+        //     https://www.okex.com/api/account/v3/withdrawal/fee
+        //     https://www.okex.com/api/account/v3/currencies
+        // it will still reply with {"code":30001,"message":"OK-ACCESS-KEY header is required"}
+        // if you attempt to access it without authentication
+        if (this.checkRequiredCredentials (false)) {
+            // need to design a way to not require api credentials for currencies
+            return; // what ?
         }
-        let response = await this.accountGetCurrencies (params);
-        let currencies = response['result'];
-        let result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let id = currency['Currency'];
-            // todo: will need to rethink the fees
-            // to add support for multiple withdrawal/deposit methods and
-            // differentiated fees for each particular method
-            let code = this.commonCurrencyCode (id);
-            let precision = 8; // default precision, todo: fix "magic constants"
-            let address = this.safeValue (currency, 'BaseAddress');
+        const response = await this.accountGetCurrencies (params);
+        //
+        //     [
+        //         {
+        //             name: '',
+        //             currency: 'BTC',
+        //             can_withdraw: '1',
+        //             can_deposit: '1',
+        //             min_withdrawal: '0.0100000000000000'
+        //         },
+        //     ]
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const id = this.safeString (currency, 'currency');
+            const code = this.commonCurrencyCode (id);
+            const precision = 8; // default precision, todo: fix "magic constants"
+            const name = this.safeString (currency, 'name');
+            const canDeposit = this.safeInteger (currency, 'can_deposit');
+            const canWithdraw = this.safeInteger (currency, 'can_withdraw');
+            const active = canDeposit && canWithdraw;
             result[code] = {
                 'id': id,
                 'code': code,
-                'address': address,
                 'info': currency,
-                'type': currency['CoinType'],
-                'name': currency['CurrencyLong'],
-                'active': currency['IsActive'],
-                'fee': this.safeFloat (currency, 'TxFee'), // todo: redesign
+                'type': undefined,
+                'name': name,
+                'active': active,
+                'fee': undefined, // todo: redesign
                 'precision': precision,
                 'limits': {
-                    'amount': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+                    'amount': { 'min': undefined, 'max': undefined },
+                    'price': { 'min': undefined, 'max': undefined },
+                    'cost': { 'min': undefined, 'max': undefined },
                     'withdraw': {
-                        'min': currency['TxFee'],
-                        'max': Math.pow (10, precision),
+                        'min': this.safeFloat (currency, 'min_withdrawal'),
+                        'max': undefined,
                     },
                 },
             };
@@ -645,8 +663,9 @@ module.exports = class okex3 extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
+        const defaultType = this.safeValue (this.options, 'defaultType');
+        let type = this.safeValue (params, 'type', defaultType);
+        type = Array.isArray (type) ? type[0] : type;
         return await this.fetchTickersByType (type, symbols, this.omit (params, 'type'));
     }
 
