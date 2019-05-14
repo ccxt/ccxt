@@ -1113,7 +1113,7 @@ module.exports = class okex3 extends Exchange {
             //         request['size'] = amount;
             //     }
             // }
-            method = marginTrading ? 'marginPostOrders' : 'spotPostOrders';
+            method = (marginTrading === '2') ? 'marginPostOrders' : 'spotPostOrders';
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1480,7 +1480,9 @@ module.exports = class okex3 extends Exchange {
                 }
             } else {
                 if (Object.keys (query).length) {
-                    body = this.json (query);
+                    const jsonQuery = this.json (query);
+                    body = jsonQuery;
+                    auth += jsonQuery;
                 }
                 headers['Content-Type'] = 'application/json';
             }
