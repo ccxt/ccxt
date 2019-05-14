@@ -92,6 +92,7 @@ module.exports = class okex3 extends Exchange {
                         'orders',
                         'batch_orders',
                         'cancel_orders/{order_id}',
+                        'cancel_orders/{client_oid}',
                         'cancel_batch_orders',
                     ],
                 },
@@ -114,10 +115,9 @@ module.exports = class okex3 extends Exchange {
                         'accounts/repayment',
                         'orders',
                         'batch_orders',
-                    ],
-                    'delete': [
                         'cancel_orders',
                         'cancel_orders/{order_id}',
+                        'cancel_orders/{client_oid}',
                         'cancel_batch_orders',
                     ],
                 },
@@ -153,6 +153,7 @@ module.exports = class okex3 extends Exchange {
                         'order',
                         'orders',
                         'cancel_order/{instrument_id}/{order_id}',
+                        'cancel_order/{instrument_id}/{client_oid}',
                         'cancel_batch_orders/{instrument_id}',
                     ],
                 },
@@ -188,6 +189,7 @@ module.exports = class okex3 extends Exchange {
                         'order',
                         'orders',
                         'cancel_order/{instrument_id}/{order_id}',
+                        'cancel_order/{instrument_id}/{client_oid}',
                         'cancel_batch_orders/{instrument_id}',
                     ],
                 },
@@ -204,16 +206,14 @@ module.exports = class okex3 extends Exchange {
                     ],
                     'post': [
                         'orders',
-                    ],
-                    'delete': [
                         'orders/{order_id}',
                     ],
                 },
             },
             'fees': {
                 'trading': {
-                    'taker': 0.002,
-                    'maker': 0.002,
+                    'taker': 0.0015, // spot
+                    'maker': 0.0010, // spot
                 },
             },
             'requiredCredentials': {
@@ -1139,32 +1139,51 @@ module.exports = class okex3 extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
-
-        // POST /api/spot/v3/cancel_orders/<client_oid>
-
-        // End Certificate Request Sample
-        // 2018-10-12T07:34:30.223ZPOST/api/spot/v3/cancel_orders/a123{"instrument_id":"btc-usdt"}
-
-        // Request Parameters
-        // Parameters	Parameters Types	Required	Description
-        // instrument_id	String	Yes	By providing this parameter, the corresponding order of a designated trading pair will be cancelled. If not providing this parameter, it will be back to error code.
-        // client_oid	String	Yes	the order ID created by yourself, The client_oid type should be comprised of alphabets + numbers or only alphabets within 1 – 32 characters， both uppercase and lowercase letters are supported
-        // order_id	String	Yes	order ID
-
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
-            'symbol': market['id'],
-            'order_id': id,
+        const market = this.market (symbol);
+        const margin = this.safeString (params, 'margin', false);
+        const marketType = margin ? 'marginPost' : (market['type'] + 'Post');
+        let method = marketType + 'CancelOrder';
+        const request = {
+            'instrument_id': market['id'],
         };
-        let method = 'privatePost';
-        if (market['future']) {
-            method += 'FutureCancel';
-            request['contract_type'] = this.options['defaultContractType']; // this_week, next_week, quarter
+        const clientOid = this.safeString (params, 'client_oid');
+        if (market['futures'] || market['swap']) {
+            method += 'InstrumentId';
         } else {
-            method += 'CancelOrder';
+            method += 's';
         }
-        let response = await this[method] (this.extend (request, params));
+        if (clientOid !== undefined) {
+            method += 'ClientOid';
+            request['client_oid'] = clientOid;
+        } else {
+            method += 'OrderId';
+            request['order_id'] = id;
+        }
+        const query = this.omit (params, 'margin');
+        const response = await this[method] (this.extend (request, query));
+        //
+        // spot, margin
+        //
+        //     {
+        //         "btc-usdt": [
+        //             {
+        //                 "result":true,
+        //                 "client_oid":"a123",
+        //                 "order_id": "2510832677225473"
+        //             }
+        //         ]
+        //     }
+        //
+        // futures, swap
+        //
+        //     {
+        //         "result": true,
+        //         "client_oid": "oktfuture10", // missing if requested by order_id
+        //         "order_id": "2517535534836736",
+        //         "instrument_id": "EOS-USD-190628"
+        //     }
+        //
         return response;
     }
 
