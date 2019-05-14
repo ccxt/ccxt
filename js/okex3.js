@@ -226,6 +226,31 @@ module.exports = class okex3 extends Exchange {
                 // 404 Not Found
                 // 500 Internal Server Error — We had a problem with our server
                 'exact': {
+                    // Business Error Messages	Business Error Codes	http Status Code	Scenarios
+                    // withdrawal suspended	34001	400	withdrawal endpoint: account suspended
+                    // please add a withdrawal address	34002	400	withdrawal endpoint: address required
+                    // sorry, this token cannot be withdrawn to xx at the moment	34003	400	withdrawal endpoint: incorrect address
+                    // withdrawal fee is smaller than minimum limit	34004	400	withdrawal endpoint: incorrect fee
+                    // withdrawal fee exceeds the maximum limit	34005	400	withdrawal endpoint: incorrect withdrawal fee
+                    // withdrawal amount is lower than the minimum limit	34006	400	minimum withdrawal amount%} endpoint: incorrect amount
+                    // withdrawal amount exceeds the maximum limit	34007	400	maximum withdrawal amount endpoint: incorrect amount
+                    // insufficient balance	34008	400	transfer & withdrawal endpoint: insufficient balance
+                    // your withdrawal amount exceeds the daily limit	34009	400	withdrawal endpoint: withdrawal limit exceeded
+                    // transfer amount must be larger than 0	34010	400	transfer endpoint: incorrect amount
+                    // conditions not met	34011	400	transfer & withdrawal endpoint: conditions not met, e.g. KYC level
+                    // the minimum withdrawal amount for NEO is 1, and the amount must be an integer	34012	400	withdrawal endpoint: special requirements
+                    // please transfer	34013	400	transfer endpoint: Token margin trading instrument ID required
+                    // transfer limited	34014	400	transfer endpoint：Transfer limited
+                    // subaccount does not exist	34015	400	transfer endpoint: subaccount does not exist
+                    // transfer suspended	34016	400	transfer endpoint: either end of the account does not authorize the transfer
+                    // account suspended	34017	400	transfer & withdrawal endpoint: either end of the account does not authorize the transfer
+                    // incorrect trades password	34018	400	incorrect trades password
+                    // please bind your email before withdrawal	34019	400	withdrawal endpoint : email required
+                    // please bind your funds password before withdrawal	34020	400	withdrawal endpoint : funds password required
+                    // Not verified address	34021	400	withdrawal endpoint
+                    // Withdrawals are not available for sub accounts	34022	400	withdrawal endpoint
+                    // token does not exist	30031	400	token requested does not exist
+                    // Please enable futures trading before transferring your funds	34023	400	Please enable futures trading before transferring your funds
                     'failure to get a peer from the ring-balancer': ExchangeError, // {"message":"failure to get a peer from the ring-balancer"}
                     'The currency pair does not exist': BadRequest, // {"code":30032,"message":"The currency pair does not exist"}
                     'OK-ACCESS-KEY header is required': AuthenticationError, // {"code":30001,"message":"OK-ACCESS-KEY header is required"}
@@ -243,7 +268,7 @@ module.exports = class okex3 extends Exchange {
             'options': {
                 'fetchMarkets': [ 'spot', 'futures', 'swap' ],
                 'allTypes': [ 'spot', 'futures', 'swap' ],
-                'defaultType': 'spot',
+                'defaultType': [ 'spot', 'futures', 'swap' ],
             },
         });
     }
@@ -803,7 +828,8 @@ module.exports = class okex3 extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const defaultType = this.safeValue (this.options, 'defaultType');
-        const type = this.safeValue (params, 'type', defaultType);
+        let type = this.safeValue (params, 'type', defaultType);
+        type = Array.isArray (type) ? type[0] : type;
         const method = (type === 'wallet') ? 'accountGetWallet' : (type + 'GetAccounts');
         const response = await this[method] (this.omit (params, 'type'));
         const result = { 'info': response };
@@ -1063,64 +1089,119 @@ module.exports = class okex3 extends Exchange {
         throw new OrderNotFound (this.id + ' order ' + id + ' not found');
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersByState (state, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined)
-            throw new ExchangeError (this.id + ' fetchOrders requires a symbol parameter');
+            throw new ExchangeError (this.id + ' fetchOrdersByState requires a symbol argument');
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let method = 'privatePost';
-        let request = {
-            'symbol': market['id'],
+        const market = this.market (symbol);
+        // '-2': failed,
+        // '-1': cancelled,
+        //  '0': open ,
+        //  '1': partially filled,
+        //  '2': fully filled,
+        //  '3': submitting,
+        //  '4': cancelling,
+        //  '6': incomplete（open+partially filled),
+        //  '7': complete（cancelled+fully filled),
+        const request = {
+            'instrument_id': market['id'],
+            'state': state,
         };
-        let order_id_in_params = ('order_id' in params);
-        if (market['future']) {
-            method += 'FutureOrdersInfo';
-            request['contract_type'] = this.options['defaultContractType']; // this_week, next_week, quarter
-            if (!order_id_in_params)
-                throw new ExchangeError (this.id + ' fetchOrders() requires order_id param for futures market ' + symbol + ' (a string of one or more order ids, comma-separated)');
-        } else {
-            let status = undefined;
-            if ('type' in params) {
-                status = params['type'];
-            } else if ('status' in params) {
-                status = params['status'];
-            } else {
-                let name = order_id_in_params ? 'type' : 'status';
-                throw new ExchangeError (this.id + ' fetchOrders() requires ' + name + ' param for spot market ' + symbol + ' (0 - for unfilled orders, 1 - for filled/canceled orders)');
-            }
-            if (order_id_in_params) {
-                method += 'OrdersInfo';
-                request = this.extend (request, {
-                    'type': status,
-                    'order_id': params['order_id'],
-                });
-            } else {
-                method += 'OrderHistory';
-                request = this.extend (request, {
-                    'status': status,
-                    'current_page': 1, // current page number
-                    'page_length': 200, // number of orders returned per page, maximum 200
-                });
-            }
-            params = this.omit (params, [ 'type', 'status' ]);
+        let method = market['type'] + 'GetOrders';
+        if (market['type'] === 'swap' || market['type'] === 'futures') {
+            method += 'InstrumentId';
         }
-        let response = await this[method] (this.extend (request, params));
-        let ordersField = this.getOrdersField ();
-        return this.parseOrders (response[ordersField], market, since, limit);
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot, margin
+        //
+        //     [
+        //         [
+        //             {
+        //                 "client_oid":"oktspot76",
+        //                 "created_at":"2019-03-18T07:26:49.000Z",
+        //                 "filled_notional":"3.9734",
+        //                 "filled_size":"0.001",
+        //                 "funds":"",
+        //                 "instrument_id":"BTC-USDT",
+        //                 "notional":"",
+        //                 "order_id":"2500723297813504",
+        //                 "order_type":"0",
+        //                 "price":"4013",
+        //                 "product_id":"BTC-USDT",
+        //                 "side":"buy",
+        //                 "size":"0.001",
+        //                 "status":"filled",
+        //                 "state": "2",
+        //                 "timestamp":"2019-03-18T07:26:49.000Z",
+        //                 "type":"limit"
+        //             },
+        //         ],
+        //         {
+        //             "before":"2500723297813504",
+        //             "after":"2500650881647616"
+        //         }
+        //     ]
+        //
+        // futures, swap
+        //
+        //     {
+        //         "result":true,  // missing in swap orders
+        //         "order_info": [
+        //             {
+        //                 "instrument_id":"EOS-USD-190628",
+        //                 "size":"10",
+        //                 "timestamp":"2019-03-20T10:04:55.000Z",
+        //                 "filled_qty":"10",
+        //                 "fee":"-0.00841043",
+        //                 "order_id":"2512669605501952",
+        //                 "price":"3.668",
+        //                 "price_avg":"3.567",
+        //                 "status":"2",
+        //                 "state": "2",
+        //                 "type":"4",
+        //                 "contract_val":"10",
+        //                 "leverage":"10", // missing in swap orders
+        //                 "client_oid":"",
+        //                 "pnl":"1.09510794", // missing in swap orders
+        //                 "order_type":"0"
+        //             },
+        //         ]
+        //     }
+        //
+        let orders = undefined;
+        if (market['type'] === 'swap' || market['type'] === 'futures') {
+            orders = this.safeValue (response, 'order_info', []);
+        } else {
+            orders = response[0];
+        }
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let open = 0; // 0 for unfilled orders, 1 for filled orders
-        return await this.fetchOrders (symbol, since, limit, this.extend ({
-            'status': open,
-        }, params));
+        // '-2': failed,
+        // '-1': cancelled,
+        //  '0': open ,
+        //  '1': partially filled,
+        //  '2': fully filled,
+        //  '3': submitting,
+        //  '4': cancelling,
+        //  '6': incomplete（open+partially filled),
+        //  '7': complete（cancelled+fully filled),
+        return await this.fetchOrdersByState ('6', symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let closed = 1; // 0 for unfilled orders, 1 for filled orders
-        let orders = await this.fetchOrders (symbol, since, limit, this.extend ({
-            'status': closed,
-        }, params));
+        // '-2': failed,
+        // '-1': cancelled,
+        //  '0': open ,
+        //  '1': partially filled,
+        //  '2': fully filled,
+        //  '3': submitting,
+        //  '4': cancelling,
+        //  '6': incomplete（open+partially filled),
+        //  '7': complete（cancelled+fully filled),
+        let orders = await this.fetchOrdersByState ('7', symbol, since, limit, params);
         return orders;
     }
 
@@ -1190,7 +1271,9 @@ module.exports = class okex3 extends Exchange {
             let auth = timestamp + method + request;
             if (method === 'GET') {
                 if (Object.keys (query).length) {
-                    url += '?' + this.urlencode (query);
+                    const urlencodedQuery = '?' + this.urlencode (query);
+                    url += urlencodedQuery;
+                    auth += urlencodedQuery;
                 }
             } else {
                 if (Object.keys (query).length) {
@@ -1216,17 +1299,17 @@ module.exports = class okex3 extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response = undefined) {
-        if (!this.isJsonEncodedObject (body)) {
-            return;
-        }
         const feedback = this.id + ' ' + body;
         if (code === 503) {
             throw new ExchangeError (feedback);
         }
-        response = JSON.parse (body);
+        const exact = this.exceptions['exact'];
         const message = this.safeString (response, 'message');
+        const errorCode = this.safeString (response, 'code');
+        if (errorCode in exact) {
+            throw new exact[errorCode] (feedback);
+        }
         if (message !== undefined) {
-            const exact = this.exceptions['exact'];
             if (message in exact) {
                 throw new exact[message] (feedback);
             }
