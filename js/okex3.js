@@ -1209,19 +1209,17 @@ module.exports = class okex3 extends Exchange {
             '3': 'open',
             '4': 'canceled',
         };
-        return this.safeValue (statuses, status, status);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrderSide (side) {
-        if (side === 1)
-            return 'buy'; // open long position
-        if (side === 2)
-            return 'sell'; // open short position
-        if (side === 3)
-            return 'sell'; // liquidate long position
-        if (side === 4)
-            return 'buy'; // liquidate short position
-        return side;
+        const sides = {
+            '1': 'buy', // open long
+            '2': 'sell', // open short
+            '3': 'sell', // close long
+            '4': 'buy', // close short
+        }
+        return this.safeString (sides, side, side);
     }
 
     parseOrder (order, market = undefined) {
@@ -1294,9 +1292,18 @@ module.exports = class okex3 extends Exchange {
         //
         const id = this.safeString (order, 'order_id');
         const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
-        let side = undefined;
-        let type = undefined;
-
+        let side = this.safeString (order, 'side');
+        let type = this.safeString (order, 'type');
+        if ((side !== 'buy') && (side !== 'sell')) {
+            side = this.parseOrderSide (type);
+        }
+        if ((type !== 'limit') && (type !== 'market')) {
+            if ('pnl' in order) {
+                type = 'futures';
+            } else {
+                type = 'swap';
+            }
+        }
         let symbol = undefined;
         const marketId = this.safeString (order, 'instrument_id');
         if (marketId in this.markets_by_id) {
@@ -1305,8 +1312,8 @@ module.exports = class okex3 extends Exchange {
         } else {
             symbol = marketId;
         }
-        if (symbol === undefined) {
-            if (market !== undefined) {
+        if (market !== undefined) {
+            if (symbol === undefined) {
                 symbol = market['symbol'];
             }
         }
@@ -1325,27 +1332,9 @@ module.exports = class okex3 extends Exchange {
                 cost = average * filled;
             }
         }
-
-
-        // if ('type' in order) {
-        //     if ((order['type'] === 'buy') || (order['type'] === 'sell')) {
-        //         side = order['type'];
-        //         type = 'limit';
-        //     } else if (order['type'] === 'buy_market') {
-        //         side = 'buy';
-        //         type = 'market';
-        //     } else if (order['type'] === 'sell_market') {
-        //         side = 'sell';
-        //         type = 'market';
-        //     } else {
-        //         side = this.parseOrderSide (order['type']);
-        //         if (('contract_name' in order) || ('lever_rate' in order))
-        //             type = 'margin';
-        //     }
-        // }
-
-        let status = this.parseOrderStatus (this.safeString (order, 'state'));
-        let result = {
+        const status = this.parseOrderStatus (this.safeString (order, 'state'));
+        let fee = undefined; // todo
+        return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -1354,16 +1343,15 @@ module.exports = class okex3 extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': order['price'],
+            'price': price,
             'average': average,
             'cost': cost,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': undefined,
+            'fee': fee,
         };
-        return result;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
