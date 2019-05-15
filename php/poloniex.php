@@ -512,7 +512,7 @@ class poloniex extends Exchange {
         }
         $side = $this->safe_string($trade, 'type');
         $fee = null;
-        $price = $this->safe_string($trade, 'rate');
+        $price = $this->safe_float($trade, 'rate');
         $cost = $this->safe_float($trade, 'total');
         $amount = $this->safe_float($trade, 'amount');
         if (is_array ($trade) && array_key_exists ('fee', $trade)) {

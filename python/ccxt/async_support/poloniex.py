@@ -499,7 +499,7 @@ class poloniex (Exchange):
             quote = market['quote']
         side = self.safe_string(trade, 'type')
         fee = None
-        price = self.safe_string(trade, 'rate')
+        price = self.safe_float(trade, 'rate')
         cost = self.safe_float(trade, 'total')
         amount = self.safe_float(trade, 'amount')
         if 'fee' in trade:
