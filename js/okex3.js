@@ -22,7 +22,7 @@ module.exports = class okex3 extends Exchange {
                 'fetchOrders': false,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
-                'fetchCurrencies': false, // not implemented yet, see below
+                'fetchCurrencies': false, // see below
                 'withdraw': true,
                 'futures': true,
             },
@@ -1324,12 +1324,16 @@ module.exports = class okex3 extends Exchange {
         if (type === 'market') {
             remaining = 0;
         }
-        let cost = this.safeFloat2 (order, 'funds', 'filled_notional');
+        let cost = this.safeFloat2 (order, 'filled_notional', 'funds');
         const price = this.safeFloat (order, 'price');
         let average = this.safeFloat (order, 'price_avg');
         if (cost === undefined) {
             if (filled !== undefined && average !== undefined) {
                 cost = average * filled;
+            }
+        } else {
+            if ((average === undefined) && (filled !== undefined) && (filled > 0)) {
+                average = cost / filled;
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
@@ -1556,6 +1560,82 @@ module.exports = class okex3 extends Exchange {
         //  '7': complete（cancelled+fully filled),
         return await this.fetchOrdersByState ('7', symbol, since, limit, params);
     }
+
+    parseDepositAddresses (addresses) {
+        const result = [];
+        for (let i = 0; i < addresses.length; i++) {
+            result.push (this.parseDepositAddress (addresses[i]));
+        }
+        return result;
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {
+        //         address: '0x696abb81974a8793352cbd33aadcf78eda3cfdfa',
+        //         currency: 'eth'
+        //         tag: 'abcde12345', // will be missing if the token does not require a deposit tag
+        //         payment_id: 'abcde12345', // will not be returned if the token does not require a payment_id
+        //         // can_deposit: 1, // 0 or 1, documented but missing
+        //         // can_withdraw: 1, // 0 or 1, documented but missing
+        //     }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        const tag = this.safeString2 (depositAddress, 'tag', 'payment_id');
+        const code = this.commonCurrencyCode (this.safeString (depositAddress, 'currency'));
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': depositAddress,
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            // 'currency': currency['id'],
+        };
+        const response = await this.accountGetDepositAddress (this.extend (request, params));
+        console.log (response);
+        process.exit();
+        //
+        //     [
+        //         {
+        //             address: '0x696abb81974a8793352cbd33aadcf78eda3cfdfa',
+        //             currency: 'eth'
+        //         }
+        //     ]
+        //
+        const addresses = this.parseDepositAddresses (response);
+        return addresses[0];
+    }
+
+    // async fetchDepositAddresses (code, params = {}) {
+    //     await this.loadMarkets ();
+    //     const currency = this.currency (code);
+    //     const request = {
+    //         'currency': currency['id'],
+    //     };
+    //     const response = await this.accountGetDepositAddress (this.extend (request, params));
+    //     console.log (response);
+    //     process.exit ();
+    //     const success = this.safeValue (response, 'success');
+    //     if (success === undefined || !success) {
+    //         throw new InvalidAddress (this.id + ' fetchDepositAddress returned an empty response – create the deposit address in the user settings first.');
+    //     }
+    //     const address = this.safeString (response, 'address');
+    //     const tag = this.safeString (response, 'addressTag');
+    //     this.checkAddress (address);
+    //     return {
+    //         'currency': code,
+    //         'address': this.checkAddress (address),
+    //         'tag': tag,
+    //         'info': response,
+    //     };
+    // }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
