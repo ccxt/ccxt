@@ -1200,7 +1200,8 @@ module.exports = class okex3 extends Exchange {
     }
 
     parseOrderStatus (status) {
-        let statuses = {
+        const statuses = {
+            '-2': 'failed',
             '-1': 'canceled',
             '0': 'open',
             '1': 'open',
@@ -1246,11 +1247,7 @@ module.exports = class okex3 extends Exchange {
         //         "instrument_id": "EOS-USD-190628",
         //     }
         //
-        // fetchOrder
-        //
-        //
-        //
-        // fetchOrdersByState, fetchOpenOrders, fetchClosedOrders
+        // fetchOrder, fetchOrdersByState, fetchOpenOrders, fetchClosedOrders
         //
         //     // spot and margin orders
         //
@@ -1258,14 +1255,14 @@ module.exports = class okex3 extends Exchange {
         //         "client_oid":"oktspot76",
         //         "created_at":"2019-03-18T07:26:49.000Z",
         //         "filled_notional":"3.9734",
-        //         "filled_size":"0.001",
-        //         "funds":"",
+        //         "filled_size":"0.001", // filled_qty in futures and swap orders
+        //         "funds":"", // this is most likely the same as notional
         //         "instrument_id":"BTC-USDT",
         //         "notional":"",
         //         "order_id":"2500723297813504",
         //         "order_type":"0",
         //         "price":"4013",
-        //         "product_id":"BTC-USDT",
+        //         "product_id":"BTC-USDT", // missing in futures and swap orders
         //         "side":"buy",
         //         "size":"0.001",
         //         "status":"filled",
@@ -1280,67 +1277,77 @@ module.exports = class okex3 extends Exchange {
         //         "instrument_id":"EOS-USD-190628",
         //         "size":"10",
         //         "timestamp":"2019-03-20T10:04:55.000Z",
-        //         "filled_qty":"10",
+        //         "filled_qty":"10", // filled_size in spot and margin orders
         //         "fee":"-0.00841043",
         //         "order_id":"2512669605501952",
         //         "price":"3.668",
-        //         "price_avg":"3.567",
+        //         "price_avg":"3.567", // missing in spot and margin orders
         //         "status":"2",
         //         "state": "2",
         //         "type":"4",
         //         "contract_val":"10",
-        //         "leverage":"10", // missing in swap orders
+        //         "leverage":"10", // missing in swap, spot and margin orders
         //         "client_oid":"",
-        //         "pnl":"1.09510794", // missing in swap orders
+        //         "pnl":"1.09510794", // missing in swap, spo and margin orders
         //         "order_type":"0"
-        //     },
+        //     }
         //
+        const id = this.safeString (order, 'order_id');
+        const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
         let side = undefined;
         let type = undefined;
-        if ('type' in order) {
-            if ((order['type'] === 'buy') || (order['type'] === 'sell')) {
-                side = order['type'];
-                type = 'limit';
-            } else if (order['type'] === 'buy_market') {
-                side = 'buy';
-                type = 'market';
-            } else if (order['type'] === 'sell_market') {
-                side = 'sell';
-                type = 'market';
-            } else {
-                side = this.parseOrderSide (order['type']);
-                if (('contract_name' in order) || ('lever_rate' in order))
-                    type = 'margin';
-            }
-        }
-        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+
         let symbol = undefined;
-        if (market === undefined) {
-            let marketId = this.safeString (order, 'symbol');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
+        const marketId = this.safeString (order, 'instrument_id');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        } else {
+            symbol = marketId;
+        }
+        if (symbol === undefined) {
+            if (market !== undefined) {
+                symbol = market['symbol'];
             }
         }
-        if (market)
-            symbol = market['symbol'];
-        let timestamp = undefined;
-        let createDateField = this.getCreateDateField ();
-        if (createDateField in order)
-            timestamp = order[createDateField];
-        let amount = this.safeFloat (order, 'amount');
-        let filled = this.safeFloat (order, 'deal_amount');
+        let amount = this.safeFloat (order, 'size');
+        let filled = this.safeFloat2 (order, 'filled_size', 'filled_qty');
         amount = Math.max (amount, filled);
         let remaining = Math.max (0, amount - filled);
         if (type === 'market') {
             remaining = 0;
         }
-        let average = this.safeFloat (order, 'avg_price');
-        // https://github.com/ccxt/ccxt/issues/2452
-        average = this.safeFloat (order, 'price_avg', average);
-        let cost = average * filled;
+        let cost = this.safeFloat2 (order, 'funds', 'filled_notional');
+        const price = this.safeFloat (order, 'price');
+        let average = this.safeFloat (order, 'price_avg');
+        if (cost === undefined) {
+            if (filled !== undefined && average !== undefined) {
+                cost = average * filled;
+            }
+        }
+
+
+        // if ('type' in order) {
+        //     if ((order['type'] === 'buy') || (order['type'] === 'sell')) {
+        //         side = order['type'];
+        //         type = 'limit';
+        //     } else if (order['type'] === 'buy_market') {
+        //         side = 'buy';
+        //         type = 'market';
+        //     } else if (order['type'] === 'sell_market') {
+        //         side = 'sell';
+        //         type = 'market';
+        //     } else {
+        //         side = this.parseOrderSide (order['type']);
+        //         if (('contract_name' in order) || ('lever_rate' in order))
+        //             type = 'margin';
+        //     }
+        // }
+
+        let status = this.parseOrderStatus (this.safeString (order, 'state'));
         let result = {
             'info': order,
-            'id': order['order_id'].toString (),
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -1367,12 +1374,12 @@ module.exports = class okex3 extends Exchange {
         const market = this.market (symbol);
         const margin = this.safeValue (params, 'margin', false);
         const type = margin ? 'margin' : market['type'];
-        const isFuturesOrSwap = (market['futures'] || market['swap']);
-        const instrumentId = isFuturesOrSwap ? 'InstrumentId' : '';
+        const instrumentId = (market['futures'] || market['swap']) ? 'InstrumentId' : '';
         let method = type + 'GetOrders' + instrumentId;
         const request = {
             'instrument_id': market['id'],
             // 'client_oid': 'abcdef12345', // optional, [a-z0-9]{1,32}
+            // 'order_id': id,
         };
         const clientOid = this.safeString (params, 'client_oid');
         if (clientOid !== undefined) {
