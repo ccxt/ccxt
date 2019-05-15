@@ -1162,6 +1162,7 @@ module.exports = class okex3 extends Exchange {
         }
         const query = this.omit (params, 'margin');
         const response = await this[method] (this.extend (request, query));
+        const result = ('result' in response) ? response : this.safeValue (response, market['id'], {});
         //
         // spot, margin
         //
@@ -1184,7 +1185,7 @@ module.exports = class okex3 extends Exchange {
         //         "instrument_id": "EOS-USD-190628"
         //     }
         //
-        return response;
+        return this.parseOrder (result, market);
     }
 
     parseOrderStatus (status) {
