@@ -1333,7 +1333,15 @@ module.exports = class okex3 extends Exchange {
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
-        let fee = undefined; // todo
+        const feeCost = this.safeFloat (order, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            let feeCurrency = undefined;
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
+        }
         return {
             'info': order,
             'id': id,
