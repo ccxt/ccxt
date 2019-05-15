@@ -1,6 +1,20 @@
+require 'ccxt/version'
+require 'ccxt/base/exchange'
+
 module Ccxt
-  class << self
-    attr_accessor :exchanges
+  @exchanges = [
+    'bitmex',
+    'kraken'
+  ].each do |exchange|
+    require "ccxt/#{exchange}"
+
+    define_singleton_method exchange do |*args|
+      self[exchange].new *args
+    end
+  end.freeze
+
+  def self.exchanges
+    @exchanges
   end
 
   def self.[](key)
@@ -11,11 +25,4 @@ module Ccxt
       return nil
     end
   end
-
-  @exchanges = ['bitmex', 'kraken'].freeze
 end
-
-require 'ccxt/version'
-require 'ccxt/base/exchange'
-require 'ccxt/bitmex'
-require 'ccxt/kraken'
