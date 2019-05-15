@@ -1522,6 +1522,10 @@ module.exports = class okex3 extends Exchange {
         if (market['type'] === 'swap' || market['type'] === 'futures') {
             orders = this.safeValue (response, 'order_info', []);
         } else {
+            const responseLength = response.length;
+            if (responseLength < 1) {
+                return [];
+            }
             orders = response[0];
         }
         return this.parseOrders (orders, market, since, limit);
@@ -1550,8 +1554,7 @@ module.exports = class okex3 extends Exchange {
         //  '4': cancelling,
         //  '6': incomplete（open+partially filled),
         //  '7': complete（cancelled+fully filled),
-        let orders = await this.fetchOrdersByState ('7', symbol, since, limit, params);
-        return orders;
+        return await this.fetchOrdersByState ('7', symbol, since, limit, params);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
