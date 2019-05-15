@@ -38,6 +38,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "bundler", "~> 2.0"
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec", "~> 3.8"
+  spec.add_development_dependency "webmock", "~> 3.5"
+  spec.add_development_dependency "vcr", "~> 4.0"
   spec.add_development_dependency "pry-nav"
 
   spec.add_runtime_dependency "rest-client", "~> 2.0"
