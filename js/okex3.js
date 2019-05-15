@@ -79,6 +79,7 @@ module.exports = class okex3 extends Exchange {
                         'orders',
                         'orders_pending',
                         'orders/{order_id}',
+                        'orders/{client_oid}',
                         'fills',
                         // public
                         'instruments',
@@ -107,6 +108,7 @@ module.exports = class okex3 extends Exchange {
                         'accounts/{instrument_id}/borrowed',
                         'orders',
                         'orders/{order_id}',
+                        'orders/{client_oid}',
                         'orders_pending',
                         'fills',
                     ],
@@ -131,6 +133,7 @@ module.exports = class okex3 extends Exchange {
                         'accounts/{currency}/ledger',
                         'orders/{instrument_id}',
                         'orders/{instrument_id}/{order_id}',
+                        'orders/{instrument_id}/{client_oid}',
                         'fills',
                         // public
                         'instruments',
@@ -167,6 +170,7 @@ module.exports = class okex3 extends Exchange {
                         'accounts/{instrument_id}/holds',
                         'orders/{instrument_id}',
                         'orders/{instrument_id}/{order_id}',
+                        'orders/{instrument_id}/{client_oid}',
                         'fills',
                         // public
                         'instruments',
@@ -416,6 +420,13 @@ module.exports = class okex3 extends Exchange {
                 'fetchMarkets': [ 'spot', 'futures', 'swap' ],
                 'allTypes': [ 'spot', 'futures', 'swap' ],
                 'defaultType': 'spot',
+                'auth': {
+                    'currencies': 'private',
+                    'instruments': 'public',
+                    'rate': 'public',
+                    'constituents/{ett}': 'public',
+                    'define-price/{ett}': 'public',
+                },
             },
         });
     }
@@ -1147,12 +1158,12 @@ module.exports = class okex3 extends Exchange {
         const request = {
             'instrument_id': market['id'],
         };
-        const clientOid = this.safeString (params, 'client_oid');
         if (market['futures'] || market['swap']) {
             method += 'InstrumentId';
         } else {
             method += 's';
         }
+        const clientOid = this.safeString (params, 'client_oid');
         if (clientOid !== undefined) {
             method += 'ClientOid';
             request['client_oid'] = clientOid;
@@ -1213,6 +1224,77 @@ module.exports = class okex3 extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        // createOrder
+        //
+        //     {
+        //         "client_oid":"oktspot79",
+        //         "error_code":"",
+        //         "error_message":"",
+        //         "order_id":"2510789768709120",
+        //         "result":true
+        //     }
+        //
+        // cancelOrder
+        //
+        //     {
+        //         "result": true,
+        //         "client_oid": "oktfuture10", // missing if requested by order_id
+        //         "order_id": "2517535534836736",
+        //         // instrument_id is missing for spot/margin orders
+        //         // available in futures and swap orders only
+        //         "instrument_id": "EOS-USD-190628",
+        //     }
+        //
+        // fetchOrder
+        //
+        //
+        //
+        // fetchOrdersByState, fetchOpenOrders, fetchClosedOrders
+        //
+        //     // spot and margin orders
+        //
+        //     {
+        //         "client_oid":"oktspot76",
+        //         "created_at":"2019-03-18T07:26:49.000Z",
+        //         "filled_notional":"3.9734",
+        //         "filled_size":"0.001",
+        //         "funds":"",
+        //         "instrument_id":"BTC-USDT",
+        //         "notional":"",
+        //         "order_id":"2500723297813504",
+        //         "order_type":"0",
+        //         "price":"4013",
+        //         "product_id":"BTC-USDT",
+        //         "side":"buy",
+        //         "size":"0.001",
+        //         "status":"filled",
+        //         "state": "2",
+        //         "timestamp":"2019-03-18T07:26:49.000Z",
+        //         "type":"limit"
+        //     }
+        //
+        //     // futures and swap orders
+        //
+        //     {
+        //         "instrument_id":"EOS-USD-190628",
+        //         "size":"10",
+        //         "timestamp":"2019-03-20T10:04:55.000Z",
+        //         "filled_qty":"10",
+        //         "fee":"-0.00841043",
+        //         "order_id":"2512669605501952",
+        //         "price":"3.668",
+        //         "price_avg":"3.567",
+        //         "status":"2",
+        //         "state": "2",
+        //         "type":"4",
+        //         "contract_val":"10",
+        //         "leverage":"10", // missing in swap orders
+        //         "client_oid":"",
+        //         "pnl":"1.09510794", // missing in swap orders
+        //         "order_type":"0"
+        //     },
+        //
         let side = undefined;
         let type = undefined;
         if ('type' in order) {
@@ -1278,31 +1360,81 @@ module.exports = class okex3 extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined)
-            throw new ExchangeError (this.id + ' fetchOrder requires a symbol parameter');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const margin = this.safeValue (params, 'margin', false);
+        const type = margin ? 'margin' : market['type'];
         const isFuturesOrSwap = (market['futures'] || market['swap']);
         const instrumentId = isFuturesOrSwap ? 'InstrumentId' : '';
-        const method = market['type'] + 'GetOrders' + instrumentId + 'OrderId';
+        let method = type + 'GetOrders' + instrumentId;
         const request = {
-            'order_id': id,
             'instrument_id': market['id'],
             // 'client_oid': 'abcdef12345', // optional, [a-z0-9]{1,32}
         };
-        const response = await this[method] (this.extend (request, params));
-        console.log (response);
-        process.exit ();
-        let ordersField = this.getOrdersField ();
-        let numOrders = response[ordersField].length;
-        if (numOrders > 0)
-            return this.parseOrder (response[ordersField][0]);
-        throw new OrderNotFound (this.id + ' order ' + id + ' not found');
+        const clientOid = this.safeString (params, 'client_oid');
+        if (clientOid !== undefined) {
+            method += 'ClientOid';
+            request['client_oid'] = clientOid;
+        } else {
+            method += 'OrderId';
+            request['order_id'] = id;
+        }
+        const query = this.omit (params, 'margin');
+        const response = await this[method] (this.extend (request, query));
+        //
+        // spot, margin
+        //
+        //     {
+        //         "client_oid":"oktspot70",
+        //         "created_at":"2019-03-15T02:52:56.000Z",
+        //         "filled_notional":"3.8886",
+        //         "filled_size":"0.001",
+        //         "funds":"",
+        //         "instrument_id":"BTC-USDT",
+        //         "notional":"",
+        //         "order_id":"2482659399697408",
+        //         "order_type":"0",
+        //         "price":"3927.3",
+        //         "product_id":"BTC-USDT",
+        //         "side":"buy",
+        //         "size":"0.001",
+        //         "status":"filled",
+        //         "state": "2",
+        //         "timestamp":"2019-03-15T02:52:56.000Z",
+        //         "type":"limit"
+        //     }
+        //
+        // futures, swap
+        //
+        //     {
+        //         "instrument_id":"EOS-USD-190628",
+        //         "size":"10",
+        //         "timestamp":"2019-03-20T02:46:38.000Z",
+        //         "filled_qty":"10",
+        //         "fee":"-0.0080819",
+        //         "order_id":"2510946213248000",
+        //         "price":"3.712",
+        //         "price_avg":"3.712",
+        //         "status":"2",
+        //         "state": "2",
+        //         "type":"2",
+        //         "contract_val":"10",
+        //         "leverage":"10",
+        //         "client_oid":"", // missing in swap orders
+        //         "pnl":"0", // missing in swap orders
+        //         "order_type":"0"
+        //     }
+        //
+        return this.parseOrder (response);
     }
 
     async fetchOrdersByState (state, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined)
-            throw new ExchangeError (this.id + ' fetchOrdersByState requires a symbol argument');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrdersByState requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         // '-2': failed,
@@ -1318,11 +1450,14 @@ module.exports = class okex3 extends Exchange {
             'instrument_id': market['id'],
             'state': state,
         };
-        let method = market['type'] + 'GetOrders';
+        const margin = this.safeValue (params, 'margin', false);
+        const type = margin ? 'margin' : market['type'];
+        let method = type + 'GetOrders';
         if (market['futures'] || market['swap']) {
             method += 'InstrumentId';
         }
-        const response = await this[method] (this.extend (request, params));
+        const query = this.omit (params, 'margin');
+        const response = await this[method] (this.extend (request, query));
         //
         // spot, margin
         //
@@ -1500,15 +1635,9 @@ module.exports = class okex3 extends Exchange {
     }
 
     getPathAuthenticationType (path) {
-        const paths = {
-            'currencies': 'private',
-            'instruments': 'public',
-            'rate': 'public',
-            'constituents/{ett}': 'public',
-            'define-price/{ett}': 'public',
-        };
-        const key = this.findBroadlyMatchedKey (paths, path);
-        return this.safeString (paths, key, 'private');
+        const auth = this.safeValue (this.options, 'auth', {});
+        const key = this.findBroadlyMatchedKey (auth, path);
+        return this.safeString (auth, key, 'private');
     }
 
     handleErrors (code, reason, url, method, headers, body, response = undefined) {
