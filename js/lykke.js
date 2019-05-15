@@ -97,7 +97,9 @@ module.exports = class lykke extends Exchange {
     }
 
     parseTrade (trade, market) {
-        //  Trade messages look as follows:
+        //
+        //  public fetchTrades
+        //
         //   {
         //     "id": "d5983ab8-e9ec-48c9-bdd0-1b18f8e80a71",
         //     "assetPairId": "BTCUSD",
@@ -107,6 +109,7 @@ module.exports = class lykke extends Exchange {
         //     "price": 8023.333,
         //     "action": "Buy"
         //   }
+        //
         let symbol = undefined;
         if (market === undefined) {
             let marketId = this.safeString (trade, 'AssetPairId');
@@ -115,18 +118,20 @@ module.exports = class lykke extends Exchange {
         if (market) {
             symbol = market['symbol'];
         }
-        let id = trade['id'];
-        let timestamp = this.parseDate (trade['dateTime']);
-        let datetime = this.iso8601 (timestamp);
-        let side = trade['action'].toLowerCase ();
-        let price = this.safeFloat (trade, 'price');
-        let amount = this.safeFloat (trade, 'volume');
-        let cost = price * amount;
+        const id = this.safeString (trade, 'id');
+        const timestamp = this.parse8601 (this.safeString (trade, 'dateTime'));
+        let side = this.safeString (trade, 'action');
+        if (side !== undefined) {
+            side = side.toLowerCase ();
+        }
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'volume');
+        const cost = price * amount;
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': undefined,
             'order': undefined,
@@ -138,15 +143,18 @@ module.exports = class lykke extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = 50, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        if (limit === undefined) {
+            limit = 100;
+        }
+        const request = {
             'AssetPairId': market['id'],
             'skip': 0,
             'take': limit,
         };
-        let response = await this.mobileGetTradesAssetPairId (this.extend (request, params));
+        const response = await this.mobileGetTradesAssetPairId (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
