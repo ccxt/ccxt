@@ -86,48 +86,6 @@ module.exports = class newtonxchange extends Exchange {
                     'maker': 0.2 / 100,
                     'taker': 0.2 / 100,
                 },
-                // 'funding': {
-                // 'withdraw': {
-                // 'AE':  5 10,
-                // 'ATN':  100 100,
-                // 'ATT': 1500 3000,
-                // 'BCH': 0.01 0.02,
-                // 'BNB': 0.06 0.12,
-                // 'BTC': 0.001 0.002,
-                // 'BTM': 40 80,
-                // 'BSV': 0.1,
-                // 'CNNS': 100 200,
-                // 'DASH': 0.002,
-                // 'DCN': 50000,
-                // 'DOGE': 10,
-                // 'ELF': 30 60,
-                // 'EOS': 0.1 0.2,
-                // 'ETC': 0.01 0.02,
-                // 'ETH': 0.01 0.015,
-                // 'HT': 0.5 1,
-                // 'ICX': 15 30,
-                // 'IOST': 500 1000,
-                // 'LTC': 0.085 0.17,
-                // 'MBT': 17,
-                // 'MECoin': 100,
-                // 'NEO': 0.05 0.1,
-                // 'NPXS': 7000 14000,
-                // 'OKB': 1 2,
-                // 'OMG': 1.5 3,
-                // 'QTUM': 1.5 3,
-                // 'RHOC': 200 400,
-                // 'RUFF': 250 500,
-                // 'SNT': 160 320,
-                // 'TRX': 20 40,
-                // 'USDT': 7.5 10,
-                // 'VDS': 2 4,
-                // 'WICC': 24 48,
-                // 'XRP': 0.25 0.5,
-                // 'ZIL': 150 300,
-                // 'ZLA': 200 400,
-                // 'ZRX': 8 16,
-                // },
-                // },
             },
             'precision': {
                 'amount': 6,
@@ -196,25 +154,6 @@ module.exports = class newtonxchange extends Exchange {
 
     async fetchMarkets (params = {}) {
         let response = await this.publicGetCommonSymbols ();
-        //
-        //     { code:   "0",
-        //        msg:   "suc",
-        //       data: [ {           symbol: "btcusdt",
-        //                       count_coin: "usdt",
-        //                 amount_precision:  3,
-        //                        base_coin: "btc",
-        //                  price_precision:  2         },
-        //               {           symbol: "ethusdt",
-        //                       count_coin: "usdt",
-        //                 amount_precision:  3,
-        //                        base_coin: "eth",
-        //                  price_precision:  2         },
-        //               {           symbol: "ethbtc",
-        //                       count_coin: "btc",
-        //                 amount_precision:  3,
-        //                        base_coin: "eth",
-        //                  price_precision:  6        }]}
-        //
         let result = [];
         let markets = response['data'];
         for (let i = 0; i < markets.length; i++) {
@@ -264,27 +203,6 @@ module.exports = class newtonxchange extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetUserAccount (params);
-        //
-        //     { code:   "0",
-        //        msg:   "suc",
-        //       data: { total_asset:   "0.00000000",
-        //                 coin_list: [ {      normal: "0.00000000",
-        //                                btcValuatin: "0.00000000",
-        //                                     locked: "0.00000000",
-        //                                       coin: "usdt"        },
-        //                              {      normal: "0.00000000",
-        //                                btcValuatin: "0.00000000",
-        //                                     locked: "0.00000000",
-        //                                       coin: "btc"         },
-        //                              {      normal: "0.00000000",
-        //                                btcValuatin: "0.00000000",
-        //                                     locked: "0.00000000",
-        //                                       coin: "eth"         },
-        //                              {      normal: "0.00000000",
-        //                                btcValuatin: "0.00000000",
-        //                                     locked: "0.00000000",
-        //                                       coin: "ren"         }]}}
-        //
         let balances = response['data']['coin_list'];
         let result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
@@ -314,37 +232,11 @@ module.exports = class newtonxchange extends Exchange {
             'symbol': this.marketId (symbol),
             'type': 'step0', // step1, step2 from most detailed to least detailed
         }, params));
-        //
-        //     { code:   "0",
-        //        msg:   "suc",
-        //       data: { tick: { asks: [ ["0.05824200", 9.77],
-        //                               ["0.05830000", 7.81],
-        //                               ["0.05832900", 8.59],
-        //                               ["0.10000000", 0.001]  ],
-        //                       bids: [ ["0.05780000", 8.25],
-        //                               ["0.05775000", 8.12],
-        //                               ["0.05773200", 8.57],
-        //                               ["0.00010000", 0.79]   ],
-        //                       time:    1533412622463            } } }
-        //
         let timestamp = this.safeInteger (response['data']['tick'], 'time');
         return this.parseOrderBook (response['data']['tick'], timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
-        //
-        //     { code:   "0",
-        //        msg:   "suc",
-        //       data: { symbol: "ETHBTC",
-        //                 high:  0.058426,
-        //                  vol:  19055.875,
-        //                 last:  0.058019,
-        //                  low:  0.055802,
-        //               change:  0.03437271,
-        //                  buy: "0.05780000",
-        //                 sell: "0.05824200",
-        //                 time:  1533413083184 } }
-        //
         let timestamp = this.safeInteger (ticker, 'time');
         let symbol = undefined;
         if (market === undefined) {
@@ -390,54 +282,11 @@ module.exports = class newtonxchange extends Exchange {
         let response = await this.publicGetGetTicker (this.extend ({
             'symbol': market['id'],
         }, params));
-        //
-        //     { code:   "0",
-        //        msg:   "suc",
-        //       data: { symbol: "ETHBTC",
-        //                 high:  0.058426,
-        //                  vol:  19055.875,
-        //                 last:  0.058019,
-        //                  low:  0.055802,
-        //               change:  0.03437271,
-        //                  buy: "0.05780000",
-        //                 sell: "0.05824200",
-        //                 time:  1533413083184 } }
-        //
         return this.parseTicker (response['data'], market);
     }
 
     parseTrade (trade, market = undefined) {
-        //
-        // public fetchTrades
-        //
-        //   {      amount:  0.88,
-        //     create_time:  1533414358000,
-        //           price:  0.058019,
-        //              id:  406531,
-        //            type: "sell"          },
-        //
-        // private fetchMyTrades, fetchOrder, fetchOpenOrders, fetchClosedOrders
-        //
-        //   {     volume: "0.010",
-        //           side: "SELL",
-        //        feeCoin: "BTC",
-        //          price: "0.05816200",
-        //            fee: "0.00000029",
-        //          ctime:  1533616674000,
-        //     deal_price: "0.00058162",
-        //             id:  415779,
-        //           type: "卖出",
-        //         bid_id:  3669539, // only in fetchMyTrades
-        //         ask_id:  3669583, // only in fetchMyTrades
-        //   }
-        //
         let timestamp = this.safeInteger (trade, 'ts');
-        // if (timestamp === undefined) {
-        //    let timestring = this.safeString (trade, 'created_at');
-        //    if (timestring !== undefined) {
-        //        timestamp = this.parse8601 ('2018-' + timestring + ':00Z');
-        //    }
-        // }
         let side = this.safeString2 (trade, 'type');
         if (side !== undefined) {
             side = side.toLowerCase ();
@@ -496,25 +345,6 @@ module.exports = class newtonxchange extends Exchange {
         let response = await this.publicGetGetTrades (this.extend ({
             'symbol': market['id'],
         }, params));
-        //
-        //     { code:   "0",
-        //        msg:   "suc",
-        //       data: [ {      amount:  0.88,
-        //                 create_time:  1533414358000,
-        //                       price:  0.058019,
-        //                          id:  406531,
-        //                        type: "sell"          },
-        //               {      amount:  4.88,
-        //                 create_time:  1533414331000,
-        //                       price:  0.058019,
-        //                          id:  406530,
-        //                        type: "buy"           },
-        //               {      amount:  0.5,
-        //                 create_time:  1533414311000,
-        //                       price:  0.058019,
-        //                          id:  406529,
-        //                        type: "sell"          } ] }
-        //
         return this.parseTrades (response['data'], market, since, limit);
     }
 
@@ -537,14 +367,6 @@ module.exports = class newtonxchange extends Exchange {
             'period': this.timeframes[timeframe], // in minutes
         };
         let response = await this.publicGetGetRecords (this.extend (request, params));
-        //
-        //     { code: '0',
-        //        msg: 'suc',
-        //       data:
-        //        [ [ 1533402420, 0.057833, 0.057833, 0.057833, 0.057833, 18.1 ],
-        //          [ 1533402480, 0.057833, 0.057833, 0.057833, 0.057833, 29.88 ],
-        //          [ 1533402540, 0.057833, 0.057833, 0.057833, 0.057833, 29.06 ] ] }
-        //
         return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
     }
 
@@ -591,11 +413,6 @@ module.exports = class newtonxchange extends Exchange {
             request['price'] = priceToPrecision;
         }
         let response = await this.privatePostCreateOrder (this.extend (request, params));
-        //
-        //     { code: '0',
-        //        msg: 'suc',
-        //       data: { 'order_id' : 34343 } }
-        //
         let result = this.parseOrder (response['data'], market);
         return this.extend (result, {
             'info': response,
@@ -641,75 +458,6 @@ module.exports = class newtonxchange extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        //
-        // createOrder
-        //
-        //     {"order_id":34343}
-        //
-        // fetchOrder, fetchOpenOrders, fetchClosedOrders
-        //
-        //     {          side:   "BUY",
-        //         total_price:   "0.10000000",
-        //          created_at:    1510993841000,
-        //           avg_price:   "0.10000000",
-        //           countCoin:   "btc",
-        //              source:    1,
-        //                type:    1,
-        //            side_msg:   "买入",
-        //              volume:   "1.000",
-        //               price:   "0.10000000",
-        //          source_msg:   "WEB",
-        //          status_msg:   "完全成交",
-        //         deal_volume:   "1.00000000",
-        //                  id:    424,
-        //       remain_volume:   "0.00000000",
-        //            baseCoin:   "eth",
-        //           tradeList: [ {     volume: "1.000",
-        //                             feeCoin: "YLB",
-        //                               price: "0.10000000",
-        //                                 fee: "0.16431104",
-        //                               ctime:  1510996571195,
-        //                          deal_price: "0.10000000",
-        //                                  id:  306,
-        //                                type: "买入"            } ],
-        //              status:    2                                 }
-        //
-        // fetchOrder
-        //
-        //      { trade_list: [ {     volume: "0.010",
-        //                           feeCoin: "BTC",
-        //                             price: "0.05816200",
-        //                               fee: "0.00000029",
-        //                             ctime:  1533616674000,
-        //                        deal_price: "0.00058162",
-        //                                id:  415779,
-        //                              type: "卖出"            } ],
-        //        order_info: {          side:   "SELL",
-        //                        total_price:   "0.010",
-        //                         created_at:    1533616673000,
-        //                          avg_price:   "0.05816200",
-        //                          countCoin:   "btc",
-        //                             source:    3,
-        //                               type:    2,
-        //                           side_msg:   "卖出",
-        //                             volume:   "0.010",
-        //                              price:   "0.00000000",
-        //                         source_msg:   "API",
-        //                         status_msg:   "完全成交",
-        //                        deal_volume:   "0.01000000",
-        //                                 id:    3669583,
-        //                      remain_volume:   "0.00000000",
-        //                           baseCoin:   "eth",
-        //                          tradeList: [ {     volume: "0.010",
-        //                                            feeCoin: "BTC",
-        //                                              price: "0.05816200",
-        //                                                fee: "0.00000029",
-        //                                              ctime:  1533616674000,
-        //                                         deal_price: "0.00058162",
-        //                                                 id:  415779,
-        //                                               type: "卖出"            } ],
-        //                             status:    2                                 } }
-        //
         let side = this.safeString (order, 'side');
         if (side !== undefined)
             side = side.toLowerCase ();
@@ -785,7 +533,7 @@ module.exports = class newtonxchange extends Exchange {
                 'currency': feeCurrency,
             };
         }
-        let result = {
+        return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -804,7 +552,6 @@ module.exports = class newtonxchange extends Exchange {
             'fee': fee,
             'trades': trades,
         };
-        return result;
     }
 
     async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -822,37 +569,6 @@ module.exports = class newtonxchange extends Exchange {
             request['pageSize'] = limit;
         }
         let response = await this[method] (this.extend (request, params));
-        //
-        //     { code:   "0",
-        //        msg:   "suc",
-        //       data: {     count:    1,
-        //               orderList: [ {          side:   "SELL",
-        //                                total_price:   "0.010",
-        //                                 created_at:    1533616673000,
-        //                                  avg_price:   "0.05816200",
-        //                                  countCoin:   "btc",
-        //                                     source:    3,
-        //                                       type:    2,
-        //                                   side_msg:   "卖出",
-        //                                     volume:   "0.010",
-        //                                      price:   "0.00000000",
-        //                                 source_msg:   "API",
-        //                                 status_msg:   "完全成交",
-        //                                deal_volume:   "0.01000000",
-        //                                         id:    3669583,
-        //                              remain_volume:   "0.00000000",
-        //                                   baseCoin:   "eth",
-        //                                  tradeList: [ {     volume: "0.010",
-        //                                                    feeCoin: "BTC",
-        //                                                      price: "0.05816200",
-        //                                                        fee: "0.00000029",
-        //                                                      ctime:  1533616674000,
-        //                                                 deal_price: "0.00058162",
-        //                                                         id:  415779,
-        //                                                       type: "卖出"            } ],
-        //                                     status:    2                                 } ] } }
-        //
-        // privateGetNewOrder returns resultList, privateGetAllOrder returns orderList
         let orders = this.safeValue2 (response['data'], 'orderList', 'resultList', []);
         return this.parseOrders (orders, market, since, limit);
     }
@@ -877,43 +593,6 @@ module.exports = class newtonxchange extends Exchange {
             'symbol': market['id'],
         };
         let response = await this.privateGetOrderInfo (this.extend (request, params));
-        //
-        //     { code:   "0",
-        //        msg:   "suc",
-        //       data: { trade_list: [ {     volume: "0.010",
-        //                                  feeCoin: "BTC",
-        //                                    price: "0.05816200",
-        //                                      fee: "0.00000029",
-        //                                    ctime:  1533616674000,
-        //                               deal_price: "0.00058162",
-        //                                       id:  415779,
-        //                                     type: "卖出"            } ],
-        //               order_info: {          side:   "SELL",
-        //                               total_price:   "0.010",
-        //                                created_at:    1533616673000,
-        //                                 avg_price:   "0.05816200",
-        //                                 countCoin:   "btc",
-        //                                    source:    3,
-        //                                      type:    2,
-        //                                  side_msg:   "卖出",
-        //                                    volume:   "0.010",
-        //                                     price:   "0.00000000",
-        //                                source_msg:   "API",
-        //                                status_msg:   "完全成交",
-        //                               deal_volume:   "0.01000000",
-        //                                        id:    3669583,
-        //                             remain_volume:   "0.00000000",
-        //                                  baseCoin:   "eth",
-        //                                 tradeList: [ {     volume: "0.010",
-        //                                                   feeCoin: "BTC",
-        //                                                     price: "0.05816200",
-        //                                                       fee: "0.00000029",
-        //                                                     ctime:  1533616674000,
-        //                                                deal_price: "0.00058162",
-        //                                                        id:  415779,
-        //                                                      type: "卖出"            } ],
-        //                                    status:    2                                 } } }
-        //
         return this.parseOrder (response['data']['order_info'], market);
     }
 
@@ -932,22 +611,6 @@ module.exports = class newtonxchange extends Exchange {
             request['pageSize'] = limit;
         }
         let response = await this.privateGetAllTrade (this.extend (request, params));
-        //
-        //     { code:   "0",
-        //        msg:   "suc",
-        //       data: {      count:    1,
-        //               resultList: [ {     volume: "0.010",
-        //                                     side: "SELL",
-        //                                  feeCoin: "BTC",
-        //                                    price: "0.05816200",
-        //                                      fee: "0.00000029",
-        //                                    ctime:  1533616674000,
-        //                               deal_price: "0.00058162",
-        //                                       id:  415779,
-        //                                     type: "卖出",
-        //                                   bid_id:  3669539,
-        //                                   ask_id:  3669583        } ] } }
-        //
         let trades = this.safeValue (response['data'], 'resultList', []);
         return this.parseTrades (trades, market, since, limit);
     }
@@ -960,20 +623,6 @@ module.exports = class newtonxchange extends Exchange {
         };
         // https://github.com/UEX-OpenAPI/API_Docs_en/wiki/Query-deposit-address-of-assigned-token
         let response = await this.privateGetDepositAddressList (this.extend (request, params));
-        //
-        //     {
-        //         "code": "0",
-        //         "msg": "suc",
-        //         "data": {
-        //             "addressList": [
-        //                 {
-        //                     "address": "0x198803ef8e0df9e8812c0105421885e843e6d2e2",
-        //                     "tag": "",
-        //                 },
-        //             ],
-        //         },
-        //     }
-        //
         let data = this.safeValue (response, 'data');
         if (data === undefined) {
             throw new InvalidAddress (this.id + ' privateGetDepositAddressList() returned no data');
@@ -1014,38 +663,6 @@ module.exports = class newtonxchange extends Exchange {
         // https://github.com/UEX-OpenAPI/API_Docs_en/wiki/Query-deposit-record-of-assigned-token
         // https://github.com/UEX-OpenAPI/API_Docs_en/wiki/Query-withdraw-record-of-assigned-token
         const response = await this[method] (this.extend (request, params));
-        //
-        //     { code:   "0",
-        //        msg:   "suc",
-        //       data: { depositList: [ {     createdAt:  1533615955000,
-        //                                       amount: "0.01",
-        //                                     updateAt:  1533616311000,
-        //                                         txid: "0x0922fde6ab8270fe6eb31cb5a37dc732d96dc8193f81cf46c4ab29fde…",
-        //                                          tag: "",
-        //                                confirmations:  30,
-        //                                    addressTo: "0x198803ef8e0df9e8812c0105421885e843e6d2e2",
-        //                                       status:  1,
-        //                                         coin: "ETH"                                                           } ] } }
-        //
-        //     {
-        //         "code": "0",
-        //         "msg": "suc",
-        //         "data": {
-        //             "withdrawList": [{
-        //                 "updateAt": 1540344965000,
-        //                 "createdAt": 1539311971000,
-        //                 "status": 0,
-        //                 "addressTo": "tz1d7DXJXU3AKWh77gSmpP7hWTeDYs8WF18q",
-        //                 "tag": "100128877",
-        //                 "id": 5,
-        //                 "txid": "",
-        //                 "fee": 0.0,
-        //                 "amount": "1",
-        //                 "symbol": "XTZ"
-        //             }]
-        //         }
-        //     }
-        //
         const transactions = this.safeValue (response['data'], transactionType + 'List');
         return this.parseTransactionsByType (type, transactions, code, since, limit);
     }
@@ -1070,34 +687,6 @@ module.exports = class newtonxchange extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
-        //
-        // deposits
-        //
-        //      {     createdAt:  1533615955000,
-        //               amount: "0.01",
-        //             updateAt:  1533616311000,
-        //                 txid: "0x0922fde6ab8270fe6eb31cb5a37dc732d96dc8193f81cf46c4ab29fde…",
-        //                  tag: "",
-        //        confirmations:  30,
-        //            addressTo: "0x198803ef8e0df9e8812c0105421885e843e6d2e2",
-        //               status:  1,
-        //                 coin: "ETH"                                                           } ] } }
-        //
-        // withdrawals
-        //
-        //     {
-        //         "updateAt": 1540344965000,
-        //         "createdAt": 1539311971000,
-        //         "status": 0,
-        //         "addressTo": "tz1d7DXJXU3AKWh77gSmpP7hWTeDYs8WF18q",
-        //         "tag": "100128877",
-        //         "id": 5,
-        //         "txid": "",
-        //         "fee": 0.0,
-        //         "amount": "1",
-        //         "symbol": "XTZ"
-        //     }
-        //
         const id = this.safeString (transaction, 'id');
         const txid = this.safeString (transaction, 'txid');
         let timestamp = this.safeInteger (transaction, 'createdAt');
@@ -1218,9 +807,6 @@ module.exports = class newtonxchange extends Exchange {
         if (body.length < 2)
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
-            //
-            // {"code":"0","msg":"suc","data":{}}
-            //
             const code = this.safeString (response, 'code');
             // const message = this.safeString (response, 'msg');
             const feedback = this.id + ' ' + this.json (response);
