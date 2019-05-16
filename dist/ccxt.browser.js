@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.529'
+const version = '1.18.534'
 
 Exchange.ccxtVersion = version
 
@@ -44879,7 +44879,7 @@ module.exports = class hitbtc2 extends hitbtc {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, ExchangeNotAvailable, InvalidOrder, OrderNotFound, InsufficientFunds } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, ExchangeError, ExchangeNotAvailable, InvalidOrder, OrderNotFound, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -44908,6 +44908,8 @@ module.exports = class huobipro extends Exchange {
                 'fetchMyTrades': true,
                 'withdraw': true,
                 'fetchCurrencies': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -45892,6 +45894,138 @@ module.exports = class huobipro extends Exchange {
                 }
             }
         }
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a code argument');
+        }
+        if (limit === undefined || limit > 100) {
+            limit = 100;
+        }
+        await this.loadMarkets ();
+        const request = {};
+        let currency = this.currency (code);
+        request['currency'] = currency['id'];
+        request['type'] = 'deposit';
+        request['from'] = 0; // From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
+        request['size'] = limit; // Maximum transfers that can be fetched is 100
+        let response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
+        // return response
+        return this.parseTransactions (response['data'], currency, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a code argument');
+        }
+        if (limit === undefined || limit > 100) {
+            limit = 100;
+        }
+        await this.loadMarkets ();
+        const request = {};
+        let currency = this.currency (code);
+        request['currency'] = currency['id'];
+        request['type'] = 'withdraw'; // Huobi uses withdraw for withdrawals
+        request['from'] = 0; // From 'id' ... if you want to get results after a particular Transaction id, pass the id in params.from
+        request['size'] = limit; // Maximum transfers that can be fetched is 100
+        let response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
+        // return response
+        return this.parseTransactions (response['data'], currency, since, limit);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         'id': 8211029,
+        //         'type': 'deposit',
+        //         'currency': 'eth',
+        //         'chain': 'eth',
+        //         'tx-hash': 'bd315....',
+        //         'amount': 0.81162421,
+        //         'address': '4b8b....',
+        //         'address-tag': '',
+        //         'fee': 0,
+        //         'state': 'safe',
+        //         'created-at': 1542180380965,
+        //         'updated-at': 1542180788077
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         'id': 6908275,
+        //         'type': 'withdraw',
+        //         'currency': 'btc',
+        //         'chain': 'btc',
+        //         'tx-hash': 'c1a1a....',
+        //         'amount': 0.80257005,
+        //         'address': '1QR....',
+        //         'address-tag': '',
+        //         'fee': 0.0005,
+        //         'state': 'confirmed',
+        //         'created-at': 1552107295685,
+        //         'updated-at': 1552108032859
+        //     }
+        //
+        let timestamp = this.safeInteger (transaction, 'created-at');
+        let updated = this.safeInteger (transaction, 'updated-at');
+        let code = this.safeCurrencyCode (transaction, 'currency');
+        let type = this.safeString (transaction, 'type');
+        if (type === 'withdraw') {
+            type = 'withdrawal';
+        }
+        let status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        let tag = this.safeString (transaction, 'address-tag');
+        let feeCost = this.safeFloat (transaction, 'fee');
+        if (feeCost !== undefined) {
+            feeCost = Math.abs (feeCost);
+        }
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'tx-hash'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': this.safeString (transaction, 'address'),
+            'tag': tag,
+            'type': type,
+            'amount': this.safeFloat (transaction, 'amount'),
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+                'rate': undefined,
+            },
+        };
+    }
+
+    parseTransactionStatus (status) {
+        let statuses = {
+            // deposit statuses
+            'unknown': 'failed',
+            'confirming': 'pending',
+            'confirmed': 'ok',
+            'safe': 'ok',
+            'orphan': 'failed',
+            // withdrawal statuses
+            'submitted': 'pending',
+            'canceled': 'canceled',
+            'reexamine': 'pending',
+            'reject': 'failed',
+            'pass': 'pending',
+            'wallet-reject': 'failed',
+            // 'confirmed': 'ok', // present in deposit statuses
+            'confirm-error': 'failed',
+            'repealed': 'failed',
+            'wallet-transfer': 'pending',
+            'pre-transfer': 'pending',
+        };
+        return this.safeString (statuses, status, status);
     }
 };
 
@@ -55008,7 +55142,7 @@ module.exports = class lykke extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchOHLCV': false,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchOrder': true,
@@ -55041,6 +55175,7 @@ module.exports = class lykke extends Exchange {
                 'mobile': {
                     'get': [
                         'Market/{market}',
+                        'Trades/{AssetPairId}',
                     ],
                 },
                 'public': {
@@ -55084,6 +55219,68 @@ module.exports = class lykke extends Exchange {
                 },
             },
         });
+    }
+
+    parseTrade (trade, market) {
+        //
+        //  public fetchTrades
+        //
+        //   {
+        //     "id": "d5983ab8-e9ec-48c9-bdd0-1b18f8e80a71",
+        //     "assetPairId": "BTCUSD",
+        //     "dateTime": "2019-05-15T06:52:02.147Z",
+        //     "volume": 0.00019681,
+        //     "index": 0,
+        //     "price": 8023.333,
+        //     "action": "Buy"
+        //   }
+        //
+        let symbol = undefined;
+        if (market === undefined) {
+            let marketId = this.safeString (trade, 'AssetPairId');
+            market = this.safeValue (this.markets_by_id, marketId);
+        }
+        if (market) {
+            symbol = market['symbol'];
+        }
+        const id = this.safeString (trade, 'id');
+        const timestamp = this.parse8601 (this.safeString (trade, 'dateTime'));
+        let side = this.safeString (trade, 'action');
+        if (side !== undefined) {
+            side = side.toLowerCase ();
+        }
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'volume');
+        const cost = price * amount;
+        return {
+            'id': id,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': undefined,
+            'order': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
+        };
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (limit === undefined) {
+            limit = 100;
+        }
+        const request = {
+            'AssetPairId': market['id'],
+            'skip': 0,
+            'take': limit,
+        };
+        const response = await this.mobileGetTradesAssetPairId (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -55347,7 +55544,10 @@ module.exports = class lykke extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
+        if (api === 'mobile') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
+        } else if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else if (api === 'private') {

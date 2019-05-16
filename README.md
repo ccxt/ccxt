@@ -226,13 +226,13 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.529/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@1.18.529/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.534/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.18.534/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.529/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.534/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -344,7 +344,7 @@ const ccxt = require ('ccxt');
 (async function () {
     let kraken    = new ccxt.kraken ()
     let bitfinex  = new ccxt.bitfinex ({ verbose: true })
-    let huobi     = new ccxt.huobi ()
+    let huobipro  = new ccxt.huobipro ()
     let okcoinusd = new ccxt.okcoinusd ({
         apiKey: 'YOUR_PUBLIC_API_KEY',
         secret: 'YOUR_SECRET_PRIVATE_KEY',
@@ -361,11 +361,11 @@ const ccxt = require ('ccxt');
 
     console.log (kraken.id,    await kraken.loadMarkets ())
     console.log (bitfinex.id,  await bitfinex.loadMarkets  ())
-    console.log (huobi.id,     await huobi.loadMarkets ())
+    console.log (huobipro.id,  await huobipro.loadMarkets ())
 
     console.log (kraken.id,    await kraken.fetchOrderBook (kraken.symbols[0]))
     console.log (bitfinex.id,  await bitfinex.fetchTicker ('BTC/USD'))
-    console.log (huobi.id,     await huobi.fetchTrades ('ETH/CNY'))
+    console.log (huobipro.id,  await huobipro.fetchTrades ('ETH/CNY'))
 
     console.log (okcoinusd.id, await okcoinusd.fetchBalance ())
 
@@ -389,10 +389,10 @@ const ccxt = require ('ccxt');
 
 import ccxt
 
-hitbtc = ccxt.hitbtc({'verbose': True})
-bitmex = ccxt.bitmex()
-huobi  = ccxt.huobi()
-exmo   = ccxt.exmo({
+hitbtc   = ccxt.hitbtc({'verbose': True})
+bitmex   = ccxt.bitmex()
+huobipro = ccxt.huobipro()
+exmo     = ccxt.exmo({
     'apiKey': 'YOUR_PUBLIC_API_KEY',
     'secret': 'YOUR_SECRET_PRIVATE_KEY',
 })
@@ -414,11 +414,11 @@ hitbtc_markets = hitbtc.load_markets()
 
 print(hitbtc.id, hitbtc_markets)
 print(bitmex.id, bitmex.load_markets())
-print(huobi.id, huobi.load_markets())
+print(huobipro.id, huobipro.load_markets())
 
 print(hitbtc.fetch_order_book(hitbtc.symbols[0]))
 print(bitmex.fetch_ticker('BTC/USD'))
-print(huobi.fetch_trades('LTC/CNY'))
+print(huobipro.fetch_trades('LTC/CNY'))
 
 print(exmo.fetch_balance())
 

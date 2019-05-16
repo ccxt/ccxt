@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.529';
+$version = '1.18.534';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.529';
+    const VERSION = '1.18.534';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -1568,7 +1568,6 @@ class Exchange {
         $array = is_array ($transactions) ? array_values ($transactions) : array ();
         $result = array ();
         foreach ($array as $transaction) {
-            var_dump ($params);
             $result[] = array_merge ($this->parse_transaction ($transaction, $currency), $params);
         }
         $result = $this->sort_by ($result, 'timestamp');
