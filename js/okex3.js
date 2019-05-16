@@ -27,6 +27,7 @@ module.exports = class okex3 extends Exchange {
                 'fetchWithdrawals': true,
                 'fetchTransactions': false,
                 'fetchMyTrades': false, // they don't have it
+                'fetchDepositAddress': true,
                 'withdraw': true,
                 'futures': true,
             },
@@ -166,6 +167,7 @@ module.exports = class okex3 extends Exchange {
                 },
                 'swap': {
                     'get': [
+                        'position',
                         '{instrument_id}/position',
                         'accounts',
                         '{instrument_id}/accounts',
@@ -414,8 +416,7 @@ module.exports = class okex3 extends Exchange {
             },
             'options': {
                 'fetchMarkets': [ 'spot', 'futures', 'swap' ],
-                'allTypes': [ 'spot', 'futures', 'swap' ],
-                'defaultType': 'spot',
+                'defaultType': 'spot', // 'account', 'spot', 'margin', 'futures', 'swap'
                 'auth': {
                     'time': 'public',
                     'currencies': 'private',
@@ -440,12 +441,7 @@ module.exports = class okex3 extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const defaultType = this.safeValue (this.options, 'fetchMarkets');
-        const type = this.safeValue (params, 'type', defaultType);
-        let types = type;
-        if (!Array.isArray (types)) {
-            types = [ types ];
-        }
+        const types = this.safeValue (this.options, 'fetchMarkets');
         let result = [];
         for (let i = 0; i < types.length; i++) {
             const markets = await this.fetchMarketsByType (types[i], this.omit (params, 'type'));
@@ -828,22 +824,7 @@ module.exports = class okex3 extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         const defaultType = this.safeValue (this.options, 'defaultType');
         let type = this.safeValue (params, 'type', defaultType);
-        if (Array.isArray (type)) {
-            type = type[0];
-        }
         return await this.fetchTickersByType (type, symbols, this.omit (params, 'type'));
-    }
-
-    async fetchSpotTickers (symbols = undefined, params = {}) {
-        return await this.fetchTickersByType ('spot', symbols, params);
-    }
-
-    async fetchFuturesTickers (symbols = undefined, params = {}) {
-        return await this.fetchTickersByType ('futures', symbols, params);
-    }
-
-    async fetchSwapTickers (symbols = undefined, params = {}) {
-        return await this.fetchTickersByType ('swap', symbols, params);
     }
 
     parseTrade (trade, market = undefined) {
@@ -1011,15 +992,17 @@ module.exports = class okex3 extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const defaultType = this.safeValue (this.options, 'defaultType');
-        let type = this.safeValue (params, 'type', defaultType);
-        if (Array.isArray (type)) {
-            type = type[0];
+        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType');
+        const type = this.safeValue (params, 'type', defaultType);
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + " fetchBalance requires a type parameter (one of 'account', 'spot', 'margin', 'futures', 'swap').");
         }
-        const method = (type === 'wallet') ? 'accountGetWallet' : (type + 'GetAccounts');
-        const response = await this[method] (this.omit (params, 'type'));
+        let method = type;
+        method += (type === 'account') ? 'GetWallet' : 'GetAccounts';
+        const query = this.omit (params, 'type');
+        const response = await this[method] (query);
         const result = { 'info': response };
-        if ((type === 'wallet') || (type === 'spot')) {
+        if ((type === 'account') || (type === 'spot')) {
             //
             // wallet
             //
@@ -1163,9 +1146,12 @@ module.exports = class okex3 extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const margin = this.safeString (params, 'margin', false);
-        const marketType = margin ? 'marginPost' : (market['type'] + 'Post');
-        let method = marketType + 'CancelOrder';
+        const defaultType = this.safeString2 (this.options, 'cancelOrder', 'defaultType');
+        const type = this.safeValue (params, 'type', defaultType);
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + " cancelOrder requires a type parameter (one of 'spot', 'margin', 'futures', 'swap').");
+        }
+        let method = type + 'PostCancelOrder';
         const request = {
             'instrument_id': market['id'],
         };
@@ -1182,7 +1168,7 @@ module.exports = class okex3 extends Exchange {
             method += 'OrderId';
             request['order_id'] = id;
         }
-        const query = this.omit (params, 'margin');
+        const query = this.omit (params, 'type');
         const response = await this[method] (this.extend (request, query));
         const result = ('result' in response) ? response : this.safeValue (response, market['id'], {});
         //
@@ -1381,10 +1367,13 @@ module.exports = class okex3 extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
         }
+        const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType');
+        const type = this.safeValue (params, 'type', defaultType);
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + " fetchOrder requires a type parameter (one of 'spot', 'margin', 'futures', 'swap').");
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const margin = this.safeValue (params, 'margin', false);
-        const type = margin ? 'margin' : market['type'];
         const instrumentId = (market['futures'] || market['swap']) ? 'InstrumentId' : '';
         let method = type + 'GetOrders' + instrumentId;
         const request = {
@@ -1400,7 +1389,7 @@ module.exports = class okex3 extends Exchange {
             method += 'OrderId';
             request['order_id'] = id;
         }
-        const query = this.omit (params, 'margin');
+        const query = this.omit (params, 'type');
         const response = await this[method] (this.extend (request, query));
         //
         // spot, margin
@@ -1453,6 +1442,11 @@ module.exports = class okex3 extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrdersByState requires a symbol argument');
         }
+        const defaultType = this.safeString2 (this.options, 'fetchOrdersByState', 'defaultType');
+        const type = this.safeValue (params, 'type', defaultType);
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + " fetchOrdersByState requires a type parameter (one of 'spot', 'margin', 'futures', 'swap').");
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         // '-2': failed,
@@ -1468,13 +1462,11 @@ module.exports = class okex3 extends Exchange {
             'instrument_id': market['id'],
             'state': state,
         };
-        const margin = this.safeValue (params, 'margin', false);
-        const type = margin ? 'margin' : market['type'];
         let method = type + 'GetOrders';
         if (market['futures'] || market['swap']) {
             method += 'InstrumentId';
         }
-        const query = this.omit (params, 'margin');
+        const query = this.omit (params, 'type');
         const response = await this[method] (this.extend (request, query));
         //
         // spot, margin
@@ -1593,7 +1585,11 @@ module.exports = class okex3 extends Exchange {
         //
         const address = this.safeString (depositAddress, 'address');
         const tag = this.safeString2 (depositAddress, 'tag', 'payment_id');
-        const code = this.commonCurrencyCode (this.safeString (depositAddress, 'currency'));
+        let currencyId = this.safeString (depositAddress, 'currency');
+        let code = undefined;
+        if (currencyId !== undefined) {
+            code = this.commonCurrencyCode (currencyId.toUpperCase ());
+        }
         this.checkAddress (address);
         return {
             'currency': code,
@@ -1619,6 +1615,10 @@ module.exports = class okex3 extends Exchange {
         //     ]
         //
         const addresses = this.parseDepositAddresses (response);
+        const numAddresses = addresses.length;
+        if (numAddresses < 1) {
+            throw new InvalidAddress (this.id + ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');
+        }
         return addresses[0];
     }
 
@@ -1816,6 +1816,52 @@ module.exports = class okex3 extends Exchange {
                 'cost': feeCost,
             },
         };
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            if (code in this.currencies) {
+                currency = this.currency (code);
+                request['currency'] = currency['id'];
+            } else if (code in this.markets) {
+                const x = 1;
+                console.log (x);
+            }
+        }
+        if (since !== undefined) {
+            request['start'] = parseInt (since / 1000);
+        }
+        const response = await this.privatePostLedgers (this.extend (request, params));
+        // {  error: [],
+        //   result: { ledger: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
+        //                                                   time:  1520103488.314,
+        //                                                   type: "withdrawal",
+        //                                                 aclass: "currency",
+        //                                                  asset: "XETH",
+        //                                                 amount: "-0.2805800000",
+        //                                                    fee: "0.0050000000",
+        //                                                balance: "0.0000051000"           },
+        const result = this.safeValue (response, 'result', {});
+        const ledger = this.safeValue (result, 'ledger', {});
+        let keys = Object.keys (ledger);
+        let items = [];
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const value = ledger[key];
+            value['id'] = key;
+            items.push (value);
+        }
+        return this.parseLedger (items, currency, since, limit);
+        // let main = await this.fetchMainAccountLedger (code, since, limit, params);
+        // let spot = [];
+        // if (code !== undefined) {
+        //     spot = await this.fetchSpotAccountLedger (code, since, limit, params);
+        // }
+        // let ledger = this.arrayConcat (main, spot);
+        // return ledger;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
