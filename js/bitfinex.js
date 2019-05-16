@@ -102,7 +102,6 @@ module.exports = class bitfinex extends Exchange {
                         'symbols',
                         'symbols_details',
                         'tickers',
-                        'today',
                         'trades/{symbol}',
                     ],
                 },
