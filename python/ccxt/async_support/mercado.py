@@ -387,7 +387,7 @@ class mercado (Exchange):
             self.safe_float(ohlcv, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {

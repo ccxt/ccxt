@@ -57,7 +57,11 @@ class bitfinex2 (bitfinex):
             'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
-                'api': 'https://api.bitfinex.com',
+                'api': {
+                    'v1': 'https://api.bitfinex.com',
+                    'public': 'https://api-pub.bitfinex.com',
+                    'private': 'https://api.bitfinex.com',
+                },
                 'www': 'https://www.bitfinex.com',
                 'doc': [
                     'https://docs.bitfinex.com/v2/docs/',
@@ -564,7 +568,7 @@ class bitfinex2 (bitfinex):
             request = api + request
         else:
             request = self.version + request
-        url = self.urls['api'] + '/' + request
+        url = self.urls['api'][api] + '/' + request
         if api == 'public':
             if query:
                 url += '?' + self.urlencode(query)

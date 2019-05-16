@@ -28,6 +28,11 @@ Want this place? Contact us: info@ccxt.trade
 
 `Placehodler <https://ccxt.trade/advertise/>`__
 
+See Also
+--------
+
+-  \ `Nomics API <https://p.nomics.com/cryptocurrency-bitcoin-api>`__\   `Nomics API <https://p.nomics.com/cryptocurrency-bitcoin-api>`__  —  enterprise-grade crypto market data API for your fund, smart contract, or app.
+
 Certified Cryptocurrency Exchanges
 ----------------------------------
 
@@ -377,14 +382,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.534/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.18.534/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.535/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.535/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.534/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.535/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

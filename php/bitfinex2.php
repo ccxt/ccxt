@@ -53,7 +53,11 @@ class bitfinex2 extends bitfinex {
             'rateLimit' => 1500,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
-                'api' => 'https://api.bitfinex.com',
+                'api' => array (
+                    'v1' => 'https://api.bitfinex.com',
+                    'public' => 'https://api-pub.bitfinex.com',
+                    'private' => 'https://api.bitfinex.com',
+                ),
                 'www' => 'https://www.bitfinex.com',
                 'doc' => array (
                     'https://docs.bitfinex.com/v2/docs/',
@@ -605,7 +609,7 @@ class bitfinex2 extends bitfinex {
             $request = $api . $request;
         else
             $request = $this->version . $request;
-        $url = $this->urls['api'] . '/' . $request;
+        $url = $this->urls['api'][$api] . '/' . $request;
         if ($api === 'public') {
             if ($query) {
                 $url .= '?' . $this->urlencode ($query);
