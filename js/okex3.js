@@ -240,6 +240,7 @@ module.exports = class okex3 extends Exchange {
                     // --------------------------------------------------------
                     // undocumented
                     'failure to get a peer from the ring-balancer': ExchangeError, // {"message":"failure to get a peer from the ring-balancer"}
+                    '4010': PermissionDenied, // {"code":4010,"message":"For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings "}
                     // --------------------------------------------------------
                     // common
                     '30001': AuthenticationError, // {"code": 30001,"message":"request header "OK_ACCESS_KEY" cannot be blank"}
@@ -637,10 +638,6 @@ module.exports = class okex3 extends Exchange {
         //     https://www.okex.com/api/account/v3/currencies
         // it will still reply with {"code":30001,"message":"OK-ACCESS-KEY header is required"}
         // if you attempt to access it without authentication
-        if (this.checkRequiredCredentials (false)) {
-            // need to design a way to not require api credentials for currencies
-            return; // what ?
-        }
         const response = await this.accountGetCurrencies (params);
         //
         //     [
@@ -1596,11 +1593,9 @@ module.exports = class okex3 extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            // 'currency': currency['id'],
+            'currency': currency['id'],
         };
         const response = await this.accountGetDepositAddress (this.extend (request, params));
-        console.log (response);
-        process.exit();
         //
         //     [
         //         {
@@ -1613,67 +1608,44 @@ module.exports = class okex3 extends Exchange {
         return addresses[0];
     }
 
-    // async fetchDepositAddresses (code, params = {}) {
-    //     await this.loadMarkets ();
-    //     const currency = this.currency (code);
-    //     const request = {
-    //         'currency': currency['id'],
-    //     };
-    //     const response = await this.accountGetDepositAddress (this.extend (request, params));
-    //     console.log (response);
-    //     process.exit ();
-    //     const success = this.safeValue (response, 'success');
-    //     if (success === undefined || !success) {
-    //         throw new InvalidAddress (this.id + ' fetchDepositAddress returned an empty response – create the deposit address in the user settings first.');
-    //     }
-    //     const address = this.safeString (response, 'address');
-    //     const tag = this.safeString (response, 'addressTag');
-    //     this.checkAddress (address);
-    //     return {
-    //         'currency': code,
-    //         'address': this.checkAddress (address),
-    //         'tag': tag,
-    //         'info': response,
-    //     };
-    // }
-
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        // if (amount < 0.01)
-        //     throw new ExchangeError (this.id + ' withdraw() requires amount > 0.01');
-        // for some reason they require to supply a pair of currencies for withdrawing one currency
-        let currencyId = currency['id'] + '_usd';
+        const currency = this.currency (code);
         if (tag) {
             address = address + ':' + tag;
         }
-        let request = {
-            'symbol': currencyId,
-            'withdraw_address': address,
-            'withdraw_amount': amount,
-            'target': 'address', // or 'okcn', 'okcom', 'okex'
-        };
-        let query = params;
-        if ('chargefee' in query) {
-            request['chargefee'] = query['chargefee'];
-            query = this.omit (query, 'chargefee');
-        } else {
-            throw new ExchangeError (this.id + ' withdraw() requires a `chargefee` parameter');
+        const fee = this.safeString (params, 'fee');
+        if (fee === undefined) {
+            throw new ExchangeError (this.id + " withdraw() requires a `fee` string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
         }
+        const request = {
+            'currency': currency['id'],
+            'to_address': address,
+            'destination': '4', // 2 = OKCoin International, 3 = OKEx 4 = others
+            'amount': this.numberToString (amount),
+            'fee': fee, // String. Network transaction fee ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set as 0. Withdrawal to external digital asset address requires network transaction fee.
+        };
         if (this.password) {
             request['trade_pwd'] = this.password;
-        } else if ('password' in query) {
-            request['trade_pwd'] = query['password'];
-            query = this.omit (query, 'password');
-        } else if ('trade_pwd' in query) {
-            request['trade_pwd'] = query['trade_pwd'];
-            query = this.omit (query, 'trade_pwd');
+        } else if ('password' in params) {
+            request['trade_pwd'] = params['password'];
+        } else if ('trade_pwd' in params) {
+            request['trade_pwd'] = params['trade_pwd'];
         }
-        let passwordInRequest = ('trade_pwd' in request);
-        if (!passwordInRequest)
+        const query = this.omit (params, [ 'fee', 'password', 'trade_pwd' ]);
+        if (!('trade_pwd' in request)) {
             throw new ExchangeError (this.id + ' withdraw() requires this.password set on the exchange instance or a password / trade_pwd parameter');
-        let response = await this.privatePostWithdraw (this.extend (request, query));
+        }
+        const response = await this.accountPostWithdrawal (this.extend (request, query));
+        //
+        //     {
+        //         "amount":"0.1",
+        //         "withdrawal_id":"67485",
+        //         "currency":"btc",
+        //         "result":true
+        //     }
+        //
         return {
             'info': response,
             'id': this.safeString (response, 'withdraw_id'),
