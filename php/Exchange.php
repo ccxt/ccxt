@@ -1568,7 +1568,6 @@ class Exchange {
         $array = is_array ($transactions) ? array_values ($transactions) : array ();
         $result = array ();
         foreach ($array as $transaction) {
-            var_dump ($params);
             $result[] = array_merge ($this->parse_transaction ($transaction, $currency), $params);
         }
         $result = $this->sort_by ($result, 'timestamp');
