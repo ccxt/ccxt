@@ -23,6 +23,9 @@ module.exports = class okex3 extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': false, // see below
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
+                'fetchTransactions': false,
                 'withdraw': true,
                 'futures': true,
             },
@@ -422,6 +425,7 @@ module.exports = class okex3 extends Exchange {
                 'allTypes': [ 'spot', 'futures', 'swap' ],
                 'defaultType': 'spot',
                 'auth': {
+                    'time': 'public',
                     'currencies': 'private',
                     'instruments': 'public',
                     'rate': 'public',
@@ -430,6 +434,17 @@ module.exports = class okex3 extends Exchange {
                 },
             },
         });
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.generalGetTime (params);
+        //
+        //     {
+        //         "iso": "2015-01-07T23:47:25.201Z",
+        //         "epoch": 1420674445.201
+        //     }
+        //
+        return this.parse8601 (this.safeString (response, 'iso'));
     }
 
     async fetchMarkets (params = {}) {
