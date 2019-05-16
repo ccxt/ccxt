@@ -25,6 +25,10 @@ Want this place? Contact us: info@ccxt.trade
 
 [![Placehodler](https://user-images.githubusercontent.com/1707/48204972-43569e00-e37c-11e8-9cf3-b86e3dc19ee9.png)](https://ccxt.trade/advertise/)
 
+## See Also
+
+- <sub>[![Nomics API](https://user-images.githubusercontent.com/1294454/53875704-2ffbcc80-4016-11e9-828b-337409955609.png)](https://nomics.com)</sub>&nbsp; **[Nomics API](https://p.nomics.com/cryptocurrency-bitcoin-api)** &nbsp;— &nbsp;enterprise-grade crypto market data API for your fund, smart contract, or app.
+
 ## Certified Cryptocurrency Exchanges
 
 
