@@ -26,6 +26,7 @@ module.exports = class okex3 extends Exchange {
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
                 'fetchTransactions': false,
+                'fetchMyTrades': false, // they don't have it
                 'withdraw': true,
                 'futures': true,
             },
@@ -1230,7 +1231,7 @@ module.exports = class okex3 extends Exchange {
             '2': 'sell', // open short
             '3': 'sell', // close long
             '4': 'buy', // close short
-        }
+        };
         return this.safeString (sides, side, side);
     }
 
