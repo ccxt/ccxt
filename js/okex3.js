@@ -1652,6 +1652,158 @@ module.exports = class okex3 extends Exchange {
         };
     }
 
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let method = 'accountGetDepositHistory';
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['code'] = currency['code'];
+            method += 'Currency';
+        }
+        const response = await this[method] (this.extend (request, params));
+        return this.parseTransactions (response, currency, since, limit, params);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let method = 'accountGetWithdrawalHistory';
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['code'] = currency['code'];
+            method += 'Currency';
+        }
+        const response = await this[method] (this.extend (request, params));
+        return this.parseTransactions (response, currency, since, limit, params);
+    }
+
+    parseTransactionStatus (status) {
+        //
+        // deposit statuses
+        //
+        //     {
+        //         '0': 'waiting for confirmation',
+        //         '1': 'confirmation account',
+        //         '2': 'recharge success'
+        //     }
+        //
+        // withdrawal statues
+        //
+        //     {
+        //        '-3': 'pending cancel',
+        //        '-2': 'cancelled',
+        //        '-1': 'failed',
+        //         '0': 'pending',
+        //         '1': 'sending',
+        //         '2': 'sent',
+        //         '3': 'email confirmation',
+        //         '4': 'manual confirmation',
+        //         '5': 'awaiting identity confirmation'
+        //     }
+        //
+        const statuses = {
+            '-3': 'pending',
+            '-2': 'pending',
+            '-1': 'failed',
+            '0': 'pending',
+            '1': 'pending',
+            '2': 'ok',
+            '3': 'pending',
+            '4': 'pending',
+            '5': 'pending',
+        };
+        return status in statuses ? statuses[status] : undefined;
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "amount":"0.1",
+        //         "withdrawal_id":"67485",
+        //         "currency":"btc",
+        //         "result":true
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         amount: "4.72100000",
+        //         withdrawal_id: "1729116",
+        //         fee: "0.01000000eth",
+        //         txid: "0xf653125bbf090bcfe4b5e8e7b8f586a9d87aa7de94598702758c0802b…",
+        //         currency: "ETH",
+        //         from: "7147338839",
+        //         to: "0x26a3CB49578F07000575405a57888681249c35Fd",
+        //         timestamp: "2018-08-17T07:03:42.000Z",
+        //         status: "2"
+        //     }
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         amount: "0.47847546",
+        //         txid: "1723573_3_0_0_WALLET",
+        //         currency: "BTC",
+        //         to: "",
+        //         timestamp: "2018-08-16T03:41:10.000Z",
+        //         status: "2"
+        //     }
+        //
+        let type = undefined;
+        let id = undefined;
+        let address = undefined;
+        const withdrawalId = this.safeString (transaction, 'withdrawal_id');
+        const addressFrom = this.safeString (transaction, 'from');
+        const addressTo = this.safeString (transaction, 'to');
+        if (withdrawalId !== undefined) {
+            type = 'withdrawal';
+            id = withdrawalId;
+            address = addressTo;
+        } else {
+            type = 'deposit';
+            address = addressFrom;
+        }
+        let currencyId = this.safeString (transaction, 'currency');
+        if (currencyId !== undefined) {
+            currencyId = currencyId.toUpperCase ();
+        }
+        const code = this.commonCurrencyCode (currencyId);
+        const amount = this.safeFloat (transaction, 'amount');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const txid = this.safeString (transaction, 'txid');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'timestamp'));
+        let feeCost = this.safeFloat (transaction, 'fee');
+        if (type === 'deposit') {
+            feeCost = 0;
+        }
+        // todo parse tags
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'addressFrom': addressFrom,
+            'addressTo': addressTo,
+            'address': address,
+            'tag': undefined,
+            'status': status,
+            'type': type,
+            'updated': undefined,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+            },
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = '/api' + '/' + api + '/' + this.version + '/' + this.implodeParams (path, params);
         let url = this.urls['api'] + request;
