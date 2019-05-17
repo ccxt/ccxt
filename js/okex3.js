@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -444,7 +444,7 @@ module.exports = class okex3 extends Exchange {
         const types = this.safeValue (this.options, 'fetchMarkets');
         let result = [];
         for (let i = 0; i < types.length; i++) {
-            const markets = await this.fetchMarketsByType (types[i], this.omit (params, 'type'));
+            const markets = await this.fetchMarketsByType (types[i], params);
             result = this.arrayConcat (result, markets);
         }
         return result;
@@ -586,42 +586,8 @@ module.exports = class okex3 extends Exchange {
     async fetchMarketsByType (type, params = {}) {
         const method = type + 'GetInstruments';
         const response = await this[method] (params);
-        return this.parseMarkets (response);
-    }
-
-    async fetchSwapMarkets (params = {}) {
-        let response = await this.swapGetInstruments (params);
         //
-        //     [ {    instrument_id: "BTC-USD-SWAP",
-        //         underlying_index: "BTC",
-        //           quote_currency: "USD",
-        //                     coin: "BTC",
-        //             contract_val: "100",
-        //                  listing: "2018-10-23T20:11:00.443Z",
-        //                 delivery: "2018-10-24T20:11:00.443Z",
-        //           size_increment: "4",
-        //                tick_size: "4"                         }  ]
-        //
-        return this.parseMarkets (response);
-    }
-
-    async fetchFuturesMarkets (params = {}) {
-        let response = await this.futuresGetInstruments (params);
-        //
-        //     [ {    instrument_id: "BTG-USD-190329",
-        //         underlying_index: "BTG",
-        //           quote_currency: "USD",
-        //                tick_size: "0.01",
-        //             contract_val: "10",
-        //                  listing: "2018-12-14",
-        //                 delivery: "2019-03-29",
-        //          trade_increment: "1"               }  ]
-        //
-        return this.parseMarkets (response);
-    }
-
-    async fetchSpotMarkets (params = {}) {
-        const response = await this.spotGetInstruments (params);
+        // spot markets
         //
         //     [ {   base_currency: "EOS",
         //          base_increment: "0.000001",
@@ -633,6 +599,29 @@ module.exports = class okex3 extends Exchange {
         //         quote_increment: "0.0001",
         //          size_increment: "0.000001",
         //               tick_size: "0.0001"    }      ]
+        //
+        // futures markets
+        //
+        //     [ {    instrument_id: "BTG-USD-190329",
+        //         underlying_index: "BTG",
+        //           quote_currency: "USD",
+        //                tick_size: "0.01",
+        //             contract_val: "10",
+        //                  listing: "2018-12-14",
+        //                 delivery: "2019-03-29",
+        //          trade_increment: "1"               }  ]
+        //
+        // swap markets
+        //
+        //     [ {    instrument_id: "BTC-USD-SWAP",
+        //         underlying_index: "BTC",
+        //           quote_currency: "USD",
+        //                     coin: "BTC",
+        //             contract_val: "100",
+        //                  listing: "2018-10-23T20:11:00.443Z",
+        //                 delivery: "2018-10-24T20:11:00.443Z",
+        //           size_increment: "4",
+        //                tick_size: "4"                         }  ]
         //
         return this.parseMarkets (response);
     }
@@ -822,35 +811,114 @@ module.exports = class okex3 extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        const defaultType = this.safeValue (this.options, 'defaultType');
-        let type = this.safeValue (params, 'type', defaultType);
+        const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType');
+        let type = this.safeString (params, 'type', defaultType);
         return await this.fetchTickersByType (type, symbols, this.omit (params, 'type'));
     }
 
     parseTrade (trade, market = undefined) {
         //
-        // spot markets
+        // fetchTrades (public)
         //
-        //     [ {      time: "2018-12-17T23:31:08.268Z",
-        //         timestamp: "2018-12-17T23:31:08.268Z",
-        //          trade_id: "409687906",
-        //             price: "0.02677805",
-        //              size: "0.923467",
-        //              side: "sell"                      }  ]
+        //     spot trades
         //
-        // futures
+        //         [
+        //             {
+        //                 time: "2018-12-17T23:31:08.268Z",
+        //                 timestamp: "2018-12-17T23:31:08.268Z",
+        //                 trade_id: "409687906",
+        //                 price: "0.02677805",
+        //                 size: "0.923467",
+        //                 side: "sell"
+        //             }
+        //         ]
         //
-        //     [ {  trade_id: "1989230840021013",
-        //              side: "buy",
-        //             price: "92.42",
-        //               qty: "184",
-        //         timestamp: "2018-12-17T23:26:04.613Z" }  ]
+        //     futures trades
+        //
+        //         [
+        //             {
+        //                 trade_id: "1989230840021013",
+        //                 side: "buy",
+        //                 price: "92.42",
+        //                 qty: "184",
+        //                 timestamp: "2018-12-17T23:26:04.613Z",
+        //             }
+        //         ]
+        //
+        // fetchOrderTrades (private)
+        //
+        //     spot trades, margin trades
+        //
+        //         [
+        //             [
+        //                 {
+        //                     "created_at":"2019-03-15T02:52:56.000Z",
+        //                     "exec_type":"T", // whether the order is taker or maker
+        //                     "fee":"0.00000082",
+        //                     "instrument_id":"BTC-USDT",
+        //                     "ledger_id":"3963052721",
+        //                     "liquidity":"T", // whether the order is taker or maker
+        //                     "order_id":"2482659399697408",
+        //                     "price":"3888.6",
+        //                     "product_id":"BTC-USDT",
+        //                     "side":"buy",
+        //                     "size":"0.00055306",
+        //                     "timestamp":"2019-03-15T02:52:56.000Z"
+        //                 },
+        //             ],
+        //             {
+        //                 "before":"3963052722",
+        //                 "after":"3963052718"
+        //             }
+        //         ]
+        //
+        //     futures trades, swap trades
+        //
+        //         [
+        //             {
+        //                 "trade_id":"197429674631450625",
+        //                 "instrument_id":"EOS-USD-SWAP",
+        //                 "order_id":"6a-7-54d663a28-0",
+        //                 "price":"3.633",
+        //                 "order_qty":"1.0000",
+        //                 "fee":"-0.000551",
+        //                 "created_at":"2019-03-21T04:41:58.0Z", // missing in swap trades
+        //                 "timestamp":"2019-03-25T05:56:31.287Z", // missing in futures trades
+        //                 "exec_type":"M", // whether the order is taker or maker
+        //                 "side":"short", // "buy" in futures trades
+        //             }
+        //         ]
         //
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
+        const timestamp = this.parse8601 (this.safeString2 (trade, 'timestamp', 'created_at'));
+        const price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat2 (trade, 'size', 'qty');
+        amount = this.safeFloat (trade, 'order_qty', amount);
+        let takerOrMaker = this.safeString2 (trade, 'exec_type', 'liquidity');
+        if (takerOrMaker === 'M') {
+            takerOrMaker = 'maker';
+        } else if (takerOrMaker === 'T') {
+            takerOrMaker = 'taker';
+        }
+        const side = this.safeString (trade, 'side');
+        let cost = undefined;
+        if (amount !== undefined) {
+            if (price !== undefined) {
+                cost = amount * price;
+            }
+        }
+        const feeCost = this.safeFloat (trade, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            let feeCurrency = undefined;
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -859,9 +927,12 @@ module.exports = class okex3 extends Exchange {
             'id': this.safeString (trade, 'trade_id'),
             'order': undefined,
             'type': undefined,
-            'side': this.safeString (trade, 'side'),
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat2 (trade, 'qty', 'size'),
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
         };
     }
 
@@ -990,71 +1061,398 @@ module.exports = class okex3 extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
+    parseAccountBalance (response) {
+        //
+        // account
+        //
+        //     [
+        //         {
+        //             balance:  0,
+        //             available:  0,
+        //             currency: "BTC",
+        //             hold:  0
+        //         },
+        //         {
+        //             balance:  0,
+        //             available:  0,
+        //             currency: "ETH",
+        //             hold:  0
+        //         }
+        //     ]
+        //
+        // spot
+        //
+        //     [
+        //         {
+        //             frozen: "0",
+        //             hold: "0",
+        //             id: "2149632",
+        //             currency: "BTC",
+        //             balance: "0.0000000497717339",
+        //             available: "0.0000000497717339",
+        //             holds: "0"
+        //         },
+        //         {
+        //             frozen: "0",
+        //             hold: "0",
+        //             id: "2149632",
+        //             currency: "ICN",
+        //             balance: "0.00000000925",
+        //             available: "0.00000000925",
+        //             holds: "0"
+        //         }
+        //     ]
+        //
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.commonCurrencyCode (currencyId);
+            const account = this.account ();
+            const total = this.safeFloat (balance, 'balance');
+            const used = this.safeFloat (balance, 'hold');
+            let free = this.safeFloat (balance, 'available');
+            if (free === undefined) {
+                if ((total !== undefined) && (used !== undefined)) {
+                    free = total - used;
+                }
+            }
+            account['total'] = total;
+            account['used'] = used;
+            account['free'] = free;
+            result[code] = account;
+        }
+        return this.parseBalance (result);
+    }
+
+    parseMarginBalance (response) {
+        //
+        //     [
+        //         {
+        //             "currency:BTC": {
+        //                 "available":"0",
+        //                 "balance":"0",
+        //                 "borrowed":"0",
+        //                 "can_withdraw":"0",
+        //                 "frozen":"0",
+        //                 "hold":"0",
+        //                 "holds":"0",
+        //                 "lending_fee":"0"
+        //             },
+        //             "currency:USDT": {
+        //                 "available":"100",
+        //                 "balance":"100",
+        //                 "borrowed":"0",
+        //                 "can_withdraw":"100",
+        //                 "frozen":"0",
+        //                 "hold":"0",
+        //                 "holds":"0",
+        //                 "lending_fee":"0"
+        //             },
+        //             "instrument_id":"BTC-USDT",
+        //             "liquidation_price":"0",
+        //             "product_id":"BTC-USDT",
+        //             "risk_rate":""
+        //         },
+        //     ]
+        //
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const marketId = this.safeString (balance, 'instrument_id');
+            const market = this.safeValue (this.markets_by_id, marketId);
+            let symbol = undefined;
+            if (market === undefined) {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.commonCurrencyCode (baseId);
+                const quote = this.commonCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            } else {
+                symbol = market['symbol'];
+            }
+            const keys = Object.keys (this.omit (balance, [
+                'instrument_id',
+                'liquidation_price',
+                'product_id',
+                'risk_rate',
+            ]));
+            const accounts = {};
+            for (let k = 0; k < keys.length; k++) {
+                const key = keys[k];
+                const marketBalance = balance[key];
+                if (key.indexOf (':') >= 0) {
+                    const parts = key.split (':');
+                    const currencyId = parts[1];
+                    const code = this.commonCurrencyCode (currencyId);
+                    const account = this.account ();
+                    const total = this.safeFloat (marketBalance, 'balance');
+                    const used = this.safeFloat (marketBalance, 'hold');
+                    let free = this.safeFloat (marketBalance, 'available');
+                    if (free === undefined) {
+                        if ((total !== undefined) && (used !== undefined)) {
+                            free = total - used;
+                        }
+                    }
+                    account['total'] = total;
+                    account['used'] = used;
+                    account['free'] = free;
+                    accounts[code] = account;
+                } else {
+                    throw new NotSupported (this.id + ' margin balance response format has changed!');
+                }
+            }
+            result[symbol] = this.parseBalance (accounts);
+        }
+        return result;
+    }
+
+    parseFuturesBalance (response) {
+        //
+        //     {
+        //         "info":{
+        //             "eos":{
+        //                 "auto_margin":"0",
+        //                 "contracts": [
+        //                     {
+        //                         "available_qty":"40.37069445",
+        //                         "fixed_balance":"0",
+        //                         "instrument_id":"EOS-USD-190329",
+        //                         "margin_for_unfilled":"0",
+        //                         "margin_frozen":"0",
+        //                         "realized_pnl":"0",
+        //                         "unrealized_pnl":"0"
+        //                     },
+        //                     {
+        //                         "available_qty":"40.37069445",
+        //                         "fixed_balance":"14.54895721",
+        //                         "instrument_id":"EOS-USD-190628",
+        //                         "margin_for_unfilled":"0",
+        //                         "margin_frozen":"10.64042157",
+        //                         "realized_pnl":"-3.90853564",
+        //                         "unrealized_pnl":"-0.259"
+        //                     },
+        //                 ],
+        //                 "equity":"50.75220665",
+        //                 "margin_mode":"fixed",
+        //                 "total_avail_balance":"40.37069445"
+        //             },
+        //         }
+        //     }
+        //
+        // their root field name is "info", so our info will contain their info
+        const result = { 'info': response };
+        const info = this.safeValue (response, 'info', {});
+        const lowercaseIds = Object.keys (info);
+        for (let i = 0; i < lowercaseIds.length; i++) {
+            const lowercaseId = lowercaseIds[i];
+            const id = lowercaseId.toUpperCase ();
+            const code = this.commonCurrencyCode (id);
+            const balance = this.safeValue (info, lowercaseId, {});
+            const account = this.account ();
+            const total = this.safeFloat (balance, 'equity');
+            const free = this.safeFloat (balance, 'total_avail_balance');
+            let used = undefined;
+            if ((total !== undefined) && (free !== undefined)) {
+                used = Math.max (0, total - free);
+            }
+            account['total'] = total;
+            account['used'] = used;
+            account['free'] = free;
+            result[code] = account;
+        }
+        return this.parseBalance (result);
+    }
+
+    parseSwapBalance (response) {
+        //
+        //     {
+        //         "info": [
+        //             {
+        //                 "equity":"3.0139",
+        //                 "fixed_balance":"0.0000",
+        //                 "instrument_id":"EOS-USD-SWAP",
+        //                 "margin":"0.5523",
+        //                 "margin_frozen":"0.0000",
+        //                 "margin_mode":"crossed",
+        //                 "margin_ratio":"1.0913",
+        //                 "realized_pnl":"-0.0006",
+        //                 "timestamp":"2019-03-25T03:46:10.336Z",
+        //                 "total_avail_balance":"3.0000",
+        //                 "unrealized_pnl":"0.0145"
+        //             }
+        //         ]
+        //     }
+        //
+        // their root field name is "info", so our info will contain their info
+        const result = { 'info': response };
+        const info = this.safeValue (response, 'info', {});
+        const lowercaseIds = Object.keys (info);
+        for (let i = 0; i < lowercaseIds.length; i++) {
+            const lowercaseId = lowercaseIds[i];
+            const id = lowercaseId.toUpperCase ();
+            const code = this.commonCurrencyCode (id);
+            const balance = this.safeValue (info, lowercaseId, {});
+            const account = this.account ();
+            const total = this.safeFloat (balance, 'equity');
+            const free = this.safeFloat (balance, 'total_avail_balance');
+            let used = undefined;
+            if ((total !== undefined) && (free !== undefined)) {
+                used = Math.max (0, total - free);
+            }
+            account['total'] = total;
+            account['used'] = used;
+            account['free'] = free;
+            result[code] = account;
+        }
+        return this.parseBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType');
-        const type = this.safeValue (params, 'type', defaultType);
+        const type = this.safeString (params, 'type', defaultType);
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + " fetchBalance requires a type parameter (one of 'account', 'spot', 'margin', 'futures', 'swap').");
         }
-        let method = type;
-        method += (type === 'account') ? 'GetWallet' : 'GetAccounts';
+        const suffix = (type === 'account') ? 'Wallet' : 'Accounts';
+        const method = type + 'Get' + suffix;
         const query = this.omit (params, 'type');
         const response = await this[method] (query);
-        const result = { 'info': response };
+        //
+        // account
+        //
+        //     [
+        //         {
+        //             balance:  0,
+        //             available:  0,
+        //             currency: "BTC",
+        //             hold:  0
+        //         },
+        //         {
+        //             balance:  0,
+        //             available:  0,
+        //             currency: "ETH",
+        //             hold:  0
+        //         }
+        //     ]
+        //
+        // spot
+        //
+        //     [
+        //         {
+        //             frozen: "0",
+        //             hold: "0",
+        //             id: "2149632",
+        //             currency: "BTC",
+        //             balance: "0.0000000497717339",
+        //             available: "0.0000000497717339",
+        //             holds: "0"
+        //         },
+        //         {
+        //             frozen: "0",
+        //             hold: "0",
+        //             id: "2149632",
+        //             currency: "ICN",
+        //             balance: "0.00000000925",
+        //             available: "0.00000000925",
+        //             holds: "0"
+        //         }
+        //     ]
+        //
+        // margin
+        //
+        //     [
+        //         {
+        //             "currency:BTC": {
+        //                 "available":"0",
+        //                 "balance":"0",
+        //                 "borrowed":"0",
+        //                 "can_withdraw":"0",
+        //                 "frozen":"0",
+        //                 "hold":"0",
+        //                 "holds":"0",
+        //                 "lending_fee":"0"
+        //             },
+        //             "currency:USDT": {
+        //                 "available":"100",
+        //                 "balance":"100",
+        //                 "borrowed":"0",
+        //                 "can_withdraw":"100",
+        //                 "frozen":"0",
+        //                 "hold":"0",
+        //                 "holds":"0",
+        //                 "lending_fee":"0"
+        //             },
+        //             "instrument_id":"BTC-USDT",
+        //             "liquidation_price":"0",
+        //             "product_id":"BTC-USDT",
+        //             "risk_rate":""
+        //         },
+        //     ]
+        //
+        // futures
+        //
+        //     {
+        //         "info":{
+        //             "eos":{
+        //                 "auto_margin":"0",
+        //                 "contracts": [
+        //                     {
+        //                         "available_qty":"40.37069445",
+        //                         "fixed_balance":"0",
+        //                         "instrument_id":"EOS-USD-190329",
+        //                         "margin_for_unfilled":"0",
+        //                         "margin_frozen":"0",
+        //                         "realized_pnl":"0",
+        //                         "unrealized_pnl":"0"
+        //                     },
+        //                     {
+        //                         "available_qty":"40.37069445",
+        //                         "fixed_balance":"14.54895721",
+        //                         "instrument_id":"EOS-USD-190628",
+        //                         "margin_for_unfilled":"0",
+        //                         "margin_frozen":"10.64042157",
+        //                         "realized_pnl":"-3.90853564",
+        //                         "unrealized_pnl":"-0.259"
+        //                     },
+        //                 ],
+        //                 "equity":"50.75220665",
+        //                 "margin_mode":"fixed",
+        //                 "total_avail_balance":"40.37069445"
+        //             },
+        //         }
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "info": [
+        //             {
+        //                 "equity":"3.0139",
+        //                 "fixed_balance":"0.0000",
+        //                 "instrument_id":"EOS-USD-SWAP",
+        //                 "margin":"0.5523",
+        //                 "margin_frozen":"0.0000",
+        //                 "margin_mode":"crossed",
+        //                 "margin_ratio":"1.0913",
+        //                 "realized_pnl":"-0.0006",
+        //                 "timestamp":"2019-03-25T03:46:10.336Z",
+        //                 "total_avail_balance":"3.0000",
+        //                 "unrealized_pnl":"0.0145"
+        //             }
+        //         ]
+        //     }
+        //
         if ((type === 'account') || (type === 'spot')) {
-            //
-            // wallet
-            //
-            //     [ {   balance:  0,
-            //         available:  0,
-            //          currency: "BTC",
-            //              hold:  0     },
-            //       ...
-            //       {   balance:  0,
-            //         available:  0,
-            //          currency: "ETH",
-            //              hold:  0     }  ]
-            //
-            // spot
-            //
-            //     [ {    frozen: "0",
-            //              hold: "0",
-            //                id: "2149632",
-            //          currency: "BTC",
-            //           balance: "0.0000000497717339",
-            //         available: "0.0000000497717339",
-            //             holds: "0"                   },
-            //       ...,
-            //       {    frozen: "0",
-            //              hold: "0",
-            //                id: "2149632",
-            //          currency: "ICN",
-            //           balance: "0.00000000925",
-            //         available: "0.00000000925",
-            //             holds: "0"              }       ]
-            //
-            for (let i = 0; i < response.length; i++) {
-                const balance = response[i];
-                const currencyId = this.safeString (balance, 'currency');
-                const code = this.commonCurrencyCode (currencyId);
-                const account = this.account ();
-                const total = this.safeFloat (balance, 'balance');
-                const used = this.safeFloat (balance, 'hold');
-                let free = this.safeFloat (balance, 'available');
-                if (free === undefined) {
-                    if ((total !== undefined) && (used !== undefined)) {
-                        free = total - used;
-                    }
-                }
-                account['total'] = total;
-                account['used'] = used;
-                account['free'] = free;
-                result[code] = account;
-            }
-            return this.parseBalance (result);
+            return this.parseAccountBalance (response);
+        } else if (type === 'margin') {
+            return this.parseMarginBalance (response);
+        } else if (type === 'futures') {
+            return this.parseFuturesBalance (response);
+        } else if (type === 'swap') {
+            return this.parseSwapBalance (response);
         }
-        return response;
+        throw new NotSupported (this.id + " fetchBalance does not support the '" + type + "' type (the type must be one of 'account', 'spot', 'margin', 'futures', 'swap')");
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1147,7 +1545,7 @@ module.exports = class okex3 extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const defaultType = this.safeString2 (this.options, 'cancelOrder', 'defaultType');
-        const type = this.safeValue (params, 'type', defaultType);
+        const type = this.safeString (params, 'type', defaultType);
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + " cancelOrder requires a type parameter (one of 'spot', 'margin', 'futures', 'swap').");
         }
@@ -1368,7 +1766,7 @@ module.exports = class okex3 extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
         }
         const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType');
-        const type = this.safeValue (params, 'type', defaultType);
+        const type = this.safeString (params, 'type', defaultType);
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + " fetchOrder requires a type parameter (one of 'spot', 'margin', 'futures', 'swap').");
         }
@@ -1443,7 +1841,7 @@ module.exports = class okex3 extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrdersByState requires a symbol argument');
         }
         const defaultType = this.safeString2 (this.options, 'fetchOrdersByState', 'defaultType');
-        const type = this.safeValue (params, 'type', defaultType);
+        const type = this.safeString (params, 'type', defaultType);
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + " fetchOrdersByState requires a type parameter (one of 'spot', 'margin', 'futures', 'swap').");
         }
@@ -1816,6 +2214,83 @@ module.exports = class okex3 extends Exchange {
                 'cost': feeCost,
             },
         };
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderTrades requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if ((limit === undefined) || (limit > 100)) {
+            limit = 100;
+        }
+        const request = {
+            'instrument_id': market['id'],
+            'order_id': id,
+            // from: '1', // return the page after the specified page number
+            // to: '1', // return the page before the specified page number
+            'limit': limit, // optional, number of results per request, default = maximum = 100
+        };
+        const defaultType = this.safeString2 (this.options, 'fetchMyTrades', 'defaultType');
+        const type = this.safeString (params, 'type', defaultType);
+        const query = this.omit (params, 'type');
+        const method = type + 'GetFills';
+        const response = await this[method] (this.extend (request, query));
+        //
+        // spot trades, margin trades
+        //
+        //     [
+        //         [
+        //             {
+        //                 "created_at":"2019-03-15T02:52:56.000Z",
+        //                 "exec_type":"T", // whether the order is taker or maker
+        //                 "fee":"0.00000082",
+        //                 "instrument_id":"BTC-USDT",
+        //                 "ledger_id":"3963052721",
+        //                 "liquidity":"T", // whether the order is taker or maker
+        //                 "order_id":"2482659399697408",
+        //                 "price":"3888.6",
+        //                 "product_id":"BTC-USDT",
+        //                 "side":"buy",
+        //                 "size":"0.00055306",
+        //                 "timestamp":"2019-03-15T02:52:56.000Z"
+        //             },
+        //         ],
+        //         {
+        //             "before":"3963052722",
+        //             "after":"3963052718"
+        //         }
+        //     ]
+        //
+        // futures trades, swap trades
+        //
+        //     [
+        //         {
+        //             "trade_id":"197429674631450625",
+        //             "instrument_id":"EOS-USD-SWAP",
+        //             "order_id":"6a-7-54d663a28-0",
+        //             "price":"3.633",
+        //             "order_qty":"1.0000",
+        //             "fee":"-0.000551",
+        //             "created_at":"2019-03-21T04:41:58.0Z", // missing in swap trades
+        //             "timestamp":"2019-03-25T05:56:31.287Z", // missing in futures trades
+        //             "exec_type":"M", // whether the order is taker or maker
+        //             "side":"short", // "buy" in futures trades
+        //         }
+        //     ]
+        //
+        let trades = undefined;
+        if (market['type'] === 'swap' || market['type'] === 'futures') {
+            trades = response;
+        } else {
+            const responseLength = response.length;
+            if (responseLength < 1) {
+                return [];
+            }
+            trades = response[0];
+        }
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
