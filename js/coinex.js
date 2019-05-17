@@ -235,7 +235,7 @@ module.exports = class coinex extends Exchange {
             limit = 20; // default
         const request = {
             'market': this.marketId (symbol),
-            'merge': '0.00000001',
+            'merge': '0.0000000001',
             'limit': limit.toString (),
         };
         let response = await this.publicGetMarketDepth (this.extend (request, params));
