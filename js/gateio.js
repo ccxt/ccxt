@@ -381,9 +381,9 @@ module.exports = class gateio extends Exchange {
                 market = this.markets_by_id[id];
             const ticker = this.parseTicker (ticker, market);
             // https://github.com/ccxt/ccxt/pull/5138
-            const quoteVolume = ticker['quoteVolume'];
+            const baseVolume = ticker['baseVolume'];
             ticker['baseVolume'] = ticker['quoteVolume'];
-            ticker['quoteVolume'] = quoteVolume;
+            ticker['quoteVolume'] = baseVolume;
             result[symbol] = ticker;
         }
         return result;
