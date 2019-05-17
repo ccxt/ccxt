@@ -919,13 +919,14 @@ module.exports = class okex3 extends Exchange {
                 'currency': feeCurrency,
             };
         }
+        const orderId = this.safeString (trade, 'order_id')
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': this.safeString (trade, 'trade_id'),
-            'order': undefined,
+            'order': orderId,
             'type': undefined,
             'takerOrMaker': takerOrMaker,
             'side': side,
