@@ -327,8 +327,8 @@ module.exports = class gateio extends Exchange {
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': this.safeFloat (ticker, 'quoteVolume'),
-            'quoteVolume': this.safeFloat (ticker, 'baseVolume'),
+            'baseVolume': this.safeFloat (ticker, 'baseVolume'),
+            'quoteVolume': this.safeFloat (ticker, 'quoteVolume'),
             'info': ticker,
         };
     }
@@ -379,7 +379,12 @@ module.exports = class gateio extends Exchange {
                 market = this.markets[symbol];
             if (id in this.markets_by_id)
                 market = this.markets_by_id[id];
-            result[symbol] = this.parseTicker (ticker, market);
+            const ticker = this.parseTicker (ticker, market);
+            // https://github.com/ccxt/ccxt/pull/5138
+            const quoteVolume = ticker['quoteVolume'];
+            ticker['baseVolume'] = ticker['quoteVolume'];
+            ticker['quoteVolume'] = quoteVolume;
+            result[symbol] = ticker;
         }
         return result;
     }
