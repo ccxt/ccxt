@@ -374,13 +374,17 @@ class gateio extends Exchange {
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
-            $ticker = $tickers[$id];
             $market = null;
             if (is_array ($this->markets) && array_key_exists ($symbol, $this->markets))
                 $market = $this->markets[$symbol];
             if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id))
                 $market = $this->markets_by_id[$id];
-            $result[$symbol] = $this->parse_ticker($ticker, $market);
+            $ticker = $this->parse_ticker($tickers[$id], $market);
+            // https://github.com/ccxt/ccxt/pull/5138
+            $baseVolume = $ticker['baseVolume'];
+            $ticker['baseVolume'] = $ticker['quoteVolume'];
+            $ticker['quoteVolume'] = $baseVolume;
+            $result[$symbol] = $ticker;
         }
         return $result;
     }
