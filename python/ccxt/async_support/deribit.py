@@ -51,6 +51,7 @@ class deribit (Exchange):
             'api': {
                 'public': {
                     'get': [
+                        'ping',
                         'test',
                         'getinstruments',
                         'index',

@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.537'
+const version = '1.18.538'
 
 Exchange.ccxtVersion = version
 
@@ -35938,6 +35938,7 @@ module.exports = class deribit extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'ping',
                         'test',
                         'getinstruments',
                         'index',
