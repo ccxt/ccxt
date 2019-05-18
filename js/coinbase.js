@@ -155,10 +155,10 @@ module.exports = class coinbase extends Exchange {
         });
     }
 
-    async fetchTime () {
-        let response = await this.publicGetTime ();
-        let data = response['data'];
-        return this.parse8601 (data['iso']);
+    async fetchTime (params = {}) {
+        const response = await this.publicGetTime (params);
+        const data = this.safeValue (response, 'data', {});
+        return this.parse8601 (this.safeString (data, 'iso'));
     }
 
     async fetchAccounts (params = {}) {

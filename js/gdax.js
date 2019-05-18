@@ -415,9 +415,9 @@ module.exports = class gdax extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async fetchTime () {
-        let response = await this.publicGetTime ();
-        return this.parse8601 (response['iso']);
+    async fetchTime (params = {}) {
+        const response = await this.publicGetTime (params);
+        return this.parse8601 (this.parse8601 (response, 'iso'));
     }
 
     parseOrderStatus (status) {
