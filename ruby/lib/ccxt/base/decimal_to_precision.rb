@@ -20,8 +20,8 @@ module Ccxt
 
     module ClassMethods
       def decimal_to_precision(n, rounding_mode = ROUND, precision = nil, counting_mode = DECIMAL_PLACES, padding_mode = NO_PADDING)
-        unless precision.is_a?(Fixnum)
-          raise ArgumentError.new "precision #{precision.inspect} is invalid. Must be a Fixnum."
+        unless precision.is_a?(Integer)
+          raise ArgumentError.new "precision #{precision.inspect} is invalid. Must be an Integer."
         end
         unless [TRUNCATE, ROUND].include?(rounding_mode)
           raise ArgumentError.new "rounding_mode #{rounding_mode.inspect} is invalid. Must be TRUNCATE(#{TRUNCATE}) or ROUND(#{ROUND}."
