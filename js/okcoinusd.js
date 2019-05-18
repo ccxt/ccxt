@@ -621,8 +621,8 @@ module.exports = class okcoinusd extends Exchange {
             'price': market['spot'] && type === 'market' && side === 'buy' && !this.options['marketBuyPrice'] ? this.safeFloat (params, 'cost') : price,
         });
         if (market['future']) {
-            request.match_price = 0; // match best counter party price? 0 or 1, ignores price if 1
-            request.lever_rate = 10; // leverage rate value: 10 or 20 (10 by default)
+            request['match_price'] = 0; // match best counter party price? 0 or 1, ignores price if 1
+            request['lever_rate'] = 10; // leverage rate value: 10 or 20 (10 by default)
         } else if (type === 'market' && side === 'buy' && !request['price']) {
             if (this.options['marketBuyPrice']) {
                 // eslint-disable-next-line quotes
