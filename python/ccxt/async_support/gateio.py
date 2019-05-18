@@ -366,13 +366,17 @@ class gateio (Exchange):
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
-            ticker = tickers[id]
             market = None
             if symbol in self.markets:
                 market = self.markets[symbol]
             if id in self.markets_by_id:
                 market = self.markets_by_id[id]
-            result[symbol] = self.parse_ticker(ticker, market)
+            ticker = self.parse_ticker(tickers[id], market)
+            # https://github.com/ccxt/ccxt/pull/5138
+            baseVolume = ticker['baseVolume']
+            ticker['baseVolume'] = ticker['quoteVolume']
+            ticker['quoteVolume'] = baseVolume
+            result[symbol] = ticker
         return result
 
     async def fetch_ticker(self, symbol, params={}):
