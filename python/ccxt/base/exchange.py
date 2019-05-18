@@ -58,6 +58,7 @@ import time
 import uuid
 import zlib
 from decimal import Decimal
+import binascii
 
 # -----------------------------------------------------------------------------
 
@@ -85,6 +86,7 @@ try:
     # from web3.auto import w3
     from web3 import Web3, HTTPProvider
     from web3.utils.encoding import hex_encode_abi_type
+    from eth_account.messages import defunct_hash_message
 except ImportError:
     Web3 = HTTPProvider = None  # web3/0x not supported in Python 2
 
@@ -209,6 +211,8 @@ class Exchange(object):
         'twofa': False,  # 2-factor authentication (one-time password key)
         'privateKey': False,  # a "0x"-prefixed hexstring private key for a wallet
         'walletAddress': False,  # the wallet address "0x"-prefixed hexstring
+        'web3ProviderURL': False,
+        'web3InfuraKey': False,
     }
 
     # API method metainfo
@@ -342,7 +346,10 @@ class Exchange(object):
 
         if self.requiresWeb3 and Web3 and not self.web3:
             # self.web3 = w3 if w3 else Web3(HTTPProvider())
-            self.web3 = Web3(HTTPProvider())
+            if self.web3InfuraKey is not None:
+                self.web3 = Web3(HTTPProvider(self.web3ProviderURL + self.web3InfuraKey))
+            else:
+                self.web3 = Web3(HTTPProvider(self.web3ProviderURL))
 
     def __del__(self):
         if self.session:
@@ -477,6 +484,8 @@ class Exchange(object):
         self.logger.debug("%s %s, Request: %s %s", method, url, request_headers, body)
 
         if body:
+            if isinstance(body, collections.Mapping):
+                body = json.dumps(body)
             body = body.encode()
 
         self.session.cookies.clear()
@@ -563,6 +572,21 @@ class Exchange(object):
                 return json.loads(http_response)
         except ValueError:  # superclass of JsonDecodeError (python2)
             pass
+
+    @staticmethod
+    def stringifyMessage(message):
+        return json.dumps(message, sort_keys=True, separators=(',', ':'))
+
+    @staticmethod
+    def toHex(message):
+        return binascii.hexlify(defunct_hash_message(text=message)).decode()
+
+    @staticmethod
+    def intToHex(integer):
+        return format(integer, 'x')
+
+    def toChecksumAddress(self, address):
+        return self.web3.toChecksumAddress(address)
 
     @staticmethod
     def safe_float(dictionary, key, default_value=None):
@@ -753,9 +777,11 @@ class Exchange(object):
         return result
 
     @staticmethod
-    def urlencode(params={}):
+    def urlencode(params={}, isDoseq=False):
+        if isDoseq == 'brackets':
+            isDoseq = True
         if (type(params) is dict) or isinstance(params, collections.OrderedDict):
-            return _urlencode.urlencode(params)
+            return _urlencode.urlencode(params, doseq=isDoseq)
         return params
 
     @staticmethod
@@ -864,6 +890,12 @@ class Exchange(object):
     def ymdhms(timestamp, infix=' '):
         utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
         return utc_datetime.strftime('%Y-%m-%d' + infix + '%H:%M:%S')
+
+    @staticmethod
+    def to_epoch(timestamp):
+        pattern = "%Y-%m-%dT%H:%M:%S.%fZ"
+        epoch = int(round(time.mktime(time.strptime(timestamp, pattern)) * 1000))
+        return epoch
 
     @staticmethod
     def parse_date(timestamp=None):
@@ -1795,6 +1827,10 @@ class Exchange(object):
         message_bytes = bytes.fromhex(message)
         return self.web3.sha3(b"\x19Ethereum Signed Message:\n" + str(len(message_bytes)).encode() + message_bytes).hex()
 
+    def hashStringMessage(self, stringMessage):
+        string_message_hex = stringMessage.encode('utf-8').hex()
+        return self.hashMessage(string_message_hex)
+
     def signHash(self, hash, privateKey):
         signature = self.web3.eth.account.signHash(hash[-64:], private_key=privateKey[-64:])
         return {
@@ -1802,6 +1838,10 @@ class Exchange(object):
             'r': self.web3.toHex(signature.r),  # '0x'-prefixed hex string
             's': self.web3.toHex(signature.s),  # '0x'-prefixed hex string
         }
+
+    def signHashSignature(self, hash, privateKey):
+        signature = self.web3.eth.account.signHash(hash[-64:], private_key=privateKey[-64:])
+        return self.web3.toHex(signature.signature)
 
     def signMessage(self, message, privateKey):
         #
@@ -1837,6 +1877,16 @@ class Exchange(object):
         signature = self.signHash(message_hash[-64:], privateKey[-64:])
         return signature
 
+    def signEthTransaction(self, txn_payload):
+        signed_txn = self.web3.eth.account.signTransaction(txn_payload, private_key=self.privateKey)
+        return signed_txn
+
+    def generateEthTransactionHash(self, raw_transaction):
+        return self.web3.toHex(self.web3.sha3(raw_transaction))
+
+    def sendEthSignedTransaction(self, raw_transaction):
+        return self.web3.eth.sendRawTransaction(raw_transaction)
+
     def oath(self):
         if self.twofa is not None:
             return self.totp(self.twofa)
@@ -1865,3 +1915,7 @@ class Exchange(object):
         offset = hex_to_dec(hmac_res[-1]) * 2
         otp = str(hex_to_dec(hmac_res[offset: offset + 8]) & 0x7fffffff)
         return otp[-6:]
+
+
+def reverseHex(message):
+    return "".join([message[x:x + 2] for x in range(0, len(message), 2)][::-1])

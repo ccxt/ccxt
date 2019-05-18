@@ -185,6 +185,7 @@ from ccxt.rightbtc import rightbtc                          # noqa: F401
 from ccxt.southxchange import southxchange                  # noqa: F401
 from ccxt.stronghold import stronghold                      # noqa: F401
 from ccxt.surbitcoin import surbitcoin                      # noqa: F401
+from ccxt.switcheo import switcheo                          # noqa: F401
 from ccxt.theocean import theocean                          # noqa: F401
 from ccxt.therock import therock                            # noqa: F401
 from ccxt.tidebit import tidebit                            # noqa: F401
@@ -322,6 +323,7 @@ exchanges = [
     'southxchange',
     'stronghold',
     'surbitcoin',
+    'switcheo',
     'theocean',
     'therock',
     'tidebit',
