@@ -31,6 +31,12 @@ module.exports = class okex extends okcoinusd {
                 ],
                 'fees': 'https://www.okex.com/pages/products/fees.html',
             },
+            'fees': {
+                'trading': {
+                    'taker': 0.0020,
+                    'maker': 0.0015,
+                },
+            },
             'commonCurrencies': {
                 // OKEX refers to ERC20 version of Aeternity (AEToken)
                 'AE': 'AET', // https://github.com/ccxt/ccxt/issues/4981
@@ -41,7 +47,9 @@ module.exports = class okex extends okcoinusd {
                 'YOYO': 'YOYOW',
             },
             'options': {
+                'contractTypes': ['this_week', 'next_week', 'quarter'],
                 'fetchTickersMethod': 'fetch_tickers_from_api',
+                'fiats': [ ],
             },
         });
     }
@@ -62,23 +70,6 @@ module.exports = class okex extends okcoinusd {
             'rate': rate,
             'cost': parseFloat (this.feeToPrecision (symbol, cost)),
         };
-    }
-
-    async fetchMarkets (params = {}) {
-        let markets = await super.fetchMarkets (params);
-        // TODO: they have a new fee schedule as of Feb 7
-        // the new fees are progressive and depend on 30-day traded volume
-        // the following is the worst case
-        for (let i = 0; i < markets.length; i++) {
-            if (markets[i]['spot']) {
-                markets[i]['maker'] = 0.0010;
-                markets[i]['taker'] = 0.0015;
-            } else {
-                markets[i]['maker'] = 0.0002;
-                markets[i]['taker'] = 0.0003;
-            }
-        }
-        return markets;
     }
 
     async fetchTickersFromApi (symbols = undefined, params = {}) {
