@@ -822,72 +822,59 @@ module.exports = class okex3 extends Exchange {
         //
         //     spot trades
         //
-        //         [
-        //             {
-        //                 time: "2018-12-17T23:31:08.268Z",
-        //                 timestamp: "2018-12-17T23:31:08.268Z",
-        //                 trade_id: "409687906",
-        //                 price: "0.02677805",
-        //                 size: "0.923467",
-        //                 side: "sell"
-        //             }
-        //         ]
+        //         {
+        //             time: "2018-12-17T23:31:08.268Z",
+        //             timestamp: "2018-12-17T23:31:08.268Z",
+        //             trade_id: "409687906",
+        //             price: "0.02677805",
+        //             size: "0.923467",
+        //             side: "sell"
+        //         }
         //
-        //     futures trades
+        //     futures trades, swap trades
         //
-        //         [
-        //             {
-        //                 trade_id: "1989230840021013",
-        //                 side: "buy",
-        //                 price: "92.42",
-        //                 qty: "184",
-        //                 timestamp: "2018-12-17T23:26:04.613Z",
-        //             }
-        //         ]
+        //         {
+        //             trade_id: "1989230840021013",
+        //             side: "buy",
+        //             price: "92.42",
+        //             qty: "184", // missing in swap markets
+        //             size: "5", // missing in futures markets
+        //             timestamp: "2018-12-17T23:26:04.613Z"
+        //         }
         //
         // fetchOrderTrades (private)
         //
         //     spot trades, margin trades
         //
-        //         [
-        //             [
-        //                 {
-        //                     "created_at":"2019-03-15T02:52:56.000Z",
-        //                     "exec_type":"T", // whether the order is taker or maker
-        //                     "fee":"0.00000082",
-        //                     "instrument_id":"BTC-USDT",
-        //                     "ledger_id":"3963052721",
-        //                     "liquidity":"T", // whether the order is taker or maker
-        //                     "order_id":"2482659399697408",
-        //                     "price":"3888.6",
-        //                     "product_id":"BTC-USDT",
-        //                     "side":"buy",
-        //                     "size":"0.00055306",
-        //                     "timestamp":"2019-03-15T02:52:56.000Z"
-        //                 },
-        //             ],
-        //             {
-        //                 "before":"3963052722",
-        //                 "after":"3963052718"
-        //             }
-        //         ]
+        //         {
+        //             "created_at":"2019-03-15T02:52:56.000Z",
+        //             "exec_type":"T", // whether the order is taker or maker
+        //             "fee":"0.00000082",
+        //             "instrument_id":"BTC-USDT",
+        //             "ledger_id":"3963052721",
+        //             "liquidity":"T", // whether the order is taker or maker
+        //             "order_id":"2482659399697408",
+        //             "price":"3888.6",
+        //             "product_id":"BTC-USDT",
+        //             "side":"buy",
+        //             "size":"0.00055306",
+        //             "timestamp":"2019-03-15T02:52:56.000Z"
+        //         },
         //
         //     futures trades, swap trades
         //
-        //         [
-        //             {
-        //                 "trade_id":"197429674631450625",
-        //                 "instrument_id":"EOS-USD-SWAP",
-        //                 "order_id":"6a-7-54d663a28-0",
-        //                 "price":"3.633",
-        //                 "order_qty":"1.0000",
-        //                 "fee":"-0.000551",
-        //                 "created_at":"2019-03-21T04:41:58.0Z", // missing in swap trades
-        //                 "timestamp":"2019-03-25T05:56:31.287Z", // missing in futures trades
-        //                 "exec_type":"M", // whether the order is taker or maker
-        //                 "side":"short", // "buy" in futures trades
-        //             }
-        //         ]
+        //         {
+        //             "trade_id":"197429674631450625",
+        //             "instrument_id":"EOS-USD-SWAP",
+        //             "order_id":"6a-7-54d663a28-0",
+        //             "price":"3.633",
+        //             "order_qty":"1.0000",
+        //             "fee":"-0.000551",
+        //             "created_at":"2019-03-21T04:41:58.0Z", // missing in swap trades
+        //             "timestamp":"2019-03-25T05:56:31.287Z", // missing in futures trades
+        //             "exec_type":"M", // whether the order is taker or maker
+        //             "side":"short", // "buy" in futures trades
+        //         }
         //
         let symbol = undefined;
         if (market !== undefined) {
@@ -919,7 +906,7 @@ module.exports = class okex3 extends Exchange {
                 'currency': feeCurrency,
             };
         }
-        const orderId = this.safeString (trade, 'order_id')
+        const orderId = this.safeString (trade, 'order_id');
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -941,27 +928,42 @@ module.exports = class okex3 extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const method = market['type'] + 'GetInstrumentsInstrumentIdTrades';
+        if ((limit === undefined) || (limit > 100)) {
+            limit = 100; // maximum = default = 100
+        }
         const request = {
             'instrument_id': market['id'],
+            'limit': limit,
+            // from: 'id',
+            // to: 'id',
         };
         const response = await this[method] (this.extend (request, params));
         //
         // spot markets
         //
-        //     [ {      time: "2018-12-17T23:31:08.268Z",
-        //         timestamp: "2018-12-17T23:31:08.268Z",
-        //          trade_id: "409687906",
+        //     [
+        //         {
+        //             time: "2018-12-17T23:31:08.268Z",
+        //             timestamp: "2018-12-17T23:31:08.268Z",
+        //             trade_id: "409687906",
         //             price: "0.02677805",
-        //              size: "0.923467",
-        //              side: "sell"                      }  ]
+        //             size: "0.923467",
+        //             side: "sell"
+        //         }
+        //     ]
         //
-        // futures
+        // futures markets, swap markets
         //
-        //     [ {  trade_id: "1989230840021013",
-        //              side: "buy",
+        //     [
+        //         {
+        //             trade_id: "1989230840021013",
+        //             side: "buy",
         //             price: "92.42",
-        //               qty: "184",
-        //         timestamp: "2018-12-17T23:26:04.613Z" }  ]
+        //             qty: "184", // missing in swap markets
+        //             size: "5", // missing in futures markets
+        //             timestamp: "2018-12-17T23:26:04.613Z"
+        //         }
+        //     ]
         //
         return this.parseTrades (response, market, since, limit);
     }
@@ -970,22 +972,26 @@ module.exports = class okex3 extends Exchange {
         //
         // spot markets
         //
-        //       {  close: "0.02684545",
-        //           high: "0.02685084",
-        //            low: "0.02683312",
-        //           open: "0.02683894",
-        //           time: "2018-12-17T20:28:00.000Z",
-        //         volume: "101.457222"                }
+        //     {
+        //         close: "0.02684545",
+        //         high: "0.02685084",
+        //         low: "0.02683312",
+        //         open: "0.02683894",
+        //         time: "2018-12-17T20:28:00.000Z",
+        //         volume: "101.457222"
+        //     }
         //
-        // futures
+        // futures markets
         //
-        //       [ 1545072720000,
+        //     [
+        //         1545072720000,
         //         0.3159,
         //         0.3161,
         //         0.3144,
         //         0.3149,
         //         22886,
-        //         725179.26172331 ]
+        //         725179.26172331,
+        //     ]
         //
         if (Array.isArray (ohlcv)) {
             let numElements = ohlcv.length;
@@ -1171,12 +1177,13 @@ module.exports = class okex3 extends Exchange {
             } else {
                 symbol = market['symbol'];
             }
-            const keys = Object.keys (this.omit (balance, [
+            const omittedBalance = this.omit (balance, [
                 'instrument_id',
                 'liquidation_price',
                 'product_id',
                 'risk_rate',
-            ]));
+            ]);
+            const keys = Object.keys (omittedBalance);
             const accounts = {};
             for (let k = 0; k < keys.length; k++) {
                 const key = keys[k];
@@ -1250,6 +1257,7 @@ module.exports = class okex3 extends Exchange {
             const code = this.commonCurrencyCode (id);
             const balance = this.safeValue (info, lowercaseId, {});
             const account = this.account ();
+            // it may be incorrect to use total, free and used for swap accounts
             const total = this.safeFloat (balance, 'equity');
             const free = this.safeFloat (balance, 'total_avail_balance');
             let used = undefined;
@@ -1294,6 +1302,7 @@ module.exports = class okex3 extends Exchange {
             const code = this.commonCurrencyCode (id);
             const balance = this.safeValue (info, lowercaseId, {});
             const account = this.account ();
+            // it may be incorrect to use total, free and used for swap accounts
             const total = this.safeFloat (balance, 'equity');
             const free = this.safeFloat (balance, 'total_avail_balance');
             let used = undefined;
@@ -2296,48 +2305,318 @@ module.exports = class okex3 extends Exchange {
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
+        const defaultType = this.safeString2 (this.options, 'fetchLedger', 'defaultType');
+        const type = this.safeString (params, 'type', defaultType);
+        const query = this.omit (params, 'type');
+        const suffix = (type === 'account') ? '' : 'Accounts';
+        let argument = '';
+        const request = {
+            // 'from': 'id',
+            // 'to': 'id',
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         let currency = undefined;
-        if (code !== undefined) {
-            if (code in this.currencies) {
+        if ((type === 'spot') || (type === 'futures')) {
+            if (code === undefined) {
+                throw new ArgumentsRequired (this.id + " fetchLedger requires a currency code argument for '" + type + "' markets");
+            }
+            argument = 'Currency';
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        } else if ((type === 'margin') || (type === 'swap')) {
+            if (code === undefined) {
+                throw new ArgumentsRequired (this.id + " fetchLedger requires a code argument (a market symbol) for '" + type + "' markets");
+            }
+            argument = 'InstrumentId';
+            const market = this.market (code); // we intentionally put a market inside here for the margin and swap ledgers
+            currency = this.currency (market['base']);
+            request['instrument_id'] = market['id'];
+            //
+            //     if (type === 'margin') {
+            //         //
+            //         //      3. Borrow
+            //         //      4. Repayment
+            //         //      5. Interest
+            //         //      7. Buy
+            //         //      8. Sell
+            //         //      9. From capital account
+            //         //     10. From C2C
+            //         //     11. From Futures
+            //         //     12. From Spot
+            //         //     13. From ETT
+            //         //     14. To capital account
+            //         //     15. To C2C
+            //         //     16. To Spot
+            //         //     17. To Futures
+            //         //     18. To ETT
+            //         //     19. Mandatory Repayment
+            //         //     20. From Piggybank
+            //         //     21. To Piggybank
+            //         //     22. From Perpetual
+            //         //     23. To Perpetual
+            //         //     24. Liquidation Fee
+            //         //     54. Clawback
+            //         //     59. Airdrop Return.
+            //         //
+            //         request['type'] = 'number'; // All types will be returned if this filed is left blank
+            //     }
+            //
+        } else if (type === 'account') {
+            if (code !== undefined) {
                 currency = this.currency (code);
                 request['currency'] = currency['id'];
-            } else if (code in this.markets) {
-                const x = 1;
-                console.log (x);
             }
+            //
+            //     //
+            //     //      1. deposit
+            //     //      2. withdrawal
+            //     //     13. cancel withdrawal
+            //     //     18. into futures account
+            //     //     19. out of futures account
+            //     //     20. into sub account
+            //     //     21. out of sub account
+            //     //     28. claim
+            //     //     29. into ETT account
+            //     //     30. out of ETT account
+            //     //     31. into C2C account
+            //     //     32. out of C2C account
+            //     //     33. into margin account
+            //     //     34. out of margin account
+            //     //     37. into spot account
+            //     //     38. out of spot account
+            //     //
+            //     request['type'] = 'number';
+            //
+        } else {
+            throw new NotSupported (this.id + " fetchLedger does not support the '" + type + "' type (the type must be one of 'account', 'spot', 'margin', 'futures', 'swap')");
         }
-        if (since !== undefined) {
-            request['start'] = parseInt (since / 1000);
-        }
-        const response = await this.privatePostLedgers (this.extend (request, params));
-        // {  error: [],
-        //   result: { ledger: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
-        //                                                   time:  1520103488.314,
-        //                                                   type: "withdrawal",
-        //                                                 aclass: "currency",
-        //                                                  asset: "XETH",
-        //                                                 amount: "-0.2805800000",
-        //                                                    fee: "0.0050000000",
-        //                                                balance: "0.0000051000"           },
-        const result = this.safeValue (response, 'result', {});
-        const ledger = this.safeValue (result, 'ledger', {});
-        let keys = Object.keys (ledger);
-        let items = [];
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const value = ledger[key];
-            value['id'] = key;
-            items.push (value);
-        }
-        return this.parseLedger (items, currency, since, limit);
-        // let main = await this.fetchMainAccountLedger (code, since, limit, params);
-        // let spot = [];
-        // if (code !== undefined) {
-        //     spot = await this.fetchSpotAccountLedger (code, since, limit, params);
-        // }
-        // let ledger = this.arrayConcat (main, spot);
-        // return ledger;
+        const method = type + 'Get' + suffix + argument + 'Ledger';
+        const response = await this[method] (this.extend (request, query));
+        //
+        // transfer     funds transfer in/out
+        // trade        funds moved as a result of a trade, spot and margin accounts only
+        // rebate       fee rebate as per fee schedule, spot and margin accounts only
+        // match        open long/open short/close long/close short (futures) or a change in the amount because of trades (swap)
+        // fee          fee, futures only
+        // settlement   settlement/clawback/settle long/settle short
+        // liquidation  force close long/force close short/deliver close long/deliver close short
+        // funding      funding fee, swap only
+        // margin       a change in the amount after adjusting margin, swap only
+        //
+        // account
+        //
+        //     [
+        //         {
+        //             "amount":0.00051843,
+        //             "balance":0.00100941,
+        //             "currency":"BTC",
+        //             "fee":0,
+        //             "ledger_id":8987285,
+        //             "timestamp":"2018-10-12T11:01:14.000Z",
+        //             "typename":"Get from activity"
+        //         }
+        //     ]
+        //
+        // spot
+        //
+        //     [
+        //         {
+        //             "timestamp":"2019-03-18T07:08:25.000Z",
+        //             "ledger_id":"3995334780",
+        //             "created_at":"2019-03-18T07:08:25.000Z",
+        //             "currency":"BTC",
+        //             "amount":"0.0009985",
+        //             "balance":"0.0029955",
+        //             "type":"trade",
+        //             "details":{
+        //                 "instrument_id":"BTC-USDT",
+        //                 "order_id":"2500650881647616",
+        //                 "product_id":"BTC-USDT"
+        //             }
+        //         }
+        //     ]
+        //
+        // margin
+        //
+        //     [
+        //         [
+        //             {
+        //                 "created_at":"2019-03-20T03:45:05.000Z",
+        //                 "ledger_id":"78918186",
+        //                 "timestamp":"2019-03-20T03:45:05.000Z",
+        //                 "currency":"EOS",
+        //                 "amount":"0", // ?
+        //                 "balance":"0.59957711",
+        //                 "type":"transfer",
+        //                 "details":{
+        //                     "instrument_id":"EOS-USDT",
+        //                     "order_id":"787057",
+        //                     "product_id":"EOS-USDT"
+        //                 }
+        //             }
+        //         ],
+        //         {
+        //             "before":"78965766",
+        //             "after":"78918186"
+        //         }
+        //     ]
+        //
+        // futures
+        //
+        //     [
+        //         {
+        //             "ledger_id":"2508090544914461",
+        //             "timestamp":"2019-03-19T14:40:24.000Z",
+        //             "amount":"-0.00529521",
+        //             "balance":"0",
+        //             "currency":"EOS",
+        //             "type":"fee",
+        //             "details":{
+        //                 "order_id":"2506982456445952",
+        //                 "instrument_id":"EOS-USD-190628"
+        //             }
+        //         }
+        //     ]
+        //
+        // swap
+        //
+        //     [
+        //         {
+        //             "amount":"0.004742",
+        //             "fee":"-0.000551",
+        //             "type":"match",
+        //             "instrument_id":"EOS-USD-SWAP",
+        //             "ledger_id":"197429674941902848",
+        //             "timestamp":"2019-03-25T05:56:31.286Z"
+        //         },
+        //     ]
+        //
+        const entries = (type === 'margin') ? response[0] : response;
+        return this.parseLedger (entries, currency, since, limit);
+    }
+
+    parseLedgerEntryType (type) {
+        const types = {
+            'transfer': 'transfer', // // funds transfer in/out
+            'trade': 'trade', // funds moved as a result of a trade, spot and margin accounts only
+            'rebate': 'rebate', // fee rebate as per fee schedule, spot and margin accounts only
+            'match': 'trade', // open long/open short/close long/close short (futures) or a change in the amount because of trades (swap)
+            'fee': 'fee', // fee, futures only
+            'settlement': 'trade', // settlement/clawback/settle long/settle short
+            'liquidation': 'trade', // force close long/force close short/deliver close long/deliver close short
+            'funding': 'fee', // funding fee, swap only
+            'margin': 'margin', // a change in the amount after adjusting margin, swap only
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        //
+        // account
+        //
+        //     {
+        //         "amount":0.00051843,
+        //         "balance":0.00100941,
+        //         "currency":"BTC",
+        //         "fee":0,
+        //         "ledger_id":8987285,
+        //         "timestamp":"2018-10-12T11:01:14.000Z",
+        //         "typename":"Get from activity"
+        //     }
+        //
+        // spot
+        //
+        //     {
+        //         "timestamp":"2019-03-18T07:08:25.000Z",
+        //         "ledger_id":"3995334780",
+        //         "created_at":"2019-03-18T07:08:25.000Z",
+        //         "currency":"BTC",
+        //         "amount":"0.0009985",
+        //         "balance":"0.0029955",
+        //         "type":"trade",
+        //         "details":{
+        //             "instrument_id":"BTC-USDT",
+        //             "order_id":"2500650881647616",
+        //             "product_id":"BTC-USDT"
+        //         }
+        //     }
+        //
+        // margin
+        //
+        //     {
+        //         "created_at":"2019-03-20T03:45:05.000Z",
+        //         "ledger_id":"78918186",
+        //         "timestamp":"2019-03-20T03:45:05.000Z",
+        //         "currency":"EOS",
+        //         "amount":"0", // ?
+        //         "balance":"0.59957711",
+        //         "type":"transfer",
+        //         "details":{
+        //             "instrument_id":"EOS-USDT",
+        //             "order_id":"787057",
+        //             "product_id":"EOS-USDT"
+        //         }
+        //     }
+        //
+        // futures
+        //
+        //     {
+        //         "ledger_id":"2508090544914461",
+        //         "timestamp":"2019-03-19T14:40:24.000Z",
+        //         "amount":"-0.00529521",
+        //         "balance":"0",
+        //         "currency":"EOS",
+        //         "type":"fee",
+        //         "details":{
+        //             "order_id":"2506982456445952",
+        //             "instrument_id":"EOS-USD-190628"
+        //         }
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "amount":"0.004742",
+        //         "fee":"-0.000551",
+        //         "type":"match",
+        //         "instrument_id":"EOS-USD-SWAP",
+        //         "ledger_id":"197429674941902848",
+        //         "timestamp":"2019-03-25T05:56:31.286Z"
+        //     },
+        //
+        const id = this.safeString (item, 'ledger_id');
+        const account = undefined;
+        const details = this.safeValue (item, 'details', {});
+        const referenceId = this.safeString (details, 'order_id');
+        const referenceAccount = undefined;
+        const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
+        const code = this.safeCurrencyCode (item, 'currency', currency);
+        const amount = this.safeFloat (item, 'amount');
+        const timestamp = this.parse8601 (this.safeString (item, 'timestamp'));
+        const fee = {
+            'cost': this.safeFloat (item, 'fee'),
+            'currency': code,
+        };
+        const before = undefined;
+        const after = this.safeFloat (item, 'balance');
+        return {
+            'info': item,
+            'id': id,
+            'account': account,
+            'referenceId': referenceId,
+            'referenceAccount': referenceAccount,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'before': before, // balance before
+            'after': after, // balance after
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': fee,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
