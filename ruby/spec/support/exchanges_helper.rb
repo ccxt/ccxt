@@ -6,7 +6,12 @@ module Exchanges
 
     def exchanges
       EXCHANGES.map do |exchange_name, exchange_config|
-        Ccxt.send exchange_name, exchange_config
+        exchange = Ccxt.send exchange_name, exchange_config
+
+        # Always use a default User-Agent when testing
+        exchange.userAgent ||= exchange.instance_variable_get(:'@userAgents')['chrome']
+
+        exchange
       end
     end
   end
