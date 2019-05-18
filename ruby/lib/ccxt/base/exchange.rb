@@ -1574,8 +1574,8 @@ module Ccxt
 
     #
     # WEB3
-    # 
-    
+    #
+
     def self.has_web3
       true
     end
@@ -1624,7 +1624,7 @@ module Ccxt
         'gether'=> 27,      # 1000000000000000000000000000
         'tether'=> 30,      # 1000000000000000000000000000000
       }.freeze
-      
+
       # TODO: there is no default value, which results in nil/None.
       # Perhaps we should raise an error that the eth unit is not valid.
       return self.class.safe_value(units, unit)
@@ -1653,7 +1653,7 @@ module Ccxt
     def fromWei(amount, unit = 'ether', decimals = 18)
       return nil if amount.nil?
       return BigDecimal(0) if amount == 0
-      
+
       value = BigDecimal(amount)
       if decimals != 18
         if (decimals % 3 != 0)
