@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.539'
+const version = '1.18.540'
 
 Exchange.ccxtVersion = version
 
@@ -60183,6 +60183,15 @@ module.exports = class okex3 extends Exchange {
                     'constituents/{ett}': 'public',
                     'define-price/{ett}': 'public',
                 },
+            },
+            'commonCurrencies': {
+                // OKEX refers to ERC20 version of Aeternity (AEToken)
+                'AE': 'AET', // https://github.com/ccxt/ccxt/issues/4981
+                'FAIR': 'FairGame',
+                'HOT': 'Hydro Protocol',
+                'HSR': 'HC',
+                'MAG': 'Maggie',
+                'YOYO': 'YOYOW',
             },
         });
     }
