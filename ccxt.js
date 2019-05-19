@@ -115,6 +115,7 @@ const exchanges = {
     'cryptopia':               require ('./js/cryptopia.js'),
     'deribit':                 require ('./js/deribit.js'),
     'dsx':                     require ('./js/dsx.js'),
+    'dx':                      require ('./js/dx.js'),
     'ethfinex':                require ('./js/ethfinex.js'),
     'exmo':                    require ('./js/exmo.js'),
     'exx':                     require ('./js/exx.js'),
