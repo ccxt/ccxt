@@ -909,7 +909,7 @@ class hitbtc2 extends hitbtc {
         //         updatedAt => '2018-06-07T00:45:36.447Z',
         //         hash => '0x973e5683dfdf80a1fb1e0b96e19085b6489221d2ddf864daa46903c5ec283a0f',
         //         $address => '0xC5a59b21948C1d230c8C54f05590000Eb3e1252c',
-        //         fee => '0.00958',
+        //         $fee => '0.00958',
         //     ),
         //     array (
         //         $id => 'e6c63331-467e-4922-9edc-019e75d20ba3',
@@ -965,6 +965,14 @@ class hitbtc2 extends hitbtc {
         }
         $address = $this->safe_string($transaction, 'address');
         $txid = $this->safe_string($transaction, 'hash');
+        $fee = null;
+        $feeCost = $this->safe_float($transaction, 'fee');
+        if ($feeCost !== null) {
+            $fee = array (
+                'cost' => $feeCost,
+                'currency' => $code,
+            );
+        }
         return array (
             'info' => $transaction,
             'id' => $id,
@@ -978,7 +986,7 @@ class hitbtc2 extends hitbtc {
             'currency' => $code,
             'status' => $status,
             'updated' => $updated,
-            'fee' => null,
+            'fee' => $fee,
         );
     }
 

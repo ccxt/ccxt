@@ -952,6 +952,13 @@ class hitbtc2 (hitbtc):
             type = 'withdrawal'
         address = self.safe_string(transaction, 'address')
         txid = self.safe_string(transaction, 'hash')
+        fee = None
+        feeCost = self.safe_float(transaction, 'fee')
+        if feeCost is not None:
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            }
         return {
             'info': transaction,
             'id': id,
@@ -965,7 +972,7 @@ class hitbtc2 (hitbtc):
             'currency': code,
             'status': status,
             'updated': updated,
-            'fee': None,
+            'fee': fee,
         }
 
     def parse_transaction_status(self, status):
