@@ -43,6 +43,7 @@ class deribit extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
+                        'ping',
                         'test',
                         'getinstruments',
                         'index',
