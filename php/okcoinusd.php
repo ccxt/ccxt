@@ -447,8 +447,8 @@ class okcoinusd extends Exchange {
                 $base = $this->common_currency_code($uppercaseBaseId);
                 $quote = $this->common_currency_code($uppercaseQuoteId);
             }
-            for ($i = 0; $i < count ($contracts); $i++) {
-                $contract = $contracts[$i];
+            for ($k = 0; $k < count ($contracts); $k++) {
+                $contract = $contracts[$k];
                 $type = $this->safe_string($contract, 'type', 'spot');
                 $contractType = null;
                 $spot = true;
