@@ -964,6 +964,14 @@ module.exports = class hitbtc2 extends hitbtc {
         }
         const address = this.safeString (transaction, 'address');
         const txid = this.safeString (transaction, 'hash');
+        let fee = undefined;
+        const feeCost = this.safeFloat (transaction, 'fee');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            };
+        }
         return {
             'info': transaction,
             'id': id,
@@ -977,7 +985,7 @@ module.exports = class hitbtc2 extends hitbtc {
             'currency': code,
             'status': status,
             'updated': updated,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
