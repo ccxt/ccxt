@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.544'
+const version = '1.18.545'
 
 Exchange.ccxtVersion = version
 
@@ -59553,8 +59553,8 @@ module.exports = class okcoinusd extends Exchange {
                 base = this.commonCurrencyCode (uppercaseBaseId);
                 quote = this.commonCurrencyCode (uppercaseQuoteId);
             }
-            for (let i = 0; i < contracts.length; i++) {
-                const contract = contracts[i];
+            for (let k = 0; k < contracts.length; k++) {
+                const contract = contracts[k];
                 let type = this.safeString (contract, 'type', 'spot');
                 let contractType = undefined;
                 let spot = true;

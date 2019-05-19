@@ -451,8 +451,8 @@ class okcoinusd (Exchange):
                 lowercaseId = baseId + '_' + quoteId
                 base = self.common_currency_code(uppercaseBaseId)
                 quote = self.common_currency_code(uppercaseQuoteId)
-            for i in range(0, len(contracts)):
-                contract = contracts[i]
+            for k in range(0, len(contracts)):
+                contract = contracts[k]
                 type = self.safe_string(contract, 'type', 'spot')
                 contractType = None
                 spot = True
