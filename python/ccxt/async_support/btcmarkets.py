@@ -8,9 +8,9 @@ import base64
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 
 
@@ -140,6 +140,7 @@ class btcmarkets (Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'active': None,
                 'maker': fee,
                 'taker': fee,
                 'limits': limits,
@@ -388,10 +389,10 @@ class btcmarkets (Exchange):
         order = response['orders'][0]
         return self.parse_order(order)
 
-    def prepare_history_request(self, market, since=None, limit=None):
+    def create_paginated_request(self, market, since=None, limit=None):
         request = self.ordered({
-            'currency': market['quote'],
-            'instrument': market['base'],
+            'currency': market['quoteId'],
+            'instrument': market['baseId'],
         })
         if limit is not None:
             request['limit'] = limit
@@ -405,19 +406,19 @@ class btcmarkets (Exchange):
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise NotSupported(self.id + ': fetchOrders requires a `symbol` parameter.')
+            raise ArgumentsRequired(self.id + ': fetchOrders requires a `symbol` argument.')
         await self.load_markets()
         market = self.market(symbol)
-        request = self.prepare_history_request(market, since, limit)
+        request = self.create_paginated_request(market, since, limit)
         response = await self.privatePostOrderHistory(self.extend(request, params))
         return self.parse_orders(response['orders'], market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise NotSupported(self.id + ': fetchOpenOrders requires a `symbol` parameter.')
+            raise ArgumentsRequired(self.id + ': fetchOpenOrders requires a `symbol` argument.')
         await self.load_markets()
         market = self.market(symbol)
-        request = self.prepare_history_request(market, since, limit)
+        request = self.create_paginated_request(market, since, limit)
         response = await self.privatePostOrderOpen(self.extend(request, params))
         return self.parse_orders(response['orders'], market)
 
@@ -427,10 +428,10 @@ class btcmarkets (Exchange):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise NotSupported(self.id + ': fetchMyTrades requires a `symbol` parameter.')
+            raise ArgumentsRequired(self.id + ': fetchMyTrades requires a `symbol` argument.')
         await self.load_markets()
         market = self.market(symbol)
-        request = self.prepare_history_request(market, since, limit)
+        request = self.create_paginated_request(market, since, limit)
         response = await self.privatePostOrderTradeHistory(self.extend(request, params))
         return self.parse_my_trades(response['trades'], market)
 
