@@ -508,7 +508,9 @@ module.exports = class kucoin extends Exchange {
         const data = this.safeValue (response, 'data', {});
         let address = this.safeString (data, 'address');
         // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
-        address = address.replace ('bitcoincash:', '');
+        if (address !== undefined) {
+            address = address.replace ('bitcoincash:', '');
+        }
         const tag = this.safeString (data, 'memo');
         this.checkAddress (address);
         return {
