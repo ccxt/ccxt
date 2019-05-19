@@ -28,6 +28,9 @@ module.exports = class okex3 extends Exchange {
                 'fetchTransactions': false,
                 'fetchMyTrades': false, // they don't have it
                 'fetchDepositAddress': true,
+                'fetchOrderTrades': true,
+                'fetchTickers': true,
+                'fetchLedger': true,
                 'withdraw': true,
                 'futures': true,
             },
