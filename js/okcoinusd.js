@@ -1000,7 +1000,7 @@ module.exports = class okcoinusd extends Exchange {
         return this.deepExtend ({
             'symbol': market['id'],
         }, params);
-}
+    }
 
     handleErrors (code, reason, url, method, headers, body, response) {
         if (body.length < 2)
