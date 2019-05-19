@@ -47,7 +47,6 @@ module.exports = class okex extends okcoinusd {
                 'YOYO': 'YOYOW',
             },
             'options': {
-                'contractTypes': ['this_week', 'next_week', 'quarter'],
                 'fetchTickersMethod': 'fetch_tickers_from_api',
                 'fiats': [ ],
             },

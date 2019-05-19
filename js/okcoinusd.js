@@ -45,10 +45,10 @@ module.exports = class okcoinusd extends Exchange {
                 'web': {
                     'get': [
                         'futures/pc/market/marketOverview',
-                        'spot/markets/index-tickers', // todo: add fetchTickers
+                        'spot/markets/index-tickers',
                         'spot/markets/currencies',
                         'spot/markets/products',
-                        'spot/markets/tickers',
+                        'spot/markets/tickers', // todo: add fetchTickers
                         'spot/user-level',
                     ],
                     'post': [
@@ -131,10 +131,11 @@ module.exports = class okcoinusd extends Exchange {
                     'https://www.npmjs.com/package/okcoin.com',
                 ],
             },
+            // these are okcoin.com fees, okex fees are in okex.js
             'fees': {
                 'trading': {
-                    'taker': 0.002,
-                    'maker': 0.002,
+                    'taker': 0.001,
+                    'maker': 0.0005,
                 },
             },
             'exceptions': {
@@ -311,6 +312,11 @@ module.exports = class okcoinusd extends Exchange {
                 'marketBuyPrice': false,
                 'warnOnFetchOHLCVLimitArgument': true,
                 'fiats': [ 'USD', 'CNY' ],
+                'contractTypes': {
+                    '1': 'this_week',
+                    '2': 'next_week',
+                    '4': 'quarter',
+                },
             },
         });
     }
@@ -319,105 +325,177 @@ module.exports = class okcoinusd extends Exchange {
         // TODO: they have a new fee schedule as of Feb 7
         // the new fees are progressive and depend on 30-day traded volume
         // the following is the worst case
-        let result = [];
-        let spotResponse = await this.webGetSpotMarketsProducts ();
-        let spotMarkets = spotResponse['data'];
-        for (let i = 0; i < spotMarkets.length; i++) {
-            let id = spotMarkets[i]['symbol'];
-            let precision = {
-                'amount': spotMarkets[i]['maxSizeDigit'],
-                'price': spotMarkets[i]['maxPriceDigit'],
-            };
-            let minAmount = spotMarkets[i]['minTradeSize'];
-            let minPrice = Math.pow (10, -precision['price']);
-            let pairPairts = id.split ('_');
-            let baseId = pairPairts[0];
-            let quoteId = pairPairts[1];
-            let baseIdUppercase = baseId.toUpperCase ();
-            let quoteIdUppercase = quoteId.toUpperCase ();
-            let base = this.commonCurrencyCode (baseIdUppercase);
-            let quote = this.commonCurrencyCode (quoteIdUppercase);
-            let symbol = base + '/' + quote;
-            result.push (this.extend (this.fees['trading'], {
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'baseNumericId': spotMarkets[i]['baseCurrency'],
-                'quoteNumericId': spotMarkets[i]['quoteCurrency'],
-                'info': spotMarkets[i],
-                'type': 'spot',
-                'spot': true,
-                'future': false,
-                'active': spotMarkets[i]['online'] !== 0,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': minAmount,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': minPrice,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': minAmount * minPrice,
-                        'max': undefined,
-                    },
-                },
-            }));
-        }
+        const result = [];
+        const spotResponse = await this.webGetSpotMarketsProducts ();
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "baseCurrency":0,
+        //                 "brokerId":0,
+        //                 "callAuctionOrCallNoCancelAuction":false,
+        //                 "callNoCancelSwitchTime":{},
+        //                 "collect":"0",
+        //                 "continuousSwitchTime":{},
+        //                 "groupId":1,
+        //                 "isMarginOpen":true,
+        //                 "listDisplay":0,
+        //                 "marginRiskPreRatio":1.2,
+        //                 "marginRiskRatio":1.1,
+        //                 "marketFrom":118,
+        //                 "maxMarginLeverage":5,
+        //                 "maxPriceDigit":1,
+        //                 "maxSizeDigit":8,
+        //                 "mergeTypes":"0.1,1,10",
+        //                 "minTradeSize":0.00100000,
+        //                 "online":1,
+        //                 "productId":20,
+        //                 "quoteCurrency":7,
+        //                 "quoteIncrement":"0.1",
+        //                 "quotePrecision":2,
+        //                 "sort":30038,
+        //                 "symbol":"btc_usdt",
+        //                 "tradingMode":3
+        //             },
+        //         ]
+        //     }
+        //
+        const spotMarkets = this.safeValue (spotResponse, 'data', []);
+        let markets = spotMarkets;
         if (this.has['futures']) {
-            let futuresResponse = await this.webPostFuturesPcMarketFuturesCoin ();
-            let futuresMarkets = futuresResponse['data'];
-            for (let i = 0; i < futuresMarkets.length; i++) {
-                let precision = {
-                    'amount': futuresMarkets[i]['maxSizeDigit'],
-                    'price': futuresMarkets[i]['maxPriceDigit'],
-                };
-                let minAmount = futuresMarkets[i]['minTradeSize'];
-                let minPrice = Math.pow (10, -precision['price']);
-                let baseId = futuresMarkets[i]['symbolDesc'];
-                let quoteId = futuresMarkets[i]['quote'].toUpperCase ();
-                let base = this.commonCurrencyCode (baseId);
-                let quote = this.commonCurrencyCode (quoteId);
-                for (let j = 0; j < this.options['contractTypes'].length; j++) {
-                    let contractType = this.options['contractTypes'][j];
-                    let id = baseId.toLowerCase () + '_' + quoteId.toLowerCase () + '__' + contractType;
-                    let symbol = id.toUpperCase ();
-                    result.push (this.extend (this.fees['trading'], {
-                        'id': id,
-                        'symbol': symbol,
-                        'base': base,
-                        'quote': quote,
-                        'baseId': baseId,
-                        'quoteId': quoteId,
-                        'info': futuresMarkets[i],
-                        'type': 'future',
-                        'spot': false,
-                        'future': true,
-                        'active': true,
-                        'precision': precision,
-                        'limits': {
-                            'amount': {
-                                'min': minAmount,
-                                'max': undefined,
-                            },
-                            'price': {
-                                'min': minPrice,
-                                'max': undefined,
-                            },
-                            'cost': {
-                                'min': minAmount * minPrice,
-                                'max': undefined,
-                            },
-                        },
-                        'maker': 0.0003,
-                        'taker': 0.0005,
-                    }));
+            const futuresResponse = await this.webPostFuturesPcMarketFuturesCoin ();
+            //
+            //     {
+            //         "msg":"success",
+            //         "code":0,
+            //         "detailMsg":"",
+            //         "data": [
+            //             {
+            //                 "symbolId":0,
+            //                 "symbol":"f_usd_btc",
+            //                 "iceSingleAvgMinAmount":2,
+            //                 "minTradeSize":1,
+            //                 "iceSingleAvgMaxAmount":500,
+            //                 "contractDepthLevel":["0.01","0.2"],
+            //                 "dealAllMaxAmount":999,
+            //                 "maxSizeDigit":4,
+            //                 "contracts":[
+            //                     { "marketFrom":34, "id":201905240000034, "type":1, "desc":"BTC0524" },
+            //                     { "marketFrom":13, "id":201905310000013, "type":2, "desc":"BTC0531" },
+            //                     { "marketFrom":12, "id":201906280000012, "type":4, "desc":"BTC0628" },
+            //                 ],
+            //                 "maxPriceDigit":2,
+            //                 "nativeRate":1,
+            //                 "quote":"usd",
+            //                 "nativeCurrency":"usd",
+            //                 "nativeCurrencyMark":"$",
+            //                 "contractSymbol":0,
+            //                 "unitAmount":100.00,
+            //                 "symbolMark":"฿",
+            //                 "symbolDesc":"BTC"
+            //             },
+            //         ]
+            //     }
+            //
+            const futuresMarkets = this.safeValue (futuresResponse, 'data', []);
+            markets = this.arrayConcat (spotMarkets, futuresMarkets);
+        }
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            let id = this.safeString (market, 'symbol');
+            let symbol = undefined;
+            let base = undefined;
+            let quote = undefined;
+            let baseId = undefined;
+            let quoteId = undefined;
+            let baseNumericId = undefined;
+            let quoteNumericId = undefined;
+            let lowercaseId = undefined;
+            let uppercaseBaseId = undefined;
+            let uppercaseQuoteId = undefined;
+            const precision = {
+                'amount': this.safeInteger (market, 'maxSizeDigit'),
+                'price': this.safeInteger (market, 'maxPriceDigit'),
+            };
+            const minAmount = this.safeFloat (market, 'minTradeSize');
+            const minPrice = Math.pow (10, -precision['price']);
+            let contracts = this.safeValue (market, 'contracts');
+            if (contracts === undefined) {
+                // spot markets
+                lowercaseId = id;
+                const parts = id.split ('_');
+                baseId = parts[0];
+                quoteId = parts[1];
+                baseNumericId = this.safeInteger (market, 'baseCurrency');
+                quoteNumericId = this.safeInteger (market, 'quoteCurrency');
+                uppercaseBaseId = baseId.toUpperCase ();
+                uppercaseQuoteId = quoteId.toUpperCase ();
+                base = this.commonCurrencyCode (uppercaseBaseId);
+                quote = this.commonCurrencyCode (uppercaseQuoteId);
+                contracts = [{}];
+            } else {
+                // futures markets
+                quoteId = this.safeString (market, 'quote');
+                uppercaseBaseId = this.safeString (market, 'symbolDesc');
+                uppercaseQuoteId = quoteId.toUpperCase ();
+                baseId = uppercaseBaseId.toLowerCase ();
+                lowercaseId = baseId + '_' + quoteId;
+                base = this.commonCurrencyCode (uppercaseBaseId);
+                quote = this.commonCurrencyCode (uppercaseQuoteId);
+            }
+            for (let i = 0; i < contracts.length; i++) {
+                const contract = contracts[i];
+                let type = this.safeString (contract, 'type', 'spot');
+                let contractType = undefined;
+                let spot = true;
+                let future = false;
+                let active = true;
+                let fees = this.fees['trading'];
+                if (type === 'spot') {
+                    symbol = base + '/' + quote;
+                    active = market['online'] !== 0;
+                } else {
+                    const contractId = this.safeString (contract, 'id');
+                    symbol = base + '-' + quote + '-' + contractId.slice (2, 8);
+                    contractType = this.safeString (this.options['contractTypes'], type);
+                    type = 'future';
+                    spot = false;
+                    future = true;
+                    fees = this.safeValue (this.fees, 'future', {});
                 }
+                result.push (this.extend (fees, {
+                    'id': id,
+                    'lowercaseId': lowercaseId,
+                    'contractType': contractType,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'baseNumericId': baseNumericId,
+                    'quoteNumericId': quoteNumericId,
+                    'info': market,
+                    'type': 'spot',
+                    'spot': spot,
+                    'future': future,
+                    'active': active,
+                    'precision': precision,
+                    'limits': {
+                        'amount': {
+                            'min': minAmount,
+                            'max': undefined,
+                        },
+                        'price': {
+                            'min': minPrice,
+                            'max': undefined,
+                        },
+                        'cost': {
+                            'min': minAmount * minPrice,
+                            'max': undefined,
+                        },
+                    },
+                }));
             }
         }
         return result;
@@ -913,17 +991,16 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     createRequest (market, params = {}) {
-        if (!market['future']) {
+        if (market['future']) {
             return this.deepExtend ({
-                'symbol': market['id'],
-            }, params);
+                'symbol': market['lowercaseId'],
+                'contract_type': market['contractType'],
+            });
         }
-        let marketParts = market['id'].split ('__');
         return this.deepExtend ({
-            'symbol': marketParts[0],
-            'contract_type': marketParts[1],
-        });
-    }
+            'symbol': market['id'],
+        }, params);
+}
 
     handleErrors (code, reason, url, method, headers, body, response) {
         if (body.length < 2)
