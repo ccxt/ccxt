@@ -43,6 +43,7 @@ class lbank extends Exchange {
                 'www' => 'https://www.lbank.info',
                 'doc' => 'https://github.com/LBank-exchange/lbank-official-api-docs',
                 'fees' => 'https://lbankinfo.zendesk.com/hc/zh-cn/articles/115002295114--%E8%B4%B9%E7%8E%87%E8%AF%B4%E6%98%8E',
+                'referral' => 'https://www.lbank.info/sign-up.html?icode=7QCY&lang=en-US',
             ),
             'api' => array (
                 'public' => array (
@@ -286,7 +287,7 @@ class lbank extends Exchange {
             'size' => 100,
         );
         if ($since !== null)
-            $request['time'] = intval ($since / 1000);
+            $request['time'] = intval ($since);
         if ($limit !== null)
             $request['size'] = $limit;
         $response = $this->publicGetTrades (array_merge ($request, $params));

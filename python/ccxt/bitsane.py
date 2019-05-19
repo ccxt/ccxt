@@ -14,7 +14,6 @@ except NameError:
 import base64
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InvalidNonce
@@ -38,8 +37,8 @@ class bitsane (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/41387105-d86bf4c6-6f8d-11e8-95ea-2fa943872955.jpg',
                 'api': 'https://bitsane.com/api',
                 'www': 'https://bitsane.com',
-                'doc': 'https://bitsane.com/info-api',
-                'fees': 'https://bitsane.com/fees',
+                'doc': 'https://bitsane.com/help/api',
+                'fees': 'https://bitsane.com/help/fees',
             },
             'api': {
                 'public': {
@@ -205,8 +204,8 @@ class bitsane (Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_float(ticker, 'percentChange'),
-            'percentage': None,
+            'change': None,
+            'percentage': self.safe_float(ticker, 'percentChange'),
             'average': None,
             'baseVolume': self.safe_float(ticker, 'baseVolume'),
             'quoteVolume': self.safe_float(ticker, 'quoteVolume'),
@@ -306,14 +305,16 @@ class bitsane (Exchange):
         if market:
             symbol = market['symbol']
         timestamp = self.safe_integer(order, 'timestamp') * 1000
-        price = float(order['price'])
+        price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'original_amount')
         filled = self.safe_float(order, 'executed_amount')
         remaining = self.safe_float(order, 'remaining_amount')
+        isCanceled = self.safe_value(order, 'is_cancelled')
+        isLive = self.safe_value(order, 'is_live')
         status = 'closed'
-        if order['is_cancelled']:
+        if isCanceled:
             status = 'canceled'
-        elif order['is_live']:
+        elif isLive:
             status = 'open'
         return {
             'id': self.safe_string(order, 'id'),
@@ -422,13 +423,12 @@ class bitsane (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response=None):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if len(body) < 2:
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
             statusCode = self.safe_string(response, 'statusCode')
             if statusCode is not None:
                 if statusCode != '0':

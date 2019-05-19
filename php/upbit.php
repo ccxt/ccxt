@@ -20,13 +20,14 @@ class upbit extends Exchange {
             // new metainfo interface
             'has' => array (
                 'CORS' => true,
-                'fetchOrderBooks' => true,
+                'createDepositAddress' => true,
                 'createMarketOrder' => false,
                 'fetchDepositAddress' => true,
                 'fetchClosedOrders' => true,
                 'fetchMyTrades' => false,
                 'fetchOHLCV' => true,
                 'fetchOrder' => true,
+                'fetchOrderBooks' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrders' => false,
                 'fetchTickers' => true,
@@ -137,6 +138,9 @@ class upbit extends Exchange {
                 'tradingFeesByQuoteCurrency' => array (
                     'KRW' => 0.0005,
                 ),
+            ),
+            'commonCurrencies' => array (
+                'CPT' => 'Contents Protocol', // conflict with CPT (Cryptaur) https://github.com/ccxt/ccxt/issues/4920
             ),
         ));
     }
@@ -417,9 +421,9 @@ class upbit extends Exchange {
             $currency = $this->common_currency_code($id);
             $account = $this->account ();
             $balance = $indexed[$id];
-            $total = $this->safe_float($balance, 'balance');
+            $free = $this->safe_float($balance, 'balance');
             $used = $this->safe_float($balance, 'locked');
-            $free = $total - $used;
+            $total = $this->sum ($free, $used);
             $account['free'] = $free;
             $account['used'] = $used;
             $account['total'] = $total;
@@ -494,8 +498,8 @@ class upbit extends Exchange {
             $symbol = $this->get_symbol_from_market_id ($this->safe_string($orderbook, 'market'));
             $timestamp = $this->safe_integer($orderbook, 'timestamp');
             $result[$symbol] = array (
-                'bids' => $this->parse_bids_asks($orderbook['orderbook_units'], 'bid_price', 'bid_size'),
-                'asks' => $this->parse_bids_asks($orderbook['orderbook_units'], 'ask_price', 'bid_size'),
+                'bids' => $this->sort_by($this->parse_bids_asks($orderbook['orderbook_units'], 'bid_price', 'bid_size'), 0, true),
+                'asks' => $this->sort_by($this->parse_bids_asks($orderbook['orderbook_units'], 'ask_price', 'ask_size'), 0),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601 ($timestamp),
                 'nonce' => null,
@@ -772,12 +776,12 @@ class upbit extends Exchange {
         //                            unit =>  1                     ),
         //
         return array (
-            $this->safe_integer($ohlcv, 'timestamp'),
+            $this->parse8601 ($this->safe_string($ohlcv, 'candle_date_time_utc')),
             $this->safe_float($ohlcv, 'opening_price'),
             $this->safe_float($ohlcv, 'high_price'),
             $this->safe_float($ohlcv, 'low_price'),
             $this->safe_float($ohlcv, 'trade_price'),
-            $this->safe_float($ohlcv, 'candle_acc_trade_price'), // base volume
+            $this->safe_float($ohlcv, 'candle_acc_trade_volume'), // base volume
         );
     }
 
@@ -1210,7 +1214,7 @@ class upbit extends Exchange {
         );
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market_id($symbol);
+            $market = $this->market ($symbol);
             $request['market'] = $market['id'];
         }
         $response = $this->privateGetOrders (array_merge ($request, $params));
@@ -1302,6 +1306,14 @@ class upbit extends Exchange {
         return $this->parse_order($response);
     }
 
+    public function parse_deposit_addresses ($addresses) {
+        $result = array ();
+        for ($i = 0; $i < count ($addresses); $i++) {
+            $result[] = $this->parse_deposit_address ($addresses[$i]);
+        }
+        return $result;
+    }
+
     public function fetch_deposit_addresses ($codes = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privateGetDepositsCoinAddresses ($params);
@@ -1324,13 +1336,7 @@ class upbit extends Exchange {
         //         }
         //     )
         //
-        $result = array ();
-        for ($i = 0; $i < count ($response); $i++) {
-            $depositAddress = $this->parse_deposit_address ($response[$i]);
-            $code = $depositAddress['currency'];
-            $result[$code] = $depositAddress;
-        }
-        return $result;
+        return $this->parse_deposit_addresses ($response);
     }
 
     public function parse_deposit_address ($depositAddress, $currency = null) {
@@ -1472,10 +1478,9 @@ class upbit extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response = null) {
-        if (!$this->is_json_encoded_object($body))
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+        if ($response === null)
             return; // fallback to default $error handler
-        $response = json_decode ($body, $as_associative_array = true);
         //
         //   array ( 'error' => array ( 'message' => "Missing request parameter $error-> Check the required parameters!", 'name' =>  400 ) ),
         //   array ( 'error' => array ( 'message' => "side is missing, side does not have a valid value", 'name' => "validation_error" ) ),

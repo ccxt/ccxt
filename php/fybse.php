@@ -22,7 +22,7 @@ class fybse extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766512-31019772-5edb-11e7-8241-2e675e6797f1.jpg',
                 'api' => 'https://www.fybse.se/api/SEK',
                 'www' => 'https://www.fybse.se',
-                'doc' => 'http://docs.fyb.apiary.io',
+                'doc' => 'https://fyb.docs.apiary.io',
             ),
             'api' => array (
                 'public' => array (

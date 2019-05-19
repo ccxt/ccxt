@@ -12,7 +12,6 @@ try:
 except NameError:
     basestring = str  # Python 2
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -63,8 +62,8 @@ class bitz (Exchange):
                     'assets': 'https://apiv2.bitz.com',
                 },
                 'www': 'https://www.bit-z.com',
-                'doc': 'https://apidoc.bit-z.com/en',
-                'fees': 'https://www.bit-z.com/about/fee',
+                'doc': 'https://apidoc.bit-z.com/en/',
+                'fees': 'https://www.bit-z.com/fee?type=1',
                 'referral': 'https://u.bit-z.com/register?invite_code=1429193',
             },
             'api': {
@@ -366,6 +365,12 @@ class bitz (Exchange):
         if market is not None:
             symbol = market['symbol']
         last = self.safe_float(ticker, 'now')
+        open = self.safe_float(ticker, 'open')
+        change = None
+        average = None
+        if last is not None and open is not None:
+            change = last - open
+            average = self.sum(last, open) / 2
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -377,13 +382,13 @@ class bitz (Exchange):
             'ask': self.safe_float(ticker, 'askPrice'),
             'askVolume': self.safe_float(ticker, 'askQty'),
             'vwap': None,
-            'open': self.safe_float(ticker, 'open'),
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_float(ticker, 'priceChange24h'),
-            'percentage': None,
-            'average': None,
+            'change': change,
+            'percentage': self.safe_float(ticker, 'priceChange24h'),
+            'average': average,
             'baseVolume': self.safe_float(ticker, 'volume'),
             'quoteVolume': self.safe_float(ticker, 'quoteVolume'),
             'info': ticker,
@@ -395,7 +400,7 @@ class bitz (Exchange):
         parts = microtime.split(' ')
         milliseconds = float(parts[0])
         seconds = int(parts[1])
-        total = seconds + milliseconds
+        total = self.sum(seconds, milliseconds)
         return int(total * 1000)
 
     async def fetch_ticker(self, symbol, params={}):
@@ -997,13 +1002,12 @@ class bitz (Exchange):
             headers = {'Content-type': 'application/x-www-form-urlencoded'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response=None):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if len(body) < 2:
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
             status = self.safe_string(response, 'status')
             if status is not None:
                 feedback = self.id + ' ' + body

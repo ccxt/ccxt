@@ -17,6 +17,7 @@ module.exports = class coinexchange extends Exchange {
             // new metainfo interface
             'has': {
                 'privateAPI': false,
+                'fetchBalance': false,
                 'createOrder': false,
                 'createMarketOrder': false,
                 'createLimitOrder': false,
@@ -659,8 +660,8 @@ module.exports = class coinexchange extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'Change'),
-            'percentage': undefined,
+            'change': undefined,
+            'percentage': this.safeFloat (ticker, 'Change'),
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': this.safeFloat (ticker, 'Volume'),

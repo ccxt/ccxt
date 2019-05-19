@@ -7,7 +7,6 @@ from ccxt.async_support.base.exchange import Exchange
 import base64
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -565,7 +564,7 @@ class buda (Exchange):
                 addressPool.append(address)
         addressPoolLength = len(addressPool)
         if addressPoolLength < 1:
-            raise AddressPending(self.name + ': there are no addresses ready for receiving ' + code + ', retry again later)')
+            raise AddressPending(self.id + ': there are no addresses ready for receiving ' + code + ', retry again later)')
         address = addressPool[0]
         return {
             'currency': code,
@@ -578,7 +577,7 @@ class buda (Exchange):
         await self.load_markets()
         currency = self.currency(code)
         if self.is_fiat(code):
-            raise NotSupported(self.name + ': fiat fetchDepositAddress() for ' + code + ' is not supported')
+            raise NotSupported(self.id + ': fiat fetchDepositAddress() for ' + code + ' is not supported')
         response = await self.privatePostCurrenciesCurrencyReceiveAddresses(self.extend({
             'currency': currency['id'],
         }, params))
@@ -642,7 +641,7 @@ class buda (Exchange):
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
         if code is None:
-            raise ExchangeError(self.name + ': fetchDeposits() requires a currency code argument')
+            raise ExchangeError(self.id + ': fetchDeposits() requires a currency code argument')
         currency = self.currency(code)
         response = await self.privateGetCurrenciesCurrencyDeposits(self.extend({
             'currency': currency['id'],
@@ -654,7 +653,7 @@ class buda (Exchange):
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
         if code is None:
-            raise ExchangeError(self.name + ': fetchDeposits() requires a currency code argument')
+            raise ExchangeError(self.id + ': fetchDeposits() requires a currency code argument')
         currency = self.currency(code)
         response = await self.privateGetCurrenciesCurrencyWithdrawals(self.extend({
             'currency': currency['id'],
@@ -707,14 +706,13 @@ class buda (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if not self.is_json_encoded_object(body):
             return  # fallback to default error handler
         if code >= 400:
-            response = json.loads(body)
             errorCode = self.safe_string(response, 'code')
             message = self.safe_string(response, 'message', body)
-            feedback = self.name + ': ' + message
+            feedback = self.id + ' ' + message
             exceptions = self.exceptions
             if errorCode is not None:
                 if errorCode in exceptions:

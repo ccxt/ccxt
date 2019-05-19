@@ -6,6 +6,7 @@
 from ccxt.liqui import liqui
 import hashlib
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import InvalidOrder
 
 
 class dsx (liqui):
@@ -24,6 +25,9 @@ class dsx (liqui):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': False,
                 'fetchOrderBooks': False,
+                'createDepositAddress': True,
+                'fetchDepositAddress': True,
+                'fetchTransactions': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
@@ -39,6 +43,14 @@ class dsx (liqui):
                     'https://dsx.uk/api_docs/private',
                     '',
                 ],
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': True,
+                    'percentage': True,
+                    'maker': 0.15 / 100,
+                    'taker': 0.25 / 100,
+                },
             },
             'api': {
                 # market data(public)
@@ -81,6 +93,11 @@ class dsx (liqui):
                     ],
                 },
             },
+            'exceptions': {
+                'exact': {
+                    "Order wasn't cancelled": InvalidOrder,  # non-existent order
+                },
+            },
             'options': {
                 'fetchOrderMethod': 'privatePostOrderStatus',
                 'fetchMyTradesMethod': 'privatePostHistoryTrades',
@@ -88,6 +105,97 @@ class dsx (liqui):
                 'fetchTickersMaxLength': 250,
             },
         })
+
+    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if since is not None:
+            request['since'] = since
+        if limit is not None:
+            request['count'] = limit
+        response = self.privatePostHistoryTransactions(self.extend(request, params))
+        #
+        #     {
+        #         "success": 1,
+        #         "return": [
+        #             {
+        #                 "id": 1,
+        #                 "timestamp": 11,
+        #                 "type": "Withdraw",
+        #                 "amount": 1,
+        #                 "currency": "btc",
+        #                 "confirmationsCount": 6,
+        #                 "address": "address",
+        #                 "status": 2,
+        #                 "commission": 0.0001
+        #             }
+        #         ]
+        #     }
+        #
+        transactions = self.safe_value(response, 'return', [])
+        return self.parseTransactions(transactions, currency, since, limit)
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            '1': 'failed',
+            '2': 'ok',
+            '3': 'pending',
+            '4': 'failed',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        #     {
+        #         "id": 1,
+        #         "timestamp": 11,  # 11 in their docs(
+        #         "type": "Withdraw",
+        #         "amount": 1,
+        #         "currency": "btc",
+        #         "confirmationsCount": 6,
+        #         "address": "address",
+        #         "status": 2,
+        #         "commission": 0.0001
+        #     }
+        #
+        timestamp = self.safe_integer(transaction, 'timestamp')
+        if timestamp is not None:
+            timestamp = timestamp * 1000
+        type = self.safe_string(transaction, 'type')
+        if type is not None:
+            if type == 'Incoming':
+                type = 'deposit'
+            elif type == 'Withdraw':
+                type = 'withdrawal'
+        currencyId = self.safe_string(transaction, 'currency')
+        code = None
+        if currencyId in self.currencies_by_id:
+            ccy = self.currencies_by_id[currencyId]
+            code = ccy['code']
+        else:
+            code = self.common_currency_code(currencyId)
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        return {
+            'id': self.safe_string(transaction, 'id'),
+            'txid': self.safe_string(transaction, 'txid'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'address': self.safe_string(transaction, 'address'),
+            'type': type,
+            'amount': self.safe_float(transaction, 'amount'),
+            'currency': code,
+            'status': status,
+            'fee': {
+                'currency': code,
+                'cost': self.safe_float(transaction, 'commission'),
+                'rate': None,
+            },
+            'info': transaction,
+        }
 
     def fetch_markets(self, params={}):
         response = self.publicGetInfo()
@@ -132,7 +240,6 @@ class dsx (liqui):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'taker': market['fee'] / 100,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
@@ -185,6 +292,30 @@ class dsx (liqui):
             account['used'] = account['total'] - account['free']
             result[code] = account
         return self.parse_balance(result)
+
+    def create_deposit_address(self, code, params={}):
+        request = {
+            'new': 1,
+        }
+        response = self.fetch_deposit_address(code, self.extend(request, params))
+        return response
+
+    def fetch_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = self.dwapiPostDepositCryptoaddress(self.extend(request, params))
+        result = self.safe_value(response, 'return', {})
+        address = self.safe_string(result, 'address')
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'tag': None,  # not documented in DSX API
+            'info': response,
+        }
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -330,11 +461,101 @@ class dsx (liqui):
         }
         return self.safe_string(statuses, status, status)
 
+    def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public)
+        #
+        #     {
+        #         "amount" : 0.0128,
+        #         "price" : 6483.99000,
+        #         "timestamp" : 1540334614,
+        #         "tid" : 35684364,
+        #         "type" : "ask"
+        #     }
+        #
+        # fetchMyTrades(private)
+        #
+        #     {
+        #         "number": "36635882",  # <-- self is present if the trade has come from the '/order/status' call
+        #         "id": "36635882",  # <-- self may have been artifically added by the parseTrades method
+        #         "pair": "btcusd",
+        #         "type": "buy",
+        #         "volume": 0.0595,
+        #         "rate": 9750,
+        #         "orderId": 77149299,
+        #         "timestamp": 1519612317,
+        #         "commission": 0.00020825,
+        #         "commissionCurrency": "btc"
+        #     }
+        #
+        timestamp = self.safe_integer(trade, 'timestamp')
+        if timestamp is not None:
+            timestamp = timestamp * 1000
+        side = self.safe_string(trade, 'type')
+        if side == 'ask':
+            side = 'sell'
+        elif side == 'bid':
+            side = 'buy'
+        price = self.safe_float_2(trade, 'rate', 'price')
+        id = self.safe_string_2(trade, 'number', 'id')
+        orderId = self.safe_string(trade, 'orderId')
+        if 'pair' in trade:
+            marketId = self.safe_string(trade, 'pair')
+            market = self.safe_value(self.markets_by_id, marketId, market)
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        amount = self.safe_float_2(trade, 'amount', 'volume')
+        type = 'limit'  # all trades are still limit trades
+        takerOrMaker = None
+        fee = None
+        feeCost = self.safe_float(trade, 'commission')
+        if feeCost is not None:
+            feeCurrencyId = self.safe_string(trade, 'commissionCurrency')
+            feeCurrencyId = feeCurrencyId.upper()
+            feeCurrency = self.safe_value(self.currencies_by_id, feeCurrencyId)
+            feeCurrencyCode = None
+            if feeCurrency is not None:
+                feeCurrencyCode = feeCurrency['code']
+            else:
+                feeCurrencyCode = self.common_currency_code(feeCurrencyId)
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            }
+        isYourOrder = self.safe_value(trade, 'is_your_order')
+        if isYourOrder is not None:
+            takerOrMaker = 'taker'
+            if isYourOrder:
+                takerOrMaker = 'maker'
+            if fee is None:
+                fee = self.calculate_fee(symbol, type, side, amount, price, takerOrMaker)
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
+        return {
+            'id': id,
+            'order': orderId,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+            'info': trade,
+        }
+
     def parse_order(self, order, market=None):
         #
         # fetchOrder
         #
         #   {
+        #     "number": 36635882,
         #     "pair": "btcusd",
         #     "type": "buy",
         #     "remainingVolume": 10,
@@ -462,7 +683,7 @@ class dsx (liqui):
             id = ids[i]
             order = self.parse_order(self.extend({
                 'id': str(id),
-            }, orders[i]))
+            }, orders[id]))
             result.append(order)
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
@@ -474,7 +695,7 @@ class dsx (liqui):
             # 'endId': 321,  # Decimal, ID of the last order of the selection
             # 'order': 'ASC',  # String, Order in which orders shown. Possible values are "ASC" — from first to last, "DESC" — from last to first.
         }
-        response = self.privatePostHistoryOrders(self.extend(request, params))
+        response = self.privatePostOrders(self.extend(request, params))
         #
         #     {
         #       "success": 1,
@@ -492,7 +713,7 @@ class dsx (liqui):
         #       }
         #     }
         #
-        return self.parse_orders_by_id(self.safe_value(response, 'return', {}))
+        return self.parse_orders_by_id(self.safe_value(response, 'return', {}), symbol, since, limit)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -520,4 +741,53 @@ class dsx (liqui):
         #       }
         #     }
         #
-        return self.parse_orders_by_id(self.safe_value(response, 'return', {}))
+        return self.parse_orders_by_id(self.safe_value(response, 'return', {}), symbol, since, limit)
+
+    def parse_trades(self, trades, market=None, since=None, limit=None):
+        result = []
+        if isinstance(trades, list):
+            for i in range(0, len(trades)):
+                result.append(self.parse_trade(trades[i], market))
+        else:
+            ids = list(trades.keys())
+            for i in range(0, len(ids)):
+                id = ids[i]
+                trade = self.parse_trade(trades[id], market)
+                result.append(self.extend(trade, {'id': id}))
+        result = self.sort_by(result, 'timestamp')
+        symbol = market['symbol'] if (market is not None) else None
+        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
+
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        url = self.urls['api'][api]
+        query = self.omit(params, self.extract_params(path))
+        if api == 'private' or api == 'dwapi':
+            url += self.get_private_path(path, params)
+            self.check_required_credentials()
+            nonce = self.nonce()
+            body = self.urlencode(self.extend({
+                'nonce': nonce,
+                'method': path,
+            }, query))
+            signature = self.sign_body_with_secret(body)
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Key': self.apiKey,
+                'Sign': signature,
+            }
+        elif api == 'public':
+            url += self.get_version_string() + '/' + self.implode_params(path, params)
+            if query:
+                url += '?' + self.urlencode(query)
+        else:
+            url += '/' + self.implode_params(path, params)
+            if method == 'GET':
+                if query:
+                    url += '?' + self.urlencode(query)
+            else:
+                if query:
+                    body = self.json(query)
+                    headers = {
+                        'Content-Type': 'application/json',
+                    }
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}

@@ -19,13 +19,14 @@ module.exports = class upbit extends Exchange {
             // new metainfo interface
             'has': {
                 'CORS': true,
-                'fetchOrderBooks': true,
+                'createDepositAddress': true,
                 'createMarketOrder': false,
                 'fetchDepositAddress': true,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': false,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
+                'fetchOrderBooks': true,
                 'fetchOpenOrders': true,
                 'fetchOrders': false,
                 'fetchTickers': true,
@@ -136,6 +137,9 @@ module.exports = class upbit extends Exchange {
                 'tradingFeesByQuoteCurrency': {
                     'KRW': 0.0005,
                 },
+            },
+            'commonCurrencies': {
+                'CPT': 'Contents Protocol', // conflict with CPT (Cryptaur) https://github.com/ccxt/ccxt/issues/4920
             },
         });
     }
@@ -416,9 +420,9 @@ module.exports = class upbit extends Exchange {
             let currency = this.commonCurrencyCode (id);
             let account = this.account ();
             let balance = indexed[id];
-            let total = this.safeFloat (balance, 'balance');
+            let free = this.safeFloat (balance, 'balance');
             let used = this.safeFloat (balance, 'locked');
-            let free = total - used;
+            let total = this.sum (free, used);
             account['free'] = free;
             account['used'] = used;
             account['total'] = total;
@@ -493,8 +497,8 @@ module.exports = class upbit extends Exchange {
             const symbol = this.getSymbolFromMarketId (this.safeString (orderbook, 'market'));
             const timestamp = this.safeInteger (orderbook, 'timestamp');
             result[symbol] = {
-                'bids': this.parseBidsAsks (orderbook['orderbook_units'], 'bid_price', 'bid_size'),
-                'asks': this.parseBidsAsks (orderbook['orderbook_units'], 'ask_price', 'bid_size'),
+                'bids': this.sortBy (this.parseBidsAsks (orderbook['orderbook_units'], 'bid_price', 'bid_size'), 0, true),
+                'asks': this.sortBy (this.parseBidsAsks (orderbook['orderbook_units'], 'ask_price', 'ask_size'), 0),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
                 'nonce': undefined,
@@ -771,12 +775,12 @@ module.exports = class upbit extends Exchange {
         //                            unit:  1                     },
         //
         return [
-            this.safeInteger (ohlcv, 'timestamp'),
+            this.parse8601 (this.safeString (ohlcv, 'candle_date_time_utc')),
             this.safeFloat (ohlcv, 'opening_price'),
             this.safeFloat (ohlcv, 'high_price'),
             this.safeFloat (ohlcv, 'low_price'),
             this.safeFloat (ohlcv, 'trade_price'),
-            this.safeFloat (ohlcv, 'candle_acc_trade_price'), // base volume
+            this.safeFloat (ohlcv, 'candle_acc_trade_volume'), // base volume
         ];
     }
 
@@ -1209,7 +1213,7 @@ module.exports = class upbit extends Exchange {
         };
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.marketId (symbol);
+            market = this.market (symbol);
             request['market'] = market['id'];
         }
         const response = await this.privateGetOrders (this.extend (request, params));
@@ -1301,6 +1305,14 @@ module.exports = class upbit extends Exchange {
         return this.parseOrder (response);
     }
 
+    parseDepositAddresses (addresses) {
+        const result = [];
+        for (let i = 0; i < addresses.length; i++) {
+            result.push (this.parseDepositAddress (addresses[i]));
+        }
+        return result;
+    }
+
     async fetchDepositAddresses (codes = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetDepositsCoinAddresses (params);
@@ -1323,13 +1335,7 @@ module.exports = class upbit extends Exchange {
         //         }
         //     ]
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            let depositAddress = this.parseDepositAddress (response[i]);
-            let code = depositAddress['currency'];
-            result[code] = depositAddress;
-        }
-        return result;
+        return this.parseDepositAddresses (response);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
@@ -1471,10 +1477,9 @@ module.exports = class upbit extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response = undefined) {
-        if (!this.isJsonEncodedObject (body))
+    handleErrors (httpCode, reason, url, method, headers, body, response) {
+        if (response === undefined)
             return; // fallback to default error handler
-        response = JSON.parse (body);
         //
         //   { 'error': { 'message': "Missing request parameter error. Check the required parameters!", 'name':  400 } },
         //   { 'error': { 'message': "side is missing, side does not have a valid value", 'name': "validation_error" } },

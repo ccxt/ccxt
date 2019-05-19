@@ -28,7 +28,7 @@ class zaif extends Exchange {
                 'api' => 'https://api.zaif.jp',
                 'www' => 'https://zaif.jp',
                 'doc' => array (
-                    'http://techbureau-api-document.readthedocs.io/ja/latest/index.html',
+                    'https://techbureau-api-document.readthedocs.io/ja/latest/index.html',
                     'https://corp.zaif.jp/api-docs',
                     'https://corp.zaif.jp/api-docs/api_links',
                     'https://www.npmjs.com/package/zaif.jp',
@@ -39,8 +39,8 @@ class zaif extends Exchange {
             'fees' => array (
                 'trading' => array (
                     'percentage' => true,
-                    'taker' => -0.0001,
-                    'maker' => -0.0005,
+                    'taker' => 0.1 / 100,
+                    'maker' => 0,
                 ),
             ),
             'api' => array (
@@ -99,6 +99,16 @@ class zaif extends Exchange {
                     ),
                 ),
             ),
+            'options' => array (
+                // zaif schedule defines several market-specific fees
+                'fees' => array (
+                    'BTC/JPY' => array ( 'maker' => 0, 'taker' => 0 ),
+                    'BCH/JPY' => array ( 'maker' => 0, 'taker' => 0.3 / 100 ),
+                    'BCH/BTC' => array ( 'maker' => 0, 'taker' => 0.3 / 100 ),
+                    'PEPECASH/JPY' => array ( 'maker' => 0, 'taker' => 0.01 / 100 ),
+                    'PEPECASH/BT' => array ( 'maker' => 0, 'taker' => 0.01 / 100 ),
+                ),
+            ),
             'exceptions' => array (
                 'exact' => array (
                     'unsupported currency_pair' => '\\ccxt\\BadRequest', // array ("error" => "unsupported currency_pair")
@@ -121,6 +131,9 @@ class zaif extends Exchange {
                 'amount' => -log10 ($market['item_unit_step']),
                 'price' => $market['aux_unit_point'],
             );
+            $fees = $this->safe_value($this->options['fees'], $symbol, $this->fees['trading']);
+            $taker = $fees['taker'];
+            $maker = $fees['maker'];
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -128,6 +141,8 @@ class zaif extends Exchange {
                 'quote' => $quote,
                 'active' => true, // can trade or not
                 'precision' => $precision,
+                'taker' => $taker,
+                'maker' => $maker,
                 'limits' => array (
                     'amount' => array (
                         'min' => $this->safe_float($market, 'item_unit_min'),
@@ -305,15 +320,18 @@ class zaif extends Exchange {
     }
 
     public function parse_orders ($orders, $market = null, $since = null, $limit = null) {
-        $ids = is_array ($orders) ? array_keys ($orders) : array ();
         $result = array ();
+        $ids = is_array ($orders) ? array_keys ($orders) : array ();
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $order = $orders[$id];
-            $extended = array_merge ($order, array ( 'id' => $id ));
-            $result[] = $this->parse_order($extended, $market);
+            $order = array_merge (array ( 'id' => $id ), $orders[$id]);
+            $result[] = $this->v1ParseOrder ($order, $market);
         }
-        return $this->filter_by_since_limit($result, $since, $limit);
+        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -411,10 +429,10 @@ class zaif extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response = null) {
-        if (!$this->is_json_encoded_object($body))
-            return; // fallback to default $error handler
-        $response = json_decode ($body, $as_associative_array = true);
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+        if ($response === null) {
+            return;
+        }
         //
         //     array ("$error" => "unsupported currency_pair")
         //

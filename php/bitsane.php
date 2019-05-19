@@ -25,8 +25,8 @@ class bitsane extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/41387105-d86bf4c6-6f8d-11e8-95ea-2fa943872955.jpg',
                 'api' => 'https://bitsane.com/api',
                 'www' => 'https://bitsane.com',
-                'doc' => 'https://bitsane.com/info-api',
-                'fees' => 'https://bitsane.com/fees',
+                'doc' => 'https://bitsane.com/help/api',
+                'fees' => 'https://bitsane.com/help/fees',
             ),
             'api' => array (
                 'public' => array (
@@ -198,8 +198,8 @@ class bitsane extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_float($ticker, 'percentChange'),
-            'percentage' => null,
+            'change' => null,
+            'percentage' => $this->safe_float($ticker, 'percentChange'),
             'average' => null,
             'baseVolume' => $this->safe_float($ticker, 'baseVolume'),
             'quoteVolume' => $this->safe_float($ticker, 'quoteVolume'),
@@ -311,14 +311,16 @@ class bitsane extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($order, 'timestamp') * 1000;
-        $price = floatval ($order['price']);
+        $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'original_amount');
         $filled = $this->safe_float($order, 'executed_amount');
         $remaining = $this->safe_float($order, 'remaining_amount');
+        $isCanceled = $this->safe_value($order, 'is_cancelled');
+        $isLive = $this->safe_value($order, 'is_live');
         $status = 'closed';
-        if ($order['is_cancelled']) {
+        if ($isCanceled) {
             $status = 'canceled';
-        } else if ($order['is_live']) {
+        } else if ($isLive) {
             $status = 'open';
         }
         return array (
@@ -437,13 +439,12 @@ class bitsane extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
         if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return; // fallback to default error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             $statusCode = $this->safe_string($response, 'statusCode');
             if ($statusCode !== null) {
                 if ($statusCode !== '0') {

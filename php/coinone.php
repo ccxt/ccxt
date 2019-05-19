@@ -78,6 +78,9 @@ class coinone extends Exchange {
                 'ZIL/KRW' => array ( 'id' => 'zil', 'symbol' => 'ZIL/KRW', 'base' => 'ZIL', 'quote' => 'KRW', 'baseId' => 'zil', 'quoteId' => 'krw' ),
                 'KNC/KRW' => array ( 'id' => 'knc', 'symbol' => 'KNC/KRW', 'base' => 'KNC', 'quote' => 'KRW', 'baseId' => 'knc', 'quoteId' => 'krw' ),
                 'ZRX/KRW' => array ( 'id' => 'zrx', 'symbol' => 'ZRX/KRW', 'base' => 'ZRX', 'quote' => 'KRW', 'baseId' => 'zrx', 'quoteId' => 'krw' ),
+                'LUNA/KRW' => array ( 'id' => 'luna', 'symbol' => 'LUNA/KRW', 'base' => 'LUNA', 'quote' => 'KRW', 'baseId' => 'luna', 'quoteId' => 'krw' ),
+                'ATOM/KRW' => array ( 'id' => 'atom', 'symbol' => 'ATOM/KRW', 'base' => 'ATOM', 'quote' => 'KRW', 'baseId' => 'atom', 'quoteId' => 'krw' ),
+                'VNT/KRW' => array ( 'id' => 'vnt', 'symbol' => 'vnt/KRW', 'base' => 'VNT', 'quote' => 'KRW', 'baseId' => 'vnt', 'quoteId' => 'krw' ),
             ),
             'fees' => array (
                 'trading' => array (
@@ -222,6 +225,13 @@ class coinone extends Exchange {
     public function parse_trade ($trade, $market = null) {
         $timestamp = intval ($trade['timestamp']) * 1000;
         $symbol = ($market !== null) ? $market['symbol'] : null;
+        $is_ask = $this->safe_string($trade, 'is_ask');
+        $side = null;
+        if ($is_ask === '1') {
+            $side = 'sell';
+        } else if ($is_ask === '0') {
+            $side = 'buy';
+        }
         return array (
             'id' => null,
             'timestamp' => $timestamp,
@@ -229,7 +239,7 @@ class coinone extends Exchange {
             'order' => null,
             'symbol' => $symbol,
             'type' => null,
-            'side' => null,
+            'side' => $side,
             'price' => $this->safe_float($trade, 'price'),
             'amount' => $this->safe_float($trade, 'qty'),
             'fee' => null,
@@ -465,9 +475,8 @@ class coinone extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             if (is_array ($response) && array_key_exists ('result', $response)) {
                 $result = $response['result'];
                 if ($result !== 'success') {

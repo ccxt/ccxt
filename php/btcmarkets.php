@@ -136,6 +136,7 @@ class btcmarkets extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'active' => null,
                 'maker' => $fee,
                 'taker' => $fee,
                 'limits' => $limits,
@@ -408,10 +409,10 @@ class btcmarkets extends Exchange {
         return $this->parse_order($order);
     }
 
-    public function prepare_history_request ($market, $since = null, $limit = null) {
+    public function create_paginated_request ($market, $since = null, $limit = null) {
         $request = $this->ordered (array (
-            'currency' => $market['quote'],
-            'instrument' => $market['base'],
+            'currency' => $market['quoteId'],
+            'instrument' => $market['baseId'],
         ));
         if ($limit !== null)
             $request['limit'] = $limit;
@@ -425,21 +426,23 @@ class btcmarkets extends Exchange {
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null)
-            throw new NotSupported ($this->id . ' => fetchOrders requires a `$symbol` parameter.');
+        if ($symbol === null) {
+            throw new ArgumentsRequired ($this->id . ' => fetchOrders requires a `$symbol` argument.');
+        }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = $this->prepare_history_request ($market, $since, $limit);
+        $request = $this->create_paginated_request ($market, $since, $limit);
         $response = $this->privatePostOrderHistory (array_merge ($request, $params));
         return $this->parse_orders($response['orders'], $market);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null)
-            throw new NotSupported ($this->id . ' => fetchOpenOrders requires a `$symbol` parameter.');
+        if ($symbol === null) {
+            throw new ArgumentsRequired ($this->id . ' => fetchOpenOrders requires a `$symbol` argument.');
+        }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = $this->prepare_history_request ($market, $since, $limit);
+        $request = $this->create_paginated_request ($market, $since, $limit);
         $response = $this->privatePostOrderOpen (array_merge ($request, $params));
         return $this->parse_orders($response['orders'], $market);
     }
@@ -450,11 +453,12 @@ class btcmarkets extends Exchange {
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null)
-            throw new NotSupported ($this->id . ' => fetchMyTrades requires a `$symbol` parameter.');
+        if ($symbol === null) {
+            throw new ArgumentsRequired ($this->id . ' => fetchMyTrades requires a `$symbol` argument.');
+        }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = $this->prepare_history_request ($market, $since, $limit);
+        $request = $this->create_paginated_request ($market, $since, $limit);
         $response = $this->privatePostOrderTradeHistory (array_merge ($request, $params));
         return $this->parse_my_trades ($response['trades'], $market);
     }
@@ -484,17 +488,17 @@ class btcmarkets extends Exchange {
             $signature = $this->hmac ($this->encode ($auth), $secret, 'sha512', 'base64');
             $headers['signature'] = $this->decode ($signature);
         } else {
-            if ($params)
+            if ($params) {
                 $url .= '?' . $this->urlencode ($params);
+            }
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (strlen ($body) < 2)
             return; // fallback to default $error handler
         if ($body[0] === '{') {
-            $response = json_decode ($body, $as_associative_array = true);
             if (is_array ($response) && array_key_exists ('success', $response)) {
                 if (!$response['success']) {
                     $error = $this->safe_string($response, 'errorCode');

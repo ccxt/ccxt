@@ -21,7 +21,7 @@ class virwox extends Exchange {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766894-6da9d360-5eea-11e7-90aa-41f2711b7405.jpg',
                 'api' => array (
-                    'public' => 'http://api.virwox.com/api/json.php',
+                    'public' => 'https://api.virwox.com/api/json.php',
                     'private' => 'https://www.virwox.com/api/trading.php',
                 ),
                 'www' => 'https://www.virwox.com',
@@ -214,8 +214,8 @@ class virwox extends Exchange {
             'instrument' => $symbol,
             'timespan' => 3600,
         ), $params));
-        $result = $response['result'];
-        $trades = $result['data'];
+        $result = $this->safe_value($response, 'result', array ());
+        $trades = $this->safe_value($result, 'data', array ());
         return $this->parse_trades($trades, $market);
     }
 
@@ -268,10 +268,9 @@ class virwox extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if ($code === 200) {
             if (($body[0] === '{') || ($body[0] === '[')) {
-                $response = json_decode ($body, $as_associative_array = true);
                 if (is_array ($response) && array_key_exists ('result', $response)) {
                     $result = $response['result'];
                     if (is_array ($result) && array_key_exists ('errorCode', $result)) {

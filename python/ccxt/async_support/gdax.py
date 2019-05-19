@@ -6,7 +6,6 @@
 from ccxt.async_support.base.exchange import Exchange
 import base64
 import hashlib
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -27,17 +26,19 @@ class gdax (Exchange):
             'rateLimit': 1000,
             'userAgent': self.userAgents['chrome'],
             'has': {
+                'cancelAllOrders': True,
                 'CORS': True,
-                'fetchOHLCV': True,
                 'deposit': True,
-                'withdraw': True,
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
+                'fetchAccounts': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
                 'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrders': True,
                 'fetchTransactions': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': 60,
@@ -88,12 +89,14 @@ class gdax (Exchange):
                         'funding',
                         'orders',
                         'orders/{id}',
+                        'otc/orders',
                         'payment-methods',
                         'position',
                         'reports/{id}',
                         'users/self/trailing-volume',
                     ],
                     'post': [
+                        'conversions',
                         'deposits/coinbase-account',
                         'deposits/payment-method',
                         'coinbase-accounts/{id}/addresses',
@@ -116,8 +119,8 @@ class gdax (Exchange):
                 'trading': {
                     'tierBased': True,  # complicated tier system per coin
                     'percentage': True,
-                    'maker': 0.0,
-                    'taker': 0.3 / 100,  # tiered fee starts at 0.3%
+                    'maker': 0.15 / 100,  # highest fee of all tiers
+                    'taker': 0.25 / 100,  # highest fee of all tiers
                 },
                 'funding': {
                     'tierBased': False,
@@ -147,6 +150,7 @@ class gdax (Exchange):
                     'Invalid API Key': AuthenticationError,
                     'invalid signature': AuthenticationError,
                     'Invalid Passphrase': AuthenticationError,
+                    'Invalid order id': InvalidOrder,
                 },
                 'broad': {
                     'Order already done': OrderNotFound,
@@ -158,13 +162,15 @@ class gdax (Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        markets = await self.publicGetProducts()
+        response = await self.publicGetProducts(params)
         result = []
-        for p in range(0, len(markets)):
-            market = markets[p]
-            id = market['id']
-            base = market['base_currency']
-            quote = market['quote_currency']
+        for i in range(0, len(response)):
+            market = response[i]
+            id = self.safe_string(market, 'id')
+            baseId = self.safe_string(market, 'base_currency')
+            quoteId = self.safe_string(market, 'quote_currency')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             priceLimits = {
                 'min': self.safe_float(market, 'quote_increment'),
@@ -181,6 +187,8 @@ class gdax (Exchange):
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
                 'precision': precision,
@@ -201,9 +209,45 @@ class gdax (Exchange):
             }))
         return result
 
+    async def fetch_accounts(self, params={}):
+        response = await self.privateGetAccounts(params)
+        #
+        #     [
+        #         {
+        #             id: '4aac9c60-cbda-4396-9da4-4aa71e95fba0',
+        #             currency: 'BTC',
+        #             balance: '0.0000000000000000',
+        #             available: '0',
+        #             hold: '0.0000000000000000',
+        #             profile_id: 'b709263e-f42a-4c7d-949a-a95c83d065da'
+        #         },
+        #         {
+        #             id: 'f75fa69a-1ad1-4a80-bd61-ee7faa6135a3',
+        #             currency: 'USDC',
+        #             balance: '0.0000000000000000',
+        #             available: '0',
+        #             hold: '0.0000000000000000',
+        #             profile_id: 'b709263e-f42a-4c7d-949a-a95c83d065da'
+        #         },
+        #     ]
+        #
+        result = []
+        for i in range(0, len(response)):
+            account = response[i]
+            accountId = self.safe_string(account, 'id')
+            currencyId = self.safe_string(account, 'currency')
+            code = self.common_currency_code(currencyId)
+            result.append({
+                'id': accountId,
+                'type': None,
+                'currency': code,
+                'info': account,
+            })
+        return result
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        balances = await self.privateGetAccounts()
+        balances = await self.privateGetAccounts(params)
         result = {'info': balances}
         for b in range(0, len(balances)):
             balance = balances[b]
@@ -231,7 +275,7 @@ class gdax (Exchange):
             'id': market['id'],
         }, params)
         ticker = await self.publicGetProductsIdTicker(request)
-        timestamp = self.parse8601(ticker['time'])
+        timestamp = self.parse8601(self.safe_value(ticker, 'time'))
         bid = None
         ask = None
         if 'bid' in ticker:
@@ -272,11 +316,12 @@ class gdax (Exchange):
             symbol = market['symbol']
         feeRate = None
         feeCurrency = None
+        takerOrMaker = None
         if market is not None:
             feeCurrency = market['quote']
             if 'liquidity' in trade:
-                rateType = 'taker' if (trade['liquidity'] == 'T') else 'maker'
-                feeRate = market[rateType]
+                takerOrMaker = 'taker' if (trade['liquidity'] == 'T') else 'maker'
+                feeRate = market[takerOrMaker]
         feeCost = self.safe_float(trade, 'fill_fees')
         if feeCost is None:
             feeCost = self.safe_float(trade, 'fee')
@@ -302,6 +347,7 @@ class gdax (Exchange):
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': type,
+            'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'amount': amount,
@@ -358,9 +404,9 @@ class gdax (Exchange):
         response = await self.publicGetProductsIdCandles(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    async def fetch_time(self):
-        response = await self.publicGetTime()
-        return self.parse8601(response['iso'])
+    async def fetch_time(self, params={}):
+        response = await self.publicGetTime(params)
+        return self.parse8601(self.parse8601(response, 'iso'))
 
     def parse_order_status(self, status):
         statuses = {
@@ -464,17 +510,20 @@ class gdax (Exchange):
         order = {
             'product_id': self.market_id(symbol),
             'side': side,
-            'size': amount,
+            'size': self.amount_to_precision(symbol, amount),
             'type': type,
         }
         if type == 'limit':
-            order['price'] = price
+            order['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePostOrders(self.extend(order, params))
         return self.parse_order(response)
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
         return await self.privateDeleteOrdersId({'id': id})
+
+    async def cancel_all_orders(self, symbol=None, params={}):
+        return await self.privateDeleteOrders(params)
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
@@ -545,37 +594,36 @@ class gdax (Exchange):
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
-        if code is None:
-            raise ArgumentsRequired(self.id + ' fetchTransactions() requires a currency code argument')
-        currency = self.currency(code)
-        accountId = None
-        accounts = await self.privateGetAccounts()
-        for i in range(0, len(accounts)):
-            account = accounts[i]
-            # todo: use unified common currencies below
-            if account['currency'] == currency['id']:
-                accountId = account['id']
-                break
-        if accountId is None:
-            raise ExchangeError(self.id + ' fetchTransactions() could not find account id for ' + code)
+        await self.loadAccounts()
+        currency = None
+        id = self.safe_string(params, 'id')  # account id
+        if id is None:
+            if code is None:
+                raise ArgumentsRequired(self.id + ' fetchTransactions() requires a currency code argument if no account id specified in params')
+            currency = self.currency(code)
+            accountsByCurrencyCode = self.index_by(self.accounts, 'currency')
+            account = self.safe_value(accountsByCurrencyCode, code)
+            if account is None:
+                raise ExchangeError(self.id + ' fetchTransactions() could not find account id for ' + code)
+            id = account['id']
         request = {
-            'id': accountId,
+            'id': id,
         }
         if limit is not None:
             request['limit'] = limit
         response = await self.privateGetAccountsIdTransfers(self.extend(request, params))
         for i in range(0, len(response)):
             response[i]['currency'] = code
-        return self.parseTransactions(response)
+        return self.parseTransactions(response, currency, since, limit)
 
     def parse_transaction_status(self, transaction):
         if 'canceled_at' in transaction and transaction['canceled_at']:
             return 'canceled'
         elif 'completed_at' in transaction and transaction['completed_at']:
             return 'ok'
-        elif ('canceled_at' in list(transaction and not transaction['canceled_at'].keys())) and('completed_at' in list(transaction and not transaction['completed_at'].keys())) and('processed_at' in list(transaction and not transaction['processed_at'].keys())):
+        elif (('canceled_at' in list(transaction.keys())) and not transaction['canceled_at']) and(('completed_at' in list(transaction.keys())) and not transaction['completed_at']) and(('processed_at' in list(transaction.keys())) and not transaction['processed_at']):
             return 'pending'
-        elif 'procesed_at' in transaction and transaction['procesed_at']:
+        elif 'processed_at' in transaction and transaction['processed_at']:
             return 'pending'
         else:
             return 'failed'
@@ -598,6 +646,7 @@ class gdax (Exchange):
         amount = self.safe_float(transaction, 'amount')
         type = self.safe_string(transaction, 'type')
         address = self.safe_string(details, 'crypto_address')
+        tag = self.safe_string(details, 'destination_tag')
         address = self.safe_string(transaction, 'crypto_address', address)
         if type == 'withdraw':
             type = 'withdrawal'
@@ -609,7 +658,7 @@ class gdax (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'address': address,
-            'tag': None,
+            'tag': tag,
             'type': type,
             'amount': amount,
             'currency': code,
@@ -663,9 +712,7 @@ class gdax (Exchange):
             'id': account['id'],
         }, params))
         address = self.safe_string(response, 'address')
-        # todo: figure self out
-        # tag = self.safe_string(response, 'addressTag')
-        tag = None
+        tag = self.safe_string(response, 'destination_tag')
         return {
             'currency': code,
             'address': self.check_address(address),
@@ -673,10 +720,9 @@ class gdax (Exchange):
             'info': response,
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if (code == 400) or (code == 404):
             if body[0] == '{':
-                response = json.loads(body)
                 message = response['message']
                 feedback = self.id + ' ' + message
                 exact = self.exceptions['exact']

@@ -27,90 +27,40 @@ class okex extends okcoinusd {
                     'private' => 'https://www.okex.com/api',
                 ),
                 'www' => 'https://www.okex.com',
-                'doc' => 'https://github.com/okcoin-okex/API-docs-OKEx.com',
+                'doc' => array (
+                    'https://github.com/okcoin-okex/API-docs-OKEx.com',
+                    'https://www.okex.com/docs/en/',
+                ),
                 'fees' => 'https://www.okex.com/pages/products/fees.html',
+                'referral' => 'https://www.okex.com',
+            ),
+            'fees' => array (
+                'trading' => array (
+                    'taker' => 0.0015,
+                    'maker' => 0.0010,
+                ),
+                'spot' => array (
+                    'taker' => 0.0015,
+                    'maker' => 0.0010,
+                ),
+                'future' => array (
+                    'taker' => 0.0030,
+                    'maker' => 0.0020,
+                ),
+                'swap' => array (
+                    'taker' => 0.0070,
+                    'maker' => 0.0020,
+                ),
             ),
             'commonCurrencies' => array (
+                // OKEX refers to ERC20 version of Aeternity (AEToken)
+                'AE' => 'AET', // https://github.com/ccxt/ccxt/issues/4981
                 'FAIR' => 'FairGame',
                 'HOT' => 'Hydro Protocol',
                 'HSR' => 'HC',
                 'MAG' => 'Maggie',
                 'YOYO' => 'YOYOW',
             ),
-            'options' => array (
-                'fetchTickersMethod' => 'fetch_tickers_from_api',
-            ),
         ));
-    }
-
-    public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
-        $market = $this->markets[$symbol];
-        $key = 'quote';
-        $rate = $market[$takerOrMaker];
-        $cost = floatval ($this->cost_to_precision($symbol, $amount * $rate));
-        if ($side === 'sell') {
-            $cost *= $price;
-        } else {
-            $key = 'base';
-        }
-        return array (
-            'type' => $takerOrMaker,
-            'currency' => $market[$key],
-            'rate' => $rate,
-            'cost' => floatval ($this->fee_to_precision($symbol, $cost)),
-        );
-    }
-
-    public function fetch_markets ($params = array ()) {
-        $markets = parent::fetch_markets($params);
-        // TODO => they have a new fee schedule as of Feb 7
-        // the new fees are progressive and depend on 30-day traded volume
-        // the following is the worst case
-        for ($i = 0; $i < count ($markets); $i++) {
-            if ($markets[$i]['spot']) {
-                $markets[$i]['maker'] = 0.0015;
-                $markets[$i]['taker'] = 0.0020;
-            } else {
-                $markets[$i]['maker'] = 0.0003;
-                $markets[$i]['taker'] = 0.0005;
-            }
-        }
-        return $markets;
-    }
-
-    public function fetch_tickers_from_api ($symbols = null, $params = array ()) {
-        $this->load_markets();
-        $request = array ();
-        $response = $this->publicGetTickers (array_merge ($request, $params));
-        $tickers = $response['tickers'];
-        $timestamp = intval ($response['date']) * 1000;
-        $result = array ();
-        for ($i = 0; $i < count ($tickers); $i++) {
-            $ticker = $tickers[$i];
-            $ticker = $this->parse_ticker(array_merge ($tickers[$i], array ( 'timestamp' => $timestamp )));
-            $symbol = $ticker['symbol'];
-            $result[$symbol] = $ticker;
-        }
-        return $result;
-    }
-
-    public function fetch_tickers_from_web ($symbols = null, $params = array ()) {
-        $this->load_markets();
-        $request = array ();
-        $response = $this->webGetSpotMarketsTickers (array_merge ($request, $params));
-        $tickers = $response['data'];
-        $result = array ();
-        for ($i = 0; $i < count ($tickers); $i++) {
-            $ticker = $this->parse_ticker($tickers[$i]);
-            $symbol = $ticker['symbol'];
-            $result[$symbol] = $ticker;
-        }
-        return $result;
-    }
-
-    public function fetch_tickers ($symbols = null, $params = array ()) {
-        $method = $this->options['fetchTickersMethod'];
-        $response = $this->$method ($symbols, $params);
-        return $response;
     }
 }

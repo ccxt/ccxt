@@ -44,6 +44,7 @@ class tidebit extends Exchange {
                     'https://www.tidebit.com/documents/api/guide',
                     'https://www.tidebit.com/swagger/#/default',
                 ),
+                'referral' => 'http://bit.ly/2IX0LrM',
             ),
             'api' => array (
                 'public' => array (
@@ -445,9 +446,8 @@ class tidebit extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if ($code === 400) {
-            $response = json_decode ($body, $as_associative_array = true);
             $error = $this->safe_value($response, 'error');
             $errorCode = $this->safe_string($error, 'code');
             $feedback = $this->id . ' ' . $this->json ($response);

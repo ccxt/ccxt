@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 
@@ -32,7 +31,7 @@ class zaif (Exchange):
                 'api': 'https://api.zaif.jp',
                 'www': 'https://zaif.jp',
                 'doc': [
-                    'http://techbureau-api-document.readthedocs.io/ja/latest/index.html',
+                    'https://techbureau-api-document.readthedocs.io/ja/latest/index.html',
                     'https://corp.zaif.jp/api-docs',
                     'https://corp.zaif.jp/api-docs/api_links',
                     'https://www.npmjs.com/package/zaif.jp',
@@ -43,8 +42,8 @@ class zaif (Exchange):
             'fees': {
                 'trading': {
                     'percentage': True,
-                    'taker': -0.0001,
-                    'maker': -0.0005,
+                    'taker': 0.1 / 100,
+                    'maker': 0,
                 },
             },
             'api': {
@@ -103,6 +102,16 @@ class zaif (Exchange):
                     ],
                 },
             },
+            'options': {
+                # zaif schedule defines several market-specific fees
+                'fees': {
+                    'BTC/JPY': {'maker': 0, 'taker': 0},
+                    'BCH/JPY': {'maker': 0, 'taker': 0.3 / 100},
+                    'BCH/BTC': {'maker': 0, 'taker': 0.3 / 100},
+                    'PEPECASH/JPY': {'maker': 0, 'taker': 0.01 / 100},
+                    'PEPECASH/BT': {'maker': 0, 'taker': 0.01 / 100},
+                },
+            },
             'exceptions': {
                 'exact': {
                     'unsupported currency_pair': BadRequest,  # {"error": "unsupported currency_pair"}
@@ -124,6 +133,9 @@ class zaif (Exchange):
                 'amount': -math.log10(market['item_unit_step']),
                 'price': market['aux_unit_point'],
             }
+            fees = self.safe_value(self.options['fees'], symbol, self.fees['trading'])
+            taker = fees['taker']
+            maker = fees['maker']
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -131,6 +143,8 @@ class zaif (Exchange):
                 'quote': quote,
                 'active': True,  # can trade or not
                 'precision': precision,
+                'taker': taker,
+                'maker': maker,
                 'limits': {
                     'amount': {
                         'min': self.safe_float(market, 'item_unit_min'),
@@ -293,14 +307,16 @@ class zaif (Exchange):
         }
 
     def parse_orders(self, orders, market=None, since=None, limit=None):
-        ids = list(orders.keys())
         result = []
+        ids = list(orders.keys())
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         for i in range(0, len(ids)):
             id = ids[i]
-            order = orders[id]
-            extended = self.extend(order, {'id': id})
-            result.append(self.parse_order(extended, market))
-        return self.filter_by_since_limit(result, since, limit)
+            order = self.extend({'id': id}, orders[id])
+            result.append(self.v1ParseOrder(order, market))
+        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -386,10 +402,9 @@ class zaif (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response=None):
-        if not self.is_json_encoded_object(body):
-            return  # fallback to default error handler
-        response = json.loads(body)
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+        if response is None:
+            return
         #
         #     {"error": "unsupported currency_pair"}
         #

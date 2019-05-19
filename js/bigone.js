@@ -15,13 +15,14 @@ module.exports = class bigone extends Exchange {
             'countries': [ 'GB' ],
             'version': 'v2',
             'has': {
-                'fetchTickers': true,
-                'fetchOpenOrders': true,
-                'fetchMyTrades': true,
-                'fetchDepositAddress': true,
-                'withdraw': true,
-                'fetchOHLCV': false,
+                'cancelAllOrders': true,
                 'createMarketOrder': false,
+                'fetchDepositAddress': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': false,
+                'fetchOpenOrders': true,
+                'fetchTickers': true,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/42803606-27c2b5ec-89af-11e8-8d15-9c8c245e8b2c.jpg',
@@ -478,8 +479,8 @@ module.exports = class bigone extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = { 'order_id': id };
-        let response = await this.privatePostOrdersOrderIdCancel (this.extend (request, params));
+        const request = { 'order_id': id };
+        const response = await this.privatePostOrdersOrderIdCancel (this.extend (request, params));
         //
         //     {
         //       "data":
@@ -495,13 +496,13 @@ module.exports = class bigone extends Exchange {
         //         }
         //     }
         //
-        let order = response['data'];
+        const order = this.safeValue (response, 'data');
         return this.parseOrder (order);
     }
 
-    async cancelAllOrders (symbols = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostOrdersOrderIdCancel (params);
+        const response = await this.privatePostOrdersOrderIdCancel (params);
         //
         //     [
         //         {
@@ -524,8 +525,8 @@ module.exports = class bigone extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = { 'order_id': id };
-        let response = await this.privateGetOrdersOrderId (this.extend (request, params));
+        const request = { 'order_id': id };
+        const response = await this.privateGetOrdersOrderId (this.extend (request, params));
         //
         //     {
         //       "data":
@@ -541,7 +542,7 @@ module.exports = class bigone extends Exchange {
         //         }
         //     }
         //
-        let order = this.safeValue (response, 'data');
+        const order = this.safeValue (response, 'data');
         return this.parseOrder (order);
     }
 
@@ -656,13 +657,12 @@ module.exports = class bigone extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response = undefined) {
+    handleErrors (httpCode, reason, url, method, headers, body, response) {
         if (typeof body !== 'string')
             return; // fallback to default error handler
         if (body.length < 2)
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
-            response = JSON.parse (body);
             //
             //      {"errors":{"detail":"Internal server error"}}
             //      {"errors":[{"message":"invalid nonce, nonce should be a 19bits number","code":10030}],"data":null}

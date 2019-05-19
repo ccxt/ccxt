@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -28,13 +27,14 @@ class upbit (Exchange):
             # new metainfo interface
             'has': {
                 'CORS': True,
-                'fetchOrderBooks': True,
+                'createDepositAddress': True,
                 'createMarketOrder': False,
                 'fetchDepositAddress': True,
                 'fetchClosedOrders': True,
                 'fetchMyTrades': False,
                 'fetchOHLCV': True,
                 'fetchOrder': True,
+                'fetchOrderBooks': True,
                 'fetchOpenOrders': True,
                 'fetchOrders': False,
                 'fetchTickers': True,
@@ -145,6 +145,9 @@ class upbit (Exchange):
                 'tradingFeesByQuoteCurrency': {
                     'KRW': 0.0005,
                 },
+            },
+            'commonCurrencies': {
+                'CPT': 'Contents Protocol',  # conflict with CPT(Cryptaur) https://github.com/ccxt/ccxt/issues/4920
             },
         })
 
@@ -416,9 +419,9 @@ class upbit (Exchange):
             currency = self.common_currency_code(id)
             account = self.account()
             balance = indexed[id]
-            total = self.safe_float(balance, 'balance')
+            free = self.safe_float(balance, 'balance')
             used = self.safe_float(balance, 'locked')
-            free = total - used
+            total = self.sum(free, used)
             account['free'] = free
             account['used'] = used
             account['total'] = total
@@ -486,8 +489,8 @@ class upbit (Exchange):
             symbol = self.get_symbol_from_market_id(self.safe_string(orderbook, 'market'))
             timestamp = self.safe_integer(orderbook, 'timestamp')
             result[symbol] = {
-                'bids': self.parse_bids_asks(orderbook['orderbook_units'], 'bid_price', 'bid_size'),
-                'asks': self.parse_bids_asks(orderbook['orderbook_units'], 'ask_price', 'bid_size'),
+                'bids': self.sort_by(self.parse_bids_asks(orderbook['orderbook_units'], 'bid_price', 'bid_size'), 0, True),
+                'asks': self.sort_by(self.parse_bids_asks(orderbook['orderbook_units'], 'ask_price', 'ask_size'), 0),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
                 'nonce': None,
@@ -744,12 +747,12 @@ class upbit (Exchange):
         #                            unit:  1                     },
         #
         return [
-            self.safe_integer(ohlcv, 'timestamp'),
+            self.parse8601(self.safe_string(ohlcv, 'candle_date_time_utc')),
             self.safe_float(ohlcv, 'opening_price'),
             self.safe_float(ohlcv, 'high_price'),
             self.safe_float(ohlcv, 'low_price'),
             self.safe_float(ohlcv, 'trade_price'),
-            self.safe_float(ohlcv, 'candle_acc_trade_price'),  # base volume
+            self.safe_float(ohlcv, 'candle_acc_trade_volume'),  # base volume
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -1150,7 +1153,7 @@ class upbit (Exchange):
         }
         market = None
         if symbol is not None:
-            market = self.market_id(symbol)
+            market = self.market(symbol)
             request['market'] = market['id']
         response = await self.privateGetOrders(self.extend(request, params))
         #
@@ -1236,6 +1239,12 @@ class upbit (Exchange):
         #
         return self.parse_order(response)
 
+    def parse_deposit_addresses(self, addresses):
+        result = []
+        for i in range(0, len(addresses)):
+            result.append(self.parse_deposit_address(addresses[i]))
+        return result
+
     async def fetch_deposit_addresses(self, codes=None, params={}):
         await self.load_markets()
         response = await self.privateGetDepositsCoinAddresses(params)
@@ -1258,12 +1267,7 @@ class upbit (Exchange):
         #         }
         #     ]
         #
-        result = {}
-        for i in range(0, len(response)):
-            depositAddress = self.parse_deposit_address(response[i])
-            code = depositAddress['currency']
-            result[code] = depositAddress
-        return result
+        return self.parse_deposit_addresses(response)
 
     def parse_deposit_address(self, depositAddress, currency=None):
         #
@@ -1391,10 +1395,9 @@ class upbit (Exchange):
                 headers['Content-Type'] = 'application/json'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response=None):
-        if not self.is_json_encoded_object(body):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+        if response is None:
             return  # fallback to default error handler
-        response = json.loads(body)
         #
         #   {'error': {'message': "Missing request parameter error. Check the required parametersnot ", 'name':  400} },
         #   {'error': {'message': "side is missing, side does not have a valid value", 'name': "validation_error"} },

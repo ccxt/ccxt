@@ -33,6 +33,8 @@ class huobipro extends Exchange {
                 'fetchMyTrades' => true,
                 'withdraw' => true,
                 'fetchCurrencies' => true,
+                'fetchDeposits' => true,
+                'fetchWithdrawals' => true,
             ),
             'timeframes' => array (
                 '1m' => '1min',
@@ -94,6 +96,7 @@ class huobipro extends Exchange {
                         'order/matchresults', // 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
                         'dw/deposit-virtual/addresses',
+                        'dw/deposit-virtual/sharedAddressWithTag', // https://github.com/ccxt/ccxt/issues/4851
                         'query/deposit-withdraw',
                         'margin/loan-orders', // 借贷订单
                         'margin/accounts/balance', // 借贷账户详情
@@ -129,6 +132,7 @@ class huobipro extends Exchange {
                 ),
             ),
             'exceptions' => array (
+                'gateway-internal-error' => '\\ccxt\\ExchangeNotAvailable', // array ("status":"error","err-code":"gateway-internal-error","err-msg":"Failed to load data. Try again later.","data":null)
                 'account-frozen-balance-insufficient-error' => '\\ccxt\\InsufficientFunds', // array ("status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left => `0.0027`","data":null)
                 'invalid-amount' => '\\ccxt\\InvalidOrder', // eg "Paramemter `amount` is invalid."
                 'order-limitorder-amount-min-error' => '\\ccxt\\InvalidOrder', // limit order amount error, min => `0.001`
@@ -147,6 +151,9 @@ class huobipro extends Exchange {
                 'fetchBalanceMethod' => 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod' => 'privatePostOrderOrdersPlace',
                 'language' => 'en-US',
+            ),
+            'commonCurrencies' => array (
+                'HOT' => 'Hydro Protocol', // conflict with HOT (Holo) https://github.com/ccxt/ccxt/issues/4929
             ),
         ));
     }
@@ -256,7 +263,7 @@ class huobipro extends Exchange {
                 'limits' => array (
                     'amount' => array (
                         'min' => pow (10, -$precision['amount']),
-                        'max' => pow (10, $precision['amount']),
+                        'max' => null,
                     ),
                     'price' => array (
                         'min' => pow (10, -$precision['price']),
@@ -506,23 +513,9 @@ class huobipro extends Exchange {
         return $this->parse_ohlcvs($response['data'], $market, $timeframe, $since, $limit);
     }
 
-    public function load_accounts ($reload = false) {
-        if ($reload) {
-            $this->accounts = $this->fetch_accounts ();
-        } else {
-            if ($this->accounts) {
-                return $this->accounts;
-            } else {
-                $this->accounts = $this->fetch_accounts ();
-                $this->accountsById = $this->index_by($this->accounts, 'id');
-            }
-        }
-        return $this->accounts;
-    }
-
-    public function fetch_accounts () {
+    public function fetch_accounts ($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetAccountAccounts ();
+        $response = $this->privateGetAccountAccounts ($params);
         return $response['data'];
     }
 
@@ -600,7 +593,7 @@ class huobipro extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $this->load_accounts ();
+        $this->loadAccounts ();
         $method = $this->options['fetchBalanceMethod'];
         $response = $this->$method (array_merge (array (
             'id' => $this->accounts[0]['id'],
@@ -637,6 +630,23 @@ class huobipro extends Exchange {
             $request['symbol'] = $market['id'];
         }
         $response = $this->privateGetOrderOrders (array_merge ($request, $params));
+        //
+        //     { status =>   "ok",
+        //         data => array ( {                  id =>  13997833014,
+        //                                $symbol => "ethbtc",
+        //                          'account-id' =>  3398321,
+        //                                amount => "0.045000000000000000",
+        //                                 price => "0.034014000000000000",
+        //                          'created-at' =>  1545836976871,
+        //                                  type => "sell-$limit",
+        //                        'field-amount' => "0.045000000000000000",
+        //                   'field-cash-amount' => "0.001530630000000000",
+        //                          'field-fees' => "0.000003061260000000",
+        //                         'finished-at' =>  1545837948214,
+        //                                source => "spot-api",
+        //                                 state => "filled",
+        //                         'canceled-at' =>  0                      }  ) }
+        //
         return $this->parse_orders($response['data'], $market, $since, $limit);
     }
 
@@ -672,6 +682,37 @@ class huobipro extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
+        //
+        //     {                  $id =>  13997833014,
+        //                    $symbol => "ethbtc",
+        //              'account-id' =>  3398321,
+        //                    $amount => "0.045000000000000000",
+        //                     $price => "0.034014000000000000",
+        //              'created-at' =>  1545836976871,
+        //                      $type => "sell-limit",
+        //            'field-amount' => "0.045000000000000000",
+        //       'field-cash-amount' => "0.001530630000000000",
+        //              'field-fees' => "0.000003061260000000",
+        //             'finished-at' =>  1545837948214,
+        //                    source => "spot-api",
+        //                     state => "$filled",
+        //             'canceled-at' =>  0                      }
+        //
+        //     {                  $id =>  20395337822,
+        //                    $symbol => "ethbtc",
+        //              'account-id' =>  5685075,
+        //                    $amount => "0.001000000000000000",
+        //                     $price => "0.0",
+        //              'created-at' =>  1545831584023,
+        //                      $type => "buy-$market",
+        //            'field-amount' => "0.029100000000000000",
+        //       'field-cash-amount' => "0.000999788700000000",
+        //              'field-fees' => "0.000058200000000000",
+        //             'finished-at' =>  1545831584181,
+        //                    source => "spot-api",
+        //                     state => "$filled",
+        //             'canceled-at' =>  0                      }
+        //
         $id = $this->safe_string($order, 'id');
         $side = null;
         $type = null;
@@ -697,12 +738,17 @@ class huobipro extends Exchange {
         $timestamp = $this->safe_integer($order, 'created-at');
         $amount = $this->safe_float($order, 'amount');
         $filled = $this->safe_float($order, 'field-amount'); // typo in their API, $filled $amount
+        if (($type === 'market') && ($side === 'buy')) {
+            $amount = ($status === 'closed') ? $filled : null;
+        }
         $price = $this->safe_float($order, 'price');
+        if ($price === 0.0) {
+            $price = null;
+        }
         $cost = $this->safe_float($order, 'field-cash-amount'); // same typo
         $remaining = null;
         $average = null;
         if ($filled !== null) {
-            $average = 0;
             if ($amount !== null) {
                 $remaining = $amount - $filled;
             }
@@ -710,6 +756,18 @@ class huobipro extends Exchange {
             if (($cost !== null) && ($filled > 0)) {
                 $average = $cost / $filled;
             }
+        }
+        $feeCost = $this->safe_float($order, 'field-fees'); // typo in their API, $filled fees
+        $fee = null;
+        if ($feeCost !== null) {
+            $feeCurrency = null;
+            if ($market !== null) {
+                $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
+            }
+            $fee = array (
+                'cost' => $feeCost,
+                'currency' => $feeCurrency,
+            );
         }
         $result = array (
             'info' => $order,
@@ -727,14 +785,14 @@ class huobipro extends Exchange {
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
-            'fee' => null,
+            'fee' => $fee,
         );
         return $result;
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $this->load_accounts ();
+        $this->loadAccounts ();
         $market = $this->market ($symbol);
         $request = array (
             'account-id' => $this->accounts[0]['id'],
@@ -747,11 +805,16 @@ class huobipro extends Exchange {
                 if ($price === null) {
                     throw new InvalidOrder ($this->id . " $market buy order requires $price argument to calculate cost (total $amount of quote currency to spend for buying, $amount * $price). To switch off this warning exception and specify cost in the $amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
                 } else {
+                    // despite that cost = $amount * $price is in quote currency and should have quote precision
+                    // the exchange API requires the cost supplied in 'amount' to be of base precision
+                    // more about it here => https://github.com/ccxt/ccxt/pull/4395
+                    // we use priceToPrecision instead of amountToPrecision here
+                    // because in this case the $amount is in the quote currency
                     $request['amount'] = $this->price_to_precision($symbol, floatval ($amount) * floatval ($price));
                 }
             }
         }
-        if ($type === 'limit') {
+        if ($type === 'limit' || $type === 'ioc' || $type === 'limit-maker') {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $method = $this->options['createOrderMethod'];
@@ -794,15 +857,54 @@ class huobipro extends Exchange {
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
-        $response = $this->privateGetDwDepositVirtualAddresses (array_merge (array (
+        // if $code == 'EOS':
+        //     res = huobi.request('/dw/deposit-virtual/sharedAddressWithTag', 'private', 'GET', array ('currency' => 'eos', 'chain' => 'eos1'))
+        //     address_info = res['data']
+        // else:
+        //     address_info = self.broker.fetch_deposit_address($code)
+        $request = array (
             'currency' => strtolower ($currency['id']),
-        ), $params));
-        $address = $this->safe_string($response, 'data');
+        );
+        // https://github.com/ccxt/ccxt/issues/4851
+        $info = $this->safe_value($currency, 'info', array ());
+        $currencyAddressWithTag = $this->safe_value($info, 'currency-addr-with-tag');
+        $method = 'privateGetDwDepositVirtualAddresses';
+        if ($currencyAddressWithTag) {
+            $method = 'privateGetDwDepositVirtualSharedAddressWithTag';
+        }
+        $response = $this->$method (array_merge ($request, $params));
+        //
+        // privateGetDwDepositVirtualSharedAddressWithTag
+        //
+        //     {
+        //         "status" => "ok",
+        //         "$data" => {
+        //             "$address" => "huobideposit",
+        //             "$tag" => "1937002"
+        //         }
+        //     }
+        //
+        // privateGetDwDepositVirtualAddresses
+        //
+        //     {
+        //         "status" => "ok",
+        //         "$data" => "0xd7842ec9ba2bc20354e12f0e925a4e285a64187b"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        $address = null;
+        $tag = null;
+        if ($currencyAddressWithTag) {
+            $address = $this->safe_string($data, 'address');
+            $tag = $this->safe_string($data, 'tag');
+        } else {
+            $address = $this->safe_string($response, 'data');
+        }
         $this->check_address($address);
         return array (
             'currency' => $code,
             'address' => $address,
-            'tag' => null,
+            'tag' => $tag,
             'info' => $response,
         );
     }
@@ -895,13 +997,12 @@ class huobipro extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
         if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return; // fallback to default error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             if (is_array ($response) && array_key_exists ('status', $response)) {
                 //
                 //     array ("$status":"error","err-$code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min => `0.001`","data":null)
@@ -918,5 +1019,137 @@ class huobipro extends Exchange {
                 }
             }
         }
+    }
+
+    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+        if ($code === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchDeposits() requires a $code argument');
+        }
+        if ($limit === null || $limit > 100) {
+            $limit = 100;
+        }
+        $this->load_markets();
+        $request = array ();
+        $currency = $this->currency ($code);
+        $request['currency'] = $currency['id'];
+        $request['type'] = 'deposit';
+        $request['from'] = 0; // From 'id' ... if you want to get results after a particular transaction id, pass the id in $params->from
+        $request['size'] = $limit; // Maximum transfers that can be fetched is 100
+        $response = $this->privateGetQueryDepositWithdraw (array_merge ($request, $params));
+        // return $response
+        return $this->parseTransactions ($response['data'], $currency, $since, $limit);
+    }
+
+    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+        if ($code === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchWithdrawals() requires a $code argument');
+        }
+        if ($limit === null || $limit > 100) {
+            $limit = 100;
+        }
+        $this->load_markets();
+        $request = array ();
+        $currency = $this->currency ($code);
+        $request['currency'] = $currency['id'];
+        $request['type'] = 'withdraw'; // Huobi uses withdraw for withdrawals
+        $request['from'] = 0; // From 'id' ... if you want to get results after a particular Transaction id, pass the id in $params->from
+        $request['size'] = $limit; // Maximum transfers that can be fetched is 100
+        $response = $this->privateGetQueryDepositWithdraw (array_merge ($request, $params));
+        // return $response
+        return $this->parseTransactions ($response['data'], $currency, $since, $limit);
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         'id' => 8211029,
+        //         'type' => 'deposit',
+        //         'currency' => 'eth',
+        //         'chain' => 'eth',
+        //         'tx-hash' => 'bd315....',
+        //         'amount' => 0.81162421,
+        //         'address' => '4b8b....',
+        //         'address-tag' => '',
+        //         'fee' => 0,
+        //         'state' => 'safe',
+        //         'created-at' => 1542180380965,
+        //         'updated-at' => 1542180788077
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         'id' => 6908275,
+        //         'type' => 'withdraw',
+        //         'currency' => 'btc',
+        //         'chain' => 'btc',
+        //         'tx-hash' => 'c1a1a....',
+        //         'amount' => 0.80257005,
+        //         'address' => '1QR....',
+        //         'address-tag' => '',
+        //         'fee' => 0.0005,
+        //         'state' => 'confirmed',
+        //         'created-at' => 1552107295685,
+        //         'updated-at' => 1552108032859
+        //     }
+        //
+        $timestamp = $this->safe_integer($transaction, 'created-at');
+        $updated = $this->safe_integer($transaction, 'updated-at');
+        $code = $this->safeCurrencyCode ($transaction, 'currency');
+        $type = $this->safe_string($transaction, 'type');
+        if ($type === 'withdraw') {
+            $type = 'withdrawal';
+        }
+        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
+        $tag = $this->safe_string($transaction, 'address-tag');
+        $feeCost = $this->safe_float($transaction, 'fee');
+        if ($feeCost !== null) {
+            $feeCost = abs ($feeCost);
+        }
+        return array (
+            'info' => $transaction,
+            'id' => $this->safe_string($transaction, 'id'),
+            'txid' => $this->safe_string($transaction, 'tx-hash'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'address' => $this->safe_string($transaction, 'address'),
+            'tag' => $tag,
+            'type' => $type,
+            'amount' => $this->safe_float($transaction, 'amount'),
+            'currency' => $code,
+            'status' => $status,
+            'updated' => $updated,
+            'fee' => array (
+                'currency' => $code,
+                'cost' => $feeCost,
+                'rate' => null,
+            ),
+        );
+    }
+
+    public function parse_transaction_status ($status) {
+        $statuses = array (
+            // deposit $statuses
+            'unknown' => 'failed',
+            'confirming' => 'pending',
+            'confirmed' => 'ok',
+            'safe' => 'ok',
+            'orphan' => 'failed',
+            // withdrawal $statuses
+            'submitted' => 'pending',
+            'canceled' => 'canceled',
+            'reexamine' => 'pending',
+            'reject' => 'failed',
+            'pass' => 'pending',
+            'wallet-reject' => 'failed',
+            // 'confirmed' => 'ok', // present in deposit $statuses
+            'confirm-error' => 'failed',
+            'repealed' => 'failed',
+            'wallet-transfer' => 'pending',
+            'pre-transfer' => 'pending',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 }

@@ -66,22 +66,30 @@ class itbit (Exchange):
                 'BTC/USD': {'id': 'XBTUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD'},
                 'BTC/SGD': {'id': 'XBTSGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD'},
                 'BTC/EUR': {'id': 'XBTEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'},
+                'ETH/USD': {'id': 'ETHUSD', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD'},
+                'ETH/EUR': {'id': 'ETHEUR', 'symbol': 'ETH/EUR', 'base': 'ETH', 'quote': 'EUR'},
+                'ETH/SGD': {'id': 'ETHSGD', 'symbol': 'ETH/SGD', 'base': 'ETH', 'quote': 'SGD'},
             },
             'fees': {
                 'trading': {
-                    'maker': 0,
-                    'taker': 0.2 / 100,
+                    'maker': -0.03 / 100,
+                    'taker': 0.35 / 100,
                 },
+            },
+            'commonCurrencies': {
+                'XBT': 'BTC',
             },
         })
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        await self.load_markets()
         orderbook = await self.publicGetMarketsSymbolOrderBook(self.extend({
             'symbol': self.market_id(symbol),
         }, params))
         return self.parse_order_book(orderbook)
 
     async def fetch_ticker(self, symbol, params={}):
+        await self.load_markets()
         ticker = await self.publicGetMarketsSymbolTicker(self.extend({
             'symbol': self.market_id(symbol),
         }, params))
@@ -118,43 +126,192 @@ class itbit (Exchange):
             'info': ticker,
         }
 
-    def parse_trade(self, trade, market):
-        timestamp = self.parse8601(trade['timestamp'])
-        id = str(trade['matchNumber'])
-        return {
+    def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public)
+        #
+        #     {
+        #         timestamp: "2015-05-22T17:45:34.7570000Z",
+        #         matchNumber: "5CR1JEUBBM8J",
+        #         price: "351.45000000",
+        #         amount: "0.00010000"
+        #     }
+        #
+        # fetchMyTrades(private)
+        #
+        #     {
+        #         "orderId": "248ffda4-83a0-4033-a5bb-8929d523f59f",
+        #         "timestamp": "2015-05-11T14:48:01.9870000Z",
+        #         "instrument": "XBTUSD",
+        #         "direction": "buy",                      # buy or sell
+        #         "currency1": "XBT",                      # base currency
+        #         "currency1Amount": "0.00010000",         # order amount in base currency
+        #         "currency2": "USD",                      # quote currency
+        #         "currency2Amount": "0.0250530000000000",  # order cost in quote currency
+        #         "rate": "250.53000000",
+        #         "commissionPaid": "0.00000000",   # net trade fee paid after using any available rebate balance
+        #         "commissionCurrency": "USD",
+        #         "rebatesApplied": "-0.000125265",  # negative values represent amount of rebate balance used for trades removing liquidity from order book positive values represent amount of rebate balance earned from trades adding liquidity to order book
+        #         "rebateCurrency": "USD",
+        #         "executionId": "23132"
+        #     }
+        #
+        id = self.safe_string_2(trade, 'executionId', 'matchNumber')
+        timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
+        side = self.safe_string(trade, 'direction')
+        orderId = self.safe_string(trade, 'orderId')
+        feeCost = self.safe_float(trade, 'commissionPaid')
+        feeCurrencyId = self.safe_string(trade, 'commissionCurrency')
+        feeCurrency = self.common_currency_code(feeCurrencyId)
+        rebatesApplied = self.safe_float(trade, 'rebatesApplied')
+        if rebatesApplied is not None:
+            rebatesApplied = -rebatesApplied
+        rebateCurrencyId = self.safe_string(trade, 'rebateCurrency')
+        rebateCurrency = self.common_currency_code(rebateCurrencyId)
+        price = self.safe_float_2(trade, 'price', 'rate')
+        amount = self.safe_float_2(trade, 'currency1Amount', 'amount')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
+        symbol = None
+        marketId = self.safe_string(trade, 'instrument')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId = self.safe_string(trade, 'currency1')
+                quoteId = self.safe_string(trade, 'currency2')
+                base = self.common_currency_code(baseId)
+                quote = self.common_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if symbol is None:
+            if market is not None:
+                symbol = market['symbol']
+        result = {
             'info': trade,
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
-            'id': id,
-            'order': id,
+            'symbol': symbol,
+            'order': orderId,
             'type': None,
-            'side': None,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'amount'),
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
         }
+        if feeCost is not None:
+            if rebatesApplied is not None:
+                if feeCurrency == rebateCurrency:
+                    feeCost = self.sum(feeCost, rebatesApplied)
+                    result['fee'] = {
+                        'cost': feeCost,
+                        'currency': feeCurrency,
+                    }
+                else:
+                    result['fees'] = [
+                        {
+                            'cost': feeCost,
+                            'currency': feeCurrency,
+                        },
+                        {
+                            'cost': rebatesApplied,
+                            'currency': rebateCurrency,
+                        },
+                    ]
+            else:
+                result['fee'] = {
+                    'cost': feeCost,
+                    'currency': feeCurrency,
+                }
+        return result
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        walletId = self.safe_string(params, 'walletId')
+        if walletId is None:
+            raise ExchangeError(self.id + ' fetchMyTrades requires a walletId parameter')
+        await self.load_markets()
+        request = {
+            'walletId': walletId,
+        }
+        if since is not None:
+            request['rangeStart'] = self.ymdhms(since, 'T')
+        if limit is not None:
+            request['perPage'] = limit  # default 50, max 50
+        response = await self.privateGetWalletsWalletIdTrades(self.extend(request, params))
+        #
+        #     {
+        #         "totalNumberOfRecords": "2",
+        #         "currentPageNumber": "1",
+        #         "latestExecutionId": "332",  # most recent execution at time of response
+        #         "recordsPerPage": "50",
+        #         "tradingHistory": [
+        #             {
+        #                 "orderId": "248ffda4-83a0-4033-a5bb-8929d523f59f",
+        #                 "timestamp": "2015-05-11T14:48:01.9870000Z",
+        #                 "instrument": "XBTUSD",
+        #                 "direction": "buy",                      # buy or sell
+        #                 "currency1": "XBT",                      # base currency
+        #                 "currency1Amount": "0.00010000",         # order amount in base currency
+        #                 "currency2": "USD",                      # quote currency
+        #                 "currency2Amount": "0.0250530000000000",  # order cost in quote currency
+        #                 "rate": "250.53000000",
+        #                 "commissionPaid": "0.00000000",   # net trade fee paid after using any available rebate balance
+        #                 "commissionCurrency": "USD",
+        #                 "rebatesApplied": "-0.000125265",  # negative values represent amount of rebate balance used for trades removing liquidity from order book positive values represent amount of rebate balance earned from trades adding liquidity to order book
+        #                 "rebateCurrency": "USD",
+        #                 "executionId": "23132"
+        #             },
+        #         ],
+        #     }
+        #
+        trades = self.safe_value(response, 'tradingHistory', [])
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        return self.parse_trades(trades, market, since, limit)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetMarketsSymbolTrades(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
-        return self.parse_trades(response['recentTrades'], market, since, limit)
+        }
+        response = await self.publicGetMarketsSymbolTrades(self.extend(request, params))
+        #
+        #     {
+        #         count: 3,
+        #         recentTrades: [
+        #             {
+        #                 timestamp: "2015-05-22T17:45:34.7570000Z",
+        #                 matchNumber: "5CR1JEUBBM8J",
+        #                 price: "351.45000000",
+        #                 amount: "0.00010000"
+        #             },
+        #         ]
+        #     }
+        #
+        trades = self.safe_value(response, 'recentTrades', [])
+        return self.parse_trades(trades, market, since, limit)
 
     async def fetch_balance(self, params={}):
-        response = await self.fetch_wallets()
+        await self.load_markets()
+        response = await self.fetch_wallets(params)
         balances = response[0]['balances']
         result = {'info': response}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            currency = balance['currency']
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.common_currency_code(currencyId)
             account = {
-                'free': float(balance['availableBalance']),
+                'free': self.safe_float(balance, 'availableBalance'),
                 'used': 0.0,
-                'total': float(balance['totalBalance']),
+                'total': self.safe_float(balance, 'totalBalance'),
             }
             account['used'] = account['total'] - account['free']
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_wallets(self, params={}):
@@ -253,9 +410,9 @@ class itbit (Exchange):
         walletIdInParams = ('walletId' in list(params.keys()))
         if not walletIdInParams:
             raise ExchangeError(self.id + ' fetchOrder requires a walletId parameter')
-        return await self.privateGetWalletsWalletIdOrdersId(self.extend({
-            'id': id,
-        }, params))
+        request = {'id': id}
+        response = await self.privateGetWalletsWalletIdOrdersId(self.extend(request, params))
+        return self.parse_order(response)
 
     async def cancel_order(self, id, symbol=None, params={}):
         walletIdInParams = ('walletId' in list(params.keys()))
@@ -281,7 +438,8 @@ class itbit (Exchange):
             auth = [method, url, body, nonce, timestamp]
             message = nonce + self.json(auth).replace('\\/', '/')
             hash = self.hash(self.encode(message), 'sha256', 'binary')
-            binhash = self.binary_concat(url, hash)
+            binaryUrl = self.encode(url)
+            binhash = self.binary_concat(binaryUrl, hash)
             signature = self.hmac(binhash, self.encode(self.secret), hashlib.sha512, 'base64')
             headers = {
                 'Authorization': self.apiKey + ':' + signature,

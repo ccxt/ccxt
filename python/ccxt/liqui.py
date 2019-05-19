@@ -12,7 +12,6 @@ try:
 except NameError:
     basestring = str  # Python 2
 import hashlib
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -521,14 +520,16 @@ class liqui (Exchange):
         return result
 
     def parse_orders(self, orders, market=None, since=None, limit=None):
-        ids = list(orders.keys())
         result = []
+        ids = list(orders.keys())
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         for i in range(0, len(ids)):
             id = ids[i]
-            order = orders[id]
-            extended = self.extend(order, {'id': id})
-            result.append(self.parse_order(extended, market))
-        return self.filter_by_since_limit(result, since, limit)
+            order = self.extend({'id': id}, orders[id])
+            result.append(self.v1ParseOrder(order, market))
+        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -694,10 +695,9 @@ class liqui (Exchange):
                     }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response=None):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
         if not self.is_json_encoded_object(body):
             return  # fallback to default error handler
-        response = json.loads(body)
         if 'success' in response:
             #
             # 1 - Liqui only returns the integer 'success' key from their private API
@@ -738,6 +738,8 @@ class liqui (Exchange):
                 exact = self.exceptions['exact']
                 if code in exact:
                     raise exact[code](feedback)
+                elif message in exact:
+                    raise exact[message](feedback)
                 broad = self.exceptions['broad']
                 broadKey = self.findBroadlyMatchedKey(broad, message)
                 if broadKey is not None:

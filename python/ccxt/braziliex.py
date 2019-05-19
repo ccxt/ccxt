@@ -71,15 +71,91 @@ class braziliex (Exchange):
                 'amount': 8,
                 'price': 8,
             },
+            'options': {
+                'fetchCurrencies': {
+                    'expires': 1000,  # 1 second
+                },
+            },
         })
 
+    def fetch_currencies_from_cache(self, params={}):
+        # self method is now redundant
+        # currencies are now fetched before markets
+        options = self.safe_value(self.options, 'fetchCurrencies', {})
+        timestamp = self.safe_integer(options, 'timestamp')
+        expires = self.safe_integer(options, 'expires', 1000)
+        now = self.milliseconds()
+        if (timestamp is None) or ((now - timestamp) > expires):
+            response = self.publicGetCurrencies(params)
+            self.options['fetchCurrencies'] = self.extend(options, {
+                'response': response,
+                'timestamp': now,
+            })
+        return self.safe_value(self.options['fetchCurrencies'], 'response')
+
     def fetch_currencies(self, params={}):
-        currencies = self.publicGetCurrencies(params)
-        ids = list(currencies.keys())
+        response = self.fetch_currencies_from_cache(params)
+        #
+        #     {
+        #         brl: {
+        #             name: "Real",
+        #             withdrawal_txFee:  0.0075,
+        #             txWithdrawalFee:  9,
+        #             MinWithdrawal:  30,
+        #             minConf:  1,
+        #             minDeposit:  0,
+        #             txDepositFee:  0,
+        #             txDepositPercentageFee:  0,
+        #             minAmountTradeFIAT:  5,
+        #             minAmountTradeBTC:  0.0001,
+        #             minAmountTradeUSDT:  0.0001,
+        #             decimal:  8,
+        #             decimal_withdrawal:  8,
+        #             active:  1,
+        #             dev_active:  1,
+        #             under_maintenance:  0,
+        #             order: "010",
+        #             is_withdrawal_active:  1,
+        #             is_deposit_active:  1,
+        #             is_token_erc20:  0,
+        #             is_fiat:  1,
+        #             gateway:  0,
+        #         },
+        #         btc: {
+        #             name: "Bitcoin",
+        #             txWithdrawalMinFee:  0.000125,
+        #             txWithdrawalFee:  0.00015625,
+        #             MinWithdrawal:  0.0005,
+        #             minConf:  1,
+        #             minDeposit:  0,
+        #             txDepositFee:  0,
+        #             txDepositPercentageFee:  0,
+        #             minAmountTradeFIAT:  5,
+        #             minAmountTradeBTC:  0.0001,
+        #             minAmountTradeUSDT:  0.0001,
+        #             decimal:  8,
+        #             decimal_withdrawal:  8,
+        #             active:  1,
+        #             dev_active:  1,
+        #             under_maintenance:  0,
+        #             order: "011",
+        #             is_withdrawal_active:  1,
+        #             is_deposit_active:  1,
+        #             is_token_erc20:  0,
+        #             is_fiat:  0,
+        #             gateway:  1,
+        #         }
+        #     }
+        #
+        self.options['currencies'] = {
+            'timestamp': self.milliseconds(),
+            'response': response,
+        }
+        ids = list(response.keys())
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            currency = currencies[id]
+            currency = response[id]
             precision = self.safe_integer(currency, 'decimal')
             uppercase = id.upper()
             code = self.common_currency_code(uppercase)
@@ -100,16 +176,16 @@ class braziliex (Exchange):
                 'funding': {
                     'withdraw': {
                         'active': canWithdraw,
-                        'fee': currency['txWithdrawalFee'],
+                        'fee': self.safe_float(currency, 'txWithdrawalFee'),
                     },
                     'deposit': {
                         'active': canDeposit,
-                        'fee': currency['txDepositFee'],
+                        'fee': self.safe_float(currency, 'txDepositFee'),
                     },
                 },
                 'limits': {
                     'amount': {
-                        'min': currency['minAmountTrade'],
+                        'min': math.pow(10, -precision),
                         'max': math.pow(10, precision),
                     },
                     'price': {
@@ -121,11 +197,11 @@ class braziliex (Exchange):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': currency['MinWithdrawal'],
+                        'min': self.safe_float(currency, 'MinWithdrawal'),
                         'max': math.pow(10, precision),
                     },
                     'deposit': {
-                        'min': currency['minDeposit'],
+                        'min': self.safe_float(currency, 'minDeposit'),
                         'max': None,
                     },
                 },
@@ -134,19 +210,48 @@ class braziliex (Exchange):
         return result
 
     def fetch_markets(self, params={}):
-        markets = self.publicGetTicker()
-        ids = list(markets.keys())
+        currencies = self.fetch_currencies_from_cache(params)
+        response = self.publicGetTicker()
+        #
+        #     {
+        #         btc_brl: {
+        #             active: 1,
+        #             market: 'btc_brl',
+        #             last: 14648,
+        #             percentChange: -0.95,
+        #             baseVolume24: 27.856,
+        #             quoteVolume24: 409328.039,
+        #             baseVolume: 27.856,
+        #             quoteVolume: 409328.039,
+        #             highestBid24: 14790,
+        #             lowestAsk24: 14450.01,
+        #             highestBid: 14450.37,
+        #             lowestAsk: 14699.98
+        #         },
+        #         ...
+        #     }
+        #
+        ids = list(response.keys())
         result = []
         for i in range(0, len(ids)):
             id = ids[i]
-            market = markets[id]
+            market = response[id]
             baseId, quoteId = id.split('_')
-            base = baseId.upper()
-            quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            uppercaseBaseId = baseId.upper()
+            uppercaseQuoteId = quoteId.upper()
+            base = self.common_currency_code(uppercaseBaseId)
+            quote = self.common_currency_code(uppercaseQuoteId)
             symbol = base + '/' + quote
-            active = self.safe_integer(market, 'active') == 1
+            baseCurrency = self.safe_value(currencies, baseId, {})
+            quoteCurrency = self.safe_value(currencies, quoteId, {})
+            quoteIsFiat = self.safe_integer(quoteCurrency, 'is_fiat', 0)
+            minCost = None
+            if quoteIsFiat:
+                minCost = self.safe_float(baseCurrency, 'minAmountTradeFIAT')
+            else:
+                minCost = self.safe_float(baseCurrency, 'minAmountTrade' + uppercaseQuoteId)
+            isActive = self.safe_integer(market, 'active')
+            active = (isActive == 1)
             precision = {
                 'amount': 8,
                 'price': 8,
@@ -170,7 +275,7 @@ class braziliex (Exchange):
                         'max': math.pow(10, precision['price']),
                     },
                     'cost': {
-                        'min': None,
+                        'min': minCost,
                         'max': None,
                     },
                 },

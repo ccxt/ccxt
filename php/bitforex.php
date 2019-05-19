@@ -52,6 +52,7 @@ class bitforex extends Exchange {
                         'api/v1/fund/mainAccount',
                         'api/v1/fund/allAccount',
                         'api/v1/trade/placeOrder',
+                        'api/v1/trade/placeMultiOrder',
                         'api/v1/trade/cancelOrder',
                         'api/v1/trade/orderInfo',
                         'api/v1/trade/orderInfos',
@@ -62,8 +63,8 @@ class bitforex extends Exchange {
                 'trading' => array (
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.0,
-                    'taker' => 0.05 / 100,
+                    'maker' => 0.1 / 100,
+                    'taker' => 0.1 / 100,
                 ),
                 'funding' => array (
                     'tierBased' => false,
@@ -425,7 +426,12 @@ class bitforex extends Exchange {
         $remaining = $amount - $filled;
         $status = $this->parse_order_status($this->safe_string($order, 'orderState'));
         $cost = $filled * $price;
-        $fee = $this->safe_float($order, 'tradeFee');
+        $feeSide = ($side === 'buy') ? 'base' : 'quote';
+        $feeCurrency = $market[$feeSide];
+        $fee = array (
+            'cost' => $this->safe_float($order, 'tradeFee'),
+            'currency' => $feeCurrency,
+        );
         $result = array (
             'info' => $order,
             'id' => $id,
@@ -542,12 +548,11 @@ class bitforex extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (gettype ($body) !== 'string') {
             return; // fallback to default error handler
         }
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             $feedback = $this->id . ' ' . $body;
             $success = $this->safe_value($response, 'success');
             if ($success !== null) {

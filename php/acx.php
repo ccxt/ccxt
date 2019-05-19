@@ -365,7 +365,7 @@ class acx extends Exchange {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency ($code);
-        // they have XRP but no docs on memo/$tag
+        // they have XRP but no docs on memo/tag
         $request = array (
             'currency' => $currency['id'],
             'sum' => $amount,
@@ -402,7 +402,7 @@ class acx extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $request = '/api' . '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         if (is_array ($this->urls) && array_key_exists ('extension', $this->urls))
             $request .= $this->urls['extension'];
         $query = $this->omit ($params, $this->extract_params($path));
@@ -431,9 +431,8 @@ class acx extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if ($code === 400) {
-            $response = json_decode ($body, $as_associative_array = true);
             $error = $this->safe_value($response, 'error');
             $errorCode = $this->safe_string($error, 'code');
             $feedback = $this->id . ' ' . $this->json ($response);

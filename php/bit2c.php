@@ -66,12 +66,11 @@ class bit2c extends Exchange {
             'markets' => array (
                 'BTC/NIS' => array ( 'id' => 'BtcNis', 'symbol' => 'BTC/NIS', 'base' => 'BTC', 'quote' => 'NIS' ),
                 'ETH/NIS' => array ( 'id' => 'EthNis', 'symbol' => 'ETH/NIS', 'base' => 'ETH', 'quote' => 'NIS' ),
-                'BCHABC/NIS' => array ( 'id' => 'BchAbcNis', 'symbol' => 'BCHABC/NIS', 'base' => 'BCHABC', 'quote' => 'NIS' ),
+                'BCH/NIS' => array ( 'id' => 'BchAbcNis', 'symbol' => 'BCH/NIS', 'base' => 'BCH', 'quote' => 'NIS' ),
                 'LTC/NIS' => array ( 'id' => 'LtcNis', 'symbol' => 'LTC/NIS', 'base' => 'LTC', 'quote' => 'NIS' ),
                 'ETC/NIS' => array ( 'id' => 'EtcNis', 'symbol' => 'ETC/NIS', 'base' => 'ETC', 'quote' => 'NIS' ),
                 'BTG/NIS' => array ( 'id' => 'BtgNis', 'symbol' => 'BTG/NIS', 'base' => 'BTG', 'quote' => 'NIS' ),
-                'LTC/BTC' => array ( 'id' => 'LtcBtc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
-                'BCHSV/NIS' => array ( 'id' => 'BchSvNis', 'symbol' => 'BCHSV/NIS', 'base' => 'BCHSV', 'quote' => 'NIS' ),
+                'BSV/NIS' => array ( 'id' => 'BchSvNis', 'symbol' => 'BSV/NIS', 'base' => 'BSV', 'quote' => 'NIS' ),
             ),
             'fees' => array (
                 'trading' => array (
@@ -306,7 +305,7 @@ class bit2c extends Exchange {
             $feeCost = $this->safe_float($trade, 'feeAmount');
         } else {
             $timestamp = $this->safe_integer($trade, 'date') * 1000;
-            $id = $this->safe_integer($trade, 'tid');
+            $id = $this->safe_string($trade, 'tid');
             $price = $this->safe_float($trade, 'price');
             $amount = $this->safe_float($trade, 'amount');
             $side = $this->safe_value($trade, 'isBid');

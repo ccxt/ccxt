@@ -26,6 +26,7 @@ class allcoin (okcoinusd):
                 },
                 'www': 'https://www.allcoin.com',
                 'doc': 'https://www.allcoin.com/api_market/market',
+                'referral': 'https://www.allcoin.com',
             },
             'api': {
                 'web': {

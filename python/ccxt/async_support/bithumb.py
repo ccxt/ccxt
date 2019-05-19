@@ -13,7 +13,6 @@ except NameError:
     basestring = str  # Python 2
 import base64
 import hashlib
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -108,13 +107,18 @@ class bithumb (Exchange):
                 base = id
                 quote = 'KRW'
                 symbol = id + '/' + quote
+                active = True
+                if isinstance(market, list):
+                    numElements = len(market)
+                    if numElements == 0:
+                        active = False
                 result.append({
                     'id': id,
                     'symbol': symbol,
                     'base': base,
                     'quote': quote,
                     'info': market,
-                    'active': True,
+                    'active': active,
                     'precision': {
                         'amount': None,
                         'price': None,
@@ -222,8 +226,10 @@ class bithumb (Exchange):
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
             ticker = tickers[id]
-            ticker['date'] = timestamp
-            result[symbol] = self.parse_ticker(ticker, market)
+            isArray = isinstance(ticker, list)
+            if not isArray:
+                ticker['date'] = timestamp
+                result[symbol] = self.parse_ticker(ticker, market)
         return result
 
     async def fetch_ticker(self, symbol, params={}):
@@ -243,7 +249,7 @@ class bithumb (Exchange):
         timestamp -= 9 * 3600000  # they report UTC + 9 hours(server in list(Korean timezone.keys()))
         side = 'sell' if (trade['type'] == 'ask') else 'buy'
         return {
-            'id': None,
+            'id': self.safe_string(trade, 'cont_no'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -345,7 +351,7 @@ class bithumb (Exchange):
                 'endpoint': endpoint,
             }, query))
             nonce = str(self.nonce())
-            auth = endpoint + '\0' + body + '\0' + nonce
+            auth = endpoint + "\0" + body + "\0" + nonce  # eslint-disable-line quotes
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
             signature64 = self.decode(base64.b64encode(self.encode(signature)))
             headers = {
@@ -357,13 +363,12 @@ class bithumb (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response=None):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if len(body) < 2:
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
             if 'status' in response:
                 #
                 #     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}

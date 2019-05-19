@@ -66,28 +66,107 @@ module.exports = class braziliex extends Exchange {
                 'amount': 8,
                 'price': 8,
             },
+            'options': {
+                'fetchCurrencies': {
+                    'expires': 1000, // 1 second
+                },
+            },
         });
     }
 
+    async fetchCurrenciesFromCache (params = {}) {
+        // this method is now redundant
+        // currencies are now fetched before markets
+        const options = this.safeValue (this.options, 'fetchCurrencies', {});
+        const timestamp = this.safeInteger (options, 'timestamp');
+        const expires = this.safeInteger (options, 'expires', 1000);
+        const now = this.milliseconds ();
+        if ((timestamp === undefined) || ((now - timestamp) > expires)) {
+            const response = await this.publicGetCurrencies (params);
+            this.options['fetchCurrencies'] = this.extend (options, {
+                'response': response,
+                'timestamp': now,
+            });
+        }
+        return this.safeValue (this.options['fetchCurrencies'], 'response');
+    }
+
     async fetchCurrencies (params = {}) {
-        let currencies = await this.publicGetCurrencies (params);
-        let ids = Object.keys (currencies);
-        let result = {};
+        const response = await this.fetchCurrenciesFromCache (params);
+        //
+        //     {
+        //         brl: {
+        //             name: "Real",
+        //             withdrawal_txFee:  0.0075,
+        //             txWithdrawalFee:  9,
+        //             MinWithdrawal:  30,
+        //             minConf:  1,
+        //             minDeposit:  0,
+        //             txDepositFee:  0,
+        //             txDepositPercentageFee:  0,
+        //             minAmountTradeFIAT:  5,
+        //             minAmountTradeBTC:  0.0001,
+        //             minAmountTradeUSDT:  0.0001,
+        //             decimal:  8,
+        //             decimal_withdrawal:  8,
+        //             active:  1,
+        //             dev_active:  1,
+        //             under_maintenance:  0,
+        //             order: "010",
+        //             is_withdrawal_active:  1,
+        //             is_deposit_active:  1,
+        //             is_token_erc20:  0,
+        //             is_fiat:  1,
+        //             gateway:  0,
+        //         },
+        //         btc: {
+        //             name: "Bitcoin",
+        //             txWithdrawalMinFee:  0.000125,
+        //             txWithdrawalFee:  0.00015625,
+        //             MinWithdrawal:  0.0005,
+        //             minConf:  1,
+        //             minDeposit:  0,
+        //             txDepositFee:  0,
+        //             txDepositPercentageFee:  0,
+        //             minAmountTradeFIAT:  5,
+        //             minAmountTradeBTC:  0.0001,
+        //             minAmountTradeUSDT:  0.0001,
+        //             decimal:  8,
+        //             decimal_withdrawal:  8,
+        //             active:  1,
+        //             dev_active:  1,
+        //             under_maintenance:  0,
+        //             order: "011",
+        //             is_withdrawal_active:  1,
+        //             is_deposit_active:  1,
+        //             is_token_erc20:  0,
+        //             is_fiat:  0,
+        //             gateway:  1,
+        //         }
+        //     }
+        //
+        this.options['currencies'] = {
+            'timestamp': this.milliseconds (),
+            'response': response,
+        };
+        const ids = Object.keys (response);
+        const result = {};
         for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let currency = currencies[id];
-            let precision = this.safeInteger (currency, 'decimal');
-            let uppercase = id.toUpperCase ();
-            let code = this.commonCurrencyCode (uppercase);
+            const id = ids[i];
+            const currency = response[id];
+            const precision = this.safeInteger (currency, 'decimal');
+            const uppercase = id.toUpperCase ();
+            const code = this.commonCurrencyCode (uppercase);
             let active = this.safeInteger (currency, 'active') === 1;
-            let maintenance = this.safeInteger (currency, 'under_maintenance');
+            const maintenance = this.safeInteger (currency, 'under_maintenance');
             if (maintenance !== 0) {
                 active = false;
             }
-            let canWithdraw = this.safeInteger (currency, 'is_withdrawal_active') === 1;
-            let canDeposit = this.safeInteger (currency, 'is_deposit_active') === 1;
-            if (!canWithdraw || !canDeposit)
+            const canWithdraw = this.safeInteger (currency, 'is_withdrawal_active') === 1;
+            const canDeposit = this.safeInteger (currency, 'is_deposit_active') === 1;
+            if (!canWithdraw || !canDeposit) {
                 active = false;
+            }
             result[code] = {
                 'id': id,
                 'code': code,
@@ -97,16 +176,16 @@ module.exports = class braziliex extends Exchange {
                 'funding': {
                     'withdraw': {
                         'active': canWithdraw,
-                        'fee': currency['txWithdrawalFee'],
+                        'fee': this.safeFloat (currency, 'txWithdrawalFee'),
                     },
                     'deposit': {
                         'active': canDeposit,
-                        'fee': currency['txDepositFee'],
+                        'fee': this.safeFloat (currency, 'txDepositFee'),
                     },
                 },
                 'limits': {
                     'amount': {
-                        'min': currency['minAmountTrade'],
+                        'min': Math.pow (10, -precision),
                         'max': Math.pow (10, precision),
                     },
                     'price': {
@@ -118,11 +197,11 @@ module.exports = class braziliex extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': currency['MinWithdrawal'],
+                        'min': this.safeFloat (currency, 'MinWithdrawal'),
                         'max': Math.pow (10, precision),
                     },
                     'deposit': {
-                        'min': currency['minDeposit'],
+                        'min': this.safeFloat (currency, 'minDeposit'),
                         'max': undefined,
                     },
                 },
@@ -133,20 +212,50 @@ module.exports = class braziliex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let markets = await this.publicGetTicker ();
-        let ids = Object.keys (markets);
-        let result = [];
+        const currencies = await this.fetchCurrenciesFromCache (params);
+        const response = await this.publicGetTicker ();
+        //
+        //     {
+        //         btc_brl: {
+        //             active: 1,
+        //             market: 'btc_brl',
+        //             last: 14648,
+        //             percentChange: -0.95,
+        //             baseVolume24: 27.856,
+        //             quoteVolume24: 409328.039,
+        //             baseVolume: 27.856,
+        //             quoteVolume: 409328.039,
+        //             highestBid24: 14790,
+        //             lowestAsk24: 14450.01,
+        //             highestBid: 14450.37,
+        //             lowestAsk: 14699.98
+        //         },
+        //         ...
+        //     }
+        //
+        const ids = Object.keys (response);
+        const result = [];
         for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let market = markets[id];
-            let [ baseId, quoteId ] = id.split ('_');
-            let base = baseId.toUpperCase ();
-            let quote = quoteId.toUpperCase ();
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
-            let symbol = base + '/' + quote;
-            let active = this.safeInteger (market, 'active') === 1;
-            let precision = {
+            const id = ids[i];
+            const market = response[id];
+            const [ baseId, quoteId ] = id.split ('_');
+            const uppercaseBaseId = baseId.toUpperCase ();
+            const uppercaseQuoteId = quoteId.toUpperCase ();
+            const base = this.commonCurrencyCode (uppercaseBaseId);
+            const quote = this.commonCurrencyCode (uppercaseQuoteId);
+            const symbol = base + '/' + quote;
+            const baseCurrency = this.safeValue (currencies, baseId, {});
+            const quoteCurrency = this.safeValue (currencies, quoteId, {});
+            const quoteIsFiat = this.safeInteger (quoteCurrency, 'is_fiat', 0);
+            let minCost = undefined;
+            if (quoteIsFiat) {
+                minCost = this.safeFloat (baseCurrency, 'minAmountTradeFIAT');
+            } else {
+                minCost = this.safeFloat (baseCurrency, 'minAmountTrade' + uppercaseQuoteId);
+            }
+            const isActive = this.safeInteger (market, 'active');
+            const active = (isActive === 1);
+            const precision = {
                 'amount': 8,
                 'price': 8,
             };
@@ -169,7 +278,7 @@ module.exports = class braziliex extends Exchange {
                         'max': Math.pow (10, precision['price']),
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': minCost,
                         'max': undefined,
                     },
                 },

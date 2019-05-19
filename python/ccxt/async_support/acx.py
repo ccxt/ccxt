@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import json
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 
@@ -374,7 +373,7 @@ class acx (Exchange):
         return self.urlencode(self.keysort(params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = '/api' + '/' + self.version + '/' + self.implode_params(path, params)
+        request = '/api/' + self.version + '/' + self.implode_params(path, params)
         if 'extension' in self.urls:
             request += self.urls['extension']
         query = self.omit(params, self.extract_params(path))
@@ -399,9 +398,8 @@ class acx (Exchange):
                 headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if code == 400:
-            response = json.loads(body)
             error = self.safe_value(response, 'error')
             errorCode = self.safe_string(error, 'code')
             feedback = self.id + ' ' + self.json(response)

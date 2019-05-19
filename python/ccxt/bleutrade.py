@@ -27,6 +27,19 @@ class bleutrade (bittrex):
                 'fetchClosedOrders': True,
                 'fetchOrderTrades': True,
             },
+            'timeframes': {
+                '15m': '15m',
+                '20m': '20m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '3h': '3h',
+                '4h': '4h',
+                '6h': '6h',
+                '8h': '8h',
+                '12h': '12h',
+                '1d': '1d',
+            },
             'hostname': 'bleutrade.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
@@ -51,6 +64,18 @@ class bleutrade (bittrex):
                         'orderhistory',
                         'withdrawhistory',
                         'withdraw',
+                    ],
+                },
+                'public': {
+                    'get': [
+                        'candles',
+                        'currencies',
+                        'markethistory',
+                        'markets',
+                        'marketsummaries',
+                        'marketsummary',
+                        'orderbook',
+                        'ticker',
                     ],
                 },
             },
@@ -120,53 +145,6 @@ class bleutrade (bittrex):
                 'symbolSeparator': '_',
             },
         })
-
-    def fetch_markets(self, params={}):
-        markets = self.publicGetMarkets()
-        result = []
-        for p in range(0, len(markets['result'])):
-            market = markets['result'][p]
-            id = market['MarketName']
-            baseId = market['MarketCurrency']
-            quoteId = market['BaseCurrency']
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
-            symbol = base + '/' + quote
-            precision = {
-                'amount': 8,
-                'price': 8,
-            }
-            active = self.safe_string(market, 'IsActive')
-            if active == 'true':
-                active = True
-            elif active == 'false':
-                active = False
-            result.append({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': active,
-                'info': market,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': market['MinTradeSize'],
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': 0,
-                        'max': None,
-                    },
-                },
-            })
-        return result
 
     def parse_order_status(self, status):
         statuses = {
@@ -250,6 +228,30 @@ class bleutrade (bittrex):
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         return self.fetch_transactions_by_type('withdrawal', code, since, limit, params)
 
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
+        timestamp = self.parse8601(ohlcv['TimeStamp'] + '+00:00')
+        return [
+            timestamp,
+            ohlcv['Open'],
+            ohlcv['High'],
+            ohlcv['Low'],
+            ohlcv['Close'],
+            ohlcv['Volume'],
+        ]
+
+    def fetch_ohlcv(self, symbol, timeframe='15m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'period': self.timeframes[timeframe],
+            'market': market['id'],
+            'count': limit,
+        }
+        response = self.publicGetCandles(self.extend(request, params))
+        if 'result' in response:
+            if response['result']:
+                return self.parse_ohlcvs(response['result'], market, timeframe, since, limit)
+
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(trade['TimeStamp'] + '+00:00')
         side = None
@@ -279,6 +281,101 @@ class bleutrade (bittrex):
             'amount': amount,
             'cost': cost,
             'fee': None,
+        }
+
+    def parse_order(self, order, market=None):
+        side = self.safe_string_2(order, 'OrderType', 'Type')
+        isBuyOrder = (side == 'LIMIT_BUY') or (side == 'BUY')
+        isSellOrder = (side == 'LIMIT_SELL') or (side == 'SELL')
+        if isBuyOrder:
+            side = 'buy'
+        if isSellOrder:
+            side = 'sell'
+        # We parse different fields in a very specific order.
+        # Order might well be closed and then canceled.
+        status = None
+        if ('Opened' in list(order.keys())) and order['Opened']:
+            status = 'open'
+        if ('Closed' in list(order.keys())) and order['Closed']:
+            status = 'closed'
+        if ('CancelInitiated' in list(order.keys())) and order['CancelInitiated']:
+            status = 'canceled'
+        if ('Status' in list(order.keys())) and self.options['parseOrderStatus']:
+            status = self.parse_order_status(self.safe_string(order, 'Status'))
+        symbol = None
+        if 'Exchange' in order:
+            marketId = order['Exchange']
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
+            else:
+                symbol = self.parse_symbol(marketId)
+        else:
+            if market is not None:
+                symbol = market['symbol']
+        timestamp = None
+        if 'Opened' in order:
+            timestamp = self.parse8601(order['Opened'] + '+00:00')
+        if 'Created' in order:
+            timestamp = self.parse8601(order['Created'] + '+00:00')
+        lastTradeTimestamp = None
+        if ('TimeStamp' in list(order.keys())) and(order['TimeStamp'] is not None):
+            lastTradeTimestamp = self.parse8601(order['TimeStamp'] + '+00:00')
+        if ('Closed' in list(order.keys())) and(order['Closed'] is not None):
+            lastTradeTimestamp = self.parse8601(order['Closed'] + '+00:00')
+        if timestamp is None:
+            timestamp = lastTradeTimestamp
+        fee = None
+        commission = None
+        if 'Commission' in order:
+            commission = 'Commission'
+        elif 'CommissionPaid' in order:
+            commission = 'CommissionPaid'
+        if commission:
+            fee = {
+                'cost': self.safe_float(order, commission),
+            }
+            if market is not None:
+                fee['currency'] = market['quote']
+            elif symbol is not None:
+                currencyIds = symbol.split('/')
+                quoteCurrencyId = currencyIds[1]
+                if quoteCurrencyId in self.currencies_by_id:
+                    fee['currency'] = self.currencies_by_id[quoteCurrencyId]['code']
+                else:
+                    fee['currency'] = self.common_currency_code(quoteCurrencyId)
+        price = self.safe_float(order, 'Price')
+        cost = None
+        amount = self.safe_float(order, 'Quantity')
+        remaining = self.safe_float(order, 'QuantityRemaining')
+        filled = None
+        if amount is not None and remaining is not None:
+            filled = amount - remaining
+        if not cost:
+            if price and filled:
+                cost = price * filled
+        if not price:
+            if cost and filled:
+                price = cost / filled
+        average = self.safe_float(order, 'PricePerUnit')
+        id = self.safe_string_2(order, 'OrderUuid', 'OrderId')
+        return {
+            'info': order,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'average': average,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
         }
 
     def parse_transaction(self, transaction, currency=None):

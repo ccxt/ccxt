@@ -36,6 +36,7 @@ class coinbase extends Exchange {
                 'fetchOpenOrders' => false,
                 'fetchOrder' => false,
                 'fetchOrderBook' => false,
+                'fetchL2OrderBook' => false,
                 'fetchOrders' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => false,
@@ -155,29 +156,15 @@ class coinbase extends Exchange {
         ));
     }
 
-    public function fetch_time () {
-        $response = $this->publicGetTime ();
-        $data = $response['data'];
-        return $this->parse8601 ($data['iso']);
+    public function fetch_time ($params = array ()) {
+        $response = $this->publicGetTime ($params);
+        $data = $this->safe_value($response, 'data', array ());
+        return $this->parse8601 ($this->safe_string($data, 'iso'));
     }
 
-    public function load_accounts ($reload = false) {
-        if ($reload) {
-            $this->accounts = $this->fetch_accounts ();
-        } else {
-            if ($this->accounts) {
-                return $this->accounts;
-            } else {
-                $this->accounts = $this->fetch_accounts ();
-                $this->accountsById = $this->index_by($this->accounts, 'id');
-            }
-        }
-        return $this->accounts;
-    }
-
-    public function fetch_accounts () {
+    public function fetch_accounts ($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetAccounts ();
+        $response = $this->privateGetAccounts ($params);
         return $response['data'];
     }
 
@@ -566,13 +553,12 @@ class coinbase extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return; // fallback to default error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             $feedback = $this->id . ' ' . $body;
             //
             //    array ("error" => "invalid_request", "error_description" => "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.")

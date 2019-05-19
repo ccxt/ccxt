@@ -45,8 +45,8 @@ module.exports = class bitz extends Exchange {
                     'assets': 'https://apiv2.bitz.com',
                 },
                 'www': 'https://www.bit-z.com',
-                'doc': 'https://apidoc.bit-z.com/en',
-                'fees': 'https://www.bit-z.com/about/fee',
+                'doc': 'https://apidoc.bit-z.com/en/',
+                'fees': 'https://www.bit-z.com/fee?type=1',
                 'referral': 'https://u.bit-z.com/register?invite_code=1429193',
             },
             'api': {
@@ -356,6 +356,13 @@ module.exports = class bitz extends Exchange {
             symbol = market['symbol'];
         }
         let last = this.safeFloat (ticker, 'now');
+        let open = this.safeFloat (ticker, 'open');
+        let change = undefined;
+        let average = undefined;
+        if (last !== undefined && open !== undefined) {
+            change = last - open;
+            average = this.sum (last, open) / 2;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -367,13 +374,13 @@ module.exports = class bitz extends Exchange {
             'ask': this.safeFloat (ticker, 'askPrice'),
             'askVolume': this.safeFloat (ticker, 'askQty'),
             'vwap': undefined,
-            'open': this.safeFloat (ticker, 'open'),
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'priceChange24h'),
-            'percentage': undefined,
-            'average': undefined,
+            'change': change,
+            'percentage': this.safeFloat (ticker, 'priceChange24h'),
+            'average': average,
             'baseVolume': this.safeFloat (ticker, 'volume'),
             'quoteVolume': this.safeFloat (ticker, 'quoteVolume'),
             'info': ticker,
@@ -387,7 +394,7 @@ module.exports = class bitz extends Exchange {
         let parts = microtime.split (' ');
         let milliseconds = parseFloat (parts[0]);
         let seconds = parseInt (parts[1]);
-        let total = seconds + milliseconds;
+        let total = this.sum (seconds, milliseconds);
         return parseInt (total * 1000);
     }
 
@@ -1036,13 +1043,12 @@ module.exports = class bitz extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response = undefined) {
+    handleErrors (httpCode, reason, url, method, headers, body, response) {
         if (typeof body !== 'string')
             return; // fallback to default error handler
         if (body.length < 2)
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
-            response = JSON.parse (body);
             let status = this.safeString (response, 'status');
             if (status !== undefined) {
                 const feedback = this.id + ' ' + body;

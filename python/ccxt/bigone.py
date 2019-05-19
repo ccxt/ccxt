@@ -12,7 +12,6 @@ try:
 except NameError:
     basestring = str  # Python 2
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -29,13 +28,14 @@ class bigone (Exchange):
             'countries': ['GB'],
             'version': 'v2',
             'has': {
-                'fetchTickers': True,
-                'fetchOpenOrders': True,
-                'fetchMyTrades': True,
-                'fetchDepositAddress': True,
-                'withdraw': True,
-                'fetchOHLCV': False,
+                'cancelAllOrders': True,
                 'createMarketOrder': False,
+                'fetchDepositAddress': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': False,
+                'fetchOpenOrders': True,
+                'fetchTickers': True,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/42803606-27c2b5ec-89af-11e8-8d15-9c8c245e8b2c.jpg',
@@ -480,10 +480,10 @@ class bigone (Exchange):
         #         }
         #     }
         #
-        order = response['data']
+        order = self.safe_value(response, 'data')
         return self.parse_order(order)
 
-    def cancel_all_orders(self, symbols=None, params={}):
+    def cancel_all_orders(self, symbol=None, params={}):
         self.load_markets()
         response = self.privatePostOrdersOrderIdCancel(params)
         #
@@ -627,13 +627,12 @@ class bigone (Exchange):
                 body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response=None):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if len(body) < 2:
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
             #
             #      {"errors":{"detail":"Internal server error"}}
             #      {"errors":[{"message":"invalid nonce, nonce should be a 19bits number","code":10030}],"data":null}

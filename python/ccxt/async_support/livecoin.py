@@ -13,7 +13,6 @@ except NameError:
     basestring = str  # Python 2
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -38,14 +37,18 @@ class livecoin (Exchange):
             'userAgent': self.userAgents['chrome'],
             'has': {
                 'fetchDepositAddress': True,
+                'fetchDeposits': True,
                 'CORS': False,
                 'fetchTickers': True,
                 'fetchCurrencies': True,
+                'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchOrders': True,
                 'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchMyTrades': True,
+                'fetchWithdrawals': True,
                 'withdraw': True,
             },
             'urls': {
@@ -367,26 +370,130 @@ class livecoin (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
-        timestamp = trade['time'] * 1000
+        #
+        # fetchTrades(public)
+        #
+        #     {
+        #         "time": 1409935047,
+        #         "id": 99451,
+        #         "price": 350,
+        #         "quantity": 2.85714285,
+        #         "type": "BUY"
+        #     }
+        #
+        # fetchMyTrades(private)
+        #
+        #     {
+        #         "datetime": 1435844369,
+        #         "id": 30651619,
+        #         "type": "sell",
+        #         "symbol": "BTC/EUR",
+        #         "price": 230,
+        #         "quantity": 0.1,
+        #         "commission": 0,
+        #         "clientorderid": 1472837650
+        #     }
+        timestamp = self.safe_string_2(trade, 'time', 'datetime')
+        if timestamp is not None:
+            timestamp = timestamp * 1000
+        fee = None
+        feeCost = self.safe_float(trade, 'commission')
+        if feeCost is not None:
+            feeCurrency = market['quote'] if market else None
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            }
+        orderId = self.safe_string(trade, 'clientorderid')
+        id = self.safe_string(trade, 'id')
+        side = self.safe_string(trade, 'type')
+        if side is not None:
+            side = side.lower()
+        amount = self.safe_float(trade, 'quantity')
+        price = self.safe_float(trade, 'price')
+        cost = None
+        if amount is not None:
+            if price is not None:
+                cost = amount * price
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
-            'id': str(trade['id']),
-            'order': None,
+            'id': id,
+            'order': orderId,
             'type': None,
-            'side': trade['type'].lower(),
-            'price': trade['price'],
-            'amount': trade['quantity'],
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
         }
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'currencyPair': market['id'],
+            # orderDesc': 'true',  # or 'false', if True then new orders will be first, otherwise old orders will be first.
+            # 'offset': 0,  # page offset, position of the first item on the page
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.privateGetExchangeTrades(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "datetime": 1435844369,
+        #             "id": 30651619,
+        #             "type": "sell",
+        #             "symbol": "BTC/EUR",
+        #             "price": 230,
+        #             "quantity": 0.1,
+        #             "commission": 0,
+        #             "clientorderid": 1472837650
+        #         },
+        #         {
+        #             "datetime": 1435844356,
+        #             "id": 30651618,
+        #             "type": "sell",
+        #             "symbol": "BTC/EUR",
+        #             "price": 230,
+        #             "quantity": 0.2,
+        #             "commission": 0.092,
+        #             "clientorderid": 1472837651
+        #         }
+        #     ]
+        #
+        return self.parse_trades(response, market, since, limit)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetExchangeLastTrades(self.extend({
+        request = {
             'currencyPair': market['id'],
-        }, params))
+        }
+        response = await self.publicGetExchangeLastTrades(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "time": 1409935047,
+        #             "id": 99451,
+        #             "price": 350,
+        #             "quantity": 2.85714285,
+        #             "type": "BUY"
+        #         },
+        #         {
+        #             "time": 1409934792,
+        #             "id": 99450,
+        #             "price": 350,
+        #             "quantity": 0.57142857,
+        #             "type": "SELL"
+        #         }
+        #     ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_order(self, id, symbol=None, params={}):
@@ -405,9 +512,7 @@ class livecoin (Exchange):
             'CANCELLED': 'canceled',
             'PARTIALLY_FILLED_AND_CANCELLED': 'canceled',
         }
-        if status in statuses:
-            return statuses[status]
-        return status
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         timestamp = None
@@ -496,31 +601,31 @@ class livecoin (Exchange):
         for i in range(0, len(rawOrders)):
             order = rawOrders[i]
             result.append(self.parse_order(order, market))
-        return result
+        return self.sort_by(result, 'timestamp')
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        result = await self.fetch_orders(symbol, since, limit, self.extend({
+        request = {
             'openClosed': 'OPEN',
-        }, params))
-        return result
+        }
+        return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        result = await self.fetch_orders(symbol, since, limit, self.extend({
+        request = {
             'openClosed': 'CLOSED',
-        }, params))
-        return result
+        }
+        return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         method = 'privatePostExchange' + self.capitalize(side) + type
         market = self.market(symbol)
-        order = {
+        request = {
             'quantity': self.amount_to_precision(symbol, amount),
             'currencyPair': market['id'],
         }
         if type == 'limit':
-            order['price'] = self.price_to_precision(symbol, price)
-        response = await getattr(self, method)(self.extend(order, params))
+            request['price'] = self.price_to_precision(symbol, price)
+        response = await getattr(self, method)(self.extend(request, params))
         result = {
             'info': response,
             'id': str(response['orderId']),
@@ -577,6 +682,100 @@ class livecoin (Exchange):
             'id': id,
         }
 
+    def parse_transaction(self, transaction, currency=None):
+        #    {
+        #        "id": "c853093d5aa06df1c92d79c2...",(tx on deposits, address on withdrawals)
+        #        "type": "DEPOSIT",
+        #        "date": 1553186482676,
+        #        "amount": 712.61266,
+        #        "fee": 0,
+        #        "fixedCurrency": "XVG",
+        #        "taxCurrency": "XVG",
+        #        "variableAmount": null,
+        #        "variableCurrency": null,
+        #        "external": "Coin",
+        #        "login": "USERNAME",
+        #        "externalKey": "....87diPBy......3hTtuwUT78Yi",(address on deposits, tx on withdrawals)
+        #        "documentId": 1110662453
+        #    },
+        code = None
+        txid = None
+        address = None
+        id = self.safe_string(transaction, 'documentId')
+        amount = self.safe_float(transaction, 'amount')
+        timestamp = self.safe_integer(transaction, 'date')
+        type = self.safe_string(transaction, 'type').lower()
+        currencyId = self.safe_string(transaction, 'fixedCurrency')
+        feeCost = self.safe_float(transaction, 'fee')
+        currency = self.safe_value(self.currencies_by_id, currencyId)
+        if currency is not None:
+            code = currency['code']
+        else:
+            code = self.common_currency_code(currencyId)
+        if type == 'withdrawal':
+            txid = self.safe_string(transaction, 'externalKey')
+            address = self.safe_string(transaction, 'id')
+        elif type == 'deposit':
+            address = self.safe_string(transaction, 'externalKey')
+            txid = self.safe_string(transaction, 'id')
+        status = None
+        if type == 'deposit':
+            status = 'ok'  # Deposits is not registered until they are in account. Withdrawals are left as None, not entirely sure about theyre status.
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': None,
+            'status': status,
+            'type': type,
+            'updated': None,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+            },
+        }
+
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        endtime = 2505600000  # 29 days - exchange has maximum 30 days.
+        now = self.milliseconds()
+        request = {
+            'types': 'DEPOSIT',
+            'end': now,
+            'start': int(since) if (since is not None) else now - endtime,
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        if limit is not None:
+            request['limit'] = limit  # default is 100
+        response = await self.privateGetPaymentHistoryTransactions(self.extend(request, params))
+        return self.parseTransactions(response, currency, since, limit)
+
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        endtime = 2505600000  # 29 days - exchange has maximum 30 days.
+        now = self.milliseconds()
+        request = {
+            'types': 'WITHDRAWAL',
+            'end': now,
+            'start': int(since) if (since is not None) else now - endtime,
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        if limit is not None:
+            request['limit'] = limit  # default is 100
+        if since is not None:
+            request['start'] = since
+        response = await self.privateGetPaymentHistoryTransactions(self.extend(request, params))
+        return self.parseTransactions(response, currency, since, limit)
+
     async def fetch_deposit_address(self, currency, params={}):
         request = {
             'currency': currency,
@@ -614,11 +813,10 @@ class livecoin (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if not isinstance(body, basestring):
             return
         if body[0] == '{':
-            response = json.loads(body)
             if code >= 300:
                 errorCode = self.safe_string(response, 'errorCode')
                 if errorCode in self.exceptions:

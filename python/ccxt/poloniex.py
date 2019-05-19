@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -31,26 +30,29 @@ class poloniex (Exchange):
             'countries': ['US'],
             'rateLimit': 1000,  # up to 6 calls per second
             'has': {
-                'createDepositAddress': True,
-                'fetchDepositAddress': True,
                 'CORS': False,
-                'editOrder': True,
+                'createDepositAddress': True,
                 'createMarketOrder': False,
-                'fetchOHLCV': True,
-                'fetchOrderTrades': True,
-                'fetchMyTrades': True,
-                'fetchOrderBooks': True,
-                'fetchOrder': 'emulated',
-                'fetchOrders': 'emulated',
-                'fetchOpenOrders': True,
+                'editOrder': True,
                 'fetchClosedOrders': 'emulated',
-                'fetchTickers': True,
-                'fetchTradingFees': True,
                 'fetchCurrencies': True,
-                'withdraw': True,
+                'fetchDepositAddress': True,
+                'fetchDeposits': 'emulated',
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrder': True,  # True endpoint for a single open order
+                'fetchOpenOrders': True,  # True endpoint for open orders
+                'fetchOrder': 'emulated',  # no endpoint for a single open-or-closed order(just for an open order only)
+                'fetchOrderBooks': True,
+                'fetchOrders': 'emulated',  # no endpoint for open-or-closed orders(just for open orders only)
+                'fetchOrderStatus': 'emulated',  # no endpoint for status of a single open-or-closed order(just for open orders only)
+                'fetchOrderTrades': True,  # True endpoint for trades of a single open or closed order
+                'fetchTickers': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': 'emulated',  # but almost True )
-                'fetchDeposits': 'emulated',
+                'withdraw': True,
             },
             'timeframes': {
                 '5m': 300,
@@ -67,10 +69,7 @@ class poloniex (Exchange):
                     'private': 'https://poloniex.com/tradingApi',
                 },
                 'www': 'https://poloniex.com',
-                'doc': [
-                    'https://poloniex.com/support/api/',
-                    'http://pastebin.com/dMX7mZE0',
-                ],
+                'doc': 'https://docs.poloniex.com',
                 'fees': 'https://poloniex.com/fees',
             },
             'api': {
@@ -109,6 +108,7 @@ class poloniex (Exchange):
                         'returnOpenLoanOffers',
                         'returnOpenOrders',
                         'returnOrderTrades',
+                        'returnOrderStatus',
                         'returnTradableBalances',
                         'returnTradeHistory',
                         'sell',
@@ -129,7 +129,7 @@ class poloniex (Exchange):
             },
             'limits': {
                 'amount': {
-                    'min': 0.00000001,
+                    'min': 0.000001,
                     'max': 1000000000,
                 },
                 'price': {
@@ -193,6 +193,7 @@ class poloniex (Exchange):
                     'Nonce must be greater': InvalidNonce,
                     'You have already called cancelOrder or moveOrder on self order.': CancelPending,
                     'Amount must be at least': InvalidOrder,  # {"error":"Amount must be at least 0.000001."}
+                    'is either completed or does not exist': InvalidOrder,  # {"error":"Order 587957810791 is either completed or does not exist."}
                 },
             },
         })
@@ -235,6 +236,8 @@ class poloniex (Exchange):
         }
         if limit is not None:
             request['end'] = self.sum(request['start'], limit * self.timeframes[timeframe])
+        else:
+            request['end'] = self.sum(self.seconds(), 1)
         response = self.publicGetReturnChartData(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
@@ -245,36 +248,24 @@ class poloniex (Exchange):
         for p in range(0, len(keys)):
             id = keys[p]
             market = markets[id]
-            quote, base = id.split('_')
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            quoteId, baseId = id.split('_')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
-            minCost = self.safe_float(self.options['limits']['cost']['min'], quote, 0.0)
-            precision = {
-                'amount': 6,
-                'price': 8,
-            }
+            limits = self.extend(self.limits, {
+                'cost': {
+                    'min': self.safe_value(self.options['limits']['cost']['min'], quote),
+                },
+            })
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
-                'active': True,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': math.pow(10, -precision['amount']),
-                        'max': None,
-                    },
-                    'price': {
-                        'min': math.pow(10, -precision['price']),
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': minCost,
-                        'max': None,
-                    },
-                },
+                'active': market['isFrozen'] != '1',
+                'limits': limits,
                 'info': market,
             }))
         return result
@@ -459,7 +450,37 @@ class poloniex (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.parse8601(trade['date'])
+        #
+        # fetchMyTrades(symbol defined, specific market)
+        #
+        #     {
+        #         globalTradeID: 394698946,
+        #         tradeID: 45210255,
+        #         date: '2018-10-23 17:28:55',
+        #         type: 'sell',
+        #         rate: '0.03114126',
+        #         amount: '0.00018753',
+        #         total: '0.00000583'
+        #     }
+        #
+        # fetchMyTrades(symbol None, all markets)
+        #
+        #     {
+        #         globalTradeID: 394131412,
+        #         tradeID: '5455033',
+        #         date: '2018-10-16 18:05:17',
+        #         rate: '0.06935244',
+        #         amount: '1.40308443',
+        #         total: '0.09730732',
+        #         fee: '0.00100000',
+        #         orderNumber: '104768235081',
+        #         type: 'sell',
+        #         category: 'exchange'
+        #     }
+        #
+        id = self.safe_string(trade, 'globalTradeID')
+        orderId = self.safe_string(trade, 'orderNumber')
+        timestamp = self.parse8601(self.safe_string(trade, 'date'))
         symbol = None
         base = None
         quote = None
@@ -476,8 +497,9 @@ class poloniex (Exchange):
             symbol = market['symbol']
             base = market['base']
             quote = market['quote']
-        side = trade['type']
+        side = self.safe_string(trade, 'type')
         fee = None
+        price = self.safe_float(trade, 'rate')
         cost = self.safe_float(trade, 'total')
         amount = self.safe_float(trade, 'amount')
         if 'fee' in trade:
@@ -502,11 +524,11 @@ class poloniex (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': self.safe_string(trade, 'tradeID'),
-            'order': self.safe_string(trade, 'orderNumber'),
+            'id': id,
+            'order': orderId,
             'type': 'limit',
             'side': side,
-            'price': self.safe_float(trade, 'rate'),
+            'price': price,
             'amount': amount,
             'cost': cost,
             'fee': fee,
@@ -538,6 +560,58 @@ class poloniex (Exchange):
         if limit is not None:
             request['limit'] = int(limit)
         response = self.privatePostReturnTradeHistory(self.extend(request, params))
+        #
+        # specific market(symbol defined)
+        #
+        #     [
+        #         {
+        #             globalTradeID: 394700861,
+        #             tradeID: 45210354,
+        #             date: '2018-10-23 18:01:58',
+        #             type: 'buy',
+        #             rate: '0.03117266',
+        #             amount: '0.00000652',
+        #             total: '0.00000020'
+        #         },
+        #         {
+        #             globalTradeID: 394698946,
+        #             tradeID: 45210255,
+        #             date: '2018-10-23 17:28:55',
+        #             type: 'sell',
+        #             rate: '0.03114126',
+        #             amount: '0.00018753',
+        #             total: '0.00000583'
+        #         }
+        #     ]
+        #
+        # all markets(symbol None)
+        #
+        #     {
+        #         BTC_BCH: [{
+        #             globalTradeID: 394131412,
+        #             tradeID: '5455033',
+        #             date: '2018-10-16 18:05:17',
+        #             rate: '0.06935244',
+        #             amount: '1.40308443',
+        #             total: '0.09730732',
+        #             fee: '0.00100000',
+        #             orderNumber: '104768235081',
+        #             type: 'sell',
+        #             category: 'exchange'
+        #         }, {
+        #             globalTradeID: 394126818,
+        #             tradeID: '5455007',
+        #             date: '2018-10-16 16:55:34',
+        #             rate: '0.06935244',
+        #             amount: '0.00155709',
+        #             total: '0.00010798',
+        #             fee: '0.00200000',
+        #             orderNumber: '104768179137',
+        #             type: 'sell',
+        #             category: 'exchange'
+        #         }],
+        #     }
+        #
         result = []
         if market is not None:
             result = self.parse_trades(response, market)
@@ -553,7 +627,7 @@ class poloniex (Exchange):
                         for j in range(0, len(trades)):
                             result.append(trades[j])
                     else:
-                        baseId, quoteId = id.split('_')
+                        quoteId, baseId = id.split('_')
                         base = self.common_currency_code(baseId)
                         quote = self.common_currency_code(quoteId)
                         symbol = base + '/' + quote
@@ -564,7 +638,41 @@ class poloniex (Exchange):
                             }))
         return self.filter_by_since_limit(result, since, limit)
 
+    def parse_order_status(self, status):
+        statuses = {
+            'Open': 'open',
+            'Partially filled': 'open',
+        }
+        return self.safe_string(statuses, status, status)
+
     def parse_order(self, order, market=None):
+        #
+        # fetchOpenOrder
+        #
+        #     {
+        #         status: 'Open',
+        #         rate: '0.40000000',
+        #         amount: '1.00000000',
+        #         currencyPair: 'BTC_ETH',
+        #         date: '2018-10-17 17:04:50',
+        #         total: '0.40000000',
+        #         type: 'buy',
+        #         startingAmount: '1.00000',
+        #     }
+        #
+        # fetchOpenOrders
+        #
+        #     {
+        #         orderNumber: '514514894224',
+        #         type: 'buy',
+        #         rate: '0.00001000',
+        #         startingAmount: '100.00000000',
+        #         amount: '100.00000000',
+        #         total: '0.00100000',
+        #         date: '2018-10-23 17:38:53',
+        #         margin: 0,
+        #     }
+        #
         timestamp = self.safe_integer(order, 'timestamp')
         if not timestamp:
             timestamp = self.parse8601(order['date'])
@@ -572,9 +680,11 @@ class poloniex (Exchange):
         if 'resultingTrades' in order:
             trades = self.parse_trades(order['resultingTrades'], market)
         symbol = None
-        if market:
+        marketId = self.safe_string(order, 'currencyPair')
+        market = self.safe_value(self.markets_by_id, marketId, market)
+        if market is not None:
             symbol = market['symbol']
-        price = self.safe_float(order, 'price')
+        price = self.safe_float_2(order, 'price', 'rate')
         remaining = self.safe_float(order, 'amount')
         amount = self.safe_float(order, 'startingAmount', remaining)
         filled = None
@@ -594,16 +704,21 @@ class poloniex (Exchange):
                     tradePrice = trade['price']
                     filled = self.sum(filled, tradeAmount)
                     cost += tradePrice * tradeAmount
+        status = self.parse_order_status(self.safe_string(order, 'status'))
+        type = self.safe_string(order, 'type')
+        side = self.safe_string(order, 'side', type)
+        if type == side:
+            type = None
         return {
             'info': order,
             'id': order['orderNumber'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'status': order['status'],
+            'status': status,
             'symbol': symbol,
-            'type': order['type'],
-            'side': order['side'],
+            'type': type,
+            'side': side,
             'price': price,
             'cost': cost,
             'amount': amount,
@@ -780,6 +895,37 @@ class poloniex (Exchange):
             self.orders[id]['status'] = 'canceled'
         return response
 
+    def fetch_open_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        id = str(id)
+        response = self.privatePostReturnOrderStatus(self.extend({
+            'orderNumber': id,
+        }, params))
+        #
+        #     {
+        #         success: 1,
+        #         result: {
+        #             '6071071': {
+        #                 status: 'Open',
+        #                 rate: '0.40000000',
+        #                 amount: '1.00000000',
+        #                 currencyPair: 'BTC_ETH',
+        #                 date: '2018-10-17 17:04:50',
+        #                 total: '0.40000000',
+        #                 type: 'buy',
+        #                 startingAmount: '1.00000',
+        #             },
+        #         },
+        #     }
+        #
+        result = self.safe_value(response['result'], id)
+        if result is None:
+            raise OrderNotFound(self.id + ' order id ' + id + ' not found')
+        order = self.parse_order(result)
+        order['id'] = id
+        self.orders[id] = order
+        return order
+
     def fetch_order_status(self, id, symbol=None, params={}):
         self.load_markets()
         orders = self.fetch_open_orders(symbol, None, None, params)
@@ -855,7 +1001,7 @@ class poloniex (Exchange):
         self.load_markets()
         year = 31104000  # 60 * 60 * 24 * 30 * 12 = one year of history, why not
         now = self.seconds()
-        start = int(since / 1000) if (since is not None) else now - year
+        start = int(since / 1000) if (since is not None) else now - 10 * year
         request = {
             'start': start,  # UNIX timestamp, required
             'end': now,  # UNIX timestamp, required
@@ -950,24 +1096,34 @@ class poloniex (Exchange):
         #
         # deposits
         #
-        #      {     currency: "BTC",
-        #              address: "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
-        #               amount: "0.01063000",
-        #        confirmations:  1,
-        #                 txid: "6b2b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
-        #            timestamp:  1507916888,
-        #               status: "COMPLETE"                                                          }
+        #     {
+        #         "txid": "f49d489616911db44b740612d19464521179c76ebe9021af85b6de1e2f8d68cd",
+        #         "type": "deposit",
+        #         "amount": "49798.01987021",
+        #         "status": "COMPLETE",
+        #         "address": "DJVJZ58tJC8UeUv9Tqcdtn6uhWobouxFLT",
+        #         "currency": "DOGE",
+        #         "timestamp": 1524321838,
+        #         "confirmations": 3371,
+        #         "depositNumber": 134587098
+        #     }
         #
         # withdrawals
         #
-        #      {withdrawalNumber:  9290444,
-        #                currency: "ETH",
-        #                 address: "0x731015ff2e75261d50433fbd05bd57e942336149",
-        #                  amount: "0.15500000",
-        #                     fee: "0.00500000",
-        #               timestamp:  1514099289,
-        #                  status: "COMPLETE: 0x74d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
-        #               ipAddress: "5.228.227.214"                                                                 },
+        #     {
+        #         "fee": "0.00050000",
+        #         "type": "withdrawal",
+        #         "amount": "0.40234387",
+        #         "status": "COMPLETE: fbabb2bf7d81c076f396f3441166d5f60f6cea5fdfe69e02adcc3b27af8c2746",
+        #         "address": "1EdAqY4cqHoJGAgNfUFER7yZpg1Jc9DUa3",
+        #         "currency": "BTC",
+        #         "canCancel": 0,
+        #         "ipAddress": "185.230.101.31",
+        #         "paymentID": null,
+        #         "timestamp": 1523834337,
+        #         "canResendEmail": 0,
+        #         "withdrawalNumber": 11162900
+        #     }
         #
         timestamp = self.safe_integer(transaction, 'timestamp')
         if timestamp is not None:
@@ -988,15 +1144,17 @@ class poloniex (Exchange):
             if (numParts > 1) and(txid is None):
                 txid = parts[1]
             status = self.parse_transaction_status(status)
-        id = self.safe_string(transaction, 'withdrawalNumber')
-        type = 'withdrawal' if (id is not None) else 'deposit'
+        type = self.safe_string(transaction, 'type')
+        id = self.safe_string_2(transaction, 'withdrawalNumber', 'depositNumber')
         amount = self.safe_float(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
         feeCost = self.safe_float(transaction, 'fee')
         if feeCost is None:
-            if type == 'deposit':
-                # according to https://poloniex.com/fees/
-                feeCost = 0  # FIXME: remove hardcoded value that may change any time
+            # according to https://poloniex.com/fees/
+            feeCost = 0  # FIXME: remove hardcoded value that may change any time
+        if type == 'withdrawal':
+            # poloniex withdrawal amount includes the fee
+            amount = amount - feeCost
         return {
             'info': transaction,
             'id': id,
@@ -1035,11 +1193,8 @@ class poloniex (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
-        try:
-            response = json.loads(body)
-        except Exception as e:
-            # syntax error, resort to default error handler
+    def handle_errors(self, code, reason, url, method, headers, body, response):
+        if response is None:
             return
         # {"error":"Permission denied."}
         if 'error' in response:

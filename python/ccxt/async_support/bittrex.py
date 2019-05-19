@@ -13,7 +13,6 @@ except NameError:
     basestring = str  # Python 2
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -44,7 +43,7 @@ class bittrex (Exchange):
                 'fetchDepositAddress': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
-                'fetchMyTrades': False,
+                'fetchMyTrades': 'emulated',
                 'fetchOHLCV': True,
                 'fetchOrder': True,
                 'fetchOpenOrders': True,
@@ -72,12 +71,12 @@ class bittrex (Exchange):
                 },
                 'www': 'https://bittrex.com',
                 'doc': [
-                    'https://bittrex.com/Home/Api',
-                    'https://www.npmjs.org/package/node.bittrex.api',
+                    'https://bittrex.github.io/api/',
+                    'https://www.npmjs.com/package/bittrex-node',
                 ],
                 'fees': [
-                    'https://bittrex.com/Fees',
-                    'https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-',
+                    'https://bittrex.zendesk.com/hc/en-us/articles/115003684371-BITTREX-SERVICE-FEES-AND-WITHDRAWAL-LIMITATIONS',
+                    'https://bittrex.zendesk.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-',
                 ],
             },
             'api': {
@@ -136,7 +135,7 @@ class bittrex (Exchange):
                     'tierBased': False,
                     'percentage': False,
                     'withdraw': {
-                        'BTC': 0.001,
+                        'BTC': 0.0005,
                         'LTC': 0.01,
                         'DOGE': 2,
                         'VTC': 0.02,
@@ -144,8 +143,14 @@ class bittrex (Exchange):
                         'FTC': 0.2,
                         'RDD': 2,
                         'NXT': 2,
-                        'DASH': 0.002,
+                        'DASH': 0.05,
                         'POT': 0.002,
+                        'BLK': 0.02,
+                        'EMC2': 0.2,
+                        'XMY': 0.2,
+                        'GLD': 0.0002,
+                        'SLR': 0.2,
+                        'GRS': 0.2,
                     },
                     'deposit': {
                         'BTC': 0,
@@ -158,6 +163,12 @@ class bittrex (Exchange):
                         'NXT': 0,
                         'DASH': 0,
                         'POT': 0,
+                        'BLK': 0,
+                        'EMC2': 0,
+                        'XMY': 0,
+                        'GLD': 0,
+                        'SLR': 0,
+                        'GRS': 0,
                     },
                 },
             },
@@ -176,6 +187,7 @@ class bittrex (Exchange):
                 'UUID_INVALID': OrderNotFound,
                 'RATE_NOT_PROVIDED': InvalidOrder,  # createLimitBuyOrder('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP': PermissionDenied,
+                'DUST_TRADE_DISALLOWED_MIN_VALUE': InvalidOrder,
             },
             'options': {
                 # price precision by quote currency code
@@ -185,10 +197,27 @@ class bittrex (Exchange):
                 'parseOrderStatus': False,
                 'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
                 'symbolSeparator': '-',
+                # With certain currencies, like
+                # AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP
+                # an additional tag / memo / payment id is usually required by exchanges.
+                # With Bittrex some currencies imply the "base address + tag" logic.
+                # The base address for depositing is stored on self.currencies[code]
+                # The base address identifies the exchange as the recipient
+                # while the tag identifies the user account within the exchange
+                # and the tag is retrieved with fetchDepositAddress.
+                'tag': {
+                    'NXT': True,  # NXT, BURST
+                    'CRYPTO_NOTE_PAYMENTID': True,  # AEON, XMR
+                    'BITSHAREX': True,  # BTS
+                    'RIPPLE': True,  # XRP
+                    'NEM': True,  # XEM
+                    'STELLAR': True,  # XLM
+                    'STEEM': True,  # SBD, GOLOS
+                    # https://github.com/ccxt/ccxt/issues/4794
+                    # 'LISK': True,  # LSK
+                },
             },
             'commonCurrencies': {
-                'BCH': 'BCHABC',
-                'BSV': 'BCHSV',
                 'BITS': 'SWIFT',
                 'CPC': 'CapriCoin',
             },
@@ -201,10 +230,13 @@ class bittrex (Exchange):
         return self.decimal_to_precision(fee, TRUNCATE, self.markets[symbol]['precision']['price'], DECIMAL_PLACES)
 
     async def fetch_markets(self, params={}):
-        response = await self.v2GetMarketsGetMarketSummaries()
+        # https://github.com/ccxt/ccxt/commit/866370ba6c9cabaf5995d992c15a82e38b8ca291
+        # https://github.com/ccxt/ccxt/pull/4304
+        response = await self.publicGetMarkets()
         result = []
-        for i in range(0, len(response['result'])):
-            market = response['result'][i]['Market']
+        markets = self.safe_value(response, 'result')
+        for i in range(0, len(markets)):
+            market = markets[i]
             id = market['MarketName']
             baseId = market['MarketCurrency']
             quoteId = market['BaseCurrency']
@@ -218,7 +250,10 @@ class bittrex (Exchange):
                 'amount': 8,
                 'price': pricePrecision,
             }
-            active = market['IsActive'] or market['IsActive'] == 'true'
+            # bittrex uses boolean values, bleutrade uses strings
+            active = self.safe_value(market, 'IsActive', False)
+            if (active != 'false') or active:
+                active = True
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -254,9 +289,12 @@ class bittrex (Exchange):
             currency = self.common_currency_code(id)
             account = self.account()
             balance = indexed[id]
-            free = float(balance['Available'])
-            total = float(balance['Balance'])
-            used = total - free
+            free = self.safe_float(balance, 'Available', 0)
+            total = self.safe_float(balance, 'Balance', 0)
+            used = None
+            if total is not None:
+                if free is not None:
+                    used = total - free
             account['free'] = free
             account['used'] = used
             account['total'] = total
@@ -325,17 +363,38 @@ class bittrex (Exchange):
 
     async def fetch_currencies(self, params={}):
         response = await self.publicGetCurrencies(params)
-        currencies = response['result']
+        #
+        #     {
+        #         "success": True,
+        #         "message": "",
+        #         "result": [
+        #             {
+        #                 "Currency": "BTC",
+        #                 "CurrencyLong":"Bitcoin",
+        #                 "MinConfirmation":2,
+        #                 "TxFee":0.00050000,
+        #                 "IsActive":true,
+        #                 "IsRestricted":false,
+        #                 "CoinType":"BITCOIN",
+        #                 "BaseAddress":"1N52wHoVR79PMDishab2XmRHsbekCdGquK",
+        #                 "Notice":null
+        #             },
+        #             ...,
+        #         ]
+        #     }
+        #
+        currencies = self.safe_value(response, 'result', [])
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
-            id = currency['Currency']
+            id = self.safe_string(currency, 'Currency')
             # todo: will need to rethink the fees
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
             code = self.common_currency_code(id)
             precision = 8  # default precision, todo: fix "magic constants"
             address = self.safe_value(currency, 'BaseAddress')
+            fee = self.safe_float(currency, 'TxFee')  # todo: redesign
             result[code] = {
                 'id': id,
                 'code': code,
@@ -344,7 +403,7 @@ class bittrex (Exchange):
                 'type': currency['CoinType'],
                 'name': currency['CurrencyLong'],
                 'active': currency['IsActive'],
-                'fee': self.safe_float(currency, 'TxFee'),  # todo: redesign
+                'fee': fee,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -360,7 +419,7 @@ class bittrex (Exchange):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': currency['TxFee'],
+                        'min': fee,
                         'max': math.pow(10, precision),
                     },
                 },
@@ -412,12 +471,14 @@ class bittrex (Exchange):
             if price is not None:
                 cost = price * amount
         return {
-            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
+            'id': id,
+            'order': None,
             'type': 'limit',
+            'takerOrMaker': None,
             'side': side,
             'price': price,
             'amount': amount,
@@ -677,9 +738,7 @@ class bittrex (Exchange):
         return base + '/' + quote
 
     def parse_order(self, order, market=None):
-        side = self.safe_string(order, 'OrderType')
-        if side is None:
-            side = self.safe_string(order, 'Type')
+        side = self.safe_string_2(order, 'OrderType', 'Type')
         isBuyOrder = (side == 'LIMIT_BUY') or (side == 'BUY')
         isSellOrder = (side == 'LIMIT_SELL') or (side == 'SELL')
         if isBuyOrder:
@@ -746,6 +805,8 @@ class bittrex (Exchange):
         filled = None
         if amount is not None and remaining is not None:
             filled = amount - remaining
+            if (status == 'closed') and(remaining > 0):
+                status = 'canceled'
         if not cost:
             if price and filled:
                 cost = price * filled
@@ -753,10 +814,8 @@ class bittrex (Exchange):
             if cost and filled:
                 price = cost / filled
         average = self.safe_float(order, 'PricePerUnit')
-        id = self.safe_string(order, 'OrderUuid')
-        if id is None:
-            id = self.safe_string(order, 'OrderId')
-        result = {
+        id = self.safe_string_2(order, 'OrderUuid', 'OrderId')
+        return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -774,7 +833,6 @@ class bittrex (Exchange):
             'status': status,
             'fee': fee,
         }
-        return result
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -794,6 +852,34 @@ class bittrex (Exchange):
             raise OrderNotFound(self.id + ' order ' + id + ' not found')
         return self.parse_order(response['result'])
 
+    def order_to_trade(self, order):
+        # self entire method should be moved to the base class
+        timestamp = self.safe_integer_2(order, 'lastTradeTimestamp', 'timestamp')
+        return {
+            'id': self.safe_string(order, 'id'),
+            'side': self.safe_string(order, 'side'),
+            'order': self.safe_string(order, 'id'),
+            'price': self.safe_float(order, 'average'),
+            'amount': self.safe_float(order, 'filled'),
+            'cost': self.safe_float(order, 'cost'),
+            'symbol': self.safe_string(order, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': self.safe_value(order, 'fee'),
+            'info': order,
+        }
+
+    def orders_to_trades(self, orders):
+        # self entire method should be moved to the base class
+        result = []
+        for i in range(0, len(orders)):
+            result.append(self.order_to_trade(orders[i]))
+        return result
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        orders = await self.fetch_closed_orders(symbol, since, limit, params)
+        return self.orders_to_trades(orders)
+
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {}
@@ -810,15 +896,24 @@ class bittrex (Exchange):
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
         currency = self.currency(code)
-        response = await self.accountGetDepositaddress(self.extend({
+        request = {
             'currency': currency['id'],
-        }, params))
+        }
+        response = await self.accountGetDepositaddress(self.extend(request, params))
+        #
+        #     {"success": False, "message": "ADDRESS_GENERATING", "result": null}
+        #
+        #     {success:    True,
+        #       message:   "",
+        #        result: {Currency: "INCNT",
+        #                   Address: "3PHvQt9bK21f7eVQVdJzrNPcsMzXabEA5Ha"} }}
+        #
         address = self.safe_string(response['result'], 'Address')
         message = self.safe_string(response, 'message')
         if not address or message == 'ADDRESS_GENERATING':
             raise AddressPending(self.id + ' the address for ' + code + ' is being generated(pending, not ready yet, retry again later)')
         tag = None
-        if (code == 'XRP') or (code == 'XLM') or (code == 'LSK'):
+        if currency['type'] in self.options['tag']:
             tag = address
             address = currency['address']
         self.check_address(address)
@@ -880,9 +975,8 @@ class bittrex (Exchange):
             headers = {'apisign': signature}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if body[0] == '{':
-            response = json.loads(body)
             # {success: False, message: "message"}
             success = self.safe_value(response, 'success')
             if success is None:
@@ -899,8 +993,12 @@ class bittrex (Exchange):
                         raise DDoSProtection(feedback)
                     else:
                         raise AuthenticationError(feedback)
-                if message == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT':
-                    raise InvalidOrder(self.id + ' order cost should be over 50k satoshi ' + self.json(response))
+                # https://github.com/ccxt/ccxt/issues/4932
+                # the following two lines are now redundant, see line 171 in describe()
+                #
+                #     if message == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT':
+                #         raise InvalidOrder(self.id + ' order cost should be over 50k satoshi ' + self.json(response))
+                #
                 if message == 'INVALID_ORDER':
                     # Bittrex will return an ambiguous INVALID_ORDER message
                     # upon canceling already-canceled and closed orders

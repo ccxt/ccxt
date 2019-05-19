@@ -295,11 +295,11 @@ class bitlish extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function sign_in () {
-        return $this->privatePostSignin (array (
+    public function sign_in ($params = array ()) {
+        return $this->privatePostSignin (array_merge (array (
             'login' => $this->login,
             'passwd' => $this->password,
-        ));
+        ), $params));
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

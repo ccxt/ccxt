@@ -6,7 +6,6 @@
 from ccxt.async_support.base.exchange import Exchange
 import base64
 import hashlib
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
@@ -85,6 +84,9 @@ class coinone (Exchange):
                 'ZIL/KRW': {'id': 'zil', 'symbol': 'ZIL/KRW', 'base': 'ZIL', 'quote': 'KRW', 'baseId': 'zil', 'quoteId': 'krw'},
                 'KNC/KRW': {'id': 'knc', 'symbol': 'KNC/KRW', 'base': 'KNC', 'quote': 'KRW', 'baseId': 'knc', 'quoteId': 'krw'},
                 'ZRX/KRW': {'id': 'zrx', 'symbol': 'ZRX/KRW', 'base': 'ZRX', 'quote': 'KRW', 'baseId': 'zrx', 'quoteId': 'krw'},
+                'LUNA/KRW': {'id': 'luna', 'symbol': 'LUNA/KRW', 'base': 'LUNA', 'quote': 'KRW', 'baseId': 'luna', 'quoteId': 'krw'},
+                'ATOM/KRW': {'id': 'atom', 'symbol': 'ATOM/KRW', 'base': 'ATOM', 'quote': 'KRW', 'baseId': 'atom', 'quoteId': 'krw'},
+                'VNT/KRW': {'id': 'vnt', 'symbol': 'vnt/KRW', 'base': 'VNT', 'quote': 'KRW', 'baseId': 'vnt', 'quoteId': 'krw'},
             },
             'fees': {
                 'trading': {
@@ -220,6 +222,12 @@ class coinone (Exchange):
     def parse_trade(self, trade, market=None):
         timestamp = int(trade['timestamp']) * 1000
         symbol = market['symbol'] if (market is not None) else None
+        is_ask = self.safe_string(trade, 'is_ask')
+        side = None
+        if is_ask == '1':
+            side = 'sell'
+        elif is_ask == '0':
+            side = 'buy'
         return {
             'id': None,
             'timestamp': timestamp,
@@ -227,7 +235,7 @@ class coinone (Exchange):
             'order': None,
             'symbol': symbol,
             'type': None,
-            'side': None,
+            'side': side,
             'price': self.safe_float(trade, 'price'),
             'amount': self.safe_float(trade, 'qty'),
             'fee': None,
@@ -436,9 +444,8 @@ class coinone (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
             if 'result' in response:
                 result = response['result']
                 if result != 'success':

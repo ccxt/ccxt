@@ -16,13 +16,14 @@ class bigone extends Exchange {
             'countries' => array ( 'GB' ),
             'version' => 'v2',
             'has' => array (
-                'fetchTickers' => true,
-                'fetchOpenOrders' => true,
-                'fetchMyTrades' => true,
-                'fetchDepositAddress' => true,
-                'withdraw' => true,
-                'fetchOHLCV' => false,
+                'cancelAllOrders' => true,
                 'createMarketOrder' => false,
+                'fetchDepositAddress' => true,
+                'fetchMyTrades' => true,
+                'fetchOHLCV' => false,
+                'fetchOpenOrders' => true,
+                'fetchTickers' => true,
+                'withdraw' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/42803606-27c2b5ec-89af-11e8-8d15-9c8c245e8b2c.jpg',
@@ -496,11 +497,11 @@ class bigone extends Exchange {
         //         }
         //     }
         //
-        $order = $response['data'];
+        $order = $this->safe_value($response, 'data');
         return $this->parse_order($order);
     }
 
-    public function cancel_all_orders ($symbols = null, $params = array ()) {
+    public function cancel_all_orders ($symbol = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostOrdersOrderIdCancel ($params);
         //
@@ -657,13 +658,12 @@ class bigone extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
         if (gettype ($body) !== 'string')
             return; // fallback to default $error handler
         if (strlen ($body) < 2)
             return; // fallback to default $error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             //
             //      array ("$errors":{"detail":"Internal server $error")}
             //      array ("$errors":[{"message":"invalid nonce, nonce should be a 19bits number","$code":10030)],"$data":null}

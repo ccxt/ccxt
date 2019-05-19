@@ -18,12 +18,18 @@ class coincheck (Exchange):
             'rateLimit': 1500,
             'has': {
                 'CORS': False,
+                'fetchOpenOrders': True,
+                'fetchMyTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg',
                 'api': 'https://coincheck.com/api',
                 'www': 'https://coincheck.com',
                 'doc': 'https://coincheck.com/documents/exchange/api',
+                'fees': [
+                    'https://coincheck.com/exchange/fee',
+                    'https://coincheck.com/info/fee',
+                ],
             },
             'api': {
                 'public': {
@@ -69,30 +75,38 @@ class coincheck (Exchange):
                 },
             },
             'markets': {
-                'BTC/JPY': {'id': 'btc_jpy', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY'},  # the only real pair
-                # 'ETH/JPY': {'id': 'eth_jpy', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY'},
-                # 'ETC/JPY': {'id': 'etc_jpy', 'symbol': 'ETC/JPY', 'base': 'ETC', 'quote': 'JPY'},
-                # 'DAO/JPY': {'id': 'dao_jpy', 'symbol': 'DAO/JPY', 'base': 'DAO', 'quote': 'JPY'},
-                # 'LSK/JPY': {'id': 'lsk_jpy', 'symbol': 'LSK/JPY', 'base': 'LSK', 'quote': 'JPY'},
-                # 'FCT/JPY': {'id': 'fct_jpy', 'symbol': 'FCT/JPY', 'base': 'FCT', 'quote': 'JPY'},
-                # 'XMR/JPY': {'id': 'xmr_jpy', 'symbol': 'XMR/JPY', 'base': 'XMR', 'quote': 'JPY'},
-                # 'REP/JPY': {'id': 'rep_jpy', 'symbol': 'REP/JPY', 'base': 'REP', 'quote': 'JPY'},
-                # 'XRP/JPY': {'id': 'xrp_jpy', 'symbol': 'XRP/JPY', 'base': 'XRP', 'quote': 'JPY'},
-                # 'ZEC/JPY': {'id': 'zec_jpy', 'symbol': 'ZEC/JPY', 'base': 'ZEC', 'quote': 'JPY'},
-                # 'XEM/JPY': {'id': 'xem_jpy', 'symbol': 'XEM/JPY', 'base': 'XEM', 'quote': 'JPY'},
-                # 'LTC/JPY': {'id': 'ltc_jpy', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY'},
-                # 'DASH/JPY': {'id': 'dash_jpy', 'symbol': 'DASH/JPY', 'base': 'DASH', 'quote': 'JPY'},
-                # 'ETH/BTC': {'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC'},
-                # 'ETC/BTC': {'id': 'etc_btc', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC'},
-                # 'LSK/BTC': {'id': 'lsk_btc', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC'},
-                # 'FCT/BTC': {'id': 'fct_btc', 'symbol': 'FCT/BTC', 'base': 'FCT', 'quote': 'BTC'},
-                # 'XMR/BTC': {'id': 'xmr_btc', 'symbol': 'XMR/BTC', 'base': 'XMR', 'quote': 'BTC'},
-                # 'REP/BTC': {'id': 'rep_btc', 'symbol': 'REP/BTC', 'base': 'REP', 'quote': 'BTC'},
-                # 'XRP/BTC': {'id': 'xrp_btc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC'},
-                # 'ZEC/BTC': {'id': 'zec_btc', 'symbol': 'ZEC/BTC', 'base': 'ZEC', 'quote': 'BTC'},
-                # 'XEM/BTC': {'id': 'xem_btc', 'symbol': 'XEM/BTC', 'base': 'XEM', 'quote': 'BTC'},
-                # 'LTC/BTC': {'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC'},
-                # 'DASH/BTC': {'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC'},
+                'BTC/JPY': {'id': 'btc_jpy', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'btc', 'quoteId': 'jpy'},  # the only real pair
+                # 'ETH/JPY': {'id': 'eth_jpy', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY', 'baseId': 'eth', 'quoteId': 'jpy'},
+                # 'ETC/JPY': {'id': 'etc_jpy', 'symbol': 'ETC/JPY', 'base': 'ETC', 'quote': 'JPY', 'baseId': 'etc', 'quoteId': 'jpy'},
+                # 'DAO/JPY': {'id': 'dao_jpy', 'symbol': 'DAO/JPY', 'base': 'DAO', 'quote': 'JPY', 'baseId': 'dao', 'quoteId': 'jpy'},
+                # 'LSK/JPY': {'id': 'lsk_jpy', 'symbol': 'LSK/JPY', 'base': 'LSK', 'quote': 'JPY', 'baseId': 'lsk', 'quoteId': 'jpy'},
+                # 'FCT/JPY': {'id': 'fct_jpy', 'symbol': 'FCT/JPY', 'base': 'FCT', 'quote': 'JPY', 'baseId': 'fct', 'quoteId': 'jpy'},
+                # 'XMR/JPY': {'id': 'xmr_jpy', 'symbol': 'XMR/JPY', 'base': 'XMR', 'quote': 'JPY', 'baseId': 'xmr', 'quoteId': 'jpy'},
+                # 'REP/JPY': {'id': 'rep_jpy', 'symbol': 'REP/JPY', 'base': 'REP', 'quote': 'JPY', 'baseId': 'rep', 'quoteId': 'jpy'},
+                # 'XRP/JPY': {'id': 'xrp_jpy', 'symbol': 'XRP/JPY', 'base': 'XRP', 'quote': 'JPY', 'baseId': 'xrp', 'quoteId': 'jpy'},
+                # 'ZEC/JPY': {'id': 'zec_jpy', 'symbol': 'ZEC/JPY', 'base': 'ZEC', 'quote': 'JPY', 'baseId': 'zec', 'quoteId': 'jpy'},
+                # 'XEM/JPY': {'id': 'xem_jpy', 'symbol': 'XEM/JPY', 'base': 'XEM', 'quote': 'JPY', 'baseId': 'xem', 'quoteId': 'jpy'},
+                # 'LTC/JPY': {'id': 'ltc_jpy', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY', 'baseId': 'ltc', 'quoteId': 'jpy'},
+                # 'DASH/JPY': {'id': 'dash_jpy', 'symbol': 'DASH/JPY', 'base': 'DASH', 'quote': 'JPY', 'baseId': 'dash', 'quoteId': 'jpy'},
+                # 'ETH/BTC': {'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc'},
+                # 'ETC/BTC': {'id': 'etc_btc', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC', 'baseId': 'etc', 'quoteId': 'btc'},
+                # 'LSK/BTC': {'id': 'lsk_btc', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC', 'baseId': 'lsk', 'quoteId': 'btc'},
+                # 'FCT/BTC': {'id': 'fct_btc', 'symbol': 'FCT/BTC', 'base': 'FCT', 'quote': 'BTC', 'baseId': 'fct', 'quoteId': 'btc'},
+                # 'XMR/BTC': {'id': 'xmr_btc', 'symbol': 'XMR/BTC', 'base': 'XMR', 'quote': 'BTC', 'baseId': 'xmr', 'quoteId': 'btc'},
+                # 'REP/BTC': {'id': 'rep_btc', 'symbol': 'REP/BTC', 'base': 'REP', 'quote': 'BTC', 'baseId': 'rep', 'quoteId': 'btc'},
+                # 'XRP/BTC': {'id': 'xrp_btc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'xrp', 'quoteId': 'btc'},
+                # 'ZEC/BTC': {'id': 'zec_btc', 'symbol': 'ZEC/BTC', 'base': 'ZEC', 'quote': 'BTC', 'baseId': 'zec', 'quoteId': 'btc'},
+                # 'XEM/BTC': {'id': 'xem_btc', 'symbol': 'XEM/BTC', 'base': 'XEM', 'quote': 'BTC', 'baseId': 'xem', 'quoteId': 'btc'},
+                # 'LTC/BTC': {'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc'},
+                # 'DASH/BTC': {'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'dash', 'quoteId': 'btc'},
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': False,
+                    'percentage': True,
+                    'maker': 0,
+                    'taker': 0,
+                },
             },
         })
 
@@ -112,6 +126,77 @@ class coincheck (Exchange):
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
         return self.parse_balance(result)
+
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        # Only BTC/JPY is meaningful
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        response = await self.privateGetExchangeOrdersOpens(params)
+        rawOrders = self.safe_value(response, 'orders', [])
+        parsedOrders = self.parse_orders(rawOrders, market, since, limit)
+        result = []
+        for i in range(0, len(parsedOrders)):
+            result.append(self.extend(parsedOrders[i], {'status': 'open'}))
+        return result
+
+    def parse_order(self, order, market=None):
+        #
+        # fetchOpenOrders
+        #
+        #     {                       id:  202835,
+        #                      order_type: "buy",
+        #                            rate:  26890,
+        #                            pair: "btc_jpy",
+        #                  pending_amount: "0.5527",
+        #       pending_market_buy_amount:  null,
+        #                  stop_loss_rate:  null,
+        #                      created_at: "2015-01-10T05:55:38.000Z"}
+        #
+        # todo: add formats for fetchOrder, fetchClosedOrders here
+        #
+        id = self.safe_string(order, 'id')
+        side = self.safe_string(order, 'order_type')
+        timestamp = self.parse8601(self.safe_string(order, 'created_at'))
+        amount = self.safe_float(order, 'pending_amount')
+        remaining = self.safe_float(order, 'pending_amount')
+        price = self.safe_float(order, 'rate')
+        filled = None
+        cost = None
+        if remaining is not None:
+            if amount is not None:
+                filled = max(amount - remaining, 0)
+                if price is not None:
+                    cost = filled * price
+        status = None
+        marketId = self.safe_string(order, 'pair')
+        symbol = None
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
+            else:
+                baseId, quoteId = marketId.split('_')
+                base = self.common_currency_code(baseId)
+                quote = self.common_currency_code(quoteId)
+                symbol = base + '/' + quote
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'amount': amount,
+            'remaining': remaining,
+            'filled': filled,
+            'side': side,
+            'type': None,
+            'status': status,
+            'symbol': symbol,
+            'price': price,
+            'cost': cost,
+            'fee': None,
+            'info': order,
+        }
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         if symbol != 'BTC/JPY':
@@ -148,32 +233,92 @@ class coincheck (Exchange):
             'info': ticker,
         }
 
-    def parse_trade(self, trade, market):
-        timestamp = self.parse8601(trade['created_at'])
+    def parse_trade(self, trade, market=None):
+        timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
+        id = self.safe_string(trade, 'id')
+        price = self.safe_float(trade, 'rate')
+        marketId = self.safe_string(trade, 'pair')
+        market = self.safe_value(self.markets_by_id, marketId, market)
+        symbol = None
+        baseId = None
+        quoteId = None
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                baseId = market['baseId']
+                quoteId = market['quoteId']
+                symbol = market['symbol']
+            else:
+                ids = marketId.split('_')
+                baseId = ids[0]
+                quoteId = ids[1]
+                base = self.common_currency_code(baseId)
+                quote = self.common_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if symbol is None:
+            if market is not None:
+                symbol = market['symbol']
+        takerOrMaker = None
+        amount = None
+        cost = None
+        side = None
+        fee = None
+        orderId = None
+        if 'liquidity' in trade:
+            if self.safe_string(trade, 'liquidity') == 'T':
+                takerOrMaker = 'taker'
+            elif self.safe_string(trade, 'liquidity') == 'M':
+                takerOrMaker = 'maker'
+            funds = self.safe_value(trade, 'funds', {})
+            amount = self.safe_float(funds, baseId)
+            cost = self.safe_float(funds, quoteId)
+            fee = {
+                'currency': self.safe_string(trade, 'fee_currency'),
+                'cost': self.safe_float(trade, 'fee'),
+            }
+            side = self.safe_string(trade, 'side')
+            orderId = self.safe_string(trade, 'order_id')
+        else:
+            amount = self.safe_float(trade, 'amount')
+            side = self.safe_string(trade, 'order_type')
+        if cost is None:
+            if amount is not None:
+                if price is not None:
+                    cost = amount * price
         return {
-            'id': str(trade['id']),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
-            'type': None,
-            'side': trade['order_type'],
-            'price': self.safe_float(trade, 'rate'),
-            'amount': self.safe_float(trade, 'amount'),
+            'id': id,
             'info': trade,
+            'datetime': self.iso8601(timestamp),
+            'timestamp': timestamp,
+            'symbol': symbol,
+            'type': None,
+            'side': side,
+            'order': orderId,
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
         }
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        market = self.market(symbol)
+        response = await self.privateGetExchangeOrdersTransactions(self.extend({}, params))
+        transactions = self.safe_value(response, 'transactions', [])
+        return self.parse_trades(transactions, market, since, limit)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         if symbol != 'BTC/JPY':
             raise NotSupported(self.id + ' fetchTrades() supports BTC/JPY only')
         market = self.market(symbol)
-        response = await self.publicGetTrades(self.extend({
+        request = {
             'pair': market['id'],
-        }, params))
-        if 'success' in response:
-            if response['success']:
-                if response['data'] is not None:
-                    return self.parse_trades(response['data'], market, since, limit)
-        raise ExchangeError(self.id + ' ' + self.json(response))
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.publicGetTrades(self.extend(request, params))
+        data = self.safe_value(response, 'data', [])
+        return self.parse_trades(data, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         order = {

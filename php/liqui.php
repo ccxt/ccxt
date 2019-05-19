@@ -558,15 +558,18 @@ class liqui extends Exchange {
     }
 
     public function parse_orders ($orders, $market = null, $since = null, $limit = null) {
-        $ids = is_array ($orders) ? array_keys ($orders) : array ();
         $result = array ();
+        $ids = is_array ($orders) ? array_keys ($orders) : array ();
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $order = $orders[$id];
-            $extended = array_merge ($order, array ( 'id' => $id ));
-            $result[] = $this->parse_order($extended, $market);
+            $order = array_merge (array ( 'id' => $id ), $orders[$id]);
+            $result[] = $this->v1ParseOrder ($order, $market);
         }
-        return $this->filter_by_since_limit($result, $since, $limit);
+        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
@@ -700,7 +703,7 @@ class liqui extends Exchange {
         );
         // no docs on the $tag, yet...
         if ($tag !== null) {
-            throw new ExchangeError ($this->id . ' withdraw() does not support the $tag argument yet due to a lack of docs on withdrawing with $tag/memo on behalf of the exchange.');
+            throw new ExchangeError ($this->id . ' withdraw() does not support the $tag argument yet due to a lack of docs on withdrawing with tag/memo on behalf of the exchange.');
         }
         $response = $this->privatePostWithdrawCoin (array_merge ($request, $params));
         return array (
@@ -761,10 +764,9 @@ class liqui extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
         if (!$this->is_json_encoded_object($body))
             return; // fallback to default error handler
-        $response = json_decode ($body, $as_associative_array = true);
         if (is_array ($response) && array_key_exists ('success', $response)) {
             //
             // 1 - Liqui only returns the integer 'success' key from their private API
@@ -806,6 +808,8 @@ class liqui extends Exchange {
                 $exact = $this->exceptions['exact'];
                 if (is_array ($exact) && array_key_exists ($code, $exact)) {
                     throw new $exact[$code] ($feedback);
+                } else if (is_array ($exact) && array_key_exists ($message, $exact)) {
+                    throw new $exact[$message] ($feedback);
                 }
                 $broad = $this->exceptions['broad'];
                 $broadKey = $this->findBroadlyMatchedKey ($broad, $message);

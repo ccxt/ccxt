@@ -17,6 +17,7 @@ class negociecoins extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v3',
             'has' => array (
+                'createMarketOrder' => false,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
@@ -176,20 +177,30 @@ class negociecoins extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $balances = $this->privateGetUserBalance ($params);
-        $result = array ( 'info' => $balances );
-        $currencies = is_array ($balances) ? array_keys ($balances) : array ();
-        for ($i = 0; $i < count ($currencies); $i++) {
-            $id = $currencies[$i];
-            $balance = $balances[$id];
-            $currency = $this->common_currency_code($id);
+        $response = $this->privateGetUserBalance ($params);
+        //
+        //     {
+        //         "coins" => array (
+        //             array ("name":"BRL","available":0.0,"$openOrders":0.0,"$withdraw":0.0,"total":0.0),
+        //             array ("name":"BTC","available":0.0,"$openOrders":0.0,"$withdraw":0.0,"total":0.0),
+        //         ),
+        //     }
+        //
+        $result = array ( 'info' => $response );
+        $balances = $this->safe_value($response, 'coins');
+        for ($i = 0; $i < count ($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'name');
+            $code = $this->common_currency_code($currencyId);
+            $openOrders = $this->safe_float($balance, 'openOrders');
+            $withdraw = $this->safe_float($balance, 'withdraw');
             $account = array (
-                'free' => floatval ($balance['total']),
-                'used' => 0.0,
-                'total' => floatval ($balance['available']),
+                'free' => $this->safe_float($balance, 'total'),
+                'used' => $this->sum ($openOrders, $withdraw),
+                'total' => $this->safe_float($balance, 'available'),
             );
             $account['used'] = $account['total'] - $account['free'];
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -276,6 +287,9 @@ class negociecoins extends Exchange {
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchOrders () requires a $symbol argument');
+        }
         $market = $this->market ($symbol);
         $request = array (
             'pair' => $market['id'],
@@ -331,7 +345,7 @@ class negociecoins extends Exchange {
             $uri = strtolower ($this->encode_uri_component($url));
             $payload = implode ('', array ($this->apiKey, $method, $uri, $timestamp, $nonce, $content));
             $secret = base64_decode ($this->secret);
-            $signature = $this->hmac ($this->encode ($payload), $this->encode ($secret), 'sha256', 'base64');
+            $signature = $this->hmac ($this->encode ($payload), $secret, 'sha256', 'base64');
             $signature = $this->binary_to_string($signature);
             $auth = implode (':', array ($this->apiKey, $signature, $nonce, $timestamp));
             $headers = array (

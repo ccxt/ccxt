@@ -7,7 +7,6 @@ from ccxt.async_support.base.exchange import Exchange
 import base64
 import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
@@ -31,25 +30,27 @@ class crex24 (Exchange):
             'version': 'v2',
             # new metainfo interface
             'has': {
+                'cancelAllOrders': True,
+                'CORS': False,
+                'editOrder': True,
+                'fetchBidsAsks': True,
+                'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
-                'CORS': False,
-                'fetchBidsAsks': True,
-                'fetchTickers': True,
-                'fetchOHLCV': False,
+                'fetchDeposits': True,
+                'fetchFundingFees': False,
                 'fetchMyTrades': True,
+                'fetchOHLCV': False,
+                'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrders': False,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
-                'withdraw': True,
-                'fetchTradingFees': False,  # actually, True, but will be implemented later
-                'fetchFundingFees': False,
-                'fetchDeposits': True,
-                'fetchWithdrawals': True,
-                'fetchTransactions': True,
                 'fetchOrderTrades': True,
-                'editOrder': True,
+                'fetchTickers': True,
+                'fetchTradingFee': False,  # actually, True, but will be implemented later
+                'fetchTradingFees': False,  # actually, True, but will be implemented later
+                'fetchTransactions': True,
+                'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg',
@@ -879,7 +880,7 @@ class crex24 (Exchange):
         #
         return self.parse_order(response)
 
-    async def cancel_all_orders(self, symbols=None, params={}):
+    async def cancel_all_orders(self, symbol=None, params={}):
         response = await self.tradingPostCancelAllOrders(params)
         #
         #     [
@@ -939,7 +940,7 @@ class crex24 (Exchange):
             request['currency'] = currency['id']
         if since is not None:
             request['from'] = self.ymd(since, 'T')
-        response = await self.aacountGetMoneyTransfers(self.extend(request, params))
+        response = await self.accountGetMoneyTransfers(self.extend(request, params))
         #
         #     [
         #         {
@@ -1029,8 +1030,8 @@ class crex24 (Exchange):
         if currency is not None:
             code = currency['code']
         type = self.safe_string(transaction, 'type')
-        timestamp = self.parse8601(transaction, 'createdAt')
-        updated = self.parse8601(transaction, 'processedAt')
+        timestamp = self.parse8601(self.safe_string(transaction, 'createdAt'))
+        updated = self.parse8601(self.safe_string(transaction, 'processedAt'))
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         amount = self.safe_float(transaction, 'amount')
         feeCost = self.safe_float(transaction, 'fee')
@@ -1119,12 +1120,11 @@ class crex24 (Exchange):
             headers['X-CREX24-API-SIGN'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         if not self.is_json_encoded_object(body):
             return  # fallback to default error handler
         if (code >= 200) and(code < 300):
             return  # no error
-        response = json.loads(body)
         message = self.safe_string(response, 'errorDescription')
         feedback = self.id + ' ' + self.json(response)
         exact = self.exceptions['exact']

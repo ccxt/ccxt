@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, InvalidAddress } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -13,7 +13,7 @@ module.exports = class binance extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'binance',
             'name': 'Binance',
-            'countries': [ 'JP' ], // Japan
+            'countries': [ 'JP', 'MT' ], // Japan, Malta
             'rateLimit': 500,
             'certified': true,
             // new metainfo interface
@@ -76,6 +76,7 @@ module.exports = class binance extends Exchange {
                 'wapi': {
                     'post': [
                         'withdraw',
+                        'sub-account/transfer',
                     ],
                     'get': [
                         'depositHistory',
@@ -83,9 +84,13 @@ module.exports = class binance extends Exchange {
                         'depositAddress',
                         'accountStatus',
                         'systemStatus',
+                        'apiTradingStatus',
                         'userAssetDribbletLog',
                         'tradeFee',
                         'assetDetail',
+                        'sub-account/list',
+                        'sub-account/transfer/history',
+                        'sub-account/assets',
                     ],
                 },
                 'v3': {
@@ -99,6 +104,7 @@ module.exports = class binance extends Exchange {
                         'ping',
                         'time',
                         'depth',
+                        'trades',
                         'aggTrades',
                         'klines',
                         'ticker/24hr',
@@ -136,130 +142,14 @@ module.exports = class binance extends Exchange {
                     'taker': 0.001,
                     'maker': 0.001,
                 },
-                // should be deleted, these are outdated and inaccurate
-                'funding': {
-                    'tierBased': false,
-                    'percentage': false,
-                    'withdraw': {
-                        'ADA': 1.0,
-                        'ADX': 4.7,
-                        'AION': 1.9,
-                        'AMB': 11.4,
-                        'APPC': 6.5,
-                        'ARK': 0.1,
-                        'ARN': 3.1,
-                        'AST': 10.0,
-                        'BAT': 18.0,
-                        'BCD': 1.0,
-                        'BCH': 0.001,
-                        'BCPT': 10.2,
-                        'BCX': 1.0,
-                        'BNB': 0.7,
-                        'BNT': 1.5,
-                        'BQX': 1.6,
-                        'BRD': 6.4,
-                        'BTC': 0.001,
-                        'BTG': 0.001,
-                        'BTM': 5.0,
-                        'BTS': 1.0,
-                        'CDT': 67.0,
-                        'CMT': 37.0,
-                        'CND': 47.0,
-                        'CTR': 5.4,
-                        'DASH': 0.002,
-                        'DGD': 0.06,
-                        'DLT': 11.7,
-                        'DNT': 51.0,
-                        'EDO': 2.5,
-                        'ELF': 6.5,
-                        'ENG': 2.1,
-                        'ENJ': 42.0,
-                        'EOS': 1.0,
-                        'ETC': 0.01,
-                        'ETF': 1.0,
-                        'ETH': 0.01,
-                        'EVX': 2.5,
-                        'FUEL': 45.0,
-                        'FUN': 85.0,
-                        'GAS': 0,
-                        'GTO': 20.0,
-                        'GVT': 0.53,
-                        'GXS': 0.3,
-                        'HCC': 0.0005,
-                        'HSR': 0.0001,
-                        'ICN': 3.5,
-                        'ICX': 1.3,
-                        'INS': 1.5,
-                        'IOTA': 0.5,
-                        'KMD': 0.002,
-                        'KNC': 2.6,
-                        'LEND': 54.0,
-                        'LINK': 12.8,
-                        'LLT': 54.0,
-                        'LRC': 9.1,
-                        'LSK': 0.1,
-                        'LTC': 0.01,
-                        'LUN': 0.29,
-                        'MANA': 74.0,
-                        'MCO': 0.86,
-                        'MDA': 4.7,
-                        'MOD': 2.0,
-                        'MTH': 34.0,
-                        'MTL': 1.9,
-                        'NAV': 0.2,
-                        'NEBL': 0.01,
-                        'NEO': 0.0,
-                        'NULS': 2.1,
-                        'OAX': 8.3,
-                        'OMG': 0.57,
-                        'OST': 17.0,
-                        'POE': 88.0,
-                        'POWR': 8.6,
-                        'PPT': 0.25,
-                        'QSP': 21.0,
-                        'QTUM': 0.01,
-                        'RCN': 35.0,
-                        'RDN': 2.2,
-                        'REQ': 18.1,
-                        'RLC': 4.1,
-                        'SALT': 1.3,
-                        'SBTC': 1.0,
-                        'SNGLS': 42,
-                        'SNM': 29.0,
-                        'SNT': 32.0,
-                        'STORJ': 5.9,
-                        'STRAT': 0.1,
-                        'SUB': 7.4,
-                        'TNB': 82.0,
-                        'TNT': 47.0,
-                        'TRIG': 6.7,
-                        'TRX': 129.0,
-                        'USDT': 23.0,
-                        'VEN': 1.8,
-                        'VIB': 28.0,
-                        'VIBE': 7.2,
-                        'WABI': 3.5,
-                        'WAVES': 0.002,
-                        'WINGS': 9.3,
-                        'WTC': 0.5,
-                        'XLM': 0.01,
-                        'XMR': 0.04,
-                        'XRP': 0.25,
-                        'XVG': 0.1,
-                        'XZC': 0.02,
-                        'YOYOW': 39.0,
-                        'ZEC': 0.005,
-                        'ZRX': 5.7,
-                    },
-                    'deposit': {},
-                },
             },
             'commonCurrencies': {
+                'BCC': 'BCC', // kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
                 'YOYO': 'YOYOW',
-                'BCC': 'BCH',
             },
             // exchange-specific options
             'options': {
+                'fetchTradesMethod': 'publicGetAggTrades',
                 'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultLimitOrderType': 'limit', // or 'limit_maker'
@@ -269,9 +159,16 @@ module.exports = class binance extends Exchange {
                 'timeDifference': 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'parseOrderToPrecision': false, // force amounts and costs in parseOrder to precision
-                'newOrderRespType': 'RESULT', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+                'newOrderRespType': {
+                    'market': 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+                    'limit': 'RESULT', // we change it from 'ACK' by default to 'RESULT'
+                },
             },
             'exceptions': {
+                'API key does not exist': AuthenticationError,
+                'Order would trigger immediately.': InvalidOrder,
+                'Account has insufficient balance for requested action.': InsufficientFunds,
+                'Rest API trading is not enabled.': ExchangeNotAvailable,
                 '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
                 '-1013': InvalidOrder, // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
                 '-1021': InvalidNonce, // 'your time is ahead of server'
@@ -340,7 +237,7 @@ module.exports = class binance extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
@@ -351,11 +248,19 @@ module.exports = class binance extends Exchange {
             };
             if ('PRICE_FILTER' in filters) {
                 let filter = filters['PRICE_FILTER'];
-                entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
+                // PRICE_FILTER reports zero values for maxPrice
+                // since they updated filter types in November 2018
+                // https://github.com/ccxt/ccxt/issues/4286
+                // therefore limits['price']['max'] doesn't have any meaningful value except undefined
                 entry['limits']['price'] = {
                     'min': this.safeFloat (filter, 'minPrice'),
-                    'max': this.safeFloat (filter, 'maxPrice'),
+                    'max': undefined,
                 };
+                const maxPrice = this.safeFloat (filter, 'maxPrice');
+                if ((maxPrice !== undefined) && (maxPrice > 0)) {
+                    entry['limits']['price']['max'] = maxPrice;
+                }
+                entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
             }
             if ('LOT_SIZE' in filters) {
                 let filter = filters['LOT_SIZE'];
@@ -500,8 +405,8 @@ module.exports = class binance extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'symbol': market['id'],
             'interval': this.timeframes[timeframe],
         };
@@ -511,25 +416,69 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default == max == 500
         }
-        let response = await this.publicGetKlines (this.extend (request, params));
+        const response = await this.publicGetKlines (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
-        let timestampField = ('T' in trade) ? 'T' : 'time';
-        let timestamp = this.safeInteger (trade, timestampField);
-        let priceField = ('p' in trade) ? 'p' : 'price';
-        let price = this.safeFloat (trade, priceField);
-        let amountField = ('q' in trade) ? 'q' : 'qty';
-        let amount = this.safeFloat (trade, amountField);
-        let idField = ('a' in trade) ? 'a' : 'id';
-        let id = this.safeString (trade, idField);
+        if ('isDustTrade' in trade) {
+            return this.parseDustTrade (trade, market);
+        }
+        //
+        // aggregate trades
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
+        //
+        //     {
+        //         "a": 26129,         // Aggregate tradeId
+        //         "p": "0.01633102",  // Price
+        //         "q": "4.70443515",  // Quantity
+        //         "f": 27781,         // First tradeId
+        //         "l": 27781,         // Last tradeId
+        //         "T": 1498793709153, // Timestamp
+        //         "m": true,          // Was the buyer the maker?
+        //         "M": true           // Was the trade the best price match?
+        //     }
+        //
+        // recent public trades and old public trades
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#recent-trades-list
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#old-trade-lookup-market_data
+        //
+        //     {
+        //         "id": 28457,
+        //         "price": "4.00000100",
+        //         "qty": "12.00000000",
+        //         "time": 1499865549590,
+        //         "isBuyerMaker": true,
+        //         "isBestMatch": true
+        //     }
+        //
+        // private trades
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#account-trade-list-user_data
+        //
+        //     {
+        //         "symbol": "BNBBTC",
+        //         "id": 28457,
+        //         "orderId": 100234,
+        //         "price": "4.00000100",
+        //         "qty": "12.00000000",
+        //         "commission": "10.10000000",
+        //         "commissionAsset": "BNB",
+        //         "time": 1499865549590,
+        //         "isBuyer": true,
+        //         "isMaker": false,
+        //         "isBestMatch": true
+        //     }
+        //
+        let timestamp = this.safeInteger2 (trade, 'T', 'time');
+        let price = this.safeFloat2 (trade, 'p', 'price');
+        let amount = this.safeFloat2 (trade, 'q', 'qty');
+        let id = this.safeString2 (trade, 'a', 'id');
         let side = undefined;
-        let order = undefined;
-        if ('orderId' in trade)
-            order = this.safeString (trade, 'orderId');
+        let order = this.safeString (trade, 'orderId');
         if ('m' in trade) {
             side = trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
+        } else if ('isBuyerMaker' in trade) {
+            side = trade['isBuyerMaker'] ? 'sell' : 'buy';
         } else {
             if ('isBuyer' in trade)
                 side = (trade['isBuyer']) ? 'buy' : 'sell'; // this is a true side
@@ -563,8 +512,8 @@ module.exports = class binance extends Exchange {
             'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
-            'cost': price * amount,
             'amount': amount,
+            'cost': price * amount,
             'fee': fee,
         };
     }
@@ -574,17 +523,20 @@ module.exports = class binance extends Exchange {
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
+            // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
+            // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
+            // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
+            // 'limit': 500,     // default = 500, maximum = 1000
         };
-        if (since !== undefined) {
-            request['startTime'] = since;
-            request['endTime'] = this.sum (since, 3600000);
+        if (this.options['fetchTradesMethod'] === 'publicGetAggTrades') {
+            if (since !== undefined) {
+                request['startTime'] = since;
+                request['endTime'] = this.sum (since, 3600000);
+            }
         }
-        if (limit !== undefined)
-            request['limit'] = limit;
-        // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
-        // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
-        // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
-        // 'limit': 500,     // default = 500, maximum = 1000
+        if (limit !== undefined) {
+            request['limit'] = limit; // default = 500, maximum = 1000
+        }
         //
         // Caveats:
         // - default limit (500) applies only if no other parameters set, trades up
@@ -594,7 +546,37 @@ module.exports = class binance extends Exchange {
         // - 'tradeId' accepted and returned by this method is "aggregate" trade id
         //   which is different from actual trade id
         // - setting both fromId and time window results in error
-        let response = await this.publicGetAggTrades (this.extend (request, params));
+        const method = this.safeValue (this.options, 'fetchTradesMethod', 'publicGetTrades');
+        let response = await this[method] (this.extend (request, params));
+        //
+        // aggregate trades
+        //
+        //     [
+        //         {
+        //             "a": 26129,         // Aggregate tradeId
+        //             "p": "0.01633102",  // Price
+        //             "q": "4.70443515",  // Quantity
+        //             "f": 27781,         // First tradeId
+        //             "l": 27781,         // Last tradeId
+        //             "T": 1498793709153, // Timestamp
+        //             "m": true,          // Was the buyer the maker?
+        //             "M": true           // Was the trade the best price match?
+        //         }
+        //     ]
+        //
+        // recent public trades and historical public trades
+        //
+        //     [
+        //         {
+        //             "id": 28457,
+        //             "price": "4.00000100",
+        //             "qty": "12.00000000",
+        //             "time": 1499865549590,
+        //             "isBuyerMaker": true,
+        //             "isBestMatch": true
+        //         }
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -604,6 +586,9 @@ module.exports = class binance extends Exchange {
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
+            'PENDING_CANCEL': 'canceling', // currently unused
+            'REJECTED': 'rejected',
+            'EXPIRED': 'expired',
         };
         return (status in statuses) ? statuses[status] : status;
     }
@@ -712,12 +697,13 @@ module.exports = class binance extends Exchange {
             params = this.omit (params, 'test');
         }
         let uppercaseType = type.toUpperCase ();
+        const newOrderRespType = this.safeValue (this.options['newOrderRespType'], type, 'RESULT');
         let order = {
             'symbol': market['id'],
             'quantity': this.amountToPrecision (symbol, amount),
             'type': uppercaseType,
             'side': side.toUpperCase (),
-            'newOrderRespType': this.options['newOrderRespType'], // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+            'newOrderRespType': newOrderRespType, // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         };
         let timeInForceIsRequired = false;
         let priceIsRequired = false;
@@ -781,8 +767,12 @@ module.exports = class binance extends Exchange {
         let request = {
             'symbol': market['id'],
         };
-        if (limit !== undefined)
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
             request['limit'] = limit;
+        }
         let response = await this.privateGetAllOrders (this.extend (request, params));
         //
         //     [
@@ -855,7 +845,126 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined)
             request['limit'] = limit;
         let response = await this.privateGetMyTrades (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "symbol": "BNBBTC",
+        //             "id": 28457,
+        //             "orderId": 100234,
+        //             "price": "4.00000100",
+        //             "qty": "12.00000000",
+        //             "commission": "10.10000000",
+        //             "commissionAsset": "BNB",
+        //             "time": 1499865549590,
+        //             "isBuyer": true,
+        //             "isMaker": false,
+        //             "isBestMatch": true
+        //         }
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchMyDustTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        //
+        // Bianance provides an opportunity to trade insignificant (i.e. non-tradable and non-withdrawable)
+        // token leftovers (of any asset) into `BNB` coin which in turn can be used to pay trading fees with it.
+        // The corresponding trades history is called the `Dust Log` and can be requested via the following end-point:
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
+        //
+        await this.loadMarkets ();
+        let request = this.extend ({}, params);
+        let response = await this.wapiGetUserAssetDribbletLog (request);
+        // { success:    true,
+        //   results: { total:    1,
+        //               rows: [ {     transfered_total: "1.06468458",
+        //                         service_charge_total: "0.02172826",
+        //                                      tran_id: 2701371634,
+        //                                         logs: [ {              tranId:  2701371634,
+        //                                                   serviceChargeAmount: "0.00012819",
+        //                                                                   uid: "35103861",
+        //                                                                amount: "0.8012",
+        //                                                           operateTime: "2018-10-07 17:56:07",
+        //                                                      transferedAmount: "0.00628141",
+        //                                                             fromAsset: "ADA"                  } ],
+        //                                 operate_time: "2018-10-07 17:56:06"                                } ] } }
+        let rows = response['results']['rows'];
+        let data = [];
+        for (let i = 0; i < rows.length; i++) {
+            let logs = rows[i]['logs'];
+            for (let j = 0; j < logs.length; j++) {
+                logs[j]['isDustTrade'] = true;
+                data.push (logs[j]);
+            }
+        }
+        const trades = this.parseTrades (data, undefined, since, limit);
+        return this.filterBySinceLimit (trades, since, limit);
+    }
+
+    parseDustTrade (trade, market = undefined) {
+        // {              tranId:  2701371634,
+        //   serviceChargeAmount: "0.00012819",
+        //                   uid: "35103861",
+        //                amount: "0.8012",
+        //           operateTime: "2018-10-07 17:56:07",
+        //      transferedAmount: "0.00628141",
+        //             fromAsset: "ADA"                  },
+        let order = this.safeString (trade, 'tranId');
+        let time = this.safeString (trade, 'operateTime');
+        let timestamp = this.parse8601 (time);
+        let datetime = this.iso8601 (timestamp);
+        let tradedCurrency = this.safeCurrencyCode (trade, 'fromAsset');
+        let earnedCurrency = this.currency ('BNB')['code'];
+        let applicantSymbol = earnedCurrency + '/' + tradedCurrency;
+        let tradedCurrencyIsQuote = false;
+        if (applicantSymbol in this.markets) {
+            tradedCurrencyIsQuote = true;
+        }
+        //
+        // Warning
+        // Binance dust trade `fee` is already excluded from the `BNB` earning reported in the `Dust Log`.
+        // So the parser should either set the `fee.cost` to `0` or add it on top of the earned
+        // BNB `amount` (or `cost` depending on the trade `side`). The second of the above options
+        // is much more illustrative and therefore preferable.
+        //
+        let fee = {
+            'currency': earnedCurrency,
+            'cost': this.safeFloat (trade, 'serviceChargeAmount'),
+        };
+        let symbol = undefined;
+        let amount = undefined;
+        let cost = undefined;
+        let side = undefined;
+        if (tradedCurrencyIsQuote) {
+            symbol = applicantSymbol;
+            amount = this.sum (this.safeFloat (trade, 'transferedAmount'), fee['cost']);
+            cost = this.safeFloat (trade, 'amount');
+            side = 'buy';
+        } else {
+            symbol = tradedCurrency + '/' + earnedCurrency;
+            amount = this.safeFloat (trade, 'amount');
+            cost = this.sum (this.safeFloat (trade, 'transferedAmount'), fee['cost']);
+            side = 'sell';
+        }
+        let price = cost / amount;
+        let id = undefined;
+        let type = undefined;
+        let takerOrMaker = undefined;
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'symbol': symbol,
+            'order': order,
+            'type': type,
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'amount': amount,
+            'price': price,
+            'cost': cost,
+            'fee': fee,
+            'info': trade,
+        };
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1026,18 +1135,19 @@ module.exports = class binance extends Exchange {
         let response = await this.wapiGetDepositAddress (this.extend ({
             'asset': currency['id'],
         }, params));
-        if ('success' in response) {
-            if (response['success']) {
-                let address = this.safeString (response, 'address');
-                let tag = this.safeString (response, 'addressTag');
-                return {
-                    'currency': code,
-                    'address': this.checkAddress (address),
-                    'tag': tag,
-                    'info': response,
-                };
-            }
+        const success = this.safeValue (response, 'success');
+        if (success === undefined || !success) {
+            throw new InvalidAddress (this.id + ' fetchDepositAddress returned an empty response – create the deposit address in the user settings first.');
         }
+        const address = this.safeString (response, 'address');
+        const tag = this.safeString (response, 'addressTag');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': this.checkAddress (address),
+            'tag': tag,
+            'info': response,
+        };
     }
 
     async fetchFundingFees (codes = undefined, params = {}) {
@@ -1109,7 +1219,7 @@ module.exports = class binance extends Exchange {
                 'X-MBX-APIKEY': this.apiKey,
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
-        } else if ((api === 'private') || (api === 'wapi')) {
+        } else if ((api === 'private') || (api === 'wapi' && path !== 'systemStatus')) {
             this.checkRequiredCredentials ();
             let query = this.urlencode (this.extend ({
                 'timestamp': this.nonce (),
@@ -1133,7 +1243,7 @@ module.exports = class binance extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if ((code === 418) || (code === 429))
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
@@ -1149,7 +1259,6 @@ module.exports = class binance extends Exchange {
         }
         if (body.length > 0) {
             if (body[0] === '{') {
-                response = JSON.parse (body);
                 // check success value for wapi endpoints
                 // response in format {'msg': 'The coin does not exist.', 'success': true/false}
                 let success = this.safeValue (response, 'success', true);
@@ -1168,24 +1277,21 @@ module.exports = class binance extends Exchange {
                         }
                     }
                 }
+                const exceptions = this.exceptions;
+                const message = this.safeString (response, 'msg');
+                if (message in exceptions) {
+                    const ExceptionClass = exceptions[message];
+                    throw new ExceptionClass (this.id + ' ' + message);
+                }
                 // checks against error codes
                 let error = this.safeString (response, 'code');
                 if (error !== undefined) {
-                    const exceptions = this.exceptions;
                     if (error in exceptions) {
                         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
                         // despite that their message is very confusing, it is raised by Binance
                         // on a temporary ban (the API key is valid, but disabled for a while)
                         if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
                             throw new DDoSProtection (this.id + ' temporary banned: ' + body);
-                        }
-                        const message = this.safeString (response, 'msg');
-                        if (message === 'Order would trigger immediately.') {
-                            throw new InvalidOrder (this.id + ' ' + body);
-                        } else if (message === 'Account has insufficient balance for requested action.') {
-                            throw new InsufficientFunds (this.id + ' ' + body);
-                        } else if (message === 'Rest API trading is not enabled.') {
-                            throw new ExchangeNotAvailable (this.id + ' ' + body);
                         }
                         throw new exceptions[error] (this.id + ' ' + body);
                     } else {

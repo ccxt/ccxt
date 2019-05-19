@@ -21,6 +21,7 @@ class quadrigacx extends Exchange {
                 'fetchTickers' => true,
                 'fetchOrder' => true,
                 'fetchMyTrades' => true,
+                'fetchTransactions' => true,
                 'CORS' => true,
                 'withdraw' => true,
             ),
@@ -75,6 +76,7 @@ class quadrigacx extends Exchange {
                 'LTC/BTC' => array ( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'baseId' => 'ltc', 'quoteId' => 'btc', 'maker' => 0.005, 'taker' => 0.005 ),
                 'BCH/CAD' => array ( 'id' => 'bch_cad', 'symbol' => 'BCH/CAD', 'base' => 'BCH', 'quote' => 'CAD', 'baseId' => 'bch', 'quoteId' => 'cad', 'maker' => 0.005, 'taker' => 0.005 ),
                 'BCH/BTC' => array ( 'id' => 'bch_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'baseId' => 'bch', 'quoteId' => 'btc', 'maker' => 0.005, 'taker' => 0.005 ),
+                'BSV/CAD' => array ( 'id' => 'bsv_cad', 'symbol' => 'BSV/CAD', 'base' => 'BSV', 'quote' => 'CAD', 'baseId' => 'bsv', 'quoteId' => 'cad', 'maker' => 0.005, 'taker' => 0.005 ),
                 'BTG/CAD' => array ( 'id' => 'btg_cad', 'symbol' => 'BTG/CAD', 'base' => 'BTG', 'quote' => 'CAD', 'baseId' => 'btg', 'quoteId' => 'cad', 'maker' => 0.005, 'taker' => 0.005 ),
                 'BTG/BTC' => array ( 'id' => 'btg_btc', 'symbol' => 'BTG/BTC', 'base' => 'BTG', 'quote' => 'BTC', 'baseId' => 'btg', 'quoteId' => 'btc', 'maker' => 0.005, 'taker' => 0.005 ),
             ),
@@ -115,6 +117,77 @@ class quadrigacx extends Exchange {
         $response = $this->privatePostUserTransactions (array_merge ($request, $params));
         $trades = $this->filter_by($response, 'type', 2);
         return $this->parse_trades($trades, $market, $since, $limit);
+    }
+
+    public function fetch_transactions ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $market = null;
+        $request = array ();
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['book'] = $market['id'];
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->privatePostUserTransactions (array_merge ($request, $params));
+        $user_transactions = $this->filter_by_array($response, 'type', [0, 1], false);
+        // return $user_transactions;
+        return $this->parseTransactions ($user_transactions, $market, $since, $limit);
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        //
+        //     {
+        //         "btc":"0.99985260",
+        //         "method":"Bitcoin",
+        //         "$fee":"0.00000000",
+        //         "$type":0,
+        //         "datetime":"2018-10-08 05:26:23"
+        //     }
+        //
+        //     {
+        //         "btc":"-0.50000000",
+        //         "method":"Bitcoin",
+        //         "$fee":"0.00000000",
+        //         "$type":1,
+        //         "datetime":"2018-08-27 13:50:10"
+        //     }
+        //
+        $code = null;
+        $amount = null;
+        $omitted = $this->omit ($transaction, array ( 'datetime', 'type', 'method', 'fee' ));
+        $keys = is_array ($omitted) ? array_keys ($omitted) : array ();
+        for ($i = 0; $i < count ($keys); $i++) {
+            if (is_array ($this->currencies_by_id) && array_key_exists ($keys[$i], $this->currencies_by_id)) {
+                $code = $keys[$i];
+            }
+        }
+        if ($code !== null) {
+            $amount = $this->safe_string($transaction, $code);
+        }
+        $timestamp = $this->parse8601 ($this->safe_string($transaction, 'datetime'));
+        $status = 'ok';
+        $fee = $this->safe_float($transaction, 'fee');
+        $type = $this->safe_integer($transaction, 'type');
+        $type = ($type === 1) ? 'withdrawal' : 'deposit';
+        return array (
+            'info' => $transaction,
+            'id' => null,
+            'txid' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'address' => null,
+            'tag' => null,
+            'type' => $type,
+            'amount' => $amount,
+            'currency' => $code,
+            'status' => $status,
+            'updated' => null,
+            'fee' => array (
+                'currency' => $code,
+                'cost' => $fee,
+            ),
+        );
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
@@ -489,13 +562,12 @@ class quadrigacx extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($statusCode, $statusText, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($statusCode, $statusText, $url, $method, $headers, $body, $response) {
         if (gettype ($body) !== 'string')
             return; // fallback to default $error handler
         if (strlen ($body) < 2)
             return;
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             $error = $this->safe_value($response, 'error');
             if ($error !== null) {
                 //

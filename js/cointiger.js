@@ -740,9 +740,14 @@ module.exports = class cointiger extends huobipro {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        if (!this.password) {
-            throw new AuthenticationError (this.id + ' createOrder requires exchange.password to be set to user trading password (not login password!)');
-        }
+        //
+        // obsolete since v2
+        // https://github.com/ccxt/ccxt/issues/4815
+        //
+        //     if (!this.password) {
+        //         throw new AuthenticationError (this.id + ' createOrder requires exchange.password to be set to user trading password (not login password!)');
+        //     }
+        //
         this.checkRequiredCredentials ();
         let market = this.market (symbol);
         let orderType = (type === 'limit') ? 1 : 2;
@@ -751,7 +756,7 @@ module.exports = class cointiger extends huobipro {
             'side': side.toUpperCase (),
             'type': orderType,
             'volume': this.amountToPrecision (symbol, amount),
-            'capital_password': this.password,
+            // 'capital_password': this.password, // obsolete since v2, https://github.com/ccxt/ccxt/issues/4815
         };
         if ((type === 'market') && (side === 'buy')) {
             if (price === undefined) {
@@ -768,14 +773,20 @@ module.exports = class cointiger extends huobipro {
                 order['price'] = this.priceToPrecision (symbol, price);
             }
         }
-        let response = await this.privatePostOrder (this.extend (order, params));
+        let response = await this.v2PostOrder (this.extend (order, params));
         //
-        //     { "order_id":34343 }
+        //     {
+        //         "code": "0",
+        //         "msg": "suc",
+        //         "data": {
+        //             "order_id": 481
+        //         }
+        //     }
         //
-        let timestamp = this.milliseconds ();
+        const timestamp = this.milliseconds ();
         return {
             'info': response,
-            'id': response['data']['order_id'].toString (),
+            'id': this.safeString (response['data'], 'order_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -867,13 +878,12 @@ module.exports = class cointiger extends huobipro {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response = undefined) {
+    handleErrors (httpCode, reason, url, method, headers, body, response) {
         if (typeof body !== 'string')
             return; // fallback to default error handler
         if (body.length < 2)
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
-            response = JSON.parse (body);
             if ('code' in response) {
                 //
                 //     { "code": "100005", "msg": "request sign illegal", "data": null }

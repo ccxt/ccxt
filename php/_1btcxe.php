@@ -183,9 +183,13 @@ class _1btcxe extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
-        $response = $this->publicGetTransactions (array_merge (array (
+        $request = array (
             'currency' => $market['id'],
-        ), $params));
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->publicGetTransactions (array_merge ($request, $params));
         $trades = $this->to_array($this->omit ($response['transactions'], 'request_currency'));
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -249,6 +253,11 @@ class _1btcxe extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        if (gettype ($response) === 'string') {
+            if (mb_strpos ($response, 'Maintenance') !== false) {
+                throw new ExchangeNotAvailable ($this->id . ' on maintenance');
+            }
+        }
         if (is_array ($response) && array_key_exists ('errors', $response)) {
             $errors = array ();
             for ($e = 0; $e < count ($response['errors']); $e++) {

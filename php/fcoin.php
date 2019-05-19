@@ -19,11 +19,11 @@ class fcoin extends Exchange {
             'version' => 'v2',
             'accounts' => null,
             'accountsById' => null,
-            'hostname' => 'api.fcoin.com',
+            'hostname' => 'fcoin.com',
             'has' => array (
                 'CORS' => false,
                 'fetchDepositAddress' => false,
-                'fetchOHLCV' => false,
+                'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchOrder' => true,
@@ -47,11 +47,11 @@ class fcoin extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/42244210-c8c42e1e-7f1c-11e8-8710-a5fb63b165c4.jpg',
-                'api' => 'https://api.fcoin.com',
+                'api' => 'https://api.{hostname}',
                 'www' => 'https://www.fcoin.com',
                 'referral' => 'https://www.fcoin.com/i/Z5P7V',
                 'doc' => 'https://developer.fcoin.com',
-                'fees' => 'https://support.fcoin.com/hc/en-us/articles/360003715514-Trading-Rules',
+                'fees' => 'https://fcoinjp.zendesk.com/hc/en-us/articles/360018727371',
             ),
             'api' => array (
                 'market' => array (
@@ -125,6 +125,7 @@ class fcoin extends Exchange {
             'commonCurrencies' => array (
                 'DAG' => 'DAGX',
                 'PAI' => 'PCHAIN',
+                'MT' => 'Mariana Token',
             ),
         ));
     }
@@ -153,6 +154,7 @@ class fcoin extends Exchange {
                     'max' => pow (10, $precision['price']),
                 ),
             );
+            $active = $this->safe_value($market, 'tradable', false);
             if (is_array ($this->options['limits']) && array_key_exists ($symbol, $this->options['limits'])) {
                 $limits = array_merge ($this->options['limits'][$symbol], $limits);
             }
@@ -163,7 +165,7 @@ class fcoin extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'active' => true,
+                'active' => $active,
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,
@@ -215,17 +217,17 @@ class fcoin extends Exchange {
     public function fetch_order_book ($symbol = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($limit !== null) {
-            if (($limit === 20) || ($limit === 100)) {
+            if (($limit === 20) || ($limit === 150)) {
                 $limit = 'L' . (string) $limit;
             } else {
-                throw new ExchangeError ($this->id . ' fetchOrderBook supports $limit of 20, 100 or no $limit-> Other values are not accepted');
+                throw new ExchangeError ($this->id . ' fetchOrderBook supports $limit of 20 or 150. Other values are not accepted');
             }
         } else {
-            $limit = 'full';
+            $limit = 'L20';
         }
         $request = array_merge (array (
             'symbol' => $this->market_id($symbol),
-            'level' => $limit, // L20, L100, full
+            'level' => $limit, // L20, L150
         ), $params);
         $response = $this->marketGetDepthLevelSymbol ($request);
         $orderbook = $response['data'];
@@ -511,7 +513,10 @@ class fcoin extends Exchange {
         $request .= ($api === 'private') ? '' : ($api . '/');
         $request .= $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        $url = $this->urls['api'] . $request;
+        $url = $this->implode_params($this->urls['api'], array (
+            'hostname' => $this->hostname,
+        ));
+        $url .= $request;
         if (($api === 'public') || ($api === 'market')) {
             if ($query) {
                 $url .= '?' . $this->urlencode ($query);
@@ -546,13 +551,12 @@ class fcoin extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return; // fallback to default error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             $status = $this->safe_string($response, 'status');
             if ($status !== '0') {
                 $feedback = $this->id . ' ' . $body;

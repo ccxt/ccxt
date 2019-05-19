@@ -21,7 +21,7 @@ class coinfloor extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg',
-                'api' => 'https://webapi.coinfloor.co.uk:8090/bist',
+                'api' => 'https://webapi.coinfloor.co.uk/bist',
                 'www' => 'https://www.coinfloor.co.uk',
                 'doc' => array (
                     'https://github.com/coinfloor/api',
@@ -61,8 +61,8 @@ class coinfloor extends Exchange {
                 'BTC/GBP' => array ( 'id' => 'XBT/GBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP', 'baseId' => 'XBT', 'quoteId' => 'GBP' ),
                 'BTC/EUR' => array ( 'id' => 'XBT/EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'XBT', 'quoteId' => 'EUR' ),
                 'BTC/USD' => array ( 'id' => 'XBT/USD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'baseId' => 'XBT', 'quoteId' => 'USD' ),
-                'BTC/PLN' => array ( 'id' => 'XBT/PLN', 'symbol' => 'BTC/PLN', 'base' => 'BTC', 'quote' => 'PLN', 'baseId' => 'XBT', 'quoteId' => 'PLN' ),
                 'BCH/GBP' => array ( 'id' => 'BCH/GBP', 'symbol' => 'BCH/GBP', 'base' => 'BCH', 'quote' => 'GBP', 'baseId' => 'BCH', 'quoteId' => 'GBP' ),
+                'ETH/GBP' => array ( 'id' => 'ETH/GBP', 'symbol' => 'ETH/GBP', 'base' => 'ETH', 'quote' => 'GBP', 'baseId' => 'ETH', 'quoteId' => 'GBP' ),
             ),
         ));
     }

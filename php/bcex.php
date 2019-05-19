@@ -33,8 +33,8 @@ class bcex extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/43362240-21c26622-92ee-11e8-9464-5801ec526d77.jpg',
                 'api' => 'https://www.bcex.top',
                 'www' => 'https://www.bcex.top',
-                'doc' => 'https://www.bcex.top/api_market/market/',
-                'fees' => 'http://bcex.udesk.cn/hc/articles/57085',
+                'doc' => 'https://github.com/BCEX-TECHNOLOGY-LIMITED/API_Docs/wiki/Interface',
+                'fees' => 'https://bcex.udesk.cn/hc/articles/57085',
                 'referral' => 'https://www.bcex.top/user/reg/type/2/pid/758978',
             ),
             'api' => array (
@@ -655,13 +655,12 @@ class bcex extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return; // fallback to default error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
             $code = $this->safe_value($response, 'code');
             if ($code !== null) {
                 if ($code !== 0) {

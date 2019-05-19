@@ -14,6 +14,14 @@ To run the ccxt examples from any folder type one of the following commands in c
 node path/to/example.js # substitute for actual filename here
 ```
 
+These examples might require the following super-useful high-quality Node.js modules by [xpl](https://github.com/xpl):
+
+- [ololog](https://github.com/xpl/ololog): Platform-agnostic logging with blackjack and hookers ([ololog @ npm](https://npmjs.com/package/ololog))
+- [ansicolor](https://github.com/xpl/ansicolor): A quality JavaScript library for the ANSI color/style management ([ansicolor @ npm](https://npmjs.com/package/ansicolor))
+- [as-table](https://github.com/xpl/as-table): A simple function that prints objects as ASCII tables ([as-table @ npm](https://npmjs.com/package/as-table))
+
+All of the modules above are installed with the ccxt library devDependencies by npm automatically.
+
 <img width="842" alt="bitcoin ascii chart" src="https://user-images.githubusercontent.com/1294454/29673849-156f58c6-88f9-11e7-8955-fb3f37467234.png">
 
 
@@ -59,6 +67,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [Let’s write a cryptocurrency bot](https://medium.com/@joeldg/an-advanced-tutorial-a-new-crypto-currency-trading-bot-boilerplate-framework-e777733607ae) – A multi-part advanced tutorial on a new cryptocurrency trading framework also integrating ccxt.
 
+[Download Cryptocurrency Data with CCXT](https://backtest-rookies.com/2018/03/08/download-cryptocurrency-data-with-ccxt/) – A sample script to download historical data from exchanges with a video overview: [Easy Python script to download crypto currency market data with CCXT package](https://www.youtube.com/watch?v=PTGkJsrF7kQ).
+
 [Experiments : Creating a Crypto Twitter Bot to Announce Newly Listed CryptoCoins](https://medium.com/@kennychuaio/experiments-creating-a-crypto-twitter-bot-to-announce-newly-listed-cryptocoins-9cd23930f5cb) – An article on how to integrate with CCXT and Twitter to get new currencies from exchanges automatically.
 
 [How to make your own trading bot](https://codeburst.io/how-to-make-your-own-trading-bot-83b5c6e35036) – A tutorial on algortrading in Python.
@@ -80,6 +90,8 @@ php -f path/to/example.php # substitute for actual filename here
 [Bitflyerの未約定の全注文をCCXTで一括でキャンセルする方法](https://ryota-trade.com/?p=833) – How to cancel all uncommitted orders of Bitflyer in bulk with CCXT
 
 [Python3とCCXTライブラリを用いたBitMEX自動売買bot作成Tips](https://note.mu/akagami/n/n0af0a96c261f) – An article in Japanese on getting started with CCXT and a few bot tips.
+
+[Python数字货币量化交易开发入门视频-利用CCXT获取bitmex交易所的行情数据](https://www.bilibili.com/video/av44339579/) – An video in Chinese on how to get started with CCXT in Python and a tutorial on OHLCV + Pandas export to CSV.
 
 [BitMEX自動売買Bot「MANA 1.0.1」の全て](https://note.mu/moycoin/n/n6f585ea854d4) – An example of automatic BitMEX Bot MANA 1.0.1.
 
@@ -107,6 +119,8 @@ php -f path/to/example.php # substitute for actual filename here
 [Algorithmic Trading - Aula 4](https://www.youtube.com/watch?v=BkKebXrhMGY) – A video introduction to algorithmic trading with CCXT from Curso Algo Trading in Portuguese language.
 
 [Лучшая криптотрейдинг библиотека?](http://medium.com/@vladthelittleone/лучшая-криптотрейдинг-библиотека-67e308f96c1f) – An article in Russian on setting up CCXT to connect and trade with crypto exchanges.
+
+[Présentation de projet - Créer un Bot Telegram de A à Z (+CCXT)](https://www.youtube.com/watch?v=yayJKRtg5M4) – La création d'un bot Telegram en Node.js, qui va rechercher des informations sur les différentes marketpalce de crypto-monnaies, et cela via la librairie CCXT.
 
 [Using ccxt and technicalindicators to calculate MACD for BTC/USDT with Node.js](https://runkit.com/dhilipb/macd-for-btc-usdt) – A runkit sample showing how to fetch data and run statistical calculations.
 

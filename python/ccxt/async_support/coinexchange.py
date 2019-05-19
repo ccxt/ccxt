@@ -19,6 +19,7 @@ class coinexchange (Exchange):
             # new metainfo interface
             'has': {
                 'privateAPI': False,
+                'fetchBalance': False,
                 'createOrder': False,
                 'createMarketOrder': False,
                 'createLimitOrder': False,
@@ -654,8 +655,8 @@ class coinexchange (Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_float(ticker, 'Change'),
-            'percentage': None,
+            'change': None,
+            'percentage': self.safe_float(ticker, 'Change'),
             'average': None,
             'baseVolume': None,
             'quoteVolume': self.safe_float(ticker, 'Volume'),

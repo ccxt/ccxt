@@ -64,17 +64,24 @@ class itbit extends Exchange {
                 'BTC/USD' => array ( 'id' => 'XBTUSD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
                 'BTC/SGD' => array ( 'id' => 'XBTSGD', 'symbol' => 'BTC/SGD', 'base' => 'BTC', 'quote' => 'SGD' ),
                 'BTC/EUR' => array ( 'id' => 'XBTEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
+                'ETH/USD' => array ( 'id' => 'ETHUSD', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD' ),
+                'ETH/EUR' => array ( 'id' => 'ETHEUR', 'symbol' => 'ETH/EUR', 'base' => 'ETH', 'quote' => 'EUR' ),
+                'ETH/SGD' => array ( 'id' => 'ETHSGD', 'symbol' => 'ETH/SGD', 'base' => 'ETH', 'quote' => 'SGD' ),
             ),
             'fees' => array (
                 'trading' => array (
-                    'maker' => 0,
-                    'taker' => 0.2 / 100,
+                    'maker' => -0.03 / 100,
+                    'taker' => 0.35 / 100,
                 ),
+            ),
+            'commonCurrencies' => array (
+                'XBT' => 'BTC',
             ),
         ));
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+        $this->load_markets();
         $orderbook = $this->publicGetMarketsSymbolOrderBook (array_merge (array (
             'symbol' => $this->market_id($symbol),
         ), $params));
@@ -82,6 +89,7 @@ class itbit extends Exchange {
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
         $ticker = $this->publicGetMarketsSymbolTicker (array_merge (array (
             'symbol' => $this->market_id($symbol),
         ), $params));
@@ -119,45 +127,209 @@ class itbit extends Exchange {
         );
     }
 
-    public function parse_trade ($trade, $market) {
-        $timestamp = $this->parse8601 ($trade['timestamp']);
-        $id = (string) $trade['matchNumber'];
-        return array (
+    public function parse_trade ($trade, $market = null) {
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         $timestamp => "2015-05-22T17:45:34.7570000Z",
+        //         matchNumber => "5CR1JEUBBM8J",
+        //         $price => "351.45000000",
+        //         $amount => "0.00010000"
+        //     }
+        //
+        // fetchMyTrades (private)
+        //
+        //     {
+        //         "$orderId" => "248ffda4-83a0-4033-a5bb-8929d523f59f",
+        //         "$timestamp" => "2015-05-11T14:48:01.9870000Z",
+        //         "instrument" => "XBTUSD",
+        //         "direction" => "buy",                      // buy or sell
+        //         "currency1" => "XBT",                      // $base currency
+        //         "currency1Amount" => "0.00010000",         // order $amount in $base currency
+        //         "currency2" => "USD",                      // $quote currency
+        //         "currency2Amount" => "0.0250530000000000", // order $cost in $quote currency
+        //         "rate" => "250.53000000",
+        //         "commissionPaid" => "0.00000000",   // net $trade fee paid after using any available rebate balance
+        //         "commissionCurrency" => "USD",
+        //         "$rebatesApplied" => "-0.000125265", // negative values represent $amount of rebate balance used for trades removing liquidity from order book; positive values represent $amount of rebate balance earned from trades adding liquidity to order book
+        //         "$rebateCurrency" => "USD",
+        //         "executionId" => "23132"
+        //     }
+        //
+        $id = $this->safe_string_2($trade, 'executionId', 'matchNumber');
+        $timestamp = $this->parse8601 ($this->safe_string($trade, 'timestamp'));
+        $side = $this->safe_string($trade, 'direction');
+        $orderId = $this->safe_string($trade, 'orderId');
+        $feeCost = $this->safe_float($trade, 'commissionPaid');
+        $feeCurrencyId = $this->safe_string($trade, 'commissionCurrency');
+        $feeCurrency = $this->common_currency_code($feeCurrencyId);
+        $rebatesApplied = $this->safe_float($trade, 'rebatesApplied');
+        if ($rebatesApplied !== null) {
+            $rebatesApplied = -$rebatesApplied;
+        }
+        $rebateCurrencyId = $this->safe_string($trade, 'rebateCurrency');
+        $rebateCurrency = $this->common_currency_code($rebateCurrencyId);
+        $price = $this->safe_float_2($trade, 'price', 'rate');
+        $amount = $this->safe_float_2($trade, 'currency1Amount', 'amount');
+        $cost = null;
+        if ($price !== null) {
+            if ($amount !== null) {
+                $cost = $price * $amount;
+            }
+        }
+        $symbol = null;
+        $marketId = $this->safe_string($trade, 'instrument');
+        if ($marketId !== null) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            } else {
+                $baseId = $this->safe_string($trade, 'currency1');
+                $quoteId = $this->safe_string($trade, 'currency2');
+                $base = $this->common_currency_code($baseId);
+                $quote = $this->common_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
+        }
+        if ($symbol === null) {
+            if ($market !== null) {
+                $symbol = $market['symbol'];
+            }
+        }
+        $result = array (
             'info' => $trade,
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
-            'id' => $id,
-            'order' => $id,
+            'symbol' => $symbol,
+            'order' => $orderId,
             'type' => null,
-            'side' => null,
-            'price' => $this->safe_float($trade, 'price'),
-            'amount' => $this->safe_float($trade, 'amount'),
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
         );
+        if ($feeCost !== null) {
+            if ($rebatesApplied !== null) {
+                if ($feeCurrency === $rebateCurrency) {
+                    $feeCost = $this->sum ($feeCost, $rebatesApplied);
+                    $result['fee'] = array (
+                        'cost' => $feeCost,
+                        'currency' => $feeCurrency,
+                    );
+                } else {
+                    $result['fees'] = array (
+                        array (
+                            'cost' => $feeCost,
+                            'currency' => $feeCurrency,
+                        ),
+                        array (
+                            'cost' => $rebatesApplied,
+                            'currency' => $rebateCurrency,
+                        ),
+                    );
+                }
+            } else {
+                $result['fee'] = array (
+                    'cost' => $feeCost,
+                    'currency' => $feeCurrency,
+                );
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $walletId = $this->safe_string($params, 'walletId');
+        if ($walletId === null) {
+            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $walletId parameter');
+        }
+        $this->load_markets();
+        $request = array (
+            'walletId' => $walletId,
+        );
+        if ($since !== null) {
+            $request['rangeStart'] = $this->ymdhms ($since, 'T');
+        }
+        if ($limit !== null) {
+            $request['perPage'] = $limit; // default 50, max 50
+        }
+        $response = $this->privateGetWalletsWalletIdTrades (array_merge ($request, $params));
+        //
+        //     {
+        //         "totalNumberOfRecords" => "2",
+        //         "currentPageNumber" => "1",
+        //         "latestExecutionId" => "332", // most recent execution at time of $response
+        //         "recordsPerPage" => "50",
+        //         "tradingHistory" => array (
+        //             {
+        //                 "orderId" => "248ffda4-83a0-4033-a5bb-8929d523f59f",
+        //                 "timestamp" => "2015-05-11T14:48:01.9870000Z",
+        //                 "instrument" => "XBTUSD",
+        //                 "direction" => "buy",                      // buy or sell
+        //                 "currency1" => "XBT",                      // base currency
+        //                 "currency1Amount" => "0.00010000",         // order amount in base currency
+        //                 "currency2" => "USD",                      // quote currency
+        //                 "currency2Amount" => "0.0250530000000000", // order cost in quote currency
+        //                 "rate" => "250.53000000",
+        //                 "commissionPaid" => "0.00000000",   // net trade fee paid after using any available rebate balance
+        //                 "commissionCurrency" => "USD",
+        //                 "rebatesApplied" => "-0.000125265", // negative values represent amount of rebate balance used for $trades removing liquidity from order book; positive values represent amount of rebate balance earned from $trades adding liquidity to order book
+        //                 "rebateCurrency" => "USD",
+        //                 "executionId" => "23132"
+        //             },
+        //         ),
+        //     }
+        //
+        $trades = $this->safe_value($response, 'tradingHistory', array ());
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+        }
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetMarketsSymbolTrades (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
-        ), $params));
-        return $this->parse_trades($response['recentTrades'], $market, $since, $limit);
+        );
+        $response = $this->publicGetMarketsSymbolTrades (array_merge ($request, $params));
+        //
+        //     {
+        //         count => 3,
+        //         recentTrades => array (
+        //             array (
+        //                 timestamp => "2015-05-22T17:45:34.7570000Z",
+        //                 matchNumber => "5CR1JEUBBM8J",
+        //                 price => "351.45000000",
+        //                 amount => "0.00010000"
+        //             ),
+        //         )
+        //     }
+        //
+        $trades = $this->safe_value($response, 'recentTrades', array ());
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function fetch_balance ($params = array ()) {
-        $response = $this->fetch_wallets ();
+        $this->load_markets();
+        $response = $this->fetch_wallets ($params);
         $balances = $response[0]['balances'];
         $result = array ( 'info' => $response );
-        for ($b = 0; $b < count ($balances); $b++) {
-            $balance = $balances[$b];
-            $currency = $balance['currency'];
+        for ($i = 0; $i < count ($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $this->common_currency_code($currencyId);
             $account = array (
-                'free' => floatval ($balance['availableBalance']),
+                'free' => $this->safe_float($balance, 'availableBalance'),
                 'used' => 0.0,
-                'total' => floatval ($balance['totalBalance']),
+                'total' => $this->safe_float($balance, 'totalBalance'),
             );
             $account['used'] = $account['total'] - $account['free'];
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -264,11 +436,12 @@ class itbit extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $walletIdInParams = (is_array ($params) && array_key_exists ('walletId', $params));
-        if (!$walletIdInParams)
+        if (!$walletIdInParams) {
             throw new ExchangeError ($this->id . ' fetchOrder requires a walletId parameter');
-        return $this->privateGetWalletsWalletIdOrdersId (array_merge (array (
-            'id' => $id,
-        ), $params));
+        }
+        $request = array ( 'id' => $id );
+        $response = $this->privateGetWalletsWalletIdOrdersId (array_merge ($request, $params));
+        return $this->parse_order($response);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -296,7 +469,8 @@ class itbit extends Exchange {
             $auth = array ( $method, $url, $body, $nonce, $timestamp );
             $message = $nonce . str_replace ('\\/', '/', $this->json ($auth));
             $hash = $this->hash ($this->encode ($message), 'sha256', 'binary');
-            $binhash = $this->binary_concat($url, $hash);
+            $binaryUrl = $this->encode ($url);
+            $binhash = $this->binary_concat($binaryUrl, $hash);
             $signature = $this->hmac ($binhash, $this->encode ($this->secret), 'sha512', 'base64');
             $headers = array (
                 'Authorization' => $this->apiKey . ':' . $signature,

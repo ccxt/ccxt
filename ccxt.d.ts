@@ -70,31 +70,33 @@ declare module 'ccxt' {
 
     export interface Market {
         [key: string]: any
-        base: string;
         id: string;
-        info: any;
-        limits: { amount: MinMax, price: MinMax, cost?: MinMax };
-        lot: number;
-        precision: { amount: number, price: number };
-        quote: string;
         symbol: string;
+        base: string;
+        quote: string;
+        active: boolean;
+        precision: { amount: number, price: number, cost: number };
+        limits: { amount: MinMax, price: MinMax, cost?: MinMax };
+        info: any;
     }
 
     export interface Order {
-        id: string,
-        info: {},
-        timestamp: number,
-        datetime: string,
-        status: 'open' | 'closed' | 'canceled',
-        symbol: string,
-        type: 'market' | 'limit',
-        side: 'buy' | 'sell',
-        price: number,
-        cost: number,
-        amount: number,
-        filled: number,
-        remaining: number,
-        fee: number
+        id: string;
+        datetime: string;
+        timestamp: number;
+        lastTradeTimestamp: number;
+        status: 'open' | 'closed' | 'canceled';
+        symbol: string;
+        type: 'market' | 'limit';
+        side: 'buy' | 'sell';
+        price: number;
+        amount: number;
+        filled: number;
+        remaining: number;
+        cost: number;
+        trades: Trade[];
+        fee: Fee;
+        info: {};
     }
 
     export interface OrderBook {
@@ -106,37 +108,42 @@ declare module 'ccxt' {
     }
 
     export interface Trade {
-        amount: number;            // amount of base currency
-        datetime: string;          // ISO8601 datetime with milliseconds;
-        id: string;                // string trade id
-        info: {};                  // the original decoded JSON as is
-        order?: string;            // string order id or undefined/None/null
-        price: number;             // float price in quote currency
-        timestamp: number;         // Unix timestamp in milliseconds
-        type?: 'market' | 'limit'; // order type, 'market', 'limit' or undefined/None/null
-        side: 'buy' | 'sell';
-        symbol: string;            // symbol in CCXT format
+        amount: number;                  // amount of base currency
+        datetime: string;                // ISO8601 datetime with milliseconds;
+        id: string;                      // string trade id
+        info: {};                        // the original decoded JSON as is
+        order?: string;                  // string order id or undefined/None/null
+        price: number;                   // float price in quote currency
+        timestamp: number;               // Unix timestamp in milliseconds
+        type?: 'market' | 'limit';       // order type, 'market', 'limit' or undefined/None/null
+        side: 'buy' | 'sell';            // direction of the trade, 'buy' or 'sell'
+        symbol: string;                  // symbol in CCXT format
+        takerOrMaker: 'taker' | 'maker'; // string, 'taker' or 'maker'
+        cost: number;                    // total cost (including fees), `price * amount`
+        fee: Fee;
     }
 
     export interface Ticker {
-        ask: number;
-        average?: number;
-        baseVolume?: number;
-        bid: number;
-        change?: number;
-        close?: number;
-        datetime: string;
-        first?: number;
-        high: number;
+        symbol: string;
         info: object;
-        last?: number;
-        low: number;
-        open?: number;
-        percentage?: number;
-        quoteVolume?: number;
-        symbol: string,
         timestamp: number;
+        datetime: string;
+        high: number;
+        low: number;
+        bid: number;
+        bidVolume?: number;
+        ask: number;
+        askVolume?: number;
         vwap?: number;
+        open?: number;
+        close?: number;
+        last?: number;
+        previousClose?: number;
+        change?: number;
+        percentage?: number;
+        average?: number;
+        quoteVolume?: number;
+        baseVolume?: number;
     }
 
     export interface Transaction {
@@ -151,10 +158,7 @@ declare module 'ccxt' {
         currency: string;
         status: "pending" | "ok";
         updated: number;
-        fee: {
-          cost: number;
-          rate: number;
-        };
+        fee: Fee;
     }
 
     export interface Tickers {
@@ -168,9 +172,9 @@ declare module 'ccxt' {
     }
 
     export interface Balance {
-        free: number,
-        used: number,
-        total: number
+        free: number;
+        used: number;
+        total: number;
     }
 
     export interface PartialBalances {
@@ -183,10 +187,22 @@ declare module 'ccxt' {
     }
 
     export interface DepositAddress {
-        currency: string,
-        address: string,
-        status: string,
-        info: any,
+        currency: string;
+        address: string;
+        status: string;
+        info: any;
+    }
+
+    export interface Fee {
+        type: 'taker' | 'maker';
+        currency: string;
+        rate: number;
+        cost: number;
+    }
+
+    export interface WithdrawalResponse {
+        info: any;
+        id: string;
     }
 
     // timestamp, open, high, low, close, volume
@@ -302,7 +318,7 @@ declare module 'ccxt' {
         cancelOrder (id: string, symbol?: string, params?: {}): Promise<any>;
         createDepositAddress (currency: string, params?: {}): Promise<any>;
         fetchDepositAddress (currency: string, params?: {}): Promise<any>;
-        withdraw (currency: string, amount: number, address: string, tag?: string, params?: {}): Promise<any>;
+        withdraw (currency: string, amount: number, address: string, tag?: string, params?: {}): Promise<WithdrawalResponse>;
         request (path: string, api?: string, method?: string, params?: any, headers?: any, body?: any): Promise<any>;
         YmdHMS (timestamp: string, infix: string) : string;
         iso8601 (timestamp: string): string;
@@ -318,9 +334,11 @@ declare module 'ccxt' {
     export class anxpro extends Exchange {}
     export class anybits extends bitsane {}
     export class bcex extends Exchange {}
+    export class bequant extends hitbtc2 {}
     export class bibox extends Exchange {}
     export class bigone extends Exchange {}
     export class binance extends Exchange {}
+    export class binanceje extends binance {}
     export class bit2c extends Exchange {}
     export class bitbank extends Exchange {}
     export class bitbay extends Exchange {}
@@ -375,20 +393,22 @@ declare module 'ccxt' {
     export class coinspot extends Exchange {}
     export class cointiger extends huobipro {}
     export class coolcoin extends coinegg {}
+    export class coss extends Exchange {}
     export class crex24 extends Exchange {}
     export class crypton extends Exchange {}
     export class cryptopia extends Exchange {}
     export class deribit extends Exchange {}
     export class dsx extends liqui {}
+    export class dx extends Exchange {}
     export class ethfinex extends bitfinex {}
     export class exmo extends Exchange {}
     export class exx extends Exchange {}
     export class fcoin extends Exchange {}
+    export class fcoinjp extends fcoin {}
     export class flowbtc extends Exchange {}
     export class foxbit extends Exchange {}
     export class fybse extends Exchange {}
     export class fybsg extends fybse {}
-    export class gatecoin extends Exchange {}
     export class gateio extends Exchange {}
     export class gdax extends Exchange {}
     export class gemini extends Exchange {}
@@ -397,6 +417,7 @@ declare module 'ccxt' {
     export class hitbtc extends Exchange {}
     export class hitbtc2 extends hitbtc {}
     export class huobipro extends Exchange {}
+    export class huobiru extends huobipro {}
     export class ice3x extends Exchange {}
     export class independentreserve extends Exchange {}
     export class indodax extends Exchange {}
@@ -405,6 +426,7 @@ declare module 'ccxt' {
     export class kkex extends Exchange {}
     export class kraken extends Exchange {}
     export class kucoin extends Exchange {}
+    export class kucoin2 extends kucoin {}
     export class kuna extends acx {}
     export class lakebtc extends Exchange {}
     export class lbank extends Exchange {}
@@ -413,6 +435,7 @@ declare module 'ccxt' {
     export class livecoin extends Exchange {}
     export class luno extends Exchange {}
     export class lykke extends Exchange {}
+    export class mandala extends Exchange {}
     export class mercado extends Exchange {}
     export class mixcoins extends Exchange {}
     export class negociecoins extends Exchange {}
@@ -420,13 +443,13 @@ declare module 'ccxt' {
     export class okcoincny extends okcoinusd {}
     export class okcoinusd extends Exchange {}
     export class okex extends okcoinusd {}
+    export class okex3 extends Exchange {}
     export class paymium extends Exchange {}
     export class poloniex extends Exchange {}
-    export class qryptos extends liquid {}
     export class quadrigacx extends Exchange {}
-    export class quoinex extends liquid {}
     export class rightbtc extends Exchange {}
     export class southxchange extends Exchange {}
+    export class stronghold extends Exchange {}
     export class surbitcoin extends foxbit {}
     export class theocean extends Exchange {}
     export class therock extends Exchange {}
@@ -438,10 +461,8 @@ declare module 'ccxt' {
     export class vaultoro extends Exchange {}
     export class vbtc extends foxbit {}
     export class virwox extends Exchange {}
-    export class wex extends liqui {}
     export class xbtce extends Exchange {}
     export class yobit extends liqui {}
-    export class yunbi extends acx {}
     export class zaif extends Exchange {}
     export class zb extends Exchange {}
 

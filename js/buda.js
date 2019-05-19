@@ -250,7 +250,7 @@ module.exports = class buda extends Exchange {
         let withdrawFees = {};
         let depositFees = {};
         let info = {};
-        if (typeof codes === 'undefined')
+        if (codes === undefined)
             codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             let code = codes[i];
@@ -273,7 +273,7 @@ module.exports = class buda extends Exchange {
     }
 
     parseFundingFee (fee, type = undefined) {
-        if (typeof type === 'undefined')
+        if (type === undefined)
             type = fee['name'];
         if (type === 'withdrawal')
             type = 'withdraw';
@@ -298,7 +298,7 @@ module.exports = class buda extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
         let symbol = undefined;
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         let last = parseFloat (ticker['last_price'][0]);
         let percentage = parseFloat (ticker['price_variation_24h']);
@@ -410,7 +410,7 @@ module.exports = class buda extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (typeof since === 'undefined')
+        if (since === undefined)
             since = this.milliseconds () - 86400000;
         let request = {
             'symbol': market['id'],
@@ -455,7 +455,7 @@ module.exports = class buda extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        if (typeof symbol !== 'undefined')
+        if (symbol !== undefined)
             market = this.market (symbol);
         let response = await this.privateGetMarketsMarketOrders (this.extend ({
             'market': market['id'],
@@ -534,7 +534,7 @@ module.exports = class buda extends Exchange {
         let filled = parseFloat (order['traded_amount'][0]);
         let cost = parseFloat (order['total_exchanged'][0]);
         let price = order['limit'];
-        if (typeof price !== 'undefined')
+        if (price !== undefined)
             price = parseFloat (price[0]);
         if (cost > 0 && filled > 0)
             price = this.priceToPrecision (symbol, cost / filled);
@@ -593,7 +593,7 @@ module.exports = class buda extends Exchange {
         }
         let addressPoolLength = addressPool.length;
         if (addressPoolLength < 1) {
-            throw new AddressPending (this.name + ': there are no addresses ready for receiving ' + code + ', retry again later)');
+            throw new AddressPending (this.id + ': there are no addresses ready for receiving ' + code + ', retry again later)');
         }
         let address = addressPool[0];
         return {
@@ -608,7 +608,7 @@ module.exports = class buda extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         if (this.isFiat (code))
-            throw new NotSupported (this.name + ': fiat fetchDepositAddress() for ' + code + ' is not supported');
+            throw new NotSupported (this.id + ': fiat fetchDepositAddress() for ' + code + ' is not supported');
         let response = await this.privatePostCurrenciesCurrencyReceiveAddresses (this.extend ({
             'currency': currency['id'],
         }, params));
@@ -676,8 +676,8 @@ module.exports = class buda extends Exchange {
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (typeof code === 'undefined')
-            throw new ExchangeError (this.name + ': fetchDeposits() requires a currency code argument');
+        if (code === undefined)
+            throw new ExchangeError (this.id + ': fetchDeposits() requires a currency code argument');
         let currency = this.currency (code);
         let response = await this.privateGetCurrenciesCurrencyDeposits (this.extend ({
             'currency': currency['id'],
@@ -689,8 +689,8 @@ module.exports = class buda extends Exchange {
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (typeof code === 'undefined')
-            throw new ExchangeError (this.name + ': fetchDeposits() requires a currency code argument');
+        if (code === undefined)
+            throw new ExchangeError (this.id + ': fetchDeposits() requires a currency code argument');
         let currency = this.currency (code);
         let response = await this.privateGetCurrenciesCurrencyWithdrawals (this.extend ({
             'currency': currency['id'],
@@ -751,17 +751,16 @@ module.exports = class buda extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if (!this.isJsonEncodedObject (body)) {
             return; // fallback to default error handler
         }
         if (code >= 400) {
-            response = JSON.parse (body);
             let errorCode = this.safeString (response, 'code');
             let message = this.safeString (response, 'message', body);
-            let feedback = this.name + ': ' + message;
+            let feedback = this.id + ' ' + message;
             let exceptions = this.exceptions;
-            if (typeof errorCode !== 'undefined') {
+            if (errorCode !== undefined) {
                 if (errorCode in exceptions) {
                     throw new exceptions[errorCode] (feedback);
                 } else {
