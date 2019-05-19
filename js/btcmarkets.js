@@ -408,7 +408,7 @@ module.exports = class btcmarkets extends Exchange {
         return this.parseOrder (order);
     }
 
-    prepareHistoryRequest (market, since = undefined, limit = undefined) {
+    createPaginatedRequest (market, since = undefined, limit = undefined) {
         let request = this.ordered ({
             'currency': market['quoteId'],
             'instrument': market['baseId'],
@@ -430,7 +430,7 @@ module.exports = class btcmarkets extends Exchange {
         }
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let request = this.prepareHistoryRequest (market, since, limit);
+        let request = this.createPaginatedRequest (market, since, limit);
         let response = await this.privatePostOrderHistory (this.extend (request, params));
         return this.parseOrders (response['orders'], market);
     }
@@ -441,7 +441,7 @@ module.exports = class btcmarkets extends Exchange {
         }
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let request = this.prepareHistoryRequest (market, since, limit);
+        let request = this.createPaginatedRequest (market, since, limit);
         let response = await this.privatePostOrderOpen (this.extend (request, params));
         return this.parseOrders (response['orders'], market);
     }
@@ -457,7 +457,7 @@ module.exports = class btcmarkets extends Exchange {
         }
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let request = this.prepareHistoryRequest (market, since, limit);
+        let request = this.createPaginatedRequest (market, since, limit);
         let response = await this.privatePostOrderTradeHistory (this.extend (request, params));
         return this.parseMyTrades (response['trades'], market);
     }
