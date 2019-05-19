@@ -132,6 +132,7 @@ class okcoinusd extends Exchange {
                     'https://www.okcoin.com/docs/en/',
                     'https://www.npmjs.com/package/okcoin.com',
                 ),
+                'referral' => 'https://www.okcoin.com/account/register?flag=activity&channelId=600001513',
             ),
             // these are okcoin.com fees, okex fees are in okex.js
             'fees' => array (

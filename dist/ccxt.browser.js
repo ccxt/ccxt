@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.543'
+const version = '1.18.544'
 
 Exchange.ccxtVersion = version
 
@@ -945,6 +945,7 @@ module.exports = class allcoin extends okcoinusd {
                 },
                 'www': 'https://www.allcoin.com',
                 'doc': 'https://www.allcoin.com/api_market/market',
+                'referral': 'https://www.allcoin.com',
             },
             'api': {
                 'web': {
@@ -59090,6 +59091,7 @@ module.exports = class okcoincny extends okcoinusd {
                 },
                 'www': 'https://www.okcoin.cn',
                 'doc': 'https://www.okcoin.cn/rest_getStarted.html',
+                'referral': 'https://www.okcoin.cn',
             },
             'markets': {
                 'BTC/CNY': { 'id': 'btc_cny', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY', 'type': 'spot', 'spot': true, 'future': false },
@@ -59236,6 +59238,7 @@ module.exports = class okcoinusd extends Exchange {
                     'https://www.okcoin.com/docs/en/',
                     'https://www.npmjs.com/package/okcoin.com',
                 ],
+                'referral': 'https://www.okcoin.com/account/register?flag=activity&channelId=600001513',
             },
             // these are okcoin.com fees, okex fees are in okex.js
             'fees': {
@@ -60221,6 +60224,7 @@ module.exports = class okex extends okcoinusd {
                     'https://www.okex.com/docs/en/',
                 ],
                 'fees': 'https://www.okex.com/pages/products/fees.html',
+                'referral': 'https://www.okex.com',
             },
             'fees': {
                 'trading': {
