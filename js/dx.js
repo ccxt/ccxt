@@ -63,10 +63,12 @@ module.exports = class dx extends Exchange {
                 '1d': '1d',
             },
             'urls': {
+                'logo': 'https://user-images.githubusercontent.com/1294454/57979980-6483ff80-7a2d-11e9-9224-2aa20665703b.jpg',
                 'api': 'https://acl.dx.exchange',
                 'www': 'https://dx.exchange',
                 'doc': 'https://apidocs.dx.exchange/',
                 'fees': 'https://dx.exchange/fees',
+                'referral': 'https://dx.exchange/registration?dx_cid=20&dx_scname=100001100000038139',
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -110,8 +112,6 @@ module.exports = class dx extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                    ],
                     'post': [
                         'AssetManagement.GetInstruments',
                         'AssetManagement.GetTicker',
