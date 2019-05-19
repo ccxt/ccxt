@@ -1177,6 +1177,42 @@ module.exports = class adara extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        //
+        // Example to send request
+        // Append payload with expiredAt timestamp and full url:
+        // For POST and other requests with body:
+        // const method = 'POST';
+        // const payload = {
+        //                     "data":
+        //                         {
+        //                             "id": "1",
+        //                             "type": "order",
+        //                             "attributes": {...},
+        //                             "relationships": {...}
+        //                         },
+        //                     "included": [...],
+        //                 };
+        // const payloadWithExpired = `${method}${JSON.stringify(payload)}expiredAt=1543941436186`;
+        // For GET and DELETE requests:
+        // const method = 'GET';
+        // // full request path is 'http://crm.adara-local.io/v1.0/customer/582c5fa6-18ae-4212-9a52-c6009f354ae4'
+        // // take 2 last segments of path, start with leading '/'
+        // const payload = '/customer/582c5fa6-18ae-4212-9a52-c6009f354ae4';
+        // const payloadWithExpired = '${method}${payload}expiredAt=1543941436186'
+        // Calculate signature:
+        //     const signature = crypto.createHmac('sha512', secretKey).update(payloadWithExpired).digest('base64')
+        // Append HTTP headers to the initial request:
+        //     {
+        //         "X-ADX-EXPIRE": expireAt
+        //         "X-ADX-APIKEY": apiKey
+        //         "X-ADX-SIGNATURE": signature
+        //     }
+        // Send the request. If request signature failed to be verified, server respond with Error:
+        // 401 - Not enough sign data (expire or apices missed)
+        // 401 - Signature expired, if expire is too old
+        // 401 - Signature check failed, if signature calculated on server side doesn't match client side signature
+        // 401 - Signature check failed (wrong apiKey hidden error), if apiKey doesn't exist or was revoked/deactivated.
+        //
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
