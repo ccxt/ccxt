@@ -399,6 +399,7 @@ declare module 'ccxt' {
     export class cryptopia extends Exchange {}
     export class deribit extends Exchange {}
     export class dsx extends liqui {}
+    export class dx extends Exchange {}
     export class ethfinex extends bitfinex {}
     export class exmo extends Exchange {}
     export class exx extends Exchange {}

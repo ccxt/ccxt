@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.18.541",
+  "version": "1.18.542",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -462,7 +462,9 @@
     "bequant.io",
     "Bequant",
     "mandalaex.com",
-    "Mandala"
+    "Mandala",
+    "dx.exchange",
+    "DX.Exchange"
   ],
   "collective": {
     "type": "opencollective",
