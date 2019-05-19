@@ -452,7 +452,6 @@ module.exports = class okcoinusd extends Exchange {
                 let spot = true;
                 let future = false;
                 let active = true;
-                let fees = this.fees['trading'];
                 if (type === 'spot') {
                     symbol = base + '/' + quote;
                     active = market['online'] !== 0;
@@ -463,8 +462,8 @@ module.exports = class okcoinusd extends Exchange {
                     type = 'future';
                     spot = false;
                     future = true;
-                    fees = this.safeValue (this.fees, 'future', {});
                 }
+                const fees = this.safeValue2 (this.fees, type, 'trading', {});
                 result.push (this.extend (fees, {
                     'id': id,
                     'lowercaseId': lowercaseId,

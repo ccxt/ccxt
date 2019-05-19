@@ -225,8 +225,20 @@ module.exports = class okex3 extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'taker': 0.0015, // spot
-                    'maker': 0.0010, // spot
+                    'taker': 0.0015,
+                    'maker': 0.0010,
+                },
+                'spot': {
+                    'taker': 0.0015,
+                    'maker': 0.0010,
+                },
+                'futures': {
+                    'taker': 0.0030,
+                    'maker': 0.0020,
+                },
+                'swap': {
+                    'taker': 0.0070,
+                    'maker': 0.0020,
                 },
             },
             'requiredCredentials': {
@@ -555,7 +567,8 @@ module.exports = class okex3 extends Exchange {
             }
         }
         const active = true;
-        return this.extend (this.fees['trading'], {
+        const fees = this.safeValue2 (this.fees, marketType, 'trading', {});
+        return this.extend (fees, {
             'id': id,
             'symbol': symbol,
             'base': base,
