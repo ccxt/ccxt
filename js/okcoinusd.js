@@ -318,22 +318,11 @@ module.exports = class okcoinusd extends Exchange {
                     '4': 'quarter',
                 },
                 'fetchTickersMethod': 'fetch_tickers_from_api',
-                'version': 'v1',
             },
         });
     }
 
-    getVersion () {
-        let version = this.safeString (this.options, 'version');
-        return (version[0] !== 'v') ? ('v' + version) : version;
-    }
-
     async fetchMarkets (params = {}) {
-        const method = this.getVersion () + '_fetch_markets';
-        return await this[method] (params);
-    }
-
-    async v1FetchMarkets (params = {}) {
         // TODO: they have a new fee schedule as of Feb 7
         // the new fees are progressive and depend on 30-day traded volume
         // the following is the worst case
@@ -540,7 +529,7 @@ module.exports = class okcoinusd extends Exchange {
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];
-            ticker = this.parseTickerV1 (this.extend (tickers[i], { 'timestamp': timestamp }));
+            ticker = this.parseTicker (this.extend (tickers[i], { 'timestamp': timestamp }));
             let symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -554,7 +543,7 @@ module.exports = class okcoinusd extends Exchange {
         let tickers = response['data'];
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
-            let ticker = this.parseTickerV1 (tickers[i]);
+            let ticker = this.parseTicker (tickers[i]);
             let symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -562,33 +551,23 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        const method = this.getVersion () + '_fetch_tickers';
-        return await this[method] (symbols, params);
-    }
-
-    async v1FetchTickers (symbols = undefined, params = {}) {
         let method = this.options['fetchTickersMethod'];
         let response = await this[method] (symbols, params);
         return response;
     }
 
-    async fetchOrderBook (symbol = undefined, params = {}) {
-        const method = this.getVersion () + '_fetch_order_book';
-        return await this[method] (symbol, params);
-    }
-
-    async v1FetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = market['future'] ? 'publicGetFutureDepth' : 'publicGetDepth';
-        let request = this.v1CreateRequest (market, params);
+        let request = this.createRequest (market, params);
         if (limit !== undefined)
             request['size'] = limit;
         let orderbook = await this[method] (request);
         return this.parseOrderBook (orderbook);
     }
 
-    v1ParseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined) {
         //
         //     {              buy:   "48.777300",
         //                 change:   "-1.244500",
@@ -660,37 +639,35 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     async fetchTicker (symbol = undefined, params = {}) {
-        const method = this.getVersion () + '_fetch_ticker';
-        return await this[method] (symbol, params);
-    }
-
-    async v1FetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let method = market['future'] ? 'publicGetFutureTicker' : 'publicGetTicker';
-        let request = this.v1CreateRequest (market, params);
-        let response = await this[method] (request);
+        const market = this.market (symbol);
+        const method = market['future'] ? 'publicGetFutureTicker' : 'publicGetTicker';
+        const request = this.createRequest (market, params);
+        const response = await this[method] (request);
         let ticker = this.safeValue (response, 'ticker');
-        if (ticker === undefined)
+        if (ticker === undefined) {
             throw new ExchangeError (this.id + ' fetchTicker returned an empty response: ' + this.json (response));
+        }
         let timestamp = this.safeInteger (response, 'date');
         if (timestamp !== undefined) {
             timestamp *= 1000;
             ticker = this.extend (ticker, { 'timestamp': timestamp });
         }
-        return this.v1ParseTicker (ticker, market);
+        return this.parseTicker (ticker, market);
     }
 
     parseTrade (trade, market = undefined) {
         let symbol = undefined;
-        if (market)
+        if (market) {
             symbol = market['symbol'];
+        }
+        const timestamp = this.safeInteger (trade, 'date_ms');
         return {
             'info': trade,
-            'timestamp': trade['date_ms'],
-            'datetime': this.iso8601 (trade['date_ms']),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': trade['tid'].toString (),
+            'id': this.safeString (trade, 'tid'),
             'order': undefined,
             'type': undefined,
             'side': trade['type'],
@@ -700,22 +677,17 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const method = this.getVersion () + '_fetch_trades';
-        return await this[method] (symbol, since, limit, params);
-    }
-
-    async v1FetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let method = market['future'] ? 'publicGetFutureTrades' : 'publicGetTrades';
-        let request = this.v1CreateRequest (market, params);
-        let response = await this[method] (request);
+        const market = this.market (symbol);
+        const method = market['future'] ? 'publicGetFutureTrades' : 'publicGetTrades';
+        const request = this.createRequest (market, params);
+        const response = await this[method] (request);
         return this.parseTrades (response, market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        let numElements = ohlcv.length;
-        let volumeIndex = (numElements > 6) ? 6 : 5;
+        const numElements = ohlcv.length;
+        const volumeIndex = (numElements > 6) ? 6 : 5;
         return [
             ohlcv[0], // timestamp
             parseFloat (ohlcv[1]), // Open
@@ -729,21 +701,17 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const method = this.getVersion () + '_fetch_ohlcv';
-        return await this[method] (symbol, timeframe, since, limit, params);
-    }
-
-    async v1FetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let method = market['future'] ? 'publicGetFutureKline' : 'publicGetKline';
-        let request = this.v1CreateRequest (market, {
+        const market = this.market (symbol);
+        const method = market['future'] ? 'publicGetFutureKline' : 'publicGetKline';
+        const request = this.createRequest (market, {
             'type': this.timeframes[timeframe],
             'since': since === undefined ? this.milliseconds () - 86400000 : since,  // default last 24h
         });
         if (limit !== undefined) {
-            if (this.options['warnOnFetchOHLCVLimitArgument'])
+            if (this.options['warnOnFetchOHLCVLimitArgument']) {
                 throw new ExchangeError (this.id + ' fetchOHLCV counts "limit" candles from current time backwards, therefore the "limit" argument for ' + this.id + ' is disabled. Set ' + this.id + '.options["warnOnFetchOHLCVLimitArgument"] = false to suppress this warning message.');
+            }
             request['size'] = parseInt (limit); // max is 1440 candles
         }
         let response = await this[method] (this.extend (request, params));
@@ -751,11 +719,6 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        const method = this.getVersion () + '_fetch_balance';
-        return await this[method] (params);
-    }
-
-    async v1FetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostUserinfo (params);
         let balances = response['info']['funds'];
@@ -786,15 +749,10 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        const method = this.getVersion () + '_create_order';
-        return await this[method] (symbol, type, side, amount, price, params);
-    }
-
-    async v1CreateOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = market['future'] ? 'privatePostFutureTrade' : 'privatePostTrade';
-        let request = this.v1CreateRequest (market, {
+        let request = this.createRequest (market, {
             'type': type === 'market' ? side + '_market' : side,
             'amount': amount,
             'price': market['spot'] && type === 'market' && side === 'buy' && !this.options['marketBuyPrice'] ? this.safeFloat (params, 'cost') : price,
@@ -835,24 +793,19 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        const method = this.getVersion () + '_cancel_order';
-        return this[method] (id, symbol, params);
-    }
-
-    async v1CancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined)
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = market['future'] ? 'privatePostFutureCancel' : 'privatePostCancelOrder';
-        let request = this.v1CreateRequest (market, {
+        let request = this.createRequest (market, {
             'order_id': id,
         });
         let response = await this[method] (this.extend (request, params));
         return response;
     }
 
-    v1ParseOrderStatus (status) {
+    parseOrderStatus (status) {
         let statuses = {
             '-1': 'canceled',
             '0': 'open',
@@ -864,7 +817,7 @@ module.exports = class okcoinusd extends Exchange {
         return this.safeValue (statuses, status, status);
     }
 
-    v1ParseOrderSide (side) {
+    parseOrderSide (side) {
         if (side === 1)
             return 'buy'; // open long position
         if (side === 2)
@@ -876,7 +829,7 @@ module.exports = class okcoinusd extends Exchange {
         return side;
     }
 
-    v1ParseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined) {
         let side = undefined;
         let type = undefined;
         if ('type' in order) {
@@ -890,12 +843,12 @@ module.exports = class okcoinusd extends Exchange {
                 side = 'sell';
                 type = 'market';
             } else {
-                side = this.v1ParseOrderSide (order['type']);
+                side = this.parseOrderSide (order['type']);
                 if (('contract_name' in order) || ('lever_rate' in order))
                     type = 'margin';
             }
         }
-        let status = this.v1ParseOrderStatus (this.safeString (order, 'status'));
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = undefined;
         if (market === undefined) {
             let marketId = this.safeString (order, 'symbol');
@@ -954,44 +907,36 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        const method = this.getVersion () + '_fetch_order';
-        return await this[method] (id, symbol, params);
-    }
-
-    async v1FetchOrder (id, symbol = undefined, params = {}) {
-        // params:
-        // 'status': 0, // 0 for unfilled orders, 1 for filled orders
-        // 'current_page': 1, // current page number
-        // 'page_length': 200, // number of orders returned per page, maximum 200
-        if (symbol === undefined)
-            throw new ExchangeError (this.id + ' fetchOrder requires a symbol parameter');
+        if (symbol === undefined) {
+            throw new ExchangeError (this.id + ' fetchOrder requires a symbol argument');
+        }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let method = market['future'] ? 'privatePostFutureOrderInfo' : 'privatePostOrderInfo';
-        let request = this.v1CreateRequest (market, {
+        const market = this.market (symbol);
+        const method = market['future'] ? 'privatePostFutureOrderInfo' : 'privatePostOrderInfo';
+        const request = this.createRequest (market, {
             'order_id': id,
+            // 'status': 0, // 0 for unfilled orders, 1 for filled orders
+            // 'current_page': 1, // current page number
+            // 'page_length': 200, // number of orders returned per page, maximum 200
         });
-        let response = await this[method] (this.extend (request, params));
-        let ordersField = this.getOrdersField ();
-        let numOrders = response[ordersField].length;
-        if (numOrders > 0)
-            return this.v1ParseOrder (response[ordersField][0]);
+        const response = await this[method] (this.extend (request, params));
+        const ordersField = this.getOrdersField ();
+        const numOrders = response[ordersField].length;
+        if (numOrders > 0) {
+            return this.parseOrder (response[ordersField][0]);
+        }
         throw new OrderNotFound (this.id + ' order ' + id + ' not found');
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const method = this.getVersion () + '_fetch_orders';
-        return await this[method] (symbol, since, limit, params);
-    }
-
-    async v1FetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined)
-            throw new ExchangeError (this.id + ' fetchOrders requires a symbol parameter');
+        if (symbol === undefined) {
+            throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
+        }
         await this.loadMarkets ();
-        let market = this.market (symbol);
+        const market = this.market (symbol);
         let method = market['future'] ? 'privatePostFutureOrdersInfo' : 'privatePost';
-        let request = this.v1CreateRequest (market);
-        let order_id_in_params = ('order_id' in params);
+        let request = this.createRequest (market);
+        const order_id_in_params = ('order_id' in params);
         if (market['future']) {
             if (!order_id_in_params) {
                 throw new ExchangeError (this.id + ' fetchOrders() requires order_id param for futures market ' + symbol + ' (a string of one or more order ids, comma-separated)');
@@ -1018,67 +963,37 @@ module.exports = class okcoinusd extends Exchange {
             }
             params = this.omit (params, [ 'type', 'status' ]);
         }
-        let response = await this[method] (this.extend (request, params));
-        let ordersField = this.getOrdersField ();
-        return this.v1ParseOrders (response[ordersField], market, since, limit);
-    }
-
-    v1ParseOrders (orders, market = undefined, since = undefined, limit = undefined) {
-        let result = [];
-        let ids = Object.keys (orders);
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let order = this.extend ({ 'id': id }, orders[id]);
-            result.push (this.v1ParseOrder (order, market));
-        }
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+        const response = await this[method] (this.extend (request, params));
+        const ordersField = this.getOrdersField ();
+        return this.parseOrders (response[ordersField], market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const method = this.getVersion () + '_fetch_open_orders';
-        return await this[method] (symbol, since, limit, params);
-    }
-
-    async v1FetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let open = 0; // 0 for unfilled orders, 1 for filled orders
-        return await this.v1FetchOrders (symbol, since, limit, this.extend ({
+        const open = 0; // 0 for unfilled orders, 1 for filled orders
+        return await this.fetchOrders (symbol, since, limit, this.extend ({
             'status': open,
         }, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const method = this.getVersion () + '_fetch_closed_orders';
-        return await this[method] (symbol, since, limit, params);
-    }
-
-    async v1FetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let closed = 1; // 0 for unfilled orders, 1 for filled orders
-        return await this.v1FetchOrders (symbol, since, limit, this.extend ({
+        const closed = 1; // 0 for unfilled orders, 1 for filled orders
+        return await this.fetchOrders (symbol, since, limit, this.extend ({
             'status': closed,
         }, params));
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
-        const method = this.getVersion () + '_withdraw';
-        return await this[method] (code, amount, address, tag, params);
-    }
-
-    async v1Withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let currency = this.currency (code);
+        const currency = this.currency (code);
         // if (amount < 0.01)
         //     throw new ExchangeError (this.id + ' withdraw() requires amount > 0.01');
         // for some reason they require to supply a pair of currencies for withdrawing one currency
-        let currencyId = currency['id'] + '_usd';
+        const currencyId = currency['id'] + '_usd';
         if (tag) {
             address = address + ':' + tag;
         }
-        let request = {
+        const request = {
             'symbol': currencyId,
             'withdraw_address': address,
             'withdraw_amount': amount,
@@ -1100,10 +1015,11 @@ module.exports = class okcoinusd extends Exchange {
             request['trade_pwd'] = query['trade_pwd'];
             query = this.omit (query, 'trade_pwd');
         }
-        let passwordInRequest = ('trade_pwd' in request);
-        if (!passwordInRequest)
+        const passwordInRequest = ('trade_pwd' in request);
+        if (!passwordInRequest) {
             throw new ExchangeError (this.id + ' withdraw() requires this.password set on the exchange instance or a password / trade_pwd parameter');
-        let response = await this.privatePostWithdraw (this.extend (request, query));
+        }
+        const response = await this.privatePostWithdraw (this.extend (request, query));
         return {
             'info': response,
             'id': this.safeString (response, 'withdraw_id'),
@@ -1111,11 +1027,6 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const f = this.getVersion () + '_sign';
-        return this[f] (path, api, method, params, headers, body);
-    }
-
-    v1Sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/';
         if (api !== 'web')
             url += this.version + '/';
@@ -1140,7 +1051,7 @@ module.exports = class okcoinusd extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    v1CreateRequest (market, params = {}) {
+    createRequest (market, params = {}) {
         if (market['future']) {
             return this.deepExtend ({
                 'symbol': market['lowercaseId'],
@@ -1153,11 +1064,6 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
-        const f = this.getVersion () + '_handle_errors';
-        return this[f] (code, reason, url, method, headers, body, response);
-    }
-
-    v1HandleErrors (code, reason, url, method, headers, body, response) {
         if (body.length < 2)
             return; // fallback to default error handler
         if (body[0] === '{') {
