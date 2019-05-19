@@ -441,6 +441,15 @@ module.exports = class okex3 extends Exchange {
                     'define-price/{ett}': 'public',
                 },
             },
+            'commonCurrencies': {
+                // OKEX refers to ERC20 version of Aeternity (AEToken)
+                'AE': 'AET', // https://github.com/ccxt/ccxt/issues/4981
+                'FAIR': 'FairGame',
+                'HOT': 'Hydro Protocol',
+                'HSR': 'HC',
+                'MAG': 'Maggie',
+                'YOYO': 'YOYOW',
+            },
         });
     }
 
