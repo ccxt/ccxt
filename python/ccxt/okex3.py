@@ -67,7 +67,7 @@ class okex3 (Exchange):
                 '1w': '604800',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg',
                 'api': 'https://www.okex.com',
                 'www': 'https://www.okex.com',
                 'doc': 'https://www.okex.com/docs/en/',

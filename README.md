@@ -1,6 +1,6 @@
 # CCXT – CryptoCurrency eXchange Trading Library
 
-[![Build Status](https://travis-ci.org/ccxt/ccxt.svg?branch=master)](https://travis-ci.org/ccxt/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dm/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Gitter](https://badges.gitter.im/ccxt-dev/ccxt.svg)](https://gitter.im/ccxt-dev/ccxt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) [![Supported Exchanges](https://img.shields.io/badge/exchanges-135-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) [![Open Collective](https://opencollective.com/ccxt/backers/badge.svg)](https://opencollective.com/ccxt)
+[![Build Status](https://travis-ci.org/ccxt/ccxt.svg?branch=master)](https://travis-ci.org/ccxt/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dm/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Gitter](https://badges.gitter.im/ccxt-dev/ccxt.svg)](https://gitter.im/ccxt-dev/ccxt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) [![Supported Exchanges](https://img.shields.io/badge/exchanges-136-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) [![Open Collective](https://opencollective.com/ccxt/backers/badge.svg)](https://opencollective.com/ccxt)
 [![Twitter Follow](https://img.shields.io/twitter/follow/ccxt_official.svg?style=social&label=CCXT)](https://twitter.com/ccxt_official)
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
@@ -45,7 +45,7 @@ Want this place? Contact us: info@ccxt.trade
 
 ## Supported Cryptocurrency Exchange Markets
 
-The ccxt library currently supports the following 135 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 136 cryptocurrency exchange markets and trading APIs:
 
 |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;logo&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                                                                                     | id                 | name                                                                                 | ver   | doc                                                                                              | certified                                                                                                                  |
 |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|--------------------------------------------------------------------------------------|:-----:|:------------------------------------------------------------------------------------------------:|----------------------------------------------------------------------------------------------------------------------------|
@@ -162,6 +162,7 @@ The ccxt library currently supports the following 135 cryptocurrency exchange ma
 |[![okcoincny](https://user-images.githubusercontent.com/1294454/27766792-8be9157a-5ee5-11e7-926c-6d69b8d3378d.jpg)](https://www.okcoin.cn)                                                   | okcoincny          | [OKCoin CNY](https://www.okcoin.cn)                                                  | 1     | [API](https://www.okcoin.cn/rest_getStarted.html)                                                |                                                                                                                             | China                                   |
 |[![okcoinusd](https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg)](https://www.okcoin.com)                                                  | okcoinusd          | [OKCoin USD](https://www.okcoin.com)                                                 | 1     | [API](https://www.okcoin.com/docs/en/)                                                           |                                                                                                                             | China, US                               |
 |[![okex](https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg)](https://www.okex.com)                                                         | okex               | [OKEX](https://www.okex.com)                                                         | 1     | [API](https://github.com/okcoin-okex/API-docs-OKEx.com)                                          |                                                                                                                             | China, US                               |
+|[![okex3](https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg)](https://www.okex.com)                                                        | okex3              | [OKEX](https://www.okex.com)                                                         | 3     | [API](https://www.okex.com/docs/en/)                                                             |                                                                                                                             | China, US                               |
 |[![paymium](https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg)](https://www.paymium.com)                                                   | paymium            | [Paymium](https://www.paymium.com)                                                   | 1     | [API](https://github.com/Paymium/api-documentation)                                              |                                                                                                                             | France, EU                              |
 |[![poloniex](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)](https://poloniex.com)                                                     | poloniex           | [Poloniex](https://poloniex.com)                                                     | *     | [API](https://docs.poloniex.com)                                                                 |                                                                                                                             | US                                      |
 |[![quadrigacx](https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg)](https://www.quadrigacx.com/?ref=laiqgbp6juewva44finhtmrk)               | quadrigacx         | [QuadrigaCX](https://www.quadrigacx.com/?ref=laiqgbp6juewva44finhtmrk)               | 2     | [API](https://www.quadrigacx.com/api_info)                                                       |                                                                                                                             | Canada                                  |
@@ -230,13 +231,13 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.538/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@1.18.538/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.539/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.18.539/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.538/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.539/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:

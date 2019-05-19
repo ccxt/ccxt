@@ -416,9 +416,9 @@ class gdax extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_time () {
-        $response = $this->publicGetTime ();
-        return $this->parse8601 ($response['iso']);
+    public function fetch_time ($params = array ()) {
+        $response = $this->publicGetTime ($params);
+        return $this->parse8601 ($this->parse8601 ($response, 'iso'));
     }
 
     public function parse_order_status ($status) {

@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.18.538'
+__version__ = '1.18.539'
 
 # ----------------------------------------------------------------------------
 
@@ -178,6 +178,7 @@ from ccxt.nova import nova                                  # noqa: F401
 from ccxt.okcoincny import okcoincny                        # noqa: F401
 from ccxt.okcoinusd import okcoinusd                        # noqa: F401
 from ccxt.okex import okex                                  # noqa: F401
+from ccxt.okex3 import okex3                                # noqa: F401
 from ccxt.paymium import paymium                            # noqa: F401
 from ccxt.poloniex import poloniex                          # noqa: F401
 from ccxt.quadrigacx import quadrigacx                      # noqa: F401
@@ -315,6 +316,7 @@ exchanges = [
     'okcoincny',
     'okcoinusd',
     'okex',
+    'okex3',
     'paymium',
     'poloniex',
     'quadrigacx',
