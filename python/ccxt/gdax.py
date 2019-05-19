@@ -404,9 +404,9 @@ class gdax (Exchange):
         response = self.publicGetProductsIdCandles(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def fetch_time(self):
-        response = self.publicGetTime()
-        return self.parse8601(response['iso'])
+    def fetch_time(self, params={}):
+        response = self.publicGetTime(params)
+        return self.parse8601(self.parse8601(response, 'iso'))
 
     def parse_order_status(self, status):
         statuses = {

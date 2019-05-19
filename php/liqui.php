@@ -558,15 +558,18 @@ class liqui extends Exchange {
     }
 
     public function parse_orders ($orders, $market = null, $since = null, $limit = null) {
-        $ids = is_array ($orders) ? array_keys ($orders) : array ();
         $result = array ();
+        $ids = is_array ($orders) ? array_keys ($orders) : array ();
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $order = $orders[$id];
-            $extended = array_merge ($order, array ( 'id' => $id ));
-            $result[] = $this->parse_order($extended, $market);
+            $order = array_merge (array ( 'id' => $id ), $orders[$id]);
+            $result[] = $this->v1ParseOrder ($order, $market);
         }
-        return $this->filter_by_since_limit($result, $since, $limit);
+        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {

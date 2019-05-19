@@ -944,11 +944,14 @@ class kraken (Exchange):
     def parse_orders(self, orders, market=None, since=None, limit=None):
         result = []
         ids = list(orders.keys())
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         for i in range(0, len(ids)):
             id = ids[i]
             order = self.extend({'id': id}, orders[id])
-            result.append(self.parse_order(order, market))
-        return self.filter_by_since_limit(result, since, limit)
+            result.append(self.v1ParseOrder(order, market))
+        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()

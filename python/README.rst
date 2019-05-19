@@ -59,7 +59,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 135 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 136 cryptocurrency exchange markets and trading APIs:
 
 +--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | id                 | name                                                                                    | ver   | doc                                                                                                 | certified                                                            |
@@ -290,6 +290,8 @@ The ccxt library currently supports the following 135 cryptocurrency exchange ma
 +--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | okex               | `OKEX <https://www.okex.com>`__                                                         | 1     | `API <https://github.com/okcoin-okex/API-docs-OKEx.com>`__                                          |                                                                      |
 +--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
+| okex3              | `OKEX <https://www.okex.com>`__                                                         | 3     | `API <https://www.okex.com/docs/en/>`__                                                             |                                                                      |
++--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | paymium            | `Paymium <https://www.paymium.com>`__                                                   | 1     | `API <https://github.com/Paymium/api-documentation>`__                                              |                                                                      |
 +--------------------+-----------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | poloniex           | `Poloniex <https://poloniex.com>`__                                                     | \*    | `API <https://docs.poloniex.com>`__                                                                 |                                                                      |
@@ -382,14 +384,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.538/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.18.538/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.539/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.539/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.538/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.539/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
