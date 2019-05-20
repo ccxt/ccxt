@@ -567,7 +567,7 @@ class liqui extends Exchange {
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $order = array_merge (array ( 'id' => $id ), $orders[$id]);
-            $result[] = $this->v1ParseOrder ($order, $market);
+            $result[] = $this->parse_order($order, $market);
         }
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }

@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.551'
+const version = '1.18.552'
 
 Exchange.ccxtVersion = version
 
@@ -50026,7 +50026,7 @@ module.exports = class kraken extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let order = this.extend ({ 'id': id }, orders[id]);
-            result.push (this.v1ParseOrder (order, market));
+            result.push (this.parseOrder (order, market));
         }
         return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
@@ -53386,7 +53386,7 @@ module.exports = class liqui extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let order = this.extend ({ 'id': id }, orders[id]);
-            result.push (this.v1ParseOrder (order, market));
+            result.push (this.parseOrder (order, market));
         }
         return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
@@ -74146,7 +74146,7 @@ module.exports = class zaif extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let order = this.extend ({ 'id': id }, orders[id]);
-            result.push (this.v1ParseOrder (order, market));
+            result.push (this.parseOrder (order, market));
         }
         return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
