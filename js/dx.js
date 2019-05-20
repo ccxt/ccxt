@@ -438,7 +438,7 @@ module.exports = class dx extends Exchange {
             'order': order,
         };
         const result = await this.privatePostOrderManagementCreate (this.extend (request, params));
-        // rewrite for this.parseOrder
+        // todo: rewrite for parseOrder
         return {
             'info': result,
             'id': result['result']['externalOrderId'],
