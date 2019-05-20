@@ -315,7 +315,7 @@ class zaif (Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             order = self.extend({'id': id}, orders[id])
-            result.append(self.v1ParseOrder(order, market))
+            result.append(self.parse_order(order, market))
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
