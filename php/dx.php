@@ -66,7 +66,7 @@ class dx extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/57979980-6483ff80-7a2d-11e9-9224-2aa20665703b.jpg',
                 'api' => 'https://acl.dx.exchange',
                 'www' => 'https://dx.exchange',
-                'doc' => 'https://apidocs.dx.exchange/',
+                'doc' => 'https://apidocs.dx.exchange',
                 'fees' => 'https://dx.exchange/fees',
                 'referral' => 'https://dx.exchange/registration?dx_cid=20&dx_scname=100001100000038139',
             ),
@@ -170,32 +170,41 @@ class dx extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($instruments); $i++) {
             $instrument = $instruments[$i];
-            $id = $instrument['id'];
-            $symbol = $instrument['asset']['fullName'];
-            list ($base, $quote) = explode ('/', $symbol);
+            $id = $this->safe_string($instrument, 'id');
+            $numericId = $this->safe_integer($instrument, 'id');
+            $asset = $this->safe_value($instrument, 'asset', array ());
+            $fullName = $this->safe_string($asset, 'fullName');
+            list ($base, $quote) = explode ('/', $fullName);
             $amountPrecision = 0;
             if ($instrument['meQuantityMultiplier'] !== 0) {
                 $amountPrecision = log10 ($instrument['meQuantityMultiplier']);
             }
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
+            $baseId = $this->safe_string($asset, 'baseCurrencyId');
+            $quoteId = $this->safe_string($asset, 'quotedCurrencyId');
+            $baseNumericId = $this->safe_integer($asset, 'baseCurrencyId');
+            $quoteNumericId = $this->safe_integer($asset, 'quotedCurrencyId');
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
+                'numericId' => $numericId,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
-                'baseId' => $instrument['asset']['baseCurrencyId'],
-                'quoteId' => $instrument['asset']['quotedCurrencyId'],
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'baseNumericId' => $baseNumericId,
+                'quoteNumericId' => $quoteNumericId,
                 'info' => $instrument,
                 'precision' => array (
                     'amount' => $amountPrecision,
-                    'price' => $instrument['asset']['tailDigits'],
+                    'price' => $this->safe_integer($asset, 'tailDigits'),
                 ),
                 'limits' => array (
                     'amount' => array (
-                        'min' => $instrument['minOrderQuantity'],
-                        'max' => $instrument['maxOrderQuantity'],
+                        'min' => $this->safe_float($instrument, 'minOrderQuantity'),
+                        'max' => $this->safe_float($instrument, 'maxOrderQuantity'),
                     ),
                     'price' => array (
                         'min' => 0,
@@ -249,8 +258,8 @@ class dx extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
-            'instrumentIds' => [$market['id']],
-            'currencyId' => $market['quoteId'],
+            'instrumentIds' => [ $market['numericId'] ],
+            'currencyId' => $market['quoteNumericId'],
         );
         $response = $this->publicPostAssetManagementGetTicker (array_merge ($request, $params));
         return $this->parse_ticker($response['result']['tickers'], $market);
@@ -273,7 +282,7 @@ class dx extends Exchange {
         $request = array (
             'timestampFrom' => $since,
             'timestampTill' => null,
-            'instrumentId' => $market['id'],
+            'instrumentId' => $market['numericId'],
             'type' => $this->timeframes[$timeframe],
             'pagination' => array (
                 'limit' => $limit,
@@ -295,7 +304,7 @@ class dx extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market ($symbol);
-            $request['instrumentId'] = $market['id'];
+            $request['instrumentId'] = $market['numericId'];
         }
         $response = $this->privatePostOrderManagementOpenOrders (array_merge ($request, $params));
         return $this->parse_orders($response['result']['orders'], $market, $since, $limit);
@@ -312,7 +321,7 @@ class dx extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market ($symbol);
-            $request['instrumentId'] = $market['id'];
+            $request['instrumentId'] = $market['numericId'];
         }
         $response = $this->privatePostOrderManagementOrderHistory (array_merge ($request, $params));
         return $this->parse_orders($response['result']['ordersForHistory'], $market, $since, $limit);
@@ -376,56 +385,60 @@ class dx extends Exchange {
 
     public function sign_in ($params = array ()) {
         $this->check_required_credentials();
-        $result = $this->publicPostAuthorizationLoginByToken (array_merge (array (
+        $request = array (
             'token' => $this->apiKey,
             'secret' => $this->secret,
-        ), $params));
-        $expiresIn = $result['result']['expiry'];
+        );
+        $response = $this->publicPostAuthorizationLoginByToken (array_merge ($request, $params));
+        $expiresIn = $response['result']['expiry'];
         $this->options['expires'] = $this->sum ($this->milliseconds (), $expiresIn * 1000);
-        $this->options['accessToken'] = $result['result']['token'];
-        return $result;
+        $this->options['accessToken'] = $response['result']['token'];
+        return $response;
     }
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostBalanceGet ($params);
         $result = array ( 'info' => $response );
-        $balances = $response['result']['balance'];
-        $balancesKeys = is_array ($balances) ? array_keys ($balances) : array ();
-        for ($i = 0; $i < count ($balancesKeys); $i++) {
-            $instrumentId = $balancesKeys[$i];
-            $balance = $balances[$instrumentId];
-            $symbol = $instrumentId;
-            if (is_array ($this->currencies_by_id) && array_key_exists ($instrumentId, $this->currencies_by_id)) {
-                $symbol = $this->currencies_by_id[$instrumentId]['code'];
+        $balances = $this->safe_value($response['result'], 'balance');
+        $ids = is_array ($balances) ? array_keys ($balances) : array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $balance = $balances[$id];
+            $code = null;
+            if (is_array ($this->currencies_by_id) && array_key_exists ($id, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$id]['code'];
             }
             $account = array (
-                'free' => floatval ($balance['available']),
-                'used' => floatval ($balance['frozen']),
-                'total' => floatval ($balance['total']),
+                'free' => $this->safe_float($balance, 'available'),
+                'used' => $this->safe_float($balance, 'frozen'),
+                'total' => $this->safe_float($balance, 'total'),
             );
             $account['total'] = $this->sum ($account['free'], $account['used']);
-            $result[$symbol] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $direction = $this->options['orderSide'][$side];
+        $direction = $this->safe_integer($this->options['orderSide'], $side);
+        $market = $this->market ($symbol);
         $order = array (
-            'order' => array (
-                'direction' => $direction,
-                'instrumentId' => $this->market_id($symbol),
-                'orderType' => 2,
-                'quantity' => $this->number_to_object ($amount),
-            ),
+            'direction' => $direction,
+            'instrumentId' => $market['numericId'],
+            'orderType' => 2,
+            'quantity' => $this->number_to_object ($amount),
         );
-        $order['order']['orderType'] = $this->options['orderTypes'][$type];
+        $order['orderType'] = $this->options['orderTypes'][$type];
         if ($type === 'limit') {
-            $order['order']['price'] = $this->number_to_object ($price);
+            $order['price'] = $this->number_to_object ($price);
         }
-        $result = $this->privatePostOrderManagementCreate (array_merge ($order, $params));
+        $request = array (
+            'order' => $order,
+        );
+        $result = $this->privatePostOrderManagementCreate (array_merge ($request, $params));
+        // todo => rewrite for parseOrder
         return array (
             'info' => $result,
             'id' => $result['result']['externalOrderId'],
@@ -433,7 +446,8 @@ class dx extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostOrderManagementCancel (array ( 'externalOrderId' => $id ));
+        $request = array ( 'externalOrderId' => $id );
+        return $this->privatePostOrderManagementCancel (array_merge ($request, $params));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

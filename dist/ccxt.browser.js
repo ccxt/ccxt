@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.553'
+const version = '1.18.554'
 
 Exchange.ccxtVersion = version
 
@@ -37336,7 +37336,7 @@ module.exports = class dx extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/57979980-6483ff80-7a2d-11e9-9224-2aa20665703b.jpg',
                 'api': 'https://acl.dx.exchange',
                 'www': 'https://dx.exchange',
-                'doc': 'https://apidocs.dx.exchange/',
+                'doc': 'https://apidocs.dx.exchange',
                 'fees': 'https://dx.exchange/fees',
                 'referral': 'https://dx.exchange/registration?dx_cid=20&dx_scname=100001100000038139',
             },
@@ -37440,32 +37440,41 @@ module.exports = class dx extends Exchange {
         let result = [];
         for (let i = 0; i < instruments.length; i++) {
             let instrument = instruments[i];
-            let id = instrument['id'];
-            let symbol = instrument['asset']['fullName'];
-            let [ base, quote ] = symbol.split ('/');
+            const id = this.safeString (instrument, 'id');
+            const numericId = this.safeInteger (instrument, 'id');
+            const asset = this.safeValue (instrument, 'asset', {});
+            const fullName = this.safeString (asset, 'fullName');
+            let [ base, quote ] = fullName.split ('/');
             let amountPrecision = 0;
             if (instrument['meQuantityMultiplier'] !== 0) {
                 amountPrecision = Math.log10 (instrument['meQuantityMultiplier']);
             }
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
-            symbol = base + '/' + quote;
+            const baseId = this.safeString (asset, 'baseCurrencyId');
+            const quoteId = this.safeString (asset, 'quotedCurrencyId');
+            const baseNumericId = this.safeInteger (asset, 'baseCurrencyId');
+            const quoteNumericId = this.safeInteger (asset, 'quotedCurrencyId');
+            const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
+                'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'baseId': instrument['asset']['baseCurrencyId'],
-                'quoteId': instrument['asset']['quotedCurrencyId'],
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'baseNumericId': baseNumericId,
+                'quoteNumericId': quoteNumericId,
                 'info': instrument,
                 'precision': {
                     'amount': amountPrecision,
-                    'price': instrument['asset']['tailDigits'],
+                    'price': this.safeInteger (asset, 'tailDigits'),
                 },
                 'limits': {
                     'amount': {
-                        'min': instrument['minOrderQuantity'],
-                        'max': instrument['maxOrderQuantity'],
+                        'min': this.safeFloat (instrument, 'minOrderQuantity'),
+                        'max': this.safeFloat (instrument, 'maxOrderQuantity'),
                     },
                     'price': {
                         'min': 0,
@@ -37519,8 +37528,8 @@ module.exports = class dx extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'instrumentIds': [market['id']],
-            'currencyId': market['quoteId'],
+            'instrumentIds': [ market['numericId'] ],
+            'currencyId': market['quoteNumericId'],
         };
         let response = await this.publicPostAssetManagementGetTicker (this.extend (request, params));
         return this.parseTicker (response['result']['tickers'], market);
@@ -37539,18 +37548,18 @@ module.exports = class dx extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'timestampFrom': since,
             'timestampTill': undefined,
-            'instrumentId': market['id'],
+            'instrumentId': market['numericId'],
             'type': this.timeframes[timeframe],
             'pagination': {
                 'limit': limit,
                 'offset': 0,
             },
         };
-        let response = await this.publicPostAssetManagementHistory (this.extend (request, params));
+        const response = await this.publicPostAssetManagementHistory (this.extend (request, params));
         return this.parseOHLCVs (response['result']['assets'], market, timeframe, since, limit);
     }
 
@@ -37565,7 +37574,7 @@ module.exports = class dx extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['instrumentId'] = market['id'];
+            request['instrumentId'] = market['numericId'];
         }
         let response = await this.privatePostOrderManagementOpenOrders (this.extend (request, params));
         return this.parseOrders (response['result']['orders'], market, since, limit);
@@ -37582,7 +37591,7 @@ module.exports = class dx extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['instrumentId'] = market['id'];
+            request['instrumentId'] = market['numericId'];
         }
         let response = await this.privatePostOrderManagementOrderHistory (this.extend (request, params));
         return this.parseOrders (response['result']['ordersForHistory'], market, since, limit);
@@ -37646,56 +37655,60 @@ module.exports = class dx extends Exchange {
 
     async signIn (params = {}) {
         this.checkRequiredCredentials ();
-        let result = await this.publicPostAuthorizationLoginByToken (this.extend ({
+        const request = {
             'token': this.apiKey,
             'secret': this.secret,
-        }, params));
-        const expiresIn = result['result']['expiry'];
+        };
+        const response = await this.publicPostAuthorizationLoginByToken (this.extend (request, params));
+        const expiresIn = response['result']['expiry'];
         this.options['expires'] = this.sum (this.milliseconds (), expiresIn * 1000);
-        this.options['accessToken'] = result['result']['token'];
-        return result;
+        this.options['accessToken'] = response['result']['token'];
+        return response;
     }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostBalanceGet (params);
-        let result = { 'info': response };
-        let balances = response['result']['balance'];
-        let balancesKeys = Object.keys (balances);
-        for (let i = 0; i < balancesKeys.length; i++) {
-            let instrumentId = balancesKeys[i];
-            let balance = balances[instrumentId];
-            let symbol = instrumentId;
-            if (instrumentId in this.currencies_by_id) {
-                symbol = this.currencies_by_id[instrumentId]['code'];
+        const response = await this.privatePostBalanceGet (params);
+        const result = { 'info': response };
+        const balances = this.safeValue (response['result'], 'balance');
+        const ids = Object.keys (balances);
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const balance = balances[id];
+            let code = undefined;
+            if (id in this.currencies_by_id) {
+                code = this.currencies_by_id[id]['code'];
             }
-            let account = {
-                'free': parseFloat (balance['available']),
-                'used': parseFloat (balance['frozen']),
-                'total': parseFloat (balance['total']),
+            const account = {
+                'free': this.safeFloat (balance, 'available'),
+                'used': this.safeFloat (balance, 'frozen'),
+                'total': this.safeFloat (balance, 'total'),
             };
             account['total'] = this.sum (account['free'], account['used']);
-            result[symbol] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let direction = this.options['orderSide'][side];
-        let order = {
-            'order': {
-                'direction': direction,
-                'instrumentId': this.marketId (symbol),
-                'orderType': 2,
-                'quantity': this.numberToObject (amount),
-            },
+        const direction = this.safeInteger (this.options['orderSide'], side);
+        const market = this.market (symbol);
+        const order = {
+            'direction': direction,
+            'instrumentId': market['numericId'],
+            'orderType': 2,
+            'quantity': this.numberToObject (amount),
         };
-        order['order']['orderType'] = this.options['orderTypes'][type];
+        order['orderType'] = this.options['orderTypes'][type];
         if (type === 'limit') {
-            order['order']['price'] = this.numberToObject (price);
+            order['price'] = this.numberToObject (price);
         }
-        let result = await this.privatePostOrderManagementCreate (this.extend (order, params));
+        const request = {
+            'order': order,
+        };
+        const result = await this.privatePostOrderManagementCreate (this.extend (request, params));
+        // todo: rewrite for parseOrder
         return {
             'info': result,
             'id': result['result']['externalOrderId'],
@@ -37703,7 +37716,8 @@ module.exports = class dx extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostOrderManagementCancel ({ 'externalOrderId': id });
+        const request = { 'externalOrderId': id };
+        return await this.privatePostOrderManagementCancel (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
