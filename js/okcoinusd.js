@@ -752,10 +752,13 @@ module.exports = class okcoinusd extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = market['future'] ? 'privatePostFutureTrade' : 'privatePostTrade';
+        const orderSide = (type === 'market') ? (side + '_market') : side;
+        const isMarketBuy = ((market['spot']) && (type === 'market') && (side === 'buy') && (!this.options['marketBuyPrice']));
+        const orderPrice = isMarketBuy ? this.safeFloat (params, 'cost') : price;
         let request = this.createRequest (market, {
-            'type': type === 'market' ? side + '_market' : side,
+            'type': orderSide,
             'amount': amount,
-            'price': market['spot'] && type === 'market' && side === 'buy' && !this.options['marketBuyPrice'] ? this.safeFloat (params, 'cost') : price,
+            'price': orderPrice,
         });
         if (market['future']) {
             request['match_price'] = 0; // match best counter party price? 0 or 1, ignores price if 1
