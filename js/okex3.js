@@ -1971,7 +1971,12 @@ module.exports = class okex3 extends Exchange {
             if (responseLength < 1) {
                 return [];
             }
-            orders = response[0];
+            if (responseLength > 1) {
+                const before = this.safeValue (response[1], 'before');
+                if (before !== undefined) {
+                    orders = response[0];
+                }
+            }
         }
         return this.parseOrders (orders, market, since, limit);
     }
