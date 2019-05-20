@@ -41,6 +41,7 @@
     "crypton":       { "skip": true },
     "cryptopia":     { "skip": true },
     "dsx":           { "skip": true },
+    "dx":            { "skip": true },
     "ethfinex":      { "skip": true },
     "exx":           { "skip": true },
     "fcoin":         { "skip": true },
