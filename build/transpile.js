@@ -368,6 +368,129 @@ const phpRegexes = [
     [ /\<([a-zA-Z0-9_]+?)\>/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
 ])
 
+const rubyRegexes = [  
+
+    [ /Array\.isArray\s*\(([^\)]+)\)/g, '$1.is_a?(Array)' ],
+    [ /([^\(\s]+)\s+instanceof\s+([^\)\s]+)/g, '$1.is_a?($2)' ],
+
+    [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2].nil?' ],
+    [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] != nil' ],
+    [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'undefined\'/g, '$1.nil?' ],
+    [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'undefined\'/g, '$1 != nil' ],
+    [ /typeof\s+(.+?)\s+\=\=\=?\s+\'undefined\'/g, '$1.nil?' ],
+    [ /typeof\s+(.+?)\s+\!\=\=?\s+\'undefined\'/g, '$1 != nil' ],
+
+    [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+undefined/g, '$1[$2].nil?' ],
+    [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+undefined/g, '$1[$2] != nil' ],
+    [ /([^\s]+)\s+\=\=\=?\s+undefined/g, '$1.nil?' ],
+    [ /([^\s]+)\s+\!\=\=?\s+undefined/g, '$1 != nil' ],
+    [ /(.+?)\s+\=\=\=?\s+undefined/g, '$1.nil?' ],
+    [ /(.+?)\s+\!\=\=?\s+undefined/g, '$1 != nil?' ],
+
+    [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'string\'/g, '$1[$2].is_a?(String)' ],
+    [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'string\'/g, '!$1[$2].is_a?(String)' ],
+    [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'string\'/g, '$1.is_a?(String)' ],
+    [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'string\'/g, '!$1.is_a?(String)' ],
+    [ /undefined/g, 'nil' ],
+    [ /\=\=\=?/g, '==' ],
+    [ /\!\=\=?/g, '!=' ],
+    [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
+    [ /this\.stringToBase64\s/g, 'base64.b64encode' ],
+    [ /this\.base64ToBinary\s/g, 'base64.b64decode' ],
+    [ /\.shift\s*\(\)/g, '.pop(0)' ],
+    [ /this\.extend\s*\(\s*(.*)\s*,\s*(.*)\)/g, '$1.merge($2)'],
+
+// insert common regexes in the middle (critical)
+].concat (commonRegexes) .concat ([
+    // class methods
+    [ /.safe_either/g, '.class.safe_either'],
+    [/.safe_float/g, '.class.safe_float'],
+    // [/.safe_float_2/g, '.class.safe_float_2'],
+    [/.safe_integer/g, '.class.safe_integer'],
+    // [/.safe_integer_2/g, 'class.safe_integer_2'],
+    [/.safe_string/g, '.class.safe_string'],
+    // [/.safe_string_2/g], 'class.safe_string_2'],
+    [/.safe_value/g, '.class.safe_value'],
+//    [/.safe_value_2/g], 'class.safe_value_2'],
+    [/.deep_extend/g, '.class.deep_extend'],
+    [/.truncate_to_string/g, '.class.truncate_to_string'],
+    [/.iso8601/g, '.class.iso8601'],
+    [/.sum/g, '.class.sum'],
+]).concat ([
+    // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
+    [ /this\./g, 'self.' ],
+    [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
+    [ /([^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
+    [ /([^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
+    [ /([^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
+    [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
+    [ /Object\.keys\s*\((.*)\)/g, '.keys' ],
+    [ /\[([^\]]+)\]\.join\s*\(([^\)]+)\)/g, "$2.join([$1])" ],
+    [ /hash \(([^,]+)\, \'(sha[0-9])\'/g, "hash($1, '$2'" ],
+    [ /hmac \(([^,]+)\, ([^,]+)\, \'(md5)\'/g, 'hmac($1, $2, hashlib.$3' ],
+    [ /hmac \(([^,]+)\, ([^,]+)\, \'(sha[0-9]+)\'/g, 'hmac($1, $2, hashlib.$3' ],
+    [ /throw new ([\S]+) \((.*)\)/g, 'raise $1, $2'],
+    [ /throw ([\S]+)/g, 'raise $1'],
+    [ /try {/g, 'try:'],
+    [ /\}\s+catch \(([\S]+)\) {/g, 'except Exception as $1:'],
+    [ /([\s\(])extend(\s)/g, '$1self.extend$2' ],
+    [ /\} else if/g, 'elsif' ],
+    [ /else if/g, 'elsif' ],
+    [ /if\s+\((.*)\)\s+\{/g, 'if $1' ],
+    [ /if\s+\((.*)\)\s*[\n]/g, "if $1\n" ],
+    [ /\}\s*else\s*\{/g, 'else' ],
+    [ /else\s*[\n]/g, "else\n" ],
+    [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\.length\s*\;[^\)]+\)\s*{/g, 'for $1 in  ($2 ... $3.length)' ],
+    [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\s*\;[^\)]+\)\s*{/g, 'for $1 in ($2 ... $3)' ],
+    // [ /\s\|\|\s/g, ' or ' ],
+    // [ /\s\&\&\s/g, ' and ' ],
+    // [ /\!([^\=])/g, 'not $1'],
+    // [ /([^\s]+)\.length/g, 'len($1)' ],
+    [ /\.push\s*\(([\s\S]+?)\);/g, '.push($1)' ],
+    [ /^(\s*)(}\s*$)+/gm, '$1end' ],
+    [ /;/g, '' ],
+    [ /\.toUpperCase\s*\(\)/g, '.upcase' ],
+    [ /\.toLowerCase\s*\(\)/g, '.downcase' ],
+    [ /JSON\.stringify\s*/g, 'json.dumps' ],
+    [ /JSON\.parse\s*/g, "json.loads" ],
+    [ /([^\s]+) in ([^\s]+)/g, "$2.include?($1)"], 
+    // [ /([^\(\s]+)\.includes\s+\(([^\)]+)\)/g, '$2 in $1' ],
+    // [ /\'%([^\']+)\'\.sprintf\s*\(([^\)]+)\)/g, "'{:$1}'.format($2)" ],
+    [ /([^\s]+)\.toFixed\s*\(([0-9]+)\)/g, "'{:.$2f}'.format($1)" ],
+    [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "('{:.' + str($2) + 'f}').format($1)" ],
+    [ /parseFloat\s*/g, 'float'],
+    [ /parseInt\s*/g, 'int'],
+    [ /self\[([^\]+]+)\]/g, 'getattr(self, $1)' ],
+    [ /([^\s]+)\.slice \(([^\,\)]+)\,\s?([^\)]+)\)/g, '$1[$2:$3]' ],
+    [ /([^\s]+)\.slice \(([^\)\:]+)\)/g, '$1[$2:]' ],
+    [ /Math\.floor\s*\(([^\)]+)\)/g, '$1.floor' ],
+    [ /Math\.abs\s*\(([^\)]+)\)/g, '$1.abs' ],
+    [ /Math\.pow\s*\(([^\)]+)\)/g, 'math.pow($1)' ],
+    [ /Math\.round\s*\(([^\)]+)\)/g, '$1.round' ],
+    [ /Math\.ceil\s*\(([^\)]+)\)/g, '$1.ceil' ],
+    [ /Math\.log/g, 'math.log' ],
+    [ /(^|\s)\/\//g, '$1#' ],
+    [ /([^\n\s]) #/g, '$1  #' ],   // PEP8 E261
+    [ /\.indexOf/g, '.index' ],
+    [ /\(([^\s]+)\sin\s([^\)]+)\)/g, '($2.include?($1))' ],
+    [ /([^\s]+\s*\(\))\.toString\s+\(\)/g, '$1.to_s' ],
+    [ /([^\s]+)\.toString \(\)/g, '$1.to_s' ],
+    [ /([^\s]+)\.join\s*\(\s*([^\)\[\]]+?)\s*\)/g, '$2.join($1)' ],
+    [ /Math\.(max|min)\s/g, '$1' ],
+    [ / = new /g, ' = ' ], // python does not have a 'new' keyword
+    [ /console\.log\s/g, 'print' ],
+    [ /([^:+=\/\*\s-]+) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
+    [ /\[ /g, '[' ],              // PEP8 E201 remove whitespaces after left [ square bracket
+    [ /\{ /g, '{' ],              // PEP8 E201 remove whitespaces after left { bracket
+    [ /([^\s]+) \]/g, '$1]' ],    // PEP8 E202 remove whitespaces before right ] square bracket
+    [ /([^\s]+) \}/g, '$1}' ],    // PEP8 E202 remove whitespaces before right } bracket
+    [ /([^a-z])(elif|if|or|else)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
+    [ /\=\=\sTrue/g, '== true' ], // a correction for PEP8 E712, it likes "is True", not "== True"
+    [ /super\./g, 'self.superclass.'],
+    [ /([\S])\: /g, '$1 => ' ],
+    [ /(\s)await(\s)/g, '$1' ],
+])
+
 // ----------------------------------------------------------------------------
 // one-time helpers
 
@@ -478,9 +601,31 @@ function createPHPClass (className, baseClass, body, methods) {
 
 // ----------------------------------------------------------------------------
 
+function createRubyClass (className, baseClass, body, methods) {
+  const classNameCapitalized = className.charAt(0).toUpperCase() + className.slice(1)
+  const baseClassCapitalized = baseClass.charAt(0).toUpperCase() + baseClass.slice(1)
+  
+  const header = [
+      "# PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:",
+      "# https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n",
+      "module Ccxt\n",
+      '  class ' + classNameCapitalized + ' < ' + baseClassCapitalized
+  ]
+  
+  let bodyAsString = body.join("\n")
+  const footer = [
+      "end\n"
+  ]
+    const result = header.join ("\n") + "\n" + bodyAsString + "\n" + footer.join ('\n')
+    return result
+}
+
+// ----------------------------------------------------------------------------
+
 const python2Folder = './python/ccxt/'
 const python3Folder = './python/ccxt/async_support/'
 const phpFolder     = './php/'
+const rubyFolder    = './ruby/test-build/'
 
 // ----------------------------------------------------------------------------
 
@@ -562,7 +707,35 @@ function transpileJavaScriptToPHP ({ js, variables }) {
 
 // ----------------------------------------------------------------------------
 
-function transpileJavaScriptToPythonAndPHP (args) {
+function transpileJavaScriptToRuby ( {js, className, removeEmptyLines }) {
+
+    // function rubySpaces (match) {
+    //     return " ".repeat(match.length / 2)
+    // }
+  
+    // js is trimmed, so add the 4 leading spaces back
+    // js = '**' + js
+
+    // transpile JS → Ruby
+    let rubyBody = regexAll (js, rubyRegexes)
+    
+    //
+    
+    if (removeEmptyLines)
+        rubyBody = rubyBody.replace (/$\s*$/gm, '')
+
+    // fix the leading spaces from 4 spaces to 2
+    let rubySpaces = (match) => { return "  ".repeat(match.length / 4 + 1 ) } 
+    rubyBody = rubyBody.replace (/^( {4,})/gm, rubySpaces)
+    
+    rubyBody = rubyBody.replace (/\'([абвгдеёжзийклмнопрстуфхцчшщъыьэюя服务端忙碌]+)\'/gm, "u'$1'")
+
+    return rubyBody
+}
+
+// ----------------------------------------------------------------------------
+
+function transpileJavaScript (args) {
 
     //-------------------------------------------------------------------------
 
@@ -579,7 +752,12 @@ function transpileJavaScriptToPythonAndPHP (args) {
     // transpile JS → PHP
     let phpBody = transpileJavaScriptToPHP (args)
 
-    return { python3Body, python2Body, phpBody }
+    //-------------------------------------------------------------------------
+
+    // transpile JS → Ruby
+    let rubyBody = transpileJavaScriptToRuby (args)
+  
+    return { python3Body, python2Body, phpBody, rubyBody }
 }
 
 // ----------------------------------------------------------------------------
@@ -598,9 +776,10 @@ function transpileDerivedExchangeClass (contents) {
     let python2 = []
     let python3 = []
     let php = []
+    let ruby = []
 
     let methodNames = []
-
+    
     // run through all methods
     for (let i = 0; i < methods.length; i++) {
         // parse the method signature
@@ -653,12 +832,19 @@ function transpileDerivedExchangeClass (contents) {
                                 .replace (/false/g, 'False')
                                 .replace (/true/g, 'True')
 
+        // remove excessive spacing from argument defaults in Ruby method signature
+        let rubyArgs = args.map (x => x.replace (' = ', '='))
+                                .join (', ')
+                                .replace (/undefined/g, 'nil')
+                                .replace (/false/g, 'false')
+                                .replace (/true/g, 'true')
+
         // method body without the signature (first line)
         // and without the closing bracket (last line)
         let js = lines.slice (1, -1).join ("\n")
 
         // transpile everything
-        let { python3Body, python2Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
+        let { python3Body, python2Body, phpBody, rubyBody } = transpileJavaScript ({ js, className, variables, removeEmptyLines: true })
 
         // compile the final Python code for the method signature
         let pythonString = 'def ' + method + '(self' + (pythonArgs.length ? ', ' + pythonArgs : '') + '):'
@@ -667,7 +853,7 @@ function transpileDerivedExchangeClass (contents) {
         python2.push ('');
         python2.push ('    ' + pythonString);
         python2.push (python2Body);
-
+        
         // compile signature + body for Python 3
         python3.push ('');
         python3.push ('    ' + keyword + pythonString);
@@ -677,8 +863,14 @@ function transpileDerivedExchangeClass (contents) {
         php.push ('');
         php.push ('    public function ' + method + ' (' + phpArgs + ') {');
         php.push (phpBody);
-        php.push ('    }')
+        php.push ('    }');
 
+        // compile signature + body for Ruby
+        let rubyString = 'def ' + method + (rubyArgs.length ? '(' + rubyArgs + ')': '')
+        ruby.push ('');
+        ruby.push ('    ' + rubyString);
+        ruby.push (rubyBody);
+        ruby.push ('    end');
     }
 
     return {
@@ -687,7 +879,7 @@ function transpileDerivedExchangeClass (contents) {
         python2: createPythonClass (className, baseClass, python2, methodNames),
         python3: createPythonClass (className, baseClass, python3, methodNames, true),
         php:     createPHPClass    (className, baseClass, php,     methodNames),
-
+        ruby:    createRubyClass   (className, baseClass, ruby,    methodNames), 
         className,
         baseClass,
     }
@@ -701,18 +893,20 @@ function transpileDerivedExchangeFile (folder, filename) {
 
         let contents = fs.readFileSync (folder + filename, 'utf8')
 
-        let { python2, python3, php, className, baseClass } = transpileDerivedExchangeClass (contents)
+        let { python2, python3, php, ruby, className, baseClass } = transpileDerivedExchangeClass (contents)
 
         const python2Filename = python2Folder + filename.replace ('.js', '.py')
         const python3Filename = python3Folder + filename.replace ('.js', '.py')
         const phpFilename     = phpFolder     + filename.replace ('.js', '.php')
-
+        const rubyFilename    = rubyFolder    + filename.replace ('.js', '.rb')
+      
         log.cyan ('Transpiling from', filename.yellow)
 
-        overwriteFile (python2Filename, python2)
-        overwriteFile (python3Filename, python3)
-        overwriteFile (phpFilename,     php)
-
+        // overwriteFile (python2Filename, python2)
+        // overwriteFile (python3Filename, python3)
+        // overwriteFile (phpFilename,     php)
+        overwriteFile (rubyFilename,    ruby)
+      
         return { className, baseClass }
 
     } catch (e) {
@@ -869,7 +1063,8 @@ function transpileDateTimeTests () {
     const jsFile = './js/test/base/functions/test.datetime.js'
     const pyFile = './python/test/test_exchange_datetime_functions.py'
     const phpFile = './php/test/test_exchange_datetime_functions.php'
-
+    const rubyFile = './ruby/test/test_exchange_datetime_functions.rb'
+  
     log.magenta ('Transpiling from', jsFile.yellow)
 
     let js = fs.readFileSync (jsFile).toString ()
@@ -880,7 +1075,7 @@ function transpileDateTimeTests () {
         [/^\/\*.*\s+/mg, ''],
     ])
 
-    let { python3Body, python2Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
+    let { python3Body, python2Body, phpBody, rubyBody } = transpileJavaScript ({ js, removeEmptyLines: false })
 
     // phpBody = phpBody.replace (/exchange\./g, 'Exchange::')
 
@@ -906,7 +1101,8 @@ function transpilePrecisionTests () {
     const jsFile = './js/test/base/functions/test.number.js'
     const pyFile = './python/test/test_decimal_to_precision.py'
     const phpFile = './php/test/decimal_to_precision.php'
-
+    const rubyFile = './ruby/test/ignore_this_decimal_to_precision.rb'
+  
     log.magenta ('Transpiling from', jsFile.yellow)
 
     let js = fs.readFileSync (jsFile).toString ()
@@ -918,7 +1114,7 @@ function transpilePrecisionTests () {
         [ /numberToString/g, 'number_to_string' ],
     ])
 
-    let { python3Body, python2Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
+    let { python3Body, python2Body, phpBody, rubyBody } = transpileJavaScript ({ js, removeEmptyLines: false })
 
     const pythonHeader =
 "\n\
@@ -972,6 +1168,7 @@ function number_to_string ($x) {\n\
 createFolderRecursively (python2Folder)
 createFolderRecursively (python3Folder)
 createFolderRecursively (phpFolder)
+createFolderRecursively (rubyFolder)
 
 const classes = transpileDerivedExchangeFiles ('./js/', filename)
 
