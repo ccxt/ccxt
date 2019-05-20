@@ -1833,6 +1833,9 @@ class okex3 (Exchange):
         # spot, margin
         #
         #     [
+        #         # in fact, self documented API response does not correspond
+        #         # to their actual API response for spot markets
+        #         # OKEX v3 API returns a plain array of orders(see below)
         #         [
         #             {
         #                 "client_oid":"oktspot76",
@@ -1890,10 +1893,17 @@ class okex3 (Exchange):
         if market['type'] == 'swap' or market['type'] == 'futures':
             orders = self.safe_value(response, 'order_info', [])
         else:
+            orders = response
             responseLength = len(response)
             if responseLength < 1:
                 return []
-            orders = response[0]
+            # in fact, self documented API response does not correspond
+            # to their actual API response for spot markets
+            # OKEX v3 API returns a plain array of orders
+            if responseLength > 1:
+                before = self.safe_value(response[1], 'before')
+                if before is not None:
+                    orders = response[0]
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
