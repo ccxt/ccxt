@@ -1500,14 +1500,14 @@ class okex3 extends Exchange {
             // 'order_type' => '0', // 0 => Normal limit order (Unfilled and 0 represent normal limit order) 1 => Post only 2 => Fill Or Kill 3 => Immediatel Or Cancel
         );
         $method = null;
-        if ($market['future'] || $market['swap']) {
+        if ($market['futures'] || $market['swap']) {
             $request = array_merge ($request, array (
                 'type' => $type, // 1:open long 2:open short 3:close long 4:close short for futures
                 'side' => $this->amount_to_precision($symbol, $amount),
                 'price' => $this->price_to_precision($symbol, $price),
                 // 'match_price' => '0', // Order at best counter party $price? (0:no 1:yes). The default is 0. If it is set as 1, the $price parameter will be ignored. When posting orders at best bid $price, order_type can only be 0 (regular order).
             ));
-            if ($market['future']) {
+            if ($market['futures']) {
                 $request['leverage'] = '10'; // or '20'
             }
             $method = $market['type'] . 'PostOrder';
