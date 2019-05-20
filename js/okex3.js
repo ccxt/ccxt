@@ -1749,8 +1749,13 @@ module.exports = class okex3 extends Exchange {
         }
         let amount = this.safeFloat (order, 'size');
         let filled = this.safeFloat2 (order, 'filled_size', 'filled_qty');
-        amount = Math.max (amount, filled);
-        let remaining = Math.max (0, amount - filled);
+        let remaining = undefined;
+        if (amount !== undefined) {
+            if (filled !== undefined) {
+                amount = Math.max (amount, filled);
+                remaining = Math.max (0, amount - filled);
+            }
+        }
         if (type === 'market') {
             remaining = 0;
         }
