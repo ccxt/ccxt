@@ -8,6 +8,7 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -168,7 +169,7 @@ class okcoinusd (Exchange):
                 '1051': OrderNotFound,  # for spot markets, cancelling "just closed" order
                 '10009': OrderNotFound,  # for spot markets, "Order does not exist"
                 '20015': OrderNotFound,  # for future markets
-                '10008': ExchangeError,  # Illegal URL parameter
+                '10008': BadRequest,  # Illegal URL parameter
                 # todo: sort out below
                 # 10000 Required parameter is empty
                 # 10001 Request frequency too high to exceed the limit allowed
@@ -727,10 +728,13 @@ class okcoinusd (Exchange):
         self.load_markets()
         market = self.market(symbol)
         method = 'privatePostFutureTrade' if market['future'] else 'privatePostTrade'
+        orderSide = (side + '_market') if (type == 'market') else side
+        isMarketBuy = ((market['spot']) and(type == 'market') and(side == 'buy') and(not self.options['marketBuyPrice']))
+        orderPrice = self.safe_float(params, 'cost') if isMarketBuy else price
         request = self.create_request(market, {
-            'type': type == side + '_market' if 'market' else side,
+            'type': orderSide,
             'amount': amount,
-            'price': market['spot'] and type == 'market' and side == 'buy' and not self.safe_float(params, 'cost') if self.options['marketBuyPrice'] else price,
+            'price': orderPrice,
         })
         if market['future']:
             request['match_price'] = 0  # match best counter party price? 0 or 1, ignores price if 1

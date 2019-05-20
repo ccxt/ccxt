@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.550'
+const version = '1.18.551'
 
 Exchange.ccxtVersion = version
 
@@ -59112,7 +59112,7 @@ module.exports = class okcoincny extends okcoinusd {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, DDoSProtection, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, DDoSProtection, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadRequest } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -59269,7 +59269,7 @@ module.exports = class okcoinusd extends Exchange {
                 '1051': OrderNotFound, // for spot markets, cancelling "just closed" order
                 '10009': OrderNotFound, // for spot markets, "Order does not exist"
                 '20015': OrderNotFound, // for future markets
-                '10008': ExchangeError, // Illegal URL parameter
+                '10008': BadRequest, // Illegal URL parameter
                 // todo: sort out below
                 // 10000 Required parameter is empty
                 // 10001 Request frequency too high to exceed the limit allowed
@@ -59861,10 +59861,13 @@ module.exports = class okcoinusd extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = market['future'] ? 'privatePostFutureTrade' : 'privatePostTrade';
+        const orderSide = (type === 'market') ? (side + '_market') : side;
+        const isMarketBuy = ((market['spot']) && (type === 'market') && (side === 'buy') && (!this.options['marketBuyPrice']));
+        const orderPrice = isMarketBuy ? this.safeFloat (params, 'cost') : price;
         let request = this.createRequest (market, {
-            'type': type === 'market' ? side + '_market' : side,
+            'type': orderSide,
             'amount': amount,
-            'price': market['spot'] && type === 'market' && side === 'buy' && !this.options['marketBuyPrice'] ? this.safeFloat (params, 'cost') : price,
+            'price': orderPrice,
         });
         if (market['future']) {
             request['match_price'] = 0; // match best counter party price? 0 or 1, ignores price if 1
