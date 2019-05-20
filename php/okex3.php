@@ -1750,8 +1750,13 @@ class okex3 extends Exchange {
         }
         $amount = $this->safe_float($order, 'size');
         $filled = $this->safe_float_2($order, 'filled_size', 'filled_qty');
-        $amount = max ($amount, $filled);
-        $remaining = max (0, $amount - $filled);
+        $remaining = null;
+        if ($amount !== null) {
+            if ($filled !== null) {
+                $amount = max ($amount, $filled);
+                $remaining = max (0, $amount - $filled);
+            }
+        }
         if ($type === 'market') {
             $remaining = 0;
         }

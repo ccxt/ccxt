@@ -1687,8 +1687,11 @@ class okex3 (Exchange):
                 symbol = market['symbol']
         amount = self.safe_float(order, 'size')
         filled = self.safe_float_2(order, 'filled_size', 'filled_qty')
-        amount = max(amount, filled)
-        remaining = max(0, amount - filled)
+        remaining = None
+        if amount is not None:
+            if filled is not None:
+                amount = max(amount, filled)
+                remaining = max(0, amount - filled)
         if type == 'market':
             remaining = 0
         cost = self.safe_float_2(order, 'filled_notional', 'funds')
