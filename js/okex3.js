@@ -1910,6 +1910,9 @@ module.exports = class okex3 extends Exchange {
         // spot, margin
         //
         //     [
+        //         // in fact, this documented API response does not correspond
+        //         // to their actual API response for spot markets
+        //         // OKEX v3 API returns a plain array of orders (see below)
         //         [
         //             {
         //                 "client_oid":"oktspot76",
@@ -1967,10 +1970,14 @@ module.exports = class okex3 extends Exchange {
         if (market['type'] === 'swap' || market['type'] === 'futures') {
             orders = this.safeValue (response, 'order_info', []);
         } else {
+            orders = response;
             const responseLength = response.length;
             if (responseLength < 1) {
                 return [];
             }
+            // in fact, this documented API response does not correspond
+            // to their actual API response for spot markets
+            // OKEX v3 API returns a plain array of orders
             if (responseLength > 1) {
                 const before = this.safeValue (response[1], 'before');
                 if (before !== undefined) {
