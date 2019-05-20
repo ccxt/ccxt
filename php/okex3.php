@@ -1911,6 +1911,9 @@ class okex3 extends Exchange {
         // spot, margin
         //
         //     array (
+        //         // in fact, this documented API $response does not correspond
+        //         // to their actual API $response for spot markets
+        //         // OKEX v3 API returns a plain array of $orders (see below)
         //         array (
         //             array (
         //                 "client_oid":"oktspot76",
@@ -1933,7 +1936,7 @@ class okex3 extends Exchange {
         //             ),
         //         ),
         //         {
-        //             "before":"2500723297813504",
+        //             "$before":"2500723297813504",
         //             "after":"2500650881647616"
         //         }
         //     )
@@ -1968,11 +1971,20 @@ class okex3 extends Exchange {
         if ($market['type'] === 'swap' || $market['type'] === 'futures') {
             $orders = $this->safe_value($response, 'order_info', array ());
         } else {
+            $orders = $response;
             $responseLength = is_array ($response) ? count ($response) : 0;
             if ($responseLength < 1) {
                 return array ();
             }
-            $orders = $response[0];
+            // in fact, this documented API $response does not correspond
+            // to their actual API $response for spot markets
+            // OKEX v3 API returns a plain array of $orders
+            if ($responseLength > 1) {
+                $before = $this->safe_value($response[1], 'before');
+                if ($before !== null) {
+                    $orders = $response[0];
+                }
+            }
         }
         return $this->parse_orders($orders, $market, $since, $limit);
     }
