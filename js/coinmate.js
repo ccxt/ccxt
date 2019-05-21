@@ -39,6 +39,7 @@ module.exports = class coinmate extends Exchange {
                         'orderBook',
                         'ticker',
                         'transactions',
+                        'tradingPairs',
                     ],
                 },
                 'private': {
@@ -60,22 +61,6 @@ module.exports = class coinmate extends Exchange {
                     ],
                 },
             },
-            'markets': {
-                'BTC/EUR': { 'id': 'BTC_EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'precision': { 'amount': 4, 'price': 2 }, 'maker': 0.25 / 100, 'taker': 0.12 / 100 },
-                'BTC/CZK': { 'id': 'BTC_CZK', 'symbol': 'BTC/CZK', 'base': 'BTC', 'quote': 'CZK', 'precision': { 'amount': 4, 'price': 2 }, 'maker': 0.25 / 100, 'taker': 0.12 / 100 },
-                'LTC/EUR': { 'id': 'LTC_EUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR', 'precision': { 'amount': 4, 'price': 2 }, 'maker': 0.25 / 100, 'taker': 0.12 / 100 },
-                'LTC/CZK': { 'id': 'LTC_CZK', 'symbol': 'LTC/CZK', 'base': 'LTC', 'quote': 'CZK', 'precision': { 'amount': 4, 'price': 2 }, 'maker': 0.25 / 100, 'taker': 0.12 / 100 },
-                'LTC/BTC': { 'id': 'LTC_BTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'precision': { 'amount': 4, 'price': 5 }, 'maker': 0.25 / 100, 'taker': 0.12 / 100 },
-                'ETH/EUR': { 'id': 'ETH_EUR', 'symbol': 'ETH/EUR', 'base': 'ETH', 'quote': 'EUR', 'precision': { 'amount': 4, 'price': 2 }},
-                'ETH/CZK': { 'id': 'ETH_CZK', 'symbol': 'ETH/CZK', 'base': 'ETH', 'quote': 'CZK', 'precision': { 'amount': 4, 'price': 2 }},
-                'ETH/BTC': { 'id': 'ETH_BTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'precision': { 'amount': 4, 'price': 5 }},
-                'XRP/EUR': { 'id': 'XRP_EUR', 'symbol': 'XRP/EUR', 'base': 'XRP', 'quote': 'EUR', 'precision': { 'amount': 4, 'price': 5 }},
-                'XRP/CZK': { 'id': 'XRP_CZK', 'symbol': 'XRP/CZK', 'base': 'XRP', 'quote': 'CZK', 'precision': { 'amount': 4, 'price': 5 }},
-                'XRP/BTC': { 'id': 'XRP_BTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'precision': { 'amount': 4, 'price': 8 }},
-                'BCH/EUR': { 'id': 'BCH_EUR', 'symbol': 'BCH/EUR', 'base': 'BCH', 'quote': 'EUR', 'precision': { 'amount': 4, 'price': 2 }},
-                'BCH/CZK': { 'id': 'BCH_CZK', 'symbol': 'BCH/CZK', 'base': 'BCH', 'quote': 'CZK', 'precision': { 'amount': 4, 'price': 2 }},
-                'BCH/BTC': { 'id': 'BCH_BTC', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'precision': { 'amount': 4, 'price': 5 }},
-            },
             'fees': {
                 'trading': {
                     'maker': 0.05 / 100,
@@ -83,6 +68,42 @@ module.exports = class coinmate extends Exchange {
                 },
             },
         });
+    }
+
+    async fetchMarkets (params = {}) {
+        let response = await this.publicGetTradingPairs (params);
+        let data = response['data'];
+        let result = [];
+        for (let i = 0; i < data.length; i++) {
+            let entry = data[i];
+            let baseId = entry['firstCurrency'];
+            let quoteId = entry['secondCurrency'];
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
+            let symbol = base + '/' + quote;
+            let limits = {
+                'amount': {
+                    'min': this.safeFloat (entry, 'minAmount'),
+                    'max': undefined,
+                },
+            };
+            let precision = {
+                'price': this.safeFloat (entry, 'priceDecimals'),
+                'amount': undefined,
+            };
+            result.push ({
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'limits': limits,
+                'symbol': symbol,
+                'id': entry['name'],
+                'precision': precision,
+                'info': entry,
+            });
+        }
+        return result;
     }
 
     async fetchBalance (params = {}) {
