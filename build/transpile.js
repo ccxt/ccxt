@@ -415,7 +415,7 @@ const rubyRegexes = [
     [ /\.binary_to_string\s*\(/g, '.class.binary_to_string('],
     [ /\.capitalize\s*\(/g, '.class.capitalize('],
     [ /\.decode\s*\(/g, '.class.decode('],
-    [ /\.decimal_to_precision\s*\(/g, '.decimal_to_precision('],
+    [ /\.decimal_to_precision\s*\(/g, '.class.decimal_to_precision('],
     [ /\.deep_extend\s*\(/g, '.class.deep_extend('],
     [ /\.dmy\s*\(/g, '.class.dmy('],
     [ /\.encode\s*\(/g, '.class.encode('],
