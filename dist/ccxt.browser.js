@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.556'
+const version = '1.18.557'
 
 Exchange.ccxtVersion = version
 
@@ -1839,8 +1839,6 @@ try {
 } catch (e) {
 }
 
-const journal = undefined // isNode && require ('./journal') // stub until we get a better solution for Webpack and React
-
 /*  ------------------------------------------------------------------------ */
 
 module.exports = class Exchange {
@@ -2081,7 +2079,6 @@ module.exports = class Exchange {
         this.timeout       = 10000 // milliseconds
         this.verbose       = false
         this.debug         = false
-        this.journal       = 'debug.json'
         this.userAgent     = undefined
         this.twofa         = undefined // two-factor authentication (2FA)
 
@@ -2141,10 +2138,6 @@ module.exports = class Exchange {
 
         if (this.markets)
             this.setMarkets (this.markets)
-
-        if (this.debug && journal) {
-            journal (() => this.journal, this, Object.keys (this.has))
-        }
 
         if (this.requiresWeb3 && !this.web3 && Web3) {
             const provider = (this.web3ProviderURL) ? new Web3.providers.HttpProvider (this.web3ProviderURL) : new Web3.providers.HttpProvider ()
