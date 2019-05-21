@@ -58,18 +58,20 @@ class kuna (acx):
         })
 
     async def fetch_markets(self, params={}):
-        quotes = ['btc', 'eth', 'eurs', 'gbg', 'uah']
+        quotes = ['btc', 'eth', 'eurs', 'rub', 'uah', 'usd', 'usdt']
         pricePrecisions = {
             'UAH': 0,
         }
         markets = []
-        tickers = await self.publicGetTickers()
-        ids = list(tickers.keys())
+        response = await self.publicGetTickers(params)
+        ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
             for j in range(0, len(quotes)):
                 quoteId = quotes[j]
-                if id.find(quoteId) > 0:
+                index = id.find(quoteId)
+                slice = id[index:]
+                if (index > 0) and(slice == quoteId):
                     baseId = id.replace(quoteId, '')
                     base = baseId.upper()
                     quote = quoteId.upper()

@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.557'
+const version = '1.18.560'
 
 Exchange.ccxtVersion = version
 
@@ -35938,7 +35938,7 @@ module.exports = class deribit extends Exchange {
                 'api': 'https://www.deribit.com',
                 'www': 'https://www.deribit.com',
                 'doc': [
-                    'https://docs.deribit.com/',
+                    'https://docs.deribit.com',
                     'https://github.com/deribit',
                 ],
                 'fees': 'https://www.deribit.com/pages/information/fees',
@@ -36289,16 +36289,18 @@ module.exports = class deribit extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'instrument': this.marketId (symbol),
             'quantity': amount,
             'type': type,
+            // 'post_only': 'false' or 'true', https://github.com/ccxt/ccxt/issues/5159
         };
-        if (price !== undefined)
+        if (price !== undefined) {
             request['price'] = price;
-        let method = 'privatePost' + this.capitalize (side);
-        let response = await this[method] (this.extend (request, params));
-        let order = this.safeValue (response['result'], 'order');
+        }
+        const method = 'privatePost' + this.capitalize (side);
+        const response = await this[method] (this.extend (request, params));
+        const order = this.safeValue (response['result'], 'order');
         if (order === undefined) {
             return response;
         }
@@ -51375,6 +51377,24 @@ module.exports = class kucoin extends Exchange {
         //         "createdAt":1547026472000
         //     }
         //
+        // fetchMyTrades v2 alternative format since 2019-05-21 https://github.com/ccxt/ccxt/pull/5162
+        //
+        //     {
+        //         symbol: "OPEN-BTC",
+        //         forceTaker:  false,
+        //         orderId: "5ce36420054b4663b1fff2c9",
+        //         fee: "0",
+        //         feeCurrency: "",
+        //         type: "",
+        //         feeRate: "0",
+        //         createdAt: 1558417615000,
+        //         size: "12.8206",
+        //         stop: "",
+        //         price: "0",
+        //         funds: "0",
+        //         tradeId: "5ce390cf6e0db23b861c6e80"
+        //     }
+        //
         // fetchMyTrades (private) v1 (historical)
         //
         //     {
@@ -51419,7 +51439,7 @@ module.exports = class kucoin extends Exchange {
         } else {
             timestamp = this.safeInteger (trade, 'createdAt');
             // if it's a historical v1 trade, the exchange returns timestamp in seconds
-            if (takerOrMaker === undefined && timestamp !== undefined) {
+            if (('dealValue' in trade) && (timestamp !== undefined)) {
                 timestamp = timestamp * 1000;
             }
         }
@@ -51883,25 +51903,27 @@ module.exports = class kuna extends acx {
     }
 
     async fetchMarkets (params = {}) {
-        const quotes = [ 'btc', 'eth', 'eurs', 'gbg', 'uah' ];
+        const quotes = [ 'btc', 'eth', 'eurs', 'rub', 'uah', 'usd', 'usdt' ];
         const pricePrecisions = {
             'UAH': 0,
         };
-        let markets = [];
-        let tickers = await this.publicGetTickers ();
-        let ids = Object.keys (tickers);
+        const markets = [];
+        const response = await this.publicGetTickers (params);
+        const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
+            const id = ids[i];
             for (let j = 0; j < quotes.length; j++) {
-                let quoteId = quotes[j];
-                if (id.indexOf (quoteId) > 0) {
-                    let baseId = id.replace (quoteId, '');
+                const quoteId = quotes[j];
+                const index = id.indexOf (quoteId);
+                const slice = id.slice (index);
+                if ((index > 0) && (slice === quoteId)) {
+                    const baseId = id.replace (quoteId, '');
                     let base = baseId.toUpperCase ();
                     let quote = quoteId.toUpperCase ();
                     base = this.commonCurrencyCode (base);
                     quote = this.commonCurrencyCode (quote);
-                    let symbol = base + '/' + quote;
-                    let precision = {
+                    const symbol = base + '/' + quote;
+                    const precision = {
                         'amount': 6,
                         'price': this.safeInteger (pricePrecisions, quote, 6),
                     };

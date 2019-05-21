@@ -42,7 +42,7 @@ class deribit (Exchange):
                 'api': 'https://www.deribit.com',
                 'www': 'https://www.deribit.com',
                 'doc': [
-                    'https://docs.deribit.com/',
+                    'https://docs.deribit.com',
                     'https://github.com/deribit',
                 ],
                 'fees': 'https://www.deribit.com/pages/information/fees',
@@ -374,6 +374,7 @@ class deribit (Exchange):
             'instrument': self.market_id(symbol),
             'quantity': amount,
             'type': type,
+            # 'post_only': 'false' or 'true', https://github.com/ccxt/ccxt/issues/5159
         }
         if price is not None:
             request['price'] = price
