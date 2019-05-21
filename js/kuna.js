@@ -61,22 +61,23 @@ module.exports = class kuna extends acx {
         const pricePrecisions = {
             'UAH': 0,
         };
-        let markets = [];
-        let tickers = await this.publicGetTickers ();
-        let ids = Object.keys (tickers);
+        const markets = [];
+        const response = await this.publicGetTickers (params);
+        const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
+            const id = ids[i];
             for (let j = 0; j < quotes.length; j++) {
-                let quoteId = quotes[j];
-                let index = id.indexOf (quoteId);
-                if (index > 0 && id.slice (index) === quoteId) {
-                    let baseId = id.replace (quoteId, '');
+                const quoteId = quotes[j];
+                const index = id.indexOf (quoteId);
+                const slice = id.slice (index);
+                if (index > 0 && slice === quoteId) {
+                    const baseId = id.replace (quoteId, '');
                     let base = baseId.toUpperCase ();
                     let quote = quoteId.toUpperCase ();
                     base = this.commonCurrencyCode (base);
                     quote = this.commonCurrencyCode (quote);
-                    let symbol = base + '/' + quote;
-                    let precision = {
+                    const symbol = base + '/' + quote;
+                    const precision = {
                         'amount': 6,
                         'price': this.safeInteger (pricePrecisions, quote, 6),
                     };
