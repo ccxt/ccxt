@@ -1021,8 +1021,12 @@ module.exports = class okex3 extends Exchange {
         if (Array.isArray (ohlcv)) {
             let numElements = ohlcv.length;
             let volumeIndex = (numElements > 6) ? 6 : 5;
+            let timestamp = ohlcv[0];
+            if (typeof timestamp === 'string') {
+                timestamp = this.parse8601 (timestamp);
+            }
             return [
-                ohlcv[0], // timestamp
+                timestamp, // timestamp
                 parseFloat (ohlcv[1]),            // Open
                 parseFloat (ohlcv[2]),            // High
                 parseFloat (ohlcv[3]),            // Low
