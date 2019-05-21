@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.557'
+const version = '1.18.558'
 
 Exchange.ccxtVersion = version
 
@@ -35938,7 +35938,7 @@ module.exports = class deribit extends Exchange {
                 'api': 'https://www.deribit.com',
                 'www': 'https://www.deribit.com',
                 'doc': [
-                    'https://docs.deribit.com/',
+                    'https://docs.deribit.com',
                     'https://github.com/deribit',
                 ],
                 'fees': 'https://www.deribit.com/pages/information/fees',
@@ -36289,16 +36289,18 @@ module.exports = class deribit extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'instrument': this.marketId (symbol),
             'quantity': amount,
             'type': type,
+            // 'post_only': 'false' or 'true', https://github.com/ccxt/ccxt/issues/5159
         };
-        if (price !== undefined)
+        if (price !== undefined) {
             request['price'] = price;
-        let method = 'privatePost' + this.capitalize (side);
-        let response = await this[method] (this.extend (request, params));
-        let order = this.safeValue (response['result'], 'order');
+        }
+        const method = 'privatePost' + this.capitalize (side);
+        const response = await this[method] (this.extend (request, params));
+        const order = this.safeValue (response['result'], 'order');
         if (order === undefined) {
             return response;
         }
