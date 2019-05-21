@@ -57,7 +57,7 @@ module.exports = class kuna extends acx {
     }
 
     async fetchMarkets (params = {}) {
-        const quotes = [ 'btc', 'eth', 'eurs', 'gbg', 'uah' ];
+        const quotes = [ 'btc', 'eth', 'eurs', 'rub', 'uah', 'usd', 'usdt' ];
         const pricePrecisions = {
             'UAH': 0,
         };
@@ -68,7 +68,8 @@ module.exports = class kuna extends acx {
             let id = ids[i];
             for (let j = 0; j < quotes.length; j++) {
                 let quoteId = quotes[j];
-                if (id.indexOf (quoteId) > 0) {
+                let index = id.indexOf (quoteId);
+                if (index > 0 && id.slice (index) === quoteId) {
                     let baseId = id.replace (quoteId, '');
                     let base = baseId.toUpperCase ();
                     let quote = quoteId.toUpperCase ();
