@@ -1372,6 +1372,11 @@ module Ccxt
         return a+b
       end
 
+      def shallow_extend(*args)
+        result = args.inject({}) {|result, element| result.merge(element)}
+        return result
+      end
+      
       def deep_extend(*args)
         result = nil
         args.each do |arg|

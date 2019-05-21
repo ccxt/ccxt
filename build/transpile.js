@@ -401,7 +401,8 @@ const rubyRegexes = [
     [ /this\.stringToBase64\s/g, 'Base64.encode64' ],
     [ /this\.base64ToBinary\s/g, 'Base64.decode64' ],
     [ /\.shift\s*\(\)/g, '.pop(0)' ],
-    [ /this\.extend\s*\(\s*(.*)\s*,\s*(.*)\)/g, '$1.merge($2)'],
+//    [ /this\.extend/g, 'array_merge' ],
+//    [ /this\.extend\s*\(\s*(.*)\s*,\s*(.*)\)/g, '.shallow_extend($1, $2)'],
 
 // insert common regexes in the middle (critical)
 ].concat (commonRegexes) .concat ([
@@ -420,6 +421,7 @@ const rubyRegexes = [
     [ /\.dmy\s*\(/g, '.class.dmy('],
     [ /\.encode\s*\(/g, '.class.encode('],
     [ /\.encode_uri_component\s*\(/g, '.class.encode_uri_component('],
+    [ /\.extend\s*\(/g, '.class.shallow_extend('],
     [ /\.extract_params\s*\(/g, '.class.extract_params('],
     [ /\.filterBy\s*\(/g, '.class.filterBy('],
     [ /\.filter_by\s*\(/g, '.class.filter_by('],
