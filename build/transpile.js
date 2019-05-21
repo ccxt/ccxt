@@ -675,7 +675,7 @@ function createRubyClass (className, baseClass, body, methods) {
   }
   
   const footer = [
-      "end\n"
+      "  end\nend\n"
   ]
     const result = header.join ("\n") + "\n" + bodyAsString + "\n" + footer.join ('\n')
     return result
