@@ -415,6 +415,7 @@ const rubyRegexes = [
     [ /\.binary_to_string\s*\(/g, '.class.binary_to_string('],
     [ /\.capitalize\s*\(/g, '.class.capitalize('],
     [ /\.decode\s*\(/g, '.class.decode('],
+    [ /\.decimal_to_class\s*\(/g, '.decimal_to_class('],
     [ /\.deep_extend\s*\(/g, '.class.deep_extend('],
     [ /\.dmy\s*\(/g, '.class.dmy('],
     [ /\.encode\s*\(/g, '.class.encode('],
@@ -664,6 +665,13 @@ function createRubyClass (className, baseClass, body, methods) {
   ]
   
   let bodyAsString = body.join("\n")
+  
+  for (let method of methods) {
+      const regex = new RegExp ('self\\.(' + method + ')\\s*\\(', 'g')
+      bodyAsString = bodyAsString.replace (regex,
+          (match, p1) => ('self.' + unCamelCase (p1) + '('))
+  }
+  
   const footer = [
       "end\n"
   ]
