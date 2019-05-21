@@ -915,8 +915,8 @@ class kucoin (Exchange):
         else:
             timestamp = self.safe_integer(trade, 'createdAt')
             # if it's a historical v1 trade, the exchange returns timestamp in seconds
-#            if takerOrMaker is None and timestamp is not None:
-#                timestamp = timestamp * 1000
+            if takerOrMaker is None and timestamp is not None:
+                timestamp = timestamp * 1000
         price = self.safe_float_2(trade, 'price', 'dealPrice')
         side = self.safe_string(trade, 'side')
         fee = None
