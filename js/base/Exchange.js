@@ -3,7 +3,6 @@
 /*  ------------------------------------------------------------------------ */
 
 const functions = require ('./functions')
-    , Market    = require ('./Market')
 
 const {
     isNode
@@ -67,21 +66,6 @@ const journal = undefined // isNode && require ('./journal') // stub until we ge
 /*  ------------------------------------------------------------------------ */
 
 module.exports = class Exchange {
-
-    getMarket (symbol) {
-
-        if (!this.marketClasses)
-            this.marketClasses = {}
-
-        let marketClass = this.marketClasses[symbol]
-
-        if (marketClass)
-            return marketClass
-
-        marketClass = new Market (this, symbol)
-        this.marketClasses[symbol] = marketClass // only one Market instance per market
-        return marketClass
-    }
 
     describe () {
         return {
