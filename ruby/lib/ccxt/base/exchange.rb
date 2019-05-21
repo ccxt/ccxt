@@ -1373,7 +1373,7 @@ module Ccxt
       end
 
       def shallow_extend(*args)
-        result = args.inject({}) {|result, element| result.merge(element)}
+        result = args.inject({}) {|hash1, hash2| hash1.merge(hash2)}
         return result
       end
       
