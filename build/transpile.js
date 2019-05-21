@@ -415,7 +415,7 @@ const rubyRegexes = [
     [ /\.binary_to_string\s*\(/g, '.class.binary_to_string('],
     [ /\.capitalize\s*\(/g, '.class.capitalize('],
     [ /\.decode\s*\(/g, '.class.decode('],
-    [ /\.decimal_to_class\s*\(/g, '.decimal_to_class('],
+    [ /\.decimal_to_precision\s*\(/g, '.decimal_to_precision('],
     [ /\.deep_extend\s*\(/g, '.class.deep_extend('],
     [ /\.dmy\s*\(/g, '.class.dmy('],
     [ /\.encode\s*\(/g, '.class.encode('],
@@ -500,8 +500,8 @@ const rubyRegexes = [
     [ /if\s+\((.*)\)\s*[\n]/g, "if $1\n" ],  
     [ /\}\s*else\s*\{/g, 'else' ],
     [ /else\s*[\n]/g, "else\n" ],
-    [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\.length\s*\;[^\)]+\)\s*{/g, 'for $1 in $2 ... $3.length' ],
-    [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\s*\;[^\)]+\)\s*{/g, 'for $1 in $2 ... $3' ],
+    [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\.length\s*\;[^\)]+\)\s*{/g, 'for $1 in ($2 ... $3.length)' ],
+    [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\s*\;[^\)]+\)\s*{/g, 'for $1 in ($2 ... $3)' ],
     [ /\.push\s*\(([\s\S]+?)\);/g, '.push($1)' ],
     [ /^(\s*)(}\s*$)+/gm, '$1end' ],
     [ /;/g, '' ],
@@ -537,8 +537,7 @@ const rubyRegexes = [
     [ /\{ /g, '{' ],              // PEP8 E201 remove whitespaces after left { bracket
     [ /([^\s]+) \]/g, '$1]' ],    // PEP8 E202 remove whitespaces before right ] square bracket
     [ /([^\s]+) \}/g, '$1}' ],    // PEP8 E202 remove whitespaces before right } bracket
-    [ /([^a-z])(elif|if|or|else)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
-    [ /super\./g, 'self.superclass.'],
+    [ /([^a-z])(elif|if|or|else|in)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
     [ /([\S])\: /g, '$1 => ' ],
     [ /(\s)await(\s)/g, '$1' ],
 ])
@@ -768,18 +767,9 @@ function transpileJavaScriptToPHP ({ js, variables }) {
 
 function transpileJavaScriptToRuby ( {js, className, removeEmptyLines }) {
 
-    // function rubySpaces (match) {
-    //     return " ".repeat(match.length / 2)
-    // }
-  
-    // js is trimmed, so add the 4 leading spaces back
-    // js = '**' + js
-
     // transpile JS → Ruby
     let rubyBody = regexAll (js, rubyRegexes)
-    
-    //
-    
+
     if (removeEmptyLines)
         rubyBody = rubyBody.replace (/$\s*$/gm, '')
 
@@ -788,7 +778,9 @@ function transpileJavaScriptToRuby ( {js, className, removeEmptyLines }) {
     rubyBody = rubyBody.replace (/^( {4,})/gm, rubySpaces)
     
     rubyBody = rubyBody.replace (/\'([абвгдеёжзийклмнопрстуфхцчшщъыьэюя服务端忙碌]+)\'/gm, "u'$1'")
-
+    
+    // special case for Ruby super
+    rubyBody = rubyBody.replace (/super\./g, 'self.superclass.')
     return rubyBody
 }
 
