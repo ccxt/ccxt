@@ -529,7 +529,7 @@ const rubyRegexes = [
     [ /throw new ([\S]+) \((.*)\)/g, 'raise $1, $2'],
     [ /throw ([\S]+)/g, 'raise $1'],
     [ /try {/g, 'begin'],
-    // TODO: [ /\}\s+catch \(([\S]+)\) {/g, 'except Exception as $1:'],
+    [ /\}\s+catch \(([\S]+)\) {/g, 'rescue $1 => e'],
     [ /([\s\(])extend(\s)/g, '$1self.extend$2' ],
     [ /\(([^\s]+)\sin\s([^\)]+)\)/g, '($2.include?($1))' ],
     [ /\} else if/g, 'elsif' ],
