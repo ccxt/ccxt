@@ -4,6 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -1004,8 +1011,11 @@ class okex3 (Exchange):
         if isinstance(ohlcv, list):
             numElements = len(ohlcv)
             volumeIndex = 6 if (numElements > 6) else 5
+            timestamp = ohlcv[0]
+            if isinstance(timestamp, basestring):
+                timestamp = self.parse8601(timestamp)
             return [
-                ohlcv[0],  # timestamp
+                timestamp,  # timestamp
                 float(ohlcv[1]),            # Open
                 float(ohlcv[2]),            # High
                 float(ohlcv[3]),            # Low

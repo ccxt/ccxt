@@ -1022,8 +1022,12 @@ class okex3 extends Exchange {
         if (gettype ($ohlcv) === 'array' && count (array_filter (array_keys ($ohlcv), 'is_string')) == 0) {
             $numElements = is_array ($ohlcv) ? count ($ohlcv) : 0;
             $volumeIndex = ($numElements > 6) ? 6 : 5;
+            $timestamp = $ohlcv[0];
+            if (gettype ($timestamp) === 'string') {
+                $timestamp = $this->parse8601 ($timestamp);
+            }
             return [
-                $ohlcv[0], // timestamp
+                $timestamp, // $timestamp
                 floatval ($ohlcv[1]),            // Open
                 floatval ($ohlcv[2]),            // High
                 floatval ($ohlcv[3]),            // Low
