@@ -70,7 +70,7 @@ module.exports = class kuna extends acx {
                 const quoteId = quotes[j];
                 const index = id.indexOf (quoteId);
                 const slice = id.slice (index);
-                if (index > 0 && slice === quoteId) {
+                if ((index > 0) && (slice === quoteId)) {
                     const baseId = id.replace (quoteId, '');
                     let base = baseId.toUpperCase ();
                     let quote = quoteId.toUpperCase ();
