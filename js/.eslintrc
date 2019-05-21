@@ -55,7 +55,7 @@
       { "blankLine": "always", "prev":"*", "next": "cjs-export" }
     ],
     "prefer-template": "off",
-    "curly": "error",
+    "curly": ["error","all"],
     "no-plusplus": "off",
     "no-restricted-properties": "off",
     "prefer-destructuring": "off",
