@@ -47,13 +47,21 @@ module.exports = class adara extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'symbols',
                         'currencies',
-                        'orderBook',
-                        'quote',
-                        'quote/{id}',
-                        'trade',
                         'limits',
+                        'market',
+                        'marketDepth',
+                        'marketInfo',
+                        'orderBook',
+                        'quote/',
+                        'quote/{id}',
+                        'symbols',
+                        'trade',
+                    ],
+                    'post': [
+                        'confirmContactEmail',
+                        'restorePassword',
+                        'user', // sign up
                     ],
                 },
                 'private': {
@@ -61,12 +69,25 @@ module.exports = class adara extends Exchange {
                         'balance',
                         'order',
                         'order/{id}',
+                        'currencyBalance',
+                        'apiKey', // the list of apiKeys
+                        'user/{id}',
                     ],
                     'post': [
                         'order',
+                        'order',
+                        'recovery',
+                        'user',
+                        'apiKey',  // (sign in) or (sign in and generate apiKey)
+                        'contact',
                     ],
                     'patch': [
                         'order/{id}',
+                        'user/{id}', // change password
+                        'customer', // update user info
+                    ],
+                    'delete': [
+                        'apiKey',
                     ],
                 },
             },
@@ -96,10 +117,7 @@ module.exports = class adara extends Exchange {
                     'Bad Request': BadRequest,
                     '500': ExchangeError,
                 },
-                'broad': {
-                },
-            },
-            'commonCurrencies': {
+                'broad': {},
             },
         });
     }
@@ -1177,74 +1195,41 @@ module.exports = class adara extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        let payload = '/' + this.implodeParams (path, params);
+        let url = this.urls['api'] + '/' + this.version + payload;
         const query = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
-            if (Object.keys (query).length)
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
         }
         if (api === 'private') {
-            //
-            // Example to send request
-            // Append payload with expiredAt timestamp and full url:
-            // For POST and other requests with body:
-            // const method = 'POST';
-            // const payload = {
-            //                     "data":
-            //                         {
-            //                             "id": "1",
-            //                             "type": "order",
-            //                             "attributes": {...},
-            //                             "relationships": {...}
-            //                         },
-            //                     "included": [...],
-            //                 };
-            // const payloadWithExpired = `${method}${JSON.stringify(payload)}expiredAt=1543941436186`;
-            // For GET and DELETE requests:
-            // const method = 'GET';
-            // // full request path is 'http://crm.adara-local.io/v1.0/customer/582c5fa6-18ae-4212-9a52-c6009f354ae4'
-            // // take 2 last segments of path, start with leading '/'
-            // const payload = '/customer/582c5fa6-18ae-4212-9a52-c6009f354ae4';
-            // const payloadWithExpired = '${method}${payload}expiredAt=1543941436186'
-            // Calculate signature:
-            //     const signature = crypto.createHmac('sha512', secretKey).update(payloadWithExpired).digest('base64')
-            // Append HTTP headers to the initial request:
-            //     {
-            //         "X-ADX-EXPIRE": expireAt
-            //         "X-ADX-APIKEY": apiKey
-            //         "X-ADX-SIGNATURE": signature
-            //     }
-            // Send the request. If request signature failed to be verified, server respond with Error:
-            // 401 - Not enough sign data (expire or apices missed)
-            // 401 - Signature expired, if expire is too old
-            // 401 - Signature check failed, if signature calculated on server side doesn't match client side signature
-            // 401 - Signature check failed (wrong apiKey hidden error), if apiKey doesn't exist or was revoked/deactivated.
-            //
             this.checkRequiredCredentials ();
             const nonce = this.nonce ();
-            const request = {
-                'access_key': this.apiKey,
-                'nonce': nonce,
-            };
-            if (Object.keys (query).length) {
-                request['query'] = this.urlencode (query);
+            const expiredAt = this.sum (nonce, this.safeInteger (this.options, 'expiredAt', 10000));
+            if ((method === 'POST') || (method === 'PATCH')) {
+                payload = this.json (query);
+                body = this.json (params);
+                payload = body;
             }
-            const expireAt = nonce + this.safeInteger (this.options, 'expireAt', 10000);
+            const auth = method + payload + 'expiredAt=' + expiredAt.toString ();
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512', 'base64');
             headers = {
-                'X-ADX-EXPIRE': expireAt,
+                'X-ADX-EXPIRE': expiredAt,
                 'X-ADX-APIKEY': this.apiKey,
                 'X-ADX-SIGNATURE': signature,
             };
             if (method !== 'GET') {
-                body = this.json (params);
                 headers['Content-Type'] = 'application/json';
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    authenticateWithTokenCookie (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    // signWithApiKey (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    // }
+
+    signWithToken (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
@@ -1267,7 +1252,7 @@ module.exports = class adara extends Exchange {
                 'Cookie': 'token=' + this.apiKey,
             };
             if (method !== 'GET') {
-                body = this.json (params);
+                body = this.json (query);
                 headers['Content-Type'] = 'application/json';
             }
         }
