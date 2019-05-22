@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 require 'rest-client'
 require 'json'
 require 'base64'
