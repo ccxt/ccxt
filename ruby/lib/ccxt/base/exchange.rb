@@ -685,7 +685,7 @@ module Ccxt
         sleep(delay / 1000.0)
       end
     end
-    
+
     def fetch2(path, api = 'public', method = 'GET', params = {}, headers = nil, body = nil)
       throttle if enableRateLimit
       self.lastRestRequestTimestamp = Exchange.milliseconds
@@ -1254,7 +1254,7 @@ module Ccxt
       result_value = value * (10**self.eth_decimals(unit))
       return result_value.to_i.to_s
     end
-    
+
     class << self
       ### THESE ARE REQUIRED TO TRANSPILE THE JAVASCRIPT FILES
 
@@ -1387,7 +1387,7 @@ module Ccxt
         result = args.inject({}) { |hash1, hash2| hash1.merge(hash2) }
         return result
       end
-      
+
       def deep_extend(*args)
         result = nil
         args.each do |arg|
@@ -1707,7 +1707,7 @@ module Ccxt
         end
         return amount * scale
       end
-      
+
     end # class << self
   end
 end
