@@ -395,7 +395,7 @@ module.exports = class anxpro extends Exchange {
         }
         const method = this.safeString (this.options, 'fetchMyTradesMethod', 'private_post_money_trade_list');
         const response = await this[method] (this.extend (request, params));
-        const trades = this.safeValue2 (response, 'trades', 'data' []);
+        const trades = this.safeValue2 (response, 'trades', 'data', []);
         const market = (symbol === undefined) ? undefined : this.market (symbol);
         return this.parseTrades (trades, market, since, limit);
     }
