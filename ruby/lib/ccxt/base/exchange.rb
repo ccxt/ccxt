@@ -1111,7 +1111,6 @@ module Ccxt
     end
 
     def filter_by_array(objects, key, values = nil, indexed = true)
-
       objects = self.class.to_array(objects)
 
       # return all of them if no values were passed in
@@ -1257,7 +1256,6 @@ module Ccxt
     end
     
     class << self
-
       ### THESE ARE REQUIRED TO TRANSPILE THE JAVASCRIPT FILES
 
       ### CRYPTO FUNCTIONS
