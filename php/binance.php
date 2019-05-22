@@ -106,6 +106,7 @@ class binance extends Exchange {
                         'depth',
                         'trades',
                         'aggTrades',
+                        'historicalTrades',
                         'klines',
                         'ticker/24hr',
                         'ticker/allPrices',
@@ -1212,14 +1213,19 @@ class binance extends Exchange {
         $url .= '/' . $path;
         if ($api === 'wapi')
             $url .= '.html';
-        // v1 special case for userDataStream
-        if ($path === 'userDataStream') {
+        if ($path === 'historicalTrades') {
+            $headers = array (
+                'X-MBX-APIKEY' => $this->apiKey,
+            );
+        } else if ($path === 'userDataStream') {
+            // v1 special case for userDataStream
             $body = $this->urlencode ($params);
             $headers = array (
                 'X-MBX-APIKEY' => $this->apiKey,
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
-        } else if (($api === 'private') || ($api === 'wapi' && $path !== 'systemStatus')) {
+        }
+        if (($api === 'private') || ($api === 'wapi' && $path !== 'systemStatus')) {
             $this->check_required_credentials();
             $query = $this->urlencode (array_merge (array (
                 'timestamp' => $this->nonce (),

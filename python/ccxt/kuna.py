@@ -20,6 +20,7 @@ class kuna (acx):
             'has': {
                 'CORS': False,
                 'fetchTickers': True,
+                'fetchOHLCV': False,
                 'fetchOpenOrders': True,
                 'fetchMyTrades': True,
                 'withdraw': False,

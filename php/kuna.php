@@ -19,6 +19,7 @@ class kuna extends acx {
             'has' => array (
                 'CORS' => false,
                 'fetchTickers' => true,
+                'fetchOHLCV' => false,
                 'fetchOpenOrders' => true,
                 'fetchMyTrades' => true,
                 'withdraw' => false,
