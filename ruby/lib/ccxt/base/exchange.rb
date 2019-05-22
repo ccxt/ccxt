@@ -369,7 +369,7 @@ module Ccxt
 
     def load_trading_limits(symbols = nil, reload = false, params = {})
       if self.has['fetchTradingLimits']
-        if reload or not(self.options.keys.include?('limitsLoaded'))
+        if reload || (not(self.options.keys.include?('limitsLoaded')))
           response = self.fetch_trading_limits(symbols)
           symbols.each do |symbol|
             self.markets[symbol] = self.class.deep_extend(self.markets[symbol], response[symbol])
@@ -487,13 +487,13 @@ module Ccxt
         case bidasks[0]
         when Array
           bidasks.each do |bidask|
-            if bidask[price_key] and bidask[amount_key]
+            if bidask[price_key] && bidask[amount_key]
               result << self.parse_bid_ask(bidask, price_key, amount_key)
             end
           end
         when Hash
           bidasks.each do |bidask|
-            if bidask[price_key] and bidask[amount_key]
+            if bidask[price_key] && bidask[amount_key]
               result << self.parse_bid_ask(bidask, price_key, amount_key)
             end
           end
@@ -599,7 +599,7 @@ module Ccxt
 
         opening_time = (math.floor(trade['timestamp'] / ms) * ms).to_i # Shift the edge of the m/h/d (but not M)
         j = ohlcvs.size
-        if (j == 0) or opening_time >= ohlcvs[j - 1][0] + ms
+        if (j == 0) || (opening_time >= ohlcvs[j - 1][0] + ms)
           # moved to a new timeframe -> create a new candle from opening trade
           ohlcvs.append([
             opening_time,
@@ -915,8 +915,8 @@ module Ccxt
       end
 
       ## check the address is not the same letter like 'aaaaa' nor too short nor has a space
-      if (address.chars.uniq.length == 1) or
-        (address.length < self.minFundingAddressLength) or
+      if (address.chars.uniq.length == 1) ||
+        (address.length < self.minFundingAddressLength) ||
         (address.include?(' '))
         raise InvalidAddress, "#{self.id} address is invalid or has less than #{self.fminFundingAddressLength} characters: #{address.to_json}"
       end
@@ -963,7 +963,7 @@ module Ccxt
       if not self.markets
         raise ExchangeError, "#{self.id}: Markets not loaded"
       end
-      if symbol.is_a?(String) and (self.markets.include?(symbol))
+      if symbol.is_a?(String) && (self.markets.include?(symbol))
         return self.markets[symbol]
       end
 
@@ -1338,9 +1338,9 @@ module Ccxt
       end
 
       def is_json_encoded_object(input)
-        return (input.is_a?(String) and
-               (input.length >= 2) and
-               ((input[0] == '{') or (input[0] == '[')))
+        return (input.is_a?(String) &&
+               (input.length >= 2) &&
+               ((input[0] == '{') || (input[0] == '[')))
       end
 
       def binary_concat(*args)
@@ -1465,7 +1465,7 @@ module Ccxt
         result = {}
         array = self.keysort(array).values if array.is_a?(Hash)
         array.each do |element|
-          if element.has_key?(key) and element[key] != nil
+          if element.has_key?(key) && (element[key] != nil)
             k = element[key]
             result[k] = element
           end
@@ -1571,7 +1571,7 @@ module Ccxt
       end
 
       def sum(*args)
-        array = args.delete_if { |c| not(c.is_a?(Integer) or c.is_a?(Float)) }.compact
+        array = args.delete_if { |c| not(c.is_a?(Integer) || c.is_a?(Float)) }.compact
         return nil if array.empty?
 
         return array.sum
