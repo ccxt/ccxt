@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.563'
+const version = '1.18.564'
 
 Exchange.ccxtVersion = version
 
@@ -1908,6 +1908,7 @@ module.exports = class Exchange {
                 'twofa':      false, // 2-factor authentication (one-time password key)
                 'privateKey': false, // a "0x"-prefixed hexstring private key for a wallet
                 'walletAddress': false, // the wallet address "0x"-prefixed hexstring
+                'token':      false, // reserved for HTTP auth in some cases
             },
             'markets': undefined, // to be filled manually or by fetchMarkets
             'currencies': {}, // to be filled manually or by fetchMarkets
@@ -2089,6 +2090,7 @@ module.exports = class Exchange {
         this.password      = undefined
         this.privateKey    = undefined // a "0x"-prefixed hexstring private key for a wallet
         this.walletAddress = undefined // a wallet address "0x"-prefixed hexstring
+        this.token         = undefined // reserved for HTTP auth in some cases
 
         this.balance     = {}
         this.orderbooks  = {}
