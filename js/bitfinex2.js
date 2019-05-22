@@ -298,12 +298,18 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetBookSymbolPrecision (this.extend ({
+        const defaultPrecision = 'R0';
+        const request = {
             'symbol': this.marketId (symbol),
-            'precision': 'R0',
-        }, params));
-        let timestamp = this.milliseconds ();
-        let result = {
+            'precision': defaultPrecision,
+        };
+        if (limit) {
+            request['len'] = limit;
+        }
+        const fullRequest = this.extend (request, params);
+        const orderbook = await this.publicGetBookSymbolPrecision (fullRequest);
+        const timestamp = this.milliseconds ();
+        const result = {
             'bids': [],
             'asks': [],
             'timestamp': timestamp,
@@ -311,10 +317,11 @@ module.exports = class bitfinex2 extends bitfinex {
             'nonce': undefined,
         };
         for (let i = 0; i < orderbook.length; i++) {
-            let order = orderbook[i];
-            let price = order[1];
+            const order = orderbook[i];
+            const priceIndex = (fullRequest['precision'] === defaultPrecision) ? 1 : 0;
+            const price = order[priceIndex];
             let amount = order[2];
-            let side = (amount > 0) ? 'bids' : 'asks';
+            const side = (amount > 0) ? 'bids' : 'asks';
             amount = Math.abs (amount);
             result[side].push ([ price, amount ]);
         }
