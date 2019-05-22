@@ -168,7 +168,7 @@ module.exports = class anxpro extends Exchange {
         //         count: ...,
         //     timestamp: '1557441435971',
         //     resultCode: 'OK' }
-        if (response.resultCode !== 'OK')
+        if (response['resultCode'] !== 'OK')
             throw new ExchangeError (this.id + ' trade list failed ' + this.json (response));
         const transactions = this.safeValue (response, 'transactions', []);
         const groupedTransactions = this.groupBy (transactions, 'transactionType');
