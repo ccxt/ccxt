@@ -13,6 +13,7 @@
     "bitkk":         { "skip": true },
     "bitlish":       { "skip": true },
     "bitmarket":     { "skip": true },
+    "bitso":         { "skip": true },
     "bittrex":       { "skip": true },
     "bitz":          { "skip": true },
     "bl3p":          { "skip": true },
