@@ -296,91 +296,91 @@ module.exports = class anxpro extends Exchange {
         };
         return this.safeString (statuses, status, status);
     }
-
-    async fetchMyTrades_v3 (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        //    { trades:
-        //     [ { tradeId: 'c2ed821d-717a-4b7e-beb0-a9ba60e8f5a0',
-        //         orderId: '5a65ae21-c7a8-4009-b3af-306c2ad21a02',
-        //         timestamp: '1551357057000',
-        //         tradedCurrencyFillAmount: '0.09006364',
-        //         settlementCurrencyFillAmount: '270.96',
-        //         settlementCurrencyFillAmountUnrounded: '270.96000000',
-        //         price: '3008.53930',
-        //         ccyPair: 'BTCEUR' },
-        //         { tradeId: 'fc0d3a9d-8b0b-4dff-b2e9-edd160785210',
-        //             orderId: '8161ae6e-251a-4eed-a56f-d3d6555730c1',
-        //             timestamp: '1551357033000',
-        //             tradedCurrencyFillAmount: '0.06521746',
-        //             settlementCurrencyFillAmount: '224.09',
-        //             settlementCurrencyFillAmountUnrounded: '224.09000000',
-        //             price: '3436.04305',
-        //             ccyPair: 'BTCUSD' },
-        //         { tradeId: '293f0893-111b-4c64-b036-9403d5c7422a',
-        //             orderId: '9d5e0850-db5f-4871-9c3b-3701a33315e4',
-        //             timestamp: '1551357005000',
-        //             tradedCurrencyFillAmount: '0.06277435',
-        //             settlementCurrencyFillAmount: '161.95',
-        //             settlementCurrencyFillAmountUnrounded: '161.95000000',
-        //             price: '2579.87538',
-        //             ccyPair: 'BTCGBP' } ],
-        //         count: 3,
-        //     timestamp: '1557438456732',
-        //     resultCode: 'OK' }
-        const request = {};
-        if (limit !== undefined)
-            request['max'] = limit;
-        const response = await this.v3privatePostTradeList (this.extend (request, params));
-        if (response['resultCode'] !== 'OK')
-            throw new ExchangeError (this.id + ' trade list failed ' + this.json (response));
-        const trades = response['trades'];
-        const result = this.parseTrades (trades, undefined, since, limit);
-        if (symbol === undefined)
-            return result;
-        return this.filterBySymbol (result, symbol);
+    
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchMyTradesV2 (symbol, since, limit, params);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        //    { result: 'success',
-        //     data:
-        //     [ { tradeId: 'c2ed821d-717a-4b7e-beb0-a9ba60e8f5a0',
-        //         orderId: '5a65ae21-c7a8-4009-b3af-306c2ad21a02',
-        //         timestamp: '1551357057000',
-        //         tradedCurrencyFillAmount: '0.09006364',
-        //         settlementCurrencyFillAmount: '270.96',
-        //         settlementCurrencyFillAmountUnrounded: '270.96000000',
-        //         price: '3008.53930',
-        //         ccyPair: 'BTCEUR',
-        //         side: 'BUY' },
-        //         { tradeId: 'fc0d3a9d-8b0b-4dff-b2e9-edd160785210',
-        //             orderId: '8161ae6e-251a-4eed-a56f-d3d6555730c1',
-        //             timestamp: '1551357033000',
-        //             tradedCurrencyFillAmount: '0.06521746',
-        //             settlementCurrencyFillAmount: '224.09',
-        //             settlementCurrencyFillAmountUnrounded: '224.09000000',
-        //             price: '3436.04305',
-        //             ccyPair: 'BTCUSD',
-        //             side: 'BUY' },
-        //         { tradeId: '293f0893-111b-4c64-b036-9403d5c7422a',
-        //             orderId: '9d5e0850-db5f-4871-9c3b-3701a33315e4',
-        //             timestamp: '1551357005000',
-        //             tradedCurrencyFillAmount: '0.06277435',
-        //             settlementCurrencyFillAmount: '161.95',
-        //             settlementCurrencyFillAmountUnrounded: '161.95000000',
-        //             price: '2579.87538',
-        //             ccyPair: 'BTCGBP',
-        //             side: 'BUY' } ] }
-        // max parameter is undocumented
+    async fetchMyTradesV3 (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        //
+        //     {
+        //         trades: [
+        //             {
+        //                 tradeId: 'c2ed821d-717a-4b7e-beb0-a9ba60e8f5a0',
+        //                 orderId: '5a65ae21-c7a8-4009-b3af-306c2ad21a02',
+        //                 timestamp: '1551357057000',
+        //                 tradedCurrencyFillAmount: '0.09006364',
+        //                 settlementCurrencyFillAmount: '270.96',
+        //                 settlementCurrencyFillAmountUnrounded: '270.96000000',
+        //                 price: '3008.53930',
+        //                 ccyPair: 'BTCEUR'
+        //             },
+        //             {
+        //                 tradeId: 'fc0d3a9d-8b0b-4dff-b2e9-edd160785210',
+        //                 orderId: '8161ae6e-251a-4eed-a56f-d3d6555730c1',
+        //                 timestamp: '1551357033000',
+        //                 tradedCurrencyFillAmount: '0.06521746',
+        //                 settlementCurrencyFillAmount: '224.09',
+        //                 settlementCurrencyFillAmountUnrounded: '224.09000000',
+        //                 price: '3436.04305',
+        //                 ccyPair: 'BTCUSD'
+        //             },
+        //         ],
+        //         count: 3,
+        //         timestamp: '1557438456732',
+        //         resultCode: 'OK'
+        //     }
+        //
         const request = {};
-        if (limit !== undefined)
+        if (limit !== undefined) {
             request['max'] = limit;
+        }
+        const response = await this.v3privatePostTradeList (this.extend (request, params));
+        const trades = this.safeValue (response, 'trades', []);
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchMyTradesV2 (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        //
+        //     {
+        //         result: 'success',
+        //         data: [
+        //             {
+        //                 tradeId: 'c2ed821d-717a-4b7e-beb0-a9ba60e8f5a0',
+        //                 orderId: '5a65ae21-c7a8-4009-b3af-306c2ad21a02',
+        //                 timestamp: '1551357057000',
+        //                 tradedCurrencyFillAmount: '0.09006364',
+        //                 settlementCurrencyFillAmount: '270.96',
+        //                 settlementCurrencyFillAmountUnrounded: '270.96000000',
+        //                 price: '3008.53930',
+        //                 ccyPair: 'BTCEUR',
+        //                 side: 'BUY'
+        //             },
+        //             {
+        //                 tradeId: 'fc0d3a9d-8b0b-4dff-b2e9-edd160785210',
+        //                 orderId: '8161ae6e-251a-4eed-a56f-d3d6555730c1',
+        //                 timestamp: '1551357033000',
+        //                 tradedCurrencyFillAmount: '0.06521746',
+        //                 settlementCurrencyFillAmount: '224.09',
+        //                 settlementCurrencyFillAmountUnrounded: '224.09000000',
+        //                 price: '3436.04305',
+        //                 ccyPair: 'BTCUSD',
+        //                 side: 'BUY'
+        //             },
+        //         ]
+        //     }
+        //
+        const request = {};
+        if (limit !== undefined) {
+            request['max'] = limit; // undocumented
+        }
         const response = await this.privatePostMoneyTradeList (this.extend (request, params));
-        if (response['result'] !== 'success')
-            throw new ExchangeError (this.id + ' trade list failed ' + this.json (response));
-        const trades = response['data'];
-        const result = this.parseTrades (trades, undefined, since, limit);
-        if (symbol === undefined)
-            return result;
-        return this.filterBySymbol (result, symbol);
+        const trades = this.safeValue (response, 'data', []);
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
