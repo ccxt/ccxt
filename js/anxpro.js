@@ -136,6 +136,9 @@ module.exports = class anxpro extends Exchange {
                     'taker': 0.2 / 100,
                 },
             },
+            'options': {
+                'fetchMyTradesMethod': 'private_post_money_trade_list', // or 'v3private_post_trade_list'
+            },
         });
     }
 
@@ -324,11 +327,39 @@ module.exports = class anxpro extends Exchange {
     }
     
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchMyTradesV2 (symbol, since, limit, params);
-    }
-
-    async fetchMyTradesV3 (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        //
+        // v2
+        //
+        //     {
+        //         result: 'success',
+        //         data: [
+        //             {
+        //                 tradeId: 'c2ed821d-717a-4b7e-beb0-a9ba60e8f5a0',
+        //                 orderId: '5a65ae21-c7a8-4009-b3af-306c2ad21a02',
+        //                 timestamp: '1551357057000',
+        //                 tradedCurrencyFillAmount: '0.09006364',
+        //                 settlementCurrencyFillAmount: '270.96',
+        //                 settlementCurrencyFillAmountUnrounded: '270.96000000',
+        //                 price: '3008.53930',
+        //                 ccyPair: 'BTCEUR',
+        //                 side: 'BUY' // missing in v3
+        //             },
+        //             {
+        //                 tradeId: 'fc0d3a9d-8b0b-4dff-b2e9-edd160785210',
+        //                 orderId: '8161ae6e-251a-4eed-a56f-d3d6555730c1',
+        //                 timestamp: '1551357033000',
+        //                 tradedCurrencyFillAmount: '0.06521746',
+        //                 settlementCurrencyFillAmount: '224.09',
+        //                 settlementCurrencyFillAmountUnrounded: '224.09000000',
+        //                 price: '3436.04305',
+        //                 ccyPair: 'BTCUSD',
+        //                 side: 'BUY' // missing in v3
+        //             },
+        //         ]
+        //     }
+        //
+        // v3
         //
         //     {
         //         trades: [
@@ -362,49 +393,9 @@ module.exports = class anxpro extends Exchange {
         if (limit !== undefined) {
             request['max'] = limit;
         }
-        const response = await this.v3privatePostTradeList (this.extend (request, params));
-        const trades = this.safeValue (response, 'trades', []);
-        const market = (symbol === undefined) ? undefined : this.market (symbol);
-        return this.parseTrades (trades, market, since, limit);
-    }
-
-    async fetchMyTradesV2 (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        //
-        //     {
-        //         result: 'success',
-        //         data: [
-        //             {
-        //                 tradeId: 'c2ed821d-717a-4b7e-beb0-a9ba60e8f5a0',
-        //                 orderId: '5a65ae21-c7a8-4009-b3af-306c2ad21a02',
-        //                 timestamp: '1551357057000',
-        //                 tradedCurrencyFillAmount: '0.09006364',
-        //                 settlementCurrencyFillAmount: '270.96',
-        //                 settlementCurrencyFillAmountUnrounded: '270.96000000',
-        //                 price: '3008.53930',
-        //                 ccyPair: 'BTCEUR',
-        //                 side: 'BUY'
-        //             },
-        //             {
-        //                 tradeId: 'fc0d3a9d-8b0b-4dff-b2e9-edd160785210',
-        //                 orderId: '8161ae6e-251a-4eed-a56f-d3d6555730c1',
-        //                 timestamp: '1551357033000',
-        //                 tradedCurrencyFillAmount: '0.06521746',
-        //                 settlementCurrencyFillAmount: '224.09',
-        //                 settlementCurrencyFillAmountUnrounded: '224.09000000',
-        //                 price: '3436.04305',
-        //                 ccyPair: 'BTCUSD',
-        //                 side: 'BUY'
-        //             },
-        //         ]
-        //     }
-        //
-        const request = {};
-        if (limit !== undefined) {
-            request['max'] = limit; // undocumented
-        }
-        const response = await this.privatePostMoneyTradeList (this.extend (request, params));
-        const trades = this.safeValue (response, 'data', []);
+        const method = this.safeString (this.options, 'fetchMyTradesMethod', 'private_post_money_trade_list');
+        const response = await this[method] (this.extend (request, params));
+        const trades = this.safeValue2 (response, 'trades', 'data' []);
         const market = (symbol === undefined) ? undefined : this.market (symbol);
         return this.parseTrades (trades, market, since, limit);
     }
