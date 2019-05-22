@@ -805,6 +805,8 @@ class Exchange {
         $this->uid           = '';
         $this->privateKey    = '';
         $this->walletAddress = '';
+        $this->token = ''; // reserved for HTTP auth in some cases
+
 
         $this->twofa         = null;
         $this->marketsById   = null;
@@ -828,6 +830,7 @@ class Exchange {
             'twofa' => false, // 2-factor authentication (one-time password key)
             'privateKey' => false,
             'walletAddress' => false,
+            'token' => false, // reserved for HTTP auth in some cases
         );
 
         // API methods metainfo
