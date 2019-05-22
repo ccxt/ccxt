@@ -424,7 +424,7 @@ module.exports = class cointiger extends huobipro {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const start = this.ymd (since);
-        const end = this.ymd (since + week); // one week
+        const end = this.ymd (this.sum (since, week)); // one week
         if (limit === undefined) {
             limit = 1000;
         }
