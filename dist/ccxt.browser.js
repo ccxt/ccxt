@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.564'
+const version = '1.18.565'
 
 Exchange.ccxtVersion = version
 
@@ -6958,6 +6958,7 @@ module.exports = class binance extends Exchange {
                         'depth',
                         'trades',
                         'aggTrades',
+                        'historicalTrades',
                         'klines',
                         'ticker/24hr',
                         'ticker/allPrices',
@@ -8064,14 +8065,19 @@ module.exports = class binance extends Exchange {
         url += '/' + path;
         if (api === 'wapi')
             url += '.html';
-        // v1 special case for userDataStream
-        if (path === 'userDataStream') {
+        if (path === 'historicalTrades') {
+            headers = {
+                'X-MBX-APIKEY': this.apiKey,
+            };
+        } else if (path === 'userDataStream') {
+            // v1 special case for userDataStream
             body = this.urlencode (params);
             headers = {
                 'X-MBX-APIKEY': this.apiKey,
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
-        } else if ((api === 'private') || (api === 'wapi' && path !== 'systemStatus')) {
+        }
+        if ((api === 'private') || (api === 'wapi' && path !== 'systemStatus')) {
             this.checkRequiredCredentials ();
             let query = this.urlencode (this.extend ({
                 'timestamp': this.nonce (),
@@ -51866,6 +51872,7 @@ module.exports = class kuna extends acx {
             'has': {
                 'CORS': false,
                 'fetchTickers': true,
+                'fetchOHLCV': false,
                 'fetchOpenOrders': true,
                 'fetchMyTrades': true,
                 'withdraw': false,
