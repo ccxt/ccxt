@@ -177,7 +177,7 @@ module Ccxt
         'BCC' => 'BCH',
         'DRK' => 'DASH',
         'BCHABC' => 'BCH',
-        'BCHSV'=> 'BSV',
+        'BCHSV' => 'BSV',
       }
 
       settings = self.class.deep_extend(self.describe(), config)
@@ -1156,29 +1156,29 @@ module Ccxt
 
     def eth_decimals(unit = 'ether')
       units = {
-        'wei'=> 0,          # 1
-        'kwei'=> 3,         # 1000
-        'babbage'=> 3,      # 1000
-        'femtoether'=> 3,   # 1000
-        'mwei'=> 6,         # 1000000
-        'lovelace'=> 6,     # 1000000
-        'picoether'=> 6,    # 1000000
-        'gwei'=> 9,         # 1000000000
-        'shannon'=> 9,      # 1000000000
-        'nanoether'=> 9,    # 1000000000
-        'nano'=> 9,         # 1000000000
-        'szabo'=> 12,       # 1000000000000
-        'microether'=> 12,  # 1000000000000
-        'micro'=> 12,       # 1000000000000
-        'finney'=> 15,      # 1000000000000000
-        'milliether'=> 15,  # 1000000000000000
-        'milli'=> 15,       # 1000000000000000
-        'ether'=> 18,       # 1000000000000000000
-        'kether'=> 21,      # 1000000000000000000000
-        'grand'=> 21,       # 1000000000000000000000
-        'mether'=> 24,      # 1000000000000000000000000
-        'gether'=> 27,      # 1000000000000000000000000000
-        'tether'=> 30,      # 1000000000000000000000000000000
+        'wei' => 0,          # 1
+        'kwei' => 3,         # 1000
+        'babbage' => 3,      # 1000
+        'femtoether' => 3,   # 1000
+        'mwei' => 6,         # 1000000
+        'lovelace' => 6,     # 1000000
+        'picoether' => 6,    # 1000000
+        'gwei' => 9,         # 1000000000
+        'shannon' => 9,      # 1000000000
+        'nanoether' => 9,    # 1000000000
+        'nano' => 9,         # 1000000000
+        'szabo' => 12,       # 1000000000000
+        'microether' => 12,  # 1000000000000
+        'micro' => 12,       # 1000000000000
+        'finney' => 15,      # 1000000000000000
+        'milliether' => 15,  # 1000000000000000
+        'milli' => 15,       # 1000000000000000
+        'ether' => 18,       # 1000000000000000000
+        'kether' => 21,      # 1000000000000000000000
+        'grand' => 21,       # 1000000000000000000000
+        'mether' => 24,      # 1000000000000000000000000
+        'gether' => 27,      # 1000000000000000000000000000
+        'tether' => 30,      # 1000000000000000000000000000000
       }.freeze
 
       # TODO: there is no default value, which results in nil/None.
@@ -1188,17 +1188,17 @@ module Ccxt
 
     def eth_unit(decimals = 18)
       units = {
-        0=> 'wei',      # 1000000000000000000
-        3=> 'kwei',     # 1000000000000000
-        6=> 'mwei',     # 1000000000000
-        9=> 'gwei',     # 1000000000
-        12=> 'szabo',   # 1000000
-        15=> 'finney',  # 1000
-        18=> 'ether',   # 1
-        21=> 'kether',  # 0.001
-        24=> 'mether',  # 0.000001
-        27=> 'gether',  # 0.000000001
-        30=> 'tether',  # 0.000000000001
+        0 => 'wei',      # 1000000000000000000
+        3 => 'kwei',     # 1000000000000000
+        6 => 'mwei',     # 1000000000000
+        9 => 'gwei',     # 1000000000
+        12 => 'szabo',   # 1000000
+        15 => 'finney',  # 1000
+        18 => 'ether',   # 1
+        21 => 'kether',  # 0.001
+        24 => 'mether',  # 0.000001
+        27 => 'gether',  # 0.000000001
+        30 => 'tether',  # 0.000000000001
       }.freeze
       return self.class.safe_value(units, decimals)
     end
@@ -1213,7 +1213,7 @@ module Ccxt
       value = BigDecimal(amount)
       if decimals != 18
         if (decimals % 3 != 0)
-          value = value * 10 **(18 - decimals)
+          value = value * 10**(18 - decimals)
           puts "Value changed to #{value}."
         else
           unit = self.eth_unit(decimals)
@@ -1232,7 +1232,7 @@ module Ccxt
       value = BigDecimal(amount)
       if decimals != 18
         if (decimals % 3 != 0)
-          value = value * 10 **(decimals - 18)
+          value = value * 10**(decimals - 18)
           puts "Value changed to #{value}."
         else
           unit = self.eth_unit(decimals)
@@ -1278,7 +1278,7 @@ module Ccxt
 
       def jwt(request, secret, algorithm = nil)
         header = Exchange.encode(Exchange.json({
-          'alg'=> alg,
+          'alg' => alg,
           'typ' => 'JWT'
           }))
         encodedHeader = Exchange.base64urlencode(header)
@@ -1370,7 +1370,7 @@ module Ccxt
       end
 
       def array_concat(a, b)
-        return a+b
+        return a + b
       end
 
       def shallow_extend(*args)
