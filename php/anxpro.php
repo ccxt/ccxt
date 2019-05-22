@@ -70,6 +70,23 @@ class anxpro extends Exchange {
             'httpExceptions' => array (
                 '403' => '\\ccxt\\AuthenticationError',
             ),
+            'exceptions' => array (
+                'exact' => array (
+                    // v2
+                    'Insufficient Funds' => '\\ccxt\\InsufficientFunds',
+                    'Trade value too small' => '\\ccxt\\InvalidOrder',
+                    'The currency pair is not supported' => '\\ccxt\\BadRequest',
+                    'Order amount is too low' => '\\ccxt\\InvalidOrder',
+                    'Order amount is too high' => '\\ccxt\\InvalidOrder',
+                    'order rate is too low' => '\\ccxt\\InvalidOrder',
+                    'order rate is too high' => '\\ccxt\\InvalidOrder',
+                    'Too many open orders' => '\\ccxt\\InvalidOrder',
+                    'Unexpected error' => '\\ccxt\\ExchangeError',
+                    'Order Engine is offline' => '\\ccxt\\ExchangeNotAvailable',
+                    'No executed order with that identifer found' => '\\ccxt\\OrderNotFound',
+                    'Unknown server error, please contact support.' => '\\ccxt\\ExchangeError',
+                ),
+            ),
             'fees' => array (
                 'trading' => array (
                     'tierBased' => false,
@@ -541,19 +558,22 @@ class anxpro extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
-        $order = array (
+        $amountMultiplier = pow (10, $market['precision']['amount']);
+        $request = array (
             'currency_pair' => $market['id'],
-            'amount_int' => intval ($amount * 100000000), // 10^8
+            'amount_int' => intval ($amount * $amountMultiplier), // 10^8
         );
         if ($type === 'limit') {
-            $order['price_int'] = intval ($price * $market['multiplier']); // 10^5 or 10^8
+            $priceMultiplier = pow (10, $market['precision']['price']);
+            $request['price_int'] = intval ($price * $priceMultiplier); // 10^5 or 10^8
         }
-        $order['type'] = ($side === 'buy') ? 'bid' : 'ask';
-        $result = $this->privatePostCurrencyPairMoneyOrderAdd (array_merge ($order, $params));
+        $request['type'] = ($side === 'buy') ? 'bid' : 'ask';
+        $response = $this->privatePostCurrencyPairMoneyOrderAdd (array_merge ($request, $params));
         return array (
-            'info' => $result,
-            'id' => $result['data'],
+            'info' => $response,
+            'id' => $response['data'],
         );
     }
 
@@ -643,13 +663,22 @@ class anxpro extends Exchange {
             return;
         }
         $result = $this->safe_string($response, 'result');
-        if (($result !== null) && ($result !== 'success')) {
-            throw new ExchangeError ($this->id . ' ' . $body);
-        } else {
-            $resultCode = $this->safe_string($response, 'resultCode');
-            if (($resultCode !== null) && ($resultCode !== 'OK')) {
-                throw new ExchangeError ($this->id . ' ' . $body);
+        $code = $this->safe_string($response, 'resultCode');
+        if ((($result !== null) && ($result !== 'success')) || (($code !== null) && ($code !== 'OK'))) {
+            $message = $this->safe_string($response, 'error');
+            $feedback = $this->id . ' ' . $body;
+            $exact = $this->exceptions['exact'];
+            if (is_array ($exact) && array_key_exists ($code, $exact)) {
+                throw new $exact[$code] ($feedback);
+            } else if (is_array ($exact) && array_key_exists ($message, $exact)) {
+                throw new $exact[$message] ($feedback);
             }
+            $broad = $this->safe_value($this->exceptions, 'broad', array ());
+            $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
+            if ($broadKey !== null) {
+                throw new $broad[$broadKey] ($feedback);
+            }
+            throw new ExchangeError ($feedback); // unknown $message
         }
     }
 }

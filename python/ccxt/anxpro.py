@@ -6,8 +6,14 @@
 from ccxt.base.exchange import Exchange
 import base64
 import hashlib
+import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import BadRequest
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class anxpro (Exchange):
@@ -72,6 +78,23 @@ class anxpro (Exchange):
             },
             'httpExceptions': {
                 '403': AuthenticationError,
+            },
+            'exceptions': {
+                'exact': {
+                    # v2
+                    'Insufficient Funds': InsufficientFunds,
+                    'Trade value too small': InvalidOrder,
+                    'The currency pair is not supported': BadRequest,
+                    'Order amount is too low': InvalidOrder,
+                    'Order amount is too high': InvalidOrder,
+                    'order rate is too low': InvalidOrder,
+                    'order rate is too high': InvalidOrder,
+                    'Too many open orders': InvalidOrder,
+                    'Unexpected error': ExchangeError,
+                    'Order Engine is offline': ExchangeNotAvailable,
+                    'No executed order with that identifer found': OrderNotFound,
+                    'Unknown server error, please contact support.': ExchangeError,
+                },
             },
             'fees': {
                 'trading': {
@@ -526,18 +549,21 @@ class anxpro (Exchange):
         }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        self.load_markets()
         market = self.market(symbol)
-        order = {
+        amountMultiplier = math.pow(10, market['precision']['amount'])
+        request = {
             'currency_pair': market['id'],
-            'amount_int': int(amount * 100000000),  # 10^8
+            'amount_int': int(amount * amountMultiplier),  # 10^8
         }
         if type == 'limit':
-            order['price_int'] = int(price * market['multiplier'])  # 10^5 or 10^8
-        order['type'] = 'bid' if (side == 'buy') else 'ask'
-        result = self.privatePostCurrencyPairMoneyOrderAdd(self.extend(order, params))
+            priceMultiplier = math.pow(10, market['precision']['price'])
+            request['price_int'] = int(price * priceMultiplier)  # 10^5 or 10^8
+        request['type'] = 'bid' if (side == 'buy') else 'ask'
+        response = self.privatePostCurrencyPairMoneyOrderAdd(self.extend(request, params))
         return {
-            'info': result,
-            'id': result['data'],
+            'info': response,
+            'id': response['data'],
         }
 
     def cancel_order(self, id, symbol=None, params={}):
@@ -617,9 +643,17 @@ class anxpro (Exchange):
         if response is None or response == '':
             return
         result = self.safe_string(response, 'result')
-        if (result is not None) and(result != 'success'):
-            raise ExchangeError(self.id + ' ' + body)
-        else:
-            resultCode = self.safe_string(response, 'resultCode')
-            if (resultCode is not None) and(resultCode != 'OK'):
-                raise ExchangeError(self.id + ' ' + body)
+        code = self.safe_string(response, 'resultCode')
+        if ((result is not None) and(result != 'success')) or ((code is not None) and(code != 'OK')):
+            message = self.safe_string(response, 'error')
+            feedback = self.id + ' ' + body
+            exact = self.exceptions['exact']
+            if code in exact:
+                raise exact[code](feedback)
+            elif message in exact:
+                raise exact[message](feedback)
+            broad = self.safe_value(self.exceptions, 'broad', {})
+            broadKey = self.findBroadlyMatchedKey(broad, message)
+            if broadKey is not None:
+                raise broad[broadKey](feedback)
+            raise ExchangeError(feedback)  # unknown message
