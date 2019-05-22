@@ -205,7 +205,7 @@ module.exports = class anxpro extends Exchange {
         //     }
         //
         const transactions = this.safeValue (response, 'transactions', []);
-        const depositsAndWithdrawals = this.filterBy (transactions, 'transactionClass', 'COIN'); 
+        const depositsAndWithdrawals = this.filterBy (transactions, 'transactionClass', 'COIN');
         return this.parseTransactions (depositsAndWithdrawals, currency, since, limit);
     }
 
@@ -325,7 +325,7 @@ module.exports = class anxpro extends Exchange {
         };
         return this.safeString (statuses, status, status);
     }
-    
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         //
