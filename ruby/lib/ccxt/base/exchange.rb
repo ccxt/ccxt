@@ -667,13 +667,13 @@ module Ccxt
       headers.update(self.headers)
       if self.userAgent
         if self.userAgent.is_a?(String)
-          headers.update({'User-Agent' => self.userAgent})
+          headers.update({ 'User-Agent' => self.userAgent })
         elsif self.userAgent.is_a?(Hash) && self.userAgent.include?('User-Agent')
           headers.update(self.userAgent)
         end
       end
-      headers.update({'Origin' => self.origin}) unless self.proxy.empty?
-      headers.update({'Accept-Encoding' => 'gzip, deflate'})
+      headers.update({ 'Origin' => self.origin }) unless self.proxy.empty?
+      headers.update({ 'Accept-Encoding' => 'gzip, deflate' })
       headers
     end
 
