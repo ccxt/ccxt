@@ -53,7 +53,7 @@ module Ccxt
       @userAgent = nil
       @userAgents = {
         'chrome' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
-        'chrome39' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
+        'chrome39' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36'
       }
       @verbose = false
       @markets = nil
@@ -61,13 +61,13 @@ module Ccxt
       @fees = {
         'trading' => {
           'fee_loaded' => false,
-          'percentage' => true,
+          'percentage' => true
         },
         'funding' => {
           'fee_loaded' => false,
           'withdraw' => {},
-          'deposit' => {},
-        },
+          'deposit' => {}
+        }
       }
       @ids = nil
       @tickers = nil
@@ -109,7 +109,7 @@ module Ccxt
         'password' => false,
         'twofa' => false,  # 2-factor authentication (one-time password key)
         'privateKey' => false, # a "0x"-prefixed hexstring private key for a wallet
-        'walletAddress' => false, # the wallet address "0x"-prefixed hexstring
+        'walletAddress' => false # the wallet address "0x"-prefixed hexstring
       }
 
       # API method metainfo
@@ -147,7 +147,7 @@ module Ccxt
         'fetchTradingLimits' => false,
         'fetchTransactions' => false,
         'fetchWithdrawals' => false,
-        'withdraw' => false,
+        'withdraw' => false
       }
 
       @precisionMode = DECIMAL_PLACES
@@ -177,7 +177,7 @@ module Ccxt
         'BCC' => 'BCH',
         'DRK' => 'DASH',
         'BCHABC' => 'BCH',
-        'BCHSV' => 'BSV',
+        'BCHSV' => 'BSV'
       }
 
       settings = self.class.deep_extend(self.describe, config)
@@ -201,7 +201,7 @@ module Ccxt
         'refillRate' => 1.0 / self.rateLimit,
         'delay' => 0.001,
         'capacity' => 1.0,
-        'defaultCost' => 1.0,
+        'defaultCost' => 1.0
       }
     end
 
@@ -317,7 +317,7 @@ module Ccxt
       end
       return {
         'trading' => trading,
-        'funding' => funding,
+        'funding' => funding
       }
     end
 
@@ -508,7 +508,7 @@ module Ccxt
       orderbook = self.fetch_order_book(symbol, limit, params)
       orderbook.merge(
         'bids' => self.class.sort_by(self.class.aggregate(orderbook['bids']), 0, true),
-        'asks' => self.class.sort_by(self.class.aggregate(orderbook['asks']), 0),
+        'asks' => self.class.sort_by(self.class.aggregate(orderbook['asks']), 0)
       )
     end
 
@@ -526,7 +526,7 @@ module Ccxt
         'asks' => asks,
         'timestamp' => timestamp,
         'datetime' => timestamp ? self.class.iso8601(timestamp) : nil,
-        'nonce' => nil,
+        'nonce' => nil
       }
     end
 
@@ -568,7 +568,7 @@ module Ccxt
             'numericId' => market['baseNumericId'],
             'code' => market['base'],
             'precision' => (market['precision'] && market['precision']['base']) ||
-              (market['precision'] && market['precision']['amount']) || 8,
+              (market['precision'] && market['precision']['amount']) || 8
           }
         end
         quote_currencies = values.select { |market| market['quote'] }.map do |market|
@@ -577,7 +577,7 @@ module Ccxt
             'numericId' => market['quoteNumericId'],
             'code' => market['quote'],
             'precision' => (market['precision'] && market['precision']['quote']) ||
-              (market['precision'] && market['precision']['amount']) || 8,
+              (market['precision'] && market['precision']['amount']) || 8
           }
         end
         currencies_to_set = self.class.sort_by(base_currencies + quote_currencies, 'code')
@@ -607,7 +607,7 @@ module Ccxt
             trade['price'],
             trade['price'],
             trade['price'],
-            trade['amount'],
+            trade['amount']
           ])
         else
           # still processing the same timeframe -> update opening trade
@@ -633,7 +633,7 @@ module Ccxt
           'h' => ohlcvs['h'][i],
           'l' => ohlcvs['l'][i],
           'c' => ohlcvs['c'][i],
-          'v' => ohlcvs['v'][i],
+          'v' => ohlcvs['v'][i]
         }
       end
       return results
@@ -928,7 +928,7 @@ module Ccxt
       return {
         'free' => 0.0,
         'used' => 0.0,
-        'total' => 0.0,
+        'total' => 0.0
       }
     end
 
@@ -987,7 +987,7 @@ module Ccxt
         'rate' => rate,
         'type' => takerOrMaker,
         'currency' => market['quote'],
-        'cost' => self.fee_to_precision(symbol, rate * cost).to_f,
+        'cost' => self.fee_to_precision(symbol, rate * cost).to_f
       }
     end
 
@@ -1189,7 +1189,7 @@ module Ccxt
         'grand' => 21,       # 1000000000000000000000
         'mether' => 24,      # 1000000000000000000000000
         'gether' => 27,      # 1000000000000000000000000000
-        'tether' => 30,      # 1000000000000000000000000000000
+        'tether' => 30      # 1000000000000000000000000000000
       }.freeze
 
       # TODO: there is no default value, which results in nil/None.
@@ -1209,7 +1209,7 @@ module Ccxt
         21 => 'kether',  # 0.001
         24 => 'mether',  # 0.000001
         27 => 'gether',  # 0.000000001
-        30 => 'tether',  # 0.000000000001
+        30 => 'tether'  # 0.000000000001
       }.freeze
       return self.class.safe_value(units, decimals)
     end
