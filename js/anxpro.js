@@ -123,11 +123,13 @@ module.exports = class anxpro extends Exchange {
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'from': since,
-            'ccy': code,
-            'max': limit,
-        };
+        const request = {};
+        if (since !== undefined)
+            request['from'] = since;
+        if (limit !== undefined)
+            request['max'] = limit;
+        if (code !== undefined)
+            request['ccy'] = code;
         const response = await this.v3privatePostTransactionList (this.extend (request, params));
         //    { transactions:
         //     [ { transactionClass: 'COIN',
@@ -324,9 +326,9 @@ module.exports = class anxpro extends Exchange {
         //         count: 3,
         //     timestamp: '1557438456732',
         //     resultCode: 'OK' }
-        const request = {
-            'max': limit,
-        };
+        const request = {};
+        if (limit !== undefined)
+            request['max'] = limit;
         const response = await this.v3privatePostTradeList (this.extend (request, params));
         if (response['resultCode'] !== 'OK')
             throw new ExchangeError (this.id + ' trade list failed ' + this.json (response));
@@ -368,9 +370,9 @@ module.exports = class anxpro extends Exchange {
         //             ccyPair: 'BTCGBP',
         //             side: 'BUY' } ] }
         // max parameter is undocumented
-        const request = {
-            'max': limit,
-        };
+        const request = {};
+        if (limit !== undefined)
+            request['max'] = limit;
         const response = await this.privatePostMoneyTradeList (this.extend (request, params));
         if (response['result'] !== 'success')
             throw new ExchangeError (this.id + ' trade list failed ' + this.json (response));
@@ -768,9 +770,9 @@ module.exports = class anxpro extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
-            'max': limit,
-        };
+        const request = {};
+        if (limit !== undefined)
+            request['max'] = limit;
         const response = await this.v3privatePostOrderList (this.extend (request, params));
         if (response['resultCode'] !== 'OK')
             throw new ExchangeError (this.id + ' fetch orders failed ' + this.json (response));
