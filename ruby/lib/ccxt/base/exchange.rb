@@ -911,7 +911,7 @@ module Ccxt
     def check_address(address)
       # Checks an address is not the same character repeated or an empty sequence
       if address.nil?
-        raise InvalidAddress, '#{self.id} address is nil'
+        raise InvalidAddress, "#{self.id} address is nil"
       end
 
       ## check the address is not the same letter like 'aaaaa' nor too short nor has a space
@@ -1422,7 +1422,7 @@ module Ccxt
 
       def implode_params(string, params)
         params.keys.each do |key|
-          string = string.gsub('{#{key}}', params[key].to_s)
+          string = string.gsub("{#{key}}", params[key].to_s)
         end
         return string
       end
