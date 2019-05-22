@@ -249,7 +249,7 @@ module Ccxt
       return set_markets(markets, currencies)
     end
 
-    def load_accounts(reload=false, params = {})
+    def load_accounts(reload = false, params = {})
       if reload
         self.accounts = self.fetch_accounts(params)
       else
@@ -263,7 +263,7 @@ module Ccxt
       return self.accounts
     end
 
-    def load_fees(reload=false)
+    def load_fees(reload = false)
       if !reload
         if self.loaded_fees != Exchange.loaded_fees
           return self.loaded_fees
@@ -470,7 +470,7 @@ module Ccxt
       return self.class.sort_by(result, 0)
     end
 
-    def parse_trading_view_ohlcv(ohlcvs, market=nil, timeframe='1m', since=nil, limit=nil)
+    def parse_trading_view_ohlcv(ohlcvs, market = nil, timeframe = '1m', since = nil, limit = nil)
       result = self.convert_trading_view_to_ohlcv(ohlcvs)
       return self.parse_ohlcvs(result, market, timeframe, since, limit)
     end
@@ -828,7 +828,7 @@ module Ccxt
     end
 
     # Depends on #currencies_by_id
-    def safe_currency_code(data, key, currency=nil)
+    def safe_currency_code(data, key, currency = nil)
       code = nil
       currency_id = self.class.safe_string(data, key)
       if self.currencies_by_id.include?(currency_id)
@@ -1641,7 +1641,7 @@ module Ccxt
         return Time.at(timestamp / 1000.0).round(3).utc.iso8601(3)
       end
 
-      def dmy(timestamp, infix='-')
+      def dmy(timestamp, infix = '-')
         utc_datetime = Time.at(timestamp.to_i).utc
         return utc_datetime.strftime('%m' + infix + '%d' + infix + "%Y")
       end
