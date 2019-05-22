@@ -330,7 +330,7 @@ module.exports = class anxpro extends Exchange {
         const response = await this.v3privatePostTradeList (this.extend (request, params));
         if (response['resultCode'] !== 'OK')
             throw new ExchangeError (this.id + ' trade list failed ' + this.json (response));
-        const trades = response.trades;
+        const trades = response['trades'];
         const result = this.parseTrades (trades, undefined, since, limit);
         if (symbol === undefined)
             return result;
@@ -372,9 +372,9 @@ module.exports = class anxpro extends Exchange {
             'max': limit,
         };
         const response = await this.privatePostMoneyTradeList (this.extend (request, params));
-        if (response.result !== 'success')
+        if (response['result'] !== 'success')
             throw new ExchangeError (this.id + ' trade list failed ' + this.json (response));
-        const trades = response.data;
+        const trades = response['data'];
         const result = this.parseTrades (trades, undefined, since, limit);
         if (symbol === undefined)
             return result;
