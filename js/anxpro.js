@@ -294,7 +294,7 @@ module.exports = class anxpro extends Exchange {
             'CANCELLED_INSUFFICIENT_FUNDS': 'canceled',
             'CANCELLED_LIMIT_BREACH': 'canceled',
         };
-        return this.safeString (statuses, status, 'pending');
+        return this.safeString (statuses, status, status);
     }
 
     async fetchMyTrades_v3 (symbol = undefined, since = undefined, limit = undefined, params = {}) {
