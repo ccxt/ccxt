@@ -74,14 +74,14 @@ module Ccxt
       @api = nil
       @parseJsonResponse = true
       @proxy = ''
-      @origin = '*'  # CORS origin
+      @origin = '*' # CORS origin
       @proxies = nil
       @hostname = nil # in case of inaccessibility of the "main" domain
       @apiKey = ''
       @secret = ''
       @password = ''
       @uid = ''
-      @privateKey = ''  # a "0x"-prefixed hexstring private key for a wallet
+      @privateKey = '' # a "0x"-prefixed hexstring private key for a wallet
       @walletAddress = ''  # the wallet address "0x"-prefixed hexstring
       @twofa = nil
       @marketsById = nil
@@ -108,8 +108,8 @@ module Ccxt
         'login' => false,
         'password' => false,
         'twofa' => false,  # 2-factor authentication (one-time password key)
-        'privateKey' => false,  # a "0x"-prefixed hexstring private key for a wallet
-        'walletAddress' => false,  # the wallet address "0x"-prefixed hexstring
+        'privateKey' => false, # a "0x"-prefixed hexstring private key for a wallet
+        'walletAddress' => false, # the wallet address "0x"-prefixed hexstring
       }
 
       # API method metainfo
@@ -151,7 +151,7 @@ module Ccxt
       }
 
       @precisionMode = DECIMAL_PLACES
-      @minFundingAddressLength = 1  # used in check_address
+      @minFundingAddressLength = 1 # used in check_address
       @substituteCommonCurrencyCodes = true
       @lastRestRequestTimestamp = 0
       @lastRestPollTimestamp = 0
@@ -595,7 +595,7 @@ module Ccxt
         trade = trades[i]
         next if since && (trade['timestamp'] < since )
 
-        opening_time = (math.floor(trade['timestamp'] / ms) * ms).to_i  # Shift the edge of the m/h/d (but not M)
+        opening_time = (math.floor(trade['timestamp'] / ms) * ms).to_i # Shift the edge of the m/h/d (but not M)
         j = ohlcvs.size
         if (j == 0) or opening_time >= ohlcvs[j - 1][0] + ms
           # moved to a new timeframe -> create a new candle from opening trade
@@ -1689,7 +1689,7 @@ module Ccxt
         when 'h'
           scale = 60 * 60
         else
-          scale = 60  # 1m by default
+          scale = 60 # 1m by default
         end
         return amount * scale
       end
