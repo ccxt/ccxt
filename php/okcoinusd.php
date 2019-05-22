@@ -161,7 +161,7 @@ class okcoinusd extends Exchange {
                 '1051' => '\\ccxt\\OrderNotFound', // for spot markets, cancelling "just closed" order
                 '10009' => '\\ccxt\\OrderNotFound', // for spot markets, "Order does not exist"
                 '20015' => '\\ccxt\\OrderNotFound', // for future markets
-                '10008' => '\\ccxt\\ExchangeError', // Illegal URL parameter
+                '10008' => '\\ccxt\\BadRequest', // Illegal URL parameter
                 // todo => sort out below
                 // 10000 Required parameter is empty
                 // 10001 Request frequency too high to exceed the limit allowed
@@ -447,8 +447,8 @@ class okcoinusd extends Exchange {
                 $base = $this->common_currency_code($uppercaseBaseId);
                 $quote = $this->common_currency_code($uppercaseQuoteId);
             }
-            for ($i = 0; $i < count ($contracts); $i++) {
-                $contract = $contracts[$i];
+            for ($k = 0; $k < count ($contracts); $k++) {
+                $contract = $contracts[$k];
                 $type = $this->safe_string($contract, 'type', 'spot');
                 $contractType = null;
                 $spot = true;
@@ -753,10 +753,13 @@ class okcoinusd extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $method = $market['future'] ? 'privatePostFutureTrade' : 'privatePostTrade';
+        $orderSide = ($type === 'market') ? ($side . '_market') : $side;
+        $isMarketBuy = (($market['spot']) && ($type === 'market') && ($side === 'buy') && (!$this->options['marketBuyPrice']));
+        $orderPrice = $isMarketBuy ? $this->safe_float($params, 'cost') : $price;
         $request = $this->create_request ($market, array (
-            'type' => $type === 'market' ? $side . '_market' : $side,
+            'type' => $orderSide,
             'amount' => $amount,
-            'price' => $market['spot'] && $type === 'market' && $side === 'buy' && !$this->options['marketBuyPrice'] ? $this->safe_float($params, 'cost') : $price,
+            'price' => $orderPrice,
         ));
         if ($market['future']) {
             $request['match_price'] = 0; // match best counter party $price? 0 or 1, ignores $price if 1

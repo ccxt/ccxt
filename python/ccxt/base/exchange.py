@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.544'
+__version__ = '1.18.566'
 
 # -----------------------------------------------------------------------------
 
@@ -146,6 +146,7 @@ class Exchange(object):
     uid = ''
     privateKey = ''  # a "0x"-prefixed hexstring private key for a wallet
     walletAddress = ''  # the wallet address "0x"-prefixed hexstring
+    token = ''  # reserved for HTTP auth in some cases
     twofa = None
     marketsById = None
     markets_by_id = None
@@ -209,6 +210,7 @@ class Exchange(object):
         'twofa': False,  # 2-factor authentication (one-time password key)
         'privateKey': False,  # a "0x"-prefixed hexstring private key for a wallet
         'walletAddress': False,  # the wallet address "0x"-prefixed hexstring
+        'token': False,  # reserved for HTTP auth in some cases
     }
 
     # API method metainfo

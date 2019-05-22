@@ -198,11 +198,11 @@ The ccxt library currently supports the following 137 cryptocurrency exchange ma
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `cryptopia <https://www.cryptopia.co.nz/Register?referrer=kroitor>`__                     | cryptopia          | `Cryptopia <https://www.cryptopia.co.nz/Register?referrer=kroitor>`__                      | \*    | `API <https://support.cryptopia.co.nz/csm?id=kb_article&sys_id=a75703dcdbb9130084ed147a3a9619bc>`__ |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `deribit <https://www.deribit.com/reg-1189.4038>`__                                       | deribit            | `Deribit <https://www.deribit.com/reg-1189.4038>`__                                        | 1     | `API <https://docs.deribit.com/>`__                                                                 |                                                                      |
+| `deribit <https://www.deribit.com/reg-1189.4038>`__                                       | deribit            | `Deribit <https://www.deribit.com/reg-1189.4038>`__                                        | 1     | `API <https://docs.deribit.com>`__                                                                  |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `dsx <https://dsx.uk>`__                                                                  | dsx                | `DSX <https://dsx.uk>`__                                                                   | 2     | `API <https://api.dsx.uk>`__                                                                        |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `dx <https://dx.exchange/registration?dx_cid=20&dx_scname=100001100000038139>`__          | dx                 | `DX.Exchange <https://dx.exchange/registration?dx_cid=20&dx_scname=100001100000038139>`__  | 1     | `API <https://apidocs.dx.exchange/>`__                                                              |                                                                      |
+| `dx <https://dx.exchange/registration?dx_cid=20&dx_scname=100001100000038139>`__          | dx                 | `DX.Exchange <https://dx.exchange/registration?dx_cid=20&dx_scname=100001100000038139>`__  | 1     | `API <https://apidocs.dx.exchange>`__                                                               |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `ethfinex <https://www.ethfinex.com>`__                                                   | ethfinex           | `Ethfinex <https://www.ethfinex.com>`__                                                    | 1     | `API <https://bitfinex.readme.io/v1/docs>`__                                                        |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -3404,7 +3404,7 @@ To handle the errors you should add a ``try`` block around the call to a unified
    # try to call a unified method
    try:
        response = await exchange.fetch_order_book('ETH/BTC')
-       print(ticker)
+       print(response)
    except ccxt.NetworkError as e:
        print(exchange.id, 'fetch_order_book failed due to a network error:', str(e))
        # retry or whatever
@@ -3425,7 +3425,7 @@ To handle the errors you should add a ``try`` block around the call to a unified
    // try to call a unified method
    try {
        $response = $exchange->fetch_trades('ETH/BTC');
-       print_r(ticker);
+       print_r($response);
    } catch (\ccxt\NetworkError $e) {
        echo $exchange->id . ' fetch_trades failed due to a network error: ' . $e->getMessage () . "\n";
        // retry or whatever

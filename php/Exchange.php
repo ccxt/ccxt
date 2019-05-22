@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.544';
+$version = '1.18.566';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.544';
+    const VERSION = '1.18.566';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -805,6 +805,8 @@ class Exchange {
         $this->uid           = '';
         $this->privateKey    = '';
         $this->walletAddress = '';
+        $this->token = ''; // reserved for HTTP auth in some cases
+
 
         $this->twofa         = null;
         $this->marketsById   = null;
@@ -828,6 +830,7 @@ class Exchange {
             'twofa' => false, // 2-factor authentication (one-time password key)
             'privateKey' => false,
             'walletAddress' => false,
+            'token' => false, // reserved for HTTP auth in some cases
         );
 
         // API methods metainfo

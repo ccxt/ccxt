@@ -1021,8 +1021,12 @@ module.exports = class okex3 extends Exchange {
         if (Array.isArray (ohlcv)) {
             let numElements = ohlcv.length;
             let volumeIndex = (numElements > 6) ? 6 : 5;
+            let timestamp = ohlcv[0];
+            if (typeof timestamp === 'string') {
+                timestamp = this.parse8601 (timestamp);
+            }
             return [
-                ohlcv[0], // timestamp
+                timestamp, // timestamp
                 parseFloat (ohlcv[1]),            // Open
                 parseFloat (ohlcv[2]),            // High
                 parseFloat (ohlcv[3]),            // Low
@@ -1499,14 +1503,14 @@ module.exports = class okex3 extends Exchange {
             // 'order_type': '0', // 0: Normal limit order (Unfilled and 0 represent normal limit order) 1: Post only 2: Fill Or Kill 3: Immediatel Or Cancel
         };
         let method = undefined;
-        if (market['future'] || market['swap']) {
+        if (market['futures'] || market['swap']) {
             request = this.extend (request, {
                 'type': type, // 1:open long 2:open short 3:close long 4:close short for futures
                 'side': this.amountToPrecision (symbol, amount),
                 'price': this.priceToPrecision (symbol, price),
                 // 'match_price': '0', // Order at best counter party price? (0:no 1:yes). The default is 0. If it is set as 1, the price parameter will be ignored. When posting orders at best bid price, order_type can only be 0 (regular order).
             });
-            if (market['future']) {
+            if (market['futures']) {
                 request['leverage'] = '10'; // or '20'
             }
             method = market['type'] + 'PostOrder';
@@ -1749,8 +1753,13 @@ module.exports = class okex3 extends Exchange {
         }
         let amount = this.safeFloat (order, 'size');
         let filled = this.safeFloat2 (order, 'filled_size', 'filled_qty');
-        amount = Math.max (amount, filled);
-        let remaining = Math.max (0, amount - filled);
+        let remaining = undefined;
+        if (amount !== undefined) {
+            if (filled !== undefined) {
+                amount = Math.max (amount, filled);
+                remaining = Math.max (0, amount - filled);
+            }
+        }
         if (type === 'market') {
             remaining = 0;
         }
@@ -1905,6 +1914,9 @@ module.exports = class okex3 extends Exchange {
         // spot, margin
         //
         //     [
+        //         // in fact, this documented API response does not correspond
+        //         // to their actual API response for spot markets
+        //         // OKEX v3 API returns a plain array of orders (see below)
         //         [
         //             {
         //                 "client_oid":"oktspot76",
@@ -1962,11 +1974,20 @@ module.exports = class okex3 extends Exchange {
         if (market['type'] === 'swap' || market['type'] === 'futures') {
             orders = this.safeValue (response, 'order_info', []);
         } else {
+            orders = response;
             const responseLength = response.length;
             if (responseLength < 1) {
                 return [];
             }
-            orders = response[0];
+            // in fact, this documented API response does not correspond
+            // to their actual API response for spot markets
+            // OKEX v3 API returns a plain array of orders
+            if (responseLength > 1) {
+                const before = this.safeValue (response[1], 'before');
+                if (before !== undefined) {
+                    orders = response[0];
+                }
+            }
         }
         return this.parseOrders (orders, market, since, limit);
     }

@@ -1022,8 +1022,12 @@ class okex3 extends Exchange {
         if (gettype ($ohlcv) === 'array' && count (array_filter (array_keys ($ohlcv), 'is_string')) == 0) {
             $numElements = is_array ($ohlcv) ? count ($ohlcv) : 0;
             $volumeIndex = ($numElements > 6) ? 6 : 5;
+            $timestamp = $ohlcv[0];
+            if (gettype ($timestamp) === 'string') {
+                $timestamp = $this->parse8601 ($timestamp);
+            }
             return [
-                $ohlcv[0], // timestamp
+                $timestamp, // $timestamp
                 floatval ($ohlcv[1]),            // Open
                 floatval ($ohlcv[2]),            // High
                 floatval ($ohlcv[3]),            // Low
@@ -1500,14 +1504,14 @@ class okex3 extends Exchange {
             // 'order_type' => '0', // 0 => Normal limit order (Unfilled and 0 represent normal limit order) 1 => Post only 2 => Fill Or Kill 3 => Immediatel Or Cancel
         );
         $method = null;
-        if ($market['future'] || $market['swap']) {
+        if ($market['futures'] || $market['swap']) {
             $request = array_merge ($request, array (
                 'type' => $type, // 1:open long 2:open short 3:close long 4:close short for futures
                 'side' => $this->amount_to_precision($symbol, $amount),
                 'price' => $this->price_to_precision($symbol, $price),
                 // 'match_price' => '0', // Order at best counter party $price? (0:no 1:yes). The default is 0. If it is set as 1, the $price parameter will be ignored. When posting orders at best bid $price, order_type can only be 0 (regular order).
             ));
-            if ($market['future']) {
+            if ($market['futures']) {
                 $request['leverage'] = '10'; // or '20'
             }
             $method = $market['type'] . 'PostOrder';
@@ -1750,8 +1754,13 @@ class okex3 extends Exchange {
         }
         $amount = $this->safe_float($order, 'size');
         $filled = $this->safe_float_2($order, 'filled_size', 'filled_qty');
-        $amount = max ($amount, $filled);
-        $remaining = max (0, $amount - $filled);
+        $remaining = null;
+        if ($amount !== null) {
+            if ($filled !== null) {
+                $amount = max ($amount, $filled);
+                $remaining = max (0, $amount - $filled);
+            }
+        }
         if ($type === 'market') {
             $remaining = 0;
         }
@@ -1906,6 +1915,9 @@ class okex3 extends Exchange {
         // spot, margin
         //
         //     array (
+        //         // in fact, this documented API $response does not correspond
+        //         // to their actual API $response for spot markets
+        //         // OKEX v3 API returns a plain array of $orders (see below)
         //         array (
         //             array (
         //                 "client_oid":"oktspot76",
@@ -1928,7 +1940,7 @@ class okex3 extends Exchange {
         //             ),
         //         ),
         //         {
-        //             "before":"2500723297813504",
+        //             "$before":"2500723297813504",
         //             "after":"2500650881647616"
         //         }
         //     )
@@ -1963,11 +1975,20 @@ class okex3 extends Exchange {
         if ($market['type'] === 'swap' || $market['type'] === 'futures') {
             $orders = $this->safe_value($response, 'order_info', array ());
         } else {
+            $orders = $response;
             $responseLength = is_array ($response) ? count ($response) : 0;
             if ($responseLength < 1) {
                 return array ();
             }
-            $orders = $response[0];
+            // in fact, this documented API $response does not correspond
+            // to their actual API $response for spot markets
+            // OKEX v3 API returns a plain array of $orders
+            if ($responseLength > 1) {
+                $before = $this->safe_value($response[1], 'before');
+                if ($before !== null) {
+                    $orders = $response[0];
+                }
+            }
         }
         return $this->parse_orders($orders, $market, $since, $limit);
     }

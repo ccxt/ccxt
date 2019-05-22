@@ -75,7 +75,7 @@ class dx (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/57979980-6483ff80-7a2d-11e9-9224-2aa20665703b.jpg',
                 'api': 'https://acl.dx.exchange',
                 'www': 'https://dx.exchange',
-                'doc': 'https://apidocs.dx.exchange/',
+                'doc': 'https://apidocs.dx.exchange',
                 'fees': 'https://dx.exchange/fees',
                 'referral': 'https://dx.exchange/registration?dx_cid=20&dx_scname=100001100000038139',
             },
@@ -176,31 +176,40 @@ class dx (Exchange):
         result = []
         for i in range(0, len(instruments)):
             instrument = instruments[i]
-            id = instrument['id']
-            symbol = instrument['asset']['fullName']
-            base, quote = symbol.split('/')
+            id = self.safe_string(instrument, 'id')
+            numericId = self.safe_integer(instrument, 'id')
+            asset = self.safe_value(instrument, 'asset', {})
+            fullName = self.safe_string(asset, 'fullName')
+            base, quote = fullName.split('/')
             amountPrecision = 0
             if instrument['meQuantityMultiplier'] != 0:
                 amountPrecision = math.log10(instrument['meQuantityMultiplier'])
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
+            baseId = self.safe_string(asset, 'baseCurrencyId')
+            quoteId = self.safe_string(asset, 'quotedCurrencyId')
+            baseNumericId = self.safe_integer(asset, 'baseCurrencyId')
+            quoteNumericId = self.safe_integer(asset, 'quotedCurrencyId')
             symbol = base + '/' + quote
             result.append({
                 'id': id,
+                'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'baseId': instrument['asset']['baseCurrencyId'],
-                'quoteId': instrument['asset']['quotedCurrencyId'],
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'baseNumericId': baseNumericId,
+                'quoteNumericId': quoteNumericId,
                 'info': instrument,
                 'precision': {
                     'amount': amountPrecision,
-                    'price': instrument['asset']['tailDigits'],
+                    'price': self.safe_integer(asset, 'tailDigits'),
                 },
                 'limits': {
                     'amount': {
-                        'min': instrument['minOrderQuantity'],
-                        'max': instrument['maxOrderQuantity'],
+                        'min': self.safe_float(instrument, 'minOrderQuantity'),
+                        'max': self.safe_float(instrument, 'maxOrderQuantity'),
                     },
                     'price': {
                         'min': 0,
@@ -251,8 +260,8 @@ class dx (Exchange):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'instrumentIds': [market['id']],
-            'currencyId': market['quoteId'],
+            'instrumentIds': [market['numericId']],
+            'currencyId': market['quoteNumericId'],
         }
         response = await self.publicPostAssetManagementGetTicker(self.extend(request, params))
         return self.parse_ticker(response['result']['tickers'], market)
@@ -273,7 +282,7 @@ class dx (Exchange):
         request = {
             'timestampFrom': since,
             'timestampTill': None,
-            'instrumentId': market['id'],
+            'instrumentId': market['numericId'],
             'type': self.timeframes[timeframe],
             'pagination': {
                 'limit': limit,
@@ -294,7 +303,7 @@ class dx (Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            request['instrumentId'] = market['id']
+            request['instrumentId'] = market['numericId']
         response = await self.privatePostOrderManagementOpenOrders(self.extend(request, params))
         return self.parse_orders(response['result']['orders'], market, since, limit)
 
@@ -309,7 +318,7 @@ class dx (Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            request['instrumentId'] = market['id']
+            request['instrumentId'] = market['numericId']
         response = await self.privatePostOrderManagementOrderHistory(self.extend(request, params))
         return self.parse_orders(response['result']['ordersForHistory'], market, since, limit)
 
@@ -365,58 +374,63 @@ class dx (Exchange):
 
     async def sign_in(self, params={}):
         self.check_required_credentials()
-        result = await self.publicPostAuthorizationLoginByToken(self.extend({
+        request = {
             'token': self.apiKey,
             'secret': self.secret,
-        }, params))
-        expiresIn = result['result']['expiry']
+        }
+        response = await self.publicPostAuthorizationLoginByToken(self.extend(request, params))
+        expiresIn = response['result']['expiry']
         self.options['expires'] = self.sum(self.milliseconds(), expiresIn * 1000)
-        self.options['accessToken'] = result['result']['token']
-        return result
+        self.options['accessToken'] = response['result']['token']
+        return response
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostBalanceGet(params)
         result = {'info': response}
-        balances = response['result']['balance']
-        balancesKeys = list(balances.keys())
-        for i in range(0, len(balancesKeys)):
-            instrumentId = balancesKeys[i]
-            balance = balances[instrumentId]
-            symbol = instrumentId
-            if instrumentId in self.currencies_by_id:
-                symbol = self.currencies_by_id[instrumentId]['code']
+        balances = self.safe_value(response['result'], 'balance')
+        ids = list(balances.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            balance = balances[id]
+            code = None
+            if id in self.currencies_by_id:
+                code = self.currencies_by_id[id]['code']
             account = {
-                'free': float(balance['available']),
-                'used': float(balance['frozen']),
-                'total': float(balance['total']),
+                'free': self.safe_float(balance, 'available'),
+                'used': self.safe_float(balance, 'frozen'),
+                'total': self.safe_float(balance, 'total'),
             }
             account['total'] = self.sum(account['free'], account['used'])
-            result[symbol] = account
+            result[code] = account
         return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
-        direction = self.options['orderSide'][side]
+        direction = self.safe_integer(self.options['orderSide'], side)
+        market = self.market(symbol)
         order = {
-            'order': {
-                'direction': direction,
-                'instrumentId': self.market_id(symbol),
-                'orderType': 2,
-                'quantity': self.number_to_object(amount),
-            },
+            'direction': direction,
+            'instrumentId': market['numericId'],
+            'orderType': 2,
+            'quantity': self.number_to_object(amount),
         }
-        order['order']['orderType'] = self.options['orderTypes'][type]
+        order['orderType'] = self.options['orderTypes'][type]
         if type == 'limit':
-            order['order']['price'] = self.number_to_object(price)
-        result = await self.privatePostOrderManagementCreate(self.extend(order, params))
+            order['price'] = self.number_to_object(price)
+        request = {
+            'order': order,
+        }
+        result = await self.privatePostOrderManagementCreate(self.extend(request, params))
+        # todo: rewrite for parseOrder
         return {
             'info': result,
             'id': result['result']['externalOrderId'],
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
-        return await self.privatePostOrderManagementCancel({'externalOrderId': id})
+        request = {'externalOrderId': id}
+        return await self.privatePostOrderManagementCancel(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         if isinstance(params, list):

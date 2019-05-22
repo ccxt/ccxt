@@ -4,6 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -1004,8 +1011,11 @@ class okex3 (Exchange):
         if isinstance(ohlcv, list):
             numElements = len(ohlcv)
             volumeIndex = 6 if (numElements > 6) else 5
+            timestamp = ohlcv[0]
+            if isinstance(timestamp, basestring):
+                timestamp = self.parse8601(timestamp)
             return [
-                ohlcv[0],  # timestamp
+                timestamp,  # timestamp
                 float(ohlcv[1]),            # Open
                 float(ohlcv[2]),            # High
                 float(ohlcv[3]),            # Low
@@ -1458,14 +1468,14 @@ class okex3 (Exchange):
             # 'order_type': '0',  # 0: Normal limit order(Unfilled and 0 represent normal limit order) 1: Post only 2: Fill Or Kill 3: Immediatel Or Cancel
         }
         method = None
-        if market['future'] or market['swap']:
+        if market['futures'] or market['swap']:
             request = self.extend(request, {
                 'type': type,  # 1:open long 2:open short 3:close long 4:close short for futures
                 'side': self.amount_to_precision(symbol, amount),
                 'price': self.price_to_precision(symbol, price),
                 # 'match_price': '0',  # Order at best counter party price?(0:no 1:yes). The default is 0. If it is set as 1, the price parameter will be ignored. When posting orders at best bid price, order_type can only be 0(regular order).
             })
-            if market['future']:
+            if market['futures']:
                 request['leverage'] = '10'  # or '20'
             method = market['type'] + 'PostOrder'
         else:
@@ -1687,8 +1697,11 @@ class okex3 (Exchange):
                 symbol = market['symbol']
         amount = self.safe_float(order, 'size')
         filled = self.safe_float_2(order, 'filled_size', 'filled_qty')
-        amount = max(amount, filled)
-        remaining = max(0, amount - filled)
+        remaining = None
+        if amount is not None:
+            if filled is not None:
+                amount = max(amount, filled)
+                remaining = max(0, amount - filled)
         if type == 'market':
             remaining = 0
         cost = self.safe_float_2(order, 'filled_notional', 'funds')
@@ -1830,6 +1843,9 @@ class okex3 (Exchange):
         # spot, margin
         #
         #     [
+        #         # in fact, self documented API response does not correspond
+        #         # to their actual API response for spot markets
+        #         # OKEX v3 API returns a plain array of orders(see below)
         #         [
         #             {
         #                 "client_oid":"oktspot76",
@@ -1887,10 +1903,17 @@ class okex3 (Exchange):
         if market['type'] == 'swap' or market['type'] == 'futures':
             orders = self.safe_value(response, 'order_info', [])
         else:
+            orders = response
             responseLength = len(response)
             if responseLength < 1:
                 return []
-            orders = response[0]
+            # in fact, self documented API response does not correspond
+            # to their actual API response for spot markets
+            # OKEX v3 API returns a plain array of orders
+            if responseLength > 1:
+                before = self.safe_value(response[1], 'before')
+                if before is not None:
+                    orders = response[0]
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
