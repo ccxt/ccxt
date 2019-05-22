@@ -835,6 +835,15 @@ module.exports = class anxpro extends Exchange {
             return this.parseV2Order (order, market);
     }
 
+    parseV3OrderStatus (status) {
+        const statuses = {
+            'ACTIVE': 'open',
+            'FULL_FILL': 'closed',
+            'CANCEL': 'canceled',
+        };
+        return this.safeString (statuses, status, 'status');
+    }
+
     parseV3Order (order, market = undefined) {
         //   { orderType: 'LIMIT',
         //     tradedCurrency: 'XRP',
@@ -866,13 +875,7 @@ module.exports = class anxpro extends Exchange {
         //             ccyPair: 'XRPBTC' } ] }
         const tradedCurrency = this.safeString (order, 'tradedCurrency');
         const orderStatus = this.safeString (order, 'orderStatus');
-        let status = undefined;
-        if (orderStatus === 'ACTIVE')
-            status = 'open';
-        else if (orderStatus === 'FULL_FILL')
-            status = 'closed';
-        else if (orderStatus.indexOf ('CANCEL') >= 0)
-            status = 'canceled';
+        const status = this.parseV3OrderStatus (orderStatus);
         const settlementCurrency = this.safeString (order, 'settlementCurrency');
         const symbol = this.findSymbol (tradedCurrency + '/' + settlementCurrency);
         const buyTradedCurrency = this.safeString (order, 'buyTradedCurrency');
