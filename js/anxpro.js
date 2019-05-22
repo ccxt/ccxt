@@ -778,18 +778,18 @@ module.exports = class anxpro extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        if (limit !== undefined)
+        if (limit !== undefined) {
             request['max'] = limit;
+        }
         const response = await this.v3privatePostOrderList (this.extend (request, params));
-        if (response['resultCode'] !== 'OK')
-            throw new ExchangeError (this.id + ' fetch orders failed ' + this.json (response));
-        const orders = response['orders'];
-        return this.parseOrders (orders, undefined, since, limit);
+        const orders = this.safeValue (response, 'orders', []);
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
+        const market = this.market (symbol);
         const request = {
             'currency_pair': market['id'],
         };
@@ -834,7 +834,7 @@ module.exports = class anxpro extends Exchange {
         //         ]
         //     }
         //
-        return this.parseOrders (this.safeValue (response, 'data', {}), symbol, since, limit);
+        return this.parseOrders (this.safeValue (response, 'data', {}), market, since, limit);
     }
 
     parseOrder (order, market = undefined) {
@@ -850,7 +850,7 @@ module.exports = class anxpro extends Exchange {
             'FULL_FILL': 'closed',
             'CANCEL': 'canceled',
         };
-        return this.safeString (statuses, status, 'status');
+        return this.safeString (statuses, status, status);
     }
 
     parseV3Order (order, market = undefined) {
@@ -1022,6 +1022,7 @@ module.exports = class anxpro extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let order = {
             'currency_pair': market['id'],
