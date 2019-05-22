@@ -727,7 +727,7 @@ module.exports = class anxpro extends Exchange {
         const request = {
             'currency_pair': this.marketId (symbol),
         };
-        const response = await this.publicGetCurrencyPairMoneyDepthFull (this.extend (, params));
+        const response = await this.publicGetCurrencyPairMoneyDepthFull (this.extend (request, params));
         const orderbook = this.safeValue (response, 'data', {});
         const t = this.safeInteger (orderbook, 'dataUpdateTime');
         const timestamp = (t === undefined) ? t : parseInt (t / 1000);
