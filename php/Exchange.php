@@ -1198,6 +1198,7 @@ class Exchange {
 
         $json_response = null;
 
+        $result = trim ($result);
         if ($this->is_json_encoded_object ($result)) {
 
             $json_response = $this->parse_json ($result);

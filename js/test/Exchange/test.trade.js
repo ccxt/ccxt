@@ -47,6 +47,7 @@ module.exports = (exchange, trade, symbol, now) => {
 
     const isExchangeLackingFilteringTradesBySymbol = [
         'kraken', // override for kraken and possibly other exchanges as well, can't return private trades per symbol at all
+        'tuxexchange'
     ].includes (exchange.id)
 
     if (!isExchangeLackingFilteringTradesBySymbol)

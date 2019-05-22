@@ -680,6 +680,7 @@ module.exports = class Exchange {
 
         return response.text ().then ((responseBody) => {
 
+            responseBody = responseBody.trim ();
             const shouldParseJson = this.isJsonEncodedObject (responseBody) && !this.skipJsonOnStatusCodes.includes (response.status)
             const json = shouldParseJson ? this.parseRestResponse (response, responseBody, url, method) : undefined
 

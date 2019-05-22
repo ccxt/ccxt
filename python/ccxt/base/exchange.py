@@ -493,7 +493,7 @@ class Exchange(object):
                 timeout=int(self.timeout / 1000),
                 proxies=self.proxies
             )
-            http_response = response.text
+            http_response = response.text.strip()
             json_response = self.parse_json(http_response) if self.is_json_encoded_object(http_response) else None
             headers = response.headers
             # FIXME remove last_x_responses from subclasses
