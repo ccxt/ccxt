@@ -764,7 +764,7 @@ class coss extends Exchange {
             'OPEN' => 'open',
             'CANCELLED' => 'canceled',
             'FILLED' => 'closed',
-            'PARTIAL_FILL' => 'open',
+            'PARTIAL_FILL' => 'closed',
             'CANCELLING' => 'open',
         );
         return $this->safe_string($statuses, strtoupper ($status), $status);
