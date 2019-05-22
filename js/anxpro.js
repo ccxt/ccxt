@@ -892,7 +892,7 @@ module.exports = class anxpro extends Exchange {
                 lastTradeTimestamp = tradeTimestamp;
             const parsedTrade = this.extend (this.parse_v3_Trade (trade), { 'side': side, 'type': type });
             trades.push (parsedTrade);
-            filled += parsedTrade['amount'];
+            filled = this.sum (filled, parsedTrade['amount']);
         }
         let price = this.safeFloat (order, 'limitPriceInSettlementCurrency');
         const executedAverageRate = this.safeFloat (order, 'executedAverageRate');
