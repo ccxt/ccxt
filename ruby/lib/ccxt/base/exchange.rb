@@ -180,7 +180,7 @@ module Ccxt
         'BCHSV' => 'BSV',
       }
 
-      settings = self.class.deep_extend(self.describe(), config)
+      settings = self.class.deep_extend(self.describe, config)
       settings.each do |key, value|
         if self.instance_variable_defined?("@#{key}") && self.instance_variable_get("@#{key}").is_a?(Hash)
             self.instance_variable_set("@#{key}", self.class.deep_extend(self.send(key), value))
@@ -245,7 +245,7 @@ module Ccxt
         return self.markets
       end
       puts "load_markets: loading markets." if verbose
-      currencies = fetch_currencies() if has['fetchCurrencies']
+      currencies = fetch_currencies if has['fetchCurrencies']
       markets = self.fetch_markets(params)
       return set_markets(markets, currencies)
     end
@@ -270,7 +270,7 @@ module Ccxt
           return self.loaded_fees
         end
       end
-      self.loaded_fees = self.class.deep_extend(self.loaded_fees, self.fetch_fees())
+      self.loaded_fees = self.class.deep_extend(self.loaded_fees, self.fetch_fees)
       return self.loaded_fees
     end
 
@@ -301,7 +301,7 @@ module Ccxt
     def fetch_OHLCV(symbol, timeframe = '1m', since = nil, limit = nil, params = {})
       raise(NotSupported, 'fetch_ohlcv() is not supported yet.') unless self.has['fetchTrades']
 
-      self.load_markets()
+      self.load_markets
       trades = self.fetch_trades(symbol, since, limit, params)
       return self.build_ohlcv(trades, timeframe, since, limit)
     end
@@ -310,10 +310,10 @@ module Ccxt
       trading = {}
       funding = {}
       if self.has['fetchTradingFees']
-        trading = self.fetch_trading_fees()
+        trading = self.fetch_trading_fees
       end
       if self.has['fetchFundingFees']
-        funding = self.fetch_funding_fees()
+        funding = self.fetch_funding_fees
       end
       return {
         'trading' => trading,
@@ -381,7 +381,7 @@ module Ccxt
     end
 
     def nonce
-      return Exchange.milliseconds()
+      return Exchange.milliseconds
     end
 
     ## PRIVATE
