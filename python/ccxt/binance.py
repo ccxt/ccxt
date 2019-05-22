@@ -118,6 +118,7 @@ class binance (Exchange):
                         'depth',
                         'trades',
                         'aggTrades',
+                        'historicalTrades',
                         'klines',
                         'ticker/24hr',
                         'ticker/allPrices',
@@ -1129,14 +1130,18 @@ class binance (Exchange):
         url += '/' + path
         if api == 'wapi':
             url += '.html'
-        # v1 special case for userDataStream
-        if path == 'userDataStream':
+        if path == 'historicalTrades':
+            headers = {
+                'X-MBX-APIKEY': self.apiKey,
+            }
+        elif path == 'userDataStream':
+            # v1 special case for userDataStream
             body = self.urlencode(params)
             headers = {
                 'X-MBX-APIKEY': self.apiKey,
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
-        elif (api == 'private') or (api == 'wapi' and path != 'systemStatus'):
+        if (api == 'private') or (api == 'wapi' and path != 'systemStatus'):
             self.check_required_credentials()
             query = self.urlencode(self.extend({
                 'timestamp': self.nonce(),

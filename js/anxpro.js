@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InsufficientFunds, ExchangeNotAvailable, InvalidOrder, BadRequest, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -110,6 +110,23 @@ module.exports = class anxpro extends Exchange {
             },
             'httpExceptions': {
                 '403': AuthenticationError,
+            },
+            'exceptions': {
+                'exact': {
+                    // v2
+                    'Insufficient Funds': InsufficientFunds,
+                    'Trade value too small': InvalidOrder,
+                    'The currency pair is not supported': BadRequest,
+                    'Order amount is too low': InvalidOrder,
+                    'Order amount is too high': InvalidOrder,
+                    'order rate is too low': InvalidOrder,
+                    'order rate is too high': InvalidOrder,
+                    'Too many open orders': InvalidOrder,
+                    'Unexpected error': ExchangeError,
+                    'Order Engine is offline': ExchangeNotAvailable,
+                    'No executed order with that identifer found': OrderNotFound,
+                    'Unknown server error, please contact support.': ExchangeError,
+                },
             },
             'fees': {
                 'trading': {
@@ -1023,19 +1040,21 @@ module.exports = class anxpro extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let order = {
+        const market = this.market (symbol);
+        const amountMultiplier = Math.pow (10, market['precision']['amount']);
+        const request = {
             'currency_pair': market['id'],
-            'amount_int': parseInt (amount * 100000000), // 10^8
+            'amount_int': parseInt (amount * amountMultiplier), // 10^8
         };
         if (type === 'limit') {
-            order['price_int'] = parseInt (price * market['multiplier']); // 10^5 or 10^8
+            const priceMultiplier = Math.pow (10, market['precision']['price']);
+            request['price_int'] = parseInt (price * priceMultiplier); // 10^5 or 10^8
         }
-        order['type'] = (side === 'buy') ? 'bid' : 'ask';
-        let result = await this.privatePostCurrencyPairMoneyOrderAdd (this.extend (order, params));
+        request['type'] = (side === 'buy') ? 'bid' : 'ask';
+        const response = await this.privatePostCurrencyPairMoneyOrderAdd (this.extend (request, params));
         return {
-            'info': result,
-            'id': result['data'],
+            'info': response,
+            'id': response['data'],
         };
     }
 
@@ -1135,13 +1154,22 @@ module.exports = class anxpro extends Exchange {
             return;
         }
         const result = this.safeString (response, 'result');
-        if ((result !== undefined) && (result !== 'success')) {
-            throw new ExchangeError (this.id + ' ' + body);
-        } else {
-            const resultCode = this.safeString (response, 'resultCode');
-            if ((resultCode !== undefined) && (resultCode !== 'OK')) {
-                throw new ExchangeError (this.id + ' ' + body);
+        const code = this.safeString (response, 'resultCode');
+        if (((result !== undefined) && (result !== 'success')) || ((code !== undefined) && (code !== 'OK'))) {
+            const message = this.safeString (response, 'error');
+            const feedback = this.id + ' ' + body;
+            const exact = this.exceptions['exact'];
+            if (code in exact) {
+                throw new exact[code] (feedback);
+            } else if (message in exact) {
+                throw new exact[message] (feedback);
             }
+            const broad = this.safeValue (this.exceptions, 'broad', {});
+            const broadKey = this.findBroadlyMatchedKey (broad, message);
+            if (broadKey !== undefined) {
+                throw new broad[broadKey] (feedback);
+            }
+            throw new ExchangeError (feedback); // unknown message
         }
     }
 };
