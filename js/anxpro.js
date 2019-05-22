@@ -261,17 +261,10 @@ module.exports = class anxpro extends Exchange {
             }
             type = 'deposit';
         }
-        const ccy = this.safeString (transaction, 'ccy');
-        let code = ccy;
-        currency = this.currency (ccy);
-        if (currency)
-            code = currency.id;
-        let transactionState = this.safeString (transaction, 'transactionState');
-        let status = 'pending';
-        if (transactionState === 'PROCESSED')
-            status = 'complete';
-        else if (transactionState === 'REVERSED' || transactionState === 'CANCELLED_INSUFFICIENT_FUNDS' || transactionState === 'CANCELLED_LIMIT_BREACH')
-            status = 'canceled';
+        const currencyId = this.safeString (transaction, 'ccy');
+        const code = this.commonCurrencyCode (currencyId);
+        const transactionState = this.safeString (transaction, 'transactionState');
+        const status = this.parseTransactionStatus (transactionState);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -290,6 +283,16 @@ module.exports = class anxpro extends Exchange {
             },
             'info': transaction,
         };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'PROCESSED': 'complete',
+            'REVERSED': 'canceled',
+            'CANCELLED_INSUFFICIENT_FUNDS': 'canceled',
+            'CANCELLED_LIMIT_BREACH': 'canceled',
+        };
+        return this.safeString (statuses, status, 'pending');
     }
 
     async fetchMyTrades_v3 (symbol = undefined, since = undefined, limit = undefined, params = {}) {
