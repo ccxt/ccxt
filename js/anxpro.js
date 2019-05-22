@@ -21,6 +21,8 @@ module.exports = class anxpro extends Exchange {
                 'fetchTrades': false,
                 'fetchOpenOrders': true,
                 'fetchDepositAddress': true,
+                'fetchTransactions': true,
+                'fetchMyTrades': true,
                 'createDepositAddress': false,
                 'withdraw': true,
             },
@@ -30,6 +32,7 @@ module.exports = class anxpro extends Exchange {
                     'public': 'https://anxpro.com/api/2',
                     'private': 'https://anxpro.com/api/2',
                     'v3public': 'https://anxpro.com/api/3',
+                    'v3private': 'https://anxpro.com/api/3',
                 },
                 'www': 'https://anxpro.com',
                 'doc': [
@@ -42,6 +45,45 @@ module.exports = class anxpro extends Exchange {
                 'v3public': {
                     'get': [
                         'currencyStatic',
+                    ],
+                },
+                'v3private': {
+                    'post': [
+                        'register/register',
+                        'register/verifyRegistration',
+                        'register/resendVerification',
+                        'register/autoRegister',
+                        'account',
+                        'subaccount/new',
+                        'transaction/list',
+                        'order/list',
+                        'trade/list',
+                        'send',
+                        'receive',
+                        'receive/create',
+                        'batch/new',
+                        'batch/add',
+                        'batch/list',
+                        'batch/info',
+                        'batch/closeForSend',
+                        'order/new',
+                        'order/info',
+                        'order/cancel',
+                        'retail/quote',
+                        'retail/trade',
+                        'validateAddress',
+                        'address/check',
+                        'alert/create',
+                        'alert/delete',
+                        'alert/list',
+                        'kyc/personal',
+                        'kyc/document',
+                        'kyc/status',
+                        'kyc/verifyCode',
+                        'news/list',
+                        'press/list',
+                        'announcements/list',
+                        'apiDoc/list',
                     ],
                 },
                 'public': {
@@ -78,6 +120,327 @@ module.exports = class anxpro extends Exchange {
                 },
             },
         });
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'from': since,
+            'ccy': code,
+            'max': limit,
+        };
+        const response = await this.v3privatePostTransactionList (this.extend (request, params));
+        //    { transactions:
+        //     [ { transactionClass: 'COIN',
+        //         uuid: '7896857b-2ed6-4c62-ba4c-619837438d9c',
+        //         userUuid: '82027ee9-cb59-4f29-80d6-f7e793f39ad4',
+        //         amount: -17865.72689976,
+        //         fee: 1,
+        //         balanceBefore: 17865.72689976,
+        //         balanceAfter: 17865.72689976,
+        //         ccy: 'XRP',
+        //         transactionState: 'PROCESSED',
+        //         transactionType: 'WITHDRAWAL',
+        //         received: '1551357946000',
+        //         processed: '1551357946000',
+        //         timestampMillis: '1557441435932',
+        //         displayTitle: 'Coin Withdrawal',
+        //         displayDescription:
+        //             'Withdraw to: rw2ciyaNshpHe7bCHo4bRWq6pqqynnWKQg?dt=3750180345',
+        //         coinAddress: 'rw2ciyaNshpHe7bCHo4bRWq6pqqynnWKQg?dt=3750180345',
+        //         coinTransactionId:
+        //             '68444611753E9D8F5C33DCBBF43F01391070F79CAFCF7625397D1CEFA519064A',
+        //         subAccount: [Object] },
+        //         { transactionClass: 'FILL',
+        //             uuid: 'a5ae54de-c14a-4ef8-842d-56000c9dc7ab',
+        //             userUuid: '82027ee9-cb59-4f29-80d6-f7e793f39ad4',
+        //             amount: 0.09006364,
+        //             fee: 0.00018013,
+        //             balanceBefore: 0.3190001,
+        //             balanceAfter: 0.40888361,
+        //             ccy: 'BTC',
+        //             transactionState: 'PROCESSED',
+        //             transactionType: 'FILL_CREDIT',
+        //             received: '1551357057000',
+        //             processed: '1551357057000',
+        //             timestampMillis: '1557441435956',
+        //             displayTitle: 'Order Fill',
+        //             displayDescription: 'Buy BTC @ 3008.53930 EUR/BTC' } ],
+        //         count: ...,
+        //     timestamp: '1557441435971',
+        //     resultCode: 'OK' }
+        if (response.resultCode !== 'OK')
+            throw new ExchangeError (this.id + ' trade list failed ' + this.json (response));
+        const transactions = this.safeValue (response, 'transactions', []);
+        const groupedTransactions = this.groupBy (transactions, 'transactionType');
+        const deposits = this.safeValue (groupedTransactions, 'DEPOSIT', []);
+        const withdrawals = this.safeValue (groupedTransactions, 'WITHDRAWAL', []);
+        const depositsAndWithdrawals = this.arrayConcat (deposits, withdrawals);
+        return this.parseTransactions (depositsAndWithdrawals, undefined, since, limit);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        // WITHDRAWAL:
+        //
+        //    { transactionClass: 'COIN',
+        //     uuid: 'bff91938-4dad-4c48-9db6-468324ce96c1',
+        //     userUuid: '82027ee9-cb59-4f29-80d6-f7e793f39ad4',
+        //     amount: -0.40888361,
+        //     fee: 0.002,
+        //     balanceBefore: 0.40888361,
+        //     balanceAfter: 0.40888361,
+        //     ccy: 'BTC',
+        //     transactionState: 'PROCESSED',
+        //     transactionType: 'WITHDRAWAL',
+        //     received: '1551357156000',
+        //     processed: '1551357156000',
+        //     timestampMillis: '1557441846213',
+        //     displayTitle: 'Coin Withdrawal',
+        //     displayDescription: 'Withdraw to: 1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX',
+        //     coinAddress: '1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX',
+        //     coinTransactionId:
+        //     'ab80abcb62bf6261ebc827c73dd59a4ce15d740b6ba734af6542f43b6485b923',
+        //         subAccount:
+        //     { uuid: '652e1add-0d0b-462c-a03c-d6197c825c1a',
+        //         name: 'DEFAULT' } }
+        //
+        // deposit:
+        //    {
+        //     "transactionClass": "COIN",
+        //     "uuid": "eb65576f-c1a8-423c-8e2f-fa50109b2eab",
+        //     "userUuid": "82027ee9-cb59-4f29-80d6-f7e793f39ad4",
+        //     "amount": 3.99287184,
+        //     "fee": 0,
+        //     "balanceBefore": 8.39666034,
+        //     "balanceAfter": 12.38953218,
+        //     "ccy": "ETH",
+        //     "transactionState": "PROCESSED",
+        //     "transactionType": "DEPOSIT",
+        //     "received": "1529420056000",
+        //     "processed": "1529420766000",
+        //     "timestampMillis": "1557442743854",
+        //     "displayTitle": "Coin Deposit",
+        //     "displayDescription": "Deposit to: 0xf123aa44fadea913a7da99cc2ee202db684ce0e3",
+        //     "coinTransactionId": "0x33a3e5ea7c034dc5324a88aa313962df0a5d571ab4bcc3cb00b876b1bdfc54f7",
+        //     "coinConfirmations": 51,
+        //     "coinConfirmationsRequired": 45,
+        //     "subAccount": {"uuid": "aba1de05-c7c6-49d7-84ab-a6aca0e827b6", "name": "DEFAULT"}
+        //    }
+        const timestamp = this.safeInteger (transaction, 'received');
+        const updated = this.safeInteger (transaction, 'processed');
+        const transactionType = this.safeString (transaction, 'transactionType');
+        let type = undefined;
+        let amount = this.safeFloat (transaction, 'amount');
+        let address = this.safeString (transaction, 'coinAddress');
+        let tag = undefined;
+        if (transactionType === 'WITHDRAWAL') {
+            type = 'withdrawal';
+            amount = -amount;
+            if (address) {
+                //  xrp: "coinAddress": "rw2ciyaNshpHe7bCHo4bRWq6pqqynnWKQg?dt=3750180345",
+                if (address.indexOf ('?dt=') >= 0) {
+                    const parts = address.split ('?dt=');
+                    address = parts[0];
+                    tag = parts[1];
+                }
+            }
+        } else if (transactionType === 'DEPOSIT') {
+            if (!address) {
+                const displayDescription = this.safeString (transaction, 'displayDescription');
+                const addressText = displayDescription.replace ('Deposit to: ', '');
+                if (addressText.length > 0) {
+                    //  eth: "displayDescription": "Deposit to: 0xf123aa44fadea913a7da99cc2ee202db684ce0e3",
+                    //  xrp: "displayDescription": "Deposit to: rUjxty1WWLwX1evhKf3C2XNZDMcXEZ9ToJ?dt=504562345",
+                    if (addressText.indexOf ('?dt=') >= 0) {
+                        const parts = addressText.split ('?dt=');
+                        address = parts[0];
+                        tag = parts[1];
+                    } else {
+                        address = addressText;
+                    }
+                }
+            }
+            type = 'deposit';
+        }
+        const ccy = this.safeString (transaction, 'ccy');
+        let code = ccy;
+        currency = this.currency (ccy);
+        if (currency)
+            code = currency.id;
+        let transactionState = this.safeString (transaction, 'transactionState');
+        let status = 'pending';
+        if (transactionState === 'PROCESSED')
+            status = 'complete';
+        else if (transactionState === 'REVERSED' || transactionState === 'CANCELLED_INSUFFICIENT_FUNDS' || transactionState === 'CANCELLED_LIMIT_BREACH')
+            status = 'canceled';
+        return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': this.safeString (transaction, 'uuid'),
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': tag,
+            'status': status,
+            'type': type,
+            'updated': updated,
+            'txid': this.safeString (transaction, 'coinTransactionId'),
+            'fee': {
+                'cost': this.safeFloat (transaction, 'fee'),
+                'currency': code,
+            },
+            'info': transaction,
+        };
+    }
+
+    async fetchMyTrades_v3 (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        //    { trades:
+        //     [ { tradeId: 'c2ed821d-717a-4b7e-beb0-a9ba60e8f5a0',
+        //         orderId: '5a65ae21-c7a8-4009-b3af-306c2ad21a02',
+        //         timestamp: '1551357057000',
+        //         tradedCurrencyFillAmount: '0.09006364',
+        //         settlementCurrencyFillAmount: '270.96',
+        //         settlementCurrencyFillAmountUnrounded: '270.96000000',
+        //         price: '3008.53930',
+        //         ccyPair: 'BTCEUR' },
+        //         { tradeId: 'fc0d3a9d-8b0b-4dff-b2e9-edd160785210',
+        //             orderId: '8161ae6e-251a-4eed-a56f-d3d6555730c1',
+        //             timestamp: '1551357033000',
+        //             tradedCurrencyFillAmount: '0.06521746',
+        //             settlementCurrencyFillAmount: '224.09',
+        //             settlementCurrencyFillAmountUnrounded: '224.09000000',
+        //             price: '3436.04305',
+        //             ccyPair: 'BTCUSD' },
+        //         { tradeId: '293f0893-111b-4c64-b036-9403d5c7422a',
+        //             orderId: '9d5e0850-db5f-4871-9c3b-3701a33315e4',
+        //             timestamp: '1551357005000',
+        //             tradedCurrencyFillAmount: '0.06277435',
+        //             settlementCurrencyFillAmount: '161.95',
+        //             settlementCurrencyFillAmountUnrounded: '161.95000000',
+        //             price: '2579.87538',
+        //             ccyPair: 'BTCGBP' } ],
+        //         count: 3,
+        //     timestamp: '1557438456732',
+        //     resultCode: 'OK' }
+        const request = {
+            'max': limit,
+        };
+        const response = await this.v3privatePostTradeList (this.extend (request, params));
+        if (response['resultCode'] !== 'OK')
+            throw new ExchangeError (this.id + ' trade list failed ' + this.json (response));
+        const trades = response.trades;
+        const result = this.parseTrades (trades, undefined, since, limit);
+        if (symbol === undefined)
+            return result;
+        return this.filterBySymbol (result, symbol);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        //    { result: 'success',
+        //     data:
+        //     [ { tradeId: 'c2ed821d-717a-4b7e-beb0-a9ba60e8f5a0',
+        //         orderId: '5a65ae21-c7a8-4009-b3af-306c2ad21a02',
+        //         timestamp: '1551357057000',
+        //         tradedCurrencyFillAmount: '0.09006364',
+        //         settlementCurrencyFillAmount: '270.96',
+        //         settlementCurrencyFillAmountUnrounded: '270.96000000',
+        //         price: '3008.53930',
+        //         ccyPair: 'BTCEUR',
+        //         side: 'BUY' },
+        //         { tradeId: 'fc0d3a9d-8b0b-4dff-b2e9-edd160785210',
+        //             orderId: '8161ae6e-251a-4eed-a56f-d3d6555730c1',
+        //             timestamp: '1551357033000',
+        //             tradedCurrencyFillAmount: '0.06521746',
+        //             settlementCurrencyFillAmount: '224.09',
+        //             settlementCurrencyFillAmountUnrounded: '224.09000000',
+        //             price: '3436.04305',
+        //             ccyPair: 'BTCUSD',
+        //             side: 'BUY' },
+        //         { tradeId: '293f0893-111b-4c64-b036-9403d5c7422a',
+        //             orderId: '9d5e0850-db5f-4871-9c3b-3701a33315e4',
+        //             timestamp: '1551357005000',
+        //             tradedCurrencyFillAmount: '0.06277435',
+        //             settlementCurrencyFillAmount: '161.95',
+        //             settlementCurrencyFillAmountUnrounded: '161.95000000',
+        //             price: '2579.87538',
+        //             ccyPair: 'BTCGBP',
+        //             side: 'BUY' } ] }
+        // max parameter is undocumented
+        const request = {
+            'max': limit,
+        };
+        const response = await this.privatePostMoneyTradeList (this.extend (request, params));
+        if (response.result !== 'success')
+            throw new ExchangeError (this.id + ' trade list failed ' + this.json (response));
+        const trades = response.data;
+        const result = this.parseTrades (trades, undefined, since, limit);
+        if (symbol === undefined)
+            return result;
+        return this.filterBySymbol (result, symbol);
+    }
+
+    parseTrade (trade, market = undefined) {
+        // v2 response:
+        //
+        //    { tradeId: 'fc0d3a9d-8b0b-4dff-b2e9-edd160785210',
+        //     orderId: '8161ae6e-251a-4eed-a56f-d3d6555730c1',
+        //     timestamp: '1551357033000',
+        //     tradedCurrencyFillAmount: '0.06521746',
+        //     settlementCurrencyFillAmount: '224.09',
+        //     settlementCurrencyFillAmountUnrounded: '224.09000000',
+        //     price: '3436.04305',
+        //     ccyPair: 'BTCUSD',
+        //     side: 'BUY' }
+        // side field is missing in v3 orders
+        const timestamp = this.safeInteger (trade, 'timestamp');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'tradedCurrencyFillAmount');
+        const cost = this.safeFloat (trade, 'settlementCurrencyFillAmount');
+        let side = this.safeString (trade, 'side');
+        return {
+            'id': this.safeString (trade, 'tradeId'),
+            'order': this.safeString (trade, 'orderId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': this.findSymbol (this.safeString (trade, 'ccyPair')),
+            'type': undefined,
+            'side': side ? side.toLowerCase () : undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
+            'info': trade,
+        };
+    }
+
+    parse_v3_Trade (trade, market = undefined) {
+        // v3 response:
+        //
+        //    { tradeId: 'fc0d3a9d-8b0b-4dff-b2e9-edd160785210',
+        //     orderId: '8161ae6e-251a-4eed-a56f-d3d6555730c1',
+        //     timestamp: '1551357033000',
+        //     tradedCurrencyFillAmount: '0.06521746',
+        //     settlementCurrencyFillAmount: '224.09',
+        //     settlementCurrencyFillAmountUnrounded: '224.09000000',
+        //     price: '3436.04305',
+        //     ccyPair: 'BTCUSD' }
+        const timestamp = this.safeInteger (trade, 'timestamp');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'tradedCurrencyFillAmount');
+        const cost = this.safeFloat (trade, 'settlementCurrencyFillAmount');
+        return {
+            'id': this.safeString (trade, 'tradeId'),
+            'order': this.safeString (trade, 'orderId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': this.findSymbol (this.safeString (trade, 'ccyPair')),
+            'type': undefined,
+            'side': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
+            'info': trade,
+        };
     }
 
     async fetchCurrencies (params = {}) {
@@ -400,6 +763,18 @@ module.exports = class anxpro extends Exchange {
         throw new ExchangeError (this.id + ' switched off the trades endpoint, see their docs at https://docs.anxv2.apiary.io');
     }
 
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {
+            'max': limit,
+        };
+        const response = await this.v3privatePostOrderList (this.extend (request, params));
+        if (response['resultCode'] !== 'OK')
+            throw new ExchangeError (this.id + ' fetch orders failed ' + this.json (response));
+        const orders = response['orders'];
+        return this.parseOrders (orders, undefined, since, limit);
+    }
+
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -451,7 +826,99 @@ module.exports = class anxpro extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        //
+        if ('orderId' in order)
+            return this.parseV3Order (order, market);
+        else
+            return this.parseV2Order (order, market);
+    }
+
+    parseV3Order (order, market = undefined) {
+        //   { orderType: 'LIMIT',
+        //     tradedCurrency: 'XRP',
+        //     settlementCurrency: 'BTC',
+        //     tradedCurrencyAmount: '400.00000000',
+        //     buyTradedCurrency: true,
+        //     limitPriceInSettlementCurrency: '0.00007129',
+        //     timestamp: '1522547850000',
+        //     orderId: '62a8be4d-73c6-4469-90cd-28b4726effe0',
+        //     tradedCurrencyAmountOutstanding: '0.00000000',
+        //     orderStatus: 'FULL_FILL',
+        //     executedAverageRate: '0.00007127',
+        //     trades:
+        //     [ { tradeId: 'fe16b796-df57-41a2-b6d9-3489f189749e',
+        //         orderId: '62a8be4d-73c6-4469-90cd-28b4726effe0',
+        //         timestamp: '1522547850000',
+        //         tradedCurrencyFillAmount: '107.91298639',
+        //         settlementCurrencyFillAmount: '0.00768772',
+        //         settlementCurrencyFillAmountUnrounded: '0.00768772',
+        //         price: '0.00007124',
+        //         ccyPair: 'XRPBTC' },
+        //         { tradeId: 'e2962f67-c094-4243-8b88-0cdc70a1b1c7',
+        //             orderId: '62a8be4d-73c6-4469-90cd-28b4726effe0',
+        //             timestamp: '1522547851000',
+        //             tradedCurrencyFillAmount: '292.08701361',
+        //             settlementCurrencyFillAmount: '0.02082288',
+        //             settlementCurrencyFillAmountUnrounded: '0.02082288',
+        //             price: '0.00007129',
+        //             ccyPair: 'XRPBTC' } ] }
+        const tradedCurrency = this.safeString (order, 'tradedCurrency');
+        const orderStatus = this.safeString (order, 'orderStatus');
+        let status = undefined;
+        if (orderStatus === 'ACTIVE')
+            status = 'open';
+        else if (orderStatus === 'FULL_FILL')
+            status = 'closed';
+        else if (orderStatus.indexOf ('CANCEL') >= 0)
+            status = 'canceled';
+        const settlementCurrency = this.safeString (order, 'settlementCurrency');
+        const symbol = this.findSymbol (tradedCurrency + '/' + settlementCurrency);
+        const buyTradedCurrency = this.safeString (order, 'buyTradedCurrency');
+        const side = buyTradedCurrency === 'true' ? 'buy' : 'sell';
+        const timestamp = this.safeInteger (order, 'timestamp');
+        let lastTradeTimestamp = undefined;
+        const trades = [];
+        let filled = 0;
+        const type = this.safeString (order, 'orderType').toLowerCase ();
+        for (let i = 0; i < order['trades'].length; i++) {
+            const trade = order['trades'][i];
+            const tradeTimestamp = this.safeInteger (trade, 'timestamp');
+            if (!lastTradeTimestamp || lastTradeTimestamp < tradeTimestamp)
+                lastTradeTimestamp = tradeTimestamp;
+            const parsedTrade = this.extend (this.parse_v3_Trade (trade), { 'side': side, 'type': type });
+            trades.push (parsedTrade);
+            filled += parsedTrade['amount'];
+        }
+        let price = this.safeFloat (order, 'limitPriceInSettlementCurrency');
+        const executedAverageRate = this.safeFloat (order, 'executedAverageRate');
+        const remaining = type === 'market' ? 0 : this.safeFloat (order, 'tradedCurrencyAmountOutstanding');
+        let amount = this.safeFloat (order, 'tradedCurrencyAmount');
+        if (!amount) {
+            const settlementCurrencyAmount = this.safeFloat (order, 'settlementCurrencyAmount');
+            amount = settlementCurrencyAmount / executedAverageRate;
+        }
+        const cost = executedAverageRate * filled;
+        return {
+            'id': this.safeString (order, 'orderId'),
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'remaining': remaining,
+            'filled': filled,
+            'status': status,
+            'fee': undefined,
+            'trades': trades,
+            'info': order,
+        };
+    }
+
+    parseV2Order (order, market = undefined) {
+        // v2 response:
         //     {
         //       "oid": "e74305c7-c424-4fbc-a8a2-b41d8329deb0",
         //       "currency": "HKD",
@@ -623,13 +1090,23 @@ module.exports = class anxpro extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
-            body = this.urlencode (this.extend ({ 'nonce': nonce }, query));
+            let auth = undefined;
+            let contentType = undefined;
+            if (api === 'v3private') {
+                body = this.json (this.extend ({ 'tonce': nonce * 1000 }, query));
+                const path = url.replace ('https://anxpro.com/', '');
+                auth = path + '\0' + body;
+                contentType = 'application/json';
+            } else {
+                body = this.urlencode (this.extend ({ 'nonce': nonce }, query));
+                // eslint-disable-next-line quotes
+                auth = request + "\0" + body;
+                contentType = 'application/x-www-form-urlencoded';
+            }
             let secret = this.base64ToBinary (this.secret);
-            // eslint-disable-next-line quotes
-            let auth = request + "\0" + body;
             let signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
             headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Type': contentType,
                 'Rest-Key': this.apiKey,
                 'Rest-Sign': this.decode (signature),
             };
