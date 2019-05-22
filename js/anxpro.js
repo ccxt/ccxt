@@ -701,51 +701,58 @@ module.exports = class anxpro extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        let response = await this.privatePostMoneyInfo ();
-        let balance = response['data'];
-        let currencies = Object.keys (balance['Wallets']);
-        let result = { 'info': balance };
+        await this.loadMarkets ();
+        const response = await this.privatePostMoneyInfo (params);
+        const balance = this.safeValue (response, 'data', {});
+        const wallets = balance['Wallets'];
+        const currencies = Object.keys (wallets);
+        const result = { 'info': balance };
         for (let c = 0; c < currencies.length; c++) {
-            let currency = currencies[c];
-            let account = this.account ();
-            if (currency in balance['Wallets']) {
-                let wallet = balance['Wallets'][currency];
-                account['free'] = parseFloat (wallet['Available_Balance']['value']);
-                account['total'] = parseFloat (wallet['Balance']['value']);
+            const currencyId = currencies[c];
+            const code = this.commonCurrencyCode (currencyId);
+            const account = this.account ();
+            if (currencyId in wallets) {
+                const wallet = wallets[currencyId];
+                account['free'] = this.safeFloat (wallet['Available_Balance'], 'value');
+                account['total'] = this.safeFloat (wallet['Balance'], 'value');
                 account['used'] = account['total'] - account['free'];
             }
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        let response = await this.publicGetCurrencyPairMoneyDepthFull (this.extend ({
+        await this.loadMarkets ();
+        const request = {
             'currency_pair': this.marketId (symbol),
-        }, params));
-        let orderbook = response['data'];
-        let t = parseInt (orderbook['dataUpdateTime']);
-        let timestamp = parseInt (t / 1000);
+        };
+        const response = await this.publicGetCurrencyPairMoneyDepthFull (this.extend (, params));
+        const orderbook = this.safeValue (response, 'data', {});
+        const t = this.safeInteger (orderbook, 'dataUpdateTime');
+        const timestamp = (t === undefined) ? t : parseInt (t / 1000);
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     async fetchTicker (symbol, params = {}) {
-        let response = await this.publicGetCurrencyPairMoneyTicker (this.extend ({
+        await this.loadMarkets ();
+        const request = {
             'currency_pair': this.marketId (symbol),
-        }, params));
-        let ticker = response['data'];
-        let t = parseInt (ticker['dataUpdateTime']);
-        let timestamp = parseInt (t / 1000);
-        let bid = this.safeFloat (ticker['buy'], 'value');
-        let ask = this.safeFloat (ticker['sell'], 'value');
-        let baseVolume = parseFloat (ticker['vol']['value']);
-        let last = parseFloat (ticker['last']['value']);
+        };
+        const response = await this.publicGetCurrencyPairMoneyTicker (this.extend (request, params));
+        const ticker = this.safeValue (response, 'data', {});
+        const t = this.safeIneteger (ticker, 'dataUpdateTime');
+        const timestamp = (t === undefined) ? t : parseInt (t / 1000);
+        const bid = this.safeFloat (ticker['buy'], 'value');
+        const ask = this.safeFloat (ticker['sell'], 'value');
+        const baseVolume = this.safeFloat (ticker['vol'], 'value');
+        const last = this.safeFloat (ticker['last'], 'value');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']['value']),
-            'low': parseFloat (ticker['low']['value']),
+            'high': this.safeFloat (ticker['high'], 'value'),
+            'low': this.safeFloat (ticker['low'], 'value'),
             'bid': bid,
             'bidVolume': undefined,
             'ask': ask,
@@ -757,7 +764,7 @@ module.exports = class anxpro extends Exchange {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': parseFloat (ticker['avg']['value']),
+            'average': this.safeFloat (ticker['avg'], 'value'),
             'baseVolume': baseVolume,
             'quoteVolume': undefined,
             'info': ticker,
