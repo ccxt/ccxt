@@ -425,7 +425,7 @@ module Ccxt
 
     def purge_cached_orders(before)
       orders = self.class.to_array(self.orders)
-      orders = orders.select{|order| (order['status'] == 'open') || (order['timestamp'] >= before)}
+      orders = orders.select {|order| (order['status'] == 'open') || (order['timestamp'] >= before)}
       self.orders = self.class.index_by(orders, 'id')
       return self.orders
     end
@@ -799,8 +799,8 @@ module Ccxt
             uppercase_method = http_method.upcase
             lowercase_method = http_method.downcase
             camelcase_method = self.class.capitalize(lowercase_method)
-            camelcase_suffix = split_path.map{|p| self.class.capitalize(p)}.join('')
-            underscore_suffix = split_path.map{|p| p.strip.downcase}.join('_')
+            camelcase_suffix = split_path.map {|p| self.class.capitalize(p)}.join('')
+            underscore_suffix = split_path.map {|p| p.strip.downcase}.join('_')
 
             camelcase = api_type + camelcase_method + camelcase_suffix
             underscore = api_type + '_' + lowercase_method + '_' + underscore_suffix
@@ -971,7 +971,7 @@ module Ccxt
     end
 
     def market_ids(symbols)
-      return symbols.map{|symbol| self.market_id(symbol)}
+      return symbols.map {|symbol| self.market_id(symbol)}
     end
 
     def market_id(symbol)
@@ -1038,7 +1038,7 @@ module Ccxt
 
     def parse_trades(trades, market = nil, since = nil, limit = nil)
       array = self.class.to_array(trades)
-      array = array.collect{|trade| self.parse_trade(trade, market)}
+      array = array.collect {|trade| self.parse_trade(trade, market)}
       array = self.class.sort_by(array, 'timestamp')
       symbol = market ? market['symbol'] : nil
       return self.filter_by_symbol_since_limit(array, symbol, since, limit)
@@ -1046,7 +1046,7 @@ module Ccxt
 
     def parse_ledger(data, currency = nil, since = nil, limit = nil)
       array = self.class.to_array(data)
-      array = array.collect{|item| self.parse_ledger_entry(item, currency)}
+      array = array.collect {|item| self.parse_ledger_entry(item, currency)}
       array = self.class.sort_by(array, 'timestamp')
       code = currency ? currency['code'] : nil
       return self.filter_by_currency_since_limit(array, code, since, limit)
@@ -1054,7 +1054,7 @@ module Ccxt
 
     def parse_transactions(transactions, currency = nil, since = nil, limit = nil, params = {})
       array = self.class.to_array(transactions)
-      array = array.collect{|transaction| self.parse_transaction(transaction, currency)}
+      array = array.collect {|transaction| self.parse_transaction(transaction, currency)}
       array = self.class.sort_by(array, 'timestamp')
       code = currency ? currency['code'] : nil
       return self.filter_by_currency_since_limit(array, code, since, limit)
@@ -1062,7 +1062,7 @@ module Ccxt
 
     def parse_orders(orders, market = nil, since = nil, limit = nil)
       array = self.class.to_array(orders)
-      array = array.collect{|order| self.parse_order(order, market)}
+      array = array.collect {|order| self.parse_order(order, market)}
       array = self.class.sort_by(array, 'timestamp')
       symbol = market ? market['symbol'] : nil
       return self.filter_by_symbol_since_limit(array, symbol, since, limit)
@@ -1071,10 +1071,10 @@ module Ccxt
     def filter_by_value_since_limit(array, field, value = nil, since = nil, limit = nil)
       array = self.class.to_array(array)
       if value
-        array = array.select{|entry| entry[field] == value}
+        array = array.select {|entry| entry[field] == value}
       end
       if since
-        array = array.select{|entry| entry['timestamp'] >= since}
+        array = array.select {|entry| entry['timestamp'] >= since}
       end
       if limit
         array = array[0...limit]
@@ -1093,7 +1093,7 @@ module Ccxt
     def filter_by_since_limit(array, since = nil, limit = nil)
       array = self.class.to_array(array)
       if since
-        array = array.select{|entry| entry['timestamp'] >= since}
+        array = array.select {|entry| entry['timestamp'] >= since}
       end
       if limit
         array = array[0...limit]
@@ -1104,7 +1104,7 @@ module Ccxt
     def filter_by_symbol(array, symbol = nil)
       array = self.class.to_array(array)
       if symbol
-        return array.select{|entry| entry['symbol'] == symbol}
+        return array.select {|entry| entry['symbol'] == symbol}
       end
 
       return array
@@ -1344,7 +1344,7 @@ module Ccxt
       end
 
       def binary_concat(*args)
-        return args.reduce{|a, b| a + b }
+        return args.reduce {|a, b| a + b }
       end
 
       def binary_to_string(string)
@@ -1449,7 +1449,7 @@ module Ccxt
       def group_by(array, key)
         result = {}
         array = self.to_array(array)
-        array = array.collect{|entry| entry[key] ? entry : nil}.compact
+        array = array.collect {|entry| entry[key] ? entry : nil}.compact
         array.each do |entry|
           result[entry[key]] ||= []
           result[entry[key]] << entry
@@ -1478,7 +1478,7 @@ module Ccxt
       end
 
       def keysort(hash)
-        return hash.sort_by{|k, v| k}.to_h
+        return hash.sort_by {|k, v| k}.to_h
       end
 
       def omit(d, *args)
@@ -1500,7 +1500,7 @@ module Ccxt
       end
 
       def pluck(array, key)
-        return array.delete_if{|a| not a.has_key?(key)}.map{|a| a[key]}
+        return array.delete_if {|a| not a.has_key?(key)}.map {|a| a[key]}
       end
 
       def safe_either(method, hash, key1, key2, default_value = nil)
@@ -1566,12 +1566,12 @@ module Ccxt
 
       def sort_by(array, key, descending = false)
         # return sorted(array, key = lambda k: k[key] if k[key] is not nil else "", reverse = descending)
-        result = array.sort_by{|k| k[key] ? k[key] : "" }
+        result = array.sort_by {|k| k[key] ? k[key] : "" }
         descending ? result.reverse : result
       end
 
       def sum(*args)
-        array = args.delete_if{|c| not(c.is_a?(Integer) or c.is_a?(Float))}.compact
+        array = args.delete_if {|c| not(c.is_a?(Integer) or c.is_a?(Float))}.compact
         return nil if array.empty?
 
         return array.sum
