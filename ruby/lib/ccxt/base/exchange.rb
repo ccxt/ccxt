@@ -733,18 +733,18 @@ module Ccxt
 
         # RestClient::SSLCertificateNotVerified is raised when HTTPS validation fails. Other OpenSSL::SSL::SSLError errors are raised as is.
 
-     #    except HTTPError as e:
-     #        self.handle_errors(response.status_code, response.reason, url, method, headers, http_response)
-     #        self.handle_rest_errors(e, response.status_code, http_response, url, method)
-     #        self.raise_error(ExchangeError, url, method, e, http_response)
-     #
-     #    except RequestException as e:  # base exception class
-     #        error_string = str(e)
-     #        if ('ECONNRESET' in error_string) or ('Connection aborted.' in error_string):
-     #            self.raise_error(NetworkError, url, method, e)
-     #        else:
-     #            self.raise_error(ExchangeError, url, method, e)
-     #
+        #    except HTTPError as e:
+        #        self.handle_errors(response.status_code, response.reason, url, method, headers, http_response)
+        #        self.handle_rest_errors(e, response.status_code, http_response, url, method)
+        #        self.raise_error(ExchangeError, url, method, e, http_response)
+        #
+        #    except RequestException as e:  # base exception class
+        #        error_string = str(e)
+        #        if ('ECONNRESET' in error_string) or ('Connection aborted.' in error_string):
+        #            self.raise_error(NetworkError, url, method, e)
+        #        else:
+        #            self.raise_error(ExchangeError, url, method, e)
+        #
       rescue RestClient::ExceptionWithResponse => e
         raise e, response.inspect
         return e
