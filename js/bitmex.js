@@ -26,6 +26,7 @@ module.exports = class bitmex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': true,
+                'fetchTransactions': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -413,6 +414,102 @@ module.exports = class bitmex extends Exchange {
         //     ]
         //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let rawTransactions = await this.privateGetUserWalletHistory ();
+        let transactions = [];
+        for (let i = 0; i < rawTransactions.length; i++) {
+            if (rawTransactions[i]['transactType'] in ['Deposit', 'Withdrawal']) {
+                transactions.push (rawTransactions[i]);
+            }
+        }
+        return this.parseTransactions (transactions, undefined, since, limit);
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'Completed': 'ok',
+            'Pending': 'pending',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        //   {
+        //      'transactID': 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
+        //      'account': 123456,
+        //      'currency': 'XBt',
+        //      'transactType': 'Withdrawal',
+        //      'amount': -100100000,
+        //      'fee': 100000,
+        //      'transactStatus': 'Completed',
+        //      'address': '385cR5DM96n1HvBDMzLHPYcw89fZAXULJP',
+        //      'tx': '3BMEXabcdefghijklmnopqrstuvwxyz123',
+        //      'text': '',
+        //      'transactTime': '2019-01-02T01:00:00.000Z',
+        //      'walletBalance': 99900000,
+        //      'marginBalance': None,
+        //      'timestamp': '2019-01-02T13:00:00.000Z'
+        //   }
+        //
+        const id = this.safeString (transaction, 'transactID');
+        // For deposits, transactTime == timestamp
+        // For withdrawals, transactTime is submission, timestamp is processed
+        const transactTime = this.parse8601 (this.safeString (transaction, 'transactTime'));
+        const timestamp = this.parse8601 (this.safeString (transaction, 'timestamp'));
+        let type = this.safeString (transaction, 'transactType');
+        if (type !== undefined) {
+            type = type.toLowerCase ();
+        }
+        // Deposits have no from address or to address, withdrawals have both
+        let address = undefined;
+        let addressFrom = undefined;
+        let addressTo = undefined;
+        if (type === 'withdrawal') {
+            address = this.safeString (transaction, 'address');
+            addressFrom = this.safeString (transaction, 'tx');
+            addressTo = address;
+        }
+        let amount = this.safeInteger (transaction, 'amount');
+        if (amount !== undefined) {
+            amount = Math.abs (amount) * 1e-8;
+        }
+        let feeCost = this.safeInteger (transaction, 'fee');
+        if (feeCost !== undefined) {
+            feeCost = feeCost * 1e-8;
+        }
+        const fee = {
+            'cost': feeCost,
+            'currency': 'BTC',
+        };
+        let status = this.safeString (transaction, 'transactStatus');
+        if (status !== undefined) {
+            status = this.parseTransactionStatus (status);
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': undefined,
+            'timestamp': transactTime,
+            'datetime': this.iso8601 (transactTime),
+            'addressFrom': addressFrom,
+            'address': address,
+            'addressTo': addressTo,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'type': type,
+            'amount': amount,
+            // BTC is the only currency on Bitmex
+            'currency': 'BTC',
+            'status': status,
+            'updated': timestamp,
+            'comment': undefined,
+            'fee': fee,
+        };
     }
 
     async fetchTicker (symbol, params = {}) {
