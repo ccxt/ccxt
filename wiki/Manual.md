@@ -3146,7 +3146,7 @@ try {
 # try to call a unified method
 try:
     response = await exchange.fetch_order_book('ETH/BTC')
-    print(ticker)
+    print(response)
 except ccxt.NetworkError as e:
     print(exchange.id, 'fetch_order_book failed due to a network error:', str(e))
     # retry or whatever
@@ -3167,7 +3167,7 @@ except Exception as e:
 // try to call a unified method
 try {
     $response = $exchange->fetch_trades('ETH/BTC');
-    print_r(ticker);
+    print_r($response);
 } catch (\ccxt\NetworkError $e) {
     echo $exchange->id . ' fetch_trades failed due to a network error: ' . $e->getMessage () . "\n";
     // retry or whatever
