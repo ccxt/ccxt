@@ -13,7 +13,7 @@ module.exports = class adara extends Exchange {
             'id': 'adara',
             'name': 'Adara',
             'countries': [ 'MT' ],
-            'version': 'v2.0',
+            'version': 'v1',
             'rateLimit': 1000,
             'certified': true,
             // new metainfo interface
@@ -35,7 +35,9 @@ module.exports = class adara extends Exchange {
                 'fetchTransactions': false,
             },
             'requiredCredentials': {
-                'secret': false,
+                'apiKey': true,
+                'secret': true,
+                'token': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/49189583-0466a780-f380-11e8-9248-57a631aad2d6.jpg',
@@ -75,10 +77,9 @@ module.exports = class adara extends Exchange {
                     ],
                     'post': [
                         'order',
-                        'order',
                         'recovery',
                         'user',
-                        'apiKey',  // (sign in) or (sign in and generate apiKey)
+                        'apiKey',  // sign in and optionally create an apiKey
                         'contact',
                     ],
                     'patch': [
@@ -1204,55 +1205,28 @@ module.exports = class adara extends Exchange {
             }
         }
         if (api === 'private') {
-            this.checkRequiredCredentials ();
             const nonce = this.nonce ();
-            const expiredAt = this.sum (nonce, this.safeInteger (this.options, 'expiredAt', 10000));
+            let expiredAt = this.sum (nonce, this.safeInteger (this.options, 'expiredAt', 10000));
+            expiredAt = expiredAt.toString ();
             if ((method === 'POST') || (method === 'PATCH')) {
-                payload = this.json (query);
-                body = this.json (params);
+                body = this.json (query);
                 payload = body;
             }
-            const auth = method + payload + 'expiredAt=' + expiredAt.toString ();
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512', 'base64');
-            headers = {
-                'X-ADX-EXPIRE': expiredAt,
-                'X-ADX-APIKEY': this.apiKey,
-                'X-ADX-SIGNATURE': signature,
-            };
-            if (method !== 'GET') {
-                headers['Content-Type'] = 'application/json';
+            if (this.token) {
+                headers = {
+                    'Cookie': 'token=' + this.token,
+                };
+            } else {
+                this.checkRequiredCredentials ();
+                const auth = method + payload + 'expiredAt=' + expiredAt;
+                const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512', 'base64');
+                headers = {
+                    'X-ADX-EXPIRE': expiredAt,
+                    'X-ADX-APIKEY': this.apiKey,
+                    'X-ADX-SIGNATURE': signature,
+                };
             }
-        }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    // signWithApiKey (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-    // }
-
-    signWithToken (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
-        if (method === 'GET') {
-            if (Object.keys (query).length)
-                url += '?' + this.urlencode (query);
-        }
-        if (api === 'private') {
-            this.checkRequiredCredentials ();
-            const nonce = this.nonce ();
-            const request = {
-                'access_key': this.apiKey,
-                'nonce': nonce,
-            };
-            if (Object.keys (query).length) {
-                request['query'] = this.urlencode (query);
-            }
-            // const jwt = this.jwt (request, this.secret);
-            headers = {
-                // 'Authorization': 'Bearer ' + jwt,
-                'Cookie': 'token=' + this.apiKey,
-            };
             if (method !== 'GET') {
-                body = this.json (query);
                 headers['Content-Type'] = 'application/json';
             }
         }
