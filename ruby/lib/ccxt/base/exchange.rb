@@ -1353,7 +1353,7 @@ module Ccxt
       end
 
       def base64urlencode(s)
-        return Exchange.decode(Base64.urlsafe_encode64(s, padding:false))
+        return Exchange.decode(Base64.urlsafe_encode64(s, padding: false))
       end
 
       ### GENERIC
@@ -1467,7 +1467,7 @@ module Ccxt
       end
 
       def keysort(hash)
-        return hash.sort_by{|k,v| k}.to_h
+        return hash.sort_by{|k, v| k}.to_h
       end
 
       def omit(d, *args)
