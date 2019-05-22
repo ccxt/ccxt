@@ -140,61 +140,70 @@ module.exports = class anxpro extends Exchange {
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         const request = {};
-        if (since !== undefined)
+        if (since !== undefined) {
             request['from'] = since;
-        if (limit !== undefined)
+        }
+        if (limit !== undefined) {
             request['max'] = limit;
-        if (code !== undefined)
-            request['ccy'] = code;
+        }
+        const currency = (code === undefined) ? undefined : this.currency (code);
+        if (currency !== undefined) {
+            request['ccy'] = currency['id'];
+        }
         const response = await this.v3privatePostTransactionList (this.extend (request, params));
-        //    { transactions:
-        //     [ { transactionClass: 'COIN',
-        //         uuid: '7896857b-2ed6-4c62-ba4c-619837438d9c',
-        //         userUuid: '82027ee9-cb59-4f29-80d6-f7e793f39ad4',
-        //         amount: -17865.72689976,
-        //         fee: 1,
-        //         balanceBefore: 17865.72689976,
-        //         balanceAfter: 17865.72689976,
-        //         ccy: 'XRP',
-        //         transactionState: 'PROCESSED',
-        //         transactionType: 'WITHDRAWAL',
-        //         received: '1551357946000',
-        //         processed: '1551357946000',
-        //         timestampMillis: '1557441435932',
-        //         displayTitle: 'Coin Withdrawal',
-        //         displayDescription:
-        //             'Withdraw to: rw2ciyaNshpHe7bCHo4bRWq6pqqynnWKQg?dt=3750180345',
-        //         coinAddress: 'rw2ciyaNshpHe7bCHo4bRWq6pqqynnWKQg?dt=3750180345',
-        //         coinTransactionId:
-        //             '68444611753E9D8F5C33DCBBF43F01391070F79CAFCF7625397D1CEFA519064A',
-        //         subAccount: [Object] },
-        //         { transactionClass: 'FILL',
-        //             uuid: 'a5ae54de-c14a-4ef8-842d-56000c9dc7ab',
-        //             userUuid: '82027ee9-cb59-4f29-80d6-f7e793f39ad4',
-        //             amount: 0.09006364,
-        //             fee: 0.00018013,
-        //             balanceBefore: 0.3190001,
-        //             balanceAfter: 0.40888361,
-        //             ccy: 'BTC',
-        //             transactionState: 'PROCESSED',
-        //             transactionType: 'FILL_CREDIT',
-        //             received: '1551357057000',
-        //             processed: '1551357057000',
-        //             timestampMillis: '1557441435956',
-        //             displayTitle: 'Order Fill',
-        //             displayDescription: 'Buy BTC @ 3008.53930 EUR/BTC' } ],
+        //
+        //     {
+        //         transactions: [
+        //             {
+        //                 transactionClass: 'COIN',
+        //                 uuid: '7896857b-2ed6-4c62-ba4c-619837438d9c',
+        //                 userUuid: '82027ee9-cb59-4f29-80d6-f7e793f39ad4',
+        //                 amount: -17865.72689976,
+        //                 fee: 1,
+        //                 balanceBefore: 17865.72689976,
+        //                 balanceAfter: 17865.72689976,
+        //                 ccy: 'XRP',
+        //                 transactionState: 'PROCESSED',
+        //                 transactionType: 'WITHDRAWAL',
+        //                 received: '1551357946000',
+        //                 processed: '1551357946000',
+        //                 timestampMillis: '1557441435932',
+        //                 displayTitle: 'Coin Withdrawal',
+        //                 displayDescription: 'Withdraw to: rw2ciyaNshpHe7bCHo4bRWq6pqqynnWKQg?dt=3750180345',
+        //                 coinAddress: 'rw2ciyaNshpHe7bCHo4bRWq6pqqynnWKQg?dt=3750180345',
+        //                 coinTransactionId: '68444611753E9D8F5C33DCBBF43F01391070F79CAFCF7625397D1CEFA519064A',
+        //                 subAccount: [
+        //                     Object
+        //                 ]
+        //             },
+        //             {
+        //                 transactionClass: 'FILL',
+        //                 uuid: 'a5ae54de-c14a-4ef8-842d-56000c9dc7ab',
+        //                 userUuid: '82027ee9-cb59-4f29-80d6-f7e793f39ad4',
+        //                 amount: 0.09006364,
+        //                 fee: 0.00018013,
+        //                 balanceBefore: 0.3190001,
+        //                 balanceAfter: 0.40888361,
+        //                 ccy: 'BTC',
+        //                 transactionState: 'PROCESSED',
+        //                 transactionType: 'FILL_CREDIT',
+        //                 received: '1551357057000',
+        //                 processed: '1551357057000',
+        //                 timestampMillis: '1557441435956',
+        //                 displayTitle: 'Order Fill',
+        //                 displayDescription: 'Buy BTC @ 3008.53930 EUR/BTC'
+        //             }
+        //         ],
         //         count: ...,
-        //     timestamp: '1557441435971',
-        //     resultCode: 'OK' }
-        if (response['resultCode'] !== 'OK')
-            throw new ExchangeError (this.id + ' trade list failed ' + this.json (response));
+        //         timestamp: '1557441435971',
+        //         resultCode: 'OK'
+        //     }
+        //
         const transactions = this.safeValue (response, 'transactions', []);
-        const groupedTransactions = this.groupBy (transactions, 'transactionType');
-        const deposits = this.safeValue (groupedTransactions, 'DEPOSIT', []);
-        const withdrawals = this.safeValue (groupedTransactions, 'WITHDRAWAL', []);
-        const depositsAndWithdrawals = this.arrayConcat (deposits, withdrawals);
-        return this.parseTransactions (depositsAndWithdrawals, undefined, since, limit);
+        const depositsAndWithdrawals = this.filterBy (transactions, 'transactionClass', 'COIN'); 
+        return this.parseTransactions (depositsAndWithdrawals, currency, since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
