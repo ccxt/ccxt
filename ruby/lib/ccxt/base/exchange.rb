@@ -241,6 +241,7 @@ module Ccxt
         if not self.markets_by_id
           return self.set_markets(markets)
         end
+
         return self.markets
       end
       puts "load_markets: loading markets." if verbose
@@ -299,6 +300,7 @@ module Ccxt
 
     def fetch_OHLCV(symbol, timeframe = '1m', since = nil, limit = nil, params = {})
       raise(NotSupported, 'fetch_ohlcv() is not supported yet.') unless self.has['fetchTrades']
+
       self.load_markets()
       trades = self.fetch_trades(symbol, since, limit, params)
       return self.build_ohlcv(trades, timeframe, since, limit)
@@ -755,6 +757,7 @@ module Ccxt
       if json_response != nil
         return json_response
       end
+
       return http_response
     end
 
@@ -846,6 +849,7 @@ module Ccxt
       if not self.substituteCommonCurrencyCodes
         return currency
       end
+
       return self.class.safe_string(self.commonCurrencies, currency, currency)
     end
 
@@ -853,6 +857,7 @@ module Ccxt
       if self.currencies && self.currencies.include?(commonCode)
         return self.currencies[commonCode]['id']
       end
+
       currencyIds = self.commonCurrencies.invert
       return self.class.safe_string(currencyIds, commonCode, commonCode)
     end
@@ -915,6 +920,7 @@ module Ccxt
         (address.include?(' '))
         raise InvalidAddress, "#{self.id} address is invalid or has less than #{self.fminFundingAddressLength} characters: #{address.to_json}"
       end
+
       return address
     end
 
@@ -930,6 +936,7 @@ module Ccxt
       if not self.markets
         raise ExchangeError "#{self.id} markets not loaded."
       end
+
       if string.is_a?(String)
         if self.markets_by_id.has_key?(string)
           return self.markets_by_id[string]
@@ -948,6 +955,7 @@ module Ccxt
       if market.is_a?(Hash)
         return market['symbol']
       end
+
       return string
     end
 
@@ -958,6 +966,7 @@ module Ccxt
       if symbol.is_a?(String) and (self.markets.include?(symbol))
         return self.markets[symbol]
       end
+
       raise ExchangeError, "#{self.id}: No market symbol #{symbol}"
     end
 
@@ -998,6 +1007,7 @@ module Ccxt
       if not self.enableRateLimit
         raise ExchangeError "#{self.id}: edit_order() requires enableRateLimit = true'"
       end
+
       self.cancel_order(id, symbol)
       return self.create_order(symbol, *args)
     end
@@ -1096,6 +1106,7 @@ module Ccxt
       if symbol
         return array.select{|entry| entry['symbol'] == symbol}
       end
+
       return array
     end
 
@@ -1125,6 +1136,7 @@ module Ccxt
       if code.is_a?(String) && self.currencies.include?(code)
         return self.currencies[code]
       end
+
       raise Exchange::ExchangeError, 'Does not have currency code ' + code
     end
 
@@ -1425,6 +1437,7 @@ module Ccxt
         if value
           grouped = Exchange.group_by(array, key)
           return grouped[value] if grouped.has_key? value
+
           return []
         else
           return array
@@ -1562,11 +1575,13 @@ module Ccxt
       def sum(*args)
         array = args.delete_if{|c| not(c.is_a?(Integer) or c.is_a?(Float))}.compact
         return nil if array.empty?
+
         return array.sum
       end
 
       def to_array(value)
         return value.values if value.is_a?(Hash)
+
         return value
       end
 
@@ -1652,6 +1667,7 @@ module Ccxt
 
       def parse_date(timestamp = nil)
         return nil unless timestamp.is_a?(String)
+
         return DateTime.parse(timestamp).strftime('%Q').to_i rescue nil
       end
 
