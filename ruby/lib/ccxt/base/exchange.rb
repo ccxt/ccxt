@@ -236,9 +236,9 @@ module Ccxt
     ## PUBLIC
 
     def load_markets(reload = false, params = {})
-      if (not reload) && self.markets
+      if (!reload) && self.markets
         puts "load_markets: already set." if verbose
-        if not self.markets_by_id
+        if !self.markets_by_id
           return self.set_markets(markets)
         end
 
@@ -369,7 +369,7 @@ module Ccxt
 
     def load_trading_limits(symbols = nil, reload = false, params = {})
       if self.has['fetchTradingLimits']
-        if reload || (not(self.options.keys.include?('limitsLoaded')))
+        if reload || (!(self.options.keys.include?('limitsLoaded')))
           response = self.fetch_trading_limits(symbols)
           symbols.each do |symbol|
             self.markets[symbol] = self.class.deep_extend(self.markets[symbol], response[symbol])
@@ -846,7 +846,7 @@ module Ccxt
     end
 
     def common_currency_code(currency)
-      if not self.substituteCommonCurrencyCodes
+      if !self.substituteCommonCurrencyCodes
         return currency
       end
 
@@ -898,7 +898,7 @@ module Ccxt
 
     def check_required_credentials(error = true)
       self.requiredCredentials.keys.each do |key|
-        if self.requiredCredentials[key] && (not self.instance_variable_get("@#{key}"))
+        if self.requiredCredentials[key] && (!self.instance_variable_get("@#{key}"))
           if error
             raise AuthenticationError, "#{self.id} requires #{key}."
           else
@@ -933,7 +933,7 @@ module Ccxt
     end
 
     def find_market(string)
-      if not self.markets
+      if !self.markets
         raise ExchangeError "#{self.id} markets not loaded."
       end
 
@@ -960,7 +960,7 @@ module Ccxt
     end
 
     def market(symbol)
-      if not self.markets
+      if !self.markets
         raise ExchangeError, "#{self.id}: Markets not loaded"
       end
       if symbol.is_a?(String) && (self.markets.include?(symbol))
@@ -1004,7 +1004,7 @@ module Ccxt
     end
 
     def edit_order(id, symbol, *args)
-      if not self.enableRateLimit
+      if !self.enableRateLimit
         raise ExchangeError "#{self.id}: edit_order() requires enableRateLimit = true'"
       end
 
@@ -1392,7 +1392,7 @@ module Ccxt
         result = nil
         args.each do |arg|
           if arg.is_a?(Hash)
-            result = {} if not result.is_a?(Hash)
+            result = {} if !result.is_a?(Hash)
             arg.keys.each do |k|
               target = result.has_key?(k) ? result[k] : nil
               result[k] = deep_extend(target, arg[k])
@@ -1500,7 +1500,7 @@ module Ccxt
       end
 
       def pluck(array, key)
-        return array.delete_if { |a| not a.has_key?(key) }.map { |a| a[key] }
+        return array.delete_if { |a| !a.has_key?(key) }.map { |a| a[key] }
       end
 
       def safe_either(method, hash, key1, key2, default_value = nil)
@@ -1571,7 +1571,7 @@ module Ccxt
       end
 
       def sum(*args)
-        array = args.delete_if { |c| not(c.is_a?(Integer) || c.is_a?(Float)) }.compact
+        array = args.delete_if { |c| !((c.is_a?(Integer) || c.is_a?(Float))) }.compact
         return nil if array.empty?
 
         return array.sum
