@@ -595,7 +595,7 @@ module Ccxt
       oldest = limit.nil? ? (num_trades - 1) : min(num_trades - 1, limit)
       [0..oldest].each do |i|
         trade = trades[i]
-        next if since && (trade['timestamp'] < since )
+        next if since && (trade['timestamp'] < since)
 
         opening_time = (math.floor(trade['timestamp'] / ms) * ms).to_i # Shift the edge of the m/h/d (but not M)
         j = ohlcvs.size
@@ -785,7 +785,7 @@ module Ccxt
     end
 
     # request is the main function for define_rest_api()
-    def request(path, api = 'public', method = 'GET', params = {}, headers = nil, body = nil )
+    def request(path, api = 'public', method = 'GET', params = {}, headers = nil, body = nil)
       return fetch2(path, api, method, params, headers, body)
     end
 
@@ -825,7 +825,7 @@ module Ccxt
     end
 
     # Depends on #id
-    def raise_error( exception, url = nil, method = nil, error = nil, details = nil)
+    def raise_error(exception, url = nil, method = nil, error = nil, details = nil)
       output = ' ' + self.id + [url, method, error, details].compact.join(' ')
       raise exception, output
     end
@@ -864,7 +864,7 @@ module Ccxt
 
     def precision_from_string(string)
       parts = string.sub(/0+$/, '').split('.')
-      return (parts.size > 1 ) ? parts[1].size : 0
+      return (parts.size > 1) ? parts[1].size : 0
     end
 
     def cost_to_precision(symbol, cost)
@@ -1149,7 +1149,7 @@ module Ccxt
 
     # NOTE: Ethereum accepts three types of keys: private key, account or address, and UTC JSON keystore.
     def decrypt_account_from_private_key(private_key)
-      key = Eth::Key.new( priv: Eth::Utils::remove_hex_prefix(private_key))
+      key = Eth::Key.new(priv: Eth::Utils::remove_hex_prefix(private_key))
       return key.address
     end
 
@@ -1584,7 +1584,7 @@ module Ccxt
       end
 
       # Deprecated, use decimal_to_precision instead
-      def truncate( num, precision = 0)
+      def truncate(num, precision = 0)
         return num.truncate(precision)
       end
 
