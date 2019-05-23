@@ -758,7 +758,7 @@ module.exports = class anxpro extends Exchange {
         };
         const response = await this.publicGetCurrencyPairMoneyTicker (this.extend (request, params));
         const ticker = this.safeValue (response, 'data', {});
-        const t = this.safeIneteger (ticker, 'dataUpdateTime');
+        const t = this.safeInteger (ticker, 'dataUpdateTime');
         const timestamp = (t === undefined) ? t : parseInt (t / 1000);
         const bid = this.safeFloat (ticker['buy'], 'value');
         const ask = this.safeFloat (ticker['sell'], 'value');
