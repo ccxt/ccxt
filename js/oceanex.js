@@ -5,6 +5,8 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, BadRequest, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied } = require ('./base/errors');
 
+//  ---------------------------------------------------------------------------
+
 module.exports = class oceanex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -153,9 +155,34 @@ module.exports = class oceanex extends Exchange {
         return this.parseTicker (data, market);
     }
 
+    async fetchMultiTickers (symbols, params = {}) {
+        await this.loadMarkets ();
+        let markets = [];
+        for (let i = 0; i < symbols.length; i++) {
+            let marketId = this.marketId (symbols[i]);
+            markets.push (marketId.toLowerCase ());
+        }
+        const response = await this.publicGetTickersMulti (this.extend ({ 'markets': markets }));
+        const data = this.safeValue (response, 'data');
+        let result = [];
+        for (let i = 0; i < data.length; i++) {
+            let ticker = data[i];
+            let marketId = this.safeValue (ticker, 'market');
+            marketId = marketId.toUpperCase ();
+            let market = this.markets_by_id[marketId];
+            let symbol = market['symbol'];
+            result[symbol] = this.parseTicker (ticker, market);
+        }
+        return result;
+    }
+
     parseTicker (data, market = undefined) {
         let ticker = this.safeValue (data, 'ticker');
-        const timestamp = this.parse8601 (this.safeString (data, 'at'));
+        let timestamp = this.safeInteger (data, 'at');
+        if (timestamp !== undefined) {
+            timestamp = timestamp * 1000;
+            // Get milliseconds
+        }
         return {
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -191,7 +218,41 @@ module.exports = class oceanex extends Exchange {
         }
         const response = await this.publicGetOrderBook (this.extend (request, params));
         const orderbook = this.safeValue (response, 'data');
-        return this.parseOrderBook (orderbook, this.safeValue (orderbook, 'timestamp'));
+        let timestamp = this.safeInteger (orderbook, 'timestamp');
+        if (timestamp !== undefined) {
+            timestamp = timestamp * 1000;
+            // Get milliseconds
+        }
+        return this.parseOrderBook (orderbook, timestamp);
+    }
+
+    async fetchMultiOrderBooks (symbols, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let markets = [];
+        for (let i = 0; i < symbols.length; i++) {
+            let marketId = this.marketId (symbols[i]);
+            markets.push (marketId.toLowerCase ());
+        }
+        const response = await this.publicGetOrderBookMulti (this.extend ({
+            'markets': markets,
+            'limit': limit,
+        }));
+        const data = this.safeValue (response, 'data');
+        let result = [];
+        for (let i = 0; i < data.length; i++) {
+            let orderbook = data[i];
+            let marketId = this.safeValue (orderbook, 'market');
+            marketId = marketId.toUpperCase ();
+            let market = this.markets_by_id[marketId];
+            let symbol = market['symbol'];
+            let timestamp = this.safeInteger (orderbook, 'timestamp');
+            if (timestamp !== undefined) {
+                timestamp = timestamp * 1000;
+                // Get milliseconds
+            }
+            result[symbol] = this.parseOrderBook (orderbook, timestamp);
+        }
+        return result;
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -279,8 +340,6 @@ module.exports = class oceanex extends Exchange {
     }
 
     async fetchKey (params = {}) {
-        // private method input value {'user_jwt': encrypted_jwt_token}
-        // jwt_token should be RS256 encoded
         const response = await this.privateGetKey (this.extend (params));
         const data = this.safeValue (response, 'data');
         return data;
@@ -492,7 +551,18 @@ module.exports = class oceanex extends Exchange {
         let url = this.urls['api'] + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length) {
+            if (path === 'tickers_multi' || path === 'order_book/multi') {
+                let request = '?';
+                let markets = this.safeValue (params, 'markets');
+                for (let i = 0; i < markets.length; i++) {
+                    request += 'markets[]=' + markets[i] + '&';
+                }
+                let limit = this.safeValue (params, 'limit');
+                if (limit !== undefined) {
+                    request += 'limit=' + limit;
+                }
+                url += request;
+            } else if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
@@ -502,6 +572,7 @@ module.exports = class oceanex extends Exchange {
                 'data': query,
             };
             const jwt_token = this.jwt (request, this.apiKey, 'RS256');
+            // set apiKey: ocean.apiKey = fs.readFileSync('key.pem', 'utf8');
             url += '?user_jwt=' + jwt_token;
         }
         headers = { 'Content-Type': 'application/json' };
@@ -544,4 +615,3 @@ module.exports = class oceanex extends Exchange {
         }
     }
 };
-
