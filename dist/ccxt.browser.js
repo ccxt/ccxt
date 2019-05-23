@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.569'
+const version = '1.18.570'
 
 Exchange.ccxtVersion = version
 
@@ -30205,7 +30205,7 @@ module.exports = class coinmate extends Exchange {
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
-            const id = this.safeString (market, 'id');
+            const id = this.safeString (market, 'name');
             const baseId = this.safeString (market, 'firstCurrency');
             const quoteId = this.safeString (market, 'secondCurrency');
             const base = this.commonCurrencyCode (baseId);

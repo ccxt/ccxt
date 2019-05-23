@@ -95,7 +95,7 @@ class coinmate (Exchange):
         result = []
         for i in range(0, len(data)):
             market = data[i]
-            id = self.safe_string(market, 'id')
+            id = self.safe_string(market, 'name')
             baseId = self.safe_string(market, 'firstCurrency')
             quoteId = self.safe_string(market, 'secondCurrency')
             base = self.common_currency_code(baseId)
