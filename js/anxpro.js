@@ -318,7 +318,7 @@ module.exports = class anxpro extends Exchange {
 
     parseTransactionStatus (status) {
         const statuses = {
-            'PROCESSED': 'complete',
+            'PROCESSED': 'ok',
             'REVERSED': 'canceled',
             'CANCELLED_INSUFFICIENT_FUNDS': 'canceled',
             'CANCELLED_LIMIT_BREACH': 'canceled',
