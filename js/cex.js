@@ -689,7 +689,7 @@ module.exports = class cex extends Exchange {
                     continue;
                 }
                 if (!item['price']) {
-                    // don't know what these are (there is no price)
+                    // this represents the order
                     //   {
                     //     "a": "0.47000000",
                     //     "c": "user:up106404164:a:EUR",
