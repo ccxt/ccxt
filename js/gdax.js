@@ -744,24 +744,54 @@ module.exports = class gdax extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
+        const currency = this.currency (code);
         let accounts = this.safeValue (this.options, 'coinbaseAccounts');
         if (accounts === undefined) {
             accounts = await this.privateGetCoinbaseAccounts ();
             this.options['coinbaseAccounts'] = accounts; // cache it
             this.options['coinbaseAccountsByCurrencyId'] = this.indexBy (accounts, 'currency');
         }
-        let currencyId = currency['id'];
-        let account = this.safeValue (this.options['coinbaseAccountsByCurrencyId'], currencyId);
+        const currencyId = currency['id'];
+        const account = this.safeValue (this.options['coinbaseAccountsByCurrencyId'], currencyId);
         if (account === undefined) {
             // eslint-disable-next-line quotes
             throw new InvalidAddress (this.id + " fetchDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in this.options['coinbaseAccountsByCurrencyId']");
         }
-        let response = await this.privatePostCoinbaseAccountsIdAddresses (this.extend ({
+        const request = {
             'id': account['id'],
-        }, params));
-        let address = this.safeString (response, 'address');
-        let tag = this.safeString (response, 'destination_tag');
+        };
+        const response = await this.privateGetCoinbaseAccountsIdAddresses (this.extend (request, params));
+        const address = this.safeString (response, 'address');
+        const tag = this.safeString (response, 'destination_tag');
+        return {
+            'currency': code,
+            'address': this.checkAddress (address),
+            'tag': tag,
+            'info': response,
+        };
+    }
+
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        let accounts = this.safeValue (this.options, 'coinbaseAccounts');
+        if (accounts === undefined) {
+            accounts = await this.privateGetCoinbaseAccounts ();
+            this.options['coinbaseAccounts'] = accounts; // cache it
+            this.options['coinbaseAccountsByCurrencyId'] = this.indexBy (accounts, 'currency');
+        }
+        const currencyId = currency['id'];
+        const account = this.safeValue (this.options['coinbaseAccountsByCurrencyId'], currencyId);
+        if (account === undefined) {
+            // eslint-disable-next-line quotes
+            throw new InvalidAddress (this.id + " fetchDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in this.options['coinbaseAccountsByCurrencyId']");
+        }
+        const request = {
+            'id': account['id'],
+        };
+        const response = await this.privatePostCoinbaseAccountsIdAddresses (this.extend (request, params));
+        const address = this.safeString (response, 'address');
+        const tag = this.safeString (response, 'destination_tag');
         return {
             'currency': code,
             'address': this.checkAddress (address),
