@@ -890,11 +890,10 @@ module.exports = class boaexchange extends Exchange {
     parseTrade (trade, market = undefined) {
         let timestamp = trade['created'];
         let side = trade['maker'];
-        let id = undefined;
         if (market === undefined) {
             market = this.marketId (trade['market']);
         }
-        let id = trade['id'];
+        let id = this.safeString (trade, 'id');
         let symbol = market['symbol'];
         let cost = undefined;
         let price = this.safeFloat (trade, 'price');
