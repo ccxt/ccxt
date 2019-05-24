@@ -584,13 +584,19 @@ Below is a detailed description of each of the base exchange properties:
 
 -  ``proxy``: A string literal containing base URL of http(s) proxy, ``''`` by default. For use with web browsers and from blocked locations. An example of a proxy string is ``'http://crossorigin.me/'``. The absolute exchange endpoint URL is appended to this string before sending the HTTP request.
 
--  ``apiKey``: This is your public API key string literal. Most exchanges require this for trading (`see below <https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup>`__).
+-  ``apiKey``: This is your public API key string literal. Most exchanges require `API keys setup <https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup>`__.
 
 -  ``secret``: Your private secret API key string literal. Most exchanges require this as well together with the apiKey.
 
 -  ``password``: A string literal with your password/phrase. Some exchanges require this parameter for trading, but most of them don’t.
 
 -  ``uid``: A unique id of your account. This can be a string literal or a number. Some exchanges also require this for trading, but most of them don’t.
+
+-  ``requiredCredentials``: A unified associative dictionary that shows which of the above API credentials are required for sending private API calls to the underlying exchange (an exchange may require a specific set of keys).
+
+-  ``options``: An exchange-specific associative dictionary containing special keys and options that are accepted by the underlying exchange and supported in CCXT.
+
+See this section on `Overriding exchange properties <https://github.com/ccxt/ccxt/wiki/Manual#overriding-exchange-properties-upon-instantiation>`__.
 
 Exchange Metadata
 ^^^^^^^^^^^^^^^^^
