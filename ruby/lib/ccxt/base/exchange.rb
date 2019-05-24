@@ -6,7 +6,7 @@ require 'base64'
 require 'securerandom'
 require 'openssl'
 require 'time'
-require "addressable/uri"
+require 'addressable/uri'
 require 'bigdecimal'
 require 'ccxt/base/errors'
 require 'ccxt/base/decimal_to_precision'
@@ -237,14 +237,14 @@ module Ccxt
 
     def load_markets(reload = false, params = {})
       if (!reload) && self.markets
-        puts "load_markets: already set." if verbose
+        puts 'load_markets: already set.' if verbose
         if !self.markets_by_id
           return self.set_markets(markets)
         end
 
         return self.markets
       end
-      puts "load_markets: loading markets." if verbose
+      puts 'load_markets: loading markets.' if verbose
       currencies = fetch_currencies if has['fetchCurrencies']
       markets = self.fetch_markets(params)
       return set_markets(markets, currencies)
@@ -1322,7 +1322,7 @@ module Ccxt
       #     return otp[-6:]
 
       def totp(key)
-        raise NotSupported, "TOTP: Not implemented yet."
+        raise NotSupported, 'TOTP: Not implemented yet.'
       end
 
       ### ENCODE
@@ -1566,7 +1566,7 @@ module Ccxt
 
       def sort_by(array, key, descending = false)
         # return sorted(array, key = lambda k: k[key] if k[key] is not nil else "", reverse = descending)
-        result = array.sort_by { |k| k[key] ? k[key] : "" }
+        result = array.sort_by { |k| k[key] ? k[key] : '' }
         descending ? result.reverse : result
       end
 
@@ -1656,7 +1656,7 @@ module Ccxt
 
       def dmy(timestamp, infix = '-')
         utc_datetime = Time.at(timestamp.to_i).utc
-        return utc_datetime.strftime('%m' + infix + '%d' + infix + "%Y")
+        return utc_datetime.strftime('%m' + infix + '%d' + infix + '%Y')
       end
 
       def parse8601(timestamp)
@@ -1671,7 +1671,7 @@ module Ccxt
 
       def ymd(timestamp)
         utc_datetime = Time.at(timestamp.to_i).utc
-        return utc_datetime.strftime('%Y' + infix + '%m' + infix + "%d")
+        return utc_datetime.strftime('%Y' + infix + '%m' + infix + '%d')
       end
 
       def ymdhms(timestamp)
