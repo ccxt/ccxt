@@ -732,8 +732,8 @@ module.exports = class boaexchange extends Exchange {
 
     parseMarket (market) {
         let id = market['id'];
-        let baseId = market['coin_traded']['code'];
-        let quoteId = market['coin_market']['code'];
+        let baseId = market['coin_traded']['code'].toUpperCase ();
+        let quoteId = market['coin_market']['code'].toUpperCase ();
         let base = this.commonCurrencyCode (baseId);
         let quote = this.commonCurrencyCode (quoteId);
         let symbol = base + '/' + quote;
@@ -774,7 +774,7 @@ module.exports = class boaexchange extends Exchange {
     parseMarkets (markets) {
         let results = [];
         for (let i = 0; i < markets.length; i++) {
-            results.push (this.parseMarket (markets[i]));
+            results.push(this.parseMarket(markets[i]));
         }
         return results;
     }
@@ -892,7 +892,8 @@ module.exports = class boaexchange extends Exchange {
         if (market === undefined) {
             market = this.marketId (trade['market']);
         }
-        let symbol = market['market'];
+        let id = trade['id'];
+        let symbol = market['symbol'];
         let cost = undefined;
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'amount');
