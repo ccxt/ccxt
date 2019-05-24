@@ -96,7 +96,7 @@ class coinmate extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($data); $i++) {
             $market = $data[$i];
-            $id = $this->safe_string($market, 'id');
+            $id = $this->safe_string($market, 'name');
             $baseId = $this->safe_string($market, 'firstCurrency');
             $quoteId = $this->safe_string($market, 'secondCurrency');
             $base = $this->common_currency_code($baseId);
