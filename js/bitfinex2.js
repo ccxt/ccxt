@@ -172,7 +172,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 },
             },
             'options': {
-                'precision': 'R0', // P0, P1, P2, P3, P4, R0 
+                'precision': 'R0', // P0, P1, P2, P3, P4, R0
                 'orderTypes': {
                     'MARKET': undefined,
                     'EXCHANGE MARKET': 'market',
