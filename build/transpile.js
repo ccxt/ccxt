@@ -544,6 +544,7 @@ const rubyRegexes = [
     [ /([\S])\: /g, '$1 => ' ],
     [ /(\s)await(\s)/g, '$1' ],
     [ /\(\)/g, '' ], // Method calls with no arguments.
+    [ /,(\s*)(\}|\])/gm, '$1$2' ] // comma after last item in hash or array
 ])
 
 // ----------------------------------------------------------------------------
