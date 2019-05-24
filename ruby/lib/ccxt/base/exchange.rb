@@ -236,7 +236,7 @@ module Ccxt
     ## PUBLIC
 
     def load_markets(reload = false, params = {})
-      if (!reload) && self.markets
+      if !reload && self.markets
         puts 'load_markets: already set.' if verbose
         if !self.markets_by_id
           return self.set_markets(markets)
@@ -369,7 +369,7 @@ module Ccxt
 
     def load_trading_limits(symbols = nil, reload = false, params = {})
       if self.has['fetchTradingLimits']
-        if reload || (!(self.options.keys.include?('limitsLoaded')))
+        if reload || !self.options.keys.include?('limitsLoaded')
           response = self.fetch_trading_limits(symbols)
           symbols.each do |symbol|
             self.markets[symbol] = self.class.deep_extend(self.markets[symbol], response[symbol])
@@ -898,7 +898,7 @@ module Ccxt
 
     def check_required_credentials(error = true)
       self.requiredCredentials.keys.each do |key|
-        if self.requiredCredentials[key] && (!self.instance_variable_get("@#{key}"))
+        if self.requiredCredentials[key] && !self.instance_variable_get("@#{key}")
           if error
             raise AuthenticationError, "#{self.id} requires #{key}."
           else
@@ -917,7 +917,7 @@ module Ccxt
       ## check the address is not the same letter like 'aaaaa' nor too short nor has a space
       if (address.chars.uniq.length == 1) ||
         (address.length < self.minFundingAddressLength) ||
-        (address.include?(' '))
+        address.include?(' ')
         raise InvalidAddress, "#{self.id} address is invalid or has less than #{self.fminFundingAddressLength} characters: #{address.to_json}"
       end
 
@@ -963,7 +963,7 @@ module Ccxt
       if !self.markets
         raise ExchangeError, "#{self.id}: Markets not loaded"
       end
-      if symbol.is_a?(String) && (self.markets.include?(symbol))
+      if symbol.is_a?(String) && self.markets.include?(symbol)
         return self.markets[symbol]
       end
 
