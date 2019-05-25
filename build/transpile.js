@@ -377,18 +377,18 @@ const rubyRegexes = [
     [ /([^\(\s]+)\s+instanceof\s+([^\)\s]+)/g, '$1.is_a?($2)' ],
 
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2].nil?' ],
-    [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] != nil' ],
+    [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '!$1[$2].nil?' ],
     [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'undefined\'/g, '$1.nil?' ],
-    [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'undefined\'/g, '$1 != nil' ],
+    [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'undefined\'/g, '!$1.nil?' ],
     [ /typeof\s+(.+?)\s+\=\=\=?\s+\'undefined\'/g, '$1.nil?' ],
-    [ /typeof\s+(.+?)\s+\!\=\=?\s+\'undefined\'/g, '$1 != nil' ],
+    [ /typeof\s+(.+?)\s+\!\=\=?\s+\'undefined\'/g, '!$1.nil?' ],
 
     [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+undefined/g, '$1[$2].nil?' ],
-    [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+undefined/g, '$1[$2] != nil' ],
+    [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+undefined/g, '!$1[$2].nil?' ],
     [ /([^\s]+)\s+\=\=\=?\s+undefined/g, '$1.nil?' ],
-    [ /([^\s]+)\s+\!\=\=?\s+undefined/g, '$1 != nil' ],
+    [ /([^\s]+)\s+\!\=\=?\s+undefined/g, '!$1.nil?' ],
     [ /(.+?)\s+\=\=\=?\s+undefined/g, '$1.nil?' ],
-    [ /(.+?)\s+\!\=\=?\s+undefined/g, '$1 != nil?' ],
+    [ /(.+?)\s+\!\=\=?\s+undefined/g, '!$1.nil?' ],
 
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'string\'/g, '$1[$2].is_a?(String)' ],
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'string\'/g, '!$1[$2].is_a?(String)' ],
@@ -541,7 +541,7 @@ const rubyRegexes = [
     // [ /\{ /g, '{' ],              // PEP8 E201 remove whitespaces after left { bracket
     [ /([^\s]+) \]/g, '$1]' ],    // PEP8 E202 remove whitespaces before right ] square bracket
     // [ /([^\s]+) \}/g, '$1}' ],    // PEP8 E202 remove whitespaces before right } bracket
-    [ /([^a-z])(elif|if|or|else|in)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
+    [ /([^a-z])(elsif|if|or|else|in)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
     [ /([\S])\: /g, '$1 => ' ],
     [ /(\s)await(\s)/g, '$1' ],
     [ /\(\)/g, '' ], // Method calls with no arguments.
