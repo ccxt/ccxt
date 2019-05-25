@@ -830,6 +830,11 @@ module Ccxt
       raise exception, output
     end
 
+    # transpiler wrapper for #send.
+    def send_wrapper(method, args = nil)
+      return self.send(method, args)
+    end
+    
     # Depends on #currencies_by_id
     def safe_currency_code(data, key, currency = nil)
       code = nil

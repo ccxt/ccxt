@@ -517,7 +517,8 @@ const rubyRegexes = [
     [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "$1.to_f" ],
     [ /parseFloat\s*\(([^\)]+)\)/g, '$1.to_f'],
     [ /parseInt\s*(\([^\)]+\))/g, '$1.to_i'],
-    [ /self\[([^\]+]+)\]/g, 'getattr(self, $1)' ],
+    [ /self\[([^\)+]+)]\ \(\)/g, 'self.send_wrapper($1)'], //getattr with no arg
+    [ /self\[([^\]+]+)\] \(/g, 'self.send_wrapper($1, ' ], //getattr with args
     [ /([^\s]+)\.slice \(([^\,\)]+)\,\s?([^\)]+)\)/g, '$1[$2...$3]' ], // slice with two arguments
     [ /([^\s]+)\.slice \(([^\)\:]+)\)/g, '$1[$2..-1]' ], // slice with one argument
     [ /Math\.floor\s*\(([^\)]+)\)/g, '$1.floor' ],
