@@ -26,6 +26,7 @@ module.exports = class gdax extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrderTrades': true,
                 'fetchOrders': true,
                 'fetchTransactions': true,
                 'withdraw': true,
@@ -484,6 +485,17 @@ module.exports = class gdax extends Exchange {
             'id': id,
         }, params));
         return this.parseOrder (response);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined)
+            market = this.market (symbol);
+        let trades = await this.privateGetFills (this.extend ({
+            'order_id': id,
+        }, params));
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
