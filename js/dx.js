@@ -41,7 +41,7 @@ module.exports = class dx extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': true,
                 'fetchTicker': true,
@@ -117,6 +117,7 @@ module.exports = class dx extends Exchange {
                         'AssetManagement.GetTicker',
                         'AssetManagement.History',
                         'Authorization.LoginByToken',
+                        'OrderManagement.GetOrderBook',
                     ],
                 },
                 'private': {
@@ -381,6 +382,22 @@ module.exports = class dx extends Exchange {
             'fee': undefined,
         };
         return result;
+    }
+
+    parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
+        let price = this.objectToNumber (bidask[priceKey]);
+        let amount = this.objectToNumber (bidask[amountKey]);
+        return [ price, amount ];
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let response = await this.publicPostOrderManagementGetOrderBook (this.extend ({
+            'instrumentId': market['numericId'],
+        }, params));
+        let orderbook = response['result'];
+        return this.parseOrderBook (orderbook, undefined, 'sell', 'buy', 'price', 'qty');
     }
 
     async signIn (params = {}) {
