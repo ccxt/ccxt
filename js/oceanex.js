@@ -11,18 +11,19 @@ module.exports = class oceanex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'oceanex',
-            'name': 'oceanex',
+            'name': 'OceanEx',
             'countries': [ 'US' ],
             'urls': {
-                'api': 'https://api.oceanex.pro/v1/',
+                'logo': 'https://user-images.githubusercontent.com/1294454/58385970-794e2d80-8001-11e9-889c-0567cd79b78e.jpg',
+                'api': 'https://api.oceanex.pro/v1',
                 'www': 'https://www.oceanex.pro.com',
-                'doc': 'https://api.oceanex.pro/doc/v1/',
+                'doc': 'https://api.oceanex.pro/doc/v1',
             },
             'api': {
                 'public': {
                     'get': [
                         'markets',
-                        'tickers/{pair}/',
+                        'tickers/{pair}',
                         'tickers_multi',
                         'order_book',
                         'order_book/multi',
