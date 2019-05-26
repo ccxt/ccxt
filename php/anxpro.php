@@ -206,57 +206,64 @@ class anxpro extends Exchange {
         //     }
         //
         $transactions = $this->safe_value($response, 'transactions', array ());
-        $depositsAndWithdrawals = $this->filter_by($transactions, 'transactionClass', 'COIN');
+        $grouped = $this->group_by($transactions, 'transactionType');
+        $depositsAndWithdrawals = $this->array_concat($grouped['DEPOSIT'], $grouped['WITHDRAWAL']);
         return $this->parseTransactions ($depositsAndWithdrawals, $currency, $since, $limit);
     }
 
     public function parse_transaction ($transaction, $currency = null) {
-        // WITHDRAWAL:
         //
-        //    { transactionClass => 'COIN',
-        //     uuid => 'bff91938-4dad-4c48-9db6-468324ce96c1',
-        //     userUuid => '82027ee9-cb59-4f29-80d6-f7e793f39ad4',
-        //     $amount => -0.40888361,
-        //     fee => 0.002,
-        //     balanceBefore => 0.40888361,
-        //     balanceAfter => 0.40888361,
-        //     ccy => 'BTC',
-        //     $transactionState => 'PROCESSED',
-        //     $transactionType => 'WITHDRAWAL',
-        //     received => '1551357156000',
-        //     processed => '1551357156000',
-        //     timestampMillis => '1557441846213',
-        //     displayTitle => 'Coin Withdrawal',
-        //     $displayDescription => 'Withdraw to => 1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX',
-        //     coinAddress => '1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX',
-        //     coinTransactionId:
-        //     'ab80abcb62bf6261ebc827c73dd59a4ce15d740b6ba734af6542f43b6485b923',
-        //         subAccount:
-        //     { uuid => '652e1add-0d0b-462c-a03c-d6197c825c1a',
-        //         name => 'DEFAULT' } }
+        // withdrawal
         //
-        // deposit:
-        //    {
-        //     "transactionClass" => "COIN",
-        //     "uuid" => "eb65576f-c1a8-423c-8e2f-fa50109b2eab",
-        //     "userUuid" => "82027ee9-cb59-4f29-80d6-f7e793f39ad4",
-        //     "$amount" => 3.99287184,
-        //     "fee" => 0,
-        //     "balanceBefore" => 8.39666034,
-        //     "balanceAfter" => 12.38953218,
-        //     "ccy" => "ETH",
-        //     "$transactionState" => "PROCESSED",
-        //     "$transactionType" => "DEPOSIT",
-        //     "received" => "1529420056000",
-        //     "processed" => "1529420766000",
-        //     "timestampMillis" => "1557442743854",
-        //     "displayTitle" => "Coin Deposit",
-        //     "$displayDescription" => "Deposit to => 0xf123aa44fadea913a7da99cc2ee202db684ce0e3",
-        //     "coinTransactionId" => "0x33a3e5ea7c034dc5324a88aa313962df0a5d571ab4bcc3cb00b876b1bdfc54f7",
-        //     "coinConfirmations" => 51,
-        //     "coinConfirmationsRequired" => 45,
-        //     "subAccount" => array ("uuid" => "aba1de05-c7c6-49d7-84ab-a6aca0e827b6", "name" => "DEFAULT")
-        //    }
+        //     {
+        //         transactionClass => 'COIN',
+        //         uuid => 'bff91938-4dad-4c48-9db6-468324ce96c1',
+        //         userUuid => '82027ee9-cb59-4f29-80d6-f7e793f39ad4',
+        //         $amount => -0.40888361,
+        //         fee => 0.002,
+        //         balanceBefore => 0.40888361,
+        //         balanceAfter => 0.40888361,
+        //         ccy => 'BTC',
+        //         $transactionState => 'PROCESSED',
+        //         $transactionType => 'WITHDRAWAL',
+        //         received => '1551357156000',
+        //         processed => '1551357156000',
+        //         timestampMillis => '1557441846213',
+        //         displayTitle => 'Coin Withdrawal',
+        //         $displayDescription => 'Withdraw to => 1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX',
+        //         coinAddress => '1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX',
+        //         coinTransactionId:
+        //         'ab80abcb62bf6261ebc827c73dd59a4ce15d740b6ba734af6542f43b6485b923',
+        //         subAccount => {
+        //             uuid => '652e1add-0d0b-462c-a03c-d6197c825c1a',
+        //             name => 'DEFAULT'
+        //         }
+        //     }
+        //
+        // deposit
+        //
+        //     {
+        //         "transactionClass" => "COIN",
+        //         "uuid" => "eb65576f-c1a8-423c-8e2f-fa50109b2eab",
+        //         "userUuid" => "82027ee9-cb59-4f29-80d6-f7e793f39ad4",
+        //         "$amount" => 3.99287184,
+        //         "fee" => 0,
+        //         "balanceBefore" => 8.39666034,
+        //         "balanceAfter" => 12.38953218,
+        //         "ccy" => "ETH",
+        //         "$transactionState" => "PROCESSED",
+        //         "$transactionType" => "DEPOSIT",
+        //         "received" => "1529420056000",
+        //         "processed" => "1529420766000",
+        //         "timestampMillis" => "1557442743854",
+        //         "displayTitle" => "Coin Deposit",
+        //         "$displayDescription" => "Deposit to => 0xf123aa44fadea913a7da99cc2ee202db684ce0e3",
+        //         "coinTransactionId" => "0x33a3e5ea7c034dc5324a88aa313962df0a5d571ab4bcc3cb00b876b1bdfc54f7",
+        //         "coinConfirmations" => 51,
+        //         "coinConfirmationsRequired" => 45,
+        //         "subAccount" => array ("uuid" => "aba1de05-c7c6-49d7-84ab-a6aca0e827b6", "name" => "DEFAULT")
+        //     }
+        //
         $timestamp = $this->safe_integer($transaction, 'received');
         $updated = $this->safe_integer($transaction, 'processed');
         $transactionType = $this->safe_string($transaction, 'transactionType');
@@ -402,62 +409,50 @@ class anxpro extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        // v2 response:
         //
-        //    { tradeId => 'fc0d3a9d-8b0b-4dff-b2e9-edd160785210',
-        //     orderId => '8161ae6e-251a-4eed-a56f-d3d6555730c1',
-        //     $timestamp => '1551357033000',
-        //     tradedCurrencyFillAmount => '0.06521746',
-        //     settlementCurrencyFillAmount => '224.09',
-        //     settlementCurrencyFillAmountUnrounded => '224.09000000',
-        //     $price => '3436.04305',
-        //     ccyPair => 'BTCUSD',
-        //     $side => 'BUY' }
-        // $side field is missing in v3 orders
+        // v2
+        //
+        //     {
+        //         tradeId => 'fc0d3a9d-8b0b-4dff-b2e9-edd160785210',
+        //         $orderId => '8161ae6e-251a-4eed-a56f-d3d6555730c1',
+        //         $timestamp => '1551357033000',
+        //         tradedCurrencyFillAmount => '0.06521746',
+        //         settlementCurrencyFillAmount => '224.09',
+        //         settlementCurrencyFillAmountUnrounded => '224.09000000',
+        //         $price => '3436.04305',
+        //         ccyPair => 'BTCUSD',
+        //         $side => 'BUY', // missing in v3
+        //     }
+        //
+        // v3
+        //
+        //     {
+        //         tradeId => 'fc0d3a9d-8b0b-4dff-b2e9-edd160785210',
+        //         $orderId => '8161ae6e-251a-4eed-a56f-d3d6555730c1',
+        //         $timestamp => '1551357033000',
+        //         tradedCurrencyFillAmount => '0.06521746',
+        //         settlementCurrencyFillAmount => '224.09',
+        //         settlementCurrencyFillAmountUnrounded => '224.09000000',
+        //         $price => '3436.04305',
+        //         ccyPair => 'BTCUSD'
+        //     }
+        //
+        $id = $this->safe_string($trade, 'tradeId');
+        $orderId = $this->safe_string($trade, 'orderId');
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'tradedCurrencyFillAmount');
         $cost = $this->safe_float($trade, 'settlementCurrencyFillAmount');
         $side = $this->safe_string($trade, 'side');
+        $side = ($side === null) ? null : strtolower ($side);
         return array (
-            'id' => $this->safe_string($trade, 'tradeId'),
-            'order' => $this->safe_string($trade, 'orderId'),
+            'id' => $id,
+            'order' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $this->find_symbol($this->safe_string($trade, 'ccyPair')),
             'type' => null,
-            'side' => $side ? strtolower ($side) : null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
-            'fee' => null,
-            'info' => $trade,
-        );
-    }
-
-    public function parse_v3_trade ($trade, $market = null) {
-        // v3 response:
-        //
-        //    { tradeId => 'fc0d3a9d-8b0b-4dff-b2e9-edd160785210',
-        //     orderId => '8161ae6e-251a-4eed-a56f-d3d6555730c1',
-        //     $timestamp => '1551357033000',
-        //     tradedCurrencyFillAmount => '0.06521746',
-        //     settlementCurrencyFillAmount => '224.09',
-        //     settlementCurrencyFillAmountUnrounded => '224.09000000',
-        //     $price => '3436.04305',
-        //     ccyPair => 'BTCUSD' }
-        $timestamp = $this->safe_integer($trade, 'timestamp');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'tradedCurrencyFillAmount');
-        $cost = $this->safe_float($trade, 'settlementCurrencyFillAmount');
-        return array (
-            'id' => $this->safe_string($trade, 'tradeId'),
-            'order' => $this->safe_string($trade, 'orderId'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $this->find_symbol($this->safe_string($trade, 'ccyPair')),
-            'type' => null,
-            'side' => null,
+            'side' => $side,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -790,7 +785,7 @@ class anxpro extends Exchange {
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
-        throw new ExchangeError ($this->id . ' switched off the trades endpoint, see their docs at https://docs.anxv2.apiary.io');
+        throw new NotSupported ($this->id . ' switched off the trades endpoint, see their docs at https://docs.anxv2.apiary.io');
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -857,12 +852,12 @@ class anxpro extends Exchange {
 
     public function parse_order ($order, $market = null) {
         if (is_array ($order) && array_key_exists ('orderId', $order))
-            return $this->parse_v3_order ($order, $market);
+            return $this->parse_order_v3 ($order, $market);
         else
-            return $this->parse_v2_order ($order, $market);
+            return $this->parse_order_v2 ($order, $market);
     }
 
-    public function parse_v3_order_status ($status) {
+    public function parse_order_status ($status) {
         $statuses = array (
             'ACTIVE' => 'open',
             'FULL_FILL' => 'closed',
@@ -871,38 +866,49 @@ class anxpro extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_v3_order ($order, $market = null) {
-        //   { orderType => 'LIMIT',
-        //     $tradedCurrency => 'XRP',
-        //     $settlementCurrency => 'BTC',
-        //     tradedCurrencyAmount => '400.00000000',
-        //     $buyTradedCurrency => true,
-        //     limitPriceInSettlementCurrency => '0.00007129',
-        //     $timestamp => '1522547850000',
-        //     orderId => '62a8be4d-73c6-4469-90cd-28b4726effe0',
-        //     tradedCurrencyAmountOutstanding => '0.00000000',
-        //     $orderStatus => 'FULL_FILL',
-        //     $executedAverageRate => '0.00007127',
-        //     $trades:
-        //     array ( array ( tradeId => 'fe16b796-df57-41a2-b6d9-3489f189749e',
-        //         orderId => '62a8be4d-73c6-4469-90cd-28b4726effe0',
+    public function parse_order_v3 ($order, $market = null) {
+        //
+        // v3
+        //
+        //     {
+        //         orderType => 'LIMIT',
+        //         $tradedCurrency => 'XRP',
+        //         $settlementCurrency => 'BTC',
+        //         tradedCurrencyAmount => '400.00000000',
+        //         $buyTradedCurrency => true,
+        //         limitPriceInSettlementCurrency => '0.00007129',
         //         $timestamp => '1522547850000',
-        //         tradedCurrencyFillAmount => '107.91298639',
-        //         settlementCurrencyFillAmount => '0.00768772',
-        //         settlementCurrencyFillAmountUnrounded => '0.00768772',
-        //         $price => '0.00007124',
-        //         ccyPair => 'XRPBTC' ),
-        //         { tradeId => 'e2962f67-c094-4243-8b88-0cdc70a1b1c7',
-        //             orderId => '62a8be4d-73c6-4469-90cd-28b4726effe0',
-        //             $timestamp => '1522547851000',
-        //             tradedCurrencyFillAmount => '292.08701361',
-        //             settlementCurrencyFillAmount => '0.02082288',
-        //             settlementCurrencyFillAmountUnrounded => '0.02082288',
-        //             $price => '0.00007129',
-        //             ccyPair => 'XRPBTC' } ) }
+        //         orderId => '62a8be4d-73c6-4469-90cd-28b4726effe0',
+        //         tradedCurrencyAmountOutstanding => '0.00000000',
+        //         $orderStatus => 'FULL_FILL',
+        //         $executedAverageRate => '0.00007127',
+        //         $trades => array (
+        //             array (
+        //                 tradeId => 'fe16b796-df57-41a2-b6d9-3489f189749e',
+        //                 orderId => '62a8be4d-73c6-4469-90cd-28b4726effe0',
+        //                 $timestamp => '1522547850000',
+        //                 tradedCurrencyFillAmount => '107.91298639',
+        //                 settlementCurrencyFillAmount => '0.00768772',
+        //                 settlementCurrencyFillAmountUnrounded => '0.00768772',
+        //                 $price => '0.00007124',
+        //                 ccyPair => 'XRPBTC'
+        //             ),
+        //             {
+        //                 tradeId => 'e2962f67-c094-4243-8b88-0cdc70a1b1c7',
+        //                 orderId => '62a8be4d-73c6-4469-90cd-28b4726effe0',
+        //                 $timestamp => '1522547851000',
+        //                 tradedCurrencyFillAmount => '292.08701361',
+        //                 settlementCurrencyFillAmount => '0.02082288',
+        //                 settlementCurrencyFillAmountUnrounded => '0.02082288',
+        //                 $price => '0.00007129',
+        //                 ccyPair => 'XRPBTC'
+        //             }
+        //         )
+        //     }
+        //
         $tradedCurrency = $this->safe_string($order, 'tradedCurrency');
         $orderStatus = $this->safe_string($order, 'orderStatus');
-        $status = $this->parse_v3_order_status ($orderStatus);
+        $status = $this->parse_order_status($orderStatus);
         $settlementCurrency = $this->safe_string($order, 'settlementCurrency');
         $symbol = $this->find_symbol($tradedCurrency . '/' . $settlementCurrency);
         $buyTradedCurrency = $this->safe_string($order, 'buyTradedCurrency');
@@ -917,7 +923,7 @@ class anxpro extends Exchange {
             $tradeTimestamp = $this->safe_integer($trade, 'timestamp');
             if (!$lastTradeTimestamp || $lastTradeTimestamp < $tradeTimestamp)
                 $lastTradeTimestamp = $tradeTimestamp;
-            $parsedTrade = array_merge ($this->parse_v3_trade ($trade), array ( 'side' => $side, 'type' => $type ));
+            $parsedTrade = array_merge ($this->parse_trade($trade), array ( 'side' => $side, 'type' => $type ));
             $trades[] = $parsedTrade;
             $filled = $this->sum ($filled, $parsedTrade['amount']);
         }
@@ -950,38 +956,40 @@ class anxpro extends Exchange {
         );
     }
 
-    public function parse_v2_order ($order, $market = null) {
-        // v2 response:
+    public function parse_order_v2 ($order, $market = null) {
+        //
+        // v2
+        //
         //     {
-        //       "oid" => "e74305c7-c424-4fbc-a8a2-b41d8329deb0",
-        //       "currency" => "HKD",
-        //       "item" => "BTC",
-        //       "type" => "offer",  <-- bid/offer
-        //       "$amount" => array (
-        //         "currency" => "BTC",
-        //         "display" => "10.00000000 BTC",
-        //         "display_short" => "10.00 BTC",
-        //         "value" => "10.00000000",
-        //         "value_int" => "1000000000"
-        //       ),
-        //       "effective_amount" => array (
-        //         "currency" => "BTC",
-        //         "display" => "10.00000000 BTC",
-        //         "display_short" => "10.00 BTC",
-        //         "value" => "10.00000000",
-        //         "value_int" => "1000000000"
-        //       ),
-        //       "$price" => array (
+        //         "oid" => "e74305c7-c424-4fbc-a8a2-b41d8329deb0",
         //         "currency" => "HKD",
-        //         "display" => "412.34567 HKD",
-        //         "display_short" => "412.35 HKD",
-        //         "value" => "412.34567",
-        //         "value_int" => "41234567"
-        //       ),
-        //       "$status" => "open",
-        //       "date" => 1393411075000,
-        //       "priority" => 1393411075000000,
-        //       "actions" => array ()
+        //         "item" => "BTC",
+        //         "type" => "offer",  <-- bid/offer
+        //         "$amount" => array (
+        //             "currency" => "BTC",
+        //             "display" => "10.00000000 BTC",
+        //             "display_short" => "10.00 BTC",
+        //             "value" => "10.00000000",
+        //             "value_int" => "1000000000"
+        //         ),
+        //         "effective_amount" => array (
+        //             "currency" => "BTC",
+        //             "display" => "10.00000000 BTC",
+        //             "display_short" => "10.00 BTC",
+        //             "value" => "10.00000000",
+        //             "value_int" => "1000000000"
+        //         ),
+        //         "$price" => array (
+        //             "currency" => "HKD",
+        //             "display" => "412.34567 HKD",
+        //             "display_short" => "412.35 HKD",
+        //             "value" => "412.34567",
+        //             "value_int" => "41234567"
+        //         ),
+        //         "$status" => "open",
+        //         "date" => 1393411075000,
+        //         "priority" => 1393411075000000,
+        //         "actions" => array ()
         //     }
         //
         $id = $this->safe_string($order, 'oid');

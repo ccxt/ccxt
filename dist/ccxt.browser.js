@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.575'
+const version = '1.18.576'
 
 Exchange.ccxtVersion = version
 
@@ -1059,7 +1059,7 @@ module.exports = class allcoin extends okcoinusd {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InsufficientFunds, ExchangeNotAvailable, InvalidOrder, BadRequest, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InsufficientFunds, ExchangeNotAvailable, InvalidOrder, BadRequest, OrderNotFound, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -1261,57 +1261,64 @@ module.exports = class anxpro extends Exchange {
         //     }
         //
         const transactions = this.safeValue (response, 'transactions', []);
-        const depositsAndWithdrawals = this.filterBy (transactions, 'transactionClass', 'COIN');
+        const grouped = this.groupBy (transactions, 'transactionType');
+        const depositsAndWithdrawals = this.arrayConcat (grouped['DEPOSIT'], grouped['WITHDRAWAL']);
         return this.parseTransactions (depositsAndWithdrawals, currency, since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
-        // WITHDRAWAL:
         //
-        //    { transactionClass: 'COIN',
-        //     uuid: 'bff91938-4dad-4c48-9db6-468324ce96c1',
-        //     userUuid: '82027ee9-cb59-4f29-80d6-f7e793f39ad4',
-        //     amount: -0.40888361,
-        //     fee: 0.002,
-        //     balanceBefore: 0.40888361,
-        //     balanceAfter: 0.40888361,
-        //     ccy: 'BTC',
-        //     transactionState: 'PROCESSED',
-        //     transactionType: 'WITHDRAWAL',
-        //     received: '1551357156000',
-        //     processed: '1551357156000',
-        //     timestampMillis: '1557441846213',
-        //     displayTitle: 'Coin Withdrawal',
-        //     displayDescription: 'Withdraw to: 1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX',
-        //     coinAddress: '1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX',
-        //     coinTransactionId:
-        //     'ab80abcb62bf6261ebc827c73dd59a4ce15d740b6ba734af6542f43b6485b923',
-        //         subAccount:
-        //     { uuid: '652e1add-0d0b-462c-a03c-d6197c825c1a',
-        //         name: 'DEFAULT' } }
+        // withdrawal
         //
-        // deposit:
-        //    {
-        //     "transactionClass": "COIN",
-        //     "uuid": "eb65576f-c1a8-423c-8e2f-fa50109b2eab",
-        //     "userUuid": "82027ee9-cb59-4f29-80d6-f7e793f39ad4",
-        //     "amount": 3.99287184,
-        //     "fee": 0,
-        //     "balanceBefore": 8.39666034,
-        //     "balanceAfter": 12.38953218,
-        //     "ccy": "ETH",
-        //     "transactionState": "PROCESSED",
-        //     "transactionType": "DEPOSIT",
-        //     "received": "1529420056000",
-        //     "processed": "1529420766000",
-        //     "timestampMillis": "1557442743854",
-        //     "displayTitle": "Coin Deposit",
-        //     "displayDescription": "Deposit to: 0xf123aa44fadea913a7da99cc2ee202db684ce0e3",
-        //     "coinTransactionId": "0x33a3e5ea7c034dc5324a88aa313962df0a5d571ab4bcc3cb00b876b1bdfc54f7",
-        //     "coinConfirmations": 51,
-        //     "coinConfirmationsRequired": 45,
-        //     "subAccount": {"uuid": "aba1de05-c7c6-49d7-84ab-a6aca0e827b6", "name": "DEFAULT"}
-        //    }
+        //     {
+        //         transactionClass: 'COIN',
+        //         uuid: 'bff91938-4dad-4c48-9db6-468324ce96c1',
+        //         userUuid: '82027ee9-cb59-4f29-80d6-f7e793f39ad4',
+        //         amount: -0.40888361,
+        //         fee: 0.002,
+        //         balanceBefore: 0.40888361,
+        //         balanceAfter: 0.40888361,
+        //         ccy: 'BTC',
+        //         transactionState: 'PROCESSED',
+        //         transactionType: 'WITHDRAWAL',
+        //         received: '1551357156000',
+        //         processed: '1551357156000',
+        //         timestampMillis: '1557441846213',
+        //         displayTitle: 'Coin Withdrawal',
+        //         displayDescription: 'Withdraw to: 1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX',
+        //         coinAddress: '1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX',
+        //         coinTransactionId:
+        //         'ab80abcb62bf6261ebc827c73dd59a4ce15d740b6ba734af6542f43b6485b923',
+        //         subAccount: {
+        //             uuid: '652e1add-0d0b-462c-a03c-d6197c825c1a',
+        //             name: 'DEFAULT'
+        //         }
+        //     }
+        //
+        // deposit
+        //
+        //     {
+        //         "transactionClass": "COIN",
+        //         "uuid": "eb65576f-c1a8-423c-8e2f-fa50109b2eab",
+        //         "userUuid": "82027ee9-cb59-4f29-80d6-f7e793f39ad4",
+        //         "amount": 3.99287184,
+        //         "fee": 0,
+        //         "balanceBefore": 8.39666034,
+        //         "balanceAfter": 12.38953218,
+        //         "ccy": "ETH",
+        //         "transactionState": "PROCESSED",
+        //         "transactionType": "DEPOSIT",
+        //         "received": "1529420056000",
+        //         "processed": "1529420766000",
+        //         "timestampMillis": "1557442743854",
+        //         "displayTitle": "Coin Deposit",
+        //         "displayDescription": "Deposit to: 0xf123aa44fadea913a7da99cc2ee202db684ce0e3",
+        //         "coinTransactionId": "0x33a3e5ea7c034dc5324a88aa313962df0a5d571ab4bcc3cb00b876b1bdfc54f7",
+        //         "coinConfirmations": 51,
+        //         "coinConfirmationsRequired": 45,
+        //         "subAccount": {"uuid": "aba1de05-c7c6-49d7-84ab-a6aca0e827b6", "name": "DEFAULT"}
+        //     }
+        //
         const timestamp = this.safeInteger (transaction, 'received');
         const updated = this.safeInteger (transaction, 'processed');
         const transactionType = this.safeString (transaction, 'transactionType');
@@ -1457,62 +1464,50 @@ module.exports = class anxpro extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        // v2 response:
         //
-        //    { tradeId: 'fc0d3a9d-8b0b-4dff-b2e9-edd160785210',
-        //     orderId: '8161ae6e-251a-4eed-a56f-d3d6555730c1',
-        //     timestamp: '1551357033000',
-        //     tradedCurrencyFillAmount: '0.06521746',
-        //     settlementCurrencyFillAmount: '224.09',
-        //     settlementCurrencyFillAmountUnrounded: '224.09000000',
-        //     price: '3436.04305',
-        //     ccyPair: 'BTCUSD',
-        //     side: 'BUY' }
-        // side field is missing in v3 orders
+        // v2
+        //
+        //     {
+        //         tradeId: 'fc0d3a9d-8b0b-4dff-b2e9-edd160785210',
+        //         orderId: '8161ae6e-251a-4eed-a56f-d3d6555730c1',
+        //         timestamp: '1551357033000',
+        //         tradedCurrencyFillAmount: '0.06521746',
+        //         settlementCurrencyFillAmount: '224.09',
+        //         settlementCurrencyFillAmountUnrounded: '224.09000000',
+        //         price: '3436.04305',
+        //         ccyPair: 'BTCUSD',
+        //         side: 'BUY', // missing in v3
+        //     }
+        //
+        // v3
+        //
+        //     {
+        //         tradeId: 'fc0d3a9d-8b0b-4dff-b2e9-edd160785210',
+        //         orderId: '8161ae6e-251a-4eed-a56f-d3d6555730c1',
+        //         timestamp: '1551357033000',
+        //         tradedCurrencyFillAmount: '0.06521746',
+        //         settlementCurrencyFillAmount: '224.09',
+        //         settlementCurrencyFillAmountUnrounded: '224.09000000',
+        //         price: '3436.04305',
+        //         ccyPair: 'BTCUSD'
+        //     }
+        //
+        const id = this.safeString (trade, 'tradeId');
+        const orderId = this.safeString (trade, 'orderId');
         const timestamp = this.safeInteger (trade, 'timestamp');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'tradedCurrencyFillAmount');
         const cost = this.safeFloat (trade, 'settlementCurrencyFillAmount');
         let side = this.safeString (trade, 'side');
+        side = (side === undefined) ? undefined : side.toLowerCase ();
         return {
-            'id': this.safeString (trade, 'tradeId'),
-            'order': this.safeString (trade, 'orderId'),
+            'id': id,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': this.findSymbol (this.safeString (trade, 'ccyPair')),
             'type': undefined,
-            'side': side ? side.toLowerCase () : undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': undefined,
-            'info': trade,
-        };
-    }
-
-    parse_v3_Trade (trade, market = undefined) {
-        // v3 response:
-        //
-        //    { tradeId: 'fc0d3a9d-8b0b-4dff-b2e9-edd160785210',
-        //     orderId: '8161ae6e-251a-4eed-a56f-d3d6555730c1',
-        //     timestamp: '1551357033000',
-        //     tradedCurrencyFillAmount: '0.06521746',
-        //     settlementCurrencyFillAmount: '224.09',
-        //     settlementCurrencyFillAmountUnrounded: '224.09000000',
-        //     price: '3436.04305',
-        //     ccyPair: 'BTCUSD' }
-        const timestamp = this.safeInteger (trade, 'timestamp');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'tradedCurrencyFillAmount');
-        const cost = this.safeFloat (trade, 'settlementCurrencyFillAmount');
-        return {
-            'id': this.safeString (trade, 'tradeId'),
-            'order': this.safeString (trade, 'orderId'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': this.findSymbol (this.safeString (trade, 'ccyPair')),
-            'type': undefined,
-            'side': undefined,
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -1845,7 +1840,7 @@ module.exports = class anxpro extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        throw new ExchangeError (this.id + ' switched off the trades endpoint, see their docs at https://docs.anxv2.apiary.io');
+        throw new NotSupported (this.id + ' switched off the trades endpoint, see their docs at https://docs.anxv2.apiary.io');
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1912,12 +1907,12 @@ module.exports = class anxpro extends Exchange {
 
     parseOrder (order, market = undefined) {
         if ('orderId' in order)
-            return this.parseV3Order (order, market);
+            return this.parseOrderV3 (order, market);
         else
-            return this.parseV2Order (order, market);
+            return this.parseOrderV2 (order, market);
     }
 
-    parseV3OrderStatus (status) {
+    parseOrderStatus (status) {
         const statuses = {
             'ACTIVE': 'open',
             'FULL_FILL': 'closed',
@@ -1926,38 +1921,49 @@ module.exports = class anxpro extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseV3Order (order, market = undefined) {
-        //   { orderType: 'LIMIT',
-        //     tradedCurrency: 'XRP',
-        //     settlementCurrency: 'BTC',
-        //     tradedCurrencyAmount: '400.00000000',
-        //     buyTradedCurrency: true,
-        //     limitPriceInSettlementCurrency: '0.00007129',
-        //     timestamp: '1522547850000',
-        //     orderId: '62a8be4d-73c6-4469-90cd-28b4726effe0',
-        //     tradedCurrencyAmountOutstanding: '0.00000000',
-        //     orderStatus: 'FULL_FILL',
-        //     executedAverageRate: '0.00007127',
-        //     trades:
-        //     [ { tradeId: 'fe16b796-df57-41a2-b6d9-3489f189749e',
-        //         orderId: '62a8be4d-73c6-4469-90cd-28b4726effe0',
+    parseOrderV3 (order, market = undefined) {
+        //
+        // v3
+        //
+        //     {
+        //         orderType: 'LIMIT',
+        //         tradedCurrency: 'XRP',
+        //         settlementCurrency: 'BTC',
+        //         tradedCurrencyAmount: '400.00000000',
+        //         buyTradedCurrency: true,
+        //         limitPriceInSettlementCurrency: '0.00007129',
         //         timestamp: '1522547850000',
-        //         tradedCurrencyFillAmount: '107.91298639',
-        //         settlementCurrencyFillAmount: '0.00768772',
-        //         settlementCurrencyFillAmountUnrounded: '0.00768772',
-        //         price: '0.00007124',
-        //         ccyPair: 'XRPBTC' },
-        //         { tradeId: 'e2962f67-c094-4243-8b88-0cdc70a1b1c7',
-        //             orderId: '62a8be4d-73c6-4469-90cd-28b4726effe0',
-        //             timestamp: '1522547851000',
-        //             tradedCurrencyFillAmount: '292.08701361',
-        //             settlementCurrencyFillAmount: '0.02082288',
-        //             settlementCurrencyFillAmountUnrounded: '0.02082288',
-        //             price: '0.00007129',
-        //             ccyPair: 'XRPBTC' } ] }
+        //         orderId: '62a8be4d-73c6-4469-90cd-28b4726effe0',
+        //         tradedCurrencyAmountOutstanding: '0.00000000',
+        //         orderStatus: 'FULL_FILL',
+        //         executedAverageRate: '0.00007127',
+        //         trades: [
+        //             {
+        //                 tradeId: 'fe16b796-df57-41a2-b6d9-3489f189749e',
+        //                 orderId: '62a8be4d-73c6-4469-90cd-28b4726effe0',
+        //                 timestamp: '1522547850000',
+        //                 tradedCurrencyFillAmount: '107.91298639',
+        //                 settlementCurrencyFillAmount: '0.00768772',
+        //                 settlementCurrencyFillAmountUnrounded: '0.00768772',
+        //                 price: '0.00007124',
+        //                 ccyPair: 'XRPBTC'
+        //             },
+        //             {
+        //                 tradeId: 'e2962f67-c094-4243-8b88-0cdc70a1b1c7',
+        //                 orderId: '62a8be4d-73c6-4469-90cd-28b4726effe0',
+        //                 timestamp: '1522547851000',
+        //                 tradedCurrencyFillAmount: '292.08701361',
+        //                 settlementCurrencyFillAmount: '0.02082288',
+        //                 settlementCurrencyFillAmountUnrounded: '0.02082288',
+        //                 price: '0.00007129',
+        //                 ccyPair: 'XRPBTC'
+        //             }
+        //         ]
+        //     }
+        //
         const tradedCurrency = this.safeString (order, 'tradedCurrency');
         const orderStatus = this.safeString (order, 'orderStatus');
-        const status = this.parseV3OrderStatus (orderStatus);
+        const status = this.parseOrderStatus (orderStatus);
         const settlementCurrency = this.safeString (order, 'settlementCurrency');
         const symbol = this.findSymbol (tradedCurrency + '/' + settlementCurrency);
         const buyTradedCurrency = this.safeString (order, 'buyTradedCurrency');
@@ -1972,7 +1978,7 @@ module.exports = class anxpro extends Exchange {
             const tradeTimestamp = this.safeInteger (trade, 'timestamp');
             if (!lastTradeTimestamp || lastTradeTimestamp < tradeTimestamp)
                 lastTradeTimestamp = tradeTimestamp;
-            const parsedTrade = this.extend (this.parse_v3_Trade (trade), { 'side': side, 'type': type });
+            const parsedTrade = this.extend (this.parseTrade (trade), { 'side': side, 'type': type });
             trades.push (parsedTrade);
             filled = this.sum (filled, parsedTrade['amount']);
         }
@@ -2005,38 +2011,40 @@ module.exports = class anxpro extends Exchange {
         };
     }
 
-    parseV2Order (order, market = undefined) {
-        // v2 response:
+    parseOrderV2 (order, market = undefined) {
+        //
+        // v2
+        //
         //     {
-        //       "oid": "e74305c7-c424-4fbc-a8a2-b41d8329deb0",
-        //       "currency": "HKD",
-        //       "item": "BTC",
-        //       "type": "offer",  <-- bid/offer
-        //       "amount": {
-        //         "currency": "BTC",
-        //         "display": "10.00000000 BTC",
-        //         "display_short": "10.00 BTC",
-        //         "value": "10.00000000",
-        //         "value_int": "1000000000"
-        //       },
-        //       "effective_amount": {
-        //         "currency": "BTC",
-        //         "display": "10.00000000 BTC",
-        //         "display_short": "10.00 BTC",
-        //         "value": "10.00000000",
-        //         "value_int": "1000000000"
-        //       },
-        //       "price": {
+        //         "oid": "e74305c7-c424-4fbc-a8a2-b41d8329deb0",
         //         "currency": "HKD",
-        //         "display": "412.34567 HKD",
-        //         "display_short": "412.35 HKD",
-        //         "value": "412.34567",
-        //         "value_int": "41234567"
-        //       },
-        //       "status": "open",
-        //       "date": 1393411075000,
-        //       "priority": 1393411075000000,
-        //       "actions": []
+        //         "item": "BTC",
+        //         "type": "offer",  <-- bid/offer
+        //         "amount": {
+        //             "currency": "BTC",
+        //             "display": "10.00000000 BTC",
+        //             "display_short": "10.00 BTC",
+        //             "value": "10.00000000",
+        //             "value_int": "1000000000"
+        //         },
+        //         "effective_amount": {
+        //             "currency": "BTC",
+        //             "display": "10.00000000 BTC",
+        //             "display_short": "10.00 BTC",
+        //             "value": "10.00000000",
+        //             "value_int": "1000000000"
+        //         },
+        //         "price": {
+        //             "currency": "HKD",
+        //             "display": "412.34567 HKD",
+        //             "display_short": "412.35 HKD",
+        //             "value": "412.34567",
+        //             "value_int": "41234567"
+        //         },
+        //         "status": "open",
+        //         "date": 1393411075000,
+        //         "priority": 1393411075000000,
+        //         "actions": []
         //     }
         //
         let id = this.safeString (order, 'oid');
@@ -42941,24 +42949,54 @@ module.exports = class gdax extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
+        const currency = this.currency (code);
         let accounts = this.safeValue (this.options, 'coinbaseAccounts');
         if (accounts === undefined) {
             accounts = await this.privateGetCoinbaseAccounts ();
             this.options['coinbaseAccounts'] = accounts; // cache it
             this.options['coinbaseAccountsByCurrencyId'] = this.indexBy (accounts, 'currency');
         }
-        let currencyId = currency['id'];
-        let account = this.safeValue (this.options['coinbaseAccountsByCurrencyId'], currencyId);
+        const currencyId = currency['id'];
+        const account = this.safeValue (this.options['coinbaseAccountsByCurrencyId'], currencyId);
         if (account === undefined) {
             // eslint-disable-next-line quotes
             throw new InvalidAddress (this.id + " fetchDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in this.options['coinbaseAccountsByCurrencyId']");
         }
-        let response = await this.privatePostCoinbaseAccountsIdAddresses (this.extend ({
+        const request = {
             'id': account['id'],
-        }, params));
-        let address = this.safeString (response, 'address');
-        let tag = this.safeString (response, 'destination_tag');
+        };
+        const response = await this.privateGetCoinbaseAccountsIdAddresses (this.extend (request, params));
+        const address = this.safeString (response, 'address');
+        const tag = this.safeString (response, 'destination_tag');
+        return {
+            'currency': code,
+            'address': this.checkAddress (address),
+            'tag': tag,
+            'info': response,
+        };
+    }
+
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        let accounts = this.safeValue (this.options, 'coinbaseAccounts');
+        if (accounts === undefined) {
+            accounts = await this.privateGetCoinbaseAccounts ();
+            this.options['coinbaseAccounts'] = accounts; // cache it
+            this.options['coinbaseAccountsByCurrencyId'] = this.indexBy (accounts, 'currency');
+        }
+        const currencyId = currency['id'];
+        const account = this.safeValue (this.options['coinbaseAccountsByCurrencyId'], currencyId);
+        if (account === undefined) {
+            // eslint-disable-next-line quotes
+            throw new InvalidAddress (this.id + " fetchDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in this.options['coinbaseAccountsByCurrencyId']");
+        }
+        const request = {
+            'id': account['id'],
+        };
+        const response = await this.privatePostCoinbaseAccountsIdAddresses (this.extend (request, params));
+        const address = this.safeString (response, 'address');
+        const tag = this.safeString (response, 'destination_tag');
         return {
             'currency': code,
             'address': this.checkAddress (address),
