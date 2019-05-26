@@ -155,7 +155,7 @@ module.exports = class oceanex extends Exchange {
         return this.parseTicker (data, market);
     }
 
-    async fetchMultiTickers (symbols, params = {}) {
+    async fetchTickers (symbols, params = {}) {
         await this.loadMarkets ();
         let markets = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -226,7 +226,7 @@ module.exports = class oceanex extends Exchange {
         return this.parseOrderBook (orderbook, timestamp);
     }
 
-    async fetchMultiOrderBooks (symbols, limit = undefined, params = {}) {
+    async fetchOrderBooks (symbols, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let markets = [];
         for (let i = 0; i < symbols.length; i++) {
