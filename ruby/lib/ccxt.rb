@@ -3,6 +3,7 @@ require 'ccxt/base/exchange'
 
 module Ccxt
   @exchanges = [
+    'binance',
     'bitmex',
     'kraken'
   ].each do |exchange|
