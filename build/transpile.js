@@ -510,6 +510,7 @@ const rubyRegexes = [
     [ /;/g, '' ],
     [ /\.toUpperCase\s*\(\)/g, '.upcase' ],
     [ /\.toLowerCase\s*\(\)/g, '.downcase' ],
+    [ /\.replace\s*/g, '.gsub'],
     [ /JSON\.stringify\s*/g, 'JSON.dumps' ],
     [ /JSON\.parse\s*/g, "JSON.loads" ],
     [ /\(([^\s]+) in ([^\s]+)\)/g, "$2.include?($1)"], 
