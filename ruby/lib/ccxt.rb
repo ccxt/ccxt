@@ -7,7 +7,8 @@ module Ccxt
     'bitfinex',
     'bitmex',
     'coss',
-    'kraken'
+    'kraken',
+    'kucoin'
   ].each do |exchange|
     require "ccxt/#{exchange}"
 
