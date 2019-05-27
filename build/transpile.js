@@ -377,18 +377,18 @@ const rubyRegexes = [
     [ /([^\(\s]+)\s+instanceof\s+([^\)\s]+)/g, '$1.is_a?($2)' ],
 
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2].nil?' ],
-    [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '!$1[$2].nil?' ],
+    [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] != nil' ],
     [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'undefined\'/g, '$1.nil?' ],
-    [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'undefined\'/g, '!$1.nil?' ],
+    [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'undefined\'/g, '$1 != nil' ],
     [ /typeof\s+(.+?)\s+\=\=\=?\s+\'undefined\'/g, '$1.nil?' ],
-    [ /typeof\s+(.+?)\s+\!\=\=?\s+\'undefined\'/g, '!$1.nil?' ],
+    [ /typeof\s+(.+?)\s+\!\=\=?\s+\'undefined\'/g, '$1 != nil' ],
 
     [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+undefined/g, '$1[$2].nil?' ],
-    [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+undefined/g, '!$1[$2].nil?' ],
+    [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+undefined/g, '$1[$2] != nil' ],
     [ /([^\s]+)\s+\=\=\=?\s+undefined/g, '$1.nil?' ],
-    [ /([^\s]+)\s+\!\=\=?\s+undefined/g, '!$1.nil?' ],
+    [ /([^\s]+)\s+\!\=\=?\s+undefined/g, '$1 != nil' ],
     [ /(.+?)\s+\=\=\=?\s+undefined/g, '$1.nil?' ],
-    [ /(.+?)\s+\!\=\=?\s+undefined/g, '!$1.nil?' ],
+    [ /(.+?)\s+\!\=\=?\s+undefined/g, '$1 != nil' ],
 
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'string\'/g, '$1[$2].is_a?(String)' ],
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'string\'/g, '!$1[$2].is_a?(String)' ],
@@ -790,7 +790,11 @@ function transpileJavaScriptToRuby ( {js, className, removeEmptyLines }) {
     rubyBody = rubyBody.replace (/\'([абвгдеёжзийклмнопрстуфхцчшщъыьэюя服务端忙碌]+)\'/gm, "u'$1'")
     
     // special case for Ruby super
-    rubyBody = rubyBody.replace (/super\./g, 'self.superclass.')
+    // Javascript/Python's super keyword is used to access and call functions 
+    // on an object's parent. Ruby's super keyword calls a method on the 
+    // parent class with the same name as the method that calls super. The
+    // only place it is currently used is super.describe ().
+    rubyBody = rubyBody.replace (/super\.describe/g, 'super')
     return rubyBody
 }
 
