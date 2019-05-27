@@ -490,7 +490,7 @@ const rubyRegexes = [
     [ /hash \(([^,]+)\, \'(sha[0-9])\'/g, "self.class.hash($1, '$2'" ],
     [ /hmac \(([^,]+)\, ([^,]+)\, \'(md5)\'/g, 'self.class.hmac($1, $2, $3' ],
     [ /hmac \(([^,]+)\, ([^,]+)\, \'(sha[0-9]+)\'/g, 'self.class.hmac($1, $2, $3' ],
-    [ /throw new ([\S]+) \((.*)\)/g, 'raise $1, $2'],
+    [ /throw new ([\S]+) \((.*)\)/g, 'raise($1, $2)'],
     [ /throw ([\S]+)/g, 'raise $1'],
     [ /try {/g, 'begin'],
     [ /\}\s+catch \(([\S]+)\) {/g, 'rescue BaseError => $1'],
