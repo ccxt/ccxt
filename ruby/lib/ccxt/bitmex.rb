@@ -284,7 +284,7 @@ module Ccxt
       if numResults == 1
         return result[0]
       end
-      raise Exchange::OrderNotFound, self.id + ': The order ' + id + ' not found.'
+      raise OrderNotFound, self.id + ': The order ' + id + ' not found.'
     end
 
     def fetch_orders(symbol=nil, since=nil, limit=nil, params={})
@@ -416,13 +416,13 @@ module Ccxt
       self.load_markets()
       market = self.market(symbol)
       if not market['active']
-        raise Exchange::ExchangeError, self.id + ': symbol ' + symbol + ' is delisted'
+        raise ExchangeError, self.id + ': symbol ' + symbol + ' is delisted'
       end
       # why the extra call here?
       tickers = self.fetch_tickers([symbol], params)
       ticker = self.class.safe_value(tickers, symbol)
       if ticker.nil?
-        raise Exchange::ExchangeError, self.id + ' ticker symbol ' + symbol + ' not found'
+        raise ExchangeError, self.id + ' ticker symbol ' + symbol + ' not found'
       end
       return ticker
     end
@@ -917,7 +917,7 @@ module Ccxt
       error = self.class.safe_string(order, 'error')
       if error != nil
         if error.index('Unable to cancel order due to existing state')
-          raise Exchange::Exchange::OrderNotFound, self.id + ' cancelOrder() failed: ' + error
+          raise OrderNotFound, self.id + ' cancelOrder() failed: ' + error
         end
       end
       order = self.parse_order(order)
@@ -940,7 +940,7 @@ module Ccxt
       self.load_markets()
       # currency = self.currency(code)
       if code != 'BTC'
-        raise Exchange::Exchange::ExchangeError, self.id + ' supoprts BTC withdrawals only, other currencies coming soon ... '
+        raise ExchangeError, self.id + ' supports BTC withdrawals only, other currencies coming soon ... '
       end
       request = {
         'currency': 'XBt',  # temporarily
@@ -958,7 +958,7 @@ module Ccxt
 
     def handle_errors(code, reason, url, method, headers, body, response)
       if code == 429
-        raise Exchange::Exchange::DDoSProtection, self.id + ' ' + body
+        raise DDoSProtection, self.id + ' ' + body
       end
       if code >= 400
         if body
@@ -976,9 +976,9 @@ module Ccxt
               raise Exchange::broad[broadKey], feedback
             end
             if code == 400
-              raise Exchange::Exchange::BadRequest, feedback
+              raise BadRequest, feedback
             end
-            raise Exchange::Exchange::ExchangeError, feedback  # unknown message
+            raise ExchangeError, feedback  # unknown message
           end
         end
       end
