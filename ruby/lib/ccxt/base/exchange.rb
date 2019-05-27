@@ -34,7 +34,7 @@ module Ccxt
     attr_accessor :enableLastHttpResponse, :enableLastJsonResponse, :enableLastResponseHeaders
     attr_accessor :last_http_response, :last_json_response, :last_response_headers, :web3
     attr_accessor :commonCurrencies, :name, :countries, :timeframes, :urls
-    attr_accessor :tokenBucket
+    attr_accessor :tokenBucket, :comment
 
     def initialize(config = {})
       @id = nil
@@ -87,7 +87,8 @@ module Ccxt
       @marketsById = nil
       @markets_by_id = nil
       @currencies_by_id = nil
-
+      @comment = nil
+      
       @precision = {}
       @limits = {}
       @exceptions = {}
