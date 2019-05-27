@@ -58,7 +58,7 @@ begin
       dump('Instantiating', green(id), 'exchange')
 
       # instantiate the exchange by id
-      exchange = Ccxt[id]
+      exchange = Ccxt[id].new
 
       # load all markets from the exchange
       markets = exchange.load_markets()
