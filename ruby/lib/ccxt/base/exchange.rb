@@ -1660,7 +1660,7 @@ module Ccxt
       end
 
       def dmy(timestamp, infix = '-')
-        utc_datetime = Time.at(timestamp.to_i).utc
+        utc_datetime = Time.at((timestamp/1000).to_i).utc
         return utc_datetime.strftime('%m' + infix + '%d' + infix + '%Y')
       end
 
@@ -1674,13 +1674,13 @@ module Ccxt
         return DateTime.parse(timestamp).strftime('%Q').to_i rescue nil
       end
 
-      def ymd(timestamp)
-        utc_datetime = Time.at(timestamp.to_i).utc
+      def ymd(timestamp, infix = '-')
+        utc_datetime = Time.at((timestamp/1000).to_i).utc
         return utc_datetime.strftime('%Y' + infix + '%m' + infix + '%d')
       end
 
-      def ymdhms(timestamp)
-        utc_datetime = Time.at(timestamp.to_i).utc
+      def ymdhms(timestamp, infix = ' ')
+        utc_datetime = Time.at((timestamp/1000).to_i).utc
         return utc_datetime.strftime('%Y-%m-%d' + infix + '%H:%M:%S')
       end
 
