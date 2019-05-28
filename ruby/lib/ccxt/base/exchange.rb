@@ -87,7 +87,6 @@ module Ccxt
       @marketsById = nil
       @markets_by_id = nil
       @currencies_by_id = nil
-      @comment = nil
       
       @precision = {}
       @limits = {}
