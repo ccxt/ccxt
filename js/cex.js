@@ -577,16 +577,6 @@ module.exports = class cex extends Exchange {
         return await this.privatePostCancelOrder ({ 'id': id });
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
-            'a': 'open',
-            'cd': 'canceled',
-            'c': 'canceled',
-            'd': 'closed',
-        };
-        return this.safeValue (statuses, status, status);
-    }
-
     parseOrder (order, market = undefined) {
         // Depending on the call, 'time' can be a unix int, unix string or ISO string
         // Yes, really
