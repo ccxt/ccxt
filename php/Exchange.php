@@ -1881,9 +1881,9 @@ class Exchange {
     }
 
     public function __call ($function, $params) {
-        if (array_key_exists($function, $this)) {
+        if (array_key_exists ($function, $this)) {
             return call_user_func_array ($this->$function, $params);
-        } else if (array_key_exists ($function, self::$camelMethods) ) {
+        } else if (array_key_exists ($function, self::$camelMethods)) {
             $underscore = self::$camelMethods[$function];
             return call_user_func_array ($this->$underscore, $params);
         } else if (array_key_exists ($function, self::$staticCamelMethods)) {
@@ -1894,8 +1894,8 @@ class Exchange {
         }
     }
 
-    public static function __callStatic($function, $params) {
-        if (array_key_exists($function, self::$staticCamelMethods)) {
+    public static function __callStatic ($function, $params) {
+        if (array_key_exists ($function, self::$staticCamelMethods)) {
             $underscore = self::$staticCamelMethods[$function];
             return static::$underscore (...$params);
         } else {
