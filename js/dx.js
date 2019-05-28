@@ -43,7 +43,7 @@ module.exports = class dx extends Exchange {
                 'fetchOrder': false,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchTrades': false,
@@ -296,7 +296,7 @@ module.exports = class dx extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'pagination': {
                 'limit': limit,
                 'offset': 0,
@@ -307,13 +307,13 @@ module.exports = class dx extends Exchange {
             market = this.market (symbol);
             request['instrumentId'] = market['numericId'];
         }
-        let response = await this.privatePostOrderManagementOpenOrders (this.extend (request, params));
+        const response = await this.privatePostOrderManagementOpenOrders (this.extend (request, params));
         return this.parseOrders (response['result']['orders'], market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'pagination': {
                 'limit': limit,
                 'offset': 0,
@@ -324,14 +324,8 @@ module.exports = class dx extends Exchange {
             market = this.market (symbol);
             request['instrumentId'] = market['numericId'];
         }
-        let response = await this.privatePostOrderManagementOrderHistory (this.extend (request, params));
+        const response = await this.privatePostOrderManagementOrderHistory (this.extend (request, params));
         return this.parseOrders (response['result']['ordersForHistory'], market, since, limit);
-    }
-
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let openOrders = await this.fetchOpenOrders (symbol, since, limit, params);
-        let orders = await this.fetchClosedOrders (symbol, since, limit, params);
-        return this.arrayConcat (orders, openOrders);
     }
 
     parseOrder (order, market = undefined) {
