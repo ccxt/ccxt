@@ -274,7 +274,7 @@ module.exports = class cex extends Exchange {
             //     "tradingFeeTaker": "0.25",
             //     "tradingFeeUserVolumeAmount": "56294576" }
             const item = response[i];
-            const status = item['status'];
+            const status = this.parseOrderStatus (this.safeString (item, 'status'));
             const baseId = item['symbol1'];
             const quoteId = item['symbol2'];
             const side = item['type'];
@@ -315,7 +315,7 @@ module.exports = class cex extends Exchange {
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
                 'lastUpdated': this.parse8601 (lastTxTime),
-                'status': this.mapOrderStatus (status),
+                'status': status,
                 'symbol': this.findSymbol (baseId + '/' + quoteId),
                 'side': side,
                 'price': price,
@@ -335,11 +335,8 @@ module.exports = class cex extends Exchange {
         return results;
     }
 
-    mapOrderStatus (value) {
-        const map = this.options.orderStatus;
-        if (!(value in map))
-            throw ExchangeError ('don\'t understand status ' + value);
-        return map[value];
+    parseOrderStatus (status) {
+        return this.safeString (this.options['order']['status'], status, status);
     }
 
     async fetchMarkets (params = {}) {
