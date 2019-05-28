@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.582'
+const version = '1.18.583'
 
 Exchange.ccxtVersion = version
 
@@ -38248,11 +38248,11 @@ module.exports = class dx extends Exchange {
                 'fetchMarkets': true,
                 'fetchMyTrades': false,
                 'fetchOHLCV': true,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrderBooks': false,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchTrades': false,
@@ -38326,6 +38326,7 @@ module.exports = class dx extends Exchange {
                         'AssetManagement.GetTicker',
                         'AssetManagement.History',
                         'Authorization.LoginByToken',
+                        'OrderManagement.GetOrderBook',
                     ],
                 },
                 'private': {
@@ -38504,7 +38505,7 @@ module.exports = class dx extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'pagination': {
                 'limit': limit,
                 'offset': 0,
@@ -38515,13 +38516,13 @@ module.exports = class dx extends Exchange {
             market = this.market (symbol);
             request['instrumentId'] = market['numericId'];
         }
-        let response = await this.privatePostOrderManagementOpenOrders (this.extend (request, params));
+        const response = await this.privatePostOrderManagementOpenOrders (this.extend (request, params));
         return this.parseOrders (response['result']['orders'], market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'pagination': {
                 'limit': limit,
                 'offset': 0,
@@ -38532,14 +38533,8 @@ module.exports = class dx extends Exchange {
             market = this.market (symbol);
             request['instrumentId'] = market['numericId'];
         }
-        let response = await this.privatePostOrderManagementOrderHistory (this.extend (request, params));
+        const response = await this.privatePostOrderManagementOrderHistory (this.extend (request, params));
         return this.parseOrders (response['result']['ordersForHistory'], market, since, limit);
-    }
-
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let openOrders = await this.fetchOpenOrders (symbol, since, limit, params);
-        let orders = await this.fetchClosedOrders (symbol, since, limit, params);
-        return this.arrayConcat (orders, openOrders);
     }
 
     parseOrder (order, market = undefined) {
@@ -38590,6 +38585,23 @@ module.exports = class dx extends Exchange {
             'fee': undefined,
         };
         return result;
+    }
+
+    parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
+        const price = this.objectToNumber (bidask[priceKey]);
+        const amount = this.objectToNumber (bidask[amountKey]);
+        return [ price, amount ];
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrumentId': market['numericId'],
+        };
+        const response = await this.publicPostOrderManagementGetOrderBook (this.extend (request, params));
+        const orderbook = this.safeValue (response, 'result');
+        return this.parseOrderBook (orderbook, undefined, 'sell', 'buy', 'price', 'qty');
     }
 
     async signIn (params = {}) {

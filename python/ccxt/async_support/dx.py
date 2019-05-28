@@ -48,11 +48,11 @@ class dx (Exchange):
                 'fetchMarkets': True,
                 'fetchMyTrades': False,
                 'fetchOHLCV': True,
-                'fetchOpenOrders': False,
+                'fetchOpenOrders': True,
                 'fetchOrder': False,
-                'fetchOrderBook': False,
+                'fetchOrderBook': True,
                 'fetchOrderBooks': False,
-                'fetchOrders': True,
+                'fetchOrders': False,
                 'fetchTicker': True,
                 'fetchTickers': False,
                 'fetchTrades': False,
@@ -126,6 +126,7 @@ class dx (Exchange):
                         'AssetManagement.GetTicker',
                         'AssetManagement.History',
                         'Authorization.LoginByToken',
+                        'OrderManagement.GetOrderBook',
                     ],
                 },
                 'private': {
@@ -322,11 +323,6 @@ class dx (Exchange):
         response = await self.privatePostOrderManagementOrderHistory(self.extend(request, params))
         return self.parse_orders(response['result']['ordersForHistory'], market, since, limit)
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        openOrders = await self.fetch_open_orders(symbol, since, limit, params)
-        orders = await self.fetch_closed_orders(symbol, since, limit, params)
-        return self.array_concat(orders, openOrders)
-
     def parse_order(self, order, market=None):
         orderStatusMap = {
             '1': 'open',
@@ -371,6 +367,21 @@ class dx (Exchange):
             'fee': None,
         }
         return result
+
+    def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
+        price = self.object_to_number(bidask[priceKey])
+        amount = self.object_to_number(bidask[amountKey])
+        return [price, amount]
+
+    async def fetch_order_book(self, symbol, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'instrumentId': market['numericId'],
+        }
+        response = await self.publicPostOrderManagementGetOrderBook(self.extend(request, params))
+        orderbook = self.safe_value(response, 'result')
+        return self.parse_order_book(orderbook, None, 'sell', 'buy', 'price', 'qty')
 
     async def sign_in(self, params={}):
         self.check_required_credentials()
