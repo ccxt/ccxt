@@ -385,18 +385,19 @@ module.exports = class dx extends Exchange {
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
-        let price = this.objectToNumber (bidask[priceKey]);
-        let amount = this.objectToNumber (bidask[amountKey]);
+        const price = this.objectToNumber (bidask[priceKey]);
+        const amount = this.objectToNumber (bidask[amountKey]);
         return [ price, amount ];
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let response = await this.publicPostOrderManagementGetOrderBook (this.extend ({
+        const request = {
             'instrumentId': market['numericId'],
-        }, params));
-        let orderbook = response['result'];
+        };
+        const response = await this.publicPostOrderManagementGetOrderBook (this.extend (request, params));
+        const orderbook = this.safeValue (response, 'result');
         return this.parseOrderBook (orderbook, undefined, 'sell', 'buy', 'price', 'qty');
     }
 
