@@ -34,7 +34,7 @@ module Ccxt
     attr_accessor :enableLastHttpResponse, :enableLastJsonResponse, :enableLastResponseHeaders
     attr_accessor :last_http_response, :last_json_response, :last_response_headers, :web3
     attr_accessor :commonCurrencies, :name, :countries, :timeframes, :urls
-    attr_accessor :tokenBucket, :comment
+    attr_accessor :tokenBucket
 
     def initialize(config = {})
       @id = nil
@@ -183,9 +183,16 @@ module Ccxt
 
       settings = self.class.deep_extend(self.describe, config)
       settings.each do |key, value|
-        if self.instance_variable_defined?("@#{key}") && self.instance_variable_get("@#{key}").is_a?(Hash)
+        if self.instance_variable_defined?("@#{key}") 
+          if self.instance_variable_get("@#{key}").is_a?(Hash)
             self.instance_variable_set("@#{key}", self.class.deep_extend(self.send(key), value))
+          else
+            send "#{key}=", value
+          end
         else
+          self.class.class_eval do
+            attr_accessor key.to_sym
+          end
           send "#{key}=", value
         end
       end
