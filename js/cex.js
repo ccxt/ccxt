@@ -119,11 +119,13 @@ module.exports = class cex extends Exchange {
             'options': {
                 'fetchOHLCVWarning': true,
                 'createMarketBuyOrderRequiresPrice': true,
-                'orderStatus': {
-                    'c': 'canceled',
-                    'd': 'closed',
-                    'cd': 'closed',
-                    'a': 'open',
+                'order': {
+                    'status': {
+                        'c': 'canceled',
+                        'd': 'closed',
+                        'cd': 'closed',
+                        'a': 'open',
+                    },
                 },
             },
         });
