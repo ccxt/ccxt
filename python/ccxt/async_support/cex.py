@@ -35,6 +35,7 @@ class cex (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
+                'fetchOrders': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -131,8 +132,222 @@ class cex (Exchange):
             'options': {
                 'fetchOHLCVWarning': True,
                 'createMarketBuyOrderRequiresPrice': True,
+                'order': {
+                    'status': {
+                        'c': 'canceled',
+                        'd': 'closed',
+                        'cd': 'closed',
+                        'a': 'open',
+                    },
+                },
             },
         })
+
+    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'limit': limit,
+            'pair': market['id'],
+            'dateFrom': since,
+        }
+        response = await self.privatePostArchivedOrdersPair(self.extend(request, params))
+        results = []
+        for i in range(0, len(response)):
+            # cancelled(unfilled):
+            #    {id: '4005785516',
+            #     type: 'sell',
+            #     time: '2017-07-18T19:08:34.223Z',
+            #     lastTxTime: '2017-07-18T19:08:34.396Z',
+            #     lastTx: '4005785522',
+            #     pos: null,
+            #     status: 'c',
+            #     symbol1: 'ETH',
+            #     symbol2: 'GBP',
+            #     amount: '0.20000000',
+            #     price: '200.5625',
+            #     remains: '0.20000000',
+            #     'a:ETH:cds': '0.20000000',
+            #     tradingFeeMaker: '0',
+            #     tradingFeeTaker: '0.16',
+            #     tradingFeeUserVolumeAmount: '10155061217',
+            #     orderId: '4005785516'}
+            # --
+            # cancelled(partially filled buy):
+            #    {id: '4084911657',
+            #     type: 'buy',
+            #     time: '2017-08-05T03:18:39.596Z',
+            #     lastTxTime: '2019-03-19T17:37:46.404Z',
+            #     lastTx: '8459265833',
+            #     pos: null,
+            #     status: 'cd',
+            #     symbol1: 'BTC',
+            #     symbol2: 'GBP',
+            #     amount: '0.05000000',
+            #     price: '2241.4692',
+            #     tfacf: '1',
+            #     remains: '0.03910535',
+            #     'tfa:GBP': '0.04',
+            #     'tta:GBP': '24.39',
+            #     'a:BTC:cds': '0.01089465',
+            #     'a:GBP:cds': '112.26',
+            #     'f:GBP:cds': '0.04',
+            #     tradingFeeMaker: '0',
+            #     tradingFeeTaker: '0.16',
+            #     tradingFeeUserVolumeAmount: '13336396963',
+            #     orderId: '4084911657'}
+            # --
+            # cancelled(partially filled sell):
+            #    {id: '4426728375',
+            #     type: 'sell',
+            #     time: '2017-09-22T00:24:20.126Z',
+            #     lastTxTime: '2017-09-22T00:24:30.476Z',
+            #     lastTx: '4426729543',
+            #     pos: null,
+            #     status: 'cd',
+            #     symbol1: 'BCH',
+            #     symbol2: 'BTC',
+            #     amount: '0.10000000',
+            #     price: '0.11757182',
+            #     tfacf: '1',
+            #     remains: '0.09935956',
+            #     'tfa:BTC': '0.00000014',
+            #     'tta:BTC': '0.00007537',
+            #     'a:BCH:cds': '0.10000000',
+            #     'a:BTC:cds': '0.00007537',
+            #     'f:BTC:cds': '0.00000014',
+            #     tradingFeeMaker: '0',
+            #     tradingFeeTaker: '0.18',
+            #     tradingFeeUserVolumeAmount: '3466715450',
+            #     orderId: '4426728375'}
+            # --
+            # filled:
+            #    {id: '5342275378',
+            #     type: 'sell',
+            #     time: '2018-01-04T00:28:12.992Z',
+            #     lastTxTime: '2018-01-04T00:28:12.992Z',
+            #     lastTx: '5342275393',
+            #     pos: null,
+            #     status: 'd',
+            #     symbol1: 'BCH',
+            #     symbol2: 'BTC',
+            #     amount: '0.10000000',
+            #     kind: 'api',
+            #     price: '0.17',
+            #     remains: '0.00000000',
+            #     'tfa:BTC': '0.00003902',
+            #     'tta:BTC': '0.01699999',
+            #     'a:BCH:cds': '0.10000000',
+            #     'a:BTC:cds': '0.01699999',
+            #     'f:BTC:cds': '0.00003902',
+            #     tradingFeeMaker: '0.15',
+            #     tradingFeeTaker: '0.23',
+            #     tradingFeeUserVolumeAmount: '1525951128',
+            #     orderId: '5342275378'}
+            # --
+            # market order(buy):
+            #    {"id": "6281946200",
+            #     "pos": null,
+            #     "time": "2018-05-23T11:55:43.467Z",
+            #     "type": "buy",
+            #     "amount": "0.00000000",
+            #     "lastTx": "6281946210",
+            #     "status": "d",
+            #     "amount2": "20.00",
+            #     "orderId": "6281946200",
+            #     "remains": "0.00000000",
+            #     "symbol1": "ETH",
+            #     "symbol2": "EUR",
+            #     "tfa:EUR": "0.05",
+            #     "tta:EUR": "19.94",
+            #     "a:ETH:cds": "0.03764100",
+            #     "a:EUR:cds": "20.00",
+            #     "f:EUR:cds": "0.05",
+            #     "lastTxTime": "2018-05-23T11:55:43.467Z",
+            #     "tradingFeeTaker": "0.25",
+            #     "tradingFeeUserVolumeAmount": "55998097"}
+            # --
+            # market order(sell):
+            #   {"id": "6282200948",
+            #     "pos": null,
+            #     "time": "2018-05-23T12:42:58.315Z",
+            #     "type": "sell",
+            #     "amount": "-0.05000000",
+            #     "lastTx": "6282200958",
+            #     "status": "d",
+            #     "orderId": "6282200948",
+            #     "remains": "0.00000000",
+            #     "symbol1": "ETH",
+            #     "symbol2": "EUR",
+            #     "tfa:EUR": "0.07",
+            #     "tta:EUR": "26.49",
+            #     "a:ETH:cds": "0.05000000",
+            #     "a:EUR:cds": "26.49",
+            #     "f:EUR:cds": "0.07",
+            #     "lastTxTime": "2018-05-23T12:42:58.315Z",
+            #     "tradingFeeTaker": "0.25",
+            #     "tradingFeeUserVolumeAmount": "56294576"}
+            item = response[i]
+            status = self.parse_order_status(self.safe_string(item, 'status'))
+            baseId = item['symbol1']
+            quoteId = item['symbol2']
+            side = item['type']
+            baseAmount = self.safe_float(item, 'a:' + baseId + ':cds')
+            quoteAmount = self.safe_float(item, 'a:' + quoteId + ':cds')
+            fee = self.safe_float(item, 'f:' + quoteId + ':cds')
+            amount = self.safe_float(item, 'amount')
+            price = self.safe_float(item, 'price')
+            remaining = self.safe_float(item, 'remains')
+            filled = amount - remaining
+            orderAmount = None
+            cost = None
+            average = None
+            type = None
+            if not price:
+                type = 'market'
+                orderAmount = baseAmount
+                cost = quoteAmount
+                average = orderAmount / cost
+            else:
+                ta = self.safe_float(item, 'ta:' + quoteId, 0)
+                tta = self.safe_float(item, 'tta:' + quoteId, 0)
+                fa = self.safe_float(item, 'fa:' + quoteId, 0)
+                tfa = self.safe_float(item, 'tfa:' + quoteId, 0)
+                if side == 'sell':
+                    cost = ta + tta + (fa + tfa)
+                else:
+                    cost = ta + tta - (fa + tfa)
+                type = 'limit'
+                orderAmount = amount
+                average = cost / filled
+            time = self.safe_string(item, 'time')
+            lastTxTime = self.safe_string(item, 'lastTxTime')
+            timestamp = self.parse8601(time)
+            results.append({
+                'id': item['id'],
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'lastUpdated': self.parse8601(lastTxTime),
+                'status': status,
+                'symbol': self.find_symbol(baseId + '/' + quoteId),
+                'side': side,
+                'price': price,
+                'amount': orderAmount,
+                'average': average,
+                'type': type,
+                'filled': filled,
+                'cost': cost,
+                'remaining': remaining,
+                'fee': {
+                    'cost': fee,
+                    'currency': self.currencyId(quoteId),
+                },
+                'info': item,
+            })
+        return results
+
+    def parse_order_status(self, status):
+        return self.safe_string(self.options['order']['status'], status, status)
 
     async def fetch_markets(self, params={}):
         markets = await self.publicGetCurrencyLimits()
@@ -343,15 +558,6 @@ class cex (Exchange):
         await self.load_markets()
         return await self.privatePostCancelOrder({'id': id})
 
-    def parse_order_status(self, status):
-        statuses = {
-            'a': 'open',
-            'cd': 'canceled',
-            'c': 'canceled',
-            'd': 'closed',
-        }
-        return self.safe_value(statuses, status, status)
-
     def parse_order(self, order, market=None):
         # Depending on the call, 'time' can be a unix int, unix string or ISO string
         # Yes, really
@@ -418,21 +624,153 @@ class cex (Exchange):
                 }
         if not cost:
             cost = price * filled
+        side = order['type']
+        trades = None
+        orderId = order['id']
+        if 'vtx' in order:
+            trades = []
+            for i in range(0, len(order['vtx'])):
+                item = order['vtx'][i]
+                tradeSide = self.safe_string(item, 'type')
+                if item['type'] == 'cancel':
+                    # looks like self might represent the cancelled part of an order
+                    #   {id: '4426729543',
+                    #     type: 'cancel',
+                    #     time: '2017-09-22T00:24:30.476Z',
+                    #     user: 'up106404164',
+                    #     c: 'user:up106404164:a:BCH',
+                    #     d: 'order:4426728375:a:BCH',
+                    #     a: '0.09935956',
+                    #     amount: '0.09935956',
+                    #     balance: '0.42580261',
+                    #     symbol: 'BCH',
+                    #     order: '4426728375',
+                    #     buy: null,
+                    #     sell: null,
+                    #     pair: null,
+                    #     pos: null,
+                    #     cs: '0.42580261',
+                    #     ds: 0}
+                    continue
+                if not item['price']:
+                    # self represents the order
+                    #   {
+                    #     "a": "0.47000000",
+                    #     "c": "user:up106404164:a:EUR",
+                    #     "d": "order:6065499239:a:EUR",
+                    #     "cs": "1432.93",
+                    #     "ds": "476.72",
+                    #     "id": "6065499249",
+                    #     "buy": null,
+                    #     "pos": null,
+                    #     "pair": null,
+                    #     "sell": null,
+                    #     "time": "2018-04-22T13:07:22.152Z",
+                    #     "type": "buy",
+                    #     "user": "up106404164",
+                    #     "order": "6065499239",
+                    #     "amount": "-715.97000000",
+                    #     "symbol": "EUR",
+                    #     "balance": "1432.93000000"}
+                    continue
+                # if item['type'] == 'costsNothing':
+                #     print(item)
+                # todo: deal with these
+                if item['type'] == 'costsNothing':
+                    continue
+                # --
+                # if side != tradeSide:
+                #     raise Error(json.dumps(order, null, 2))
+                # if orderId != item['order']:
+                #     raise Error(json.dumps(order, null, 2))
+                # --
+                # partial buy trade
+                #   {
+                #     "a": "0.01589885",
+                #     "c": "user:up106404164:a:BTC",
+                #     "d": "order:6065499239:a:BTC",
+                #     "cs": "0.36300000",
+                #     "ds": 0,
+                #     "id": "6067991213",
+                #     "buy": "6065499239",
+                #     "pos": null,
+                #     "pair": null,
+                #     "sell": "6067991206",
+                #     "time": "2018-04-22T23:09:11.773Z",
+                #     "type": "buy",
+                #     "user": "up106404164",
+                #     "order": "6065499239",
+                #     "price": 7146.5,
+                #     "amount": "0.01589885",
+                #     "symbol": "BTC",
+                #     "balance": "0.36300000",
+                #     "symbol2": "EUR",
+                #     "fee_amount": "0.19"}
+                # --
+                # trade with zero amount, but non-zero fee
+                #   {
+                #     "a": "0.00000000",
+                #     "c": "user:up106404164:a:EUR",
+                #     "d": "order:5840654423:a:EUR",
+                #     "cs": 559744,
+                #     "ds": 0,
+                #     "id": "5840654429",
+                #     "buy": "5807238573",
+                #     "pos": null,
+                #     "pair": null,
+                #     "sell": "5840654423",
+                #     "time": "2018-03-15T03:20:14.010Z",
+                #     "type": "sell",
+                #     "user": "up106404164",
+                #     "order": "5840654423",
+                #     "price": 730,
+                #     "amount": "0.00000000",
+                #     "symbol": "EUR",
+                #     "balance": "5597.44000000",
+                #     "symbol2": "BCH",
+                #     "fee_amount": "0.01"}
+                tradeTime = self.safe_string(item, 'time')
+                tradeTimestamp = self.parse8601(tradeTime)
+                tradeAmount = self.safe_float(item, 'amount')
+                tradePrice = self.safe_float(item, 'price')
+                absTradeAmount = tradeAmount < -tradeAmount if 0 else tradeAmount
+                tradeCost = None
+                if tradeSide == 'sell':
+                    tradeCost = absTradeAmount
+                    absTradeAmount = tradeCost / tradePrice
+                else:
+                    tradeCost = absTradeAmount * tradePrice
+                trades.append({
+                    'id': self.safe_string(item, 'id'),
+                    'timestamp': tradeTimestamp,
+                    'datetime': self.iso8601(tradeTimestamp),
+                    'order': orderId,
+                    'symbol': symbol,
+                    'price': tradePrice,
+                    'amount': absTradeAmount,
+                    'cost': tradeCost,
+                    'side': tradeSide,
+                    'fee': {
+                        'cost': self.safe_float(item, 'fee_amount'),
+                        'currency': market['quote'],
+                    },
+                    'info': item,
+                })
         return {
-            'id': order['id'],
+            'id': orderId,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': None,
-            'side': order['type'],
+            'side': side,
             'price': price,
             'cost': cost,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'trades': None,
+            'trades': trades,
             'fee': fee,
             'info': order,
         }
@@ -466,8 +804,8 @@ class cex (Exchange):
         request = {
             'id': str(id),
         }
-        response = await self.privatePostGetOrder(self.extend(request, params))
-        return self.parse_order(response)
+        response = await self.privatePostGetOrderTx(self.extend(request, params))
+        return self.parse_order(response['data'])
 
     def nonce(self):
         return self.milliseconds()
@@ -483,13 +821,13 @@ class cex (Exchange):
             nonce = str(self.nonce())
             auth = nonce + self.uid + self.apiKey
             signature = self.hmac(self.encode(auth), self.encode(self.secret))
-            body = self.urlencode(self.extend({
+            body = self.json(self.extend({
                 'key': self.apiKey,
                 'signature': signature.upper(),
                 'nonce': nonce,
             }, query))
             headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
