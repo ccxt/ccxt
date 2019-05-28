@@ -516,6 +516,9 @@ class bitfinex (Exchange):
             })
         return result
 
+    def amount_to_precision(self, symbol, amount):
+        return self.number_to_string(amount)
+
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
         rate = market[takerOrMaker]
@@ -691,7 +694,7 @@ class bitfinex (Exchange):
         order = {
             'symbol': self.market_id(symbol),
             'side': side,
-            'amount': self.number_to_string(amount),
+            'amount': self.amount_to_precision(symbol, amount),
             'type': self.safe_string(self.options['orderTypes'], type, type),
             'ocoorder': False,
             'buy_price_oco': 0,
