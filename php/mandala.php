@@ -1095,7 +1095,7 @@ class mandala extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array ());
         $market = ($symbol !== null) ? $this->market ($symbol) : null;
-        return $this->parse_orders($data, $market, $since, $limit);
+        return $this->parse_orders($data, $market, $since, $limit, array ( 'side' => $side ));
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {

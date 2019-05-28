@@ -557,7 +557,7 @@ class liqui extends Exchange {
         return $result;
     }
 
-    public function parse_orders ($orders, $market = null, $since = null, $limit = null) {
+    public function parse_orders ($orders, $market = null, $since = null, $limit = null, $params = array ()) {
         $result = array ();
         $ids = is_array ($orders) ? array_keys ($orders) : array ();
         $symbol = null;
@@ -567,7 +567,7 @@ class liqui extends Exchange {
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $order = array_merge (array ( 'id' => $id ), $orders[$id]);
-            $result[] = $this->parse_order($order, $market);
+            $result[] = array_merge ($this->parse_order($order, $market), $params);
         }
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }

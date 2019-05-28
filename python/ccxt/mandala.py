@@ -1048,7 +1048,7 @@ class mandala (Exchange):
         #
         data = self.safe_value(response, 'data', [])
         market = self.market(symbol) if (symbol is not None) else None
-        return self.parse_orders(data, market, since, limit)
+        return self.parse_orders(data, market, since, limit, {'side': side})
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

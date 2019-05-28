@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.583'
+const version = '1.18.584'
 
 Exchange.ccxtVersion = version
 
@@ -3525,12 +3525,12 @@ module.exports = class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
+    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
         // this code is commented out temporarily to catch for exchange-specific errors
         // if (!this.isArray (orders)) {
         //     throw new ExchangeError (this.id + ' parseOrders expected an array in the orders argument, but got ' + typeof orders);
         // }
-        let result = Object.values (orders).map (order => this.parseOrder (order, market))
+        let result = Object.values (orders).map (order => this.extend (this.parseOrder (order, market), params))
         result = sortBy (result, 'timestamp')
         let symbol = (market !== undefined) ? market['symbol'] : undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
@@ -51031,7 +51031,7 @@ module.exports = class kraken extends Exchange {
         };
     }
 
-    parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
+    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
         let result = [];
         let ids = Object.keys (orders);
         let symbol = undefined;
@@ -51041,7 +51041,7 @@ module.exports = class kraken extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let order = this.extend ({ 'id': id }, orders[id]);
-            result.push (this.parseOrder (order, market));
+            result.push (this.extend (this.parseOrder (order, market), params));
         }
         return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
@@ -54412,7 +54412,7 @@ module.exports = class liqui extends Exchange {
         return result;
     }
 
-    parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
+    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
         let result = [];
         let ids = Object.keys (orders);
         let symbol = undefined;
@@ -54422,7 +54422,7 @@ module.exports = class liqui extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let order = this.extend ({ 'id': id }, orders[id]);
-            result.push (this.parseOrder (order, market));
+            result.push (this.extend (this.parseOrder (order, market), params));
         }
         return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
@@ -58255,7 +58255,7 @@ module.exports = class mandala extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
-        return this.parseOrders (data, market, since, limit);
+        return this.parseOrders (data, market, since, limit, { 'side': side });
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -75188,7 +75188,7 @@ module.exports = class zaif extends Exchange {
         };
     }
 
-    parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
+    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
         let result = [];
         let ids = Object.keys (orders);
         let symbol = undefined;
@@ -75198,7 +75198,7 @@ module.exports = class zaif extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let order = this.extend ({ 'id': id }, orders[id]);
-            result.push (this.parseOrder (order, market));
+            result.push (this.extend (this.parseOrder (order, market), params));
         }
         return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
