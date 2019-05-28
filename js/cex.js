@@ -136,7 +136,7 @@ module.exports = class cex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'limit': limit,
-            'pair': market.id,
+            'pair': market['id'],
             'dateFrom': since,
         };
         const response = await this.privatePostArchivedOrdersPair (this.extend (request, params));
