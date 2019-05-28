@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, BadRequest, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, ArgumentsRequired, BadRequest, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -54,13 +54,17 @@ module.exports = class oceanex extends Exchange {
                 'fetchMarkets': true,
                 'fetchCurrencies': false,
                 'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchOrderBook': true,
+                'fetchOrderBooks': true,
                 'fetchTrades': true,
                 'fetchTradingLimits': false,
                 'fetchTradingFees': true,
                 'fetchFundingFees': false,
                 'fetchTime': true,
                 'fetchOrder': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
                 'fetchOrders': false,
                 'fetchBalance': true,
                 'createMarketOrder': false,
@@ -85,10 +89,15 @@ module.exports = class oceanex extends Exchange {
             },
             'exceptions': {
                 'codes': {
+                    '-1': BadRequest,
                     '-2': BadRequest,
                     '1001': BadRequest,
+                    '1004': ArgumentsRequired,
                     '1006': AuthenticationError,
+                    '1008': AuthenticationError,
+                    '1010': AuthenticationError,
                     '1011': PermissionDenied,
+                    '2001': AuthenticationError,
                     '2002': InvalidOrder,
                     '2004': OrderNotFound,
                     '9003': PermissionDenied,
@@ -109,7 +118,7 @@ module.exports = class oceanex extends Exchange {
         const markets = this.safeValue (response, 'data');
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            let id = this.safeValue (market, 'id').toUpperCase ();
+            let id = this.safeValue (market, 'id');
             let symbol = this.safeValue (market, 'name');
             let pair = symbol.split ('/');
             let base = this.commonCurrencyCode (pair[0]);
@@ -119,8 +128,8 @@ module.exports = class oceanex extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'baseId': base,
-                'quoteId': quote,
+                'baseId': base.toLowerCase (),
+                'quoteId': quote.toLowerCase (),
                 'active': true,
                 'info': market,
                 'precision': {
@@ -151,25 +160,27 @@ module.exports = class oceanex extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        const response = await this.publicGetTickersPair (this.extend ({ 'pair': market['id'].toLowerCase () }));
+        const response = await this.publicGetTickersPair (this.extend ({ 'pair': market['id'] }, params));
         const data = this.safeValue (response, 'data');
         return this.parseTicker (data, market);
     }
 
-    async fetchTickers (symbols, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
+        if (symbols === undefined) {
+            symbols = this.symbols;
+        }
         let markets = [];
         for (let i = 0; i < symbols.length; i++) {
             let marketId = this.marketId (symbols[i]);
-            markets.push (marketId.toLowerCase ());
+            markets.push (marketId);
         }
-        const response = await this.publicGetTickersMulti (this.extend ({ 'markets': markets }));
+        const response = await this.publicGetTickersMulti (this.extend ({ 'markets': markets }, params));
         const data = this.safeValue (response, 'data');
-        let result = [];
+        let result = {};
         for (let i = 0; i < data.length; i++) {
             let ticker = data[i];
             let marketId = this.safeValue (ticker, 'market');
-            marketId = marketId.toUpperCase ();
             let market = this.markets_by_id[marketId];
             let symbol = market['symbol'];
             result[symbol] = this.parseTicker (ticker, market);
@@ -212,7 +223,7 @@ module.exports = class oceanex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'market': market['id'].toLowerCase (),
+            'market': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -227,23 +238,25 @@ module.exports = class oceanex extends Exchange {
         return this.parseOrderBook (orderbook, timestamp);
     }
 
-    async fetchOrderBooks (symbols, limit = undefined, params = {}) {
+    async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        if (symbols === undefined) {
+            symbols = this.symbols;
+        }
         let markets = [];
         for (let i = 0; i < symbols.length; i++) {
             let marketId = this.marketId (symbols[i]);
-            markets.push (marketId.toLowerCase ());
+            markets.push (marketId);
         }
         const response = await this.publicGetOrderBookMulti (this.extend ({
             'markets': markets,
             'limit': limit,
-        }));
+        }, params));
         const data = this.safeValue (response, 'data');
-        let result = [];
+        let result = {};
         for (let i = 0; i < data.length; i++) {
             let orderbook = data[i];
             let marketId = this.safeValue (orderbook, 'market');
-            marketId = marketId.toUpperCase ();
             let market = this.markets_by_id[marketId];
             let symbol = market['symbol'];
             let timestamp = this.safeInteger (orderbook, 'timestamp');
@@ -260,7 +273,7 @@ module.exports = class oceanex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'market': market['id'].toLowerCase (),
+            'market': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -280,7 +293,6 @@ module.exports = class oceanex extends Exchange {
         let symbol = undefined;
         let marketId = this.safeValue (trade, 'market');
         if (marketId !== undefined) {
-            marketId = marketId.toUpperCase ();
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
                 symbol = market['symbol'];
@@ -318,13 +330,13 @@ module.exports = class oceanex extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const response = await this.publicGetTimestamp ();
+        const response = await this.publicGetTimestamp (params);
         const data = this.safeValue (response, 'data');
         return data;
     }
 
     async fetchTradingFees (params = {}) {
-        const response = await this.publicGetFeesTrading ();
+        const response = await this.publicGetFeesTrading (params);
         const data = this.safeValue (response, 'data');
         let result = [];
         for (let i = 0; i < data.length; i++) {
@@ -341,14 +353,14 @@ module.exports = class oceanex extends Exchange {
     }
 
     async fetchKey (params = {}) {
-        const response = await this.privateGetKey (this.extend (params));
+        const response = await this.privateGetKey (params);
         const data = this.safeValue (response, 'data');
         return data;
     }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetMembersMe (this.extend (params));
+        const response = await this.privateGetMembersMe (params);
         const balances = this.safeValue (this.safeValue (response, 'data'), 'accounts');
         let result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
@@ -373,7 +385,7 @@ module.exports = class oceanex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'market': market['id'].toLowerCase (),
+            'market': market['id'],
             'side': side,
             'ord_type': type,
             'volume': this.amountToPrecision (symbol, amount),
@@ -399,12 +411,49 @@ module.exports = class oceanex extends Exchange {
         return this.parseOrder (data[0], market);
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires Symbol parameter');
+        }
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'market': market['id'],
+            'states': ['wait'],
+            'limit': limit,
+        };
+        const response = await this.privateGetOrdersFilter (this.extend (request, params));
+        const data = this.safeValue (response, 'data');
+        if (data.length === 0) {
+            return [];
+        }
+        return this.parseOrders (this.safeValue (data[0], 'orders'));
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires Symbol parameter');
+        }
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'market': market['id'],
+            'states': ['done'],
+            'limit': limit,
+        };
+        const response = await this.privateGetOrdersFilter (this.extend (request, params));
+        const data = this.safeValue (response, 'data');
+        if (data.length === 0) {
+            return [];
+        }
+        return this.parseOrders (this.safeValue (data[0], 'orders'));
+    }
+
     parseOrder (order, market = undefined) {
         let status = this.parseOrderStatus (this.safeValue (order, 'state'));
-        let marketId = this.safeValue (order, 'market');
+        let marketId = this.safeValue2 (order, 'market', 'market_id');
         let symbol = undefined;
         if (marketId !== undefined) {
-            marketId = marketId.toUpperCase ();
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
                 symbol = market['symbol'];
@@ -414,7 +463,7 @@ module.exports = class oceanex extends Exchange {
         }
         if (symbol === undefined) {
             if (market !== undefined) {
-                symbol = market['id'];
+                symbol = market['symbol'];
             }
         }
         let timestamp = this.safeInteger (order, 'created_on');
@@ -455,8 +504,15 @@ module.exports = class oceanex extends Exchange {
         return (status in statuses) ? statuses[status] : status;
     }
 
-    async createOrders (params = {}) {
-        const response = await this.privatePostOrdersMulti (this.extend (params));
+    async createOrders (symbol, orders, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'market': market['id'],
+            'orders': orders,
+        };
+        // orders: [{"side":"buy", "volume":.2, "price":1001}, {"side":"sell", "volume":0.2, "price":1002}]
+        const response = await this.privatePostOrdersMulti (this.extend (request, params));
         const data = response['data'];
         return this.parseOrders (data);
     }
@@ -465,7 +521,7 @@ module.exports = class oceanex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'market': market['id'].toLowerCase (),
+            'market': market['id'],
             'states': this.parseStatusToStates (statuses),
             'limit': limit,
         };
