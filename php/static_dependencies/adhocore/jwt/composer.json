@@ -1,0 +1,32 @@
+{
+    "name": "adhocore/jwt",
+    "description": "Ultra lightweight JSON web token (JWT) library for PHP5.5+.",
+    "type": "library",
+    "keywords": [
+        "jwt", "jwt-php", "auth", "json-web-token", "token"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jitendra Adhikari",
+            "email": "jiten.adhikary@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Ahc\\Jwt\\": "src/"
+        },
+        "files": ["src/functions.php"]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Ahc\\Jwt\\Test\\": "tests/"
+        }
+    },
+    "require": {
+        "php": ">=5.5"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^4.8 || ^5.7 || ^6.5"
+    }
+}
