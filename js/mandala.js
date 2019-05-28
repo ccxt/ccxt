@@ -1094,7 +1094,7 @@ module.exports = class mandala extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
-        return this.parseOrders (data, market, since, limit);
+        return this.parseOrders (data, market, since, limit, { 'side': side });
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

@@ -1218,12 +1218,12 @@ module.exports = class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
+    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
         // this code is commented out temporarily to catch for exchange-specific errors
         // if (!this.isArray (orders)) {
         //     throw new ExchangeError (this.id + ' parseOrders expected an array in the orders argument, but got ' + typeof orders);
         // }
-        let result = Object.values (orders).map (order => this.parseOrder (order, market))
+        let result = Object.values (orders).map (order => this.extend (this.parseOrder (order, market), params))
         result = sortBy (result, 'timestamp')
         let symbol = (market !== undefined) ? market['symbol'] : undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
