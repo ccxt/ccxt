@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.578'
+const version = '1.18.580'
 
 Exchange.ccxtVersion = version
 
@@ -42260,10 +42260,12 @@ module.exports = class gdax extends Exchange {
                 'fetchAccounts': true,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
+                'createDepositAddress': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrderTrades': true,
                 'fetchOrders': true,
                 'fetchTransactions': true,
                 'withdraw': true,
@@ -42724,9 +42726,22 @@ module.exports = class gdax extends Exchange {
         return this.parseOrder (response);
     }
 
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {
+            'order_id': id,
+        };
+        const response = await this.privateGetFills (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
+    }
+
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'status': 'all',
         };
         let market = undefined;
@@ -42734,25 +42749,25 @@ module.exports = class gdax extends Exchange {
             market = this.market (symbol);
             request['product_id'] = market['id'];
         }
-        let response = await this.privateGetOrders (this.extend (request, params));
+        const response = await this.privateGetOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {};
+        const request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['product_id'] = market['id'];
         }
-        let response = await this.privateGetOrders (this.extend (request, params));
+        const response = await this.privateGetOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'status': 'done',
         };
         let market = undefined;
@@ -42760,22 +42775,23 @@ module.exports = class gdax extends Exchange {
             market = this.market (symbol);
             request['product_id'] = market['id'];
         }
-        let response = await this.privateGetOrders (this.extend (request, params));
+        const response = await this.privateGetOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         // let oid = this.nonce ().toString ();
-        let order = {
+        const request = {
             'product_id': this.marketId (symbol),
             'side': side,
             'size': this.amountToPrecision (symbol, amount),
             'type': type,
         };
-        if (type === 'limit')
-            order['price'] = this.priceToPrecision (symbol, price);
-        let response = await this.privatePostOrders (this.extend (order, params));
+        if (type === 'limit') {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const response = await this.privatePostOrders (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -57671,7 +57687,7 @@ module.exports = class mandala extends Exchange {
         await this.loadMarkets ();
         const side = this.safeString (params, 'side');
         if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires an order side extra parameter');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires an order `side` extra parameter');
         }
         params = this.omit (params, 'side');
         const request = {
@@ -57697,15 +57713,15 @@ module.exports = class mandala extends Exchange {
     async cancelAllOrders (symbols = undefined, params = {}) {
         const side = this.safeString (params, 'side');
         if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires an order side extra parameter');
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires an order `side` extra parameter');
         }
         params = this.omit (params, 'side');
         if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbols argument (a list containing one symbol)');
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a `symbols` argument (a list containing one symbol)');
         } else {
             const numSymbols = symbols.length;
             if (numSymbols !== 1) {
-                throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbols argument (a list containing one symbol)');
+                throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a `symbols` argument (a list containing one symbol)');
             }
         }
         const symbol = symbols[0];
@@ -57832,7 +57848,7 @@ module.exports = class mandala extends Exchange {
         await this.loadMarkets ();
         const side = this.safeString (params, 'side');
         if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires an order side extra parameter');
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires an order `side` extra parameter');
         }
         params = this.omit (params, 'side');
         const request = {
@@ -57929,7 +57945,7 @@ module.exports = class mandala extends Exchange {
         await this.loadMarkets ();
         const side = this.safeString (params, 'side');
         if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrderStatus() requires an order side extra parameter');
+            throw new ArgumentsRequired (this.id + ' fetchOrderStatus() requires an order `side` extra parameter');
         }
         params = this.omit (params, 'side');
         const request = {
@@ -58355,12 +58371,12 @@ module.exports = class mandala extends Exchange {
             if (api === 'api') {
                 const token = this.safeString (this.options, 'accessToken');
                 if (token === undefined) {
-                    throw new AuthenticationError (this.id + ' ' + path + ' endpoint requires an accessToken option or a prior call to signIn() method');
+                    throw new AuthenticationError (this.id + ' ' + path + ' endpoint requires an `accessToken` option or a prior call to signIn() method');
                 }
                 const expires = this.safeInteger (this.options, 'expires');
                 if (expires !== undefined) {
                     if (this.milliseconds () >= expires) {
-                        throw new AuthenticationError (this.id + ' accessToken expired, supply a new accessToken or call signIn() method');
+                        throw new AuthenticationError (this.id + ' accessToken expired, supply a new `accessToken` or call signIn() method');
                     }
                 }
                 const tokenType = this.safeString (this.options, 'tokenType', 'bearer');

@@ -23,10 +23,12 @@ class gdax extends Exchange {
                 'fetchAccounts' => true,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
+                'createDepositAddress' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
+                'fetchOrderTrades' => true,
                 'fetchOrders' => true,
                 'fetchTransactions' => true,
                 'withdraw' => true,
@@ -487,6 +489,19 @@ class gdax extends Exchange {
         return $this->parse_order($response);
     }
 
+    public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+        }
+        $request = array (
+            'order_id' => $id,
+        );
+        $response = $this->privateGetFills (array_merge ($request, $params));
+        return $this->parse_trades($response, $market, $since, $limit);
+    }
+
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array (
@@ -530,15 +545,16 @@ class gdax extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         // $oid = (string) $this->nonce ();
-        $order = array (
+        $request = array (
             'product_id' => $this->market_id($symbol),
             'side' => $side,
             'size' => $this->amount_to_precision($symbol, $amount),
             'type' => $type,
         );
-        if ($type === 'limit')
-            $order['price'] = $this->price_to_precision($symbol, $price);
-        $response = $this->privatePostOrders (array_merge ($order, $params));
+        if ($type === 'limit') {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        $response = $this->privatePostOrders (array_merge ($request, $params));
         return $this->parse_order($response);
     }
 

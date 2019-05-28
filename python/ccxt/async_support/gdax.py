@@ -32,10 +32,12 @@ class gdax (Exchange):
                 'fetchAccounts': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
+                'createDepositAddress': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
+                'fetchOrderTrades': True,
                 'fetchOrders': True,
                 'fetchTransactions': True,
                 'withdraw': True,
@@ -470,6 +472,17 @@ class gdax (Exchange):
         }, params))
         return self.parse_order(response)
 
+    async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {
+            'order_id': id,
+        }
+        response = await self.privateGetFills(self.extend(request, params))
+        return self.parse_trades(response, market, since, limit)
+
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {
@@ -507,15 +520,15 @@ class gdax (Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         # oid = str(self.nonce())
-        order = {
+        request = {
             'product_id': self.market_id(symbol),
             'side': side,
             'size': self.amount_to_precision(symbol, amount),
             'type': type,
         }
         if type == 'limit':
-            order['price'] = self.price_to_precision(symbol, price)
-        response = await self.privatePostOrders(self.extend(order, params))
+            request['price'] = self.price_to_precision(symbol, price)
+        response = await self.privatePostOrders(self.extend(request, params))
         return self.parse_order(response)
 
     async def cancel_order(self, id, symbol=None, params={}):
