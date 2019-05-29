@@ -86,5 +86,5 @@ getData().then ((data) => {
     colorFunctions['gray'] (pad ('to help us maintain this package.'))
     colorFunctions['yellow'] (pad ('👉 Donate: https://opencollective.com/ccxt/donate 🎉'))
     colorFunctions['white'] (pad (`Thanks to our ${data['backers']} backers we are operating on an annual budget of $${data['budget']}`))
-    colorFunctions['black'] (footer.join ('\n'))
+    colorFunctions['yellow'] (footer.join ('\n'))
 })
