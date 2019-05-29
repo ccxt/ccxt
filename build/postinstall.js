@@ -75,16 +75,20 @@ function pad (string) {
     return ' '.repeat (half + (padding % 2)) + string + ' '.repeat (half)
 }
 
-getData().then ((data) => {
-    colorFunctions['blue'] (ascii.join ('\n'))
-    colorFunctions['red'] (pad (`Stars: ${data['stars']}`))
-    colorFunctions['red'] (pad (`Forks: ${data['forks']}`))
-    colorFunctions['red'] (pad (`Contributors: ${data['contributors']}`))
-    colorFunctions['red'] (pad (`Size: ${data['size']}MB`))
-    colorFunctions['yellow'] ('\n' + pad ('Thanks for installing ccxt 🙏'))
-    colorFunctions['gray'] (pad ('Please consider donating to our open collective'))
-    colorFunctions['gray'] (pad ('to help us maintain this package.'))
-    colorFunctions['yellow'] (pad ('👉 Donate: https://opencollective.com/ccxt/donate 🎉'))
-    colorFunctions['white'] (pad (`Thanks to our ${data['backers']} backers we are operating on an annual budget of $${data['budget']}`))
-    colorFunctions['yellow'] (footer.join ('\n'))
-})
+function log () {
+    getData().then ((data) => {
+        colorFunctions['blue'] (ascii.join ('\n'))
+        colorFunctions['red'] (pad (`Stars: ${data['stars']}`))
+        colorFunctions['red'] (pad (`Forks: ${data['forks']}`))
+        colorFunctions['red'] (pad (`Contributors: ${data['contributors']}`))
+        colorFunctions['red'] (pad (`Size: ${data['size']}MB`))
+        colorFunctions['yellow'] ('\n' + pad ('Thanks for installing ccxt 🙏'))
+        colorFunctions['gray'] (pad ('Please consider donating to our open collective'))
+        colorFunctions['gray'] (pad ('to help us maintain this package.'))
+        colorFunctions['yellow'] (pad ('👉 Donate: https://opencollective.com/ccxt/donate 🎉'))
+        colorFunctions['white'] (pad (`Thanks to our ${data['backers']} backers we are operating on an annual budget of $${data['budget']}`))
+        colorFunctions['yellow'] (footer.join ('\n'))
+    })
+}
+
+module.exports = log
