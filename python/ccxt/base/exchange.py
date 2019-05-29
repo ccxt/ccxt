@@ -25,7 +25,7 @@ from ccxt.base.decimal_to_precision import number_to_string
 
 # -----------------------------------------------------------------------------
 
-from ccxt.static_dependencies import jwt
+from static_dependencies import jwt
 
 # -----------------------------------------------------------------------------
 
@@ -1861,4 +1861,4 @@ class Exchange(object):
 
     @staticmethod
     def jwt(request, secret, algorithm='RS256'):
-        return jwt.encode(request, secret, algorithm=algorithm)
+        return jwt.encode(request, secret, algorithm=algorithm).decode('utf8')

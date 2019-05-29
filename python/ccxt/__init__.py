@@ -28,8 +28,6 @@ __version__ = '1.18.584'
 
 from ccxt.base.exchange import Exchange                     # noqa: F401
 
-from ccxt.static_dependencies import jwt                    # noqa: F401
-
 from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa: F401
 from ccxt.base.decimal_to_precision import TRUNCATE              # noqa: F401
 from ccxt.base.decimal_to_precision import ROUND                 # noqa: F401
@@ -348,6 +346,7 @@ base = [
     'Exchange',
     'exchanges',
     'decimal_to_precision',
+    'jwt'
 ]
 
 __all__ = base + errors.__all__ + exchanges
