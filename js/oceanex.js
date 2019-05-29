@@ -449,6 +449,28 @@ module.exports = class oceanex extends Exchange {
         return this.parseOrders (this.safeValue (data[0], 'orders'));
     }
 
+    async fetchAllOrders (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'market': market['id'],
+            'states': ['wait', 'done', 'cancel'],
+            'limit': limit,
+        };
+        const response = await this.privateGetOrdersFilter (this.extend (request, params));
+        const data = this.safeValue (response, 'data');
+        if (data.length === 0) {
+            return [];
+        }
+        let result = {};
+        for (let i = 0; i < data.length; i++) {
+            let orders = this.parseOrders (this.safeValue (data[i], 'orders'));
+            let state = this.parseOrderStatus (this.safeValue (data[i], 'state'));
+            result[state] = orders;
+        }
+        return result;
+    }
+
     parseOrder (order, market = undefined) {
         let status = this.parseOrderStatus (this.safeValue (order, 'state'));
         let marketId = this.safeValue2 (order, 'market', 'market_id');
