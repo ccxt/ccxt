@@ -1885,7 +1885,7 @@ class Exchange {
             return call_user_func_array ($this->$function, $params);
         } else if (array_key_exists ($function, self::$camelMethods)) {
             $underscore = self::$camelMethods[$function];
-            return call_user_func_array ($this->$underscore, $params);
+            return call_user_func_array (array ($this, $underscore), $params);
         } else if (array_key_exists ($function, self::$staticCamelMethods)) {
             $underscore = self::$staticCamelMethods[$function];
             return static::$underscore (...$params);

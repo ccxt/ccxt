@@ -49,7 +49,7 @@ if (count ($argv) > 2) {
 
         $exchange->load_markets ();
 
-        if (method_exists ($exchange, $member)) {
+        if (array_key_exists($member, $exchange->has) && $exchange->has[$member]) {
 
             try {
 
