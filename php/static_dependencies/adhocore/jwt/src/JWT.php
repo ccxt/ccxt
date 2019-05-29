@@ -116,11 +116,6 @@ class JWT
         $header = ['typ' => 'JWT', 'alg' => $this->algo] + $header;
 
         $this->validateKid($header);
-
-        if (!isset($payload['iat']) && !isset($payload['exp'])) {
-            $payload['exp'] = ($this->timestamp ?: \time()) + $this->maxAge;
-        }
-
         $header    = $this->urlSafeEncode($header);
         $payload   = $this->urlSafeEncode($payload);
         $signature = $this->urlSafeEncode($this->sign($header . '.' . $payload));
