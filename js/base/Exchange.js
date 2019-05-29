@@ -42,6 +42,8 @@ const { TRUNCATE, ROUND, DECIMAL_PLACES } = functions.precisionConstants
 
 const defaultFetch = typeof (fetch) === "undefined" ? require ('fetch-ponyfill') ().fetch : fetch
 
+const jwt = require ('../static_dependencies/jwt')
+
 // ----------------------------------------------------------------------------
 // web3 / 0x imports
 
@@ -1678,5 +1680,9 @@ module.exports = class Exchange {
         } else {
             throw new ExchangeError (this.id + ' this.twofa has not been set')
         }
+    }
+
+    jwt (request, secret, algorithm = 'RS256') {
+        return jwt.encode (request, secret, algorithm)
     }
 }

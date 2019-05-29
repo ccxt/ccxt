@@ -2,6 +2,8 @@
 
 namespace Ahc\Jwt;
 
+use Ahc\Jwt\JWTException;
+
 /**
  * JSON Web Token (JWT) implementation in PHP7.
  *

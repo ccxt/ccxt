@@ -25,6 +25,10 @@ from ccxt.base.decimal_to_precision import number_to_string
 
 # -----------------------------------------------------------------------------
 
+from ccxt.static_dependencies import jwt
+
+# -----------------------------------------------------------------------------
+
 __all__ = [
     'Exchange',
 ]
@@ -949,19 +953,6 @@ class Exchange(object):
         return Exchange.decode(base64.urlsafe_b64encode(s)).replace('=', '')
 
     @staticmethod
-    def jwt(request, secret, algorithm=hashlib.sha256, alg='HS256'):
-        header = Exchange.encode(Exchange.json({
-            'alg': alg,
-            'typ': 'JWT',
-        }))
-        encodedHeader = Exchange.base64urlencode(header)
-        encodedData = Exchange.base64urlencode(Exchange.encode(Exchange.json(request)))
-        token = encodedHeader + '.' + encodedData
-        hmac = Exchange.hmac(Exchange.encode(token), Exchange.encode(secret), algorithm, 'binary')
-        signature = Exchange.base64urlencode(hmac)
-        return token + '.' + signature
-
-    @staticmethod
     def unjson(input):
         return json.loads(input)
 
@@ -1867,3 +1858,7 @@ class Exchange(object):
         offset = hex_to_dec(hmac_res[-1]) * 2
         otp = str(hex_to_dec(hmac_res[offset: offset + 8]) & 0x7fffffff)
         return otp[-6:]
+
+    @staticmethod
+    def jwt(request, secret, algorithm='RS256'):
+        return jwt.encode(request, secret, algorithm=algorithm)

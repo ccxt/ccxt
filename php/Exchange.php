@@ -1001,14 +1001,6 @@ class Exchange {
         return $hmac;
     }
 
-    public function jwt ($request, $secret, $alg = 'HS256', $hash = 'sha256') {
-        $encodedHeader = $this->urlencodeBase64 (json_encode (array ('alg' => $alg, 'typ' => 'JWT')));
-        $encodedData = $this->urlencodeBase64 (json_encode ($request, JSON_UNESCAPED_SLASHES));
-        $token = $encodedHeader . '.' . $encodedData;
-        $signature = $this->urlencodeBase64 ($this->hmac ($token, $secret, $hash, 'binary'));
-        return $token . '.' . $signature;
-    }
-
     public function raise_error ($exception_type, $url, $method = 'GET', $error = null, $details = null) {
         $exception_class = __NAMESPACE__ . '\\' . $exception_type;
         throw new $exception_class (implode (' ', array (
@@ -2554,5 +2546,10 @@ class Exchange {
         $code = ($hmac[$offset + 0] & 0x7F) << 24 | ($hmac[$offset + 1] & 0xFF) << 16 | ($hmac[$offset + 2] & 0xFF) << 8 | ($hmac[$offset + 3] & 0xFF);
         $otp = $code % pow(10, 6);
         return str_pad((string) $otp, 6, '0', STR_PAD_LEFT);
+    }
+
+    public static function jwt ($request, $secret, $algorithm = 'RS256') {
+        $jwt = new JWT ($secret, $algorithm);
+        return $jwt->encode ($request);
     }
 }

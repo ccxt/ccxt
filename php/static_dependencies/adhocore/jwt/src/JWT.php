@@ -3,6 +3,9 @@
 namespace Ahc\Jwt;
 
 require_once ('ValidatesJWT.php');
+require_once ('JWTException.php');
+
+use Ahc\Jwt\JWTException;
 
 /**
  * JSON Web Token (JWT) implementation in PHP5.5+.

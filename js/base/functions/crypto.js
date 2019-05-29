@@ -24,16 +24,6 @@ const hmac = (request, secret, hash = 'sha256', digest = 'hex') => {
     return result
 }
 
-/*  .............................................   */
-
-const jwt = function JSON_web_token (request, secret, alg = 'HS256', hash = 'sha256') {
-    const encodedHeader = urlencodeBase64 (stringToBase64 (JSON.stringify ({ 'alg': alg, 'typ': 'JWT' })))
-        , encodedData = urlencodeBase64 (stringToBase64 (JSON.stringify (request)))
-        , token = [ encodedHeader, encodedData ].join ('.')
-        , signature = urlencodeBase64 (utf16ToBase64 (hmac (token, secret, hash, 'utf16')))
-    return [ token, signature ].join ('.')
-}
-
 /*  ------------------------------------------------------------------------ */
 
 const totp = (secret) => {
@@ -67,7 +57,7 @@ const totp = (secret) => {
         otp = (otp).substr (otp.length - 6, 6)
         return otp
     }
-    
+
     return getOTP (secret)
 }
 
@@ -76,7 +66,6 @@ const totp = (secret) => {
 module.exports = {
     hash,
     hmac,
-    jwt,
     totp,
 }
 
