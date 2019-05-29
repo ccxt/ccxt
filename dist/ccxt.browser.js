@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.588'
+const version = '1.18.589'
 
 Exchange.ccxtVersion = version
 
@@ -61845,7 +61845,7 @@ module.exports = class okex3 extends Exchange {
         return result;
     }
 
-    async parseMarkets (markets) {
+    parseMarkets (markets) {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             result.push (this.parseMarket (markets[i]));

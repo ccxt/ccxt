@@ -495,7 +495,7 @@ class okex3 (Exchange):
             result = self.array_concat(result, markets)
         return result
 
-    async def parse_markets(self, markets):
+    def parse_markets(self, markets):
         result = []
         for i in range(0, len(markets)):
             result.append(self.parse_market(markets[i]))
