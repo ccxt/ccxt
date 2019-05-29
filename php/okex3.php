@@ -1505,9 +1505,10 @@ class okex3 extends Exchange {
         );
         $method = null;
         if ($market['futures'] || $market['swap']) {
+            $size = $market['futures'] ? $this->number_to_string($amount) : $this->amount_to_precision($symbol, $amount);
             $request = array_merge ($request, array (
                 'type' => $type, // 1:open long 2:open short 3:close long 4:close short for futures
-                'side' => $this->amount_to_precision($symbol, $amount),
+                'size' => $size,
                 'price' => $this->price_to_precision($symbol, $price),
                 // 'match_price' => '0', // Order at best counter party $price? (0:no 1:yes). The default is 0. If it is set as 1, the $price parameter will be ignored. When posting orders at best bid $price, order_type can only be 0 (regular order).
             ));
