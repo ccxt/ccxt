@@ -474,7 +474,7 @@ module.exports = class okex3 extends Exchange {
         return result;
     }
 
-    async parseMarkets (markets) {
+    parseMarkets (markets) {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             result.push (this.parseMarket (markets[i]));
