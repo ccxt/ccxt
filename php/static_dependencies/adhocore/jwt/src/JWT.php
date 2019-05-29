@@ -177,7 +177,8 @@ class JWT
             return \hash_hmac($this->algos[$this->algo], $input, $this->key, true);
         }
 
-        $this->validateKey();
+        //$this->validateKey();
+        // we use key as a string here instead of a file handler / name
 
         \openssl_sign($input, $signature, $this->key, $this->algos[$this->algo]);
 
