@@ -546,7 +546,7 @@ const rubyRegexes = [
     [ /([^a-z])(elsif|if|or|else|in)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
     [ /([\S])\: /g, '$1 => ' ],
     [ /(\s)await(\s)/g, '$1' ],
-    [ /\(\)/g, '' ], // Method calls with no arguments.
+      // [ /\(\)/g, '' ], // Method calls with no arguments. NOTE: Clean this up after camel-casing method names.
     [ /,(\s*)(\}|\])/gm, '$1$2' ] // comma after last item in hash or array
 ])
 
@@ -679,7 +679,10 @@ function createRubyClass (className, baseClass, body, methods) {
         bodyAsString = bodyAsString.replace (regex,
             (match, p1) => ('self.' + unCamelCase (p1) + '('))
     }
-  
+
+    // snip off the method calls with no parameters --> method()
+    bodyAsString = bodyAsString.replace (/\(\)/g, '');
+
     const footer = [
         "",
         "  end",
