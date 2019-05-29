@@ -19,7 +19,7 @@ module Ccxt
 
     attr_accessor :id, :version, :certified, :enableRateLimit
     attr_accessor :rateLimit, :timeout, :asyncio_loop, :aiohttp_proxy
-    attr_accessor :session, :logger, :userAgent
+    attr_accessor :session, :logger, :userAgent, :userAgents
     attr_accessor :verbose, :markets, :symbols, :fees
     attr_accessor :ids, :tickers, :api, :parseJsonResponse
     attr_accessor :proxy, :origin, :proxies, :apiKey
