@@ -234,7 +234,8 @@ module.exports = class bitbay extends Exchange {
         if (commissionValue !== undefined) {
             // it always seems to be null so don't know what currency to use
             fee = {
-                'amount': commissionValue,
+                'currency': undefined, // ?
+                'cost': commissionValue,
             };
         }
         const marketId = this.safeString (trade, 'market');
