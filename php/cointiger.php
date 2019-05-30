@@ -354,15 +354,19 @@ class cointiger extends huobipro {
                 'currency' => $feeCurrency,
             );
         }
-        if ($amount !== null)
-            if ($price !== null)
-                if ($cost === null)
+        if ($amount !== null) {
+            if ($price !== null) {
+                if ($cost === null) {
                     $cost = $amount * $price;
+                }
+            }
+        }
         $timestamp = $this->safe_integer_2($trade, 'created_at', 'ts');
         $timestamp = $this->safe_integer_2($trade, 'created', 'mtime', $timestamp);
         $symbol = null;
-        if ($market !== null)
+        if ($market !== null) {
             $symbol = $market['symbol'];
+        }
         return array (
             'info' => $trade,
             'id' => $id,
@@ -385,25 +389,54 @@ class cointiger extends huobipro {
         $request = array (
             'symbol' => $market['id'],
         );
-        if ($limit !== null)
+        if ($limit !== null) {
             $request['size'] = $limit;
+        }
         $response = $this->publicGetHistoryTrade (array_merge ($request, $params));
         return $this->parse_trades($response['data']['trade_data'], $market, $since, $limit);
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null)
+    public function fetch_my_trades_v1 ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
             throw new ArgumentsRequired ($this->id . ' fetchMyTrades requires a $symbol argument');
+        }
         $this->load_markets();
         $market = $this->market ($symbol);
-        if ($limit === null)
+        if ($limit === null) {
             $limit = 100;
-        $response = $this->privateGetOrderTrade (array_merge (array (
+        }
+        $request = array (
             'symbol' => $market['id'],
             'offset' => 1,
             'limit' => $limit,
-        ), $params));
+        );
+        $response = $this->privateGetOrderTrade (array_merge ($request, $params));
         return $this->parse_trades($response['data']['list'], $market, $since, $limit);
+    }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $week = 604800000; // milliseconds
+        if ($symbol === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchMyTrades requires a $symbol argument');
+        }
+        if ($since === null) {
+            $since = $this->milliseconds () - $week; // $week ago
+        }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $start = $this->ymd ($since);
+        $end = $this->ymd ($this->sum ($since, $week)); // one $week
+        if ($limit === null) {
+            $limit = 1000;
+        }
+        $request = array (
+            'symbol' => $market['id'],
+            'start-date' => $start,
+            'end-date' => $end,
+            'size' => $limit,
+        );
+        $response = $this->v2GetOrderMatchResults (array_merge ($request, $params));
+        return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {

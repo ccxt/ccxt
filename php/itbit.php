@@ -239,13 +239,81 @@ class itbit extends Exchange {
         return $result;
     }
 
+    public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $walletId = $this->safe_string($params, 'walletId');
+        if ($walletId === null) {
+            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $walletId parameter');
+        }
+        $request = array (
+            'walletId' => $walletId,
+        );
+        if ($limit !== null) {
+            $request['perPage'] = $limit; // default 50, max 50
+        }
+        $response = $this->privateGetWalletsWalletIdFundingHistory (array_merge ($request, $params));
+        //     array ( bankName => 'USBC (usd)',
+        //         withdrawalId => 94740,
+        //         holdingPeriodCompletionDate => '2018-04-16T07:57:05.9606869',
+        //         $time => '2018-04-16T07:57:05.9600000',
+        //         $currency => 'USD',
+        //         $transactionType => 'Withdrawal',
+        //         amount => '2186.72000000',
+        //         walletName => 'Wallet',
+        //         $status => 'completed' ),
+        //
+        //     { "$time" => "2018-01-02T19:52:22.4176503",
+        //     "amount" => "0.50000000",
+        //     "$status" => "completed",
+        //     "$txnHash" => "1b6fff67ed83cb9e9a38ca4976981fc047322bc088430508fe764a127d3ace95",
+        //     "$currency" => "XBT",
+        //     "walletName" => "Wallet",
+        //     "$transactionType" => "Deposit",
+        //     "$destinationAddress" => "3AAWTH9et4e8o51YKp9qPpmujrNXKwHWNX"}
+        $items = $response['fundingHistory'];
+        $result = array ();
+        for ($i = 0; $i < count ($items); $i++) {
+            $item = $items[$i];
+            $time = $this->safe_string($item, 'time');
+            $timestamp = $this->parse8601 ($time);
+            $currency = $this->safe_string($item, 'currency');
+            $destinationAddress = $this->safe_string($item, 'destinationAddress');
+            $txnHash = $this->safe_string($item, 'txnHash');
+            $transactionType = strtolower ($this->safe_string($item, 'transactionType'));
+            $transactionStatus = $this->safe_string($item, 'status');
+            $status = $this->parse_transfer_status ($transactionStatus);
+            $result[] = array (
+                'id' => $this->safe_string($item, 'withdrawalId'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601 ($timestamp),
+                'currency' => $this->common_currency_code($currency),
+                'address' => $destinationAddress,
+                'tag' => null,
+                'txid' => $txnHash,
+                'type' => $transactionType,
+                'status' => $status,
+                'amount' => $this->safe_float($item, 'amount'),
+                'fee' => null,
+                'info' => $item,
+            );
+        }
+        return $result;
+    }
+
+    public function parse_transfer_status ($status) {
+        $options = array (
+            'cancelled' => 'canceled',
+            'completed' => 'ok',
+        );
+        return $this->safe_string($options, $status, 'pending');
+    }
+
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $walletId = $this->safe_string($params, 'walletId');
         if ($walletId === null) {
             throw new ExchangeError ($this->id . ' fetchMyTrades requires a $walletId parameter');
         }
-        $this->load_markets();
         $request = array (
             'walletId' => $walletId,
         );
@@ -384,7 +452,8 @@ class itbit extends Exchange {
         $remaining = $amount - $filled;
         $fee = null;
         $price = $this->safe_float($order, 'price');
-        $cost = $price * $this->safe_float($order, 'volumeWeightedAveragePrice');
+        $average = $this->safe_float($order, 'volumeWeightedAveragePrice');
+        $cost = $filled * $average;
         return array (
             'id' => $order['id'],
             'info' => $order,
@@ -397,6 +466,7 @@ class itbit extends Exchange {
             'side' => $side,
             'price' => $price,
             'cost' => $cost,
+            'average' => $average,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,

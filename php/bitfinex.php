@@ -510,6 +510,10 @@ class bitfinex extends Exchange {
         return $result;
     }
 
+    public function amount_to_precision ($symbol, $amount) {
+        return $this->number_to_string($amount);
+    }
+
     public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         $market = $this->markets[$symbol];
         $rate = $market[$takerOrMaker];
@@ -704,7 +708,7 @@ class bitfinex extends Exchange {
         $order = array (
             'symbol' => $this->market_id($symbol),
             'side' => $side,
-            'amount' => $this->number_to_string($amount),
+            'amount' => $this->amount_to_precision($symbol, $amount),
             'type' => $this->safe_string($this->options['orderTypes'], $type, $type),
             'ocoorder' => false,
             'buy_price_oco' => 0,

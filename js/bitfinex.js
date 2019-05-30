@@ -510,6 +510,10 @@ module.exports = class bitfinex extends Exchange {
         return result;
     }
 
+    amountToPrecision (symbol, amount) {
+        return this.numberToString (amount);
+    }
+
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         let market = this.markets[symbol];
         let rate = market[takerOrMaker];
@@ -704,7 +708,7 @@ module.exports = class bitfinex extends Exchange {
         const order = {
             'symbol': this.marketId (symbol),
             'side': side,
-            'amount': this.numberToString (amount),
+            'amount': this.amountToPrecision (symbol, amount),
             'type': this.safeString (this.options['orderTypes'], type, type),
             'ocoorder': false,
             'buy_price_oco': 0,

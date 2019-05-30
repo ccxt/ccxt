@@ -39,11 +39,11 @@ class dx extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMyTrades' => false,
                 'fetchOHLCV' => true,
-                'fetchOpenOrders' => false,
+                'fetchOpenOrders' => true,
                 'fetchOrder' => false,
-                'fetchOrderBook' => false,
+                'fetchOrderBook' => true,
                 'fetchOrderBooks' => false,
-                'fetchOrders' => true,
+                'fetchOrders' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => false,
                 'fetchTrades' => false,
@@ -117,6 +117,7 @@ class dx extends Exchange {
                         'AssetManagement.GetTicker',
                         'AssetManagement.History',
                         'Authorization.LoginByToken',
+                        'OrderManagement.GetOrderBook',
                     ),
                 ),
                 'private' => array (
@@ -327,12 +328,6 @@ class dx extends Exchange {
         return $this->parse_orders($response['result']['ordersForHistory'], $market, $since, $limit);
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $openOrders = $this->fetch_open_orders($symbol, $since, $limit, $params);
-        $orders = $this->fetch_closed_orders ($symbol, $since, $limit, $params);
-        return $this->array_concat($orders, $openOrders);
-    }
-
     public function parse_order ($order, $market = null) {
         $orderStatusMap = array (
             '1' => 'open',
@@ -381,6 +376,23 @@ class dx extends Exchange {
             'fee' => null,
         );
         return $result;
+    }
+
+    public function parse_bid_ask ($bidask, $priceKey = 0, $amountKey = 1) {
+        $price = $this->object_to_number ($bidask[$priceKey]);
+        $amount = $this->object_to_number ($bidask[$amountKey]);
+        return array ( $price, $amount );
+    }
+
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'instrumentId' => $market['numericId'],
+        );
+        $response = $this->publicPostOrderManagementGetOrderBook (array_merge ($request, $params));
+        $orderbook = $this->safe_value($response, 'result');
+        return $this->parse_order_book($orderbook, null, 'sell', 'buy', 'price', 'qty');
     }
 
     public function sign_in ($params = array ()) {
