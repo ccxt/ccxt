@@ -414,7 +414,7 @@ Here are some examples of a badly-designed code that will break the transpiler:
 ```JavaScript
 // this is an example of bad codestyle that will likely break the transpiler
 const foo = {
-   'bar': qux === 'baz' ? 'a' + this.b () : this.a () + 'b',
+   'bar': 'a' + qux === 'baz' ? this.a () : this.b () + 'b',
 };
 ```
 
@@ -436,14 +436,14 @@ The universally-working way to solve for it is to just break a complex line into
 ```JavaScript
 // before:
 // const foo = {
-//    'bar': qux === 'baz' ? 'a' + this.b () : this.a () + 'b',
+//    'bar': 'a' + qux === 'baz' ? this.a () : this.b () + 'b',
 // };
 // ----------------------------------------------------------------------------
 // after:
-// be clear, easily-readable and understandable
-const bar = (qux === 'baz') ? this.a () : this.b ();
+let bar = (qux === 'baz') ? this.a () : this.b ();
+}
 const foo = {
-   'bar': bar + 'b',
+   'bar': 'a' + bar + 'b',
 };
 ```
 
