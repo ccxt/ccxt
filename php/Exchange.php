@@ -30,7 +30,6 @@ SOFTWARE.
 
 namespace ccxt;
 
-use http\Exception\InvalidArgumentException;
 use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
@@ -1016,7 +1015,7 @@ class Exchange {
         $token = $encodedHeader . '.' . $encodedData;
         $algoType = substr($alg, 0, 2);
         if (!array_key_exists($alg, $algos)) {
-            throw new InvalidArgumentException ($alg . ' is not a supported jwt algorithm.');
+            throw new ExchangeError ($alg . ' is not a supported jwt algorithm.');
         }
         $algName = $algos[$alg];
         if ($algoType === 'HS') {
