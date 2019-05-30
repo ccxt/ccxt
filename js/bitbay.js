@@ -17,7 +17,6 @@ module.exports = class bitbay extends Exchange {
             'has': {
                 'CORS': true,
                 'withdraw': true,
-                'fetchTransactions': true,
                 'fetchMyTrades': true,
             },
             'urls': {
@@ -222,78 +221,6 @@ module.exports = class bitbay extends Exchange {
         if (symbol === undefined)
             return result;
         return this.filterBySymbol (result, symbol);
-    }
-
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
-        const request = this.extend ({
-            'balanceCurrencies': code ? [this.commonCurrencyCode (code)] : [],
-            'fromTime': since,
-            'limit': limit,
-        }, params);
-        const response = await this.v1_01PrivateGetBalancesBITBAYHistory ({ 'query': this.json (request) });
-        if (response['status'] !== 'Ok')
-            throw new ExchangeError (this.id + ' balances query failed ' + this.json (response));
-        let items = response['items'];
-        const nonZeroItems = [];
-        // filter out a things that don't look like deposits or withdrawals of any kind
-        // todo: add more to this list when the data becomes available
-        const typesToIgnore = [
-            'TRANSACTION_COMMISSION_OUTCOME',
-            'TRANSACTION_POST_INCOME',
-            'TRANSACTION_POST_OUTCOME',
-            'TRANSACTION_COMMISSION_RETURN',
-            'FUNDS_MIGRATION',
-        ];
-        for (let i = 0; i < items.length; i++) {
-            const item = items[i];
-            const type = item['type'];
-            if (typesToIgnore.indexOf (type) >= 0)
-                continue;
-            if (item['change']['total'] === 0)
-                continue;
-            nonZeroItems.push (item);
-        }
-        return this.parseTransactions (nonZeroItems, code, since, limit);
-    }
-
-    parseTransaction (transaction, currency = undefined) {
-        //   { historyId: '1430547d-fd00-4f05-8ad0-538e28ffc427',
-        //     balance:
-        //     { id: 'ab43023b-4079-414c-b340-056e3430a3af',
-        //         currency: 'EUR',
-        //         type: 'FIAT',
-        //         userId: 'a34d361d-7bad-49c1-888e-62473b75d877',
-        //         name: 'EUR' },
-        //     detailId: 'ea75f3fa-508b-485a-935b-22f36d9a0808',
-        //         time: 1528110312812,
-        //     type: 'WITHDRAWAL_SUBTRACT_FUNDS',
-        //     value: -10386.23,
-        //     fundsBefore: { total: 10386.23, available: 0, locked: 10386.23 },
-        //     fundsAfter: { total: 0, available: 0, locked: 0 },
-        //     change: { total: -10386.23, available: 0, locked: -10386.23 } }
-        const timestamp = this.safeInteger (transaction, 'time');
-        const ccy = transaction['balance']['currency'];
-        const type = transaction['change']['total'] > 0 ? 'deposit' : 'withdrawal';
-        let amount = this.safeFloat (transaction, 'value');
-        if (amount < 0)
-            amount = -amount;
-        let id = this.safeString2 (transaction, 'historyId', 'detailId');
-        // there are 2 undocumented api calls (v1_01PrivateGetPaymentsDepositDetailId and v1_01PrivateGetPaymentsWithdrawalDetailId) that can be used to enrich the transfers with txid, address etc (you need to use info.detailId as a parameter)
-        return {
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'id': id,
-            'currency': this.commonCurrencyCode (ccy),
-            'amount': amount,
-            'address': undefined,
-            'tag': undefined,
-            'status': 'ok',
-            'type': type,
-            'updated': undefined,
-            'txid': undefined,
-            'fee': undefined,
-            'info': transaction,
-        };
     }
 
     async fetchBalance (params = {}) {
