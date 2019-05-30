@@ -7,6 +7,7 @@ module Ccxt
     'bitfinex',
     'bitmex',
     'coss',
+    'exx',
     'kraken',
     'kucoin',
     'livecoin',
