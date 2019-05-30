@@ -390,7 +390,7 @@ module.exports = class bitbay extends Exchange {
         const amount = this.safeFloat (trade, 'amount');
         const commissionValue = this.safeFloat (trade, 'commissionValue');
         let fee = undefined;
-        if (commissionValue !== null) {
+        if (commissionValue !== undefined) {
             // it always seems to be null so don't know what currency to use
             fee = {
                 'amount': commissionValue,
@@ -499,7 +499,11 @@ module.exports = class bitbay extends Exchange {
         let url = this.urls['api'][api];
         if (api === 'public') {
             const query = this.omit (params, this.extractParams (path));
-            url += '/' + this.implodeParams (path, params) + '.json' + '?' + this.urlencode (query);
+            url += '/' + this.implodeParams (path, params);
+            url += '.json';
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
         } else if (api === 'v1_01Public') {
             const query = this.omit (params, this.extractParams (path));
             url += '/' + this.implodeParams (path, params);
@@ -514,7 +518,10 @@ module.exports = class bitbay extends Exchange {
                 url += '?' + this.urlencode (query);
             }
             const nonce = this.now ();
-            const payload = this.apiKey + nonce + (body ? this.json (body) : '');
+            let payload = this.apiKey + nonce;
+            if (body !== undefined) {
+                payload += this.json (body);
+            }
             headers = {
                 'Request-Timestamp': nonce,
                 'Operation-Id': this.uuid (),
