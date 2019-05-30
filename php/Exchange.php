@@ -1009,7 +1009,6 @@ class Exchange {
             'RS384' => \OPENSSL_ALGO_SHA384,
             'RS512' => \OPENSSL_ALGO_SHA512,
         );
-
         $encodedHeader = $this->urlencodeBase64 (json_encode (array ('alg' => $alg, 'typ' => 'JWT')));
         $encodedData = $this->urlencodeBase64 (json_encode ($request, JSON_UNESCAPED_SLASHES));
         $token = $encodedHeader . '.' . $encodedData;
