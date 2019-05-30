@@ -71,6 +71,7 @@ module.exports = class oceanex extends Exchange {
                 'createOrder': true,
                 'cancelOrder': true,
                 'cancelAllOrders': true,
+                'createMarketOrder': false,
             },
             'timeframes': {
                 '1m': '1m',
