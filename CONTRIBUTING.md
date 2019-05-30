@@ -401,6 +401,66 @@ The rule of thumb is: **`+` is for string concatenation only (!)** and **`this.s
 
 The `.toFixed ()` method has [known rounding bugs](https://www.google.com/search?q=toFixed+bug) in JavaScript, and so do the other rounding methods in the other languages as well. In order to work with number formatting consistently, we need to use the [`decimalToPrecision` method as described in the Manual](https://github.com/ccxt/ccxt/wiki/Manual#methods-for-formatting-decimals).
 
+#### Using ternary conditionals
+
+Do not use heavy ternary (`?:`) conditionals, **always use brackets in ternary operators!**
+
+Despite that there is operator precedence in the programming languages themselves, the transpiler is regex-based and it does no code introspection, therefore it treats everything as plaintext.
+
+The brackets are needed to hint the transpiler which part of the conditional is which. In the absence of brackets it's hard to understand the line and the intent of the developer.
+
+Here are some examples of a badly-designed code that will break the transpiler:
+
+```JavaScript
+// this is an example of bad codestyle that will likely break the transpiler
+const foo = {
+   'bar': qux === 'baz' ? 'a' + this.b () : this.a () + 'b',
+};
+```
+
+```JavaScript
+// this confuses the transpiler and a human developer as well
+const foo = 'bar' + baz + qux ? 'a' : '' + this.c ();
+```
+
+Adding surrounding brackets to corresponding parts would be a more or less correct way to resolve it.
+
+```JavaScript
+const foo = {
+   'bar': (qux === 'baz') ? this.a () : this.b (), // much better now
+};
+```
+
+The universally-working way to solve for it is to just break a complex line into a few simpler lines, even at a cost of adding extra lines and conditionals:
+
+```JavaScript
+// before:
+// const foo = {
+//    'bar': qux === 'baz' ? 'a' + this.b () : this.a () + 'b',
+// };
+// ----------------------------------------------------------------------------
+// after:
+// be clear, easily-readable and understandable
+const bar = (qux === 'baz') ? this.a () : this.b ();
+const foo = {
+   'bar': bar,
+};
+```
+
+Or even:
+
+```JavaScript
+// before:
+// const foo = 'bar' + baz + qux ? 'a' : '' + this.c ();
+// ----------------------------------------------------------------------------
+// after:
+let foo = 'bar' + baz;
+if (qux) {
+   foo += 'a';
+};
+foo += this.c ();
+```
+
 ---
 
 ### New Exchange Integrations
