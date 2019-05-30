@@ -431,7 +431,7 @@ const foo = {
 };
 ```
 
-The universally-working way to solve for it is to just break a complex line into a few simpler lines, even at a cost of adding extra lines and conditionals:
+The universally-working way to solve it is to just break the complex line into a few simpler lines, even at a cost of adding extra lines and conditionals:
 
 ```JavaScript
 // before:
