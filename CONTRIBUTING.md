@@ -440,8 +440,7 @@ The universally-working way to solve it is to just break the complex line into a
 // };
 // ----------------------------------------------------------------------------
 // after:
-let bar = (qux === 'baz') ? this.a () : this.b ();
-}
+const bar = (qux === 'baz') ? this.a () : this.b ();
 const foo = {
    'bar': 'a' + bar + 'b',
 };
