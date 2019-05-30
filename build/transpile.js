@@ -698,7 +698,7 @@ function createRubyClass (className, baseClass, body, methods) {
 const python2Folder = './python/ccxt/'
 const python3Folder = './python/ccxt/async_support/'
 const phpFolder     = './php/'
-const rubyFolder    = './ruby/test-build/'
+const rubyFolder    = './ruby/lib/ccxt/'
 
 // ----------------------------------------------------------------------------
 
@@ -792,14 +792,15 @@ function transpileJavaScriptToRuby ( {js, className, removeEmptyLines }) {
     let rubySpaces = (match) => { return "  ".repeat(match.length / 4 + 1 ) } 
     rubyBody = rubyBody.replace (/^( {4,})/gm, rubySpaces)
     
-    rubyBody = rubyBody.replace (/\'([абвгдеёжзийклмнопрстуфхцчшщъыьэюя服务端忙碌]+)\'/gm, "u'$1'")
+    // rubyBody = rubyBody.replace (/\'([абвгдеёжзийклмнопрстуфхцчшщъыьэюя服务端忙碌]+)\'/gm, "u'$1'")
     
     // special case for Ruby super
     // Javascript/Python's super keyword is used to access and call functions 
     // on an object's parent. Ruby's super keyword calls a method on the 
     // parent class with the same name as the method that calls super. The
-    // only place it is currently used is super.describe ().
-    rubyBody = rubyBody.replace (/super\.describe/g, 'super')
+    // only places it is currently used are super.describe () and 
+    // super.fetch_markets ().
+    rubyBody = rubyBody.replace (/super\.\w+/g, 'super')
     return rubyBody
 }
 
