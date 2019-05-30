@@ -380,7 +380,7 @@ module.exports = class oceanex extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type !== 'limit') {
-            throw new InvalidOrder (this.id + ' only support limit order!');
+            throw new InvalidOrder (this.id + ' createOrder supports `limit` orders only.');
         }
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -413,7 +413,7 @@ module.exports = class oceanex extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' requires Symbol parameter');
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a `symbol` argument');
         }
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -432,7 +432,7 @@ module.exports = class oceanex extends Exchange {
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' requires Symbol parameter');
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires a `symbol` argument');
         }
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -448,7 +448,10 @@ module.exports = class oceanex extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOrders (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a `symbol` argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
