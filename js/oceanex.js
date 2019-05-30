@@ -71,7 +71,6 @@ module.exports = class oceanex extends Exchange {
                 'createOrder': true,
                 'cancelOrder': true,
                 'cancelAllOrders': true,
-                'createMarketOrder': false,
             },
             'timeframes': {
                 '1m': '1m',
@@ -461,7 +460,7 @@ module.exports = class oceanex extends Exchange {
         const data = this.safeValue (response, 'data', []);
         let result = [];
         for (let i = 0; i < data.length; i++) {
-            const orders = this.safeValue (data[i], 'orders', [])
+            const orders = this.safeValue (data[i], 'orders', []);
             const status = this.parseOrderStatus (this.safeValue (data[i], 'state'));
             const parsedOrders = this.parseOrders (orders, market, since, limit, { 'status': status });
             result = this.arrayConcat (result, parsedOrders);
