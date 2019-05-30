@@ -958,12 +958,13 @@ class Exchange(object):
         return Exchange.decode(base64.urlsafe_b64encode(s)).replace('=', '')
 
     @staticmethod
-    def jwt(request, secret, alg='HS256'):
+    def jwt(request, secret, alg='RS256'):
         algos = {
             "RS256": hashes.SHA256(),
             "RS384": hashes.SHA384(),
             "RS512": hashes.SHA512(),
             'HS256': hashlib.sha256,
+            'HS384': hashlib.sha384,
             'HS512': hashlib.sha512,
         }
         algorithm = algos[alg]
@@ -971,12 +972,12 @@ class Exchange(object):
             'alg': alg,
             'typ': 'JWT',
         }))
-        encodedHeader = Exchange.base64urlencode(header)
-        encodedData = Exchange.base64urlencode(Exchange.encode(Exchange.json(request)))
-        token = encodedHeader + '.' + encodedData
-        if alg[2:] == 'RS':
-            priv_key = load_pem_private_key(secret, None, backends.default_backend())
-            signature = priv_key.sign(token, padding.PKCS1v15(), algorithm)
+        encoded_header = Exchange.base64urlencode(header)
+        encoded_data = Exchange.base64urlencode(Exchange.encode(Exchange.json(request)))
+        token = encoded_header + '.' + encoded_data
+        if alg[:2] == 'RS':
+            priv_key = load_pem_private_key(Exchange.encode(secret), None, backends.default_backend())
+            signature = priv_key.sign(Exchange.encode(token), padding.PKCS1v15(), algorithm)
         else:
             signature = Exchange.hmac(Exchange.encode(token), Exchange.encode(secret), algorithm, 'binary')
         signature = Exchange.base64urlencode(signature)
