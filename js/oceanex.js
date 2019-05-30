@@ -442,31 +442,28 @@ module.exports = class oceanex extends Exchange {
             'limit': limit,
         };
         const response = await this.privateGetOrdersFilter (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
-        if (data.length === 0) {
-            return [];
-        }
-        return this.parseOrders (this.safeValue (data[0], 'orders'));
+        const data = this.safeValue (response, 'data', []);
+        const dataLength = data.length;
+        const orders = (dataLength < 1) ? [] : this.safeValue (data[0]. 'orders', []);
+        return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOrders (symbol, limit = undefined, params = {}) {
+    async fetchOrders (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'market': market['id'],
             'states': ['wait', 'done', 'cancel'],
             'limit': limit,
         };
         const response = await this.privateGetOrdersFilter (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
-        if (data.length === 0) {
-            return [];
-        }
-        let result = {};
+        const data = this.safeValue (response, 'data', []);
+        let result = [];
         for (let i = 0; i < data.length; i++) {
-            let orders = this.parseOrders (this.safeValue (data[i], 'orders'));
-            let state = this.parseOrderStatus (this.safeValue (data[i], 'state'));
-            result[state] = orders;
+            const orders = this.safeValue (data[i], 'orders', [])
+            const status = this.parseOrderStatus (this.safeValue (data[i], 'state'));
+            const parsedOrders = this.parseOrders (orders, market, since, limit, { 'status': status });
+            result = this.arrayConcat (result, parsedOrders);
         }
         return result;
     }
