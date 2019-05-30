@@ -443,7 +443,7 @@ The universally-working way to solve for it is to just break a complex line into
 // be clear, easily-readable and understandable
 const bar = (qux === 'baz') ? this.a () : this.b ();
 const foo = {
-   'bar': bar,
+   'bar': bar + 'b',
 };
 ```
 
