@@ -18,6 +18,7 @@ module.exports = class oceanex extends Exchange {
                 'api': 'https://api.oceanex.pro/v1',
                 'www': 'https://www.oceanex.pro.com',
                 'doc': 'https://api.oceanex.pro/doc/v1',
+                'referral': 'https://oceanex.pro/signup?referral=VE24QX',
             },
             'api': {
                 'public': {
