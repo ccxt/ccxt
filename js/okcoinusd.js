@@ -405,8 +405,9 @@ module.exports = class okcoinusd extends Exchange {
         let request = {
             'symbol': market['id'],
         };
-        if (limit !== undefined)
+        if (limit !== undefined) {
             request['size'] = limit;
+        }
         if (market['future']) {
             method += 'Future';
             request['contract_type'] = this.options['defaultContractType']; // this_week, next_week, quarter
@@ -501,8 +502,9 @@ module.exports = class okcoinusd extends Exchange {
         method += 'Ticker';
         let response = await this[method] (this.extend (request, params));
         let ticker = this.safeValue (response, 'ticker');
-        if (ticker === undefined)
+        if (ticker === undefined) {
             throw new ExchangeError (this.id + ' fetchTicker returned an empty response: ' + this.json (response));
+        }
         let timestamp = this.safeInteger (response, 'date');
         if (timestamp !== undefined) {
             timestamp *= 1000;
@@ -513,8 +515,9 @@ module.exports = class okcoinusd extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let symbol = undefined;
-        if (market)
+        if (market) {
             symbol = market['symbol'];
+        }
         return {
             'info': trade,
             'timestamp': trade['date_ms'],
@@ -574,14 +577,16 @@ module.exports = class okcoinusd extends Exchange {
         }
         method += 'Kline';
         if (limit !== undefined) {
-            if (this.options['warnOnFetchOHLCVLimitArgument'])
+            if (this.options['warnOnFetchOHLCVLimitArgument']) {
                 throw new ExchangeError (this.id + ' fetchOHLCV counts "limit" candles from current time backwards, therefore the "limit" argument for ' + this.id + ' is disabled. Set ' + this.id + '.options["warnOnFetchOHLCVLimitArgument"] = false to suppress this warning message.');
+            }
             request['size'] = parseInt (limit); // max is 1440 candles
         }
-        if (since !== undefined)
+        if (since !== undefined) {
             request['since'] = since;
-        else
-            request['since'] = this.milliseconds () - 86400000; // last 24 hours
+        } else {
+            request['since'] = this.milliseconds () - 86400000;
+        } // last 24 hours
         let response = await this[method] (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
@@ -595,8 +600,9 @@ module.exports = class okcoinusd extends Exchange {
         let usedField = 'freezed';
         // wtf, okex?
         // https://github.com/okcoin-okex/API-docs-OKEx.com/commit/01cf9dd57b1f984a8737ef76a037d4d3795d2ac7
-        if (!(usedField in balances))
+        if (!(usedField in balances)) {
             usedField = 'holds';
+        }
         let usedKeys = Object.keys (balances[usedField]);
         ids = this.arrayConcat (ids, usedKeys);
         for (let i = 0; i < ids.length; i++) {
@@ -683,8 +689,9 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined)
+        if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -715,14 +722,18 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     parseOrderSide (side) {
-        if (side === 1)
-            return 'buy'; // open long position
-        if (side === 2)
-            return 'sell'; // open short position
-        if (side === 3)
-            return 'sell'; // liquidate long position
-        if (side === 4)
-            return 'buy'; // liquidate short position
+        if (side === 1) {
+            return 'buy';
+        } // open long position
+        if (side === 2) {
+            return 'sell';
+        } // open short position
+        if (side === 3) {
+            return 'sell';
+        } // liquidate long position
+        if (side === 4) {
+            return 'buy';
+        } // liquidate short position
         return side;
     }
 
@@ -741,8 +752,9 @@ module.exports = class okcoinusd extends Exchange {
                 type = 'market';
             } else {
                 side = this.parseOrderSide (order['type']);
-                if (('contract_name' in order) || ('lever_rate' in order))
+                if (('contract_name' in order) || ('lever_rate' in order)) {
                     type = 'margin';
+                }
             }
         }
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -753,12 +765,14 @@ module.exports = class okcoinusd extends Exchange {
                 market = this.markets_by_id[marketId];
             }
         }
-        if (market)
+        if (market) {
             symbol = market['symbol'];
+        }
         let timestamp = undefined;
         let createDateField = this.getCreateDateField ();
-        if (createDateField in order)
+        if (createDateField in order) {
             timestamp = order[createDateField];
+        }
         let amount = this.safeFloat (order, 'amount');
         let filled = this.safeFloat (order, 'deal_amount');
         amount = Math.max (amount, filled);
@@ -804,8 +818,9 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined)
+        if (symbol === undefined) {
             throw new ExchangeError (this.id + ' fetchOrder requires a symbol parameter');
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = 'privatePost';
@@ -824,14 +839,16 @@ module.exports = class okcoinusd extends Exchange {
         let response = await this[method] (this.extend (request, params));
         let ordersField = this.getOrdersField ();
         let numOrders = response[ordersField].length;
-        if (numOrders > 0)
+        if (numOrders > 0) {
             return this.parseOrder (response[ordersField][0]);
+        }
         throw new OrderNotFound (this.id + ' order ' + id + ' not found');
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined)
+        if (symbol === undefined) {
             throw new ExchangeError (this.id + ' fetchOrders requires a symbol parameter');
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = 'privatePost';
@@ -842,8 +859,9 @@ module.exports = class okcoinusd extends Exchange {
         if (market['future']) {
             method += 'FutureOrdersInfo';
             request['contract_type'] = this.options['defaultContractType']; // this_week, next_week, quarter
-            if (!order_id_in_params)
+            if (!order_id_in_params) {
                 throw new ExchangeError (this.id + ' fetchOrders() requires order_id param for futures market ' + symbol + ' (a string of one or more order ids, comma-separated)');
+            }
         } else {
             let status = undefined;
             if ('type' in params) {
@@ -924,8 +942,9 @@ module.exports = class okcoinusd extends Exchange {
             query = this.omit (query, 'trade_pwd');
         }
         let passwordInRequest = ('trade_pwd' in request);
-        if (!passwordInRequest)
+        if (!passwordInRequest) {
             throw new ExchangeError (this.id + ' withdraw() requires this.password set on the exchange instance or a password / trade_pwd parameter');
+        }
         let response = await this.privatePostWithdraw (this.extend (request, query));
         return {
             'info': response,
@@ -935,11 +954,13 @@ module.exports = class okcoinusd extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/';
-        if (api !== 'web')
+        if (api !== 'web') {
             url += this.version + '/';
+        }
         url += path;
-        if (api !== 'web')
+        if (api !== 'web') {
             url += this.extension;
+        }
         if (api === 'private') {
             this.checkRequiredCredentials ();
             let query = this.keysort (this.extend ({
@@ -951,30 +972,35 @@ module.exports = class okcoinusd extends Exchange {
             body = this.urlencode (query);
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
         } else {
-            if (Object.keys (params).length)
+            if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
+            }
         }
         url = this.urls['api'][api] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
-        if (body.length < 2)
-            return; // fallback to default error handler
+        if (body.length < 2) {
+            return;
+        } // fallback to default error handler
         if (body[0] === '{') {
             if ('error_code' in response) {
                 let error = this.safeString (response, 'error_code');
                 let message = this.id + ' ' + this.json (response);
                 if (error in this.exceptions) {
-                    let ExceptionClass = this.exceptions[error];
-                    throw new ExceptionClass (message);
+                    // let ExceptionClass = this.exceptions[error];
+                    // throw new ExceptionClass (message);
+                    throw new this.exceptions[error] (message);
                 } else {
                     throw new ExchangeError (message);
                 }
             }
-            if ('result' in response)
-                if (!response['result'])
+            if ('result' in response) {
+                if (!response['result']) {
                     throw new ExchangeError (this.id + ' ' + this.json (response));
+                }
+            }
         }
     }
 };

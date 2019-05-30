@@ -270,8 +270,9 @@ module.exports = class bitmex extends Exchange {
         let request = {
             'symbol': market['id'],
         };
-        if (limit !== undefined)
+        if (limit !== undefined) {
             request['depth'] = limit;
+        }
         let orderbook = await this.publicGetOrderBookL2 (this.extend (request, params));
         let result = {
             'bids': [],
@@ -301,8 +302,9 @@ module.exports = class bitmex extends Exchange {
         let filter = { 'filter': { 'orderID': id }};
         let result = await this.fetchOrders (symbol, undefined, undefined, this.deepExtend (filter, params));
         let numResults = result.length;
-        if (numResults === 1)
+        if (numResults === 1) {
             return result[0];
+        }
         throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
     }
 
@@ -314,16 +316,19 @@ module.exports = class bitmex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        if (since !== undefined)
+        if (since !== undefined) {
             request['startTime'] = this.iso8601 (since);
-        if (limit !== undefined)
+        }
+        if (limit !== undefined) {
             request['count'] = limit;
+        }
         request = this.deepExtend (request, params);
         // why the hassle? urlencode in python is kinda broken for nested dicts.
         // E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
         // Bitmex doesn't like that. Hence resorting to this hack.
-        if ('filter' in request)
+        if ('filter' in request) {
             request['filter'] = this.json (request['filter']);
+        }
         let response = await this.privateGetOrder (request);
         return this.parseOrders (response, market, since, limit);
     }
@@ -347,10 +352,12 @@ module.exports = class bitmex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        if (since !== undefined)
+        if (since !== undefined) {
             request['startTime'] = this.iso8601 (since);
-        if (limit !== undefined)
+        }
+        if (limit !== undefined) {
             request['count'] = limit;
+        }
         request = this.deepExtend (request, params);
         // why the hassle? urlencode in python is kinda broken for nested dicts.
         // E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
@@ -622,8 +629,9 @@ module.exports = class bitmex extends Exchange {
             // 'reverse': false, // true == newest first
             // 'endTime': '',    // ending date filter for results
         };
-        if (limit !== undefined)
-            request['count'] = limit; // default 100, max 500
+        if (limit !== undefined) {
+            request['count'] = limit;
+        } // default 100, max 500
         // if since is not set, they will return candles starting from 2017-01-01
         if (since !== undefined) {
             let ymdhms = this.ymdhms (since);
@@ -881,8 +889,9 @@ module.exports = class bitmex extends Exchange {
             'orderQty': amount,
             'ordType': this.capitalize (type),
         };
-        if (price !== undefined)
+        if (price !== undefined) {
             request['price'] = price;
+        }
         let response = await this.privatePostOrder (this.extend (request, params));
         let order = this.parseOrder (response);
         let id = order['id'];
@@ -895,10 +904,12 @@ module.exports = class bitmex extends Exchange {
         let request = {
             'orderID': id,
         };
-        if (amount !== undefined)
+        if (amount !== undefined) {
             request['orderQty'] = amount;
-        if (price !== undefined)
+        }
+        if (price !== undefined) {
             request['price'] = price;
+        }
         let response = await this.privatePutOrder (this.extend (request, params));
         let order = this.parseOrder (response);
         this.orders[order['id']] = order;
@@ -910,19 +921,23 @@ module.exports = class bitmex extends Exchange {
         let response = await this.privateDeleteOrder (this.extend ({ 'orderID': id }, params));
         let order = response[0];
         let error = this.safeString (order, 'error');
-        if (error !== undefined)
-            if (error.indexOf ('Unable to cancel order due to existing state') >= 0)
+        if (error !== undefined) {
+            if (error.indexOf ('Unable to cancel order due to existing state') >= 0) {
                 throw new OrderNotFound (this.id + ' cancelOrder() failed: ' + error);
+            }
+        }
         order = this.parseOrder (order);
         this.orders[order['id']] = order;
         return this.extend ({ 'info': response }, order);
     }
 
     isFiat (currency) {
-        if (currency === 'EUR')
+        if (currency === 'EUR') {
             return true;
-        if (currency === 'PLN')
+        }
+        if (currency === 'PLN') {
             return true;
+        }
         return false;
     }
 
@@ -948,8 +963,9 @@ module.exports = class bitmex extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
-        if (code === 429)
+        if (code === 429) {
             throw new DDoSProtection (this.id + ' ' + body);
+        }
         if (code >= 400) {
             if (body) {
                 if (body[0] === '{') {

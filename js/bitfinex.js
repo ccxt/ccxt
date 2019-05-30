@@ -571,8 +571,9 @@ module.exports = class bitfinex extends Exchange {
             symbol = market['symbol'];
         } else if ('pair' in ticker) {
             let id = ticker['pair'];
-            if (id in this.markets_by_id)
+            if (id in this.markets_by_id) {
                 market = this.markets_by_id[id];
+            }
             if (market !== undefined) {
                 symbol = market['symbol'];
             } else {
@@ -652,22 +653,26 @@ module.exports = class bitfinex extends Exchange {
             'symbol': market['id'],
             'limit_trades': limit,
         };
-        if (since !== undefined)
+        if (since !== undefined) {
             request['timestamp'] = parseInt (since / 1000);
+        }
         let response = await this.publicGetTradesSymbol (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined)
+        if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = { 'symbol': market['id'] };
-        if (limit !== undefined)
+        if (limit !== undefined) {
             request['limit_trades'] = limit;
-        if (since !== undefined)
+        }
+        if (since !== undefined) {
             request['timestamp'] = parseInt (since / 1000);
+        }
         let response = await this.privatePostMytrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -744,8 +749,9 @@ module.exports = class bitfinex extends Exchange {
                 market = this.markets_by_id[exchange];
             }
         }
-        if (market !== undefined)
+        if (market !== undefined) {
             symbol = market['symbol'];
+        }
         let orderType = order['type'];
         let exchange = orderType.indexOf ('exchange ') >= 0;
         if (exchange) {
@@ -775,25 +781,30 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (symbol !== undefined)
-            if (!(symbol in this.markets))
+        if (symbol !== undefined) {
+            if (!(symbol in this.markets)) {
                 throw new ExchangeError (this.id + ' has no symbol ' + symbol);
+            }
+        }
         let response = await this.privatePostOrders (params);
         let orders = this.parseOrders (response, undefined, since, limit);
-        if (symbol !== undefined)
+        if (symbol !== undefined) {
             orders = this.filterBy (orders, 'symbol', symbol);
+        }
         return orders;
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
-        if (limit !== undefined)
+        if (limit !== undefined) {
             request['limit'] = limit;
+        }
         let response = await this.privatePostOrdersHist (this.extend (request, params));
         let orders = this.parseOrders (response, undefined, since, limit);
-        if (symbol !== undefined)
+        if (symbol !== undefined) {
             orders = this.filterBy (orders, 'symbol', symbol);
+        }
         orders = this.filterBy (orders, 'status', 'closed');
         return orders;
     }
@@ -819,8 +830,9 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (limit === undefined)
+        if (limit === undefined) {
             limit = 100;
+        }
         let market = this.market (symbol);
         let v2id = 't' + market['id'];
         let request = {
@@ -829,15 +841,17 @@ module.exports = class bitfinex extends Exchange {
             'sort': 1,
             'limit': limit,
         };
-        if (since !== undefined)
+        if (since !== undefined) {
             request['start'] = since;
+        }
         let response = await this.v2GetCandlesTradeTimeframeSymbolHist (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     getCurrencyName (code) {
-        if (code in this.options['currencyNames'])
+        if (code in this.options['currencyNames']) {
             return this.options['currencyNames'][code];
+        }
         throw new NotSupported (this.id + ' ' + code + ' not supported for withdrawal');
     }
 
@@ -981,8 +995,9 @@ module.exports = class bitfinex extends Exchange {
             'amount': amount.toString (),
             'address': address,
         };
-        if (tag)
+        if (tag) {
             request['payment_id'] = tag;
+        }
         let responses = await this.privatePostWithdraw (this.extend (request, params));
         let response = responses[0];
         let id = response['withdrawal_id'];
@@ -990,8 +1005,9 @@ module.exports = class bitfinex extends Exchange {
         let errorMessage = this.findBroadlyMatchedKey (this.exceptions['broad'], message);
         if (id === 0) {
             if (errorMessage !== undefined) {
-                let ExceptionClass = this.exceptions['broad'][errorMessage];
-                throw new ExceptionClass (this.id + ' ' + message);
+                // let ExceptionClass = this.exceptions['broad'][errorMessage];
+                // throw new ExceptionClass (this.id + ' ' + message);
+                throw new this.exceptions['broad'][errorMessage] (this.id + ' ' + message);
             }
             throw new ExchangeError (this.id + ' withdraw returned an id of zero: ' + this.json (response));
         }
@@ -1043,8 +1059,9 @@ module.exports = class bitfinex extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
-        if (body.length < 2)
+        if (body.length < 2) {
             return;
+        }
         if (code >= 400) {
             if (body[0] === '{') {
                 const feedback = this.id + ' ' + this.json (response);

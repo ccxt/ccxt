@@ -267,16 +267,20 @@ module.exports = class livecoin extends Exchange {
             let balance = balances[b];
             let currency = balance['currency'];
             let account = undefined;
-            if (currency in result)
+            if (currency in result) {
                 account = result[currency];
-            else
+            } else {
                 account = this.account ();
-            if (balance['type'] === 'total')
+            }
+            if (balance['type'] === 'total') {
                 account['total'] = parseFloat (balance['value']);
-            if (balance['type'] === 'available')
+            }
+            if (balance['type'] === 'available') {
                 account['free'] = parseFloat (balance['value']);
-            if (balance['type'] === 'trade')
+            }
+            if (balance['type'] === 'trade') {
                 account['used'] = parseFloat (balance['value']);
+            }
             result[currency] = account;
         }
         return this.parseBalance (result);
@@ -613,15 +617,18 @@ module.exports = class livecoin extends Exchange {
             market = this.market (symbol);
             request['currencyPair'] = market['id'];
         }
-        if (since !== undefined)
+        if (since !== undefined) {
             request['issuedFrom'] = parseInt (since);
-        if (limit !== undefined)
+        }
+        if (limit !== undefined) {
             request['endRow'] = limit - 1;
+        }
         let response = await this.privateGetExchangeClientOrders (this.extend (request, params));
         let result = [];
         let rawOrders = [];
-        if (response['data'])
+        if (response['data']) {
             rawOrders = response['data'];
+        }
         for (let i = 0; i < rawOrders.length; i++) {
             let order = rawOrders[i];
             result.push (this.parseOrder (order, market));
@@ -667,8 +674,9 @@ module.exports = class livecoin extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined)
+        if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let currencyPair = market['id'];
@@ -701,8 +709,9 @@ module.exports = class livecoin extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let wallet = address;
-        if (tag !== undefined)
+        if (tag !== undefined) {
             wallet += '::' + tag;
+        }
         let request = {
             'amount': this.decimalToPrecision (amount, TRUNCATE, currency['precision'], DECIMAL_PLACES),
             'currency': currency['id'],
@@ -855,8 +864,9 @@ module.exports = class livecoin extends Exchange {
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            if (method === 'POST')
+            if (method === 'POST') {
                 body = query;
+            }
             let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha256');
             headers = {
                 'Api-Key': this.apiKey,
@@ -868,14 +878,16 @@ module.exports = class livecoin extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
-        if (typeof body !== 'string')
+        if (typeof body !== 'string') {
             return;
+        }
         if (body[0] === '{') {
             if (code >= 300) {
                 let errorCode = this.safeString (response, 'errorCode');
                 if (errorCode in this.exceptions) {
-                    let ExceptionClass = this.exceptions[errorCode];
-                    throw new ExceptionClass (this.id + ' ' + body);
+                    // let ExceptionClass = this.exceptions[errorCode];
+                    // throw new ExceptionClass (this.id + ' ' + body);
+                    throw new this.exceptions[errorCode] (this.id + ' ' + body);
                 } else {
                     throw new ExchangeError (this.id + ' ' + body);
                 }

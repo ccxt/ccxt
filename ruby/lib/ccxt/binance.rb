@@ -195,7 +195,7 @@ module Ccxt
     def fetch_markets(params = {})
       response = self.publicGetExchangeInfo
       if self.options['adjustForTimeDifference']
-        self.loadTimeDifference
+        self.load_time_difference
       end
       markets = response['symbols']
       result = []
@@ -726,7 +726,7 @@ module Ccxt
       end
       if priceIsRequired
         if price.nil?
-          raise InvalidOrder, self.id + ' createOrder method requires a price argument for a ' + type + ' order'
+          raise(InvalidOrder, self.id + ' createOrder method requires a price argument for a ' + type + ' order')
         end
         order['price'] = self.price_to_precision(symbol, price)
       end
@@ -736,7 +736,7 @@ module Ccxt
       if stopPriceIsRequired
         stopPrice = self.class.safe_float(params, 'stopPrice')
         if stopPrice.nil?
-          raise InvalidOrder, self.id + ' createOrder method requires a stopPrice extra param for a ' + type + ' order'
+          raise(InvalidOrder, self.id + ' createOrder method requires a stopPrice extra param for a ' + type + ' order')
         else
           params = self.class.omit(params, 'stopPrice')
           order['stopPrice'] = self.price_to_precision(symbol, stopPrice)
@@ -748,7 +748,7 @@ module Ccxt
 
     def fetch_order(id, symbol = nil, params = {})
       if symbol.nil?
-        raise ArgumentsRequired, self.id + ' fetchOrder requires a symbol argument'
+        raise(ArgumentsRequired, self.id + ' fetchOrder requires a symbol argument')
       end
       self.load_markets
       market = self.market(symbol)
@@ -767,7 +767,7 @@ module Ccxt
 
     def fetch_orders(symbol = nil, since = nil, limit = nil, params = {})
       if symbol.nil?
-        raise ArgumentsRequired, self.id + ' fetchOrders requires a symbol argument'
+        raise(ArgumentsRequired, self.id + ' fetchOrders requires a symbol argument')
       end
       self.load_markets
       market = self.market(symbol)
@@ -817,7 +817,7 @@ module Ccxt
         symbols = self.symbols
         numSymbols = symbols.length
         fetchOpenOrdersRateLimit = (numSymbols / 2).to_i
-        raise ExchangeError, self.id + ' fetchOpenOrders WARNING => fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.to_s + ' seconds. Do not call self method frequently to avoid ban. Set ' + self.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress self warning message.'
+        raise(ExchangeError, self.id + ' fetchOpenOrders WARNING => fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.to_s + ' seconds. Do not call self method frequently to avoid ban. Set ' + self.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress self warning message.')
       end
       response = self.privateGetOpenOrders(self.class.shallow_extend(request, params))
       return self.parse_orders(response, market, since, limit)
@@ -830,7 +830,7 @@ module Ccxt
 
     def cancel_order(id, symbol = nil, params = {})
       if symbol.nil?
-        raise ArgumentsRequired, self.id + ' cancelOrder requires a symbol argument'
+        raise(ArgumentsRequired, self.id + ' cancelOrder requires a symbol argument')
       end
       self.load_markets
       market = self.market(symbol)
@@ -844,7 +844,7 @@ module Ccxt
 
     def fetch_my_trades(symbol = nil, since = nil, limit = nil, params = {})
       if symbol.nil?
-        raise ArgumentsRequired, self.id + ' fetchMyTrades requires a symbol argument'
+        raise(ArgumentsRequired, self.id + ' fetchMyTrades requires a symbol argument')
       end
       self.load_markets
       market = self.market(symbol)
@@ -1147,7 +1147,7 @@ module Ccxt
       }, params))
       success = self.class.safe_value(response, 'success')
       if success.nil? || !success
-        raise InvalidAddress, self.id + ' fetchDepositAddress returned an empty response – create the deposit address in the user settings first.'
+        raise(InvalidAddress, self.id + ' fetchDepositAddress returned an empty response – create the deposit address in the user settings first.')
       end
       address = self.class.safe_string(response, 'address')
       tag = self.class.safe_string(response, 'addressTag')
@@ -1258,20 +1258,20 @@ module Ccxt
 
     def handle_errors(code, reason, url, method, headers, body, response)
       if (code == 418) || (code == 429)
-        raise DDoSProtection, self.id + ' ' + code.to_s + ' ' + reason + ' ' + body
+        raise(DDoSProtection, self.id + ' ' + code.to_s + ' ' + reason + ' ' + body)
       end
       # error response in a form => { "code" => -1013, "msg" => "Invalid quantity." }
       # following block cointains legacy checks against message patterns in "msg" property
       # will switch "code" checks eventually, when we know all of them
       if code >= 400
-        if body.index('Price * QTY is zero or less') >= 0
-          raise InvalidOrder, self.id + ' order cost = amount * price is zero or less ' + body
+        if body.index('Price * QTY is zero or less')
+          raise(InvalidOrder, self.id + ' order cost = amount * price is zero or less ' + body)
         end
-        if body.index('LOT_SIZE') >= 0
-          raise InvalidOrder, self.id + ' order amount should be evenly divisible by lot size ' + body
+        if body.index('LOT_SIZE')
+          raise(InvalidOrder, self.id + ' order amount should be evenly divisible by lot size ' + body)
         end
-        if body.index('PRICE_FILTER') >= 0
-          raise InvalidOrder, self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use self.price_to_precision(symbol, amount) ' + body
+        if body.index('PRICE_FILTER')
+          raise(InvalidOrder, self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use self.price_to_precision(symbol, amount) ' + body)
         end
       end
       if body.length > 0
@@ -1298,8 +1298,8 @@ module Ccxt
           message = self.class.safe_string(response, 'msg')
           if exceptions.include?(message)
             # ExceptionClass = exceptions[message]
-            # raise ExceptionClass, self.id + ' ' + message
-            raise exceptions[message], self.id + ' ' + message
+            # raise(ExceptionClass, self.id + ' ' + message)
+            raise(exceptions[message], self.id + ' ' + message)
           end
           # checks against error codes
           error = self.class.safe_string(response, 'code')
@@ -1309,15 +1309,15 @@ module Ccxt
               # despite that their message is very confusing, it is raised by Binance
               # on a temporary ban(the API key is valid, but disabled for a while)
               if (error == '-2015') && self.options['hasAlreadyAuthenticatedSuccessfully']
-                raise DDoSProtection, self.id + ' temporary banned => ' + body
+                raise(DDoSProtection, self.id + ' temporary banned => ' + body)
               end
-              raise exceptions[error], self.id + ' ' + body
+              raise(exceptions[error], self.id + ' ' + body)
             else
-              raise ExchangeError, self.id + ' ' + body
+              raise(ExchangeError, self.id + ' ' + body)
             end
           end
           if !success
-            raise ExchangeError, self.id + ' ' + body
+            raise(ExchangeError, self.id + ' ' + body)
           end
         end
       end

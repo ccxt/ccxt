@@ -749,7 +749,7 @@ module Ccxt
         symbol = market['symbol']
       end
       orderType = order['type']
-      exchange = orderType.index('exchange ') >= 0
+      exchange = orderType.index('exchange ')
       if exchange
         parts = order['type'].split(' ')
         orderType = parts[1]
@@ -1026,7 +1026,7 @@ module Ccxt
       end
       query = self.class.omit(params, self.class.extract_params(path))
       url = self.urls['api'] + request
-      if (api == 'public') || (path.index('/hist') >= 0)
+      if (api == 'public') || (path.index('/hist'))
         if query
           suffix = '?' + self.class.urlencode(query)
           url += suffix
