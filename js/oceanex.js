@@ -444,7 +444,7 @@ module.exports = class oceanex extends Exchange {
         const response = await this.privateGetOrdersFilter (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
         const dataLength = data.length;
-        const orders = (dataLength < 1) ? [] : this.safeValue (data[0]. 'orders', []);
+        const orders = (dataLength < 1) ? [] : this.safeValue (data[0], 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
