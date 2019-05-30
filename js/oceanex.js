@@ -449,7 +449,7 @@ module.exports = class oceanex extends Exchange {
         return this.parseOrders (this.safeValue (data[0], 'orders'));
     }
 
-    async fetchAllOrders (symbol, limit = undefined, params = {}) {
+    async fetchOrders (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
