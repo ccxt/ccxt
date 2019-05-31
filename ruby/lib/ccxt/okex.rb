@@ -7,7 +7,7 @@
 module Ccxt
   class Okex < Okcoinusd
     def describe
-      return self.class.deep_extend(super, {
+      return self.deep_extend(super, {
         'id' => 'okex',
         'name' => 'OKEX',
         'countries' => ['CN', 'US'],
@@ -83,13 +83,13 @@ module Ccxt
     def fetch_tickers_from_api(symbols = nil, params = {})
       self.load_markets
       request = {}
-      response = self.publicGetTickers(self.class.shallow_extend(request, params))
+      response = self.publicGetTickers(shallow_extend(request, params))
       tickers = response['tickers']
       timestamp = (response['date']).to_i * 1000
       result = {}
       for i in (0...tickers.length)
         ticker = tickers[i]
-        ticker = self.parse_ticker(self.class.shallow_extend(tickers[i], { 'timestamp' => timestamp }))
+        ticker = self.parse_ticker(shallow_extend(tickers[i], { 'timestamp' => timestamp }))
         symbol = ticker['symbol']
         result[symbol] = ticker
       end
@@ -99,7 +99,7 @@ module Ccxt
     def fetch_tickers_from_web(symbols = nil, params = {})
       self.load_markets
       request = {}
-      response = self.webGetSpotMarketsTickers(self.class.shallow_extend(request, params))
+      response = self.webGetSpotMarketsTickers(shallow_extend(request, params))
       tickers = response['data']
       result = {}
       for i in (0...tickers.length)

@@ -7,7 +7,7 @@
 module Ccxt
   class Okcoinusd < Exchange
     def describe
-      return self.class.deep_extend(super, {
+      return self.deep_extend(super, {
         'id' => 'okcoinusd',
         'name' => 'OKCoin USD',
         'countries' => ['CN', 'US'],
@@ -345,7 +345,7 @@ module Ccxt
         active = (markets[i]['online'] != 0)
         baseNumericId = markets[i]['baseCurrency']
         quoteNumericId = markets[i]['quoteCurrency']
-        market = self.class.shallow_extend(self.fees['trading'], {
+        market = shallow_extend(self.fees['trading'], {
           'id' => id,
           'symbol' => symbol,
           'base' => base,
@@ -381,7 +381,7 @@ module Ccxt
           for j in (0...fiats.length)
             fiat = fiats[j]
             lowercaseFiat = fiat.downcase
-            result.push(self.class.shallow_extend(market, {
+            result.push(shallow_extend(market, {
               'quote' => fiat,
               'symbol' => market['base'] + '/' + fiat,
               'id' => market['base'].downcase + '_' + lowercaseFiat,
@@ -411,7 +411,7 @@ module Ccxt
         request['contract_type'] = self.options['defaultContractType'] # self_week, next_week, quarter
       end
       method += 'Depth'
-      orderbook = self.send_wrapper(method, self.class.shallow_extend(request, params))
+      orderbook = self.send_wrapper(method, shallow_extend(request, params))
       return self.parse_order_book(orderbook)
     end
 
@@ -438,7 +438,7 @@ module Ccxt
       #                 symbol =>   "zec_okb",
       #                 volume =>   "1049.092535"   }
       #
-      timestamp = self.class.safe_integer_2(ticker, 'timestamp', 'createdDate')
+      timestamp = self.safe_integer_2(ticker, 'timestamp', 'createdDate')
       symbol = nil
       if market.nil?
         if ticker.include?('symbol')
@@ -458,19 +458,19 @@ module Ccxt
       if market != nil
         symbol = market['symbol']
       end
-      last = self.class.safe_float(ticker, 'last')
-      open = self.class.safe_float(ticker, 'open')
-      change = self.class.safe_float(ticker, 'change')
-      percentage = self.class.safe_float(ticker, 'changePercentage')
+      last = self.safe_float(ticker, 'last')
+      open = self.safe_float(ticker, 'open')
+      change = self.safe_float(ticker, 'change')
+      percentage = self.safe_float(ticker, 'changePercentage')
       return {
         'symbol' => symbol,
         'timestamp' => timestamp,
-        'datetime' => self.class.iso8601(timestamp),
-        'high' => self.class.safe_float(ticker, 'high'),
-        'low' => self.class.safe_float(ticker, 'low'),
-        'bid' => self.class.safe_float(ticker, 'buy'),
+        'datetime' => self.iso8601(timestamp),
+        'high' => self.safe_float(ticker, 'high'),
+        'low' => self.safe_float(ticker, 'low'),
+        'bid' => self.safe_float(ticker, 'buy'),
         'bidVolume' => nil,
-        'ask' => self.class.safe_float(ticker, 'sell'),
+        'ask' => self.safe_float(ticker, 'sell'),
         'askVolume' => nil,
         'vwap' => nil,
         'open' => open,
@@ -480,7 +480,7 @@ module Ccxt
         'change' => change,
         'percentage' => percentage,
         'average' => nil,
-        'baseVolume' => self.class.safe_float_2(ticker, 'vol', 'volume'),
+        'baseVolume' => self.safe_float_2(ticker, 'vol', 'volume'),
         'quoteVolume' => nil,
         'info' => ticker
       }
@@ -498,15 +498,15 @@ module Ccxt
         request['contract_type'] = self.options['defaultContractType'] # self_week, next_week, quarter
       end
       method += 'Ticker'
-      response = self.send_wrapper(method, self.class.shallow_extend(request, params))
-      ticker = self.class.safe_value(response, 'ticker')
+      response = self.send_wrapper(method, shallow_extend(request, params))
+      ticker = self.safe_value(response, 'ticker')
       if ticker.nil?
-        raise(ExchangeError, self.id + ' fetchTicker returned an empty response => ' + self.class.json(response))
+        raise(ExchangeError, self.id + ' fetchTicker returned an empty response => ' + self.json(response))
       end
-      timestamp = self.class.safe_integer(response, 'date')
+      timestamp = self.safe_integer(response, 'date')
       if timestamp != nil
         timestamp *= 1000
-        ticker = self.class.shallow_extend(ticker, { 'timestamp' => timestamp })
+        ticker = shallow_extend(ticker, { 'timestamp' => timestamp })
       end
       return self.parse_ticker(ticker, market)
     end
@@ -519,14 +519,14 @@ module Ccxt
       return {
         'info' => trade,
         'timestamp' => trade['date_ms'],
-        'datetime' => self.class.iso8601(trade['date_ms']),
+        'datetime' => self.iso8601(trade['date_ms']),
         'symbol' => symbol,
         'id' => trade['tid'].to_s,
         'order' => nil,
         'type' => nil,
         'side' => trade['type'],
-        'price' => self.class.safe_float(trade, 'price'),
-        'amount' => self.class.safe_float(trade, 'amount')
+        'price' => self.safe_float(trade, 'price'),
+        'amount' => self.safe_float(trade, 'amount')
       }
     end
 
@@ -542,7 +542,7 @@ module Ccxt
         request['contract_type'] = self.options['defaultContractType'] # self_week, next_week, quarter
       end
       method += 'Trades'
-      response = self.send_wrapper(method, self.class.shallow_extend(request, params))
+      response = self.send_wrapper(method, shallow_extend(request, params))
       return self.parse_trades(response, market, since, limit)
     end
 
@@ -583,9 +583,9 @@ module Ccxt
       if since != nil
         request['since'] = since
       else
-        request['since'] = self.class.milliseconds - 86400000
+        request['since'] = self.milliseconds - 86400000
       end # last 24 hours
-      response = self.send_wrapper(method, self.class.shallow_extend(request, params))
+      response = self.send_wrapper(method, shallow_extend(request, params))
       return self.parse_ohlcvs(response, market, timeframe, since, limit)
     end
 
@@ -602,7 +602,7 @@ module Ccxt
         usedField = 'holds'
       end
       usedKeys = balances[usedField].keys
-      ids = self.class.array_concat(ids, usedKeys)
+      ids = self.array_concat(ids, usedKeys)
       for i in (0...ids.length)
         id = ids[i]
         code = id.upcase
@@ -612,9 +612,9 @@ module Ccxt
           code = self.common_currency_code(code)
         end
         account = self.account
-        account['free'] = self.class.safe_float(balances['free'], id, 0.0)
-        account['used'] = self.class.safe_float(balances[usedField], id, 0.0)
-        account['total'] = self.class.sum(account['free'], account['used'])
+        account['free'] = self.safe_float(balances['free'], id, 0.0)
+        account['used'] = self.safe_float(balances[usedField], id, 0.0)
+        account['total'] = self.sum(account['free'], account['used'])
         result[code] = account
       end
       return self.parse_balance(result)
@@ -630,7 +630,7 @@ module Ccxt
       }
       if market['future']
         method += 'Future'
-        order = self.class.shallow_extend(order, {
+        order = shallow_extend(order, {
           'contract_type' => self.options['defaultContractType'], # self_week, next_week, quarter
           'match_price' => 0, # match best counter party price? 0 or 1, ignores price if 1
           'lever_rate' => 10, # leverage rate value => 10 or 20(10 by default)
@@ -651,7 +651,7 @@ module Ccxt
               end
               order['price'] = price
             else
-              order['price'] = self.class.safe_float(params, 'cost')
+              order['price'] = self.safe_float(params, 'cost')
               if !order['price']
                 # eslint-disable-next-line quotes
                 raise(ExchangeError, self.id + " market buy orders require an additional cost parameter, cost = price * amount. If you want to pass the cost of the market order(the amount you want to spend) in the price argument(the default " + self.id + " behaviour), set self.options['marketBuyPrice'] = true. It will effectively suppress self warning exception as well.")
@@ -662,15 +662,15 @@ module Ccxt
           end
         end
       end
-      params = self.class.omit(params, 'cost')
+      params = self.omit(params, 'cost')
       method += 'Trade'
-      response = self.send_wrapper(method, self.class.shallow_extend(order, params))
-      timestamp = self.class.milliseconds
+      response = self.send_wrapper(method, shallow_extend(order, params))
+      timestamp = self.milliseconds
       return {
         'info' => response,
         'id' => response['order_id'].to_s,
         'timestamp' => timestamp,
-        'datetime' => self.class.iso8601(timestamp),
+        'datetime' => self.iso8601(timestamp),
         'lastTradeTimestamp' => nil,
         'status' => nil,
         'symbol' => symbol,
@@ -703,7 +703,7 @@ module Ccxt
       else
         method += 'CancelOrder'
       end
-      response = self.send_wrapper(method, self.class.shallow_extend(request, params))
+      response = self.send_wrapper(method, shallow_extend(request, params))
       return response
     end
 
@@ -716,7 +716,7 @@ module Ccxt
         '3' => 'open',
         '4' => 'canceled'
       }
-      return self.class.safe_value(statuses, status, status)
+      return self.safe_value(statuses, status, status)
     end
 
     def parse_order_side(side)
@@ -755,10 +755,10 @@ module Ccxt
           end
         end
       end
-      status = self.parse_order_status(self.class.safe_string(order, 'status'))
+      status = self.parse_order_status(self.safe_string(order, 'status'))
       symbol = nil
       if market.nil?
-        marketId = self.class.safe_string(order, 'symbol')
+        marketId = self.safe_string(order, 'symbol')
         if self.markets_by_id.include?(marketId)
           market = self.markets_by_id[marketId]
         end
@@ -771,22 +771,22 @@ module Ccxt
       if order.include?(createDateField)
         timestamp = order[createDateField]
       end
-      amount = self.class.safe_float(order, 'amount')
-      filled = self.class.safe_float(order, 'deal_amount')
+      amount = self.safe_float(order, 'amount')
+      filled = self.safe_float(order, 'deal_amount')
       amount = Math.max(amount, filled)
       remaining = Math.max(0, amount - filled)
       if type == 'market'
         remaining = 0
       end
-      average = self.class.safe_float(order, 'avg_price')
+      average = self.safe_float(order, 'avg_price')
       # https://github.com/ccxt/ccxt/issues/2452
-      average = self.class.safe_float(order, 'price_avg', average)
+      average = self.safe_float(order, 'price_avg', average)
       cost = average * filled
       result = {
         'info' => order,
         'id' => order['order_id'].to_s,
         'timestamp' => timestamp,
-        'datetime' => self.class.iso8601(timestamp),
+        'datetime' => self.iso8601(timestamp),
         'lastTradeTimestamp' => nil,
         'symbol' => symbol,
         'type' => type,
@@ -834,7 +834,7 @@ module Ccxt
         request['contract_type'] = self.options['defaultContractType'] # self_week, next_week, quarter
       end
       method += 'OrderInfo'
-      response = self.send_wrapper(method, self.class.shallow_extend(request, params))
+      response = self.send_wrapper(method, shallow_extend(request, params))
       ordersField = self.get_orders_field
       numOrders = response[ordersField].length
       if numOrders > 0
@@ -872,35 +872,35 @@ module Ccxt
         end
         if order_id_in_params
           method += 'OrdersInfo'
-          request = self.class.shallow_extend(request, {
+          request = shallow_extend(request, {
             'type' => status,
             'order_id' => params['order_id']
           })
         else
           method += 'OrderHistory'
-          request = self.class.shallow_extend(request, {
+          request = shallow_extend(request, {
             'status' => status,
             'current_page' => 1, # current page number
             'page_length' => 200, # number of orders returned per page, maximum 200
           })
         end
-        params = self.class.omit(params, ['type', 'status'])
+        params = self.omit(params, ['type', 'status'])
       end
-      response = self.send_wrapper(method, self.class.shallow_extend(request, params))
+      response = self.send_wrapper(method, shallow_extend(request, params))
       ordersField = self.get_orders_field
       return self.parse_orders(response[ordersField], market, since, limit)
     end
 
     def fetch_open_orders(symbol = nil, since = nil, limit = nil, params = {})
       open = 0 # 0 for unfilled orders, 1 for filled orders
-      return self.fetch_orders(symbol, since, limit, self.class.shallow_extend({
+      return self.fetch_orders(symbol, since, limit, shallow_extend({
         'status' => open
       }, params))
     end
 
     def fetch_closed_orders(symbol = nil, since = nil, limit = nil, params = {})
       closed = 1 # 0 for unfilled orders, 1 for filled orders
-      orders = self.fetch_orders(symbol, since, limit, self.class.shallow_extend({
+      orders = self.fetch_orders(symbol, since, limit, shallow_extend({
         'status' => closed
       }, params))
       return orders
@@ -926,7 +926,7 @@ module Ccxt
       query = params
       if query.include?('chargefee')
         request['chargefee'] = query['chargefee']
-        query = self.class.omit(query, 'chargefee')
+        query = self.omit(query, 'chargefee')
       else
         raise(ExchangeError, self.id + ' withdraw requires a `chargefee` parameter')
       end
@@ -934,19 +934,19 @@ module Ccxt
         request['trade_pwd'] = self.password
       elsif query.include?('password')
         request['trade_pwd'] = query['password']
-        query = self.class.omit(query, 'password')
+        query = self.omit(query, 'password')
       elsif query.include?('trade_pwd')
         request['trade_pwd'] = query['trade_pwd']
-        query = self.class.omit(query, 'trade_pwd')
+        query = self.omit(query, 'trade_pwd')
       end
       passwordInRequest = (request.include?('trade_pwd'))
       if !passwordInRequest
         raise(ExchangeError, self.id + ' withdraw requires self.password set on the exchange instance or a password / trade_pwd parameter')
       end
-      response = self.privatePostWithdraw(self.class.shallow_extend(request, query))
+      response = self.privatePostWithdraw(shallow_extend(request, query))
       return {
         'info' => response,
-        'id' => self.class.safe_string(response, 'withdraw_id')
+        'id' => self.safe_string(response, 'withdraw_id')
       }
     end
 
@@ -961,17 +961,17 @@ module Ccxt
       end
       if api == 'private'
         self.check_required_credentials
-        query = self.class.keysort(self.class.shallow_extend({
+        query = self.keysort(shallow_extend({
           'api_key' => self.apiKey
         }, params))
         # secret key must be at the end of query
-        queryString = self.class.rawencode(query) + '&secret_key=' + self.secret
-        query['sign'] = self.class.hash(self.class.encode(queryString)).upcase
-        body = self.class.urlencode(query)
+        queryString = self.rawencode(query) + '&secret_key=' + self.secret
+        query['sign'] = self.hash(self.encode(queryString)).upcase
+        body = self.urlencode(query)
         headers = { 'Content-Type' => 'application/x-www-form-urlencoded' }
       else
         if params
-          url += '?' + self.class.urlencode(params)
+          url += '?' + self.urlencode(params)
         end
       end
       url = self.urls['api'][api] + url
@@ -984,8 +984,8 @@ module Ccxt
       end # fallback to default error handler
       if body[0] == '{'
         if response.include?('error_code')
-          error = self.class.safe_string(response, 'error_code')
-          message = self.id + ' ' + self.class.json(response)
+          error = self.safe_string(response, 'error_code')
+          message = self.id + ' ' + self.json(response)
           if self.exceptions.include?(error)
             # ExceptionClass = self.exceptions[error]
             # raise(ExceptionClass, message)
@@ -996,7 +996,7 @@ module Ccxt
         end
         if response.include?('result')
           if !response['result']
-            raise(ExchangeError, self.id + ' ' + self.class.json(response))
+            raise(ExchangeError, self.id + ' ' + self.json(response))
           end
         end
       end

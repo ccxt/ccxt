@@ -7,7 +7,7 @@
 module Ccxt
   class Coss < Exchange
     def describe
-      return self.class.deep_extend(super, {
+      return self.deep_extend(super, {
         'id' => 'coss',
         'name' => 'COSS',
         'countries' => ['SG', 'NL'],
@@ -149,11 +149,11 @@ module Ccxt
       #                                   allow_trading =>  true       }     ]               }
       #
       result = []
-      markets = self.class.safe_value(response, 'symbols', [])
-      baseCurrencies = self.class.safe_value(response, 'base_currencies', [])
-      baseCurrenciesByIds = self.class.index_by(baseCurrencies, 'currency_code')
-      currencies = self.class.safe_value(response, 'coins', [])
-      currenciesByIds = self.class.index_by(currencies, 'currency_code')
+      markets = self.safe_value(response, 'symbols', [])
+      baseCurrencies = self.safe_value(response, 'base_currencies', [])
+      baseCurrenciesByIds = self.index_by(baseCurrencies, 'currency_code')
+      currencies = self.safe_value(response, 'coins', [])
+      currenciesByIds = self.index_by(currencies, 'currency_code')
       for i in (0...markets.length)
         market = markets[i]
         marketId = market['symbol']
@@ -162,15 +162,15 @@ module Ccxt
         quote = self.common_currency_code(quoteId)
         symbol = base + '/' + quote
         precision = {
-          'amount' => self.class.safe_integer(market, 'amount_limit_decimal'),
-          'price' => self.class.safe_integer(market, 'price_limit_decimal')
+          'amount' => self.safe_integer(market, 'amount_limit_decimal'),
+          'price' => self.safe_integer(market, 'price_limit_decimal')
         }
-        active = self.class.safe_value(market, 'allow_trading', false)
-        baseCurrency = self.class.safe_value(baseCurrenciesByIds, baseId, {})
-        minCost = self.class.safe_float(baseCurrency, 'minimum_total_order')
-        currency = self.class.safe_value(currenciesByIds, baseId, {})
+        active = self.safe_value(market, 'allow_trading', false)
+        baseCurrency = self.safe_value(baseCurrenciesByIds, baseId, {})
+        minCost = self.safe_float(baseCurrency, 'minimum_total_order')
+        currency = self.safe_value(currenciesByIds, baseId, {})
         defaultMinAmount = 10**-precision['amount']
-        minAmount = self.class.safe_float(currency, 'minimum_order_amount', defaultMinAmount)
+        minAmount = self.safe_float(currency, 'minimum_order_amount', defaultMinAmount)
         result.push({
           'symbol' => symbol,
           'id' => marketId,
@@ -234,16 +234,16 @@ module Ccxt
       result = {}
       for i in (0...response.length)
         currency = response[i]
-        currencyId = self.class.safe_string(currency, 'currency_code')
+        currencyId = self.safe_string(currency, 'currency_code')
         code = self.common_currency_code(currencyId)
-        name = self.class.safe_string(currency, 'name')
-        allowBuy = self.class.safe_value(currency, 'allow_buy')
-        allowSell = self.class.safe_value(currency, 'allow_sell')
-        allowWithdrawals = self.class.safe_value(currency, 'allow_withdrawn')
-        allowDeposits = self.class.safe_value(currency, 'allow_deposit')
+        name = self.safe_string(currency, 'name')
+        allowBuy = self.safe_value(currency, 'allow_buy')
+        allowSell = self.safe_value(currency, 'allow_sell')
+        allowWithdrawals = self.safe_value(currency, 'allow_withdrawn')
+        allowDeposits = self.safe_value(currency, 'allow_deposit')
         active = allowBuy && allowSell && allowWithdrawals && allowDeposits
-        fee = self.class.safe_float(currency, 'withdrawn_fee')
-        type = self.class.safe_string(currency, 'token_type')
+        fee = self.safe_float(currency, 'withdrawn_fee')
+        type = self.safe_string(currency, 'token_type')
         #
         # decimal_format can be anything...
         #
@@ -256,7 +256,7 @@ module Ccxt
         #     0.0000
         #     0.###
         #
-        decimalFormat = self.class.safe_string(currency, 'decimal_format')
+        decimalFormat = self.safe_string(currency, 'decimal_format')
         precision = 8
         if decimalFormat != nil
           parts = decimalFormat.split('.')
@@ -278,11 +278,11 @@ module Ccxt
           'type' => type,
           'limits' => {
             'amount' => {
-              'min' => self.class.safe_float(currency, 'minimum_order_amount'),
+              'min' => self.safe_float(currency, 'minimum_order_amount'),
               'max' => nil
             },
             'withdraw' => {
-              'min' => self.class.safe_float(currency, 'minimum_withdrawn_amount'),
+              'min' => self.safe_float(currency, 'minimum_withdrawn_amount'),
               'max' => nil
             }
           }
@@ -311,11 +311,11 @@ module Ccxt
       result = {}
       for i in (0...response.length)
         balance = response[i]
-        currencyId = self.class.safe_string(balance, 'currency_code')
+        currencyId = self.safe_string(balance, 'currency_code')
         code = self.common_currency_code(currencyId)
-        total = self.class.safe_float(balance, 'total')
-        used = self.class.safe_float(balance, 'in_order')
-        free = self.class.safe_float(balance, 'available')
+        total = self.safe_float(balance, 'total')
+        used = self.safe_float(balance, 'in_order')
+        free = self.safe_float(balance, 'available')
         result[code] = {
           'total' => total,
           'used' => used,
@@ -343,7 +343,7 @@ module Ccxt
         'symbol' => market['id'],
         'tt' => self.timeframes[timeframe]
       }
-      response = self.engineGetCs(self.class.shallow_extend(request, params))
+      response = self.engineGetCs(shallow_extend(request, params))
       #
       #     {       tt =>   "1m",
       #         symbol =>   "ETH_BTC",
@@ -371,7 +371,7 @@ module Ccxt
       marketId = self.market_id(symbol)
       request = { 'symbol' => marketId }
       # limit argument is not supported on COSS's end
-      response = self.engineGetDp(self.class.shallow_extend(request, params))
+      response = self.engineGetDp(shallow_extend(request, params))
       #
       #     { symbol =>   "COSS_ETH",
       #         asks => [["0.00065200", "214.15000000"],
@@ -387,7 +387,7 @@ module Ccxt
       #                 ["0.00037600", "2010.82000000"]   ],
       #         time =>    1545180569354                       }
       #
-      timestamp = self.class.safe_integer(response, 'time')
+      timestamp = self.safe_integer(response, 'time')
       return self.parse_order_book(response, timestamp)
     end
 
@@ -404,13 +404,13 @@ module Ccxt
       #               Bid => "0.00063400",
       #           PrevDay =>  0.000636                   }
       #
-      timestamp = self.class.parse8601(self.class.safe_string(ticker, 'TimeStamp'))
+      timestamp = self.parse8601(self.safe_string(ticker, 'TimeStamp'))
       symbol = nil
-      marketId = self.class.safe_string(ticker, 'MarketName')
+      marketId = self.safe_string(ticker, 'MarketName')
       if marketId != nil
         marketId = marketId.gsub('-', '_')
       end
-      market = self.class.safe_value(self.markets_by_id, marketId, market)
+      market = self.safe_value(self.markets_by_id, marketId, market)
       if market.nil?
         if marketId != nil
           baseId, quoteId = marketId.split('_')
@@ -422,8 +422,8 @@ module Ccxt
       if market != nil
         symbol = market['symbol']
       end
-      previous = self.class.safe_float(ticker, 'PrevDay')
-      last = self.class.safe_float(ticker, 'Last')
+      previous = self.safe_float(ticker, 'PrevDay')
+      last = self.safe_float(ticker, 'Last')
       change = nil
       percentage = nil
       if last != nil
@@ -437,12 +437,12 @@ module Ccxt
       return {
         'symbol' => symbol,
         'timestamp' => timestamp,
-        'datetime' => self.class.iso8601(timestamp),
-        'high' => self.class.safe_float(ticker, 'High'),
-        'low' => self.class.safe_float(ticker, 'Low'),
-        'bid' => self.class.safe_float(ticker, 'Bid'),
+        'datetime' => self.iso8601(timestamp),
+        'high' => self.safe_float(ticker, 'High'),
+        'low' => self.safe_float(ticker, 'Low'),
+        'bid' => self.safe_float(ticker, 'Bid'),
         'bidVolume' => nil,
-        'ask' => self.class.safe_float(ticker, 'Ask'),
+        'ask' => self.safe_float(ticker, 'Ask'),
         'askVolume' => nil,
         'vwap' => nil,
         'open' => previous,
@@ -452,8 +452,8 @@ module Ccxt
         'change' => change,
         'percentage' => percentage,
         'average' => nil,
-        'baseVolume' => self.class.safe_float(ticker, 'Volume'),
-        'quoteVolume' => self.class.safe_float(ticker, 'BaseVolume'),
+        'baseVolume' => self.safe_float(ticker, 'Volume'),
+        'quoteVolume' => self.safe_float(ticker, 'BaseVolume'),
         'info' => ticker
       }
     end
@@ -498,7 +498,7 @@ module Ccxt
       #                  { CoinName => "USDC", Volume => 0 }                   ],
       #             t =>    1545196604371                                       }
       #
-      tickers = self.class.safe_value(response, 'result', [])
+      tickers = self.safe_value(response, 'result', [])
       result = {}
       for i in (0...tickers.length)
         ticker = self.parse_ticker(tickers[i])
@@ -519,7 +519,7 @@ module Ccxt
       request = {
         'symbol' => market['id']
       }
-      response = self.engineGetHt(self.class.shallow_extend(request, params))
+      response = self.engineGetHt(shallow_extend(request, params))
       #
       #     {  symbol =>   "COSS_ETH",
       #         limit =>    100,
@@ -584,17 +584,17 @@ module Ccxt
       #                  total => "0.00659000 ETH",
       #              timestamp =>  1545152356075                          }]
       #
-      id = self.class.safe_string(trade, 'id')
-      timestamp = self.class.safe_integer(trade, 'time')
-      orderId = self.class.safe_string(trade, 'order_id')
-      side = self.class.safe_string(trade, 'order_side')
+      id = self.safe_string(trade, 'id')
+      timestamp = self.safe_integer(trade, 'time')
+      orderId = self.safe_string(trade, 'order_id')
+      side = self.safe_string(trade, 'order_side')
       if side != nil
         side = side.downcase
       end
       symbol = nil
-      marketId = self.class.safe_string(trade, 'symbol')
+      marketId = self.safe_string(trade, 'symbol')
       if marketId != nil
-        market = self.class.safe_value(self.markets_by_id, marketId, market)
+        market = self.safe_value(self.markets_by_id, marketId, market)
         if market.nil?
           baseId, quoteId = marketId.split('_')
           base = self.common_currency_code(baseId)
@@ -605,8 +605,8 @@ module Ccxt
         symbol = market['symbol']
       end
       cost = nil
-      price = self.class.safe_float(trade, 'price')
-      amount = self.class.safe_float_2(trade, 'qty', 'quantity')
+      price = self.safe_float(trade, 'price')
+      amount = self.safe_float_2(trade, 'qty', 'quantity')
       if amount != nil
         if price != nil
           cost = price * amount
@@ -615,7 +615,7 @@ module Ccxt
       result = {
         'info' => trade,
         'timestamp' => timestamp,
-        'datetime' => self.class.iso8601(timestamp),
+        'datetime' => self.iso8601(timestamp),
         'symbol' => symbol,
         'id' => id,
         'order' => orderId,
@@ -626,9 +626,9 @@ module Ccxt
         'cost' => cost,
         'amount' => amount
       }
-      fee = self.parse_trade_fee(self.class.safe_string(trade, 'fee'))
+      fee = self.parse_trade_fee(self.safe_string(trade, 'fee'))
       if fee != nil
-        additionalFee = self.parse_trade_fee(self.class.safe_string(trade, 'additional_fee'))
+        additionalFee = self.parse_trade_fee(self.safe_string(trade, 'additional_fee'))
         if additionalFee.nil?
           result['fee'] = fee
         else
@@ -657,7 +657,7 @@ module Ccxt
         request['limit'] = limit # max = default = 50
       end
       method = 'tradePostOrderList' + type
-      response = self.send_wrapper(method, self.class.shallow_extend(request, params))
+      response = self.send_wrapper(method, shallow_extend(request, params))
       #
       # fetchOrders, fetchClosedOrders
       #
@@ -705,7 +705,7 @@ module Ccxt
       if response.is_a?(Array)
         orders = response
       else
-        orders = self.class.safe_value(response, 'list', [])
+        orders = self.safe_value(response, 'list', [])
       end
       return self.parse_orders(orders, market, since, limit)
     end
@@ -724,7 +724,7 @@ module Ccxt
 
     def fetch_order(id, symbol = nil, params = {})
       self.load_markets
-      response = self.tradePostOrderDetails(self.class.shallow_extend({
+      response = self.tradePostOrderDetails(shallow_extend({
         'order_id' => id
       }, params))
       return self.parse_order(response)
@@ -739,7 +739,7 @@ module Ccxt
       request = {
         'order_id' => id
       }
-      response = self.tradePostOrderTradeDetail(self.class.shallow_extend(request, params))
+      response = self.tradePostOrderTradeDetail(shallow_extend(request, params))
       #
       #     [{         hex_id =>  null,
       #                 symbol => "COSS_ETH",
@@ -766,7 +766,7 @@ module Ccxt
         'PARTIAL_FILL' => 'open',
         'CANCELLING' => 'open'
       }
-      return self.class.safe_string(statuses, status.upcase, status)
+      return self.safe_string(statuses, status.upcase, status)
     end
 
     def parse_order(order, market = nil)
@@ -787,9 +787,9 @@ module Ccxt
       #                  avg => "0.00065900",
       #                total => "0.00659000 ETH"                        }
       #
-      id = self.class.safe_string(order, 'order_id')
+      id = self.safe_string(order, 'order_id')
       symbol = nil
-      marketId = self.class.safe_string(order, 'order_symbol')
+      marketId = self.safe_string(order, 'order_symbol')
       if marketId.nil?
         if market != nil
           symbol = market['symbol']
@@ -798,7 +798,7 @@ module Ccxt
         # a minor workaround for lowercase eth-btc symbols
         marketId = marketId.upcase
         marketId = marketId.gsub('-', '_')
-        market = self.class.safe_value(self.markets_by_id, marketId, market)
+        market = self.safe_value(self.markets_by_id, marketId, market)
         if market.nil?
           baseId, quoteId = marketId.split('_')
           base = self.common_currency_code(baseId)
@@ -808,31 +808,31 @@ module Ccxt
           symbol = market['symbol']
         end
       end
-      timestamp = self.class.safe_integer(order, 'createTime')
-      status = self.parse_order_status(self.class.safe_string(order, 'status'))
-      price = self.class.safe_float(order, 'order_price')
-      filled = self.class.safe_float(order, 'executed')
-      type = self.class.safe_string(order, 'type')
-      amount = self.class.safe_float(order, 'order_size')
+      timestamp = self.safe_integer(order, 'createTime')
+      status = self.parse_order_status(self.safe_string(order, 'status'))
+      price = self.safe_float(order, 'order_price')
+      filled = self.safe_float(order, 'executed')
+      type = self.safe_string(order, 'type')
+      amount = self.safe_float(order, 'order_size')
       remaining = nil
       if amount != nil
         if filled != nil
           remaining = amount - filled
         end
       end
-      average = self.class.safe_float(order, 'avg')
-      side = self.class.safe_string(order, 'order_side')
+      average = self.safe_float(order, 'avg')
+      side = self.safe_string(order, 'order_side')
       if side != nil
         side = side.downcase
       end
-      cost = self.class.safe_float(order, 'total')
+      cost = self.safe_float(order, 'total')
       fee = nil
       trades = nil
       return {
         'info' => order,
         'id' => id,
         'timestamp' => timestamp,
-        'datetime' => self.class.iso8601(timestamp),
+        'datetime' => self.iso8601(timestamp),
         'lastTradeTimestamp' => nil,
         'symbol' => symbol,
         'type' => type,
@@ -859,7 +859,7 @@ module Ccxt
         'order_side' => side.upcase,
         'type' => type
       }
-      response = self.tradePostOrderAdd(self.class.shallow_extend(request, params))
+      response = self.tradePostOrderAdd(shallow_extend(request, params))
       #
       #     {
       #         "order_id" => "9e5ae4dd-3369-401d-81f5-dff985e1c4ty",
@@ -890,7 +890,7 @@ module Ccxt
         'order_id' => id,
         'order_symbol' => market['id']
       }
-      response = self.tradeDeleteOrderCancel(self.class.shallow_extend(request, params))
+      response = self.tradeDeleteOrderCancel(shallow_extend(request, params))
       #
       #     { order_symbol => "COSS_ETH",
       #           order_id => "30f2d698-39a0-4b9f-a3a6-a179542373bd",
@@ -903,7 +903,7 @@ module Ccxt
     end
 
     def nonce
-      return self.class.milliseconds
+      return self.milliseconds
     end
 
     def sign(path, api = 'public', method = 'GET', params = {}, headers = nil, body = nil)
@@ -911,25 +911,25 @@ module Ccxt
       if api == 'trade'
         self.check_required_credentials
         timestamp = self.nonce
-        query = self.class.shallow_extend({
+        query = shallow_extend({
           'timestamp' => timestamp, # required(int64)
           # 'recvWindow' => 10000, # optional(int32)
         }, params)
         request = nil
         if method == 'GET'
-          request = self.class.urlencode(query)
+          request = self.urlencode(query)
           url += '?' + request
         else
-          request = self.class.json(query)
+          request = self.json(query)
           body = request
         end
         headers = {
-          'Signature' => self.class.hmac(self.class.encode(request), self.class.encode(self.secret)),
+          'Signature' => self.hmac(self.encode(request), self.encode(self.secret)),
           'Authorization' => self.apiKey
         }
       else
         if params
-          url += '?' + self.class.urlencode(params)
+          url += '?' + self.urlencode(params)
         end
       end
       return { 'url' => url, 'method' => method, 'body' => body, 'headers' => headers }
