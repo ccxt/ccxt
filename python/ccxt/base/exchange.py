@@ -958,7 +958,7 @@ class Exchange(object):
         return Exchange.decode(base64.urlsafe_b64encode(s)).replace('=', '')
 
     @staticmethod
-    def jwt(request, secret, alg='RS256'):
+    def jwt(request, secret, alg='HS256'):
         algos = {
             "RS256": hashes.SHA256(),
             "RS384": hashes.SHA384(),
