@@ -672,14 +672,16 @@ module.exports = class gdax extends Exchange {
     parseTransactionStatus (transaction) {
         if ('canceled_at' in transaction && transaction['canceled_at']) {
             return 'canceled';
-        } else if ('completed_at' in transaction && transaction['completed_at']) {
+        }
+
+        const processed = ('processed_at' in transaction && transaction['processed_at']);
+        const completed = ('completed_at' in transaction && transaction['completed_at']);
+        if (processed && completed) {
             return 'ok';
-        } else if ((('canceled_at' in transaction) && !transaction['canceled_at']) && (('completed_at' in transaction) && !transaction['completed_at']) && (('processed_at' in transaction) && !transaction['processed_at'])) {
-            return 'pending';
-        } else if ('processed_at' in transaction && transaction['processed_at']) {
-            return 'pending';
-        } else {
+        } else if (processed && !completed) {
             return 'failed';
+        } else {
+            return 'pending';
         }
     }
 
