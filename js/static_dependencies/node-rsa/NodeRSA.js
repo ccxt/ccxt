@@ -7,8 +7,6 @@
 
 var constants = require('constants');
 var rsa = require('./libs/rsa.js');
-var crypt = require('crypto');
-var ber = require('asn1').Ber;
 var _ = require('./utils')._;
 var utils = require('./utils');
 var schemes = require('./schemes/schemes.js');
@@ -183,9 +181,9 @@ module.exports = (function () {
         if (!formats.detectAndImport(this.keyPair, keyData, format) && format === undefined) {
             throw Error("Key format must be specified");
         }
-        
+
         this.$cache = {};
-        
+
         return this;
     };
 

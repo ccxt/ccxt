@@ -1,4 +1,4 @@
-var ber = require('asn1').Ber;
+var ber = require('../asn1/index').Ber;
 var _ = require('../utils')._;
 var utils = require('../utils');
 
