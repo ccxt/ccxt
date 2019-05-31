@@ -254,6 +254,7 @@ And structurally:
 - avoid operators clutter (**don't do this**: `a && b || c ? d + 80 : e ** f`)
 - do not use `.includes()`, use `.indexOf()` instead!
 - never use `.toString()` on floats: `Number (0.00000001).toString () === '1e-8'`
+- do not use closures, `a.filter (x => (x === 'foobar'))` is not acceptable in derived classes
 - do not use the `in` operator to check if a value is in a non-associative array (list)
 - don't add custom currency or symbol/pair conversions and formatting, copy from existing code instead
 - **don't access non-existent keys, `array['key'] || {}` won't work in other languages!**
@@ -336,7 +337,11 @@ if (params['foo'] !== undefined) {
 const foo = this.safeValue (params, 'foo');
 if (foo !== undefined) {
 }
-// OR
+```
+
+Or:
+
+```JavaScript
 if ('foo' in params) {
 }
 ```
@@ -347,7 +352,9 @@ In JavaScript the common syntax to get a length of a string or an array is to re
 
 ```JavaScript
 someArray.length
+
 // or
+
 someString.length
 ```
 
@@ -355,7 +362,9 @@ And it works for both strings and arrays. In Python this is done in a similar wa
 
 ```Python
 len(some_array)
+
 # or
+
 len(some_string)
 ```
 
@@ -365,7 +374,9 @@ However, with PHP this is different, so the syntax for string lengths and array 
 
 ```PHP
 count(some_array);
+
 // or
+
 strlen(some_string); // or mb_strlen
 ```
 
@@ -383,13 +394,72 @@ That `.length;` line ending does the trick. The only case when the array `.lengt
 
 #### Adding Numbers And Concatenating Strings
 
-In JS the arithmetic addition `+` operator handles both strings and numbers. So, it can concatenate strings with `+` and can sum up numbers with `+` as well. The same is true with Python. With PHP this is different, so it has different operators for string concatenation (the "dot" operator `.`) and for arithmetic addition (the "plus" operator `+`). Once again, because the transpiler does no code introspection it cannot tell if you're adding up variables or strings in JS. This works fine until you want to transpile this to other languages, be it PHP or whatever other language it is. In order to help the transpiler we have to use `this.sum` for arithmetic additions.
+In JS the arithmetic addition `+` operator handles both strings and numbers. So, it can concatenate strings with `+` and can sum up numbers with `+` as well. The same is true with Python. With PHP this is different, so it has different operators for string concatenation (the "dot" operator `.`) and for arithmetic addition (the "plus" operator `+`). Once again, because the transpiler does no code introspection it cannot tell if you're adding up numbers or strings in JS. This works fine until you want to transpile this to other languages, be it PHP or whatever other language it is. In order to help the transpiler we have to use `this.sum` for arithmetic additions.
 
-The rule of thumb is: **`+` is for string concatenation only (!)** and **`this.sum (a, b, c, ...)` is for arithmetic additions**.
+The rule of thumb is: **`+` is for string concatenation only (!)** and **`this.sum (a, b, c, ...)` is for arithmetic additions**. The same logic applies to operator `+=` vs operator `.=` – `this.sum()` has to be used in those cases as well.
 
 #### Formatting Decimal Numbers To Precision
 
 The `.toFixed ()` method has [known rounding bugs](https://www.google.com/search?q=toFixed+bug) in JavaScript, and so do the other rounding methods in the other languages as well. In order to work with number formatting consistently, we need to use the [`decimalToPrecision` method as described in the Manual](https://github.com/ccxt/ccxt/wiki/Manual#methods-for-formatting-decimals).
+
+#### Using ternary conditionals
+
+Do not use heavy ternary (`?:`) conditionals, **always use brackets in ternary operators!**
+
+Despite that there is operator precedence in the programming languages themselves, the transpiler is regex-based and it does no code introspection, therefore it treats everything as plaintext.
+
+The brackets are needed to hint the transpiler which part of the conditional is which. In the absence of brackets it's hard to understand the line and the intent of the developer.
+
+Here are some examples of a badly-designed code that will break the transpiler:
+
+```JavaScript
+// this is an example of bad codestyle that will likely break the transpiler
+const foo = {
+   'bar': 'a' + qux === 'baz' ? this.a () : this.b () + 'b',
+};
+```
+
+```JavaScript
+// this confuses the transpiler and a human developer as well
+const foo = 'bar' + baz + qux ? 'a' : '' + this.c ();
+```
+
+Adding surrounding brackets to corresponding parts would be a more or less correct way to resolve it.
+
+```JavaScript
+const foo = {
+   'bar': (qux === 'baz') ? this.a () : this.b (), // much better now
+};
+```
+
+The universally-working way to solve it is to just break the complex line into a few simpler lines, even at a cost of adding extra lines and conditionals:
+
+```JavaScript
+// before:
+// const foo = {
+//    'bar': 'a' + qux === 'baz' ? this.a () : this.b () + 'b',
+// };
+// ----------------------------------------------------------------------------
+// after:
+const bar = (qux === 'baz') ? this.a () : this.b ();
+const foo = {
+   'bar': 'a' + bar + 'b',
+};
+```
+
+Or even:
+
+```JavaScript
+// before:
+// const foo = 'bar' + baz + qux ? 'a' : '' + this.c ();
+// ----------------------------------------------------------------------------
+// after:
+let foo = 'bar' + baz;
+if (qux) {
+   foo += 'a';
+};
+foo += this.c ();
+```
 
 ---
 

@@ -200,6 +200,11 @@ declare module 'ccxt' {
         cost: number;
     }
 
+    export interface WithdrawalResponse {
+        info: any;
+        id: string;
+    }
+
     // timestamp, open, high, low, close, volume
     export type OHLCV = [number, number, number, number, number, number];
 
@@ -313,7 +318,7 @@ declare module 'ccxt' {
         cancelOrder (id: string, symbol?: string, params?: {}): Promise<any>;
         createDepositAddress (currency: string, params?: {}): Promise<any>;
         fetchDepositAddress (currency: string, params?: {}): Promise<any>;
-        withdraw (currency: string, amount: number, address: string, tag?: string, params?: {}): Promise<any>;
+        withdraw (currency: string, amount: number, address: string, tag?: string, params?: {}): Promise<WithdrawalResponse>;
         request (path: string, api?: string, method?: string, params?: any, headers?: any, body?: any): Promise<any>;
         YmdHMS (timestamp: string, infix: string) : string;
         iso8601 (timestamp: string): string;
@@ -391,9 +396,9 @@ declare module 'ccxt' {
     export class coss extends Exchange {}
     export class crex24 extends Exchange {}
     export class crypton extends Exchange {}
-    export class cryptopia extends Exchange {}
     export class deribit extends Exchange {}
     export class dsx extends liqui {}
+    export class dx extends Exchange {}
     export class ethfinex extends bitfinex {}
     export class exmo extends Exchange {}
     export class exx extends Exchange {}
@@ -437,6 +442,7 @@ declare module 'ccxt' {
     export class okcoincny extends okcoinusd {}
     export class okcoinusd extends Exchange {}
     export class okex extends okcoinusd {}
+    export class okex3 extends Exchange {}
     export class paymium extends Exchange {}
     export class poloniex extends Exchange {}
     export class quadrigacx extends Exchange {}

@@ -23,6 +23,7 @@ class cex extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
+                'fetchOrders' => true,
             ),
             'timeframes' => array (
                 '1m' => '1m',
@@ -119,8 +120,226 @@ class cex extends Exchange {
             'options' => array (
                 'fetchOHLCVWarning' => true,
                 'createMarketBuyOrderRequiresPrice' => true,
+                'order' => array (
+                    'status' => array (
+                        'c' => 'canceled',
+                        'd' => 'closed',
+                        'cd' => 'closed',
+                        'a' => 'open',
+                    ),
+                ),
             ),
         ));
+    }
+
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'limit' => $limit,
+            'pair' => $market['id'],
+            'dateFrom' => $since,
+        );
+        $response = $this->privatePostArchivedOrdersPair (array_merge ($request, $params));
+        $results = array ();
+        for ($i = 0; $i < count ($response); $i++) {
+            // cancelled (unfilled):
+            //    { id => '4005785516',
+            //     $type => 'sell',
+            //     $time => '2017-07-18T19:08:34.223Z',
+            //     $lastTxTime => '2017-07-18T19:08:34.396Z',
+            //     lastTx => '4005785522',
+            //     pos => null,
+            //     $status => 'c',
+            //     symbol1 => 'ETH',
+            //     symbol2 => 'GBP',
+            //     $amount => '0.20000000',
+            //     $price => '200.5625',
+            //     remains => '0.20000000',
+            //     'a:ETH:cds' => '0.20000000',
+            //     tradingFeeMaker => '0',
+            //     tradingFeeTaker => '0.16',
+            //     tradingFeeUserVolumeAmount => '10155061217',
+            //     orderId => '4005785516' }
+            // --
+            // cancelled (partially $filled buy):
+            //    { id => '4084911657',
+            //     $type => 'buy',
+            //     $time => '2017-08-05T03:18:39.596Z',
+            //     $lastTxTime => '2019-03-19T17:37:46.404Z',
+            //     lastTx => '8459265833',
+            //     pos => null,
+            //     $status => 'cd',
+            //     symbol1 => 'BTC',
+            //     symbol2 => 'GBP',
+            //     $amount => '0.05000000',
+            //     $price => '2241.4692',
+            //     tfacf => '1',
+            //     remains => '0.03910535',
+            //     'tfa:GBP' => '0.04',
+            //     'tta:GBP' => '24.39',
+            //     'a:BTC:cds' => '0.01089465',
+            //     'a:GBP:cds' => '112.26',
+            //     'f:GBP:cds' => '0.04',
+            //     tradingFeeMaker => '0',
+            //     tradingFeeTaker => '0.16',
+            //     tradingFeeUserVolumeAmount => '13336396963',
+            //     orderId => '4084911657' }
+            // --
+            // cancelled (partially $filled sell):
+            //    { id => '4426728375',
+            //     $type => 'sell',
+            //     $time => '2017-09-22T00:24:20.126Z',
+            //     $lastTxTime => '2017-09-22T00:24:30.476Z',
+            //     lastTx => '4426729543',
+            //     pos => null,
+            //     $status => 'cd',
+            //     symbol1 => 'BCH',
+            //     symbol2 => 'BTC',
+            //     $amount => '0.10000000',
+            //     $price => '0.11757182',
+            //     tfacf => '1',
+            //     remains => '0.09935956',
+            //     'tfa:BTC' => '0.00000014',
+            //     'tta:BTC' => '0.00007537',
+            //     'a:BCH:cds' => '0.10000000',
+            //     'a:BTC:cds' => '0.00007537',
+            //     'f:BTC:cds' => '0.00000014',
+            //     tradingFeeMaker => '0',
+            //     tradingFeeTaker => '0.18',
+            //     tradingFeeUserVolumeAmount => '3466715450',
+            //     orderId => '4426728375' }
+            // --
+            // $filled:
+            //    { id => '5342275378',
+            //     $type => 'sell',
+            //     $time => '2018-01-04T00:28:12.992Z',
+            //     $lastTxTime => '2018-01-04T00:28:12.992Z',
+            //     lastTx => '5342275393',
+            //     pos => null,
+            //     $status => 'd',
+            //     symbol1 => 'BCH',
+            //     symbol2 => 'BTC',
+            //     $amount => '0.10000000',
+            //     kind => 'api',
+            //     $price => '0.17',
+            //     remains => '0.00000000',
+            //     'tfa:BTC' => '0.00003902',
+            //     'tta:BTC' => '0.01699999',
+            //     'a:BCH:cds' => '0.10000000',
+            //     'a:BTC:cds' => '0.01699999',
+            //     'f:BTC:cds' => '0.00003902',
+            //     tradingFeeMaker => '0.15',
+            //     tradingFeeTaker => '0.23',
+            //     tradingFeeUserVolumeAmount => '1525951128',
+            //     orderId => '5342275378' }
+            // --
+            // $market order (buy):
+            //    { "id" => "6281946200",
+            //     "pos" => null,
+            //     "$time" => "2018-05-23T11:55:43.467Z",
+            //     "$type" => "buy",
+            //     "$amount" => "0.00000000",
+            //     "lastTx" => "6281946210",
+            //     "$status" => "d",
+            //     "amount2" => "20.00",
+            //     "orderId" => "6281946200",
+            //     "remains" => "0.00000000",
+            //     "symbol1" => "ETH",
+            //     "symbol2" => "EUR",
+            //     "$tfa:EUR" => "0.05",
+            //     "$tta:EUR" => "19.94",
+            //     "a:ETH:cds" => "0.03764100",
+            //     "a:EUR:cds" => "20.00",
+            //     "f:EUR:cds" => "0.05",
+            //     "$lastTxTime" => "2018-05-23T11:55:43.467Z",
+            //     "tradingFeeTaker" => "0.25",
+            //     "tradingFeeUserVolumeAmount" => "55998097" }
+            // --
+            // $market order (sell):
+            //   { "id" => "6282200948",
+            //     "pos" => null,
+            //     "$time" => "2018-05-23T12:42:58.315Z",
+            //     "$type" => "sell",
+            //     "$amount" => "-0.05000000",
+            //     "lastTx" => "6282200958",
+            //     "$status" => "d",
+            //     "orderId" => "6282200948",
+            //     "remains" => "0.00000000",
+            //     "symbol1" => "ETH",
+            //     "symbol2" => "EUR",
+            //     "$tfa:EUR" => "0.07",
+            //     "$tta:EUR" => "26.49",
+            //     "a:ETH:cds" => "0.05000000",
+            //     "a:EUR:cds" => "26.49",
+            //     "f:EUR:cds" => "0.07",
+            //     "$lastTxTime" => "2018-05-23T12:42:58.315Z",
+            //     "tradingFeeTaker" => "0.25",
+            //     "tradingFeeUserVolumeAmount" => "56294576" }
+            $item = $response[$i];
+            $status = $this->parse_order_status($this->safe_string($item, 'status'));
+            $baseId = $item['symbol1'];
+            $quoteId = $item['symbol2'];
+            $side = $item['type'];
+            $baseAmount = $this->safe_float($item, 'a:' . $baseId . ':cds');
+            $quoteAmount = $this->safe_float($item, 'a:' . $quoteId . ':cds');
+            $fee = $this->safe_float($item, 'f:' . $quoteId . ':cds');
+            $amount = $this->safe_float($item, 'amount');
+            $price = $this->safe_float($item, 'price');
+            $remaining = $this->safe_float($item, 'remains');
+            $filled = $amount - $remaining;
+            $orderAmount = null;
+            $cost = null;
+            $average = null;
+            $type = null;
+            if (!$price) {
+                $type = 'market';
+                $orderAmount = $baseAmount;
+                $cost = $quoteAmount;
+                $average = $orderAmount / $cost;
+            } else {
+                $ta = $this->safe_float($item, 'ta:' . $quoteId, 0);
+                $tta = $this->safe_float($item, 'tta:' . $quoteId, 0);
+                $fa = $this->safe_float($item, 'fa:' . $quoteId, 0);
+                $tfa = $this->safe_float($item, 'tfa:' . $quoteId, 0);
+                if ($side === 'sell')
+                    $cost = $ta . $tta . ($fa . $tfa);
+                else
+                    $cost = $ta . $tta - ($fa . $tfa);
+                $type = 'limit';
+                $orderAmount = $amount;
+                $average = $cost / $filled;
+            }
+            $time = $this->safe_string($item, 'time');
+            $lastTxTime = $this->safe_string($item, 'lastTxTime');
+            $timestamp = $this->parse8601 ($time);
+            $results[] = array (
+                'id' => $item['id'],
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601 ($timestamp),
+                'lastUpdated' => $this->parse8601 ($lastTxTime),
+                'status' => $status,
+                'symbol' => $this->find_symbol($baseId . '/' . $quoteId),
+                'side' => $side,
+                'price' => $price,
+                'amount' => $orderAmount,
+                'average' => $average,
+                'type' => $type,
+                'filled' => $filled,
+                'cost' => $cost,
+                'remaining' => $remaining,
+                'fee' => array (
+                    'cost' => $fee,
+                    'currency' => $this->currencyId ($quoteId),
+                ),
+                'info' => $item,
+            );
+        }
+        return $results;
+    }
+
+    public function parse_order_status ($status) {
+        return $this->safe_string($this->options['order']['status'], $status, $status);
     }
 
     public function fetch_markets ($params = array ()) {
@@ -359,16 +578,6 @@ class cex extends Exchange {
         return $this->privatePostCancelOrder (array ( 'id' => $id ));
     }
 
-    public function parse_order_status ($status) {
-        $statuses = array (
-            'a' => 'open',
-            'cd' => 'canceled',
-            'c' => 'canceled',
-            'd' => 'closed',
-        );
-        return $this->safe_value($statuses, $status, $status);
-    }
-
     public function parse_order ($order, $market = null) {
         // Depending on the call, 'time' can be a unix int, unix string or ISO string
         // Yes, really
@@ -440,21 +649,158 @@ class cex extends Exchange {
         }
         if (!$cost)
             $cost = $price * $filled;
+        $side = $order['type'];
+        $trades = null;
+        $orderId = $order['id'];
+        if (is_array ($order) && array_key_exists ('vtx', $order)) {
+            $trades = array ();
+            for ($i = 0; $i < count ($order['vtx']); $i++) {
+                $item = $order['vtx'][$i];
+                $tradeSide = $this->safe_string($item, 'type');
+                if ($item['type'] === 'cancel') {
+                    // looks like this might represent the cancelled part of an $order
+                    //   { id => '4426729543',
+                    //     type => 'cancel',
+                    //     time => '2017-09-22T00:24:30.476Z',
+                    //     user => 'up106404164',
+                    //     c => 'user:up106404164:a:BCH',
+                    //     d => 'order:4426728375:a:BCH',
+                    //     a => '0.09935956',
+                    //     $amount => '0.09935956',
+                    //     balance => '0.42580261',
+                    //     $symbol => 'BCH',
+                    //     $order => '4426728375',
+                    //     buy => null,
+                    //     sell => null,
+                    //     pair => null,
+                    //     pos => null,
+                    //     cs => '0.42580261',
+                    //     ds => 0 }
+                    continue;
+                }
+                if (!$item['price']) {
+                    // this represents the $order
+                    //   {
+                    //     "a" => "0.47000000",
+                    //     "c" => "user:up106404164:a:EUR",
+                    //     "d" => "$order:6065499239:a:EUR",
+                    //     "cs" => "1432.93",
+                    //     "ds" => "476.72",
+                    //     "id" => "6065499249",
+                    //     "buy" => null,
+                    //     "pos" => null,
+                    //     "pair" => null,
+                    //     "sell" => null,
+                    //     "time" => "2018-04-22T13:07:22.152Z",
+                    //     "type" => "buy",
+                    //     "user" => "up106404164",
+                    //     "$order" => "6065499239",
+                    //     "$amount" => "-715.97000000",
+                    //     "$symbol" => "EUR",
+                    //     "balance" => "1432.93000000" }
+                    continue;
+                }
+                // if ($item['type'] === 'costsNothing')
+                //     var_dump ($item);
+                // todo => deal with these
+                if ($item['type'] === 'costsNothing')
+                    continue;
+                // --
+                // if ($side !== $tradeSide)
+                //     throw Error (json_encode ($order, null, 2));
+                // if ($orderId !== $item['order'])
+                //     throw Error (json_encode ($order, null, 2));
+                // --
+                // partial buy trade
+                //   {
+                //     "a" => "0.01589885",
+                //     "c" => "user:up106404164:a:BTC",
+                //     "d" => "$order:6065499239:a:BTC",
+                //     "cs" => "0.36300000",
+                //     "ds" => 0,
+                //     "id" => "6067991213",
+                //     "buy" => "6065499239",
+                //     "pos" => null,
+                //     "pair" => null,
+                //     "sell" => "6067991206",
+                //     "time" => "2018-04-22T23:09:11.773Z",
+                //     "type" => "buy",
+                //     "user" => "up106404164",
+                //     "$order" => "6065499239",
+                //     "$price" => 7146.5,
+                //     "$amount" => "0.01589885",
+                //     "$symbol" => "BTC",
+                //     "balance" => "0.36300000",
+                //     "symbol2" => "EUR",
+                //     "fee_amount" => "0.19" }
+                // --
+                // trade with zero $amount, but non-zero $fee
+                //   {
+                //     "a" => "0.00000000",
+                //     "c" => "user:up106404164:a:EUR",
+                //     "d" => "$order:5840654423:a:EUR",
+                //     "cs" => 559744,
+                //     "ds" => 0,
+                //     "id" => "5840654429",
+                //     "buy" => "5807238573",
+                //     "pos" => null,
+                //     "pair" => null,
+                //     "sell" => "5840654423",
+                //     "time" => "2018-03-15T03:20:14.010Z",
+                //     "type" => "sell",
+                //     "user" => "up106404164",
+                //     "$order" => "5840654423",
+                //     "$price" => 730,
+                //     "$amount" => "0.00000000",
+                //     "$symbol" => "EUR",
+                //     "balance" => "5597.44000000",
+                //     "symbol2" => "BCH",
+                //     "fee_amount" => "0.01" }
+                $tradeTime = $this->safe_string($item, 'time');
+                $tradeTimestamp = $this->parse8601 ($tradeTime);
+                $tradeAmount = $this->safe_float($item, 'amount');
+                $tradePrice = $this->safe_float($item, 'price');
+                $absTradeAmount = $tradeAmount < 0 ? -$tradeAmount : $tradeAmount;
+                $tradeCost = null;
+                if ($tradeSide === 'sell') {
+                    $tradeCost = $absTradeAmount;
+                    $absTradeAmount = $tradeCost / $tradePrice;
+                } else {
+                    $tradeCost = $absTradeAmount * $tradePrice;
+                }
+                $trades[] = array (
+                    'id' => $this->safe_string($item, 'id'),
+                    'timestamp' => $tradeTimestamp,
+                    'datetime' => $this->iso8601 ($tradeTimestamp),
+                    'order' => $orderId,
+                    'symbol' => $symbol,
+                    'price' => $tradePrice,
+                    'amount' => $absTradeAmount,
+                    'cost' => $tradeCost,
+                    'side' => $tradeSide,
+                    'fee' => array (
+                        'cost' => $this->safe_float($item, 'fee_amount'),
+                        'currency' => $market['quote'],
+                    ),
+                    'info' => $item,
+                );
+            }
+        }
         return array (
-            'id' => $order['id'],
+            'id' => $orderId,
             'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
             'type' => null,
-            'side' => $order['type'],
+            'side' => $side,
             'price' => $price,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
-            'trades' => null,
+            'trades' => $trades,
             'fee' => $fee,
             'info' => $order,
         );
@@ -494,8 +840,8 @@ class cex extends Exchange {
         $request = array (
             'id' => (string) $id,
         );
-        $response = $this->privatePostGetOrder (array_merge ($request, $params));
-        return $this->parse_order($response);
+        $response = $this->privatePostGetOrderTx (array_merge ($request, $params));
+        return $this->parse_order($response['data']);
     }
 
     public function nonce () {
@@ -513,13 +859,13 @@ class cex extends Exchange {
             $nonce = (string) $this->nonce ();
             $auth = $nonce . $this->uid . $this->apiKey;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
-            $body = $this->urlencode (array_merge (array (
+            $body = $this->json (array_merge (array (
                 'key' => $this->apiKey,
                 'signature' => strtoupper ($signature),
                 'nonce' => $nonce,
             ), $query));
             $headers = array (
-                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Content-Type' => 'application/json',
             );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

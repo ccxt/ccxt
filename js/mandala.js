@@ -888,7 +888,7 @@ module.exports = class mandala extends Exchange {
         await this.loadMarkets ();
         const side = this.safeString (params, 'side');
         if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires an order side extra parameter');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires an order `side` extra parameter');
         }
         params = this.omit (params, 'side');
         const request = {
@@ -914,15 +914,15 @@ module.exports = class mandala extends Exchange {
     async cancelAllOrders (symbols = undefined, params = {}) {
         const side = this.safeString (params, 'side');
         if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires an order side extra parameter');
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires an order `side` extra parameter');
         }
         params = this.omit (params, 'side');
         if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbols argument (a list containing one symbol)');
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a `symbols` argument (a list containing one symbol)');
         } else {
             const numSymbols = symbols.length;
             if (numSymbols !== 1) {
-                throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbols argument (a list containing one symbol)');
+                throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a `symbols` argument (a list containing one symbol)');
             }
         }
         const symbol = symbols[0];
@@ -1049,7 +1049,7 @@ module.exports = class mandala extends Exchange {
         await this.loadMarkets ();
         const side = this.safeString (params, 'side');
         if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires an order side extra parameter');
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires an order `side` extra parameter');
         }
         params = this.omit (params, 'side');
         const request = {
@@ -1094,7 +1094,7 @@ module.exports = class mandala extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
-        return this.parseOrders (data, market, since, limit);
+        return this.parseOrders (data, market, since, limit, { 'side': side });
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1146,7 +1146,7 @@ module.exports = class mandala extends Exchange {
         await this.loadMarkets ();
         const side = this.safeString (params, 'side');
         if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrderStatus() requires an order side extra parameter');
+            throw new ArgumentsRequired (this.id + ' fetchOrderStatus() requires an order `side` extra parameter');
         }
         params = this.omit (params, 'side');
         const request = {
@@ -1572,12 +1572,12 @@ module.exports = class mandala extends Exchange {
             if (api === 'api') {
                 const token = this.safeString (this.options, 'accessToken');
                 if (token === undefined) {
-                    throw new AuthenticationError (this.id + ' ' + path + ' endpoint requires an accessToken option or a prior call to signIn() method');
+                    throw new AuthenticationError (this.id + ' ' + path + ' endpoint requires an `accessToken` option or a prior call to signIn() method');
                 }
                 const expires = this.safeInteger (this.options, 'expires');
                 if (expires !== undefined) {
                     if (this.milliseconds () >= expires) {
-                        throw new AuthenticationError (this.id + ' accessToken expired, supply a new accessToken or call signIn() method');
+                        throw new AuthenticationError (this.id + ' accessToken expired, supply a new `accessToken` or call signIn() method');
                     }
                 }
                 const tokenType = this.safeString (this.options, 'tokenType', 'bearer');

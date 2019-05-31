@@ -23,10 +23,10 @@ before_install:
 - python3 --version
 - python2 --version
 - pip3 --version
-- sudo -H pip3 install --upgrade setuptools
-- sudo -H pip3 install --upgrade pip wheel requests pyopenssl
-- sudo -H pip3 install --ignore-installed six
-- sudo -H pip3 install --upgrade tox twine
+- sudo -H pip install --upgrade setuptools
+- sudo -H pip install --upgrade pip wheel requests pyopenssl
+- sudo -H pip install --ignore-installed six
+- sudo -H pip install --upgrade tox twine
 - pip install --upgrade setuptools
 - pip install --upgrade web3 aiohttp requests pyopenssl
 - pip2 install requests[security]
@@ -40,7 +40,7 @@ script:
 - cd ..
 - npm run test-base
 - set +e # (we deactivate set -e here, to prevent sudden log truncation in Travis, as it was suggested by the support team)
-- node run-tests --js --python2 5; export TESTS_FAILED=$?
+- node run-tests --js --python 5; export TESTS_FAILED=$?
 - set -e # activate it again!
 - if [ "$TESTS_FAILED" -ne 0 ]; then exit 1; fi
 # - export TWINE_REPOSITORY_URL=https://pypi.python.org/pypi

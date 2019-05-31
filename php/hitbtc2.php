@@ -909,7 +909,7 @@ class hitbtc2 extends hitbtc {
         //         updatedAt => '2018-06-07T00:45:36.447Z',
         //         hash => '0x973e5683dfdf80a1fb1e0b96e19085b6489221d2ddf864daa46903c5ec283a0f',
         //         $address => '0xC5a59b21948C1d230c8C54f05590000Eb3e1252c',
-        //         fee => '0.00958',
+        //         $fee => '0.00958',
         //     ),
         //     array (
         //         $id => 'e6c63331-467e-4922-9edc-019e75d20ba3',
@@ -965,6 +965,14 @@ class hitbtc2 extends hitbtc {
         }
         $address = $this->safe_string($transaction, 'address');
         $txid = $this->safe_string($transaction, 'hash');
+        $fee = null;
+        $feeCost = $this->safe_float($transaction, 'fee');
+        if ($feeCost !== null) {
+            $fee = array (
+                'cost' => $feeCost,
+                'currency' => $code,
+            );
+        }
         return array (
             'info' => $transaction,
             'id' => $id,
@@ -978,7 +986,7 @@ class hitbtc2 extends hitbtc {
             'currency' => $code,
             'status' => $status,
             'updated' => $updated,
-            'fee' => null,
+            'fee' => $fee,
         );
     }
 
@@ -1143,24 +1151,18 @@ class hitbtc2 extends hitbtc {
         if ($trades !== null) {
             $trades = $this->parse_trades($trades, $market);
             $feeCost = null;
-            $sumOfPrices = null;
             $numTrades = is_array ($trades) ? count ($trades) : 0;
+            $tradesCost = 0;
             for ($i = 0; $i < $numTrades; $i++) {
                 if ($feeCost === null) {
                     $feeCost = 0;
                 }
-                if ($sumOfPrices === null) {
-                    $sumOfPrices = 0;
-                }
-                if ($cost === null) {
-                    $cost = 0;
-                }
-                $cost .= $trades[$i]['cost'];
+                $tradesCost .= $trades[$i]['cost'];
                 $feeCost .= $trades[$i]['fee']['cost'];
-                $sumOfPrices .= $trades[$i]['price'];
             }
-            if (($sumOfPrices !== null) && ($numTrades > 0)) {
-                $average = $sumOfPrices / $numTrades;
+            $cost = $tradesCost;
+            if (($filled !== null) && ($filled > 0)) {
+                $average = $cost / $filled;
                 if ($type === 'market') {
                     if ($price === null) {
                         $price = $average;

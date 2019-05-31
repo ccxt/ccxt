@@ -234,7 +234,7 @@ class coinex (Exchange):
             limit = 20  # default
         request = {
             'market': self.market_id(symbol),
-            'merge': '0.00000001',
+            'merge': '0.0000000001',
             'limit': str(limit),
         }
         response = await self.publicGetMarketDepth(self.extend(request, params))

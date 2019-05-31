@@ -416,12 +416,12 @@ class mercado extends Exchange {
         );
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv ($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
             'precision' => $this->timeframes[$timeframe],
-            'coin' => strtolower ($market->id),
+            'coin' => strtolower ($market['id']),
         );
         if ($limit !== null && $since !== null) {
             $request['from'] = intval ($since / 1000);

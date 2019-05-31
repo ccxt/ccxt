@@ -964,6 +964,14 @@ module.exports = class hitbtc2 extends hitbtc {
         }
         const address = this.safeString (transaction, 'address');
         const txid = this.safeString (transaction, 'hash');
+        let fee = undefined;
+        const feeCost = this.safeFloat (transaction, 'fee');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            };
+        }
         return {
             'info': transaction,
             'id': id,
@@ -977,7 +985,7 @@ module.exports = class hitbtc2 extends hitbtc {
             'currency': code,
             'status': status,
             'updated': updated,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
@@ -1142,24 +1150,18 @@ module.exports = class hitbtc2 extends hitbtc {
         if (trades !== undefined) {
             trades = this.parseTrades (trades, market);
             let feeCost = undefined;
-            let sumOfPrices = undefined;
             let numTrades = trades.length;
+            let tradesCost = 0;
             for (let i = 0; i < numTrades; i++) {
                 if (feeCost === undefined) {
                     feeCost = 0;
                 }
-                if (sumOfPrices === undefined) {
-                    sumOfPrices = 0;
-                }
-                if (cost === undefined) {
-                    cost = 0;
-                }
-                cost += trades[i]['cost'];
+                tradesCost += trades[i]['cost'];
                 feeCost += trades[i]['fee']['cost'];
-                sumOfPrices += trades[i]['price'];
             }
-            if ((sumOfPrices !== undefined) && (numTrades > 0)) {
-                average = sumOfPrices / numTrades;
+            cost = tradesCost;
+            if ((filled !== undefined) && (filled > 0)) {
+                average = cost / filled;
                 if (type === 'market') {
                     if (price === undefined) {
                         price = average;

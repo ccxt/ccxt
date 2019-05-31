@@ -39,7 +39,7 @@ class gateio extends Exchange {
                 '5m' => '300',
                 '10m' => '600',
                 '15m' => '900',
-                '30m' => '1200',
+                '30m' => '1800',
                 '1h' => '3600',
                 '2h' => '7200',
                 '4h' => '14400',
@@ -328,8 +328,8 @@ class gateio extends Exchange {
             'change' => $change,
             'percentage' => $percentage,
             'average' => $average,
-            'baseVolume' => $this->safe_float($ticker, 'quoteVolume'),
-            'quoteVolume' => $this->safe_float($ticker, 'baseVolume'),
+            'baseVolume' => $this->safe_float($ticker, 'baseVolume'),
+            'quoteVolume' => $this->safe_float($ticker, 'quoteVolume'),
             'info' => $ticker,
         );
     }
@@ -374,13 +374,17 @@ class gateio extends Exchange {
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
-            $ticker = $tickers[$id];
             $market = null;
             if (is_array ($this->markets) && array_key_exists ($symbol, $this->markets))
                 $market = $this->markets[$symbol];
             if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id))
                 $market = $this->markets_by_id[$id];
-            $result[$symbol] = $this->parse_ticker($ticker, $market);
+            $ticker = $this->parse_ticker($tickers[$id], $market);
+            // https://github.com/ccxt/ccxt/pull/5138
+            $baseVolume = $ticker['baseVolume'];
+            $ticker['baseVolume'] = $ticker['quoteVolume'];
+            $ticker['quoteVolume'] = $baseVolume;
+            $result[$symbol] = $ticker;
         }
         return $result;
     }
@@ -681,7 +685,7 @@ class gateio extends Exchange {
         if ($since !== null) {
             $request['start'] = $since;
         }
-        $response = $this->privatePostDepositswithdrawals (array_merge ($request, $params));
+        $response = $this->privatePostDepositsWithdrawals (array_merge ($request, $params));
         $transactions = null;
         if ($type === null) {
             $deposits = $this->safe_value($response, 'deposits', array ());

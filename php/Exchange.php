@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.494';
+$version = '1.18.594';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.494';
+    const VERSION = '1.18.594';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -148,9 +148,9 @@ class Exchange {
         'coss',
         'crex24',
         'crypton',
-        'cryptopia',
         'deribit',
         'dsx',
+        'dx',
         'ethfinex',
         'exmo',
         'exx',
@@ -194,6 +194,7 @@ class Exchange {
         'okcoincny',
         'okcoinusd',
         'okex',
+        'okex3',
         'paymium',
         'poloniex',
         'quadrigacx',
@@ -470,7 +471,7 @@ class Exchange {
     public static function implode_params ($string, $params) {
         foreach ($params as $key => $value) {
             if (gettype ($value) !== 'array') {
-                $string = implode ($value, mb_split ('{' . $key . '}', $string));
+                $string = implode ($value, mb_split ('{' . preg_quote ($key) . '}', $string));
             }
 
         }
@@ -803,6 +804,8 @@ class Exchange {
         $this->uid           = '';
         $this->privateKey    = '';
         $this->walletAddress = '';
+        $this->token = ''; // reserved for HTTP auth in some cases
+
 
         $this->twofa         = null;
         $this->marketsById   = null;
@@ -826,6 +829,7 @@ class Exchange {
             'twofa' => false, // 2-factor authentication (one-time password key)
             'privateKey' => false,
             'walletAddress' => false,
+            'token' => false, // reserved for HTTP auth in some cases
         );
 
         // API methods metainfo
@@ -1568,7 +1572,6 @@ class Exchange {
         $array = is_array ($transactions) ? array_values ($transactions) : array ();
         $result = array ();
         foreach ($array as $transaction) {
-            var_dump ($params);
             $result[] = array_merge ($this->parse_transaction ($transaction, $currency), $params);
         }
         $result = $this->sort_by ($result, 'timestamp');

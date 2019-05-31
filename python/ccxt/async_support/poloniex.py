@@ -193,6 +193,7 @@ class poloniex (Exchange):
                     'Nonce must be greater': InvalidNonce,
                     'You have already called cancelOrder or moveOrder on self order.': CancelPending,
                     'Amount must be at least': InvalidOrder,  # {"error":"Amount must be at least 0.000001."}
+                    'is either completed or does not exist': InvalidOrder,  # {"error":"Order 587957810791 is either completed or does not exist."}
                 },
             },
         })
@@ -498,7 +499,7 @@ class poloniex (Exchange):
             quote = market['quote']
         side = self.safe_string(trade, 'type')
         fee = None
-        price = self.safe_string(trade, 'rate')
+        price = self.safe_float(trade, 'rate')
         cost = self.safe_float(trade, 'total')
         amount = self.safe_float(trade, 'amount')
         if 'fee' in trade:

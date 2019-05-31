@@ -889,7 +889,7 @@ class mandala extends Exchange {
         $this->load_markets();
         $side = $this->safe_string($params, 'side');
         if ($side === null) {
-            throw new ArgumentsRequired ($this->id . ' cancelOrder() requires an order $side extra parameter');
+            throw new ArgumentsRequired ($this->id . ' cancelOrder() requires an order `$side` extra parameter');
         }
         $params = $this->omit ($params, 'side');
         $request = array (
@@ -915,15 +915,15 @@ class mandala extends Exchange {
     public function cancel_all_orders ($symbols = null, $params = array ()) {
         $side = $this->safe_string($params, 'side');
         if ($side === null) {
-            throw new ArgumentsRequired ($this->id . ' cancelAllOrders() requires an order $side extra parameter');
+            throw new ArgumentsRequired ($this->id . ' cancelAllOrders() requires an order `$side` extra parameter');
         }
         $params = $this->omit ($params, 'side');
         if ($symbols === null) {
-            throw new ArgumentsRequired ($this->id . ' cancelAllOrders() requires a $symbols argument (a list containing one $symbol)');
+            throw new ArgumentsRequired ($this->id . ' cancelAllOrders() requires a `$symbols` argument (a list containing one $symbol)');
         } else {
             $numSymbols = is_array ($symbols) ? count ($symbols) : 0;
             if ($numSymbols !== 1) {
-                throw new ArgumentsRequired ($this->id . ' cancelAllOrders() requires a $symbols argument (a list containing one $symbol)');
+                throw new ArgumentsRequired ($this->id . ' cancelAllOrders() requires a `$symbols` argument (a list containing one $symbol)');
             }
         }
         $symbol = $symbols[0];
@@ -1050,7 +1050,7 @@ class mandala extends Exchange {
         $this->load_markets();
         $side = $this->safe_string($params, 'side');
         if ($side === null) {
-            throw new ArgumentsRequired ($this->id . ' fetchOrders() requires an order $side extra parameter');
+            throw new ArgumentsRequired ($this->id . ' fetchOrders() requires an order `$side` extra parameter');
         }
         $params = $this->omit ($params, 'side');
         $request = array (
@@ -1095,7 +1095,7 @@ class mandala extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array ());
         $market = ($symbol !== null) ? $this->market ($symbol) : null;
-        return $this->parse_orders($data, $market, $since, $limit);
+        return $this->parse_orders($data, $market, $since, $limit, array ( 'side' => $side ));
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1147,7 +1147,7 @@ class mandala extends Exchange {
         $this->load_markets();
         $side = $this->safe_string($params, 'side');
         if ($side === null) {
-            throw new ArgumentsRequired ($this->id . ' fetchOrderStatus() requires an $order $side extra parameter');
+            throw new ArgumentsRequired ($this->id . ' fetchOrderStatus() requires an $order `$side` extra parameter');
         }
         $params = $this->omit ($params, 'side');
         $request = array (
@@ -1573,12 +1573,12 @@ class mandala extends Exchange {
             if ($api === 'api') {
                 $token = $this->safe_string($this->options, 'accessToken');
                 if ($token === null) {
-                    throw new AuthenticationError ($this->id . ' ' . $path . ' endpoint requires an accessToken option or a prior call to signIn() method');
+                    throw new AuthenticationError ($this->id . ' ' . $path . ' endpoint requires an `accessToken` option or a prior call to signIn() method');
                 }
                 $expires = $this->safe_integer($this->options, 'expires');
                 if ($expires !== null) {
                     if ($this->milliseconds () >= $expires) {
-                        throw new AuthenticationError ($this->id . ' accessToken expired, supply a new accessToken or call signIn() method');
+                        throw new AuthenticationError ($this->id . ' accessToken expired, supply a new `accessToken` or call signIn() method');
                     }
                 }
                 $tokenType = $this->safe_string($this->options, 'tokenType', 'bearer');

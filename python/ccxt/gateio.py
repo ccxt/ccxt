@@ -54,7 +54,7 @@ class gateio (Exchange):
                 '5m': '300',
                 '10m': '600',
                 '15m': '900',
-                '30m': '1200',
+                '30m': '1800',
                 '1h': '3600',
                 '2h': '7200',
                 '4h': '14400',
@@ -328,8 +328,8 @@ class gateio (Exchange):
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': self.safe_float(ticker, 'quoteVolume'),
-            'quoteVolume': self.safe_float(ticker, 'baseVolume'),
+            'baseVolume': self.safe_float(ticker, 'baseVolume'),
+            'quoteVolume': self.safe_float(ticker, 'quoteVolume'),
             'info': ticker,
         }
 
@@ -366,13 +366,17 @@ class gateio (Exchange):
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
-            ticker = tickers[id]
             market = None
             if symbol in self.markets:
                 market = self.markets[symbol]
             if id in self.markets_by_id:
                 market = self.markets_by_id[id]
-            result[symbol] = self.parse_ticker(ticker, market)
+            ticker = self.parse_ticker(tickers[id], market)
+            # https://github.com/ccxt/ccxt/pull/5138
+            baseVolume = ticker['baseVolume']
+            ticker['baseVolume'] = ticker['quoteVolume']
+            ticker['quoteVolume'] = baseVolume
+            result[symbol] = ticker
         return result
 
     def fetch_ticker(self, symbol, params={}):
@@ -639,7 +643,7 @@ class gateio (Exchange):
         request = {}
         if since is not None:
             request['start'] = since
-        response = self.privatePostDepositswithdrawals(self.extend(request, params))
+        response = self.privatePostDepositsWithdrawals(self.extend(request, params))
         transactions = None
         if type is None:
             deposits = self.safe_value(response, 'deposits', [])

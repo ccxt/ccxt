@@ -859,7 +859,7 @@ class mandala (Exchange):
         await self.load_markets()
         side = self.safe_string(params, 'side')
         if side is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires an order side extra parameter')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires an order `side` extra parameter')
         params = self.omit(params, 'side')
         request = {
             'orderId': str(id),
@@ -883,14 +883,14 @@ class mandala (Exchange):
     async def cancel_all_orders(self, symbols=None, params={}):
         side = self.safe_string(params, 'side')
         if side is None:
-            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires an order side extra parameter')
+            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires an order `side` extra parameter')
         params = self.omit(params, 'side')
         if symbols is None:
-            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbols argument(a list containing one symbol)')
+            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a `symbols` argument(a list containing one symbol)')
         else:
             numSymbols = len(symbols)
             if numSymbols != 1:
-                raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbols argument(a list containing one symbol)')
+                raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a `symbols` argument(a list containing one symbol)')
         symbol = symbols[0]
         request = {
             'side': side.upper(),
@@ -1004,7 +1004,7 @@ class mandala (Exchange):
         await self.load_markets()
         side = self.safe_string(params, 'side')
         if side is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders() requires an order side extra parameter')
+            raise ArgumentsRequired(self.id + ' fetchOrders() requires an order `side` extra parameter')
         params = self.omit(params, 'side')
         request = {
             'key': self.apiKey,
@@ -1048,7 +1048,7 @@ class mandala (Exchange):
         #
         data = self.safe_value(response, 'data', [])
         market = self.market(symbol) if (symbol is not None) else None
-        return self.parse_orders(data, market, since, limit)
+        return self.parse_orders(data, market, since, limit, {'side': side})
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1097,7 +1097,7 @@ class mandala (Exchange):
         await self.load_markets()
         side = self.safe_string(params, 'side')
         if side is None:
-            raise ArgumentsRequired(self.id + ' fetchOrderStatus() requires an order side extra parameter')
+            raise ArgumentsRequired(self.id + ' fetchOrderStatus() requires an order `side` extra parameter')
         params = self.omit(params, 'side')
         request = {
             'key': self.apiKey,
@@ -1495,11 +1495,11 @@ class mandala (Exchange):
             if api == 'api':
                 token = self.safe_string(self.options, 'accessToken')
                 if token is None:
-                    raise AuthenticationError(self.id + ' ' + path + ' endpoint requires an accessToken option or a prior call to signIn() method')
+                    raise AuthenticationError(self.id + ' ' + path + ' endpoint requires an `accessToken` option or a prior call to signIn() method')
                 expires = self.safe_integer(self.options, 'expires')
                 if expires is not None:
                     if self.milliseconds() >= expires:
-                        raise AuthenticationError(self.id + ' accessToken expired, supply a new accessToken or call signIn() method')
+                        raise AuthenticationError(self.id + ' accessToken expired, supply a new `accessToken` or call signIn() method')
                 tokenType = self.safe_string(self.options, 'tokenType', 'bearer')
                 headers['Authorization'] = tokenType + ' ' + token
             if method == 'POST':

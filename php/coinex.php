@@ -236,7 +236,7 @@ class coinex extends Exchange {
             $limit = 20; // default
         $request = array (
             'market' => $this->market_id($symbol),
-            'merge' => '0.00000001',
+            'merge' => '0.0000000001',
             'limit' => (string) $limit,
         );
         $response = $this->publicGetMarketDepth (array_merge ($request, $params));

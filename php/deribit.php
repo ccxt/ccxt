@@ -34,7 +34,7 @@ class deribit extends Exchange {
                 'api' => 'https://www.deribit.com',
                 'www' => 'https://www.deribit.com',
                 'doc' => array (
-                    'https://docs.deribit.com/',
+                    'https://docs.deribit.com',
                     'https://github.com/deribit',
                 ),
                 'fees' => 'https://www.deribit.com/pages/information/fees',
@@ -43,6 +43,7 @@ class deribit extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
+                        'ping',
                         'test',
                         'getinstruments',
                         'index',
@@ -388,9 +389,11 @@ class deribit extends Exchange {
             'instrument' => $this->market_id($symbol),
             'quantity' => $amount,
             'type' => $type,
+            // 'post_only' => 'false' or 'true', https://github.com/ccxt/ccxt/issues/5159
         );
-        if ($price !== null)
+        if ($price !== null) {
             $request['price'] = $price;
+        }
         $method = 'privatePost' . $this->capitalize ($side);
         $response = $this->$method (array_merge ($request, $params));
         $order = $this->safe_value($response['result'], 'order');

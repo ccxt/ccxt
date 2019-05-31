@@ -156,10 +156,10 @@ class coinbase extends Exchange {
         ));
     }
 
-    public function fetch_time () {
-        $response = $this->publicGetTime ();
-        $data = $response['data'];
-        return $this->parse8601 ($data['iso']);
+    public function fetch_time ($params = array ()) {
+        $response = $this->publicGetTime ($params);
+        $data = $this->safe_value($response, 'data', array ());
+        return $this->parse8601 ($this->safe_string($data, 'iso'));
     }
 
     public function fetch_accounts ($params = array ()) {

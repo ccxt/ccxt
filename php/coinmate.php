@@ -40,6 +40,7 @@ class coinmate extends Exchange {
                         'orderBook',
                         'ticker',
                         'transactions',
+                        'tradingPairs',
                     ),
                 ),
                 'private' => array (
@@ -61,22 +62,6 @@ class coinmate extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
-                'BTC/EUR' => array ( 'id' => 'BTC_EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'precision' => array ( 'amount' => 4, 'price' => 2 ), 'maker' => 0.25 / 100, 'taker' => 0.12 / 100 ),
-                'BTC/CZK' => array ( 'id' => 'BTC_CZK', 'symbol' => 'BTC/CZK', 'base' => 'BTC', 'quote' => 'CZK', 'precision' => array ( 'amount' => 4, 'price' => 2 ), 'maker' => 0.25 / 100, 'taker' => 0.12 / 100 ),
-                'LTC/EUR' => array ( 'id' => 'LTC_EUR', 'symbol' => 'LTC/EUR', 'base' => 'LTC', 'quote' => 'EUR', 'precision' => array ( 'amount' => 4, 'price' => 2 ), 'maker' => 0.25 / 100, 'taker' => 0.12 / 100 ),
-                'LTC/CZK' => array ( 'id' => 'LTC_CZK', 'symbol' => 'LTC/CZK', 'base' => 'LTC', 'quote' => 'CZK', 'precision' => array ( 'amount' => 4, 'price' => 2 ), 'maker' => 0.25 / 100, 'taker' => 0.12 / 100 ),
-                'LTC/BTC' => array ( 'id' => 'LTC_BTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'precision' => array ( 'amount' => 4, 'price' => 5 ), 'maker' => 0.25 / 100, 'taker' => 0.12 / 100 ),
-                'ETH/EUR' => array ( 'id' => 'ETH_EUR', 'symbol' => 'ETH/EUR', 'base' => 'ETH', 'quote' => 'EUR', 'precision' => array ( 'amount' => 4, 'price' => 2 )),
-                'ETH/CZK' => array ( 'id' => 'ETH_CZK', 'symbol' => 'ETH/CZK', 'base' => 'ETH', 'quote' => 'CZK', 'precision' => array ( 'amount' => 4, 'price' => 2 )),
-                'ETH/BTC' => array ( 'id' => 'ETH_BTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'precision' => array ( 'amount' => 4, 'price' => 5 )),
-                'XRP/EUR' => array ( 'id' => 'XRP_EUR', 'symbol' => 'XRP/EUR', 'base' => 'XRP', 'quote' => 'EUR', 'precision' => array ( 'amount' => 4, 'price' => 5 )),
-                'XRP/CZK' => array ( 'id' => 'XRP_CZK', 'symbol' => 'XRP/CZK', 'base' => 'XRP', 'quote' => 'CZK', 'precision' => array ( 'amount' => 4, 'price' => 5 )),
-                'XRP/BTC' => array ( 'id' => 'XRP_BTC', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC', 'precision' => array ( 'amount' => 4, 'price' => 8 )),
-                'BCH/EUR' => array ( 'id' => 'BCH_EUR', 'symbol' => 'BCH/EUR', 'base' => 'BCH', 'quote' => 'EUR', 'precision' => array ( 'amount' => 4, 'price' => 2 )),
-                'BCH/CZK' => array ( 'id' => 'BCH_CZK', 'symbol' => 'BCH/CZK', 'base' => 'BCH', 'quote' => 'CZK', 'precision' => array ( 'amount' => 4, 'price' => 2 )),
-                'BCH/BTC' => array ( 'id' => 'BCH_BTC', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'precision' => array ( 'amount' => 4, 'price' => 5 )),
-            ),
             'fees' => array (
                 'trading' => array (
                     'maker' => 0.05 / 100,
@@ -84,6 +69,69 @@ class coinmate extends Exchange {
                 ),
             ),
         ));
+    }
+
+    public function fetch_markets ($params = array ()) {
+        $response = $this->publicGetTradingPairs ($params);
+        //
+        //     {
+        //         "error":false,
+        //         "errorMessage":null,
+        //         "$data" => array (
+        //             array (
+        //                 "name":"BTC_EUR",
+        //                 "firstCurrency":"BTC",
+        //                 "secondCurrency":"EUR",
+        //                 "priceDecimals":2,
+        //                 "lotDecimals":8,
+        //                 "minAmount":0.0002,
+        //                 "tradesWebSocketChannelId":"trades-BTC_EUR",
+        //                 "orderBookWebSocketChannelId":"order_book-BTC_EUR",
+        //                 "tradeStatisticsWebSocketChannelId":"statistics-BTC_EUR"
+        //             ),
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        $result = array ();
+        for ($i = 0; $i < count ($data); $i++) {
+            $market = $data[$i];
+            $id = $this->safe_string($market, 'name');
+            $baseId = $this->safe_string($market, 'firstCurrency');
+            $quoteId = $this->safe_string($market, 'secondCurrency');
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
+            $symbol = $base . '/' . $quote;
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'active' => null,
+                'info' => $market,
+                'precision' => array (
+                    'price' => $this->safe_integer($market, 'priceDecimals'),
+                    'amount' => $this->safe_integer($market, 'lotDecimals'),
+                ),
+                'limits' => array (
+                    'amount' => array (
+                        'min' => $this->safe_float($market, 'minAmount'),
+                        'max' => null,
+                    ),
+                    'price' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $result;
     }
 
     public function fetch_balance ($params = array ()) {

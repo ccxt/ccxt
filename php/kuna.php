@@ -19,6 +19,7 @@ class kuna extends acx {
             'has' => array (
                 'CORS' => false,
                 'fetchTickers' => true,
+                'fetchOHLCV' => false,
                 'fetchOpenOrders' => true,
                 'fetchMyTrades' => true,
                 'withdraw' => false,
@@ -58,18 +59,20 @@ class kuna extends acx {
     }
 
     public function fetch_markets ($params = array ()) {
-        $quotes = array ( 'btc', 'eth', 'eurs', 'gbg', 'uah' );
+        $quotes = array ( 'btc', 'eth', 'eurs', 'rub', 'uah', 'usd', 'usdt' );
         $pricePrecisions = array (
             'UAH' => 0,
         );
         $markets = array ();
-        $tickers = $this->publicGetTickers ();
-        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
+        $response = $this->publicGetTickers ($params);
+        $ids = is_array ($response) ? array_keys ($response) : array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             for ($j = 0; $j < count ($quotes); $j++) {
                 $quoteId = $quotes[$j];
-                if (mb_strpos ($id, $quoteId) > 0) {
+                $index = mb_strpos ($id, $quoteId);
+                $slice = mb_substr ($id, $index);
+                if (($index > 0) && ($slice === $quoteId)) {
                     $baseId = str_replace ($quoteId, '', $id);
                     $base = strtoupper ($baseId);
                     $quote = strtoupper ($quoteId);

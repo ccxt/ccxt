@@ -68,7 +68,11 @@ class bitfinex (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
-                'api': 'https://api.bitfinex.com',
+                'api': {
+                    'v2': 'https://api-pub.bitfinex.com',  # https://github.com/ccxt/ccxt/issues/5109
+                    'public': 'https://api.bitfinex.com',
+                    'private': 'https://api.bitfinex.com',
+                },
                 'www': 'https://www.bitfinex.com',
                 'doc': [
                     'https://docs.bitfinex.com/v1/docs',
@@ -76,8 +80,26 @@ class bitfinex (Exchange):
                 ],
             },
             'api': {
+                # v2 symbol ids require a 't' prefix
+                # just the public part of it(use bitfinex2 for everything else)
                 'v2': {
                     'get': [
+                        'platform/status',
+                        'tickers',
+                        'ticker/{symbol}',
+                        'trades/{symbol}/hist',
+                        'book/{symbol}/{precision}',
+                        'book/{symbol}/P0',
+                        'book/{symbol}/P1',
+                        'book/{symbol}/P2',
+                        'book/{symbol}/P3',
+                        'book/{symbol}/R0',
+                        'stats1/{key}:{size}:{symbol}:{side}/{section}',
+                        'stats1/{key}:{size}:{symbol}/{section}',
+                        'stats1/{key}:{size}:{symbol}:long/last',
+                        'stats1/{key}:{size}:{symbol}:long/hist',
+                        'stats1/{key}:{size}:{symbol}:short/last',
+                        'stats1/{key}:{size}:{symbol}:short/hist',
                         'candles/trade:{timeframe}:{symbol}/{section}',
                         'candles/trade:{timeframe}:{symbol}/last',
                         'candles/trade:{timeframe}:{symbol}/hist',
@@ -94,7 +116,6 @@ class bitfinex (Exchange):
                         'symbols',
                         'symbols_details',
                         'tickers',
-                        'today',
                         'trades/{symbol}',
                     ],
                 },
@@ -270,11 +291,13 @@ class bitfinex (Exchange):
                 'ABS': 'ABYSS',
                 'AIO': 'AION',
                 'ATM': 'ATMI',
+                'ATO': 'ATOM',  # https://github.com/ccxt/ccxt/issues/5118
                 'BAB': 'BCH',
                 'CTX': 'CTXC',
                 'DAD': 'DADI',
                 'DAT': 'DATA',
                 'DSH': 'DASH',
+                'GSD': 'GUSD',
                 'HOT': 'Hydro Protocol',
                 'IOS': 'IOST',
                 'IOT': 'IOTA',
@@ -290,9 +313,12 @@ class bitfinex (Exchange):
                 'SNG': 'SNGLS',
                 'SPK': 'SPANK',
                 'STJ': 'STORJ',
+                'TSD': 'TUSD',
                 'YYW': 'YOYOW',
+                'UDC': 'USDC',
                 'UST': 'USDT',
                 'UTN': 'UTNP',
+                'XCH': 'XCHF',
             },
             'exceptions': {
                 'exact': {
@@ -444,11 +470,15 @@ class bitfinex (Exchange):
         }
 
     def fetch_markets(self, params={}):
-        markets = self.publicGetSymbolsDetails()
+        ids = self.publicGetSymbols()
+        details = self.publicGetSymbolsDetails()
         result = []
-        for p in range(0, len(markets)):
-            market = markets[p]
-            id = market['pair'].upper()
+        for i in range(0, len(details)):
+            market = details[i]
+            id = self.safe_string(market, 'pair')
+            if not self.in_array(id, ids):
+                continue
+            id = id.upper()
             baseId = id[0:3]
             quoteId = id[3:6]
             base = self.common_currency_code(baseId)
@@ -485,6 +515,9 @@ class bitfinex (Exchange):
                 'info': market,
             })
         return result
+
+    def amount_to_precision(self, symbol, amount):
+        return self.number_to_string(amount)
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
@@ -661,7 +694,7 @@ class bitfinex (Exchange):
         order = {
             'symbol': self.market_id(symbol),
             'side': side,
-            'amount': self.number_to_string(amount),
+            'amount': self.amount_to_precision(symbol, amount),
             'type': self.safe_string(self.options['orderTypes'], type, type),
             'ocoorder': False,
             'buy_price_oco': 0,
@@ -682,7 +715,7 @@ class bitfinex (Exchange):
         if price is not None:
             order['price'] = self.price_to_precision(symbol, price)
         if amount is not None:
-            order['amount'] = self.amount_to_precision(symbol, amount)
+            order['amount'] = self.number_to_string(amount)
         if symbol is not None:
             order['symbol'] = self.market_id(symbol)
         if side is not None:
@@ -956,7 +989,7 @@ class bitfinex (Exchange):
         else:
             request = '/' + self.version + request
         query = self.omit(params, self.extract_params(path))
-        url = self.urls['api'] + request
+        url = self.urls['api'][api] + request
         if (api == 'public') or (path.find('/hist') >= 0):
             if query:
                 suffix = '?' + self.urlencode(query)

@@ -225,15 +225,15 @@ class fcoin (Exchange):
     async def fetch_order_book(self, symbol=None, limit=None, params={}):
         await self.load_markets()
         if limit is not None:
-            if (limit == 20) or (limit == 100):
+            if (limit == 20) or (limit == 150):
                 limit = 'L' + str(limit)
             else:
-                raise ExchangeError(self.id + ' fetchOrderBook supports limit of 20, 100 or no limit. Other values are not accepted')
+                raise ExchangeError(self.id + ' fetchOrderBook supports limit of 20 or 150. Other values are not accepted')
         else:
-            limit = 'full'
+            limit = 'L20'
         request = self.extend({
             'symbol': self.market_id(symbol),
-            'level': limit,  # L20, L100, full
+            'level': limit,  # L20, L150
         }, params)
         response = await self.marketGetDepthLevelSymbol(request)
         orderbook = response['data']
