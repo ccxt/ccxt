@@ -13,6 +13,7 @@ module Ccxt
     'livecoin',
     'okcoinusd',
     'okex',
+    'poloniex',
     'zb'
   ].each do |exchange|
     require "ccxt/#{exchange}"
