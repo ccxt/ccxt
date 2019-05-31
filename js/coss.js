@@ -428,14 +428,12 @@ module.exports = class coss extends Exchange {
         let last = this.safeFloat (ticker, 'Last');
         let change = undefined;
         let percentage = undefined;
-        if (last !== undefined) {
+        if (last !== undefined)
             if (previous !== undefined) {
                 change = last - previous;
-                if (previous > 0) {
+                if (previous > 0)
                     percentage = (change / previous) * 100;
-                }
             }
-        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,

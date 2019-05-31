@@ -229,11 +229,10 @@ module.exports = class zb extends Exchange {
             //                 key: "btc"         }
             let account = this.account ();
             let currency = balance['key'];
-            if (currency in this.currencies_by_id) {
+            if (currency in this.currencies_by_id)
                 currency = this.currencies_by_id[currency]['code'];
-            } else {
+            else
                 currency = this.commonCurrencyCode (balance['enName']);
-            }
             account['free'] = parseFloat (balance['available']);
             account['used'] = parseFloat (balance['freez']);
             account['total'] = this.sum (account['free'], account['used']);
@@ -340,17 +339,15 @@ module.exports = class zb extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (limit === undefined) {
+        if (limit === undefined)
             limit = 1000;
-        }
         let request = {
             'market': market['id'],
             'type': this.timeframes[timeframe],
             'limit': limit,
         };
-        if (since !== undefined) {
+        if (since !== undefined)
             request['since'] = since;
-        }
         let response = await this.publicGetKline (this.extend (request, params));
         let data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
@@ -383,9 +380,8 @@ module.exports = class zb extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type !== 'limit') {
+        if (type !== 'limit')
             throw new InvalidOrder (this.id + ' allows limit orders only');
-        }
         await this.loadMarkets ();
         let order = {
             'price': this.priceToPrecision (symbol, price),
@@ -411,9 +407,8 @@ module.exports = class zb extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined) {
+        if (symbol === undefined)
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
-        }
         await this.loadMarkets ();
         let order = {
             'id': id.toString (),
@@ -438,9 +433,8 @@ module.exports = class zb extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
-        if (symbol === undefined) {
+        if (symbol === undefined)
             throw new ExchangeError (this.id + 'fetchOrders requires a symbol parameter');
-        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -450,9 +444,8 @@ module.exports = class zb extends Exchange {
         };
         let method = 'privateGetGetOrdersIgnoreTradeType';
         // tradeType 交易类型1/0[buy/sell]
-        if ('tradeType' in params) {
+        if ('tradeType' in params)
             method = 'privateGetGetOrdersNew';
-        }
         let response = undefined;
         try {
             response = await this[method] (this.extend (request, params));
@@ -466,9 +459,8 @@ module.exports = class zb extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
-        if (symbol === undefined) {
+        if (symbol === undefined)
             throw new ExchangeError (this.id + 'fetchOpenOrders requires a symbol parameter');
-        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -478,9 +470,8 @@ module.exports = class zb extends Exchange {
         };
         let method = 'privateGetGetUnfinishedOrdersIgnoreTradeType';
         // tradeType 交易类型1/0[buy/sell]
-        if ('tradeType' in params) {
+        if ('tradeType' in params)
             method = 'privateGetGetOrdersNew';
-        }
         let response = undefined;
         try {
             response = await this[method] (this.extend (request, params));
@@ -513,9 +504,8 @@ module.exports = class zb extends Exchange {
         let type = 'limit'; // market order is not availalbe in ZB
         let timestamp = undefined;
         let createDateField = this.getCreateDateField ();
-        if (createDateField in order) {
+        if (createDateField in order)
             timestamp = order[createDateField];
-        }
         let symbol = undefined;
         if ('currency' in order) {
             // get symbol from currency
@@ -562,9 +552,8 @@ module.exports = class zb extends Exchange {
             '2': 'closed',
             '3': 'open', // partial
         };
-        if (status in statuses) {
+        if (status in statuses)
             return statuses[status];
-        }
         return status;
     }
 
@@ -580,9 +569,8 @@ module.exports = class zb extends Exchange {
         let url = this.urls['api'][api];
         if (api === 'public') {
             url += '/' + this.version + '/' + path;
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
-            }
         } else {
             let query = this.keysort (this.extend ({
                 'method': path,
@@ -600,20 +588,17 @@ module.exports = class zb extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response) {
-        if (typeof body !== 'string') {
-            return;
-        } // fallback to default error handler
-        if (body.length < 2) {
-            return;
-        } // fallback to default error handler
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
         if (body[0] === '{') {
             let feedback = this.id + ' ' + this.json (response);
             if ('code' in response) {
                 let code = this.safeString (response, 'code');
                 if (code in this.exceptions) {
-                    // let ExceptionClass = this.exceptions[code];
-                    // throw new ExceptionClass (feedback);
-                    throw new this.exceptions[code] (feedback);
+                    let ExceptionClass = this.exceptions[code];
+                    throw new ExceptionClass (feedback);
                 } else if (code !== '1000') {
                     throw new ExchangeError (feedback);
                 }

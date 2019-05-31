@@ -198,18 +198,16 @@ module.exports = class binance extends Exchange {
 
     async fetchMarkets (params = {}) {
         let response = await this.publicGetExchangeInfo ();
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'])
             await this.loadTimeDifference ();
-        }
         let markets = response['symbols'];
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let id = market['symbol'];
             // "123456" is a "test symbol/market"
-            if (id === '123456') {
+            if (id === '123456')
                 continue;
-            }
             let baseId = market['baseAsset'];
             let quoteId = market['quoteAsset'];
             let base = this.commonCurrencyCode (baseId);
@@ -309,9 +307,8 @@ module.exports = class binance extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
             let currency = balance['asset'];
-            if (currency in this.currencies_by_id) {
+            if (currency in this.currencies_by_id)
                 currency = this.currencies_by_id[currency]['code'];
-            }
             let account = {
                 'free': parseFloat (balance['free']),
                 'used': parseFloat (balance['locked']),
@@ -329,9 +326,8 @@ module.exports = class binance extends Exchange {
         let request = {
             'symbol': market['id'],
         };
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        } // default = maximum = 100
+        if (limit !== undefined)
+            request['limit'] = limit; // default = maximum = 100
         let response = await this.publicGetDepth (this.extend (request, params));
         let orderbook = this.parseOrderBook (response);
         orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
@@ -484,9 +480,8 @@ module.exports = class binance extends Exchange {
         } else if ('isBuyerMaker' in trade) {
             side = trade['isBuyerMaker'] ? 'sell' : 'buy';
         } else {
-            if ('isBuyer' in trade) {
-                side = (trade['isBuyer']) ? 'buy' : 'sell';
-            } // this is a true side
+            if ('isBuyer' in trade)
+                side = (trade['isBuyer']) ? 'buy' : 'sell'; // this is a true side
         }
         let fee = undefined;
         if ('commission' in trade) {
@@ -496,9 +491,8 @@ module.exports = class binance extends Exchange {
             };
         }
         let takerOrMaker = undefined;
-        if ('isMaker' in trade) {
+        if ('isMaker' in trade)
             takerOrMaker = trade['isMaker'] ? 'maker' : 'taker';
-        }
         let symbol = undefined;
         if (market === undefined) {
             let marketId = this.safeString (trade, 'symbol');
@@ -603,11 +597,10 @@ module.exports = class binance extends Exchange {
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = this.findSymbol (this.safeString (order, 'symbol'), market);
         let timestamp = undefined;
-        if ('time' in order) {
+        if ('time' in order)
             timestamp = order['time'];
-        } else if ('transactTime' in order) {
+        else if ('transactTime' in order)
             timestamp = order['transactTime'];
-        }
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'origQty');
         let filled = this.safeFloat (order, 'executedQty');
@@ -642,9 +635,8 @@ module.exports = class binance extends Exchange {
             }
         }
         let side = this.safeString (order, 'side');
-        if (side !== undefined) {
+        if (side !== undefined)
             side = side.toLowerCase ();
-        }
         let fee = undefined;
         let trades = undefined;
         const fills = this.safeValue (order, 'fills');
@@ -751,28 +743,25 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined) {
+        if (symbol === undefined)
             throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
-        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let origClientOrderId = this.safeValue (params, 'origClientOrderId');
         let request = {
             'symbol': market['id'],
         };
-        if (origClientOrderId !== undefined) {
+        if (origClientOrderId !== undefined)
             request['origClientOrderId'] = origClientOrderId;
-        } else {
+        else
             request['orderId'] = parseInt (id);
-        }
         let response = await this.privateGetOrder (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
+        if (symbol === undefined)
             throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
-        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -833,9 +822,8 @@ module.exports = class binance extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined) {
+        if (symbol === undefined)
             throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
-        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privateDeleteOrder (this.extend ({
@@ -847,17 +835,15 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
+        if (symbol === undefined)
             throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
-        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
         };
-        if (limit !== undefined) {
+        if (limit !== undefined)
             request['limit'] = limit;
-        }
         let response = await this.privateGetMyTrades (this.extend (request, params));
         //
         //     [
@@ -1212,9 +1198,8 @@ module.exports = class binance extends Exchange {
             'amount': parseFloat (amount),
             'name': name,
         };
-        if (tag) {
+        if (tag)
             request['addressTag'] = tag;
-        }
         let response = await this.wapiPostWithdraw (this.extend (request, params));
         return {
             'info': response,
@@ -1225,9 +1210,8 @@ module.exports = class binance extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         url += '/' + path;
-        if (api === 'wapi') {
+        if (api === 'wapi')
             url += '.html';
-        }
         // v1 special case for userDataStream
         if (path === 'userDataStream') {
             body = this.urlencode (params);
@@ -1253,30 +1237,25 @@ module.exports = class binance extends Exchange {
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         } else {
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
-            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
-        if ((code === 418) || (code === 429)) {
+        if ((code === 418) || (code === 429))
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
-        }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block cointains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
         if (code >= 400) {
-            if (body.indexOf ('Price * QTY is zero or less') >= 0) {
+            if (body.indexOf ('Price * QTY is zero or less') >= 0)
                 throw new InvalidOrder (this.id + ' order cost = amount * price is zero or less ' + body);
-            }
-            if (body.indexOf ('LOT_SIZE') >= 0) {
+            if (body.indexOf ('LOT_SIZE') >= 0)
                 throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size ' + body);
-            }
-            if (body.indexOf ('PRICE_FILTER') >= 0) {
+            if (body.indexOf ('PRICE_FILTER') >= 0)
                 throw new InvalidOrder (this.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) ' + body);
-            }
         }
         if (body.length > 0) {
             if (body[0] === '{') {
@@ -1301,9 +1280,8 @@ module.exports = class binance extends Exchange {
                 const exceptions = this.exceptions;
                 const message = this.safeString (response, 'msg');
                 if (message in exceptions) {
-                    // const ExceptionClass = exceptions[message];
-                    // throw new ExceptionClass (this.id + ' ' + message);
-                    throw new exceptions[message] (this.id + ' ' + message);
+                    const ExceptionClass = exceptions[message];
+                    throw new ExceptionClass (this.id + ' ' + message);
                 }
                 // checks against error codes
                 let error = this.safeString (response, 'code');
@@ -1330,9 +1308,8 @@ module.exports = class binance extends Exchange {
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-        if ((api === 'private') || (api === 'wapi')) {
+        if ((api === 'private') || (api === 'wapi'))
             this.options['hasAlreadyAuthenticatedSuccessfully'] = true;
-        }
         return response;
     }
 };

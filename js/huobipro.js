@@ -260,7 +260,7 @@ module.exports = class huobipro extends Exchange {
                 'limits': {
                     'amount': {
                         'min': Math.pow (10, -precision['amount']),
-                        'max': Math.pow (10, precision['amount']),
+                        'max': undefined,
                     },
                     'price': {
                         'min': Math.pow (10, -precision['price']),
