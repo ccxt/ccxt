@@ -10,12 +10,14 @@ require 'addressable/uri'
 require 'bigdecimal'
 require 'ccxt/base/errors'
 require 'ccxt/base/decimal_to_precision'
+require 'ccxt/base/exchange_helpers'
 require 'eth'
 
 module Ccxt
   # base class for the exchange
   class Exchange
     include DecimalToPrecision
+    include ExchangeHelpers
 
     attr_accessor :id, :version, :certified, :enableRateLimit
     attr_accessor :rateLimit, :timeout, :asyncio_loop, :aiohttp_proxy
@@ -87,7 +89,7 @@ module Ccxt
       @marketsById = nil
       @markets_by_id = nil
       @currencies_by_id = nil
-      
+
       @precision = {}
       @limits = {}
       @exceptions = {}
@@ -180,11 +182,11 @@ module Ccxt
         'BCHSV' => 'BSV'
       }
 
-      settings = self.class.deep_extend(self.describe, config)
+      settings = deep_extend(self.describe, config)
       settings.each do |key, value|
-        if self.instance_variable_defined?("@#{key}") 
+        if self.instance_variable_defined?("@#{key}")
           if self.instance_variable_get("@#{key}").is_a?(Hash)
-            self.instance_variable_set("@#{key}", self.class.deep_extend(self.send(key), value))
+            self.instance_variable_set("@#{key}", deep_extend(self.send(key), value))
           else
             send "#{key}=", value
           end
@@ -267,7 +269,7 @@ module Ccxt
           self.accounts = self.fetch_accounts(params)
         end
       end
-      self.accountsById = self.class.index_by(self.accounts, 'id')
+      self.accountsById = index_by(self.accounts, 'id')
       return self.accounts
     end
 
@@ -277,7 +279,7 @@ module Ccxt
           return self.loaded_fees
         end
       end
-      self.loaded_fees = self.class.deep_extend(self.loaded_fees, self.fetch_fees)
+      self.loaded_fees = deep_extend(self.loaded_fees, self.fetch_fees)
       return self.loaded_fees
     end
 
@@ -286,7 +288,7 @@ module Ccxt
       # currencies are returned as a dict
       # this is for historical reasons
       # and may be changed for consistency later
-      return self.class.to_array self.markets
+      return to_array self.markets
     end
 
     def fetch_currencies(params = {})
@@ -329,7 +331,7 @@ module Ccxt
     end
 
     def parse_balance(balance)
-      currencies = self.class.omit(balance, 'info').keys
+      currencies = omit(balance, 'info').keys
       ['free', 'used', 'total'].each do |account|
         balance[account] = {}
         currencies.each do |currency|
@@ -379,16 +381,16 @@ module Ccxt
         if reload || !self.options.keys.include?('limitsLoaded')
           response = self.fetch_trading_limits(symbols)
           symbols.each do |symbol|
-            self.markets[symbol] = self.class.deep_extend(self.markets[symbol], response[symbol])
+            self.markets[symbol] = deep_extend(self.markets[symbol], response[symbol])
           end
-          self.options['limitsLoaded'] = self.class.milliseconds
+          self.options['limitsLoaded'] = milliseconds
         end
       end
       return self.markets
     end
 
     def nonce
-      return Exchange.milliseconds
+      return milliseconds
     end
 
     ## PRIVATE
@@ -431,9 +433,9 @@ module Ccxt
     end
 
     def purge_cached_orders(before)
-      orders = self.class.to_array(self.orders)
+      orders = to_array(self.orders)
       orders = orders.select { |order| (order['status'] == 'open') || (order['timestamp'] >= before) }
-      self.orders = self.class.index_by(orders, 'id')
+      self.orders = index_by(orders, 'id')
       return self.orders
     end
 
@@ -466,7 +468,7 @@ module Ccxt
     end
 
     def parse_ohlcvs(ohlcvs, market = nil, timeframe = '1m', since = nil, limit = nil)
-      ohlcvs = self.class.to_array(ohlcvs)
+      ohlcvs = to_array(ohlcvs)
       result = []
 
       ohlcvs.each do |o|
@@ -476,7 +478,7 @@ module Ccxt
         continue if since && (ohlcv[0] < since)
         result << ohlcv
       end
-      return self.class.sort_by(result, 0)
+      return sort_by(result, 0)
     end
 
     def parse_trading_view_ohlcv(ohlcvs, market = nil, timeframe = '1m', since = nil, limit = nil)
@@ -514,8 +516,8 @@ module Ccxt
     def fetch_l2_order_book(symbol, limit = nil, params = {})
       orderbook = self.fetch_order_book(symbol, limit, params)
       orderbook.merge(
-        'bids' => self.class.sort_by(self.class.aggregate(orderbook['bids']), 0, true),
-        'asks' => self.class.sort_by(self.class.aggregate(orderbook['asks']), 0)
+        'bids' => sort_by(aggregate(orderbook['bids']), 0, true),
+        'asks' => sort_by(aggregate(orderbook['asks']), 0)
       )
     end
 
@@ -523,16 +525,16 @@ module Ccxt
       bids = if orderbook[bids_key] && orderbook[bids_key].is_a?(Array)
         self.parse_bids_asks(orderbook[bids_key], price_key, amount_key)
       else [] end
-      bids = self.class.sort_by(bids, 0, true)
+      bids = sort_by(bids, 0, true)
       asks = if orderbook[asks_key] && orderbook[asks_key].is_a?(Array)
         self.parse_bids_asks(orderbook[asks_key], price_key, amount_key)
       else [] end
-      asks = self.class.sort_by(asks, 0)
+      asks = sort_by(asks, 0)
       {
         'bids' => bids,
         'asks' => asks,
         'timestamp' => timestamp,
-        'datetime' => timestamp ? self.class.iso8601(timestamp) : nil,
+        'datetime' => timestamp ? iso8601(timestamp) : nil,
         'nonce' => nil
       }
     end
@@ -561,13 +563,13 @@ module Ccxt
         defaults = self.fees['trading'].merge 'precision' => self.precision, 'limits' => self.limits
         values[i] = defaults.merge values[i]
       end
-      self.markets = self.class.index_by(values, 'symbol')
-      self.markets_by_id = self.class.index_by(values, 'id')
+      self.markets = index_by(values, 'symbol')
+      self.markets_by_id = index_by(values, 'id')
       self.marketsById = self.markets_by_id
       self.symbols = self.markets.keys.sort
       self.ids = self.markets_by_id.keys.sort
       if currencies_to_set
-        self.currencies = self.class.deep_extend(currencies_to_set, self.currencies)
+        self.currencies = deep_extend(currencies_to_set, self.currencies)
       else
         base_currencies = values.select { |market| market['base'] }.map do |market|
           {
@@ -587,15 +589,15 @@ module Ccxt
               (market['precision'] && market['precision']['amount']) || 8
           }
         end
-        currencies_to_set = self.class.sort_by(base_currencies + quote_currencies, 'code')
-        self.currencies = self.class.deep_extend(self.class.index_by(currencies_to_set, 'code'), self.currencies)
+        currencies_to_set = sort_by(base_currencies + quote_currencies, 'code')
+        self.currencies = deep_extend(index_by(currencies_to_set, 'code'), self.currencies)
       end
-      self.currencies_by_id = self.class.index_by(self.currencies.values, 'id')
+      self.currencies_by_id = index_by(self.currencies.values, 'id')
       return self.markets
     end
 
     def build_ohlcv(trades, timeframe = '1m', since = nil, limit = nil)
-      ms = self.class.parse_timeframe(timeframe) * 1000
+      ms = parse_timeframe(timeframe) * 1000
       ohlcvs = []
       high, low, close, volume = [2, 3, 4, 5]
       num_trades = trades.size
@@ -695,7 +697,7 @@ module Ccxt
 
     def fetch2(path, api = 'public', method = 'GET', params = {}, headers = nil, body = nil)
       throttle if enableRateLimit
-      self.lastRestRequestTimestamp = Exchange.milliseconds
+      self.lastRestRequestTimestamp = milliseconds
       request = sign(path, api, method, params, headers, body)
       return fetch(request['url'], request['method'], request['headers'], request['body'])
     end
@@ -718,7 +720,7 @@ module Ccxt
           payload: payload
         )
         http_response = response.body
-        json_response = self.class.is_json_encoded_object(http_response) ? JSON.parse(http_response) : nil
+        json_response = is_json_encoded_object(http_response) ? JSON.parse(http_response) : nil
         headers = response.headers
 
         self.last_http_response = http_response if self.enableLastHttpResponse
@@ -773,7 +775,7 @@ module Ccxt
     def handle_errors(code, reason, url, method, headers, body, response); end
 
     def handle_rest_response(response, json_response, url, method = 'GET', headers = nil, body = nil)
-      if self.class.is_json_encoded_object(response) && json_response.nil?
+      if is_json_encoded_object(response) && json_response.nil?
         ddos_protection = response =~ /(cloudflare|incapsula|overload|ddos)/i
         exchange_not_available = response =~ /(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)/i
         if ddos_protection
@@ -805,8 +807,8 @@ module Ccxt
             split_path = url.split(delimiters)
             uppercase_method = http_method.upcase
             lowercase_method = http_method.downcase
-            camelcase_method = self.class.capitalize(lowercase_method)
-            camelcase_suffix = split_path.map { |p| self.class.capitalize(p) }.join('')
+            camelcase_method = capitalize(lowercase_method)
+            camelcase_suffix = split_path.map { |p| capitalize(p) }.join('')
             underscore_suffix = split_path.map { |p| p.strip.downcase }.join('_')
 
             camelcase = api_type + camelcase_method + camelcase_suffix
@@ -841,11 +843,11 @@ module Ccxt
     def send_wrapper(method, args = nil)
       return self.send(method, args)
     end
-    
+
     # Depends on #currencies_by_id
     def safe_currency_code(data, key, currency = nil)
       code = nil
-      currency_id = self.class.safe_string(data, key)
+      currency_id = safe_string(data, key)
       if self.currencies_by_id.include?(currency_id)
         currency = self.currencies_by_id[currency_id]
       else
@@ -862,7 +864,7 @@ module Ccxt
         return currency
       end
 
-      return self.class.safe_string(self.commonCurrencies, currency, currency)
+      return safe_string(self.commonCurrencies, currency, currency)
     end
 
     def currency_id(commonCode)
@@ -871,7 +873,7 @@ module Ccxt
       end
 
       currencyIds = self.commonCurrencies.invert
-      return self.class.safe_string(currencyIds, commonCode, commonCode)
+      return safe_string(currencyIds, commonCode, commonCode)
     end
 
     def precision_from_string(string)
@@ -880,23 +882,23 @@ module Ccxt
     end
 
     def cost_to_precision(symbol, cost)
-      return self.class.decimal_to_precision(cost, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+      return decimal_to_precision(cost, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
     end
 
     def price_to_precision(symbol, price)
-      return self.class.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+      return decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
     end
 
     def amount_to_precision(symbol, amount)
-      return self.class.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], self.precisionMode)
+      return decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], self.precisionMode)
     end
 
     def fee_to_precision(symbol, fee)
-      return self.class.decimal_to_precision(fee, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+      return decimal_to_precision(fee, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
     end
 
     def currency_to_precision(currency, fee)
-      return self.class.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'], self.precisionMode)
+      return decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'], self.precisionMode)
     end
 
     def find_broadly_matched_key(broad, string)
@@ -1049,39 +1051,39 @@ module Ccxt
     end
 
     def parse_trades(trades, market = nil, since = nil, limit = nil)
-      array = self.class.to_array(trades)
+      array = to_array(trades)
       array = array.collect { |trade| self.parse_trade(trade, market) }
-      array = self.class.sort_by(array, 'timestamp')
+      array = sort_by(array, 'timestamp')
       symbol = market ? market['symbol'] : nil
       return self.filter_by_symbol_since_limit(array, symbol, since, limit)
     end
 
     def parse_ledger(data, currency = nil, since = nil, limit = nil)
-      array = self.class.to_array(data)
+      array = to_array(data)
       array = array.collect { |item| self.parse_ledger_entry(item, currency) }
-      array = self.class.sort_by(array, 'timestamp')
+      array = sort_by(array, 'timestamp')
       code = currency ? currency['code'] : nil
       return self.filter_by_currency_since_limit(array, code, since, limit)
     end
 
     def parse_transactions(transactions, currency = nil, since = nil, limit = nil, params = {})
-      array = self.class.to_array(transactions)
+      array = to_array(transactions)
       array = array.collect { |transaction| self.parse_transaction(transaction, currency) }
-      array = self.class.sort_by(array, 'timestamp')
+      array = sort_by(array, 'timestamp')
       code = currency ? currency['code'] : nil
       return self.filter_by_currency_since_limit(array, code, since, limit)
     end
 
     def parse_orders(orders, market = nil, since = nil, limit = nil)
-      array = self.class.to_array(orders)
+      array = to_array(orders)
       array = array.collect { |order| self.parse_order(order, market) }
-      array = self.class.sort_by(array, 'timestamp')
+      array = sort_by(array, 'timestamp')
       symbol = market ? market['symbol'] : nil
       return self.filter_by_symbol_since_limit(array, symbol, since, limit)
     end
 
     def filter_by_value_since_limit(array, field, value = nil, since = nil, limit = nil)
-      array = self.class.to_array(array)
+      array = to_array(array)
       if value
         array = array.select { |entry| entry[field] == value }
       end
@@ -1103,7 +1105,7 @@ module Ccxt
     end
 
     def filter_by_since_limit(array, since = nil, limit = nil)
-      array = self.class.to_array(array)
+      array = to_array(array)
       if since
         array = array.select { |entry| entry['timestamp'] >= since }
       end
@@ -1114,7 +1116,7 @@ module Ccxt
     end
 
     def filter_by_symbol(array, symbol = nil)
-      array = self.class.to_array(array)
+      array = to_array(array)
       if symbol
         return array.select { |entry| entry['symbol'] == symbol }
       end
@@ -1123,11 +1125,11 @@ module Ccxt
     end
 
     def filter_by_array(objects, key, values = nil, indexed = true)
-      objects = self.class.to_array(objects)
+      objects = to_array(objects)
 
       # return all of them if no values were passed in
       if values.nil?
-        return indexed ? self.class.index_by(objects, key) : objects
+        return indexed ? index_by(objects, key) : objects
       end
 
       result = []
@@ -1137,7 +1139,7 @@ module Ccxt
           result.append(object)
         end
       end
-      return indexed ? self.class.index_by(result, key) : result
+      return indexed ? index_by(result, key) : result
     end
 
     def currency(code)
@@ -1206,7 +1208,7 @@ module Ccxt
 
       # TODO: there is no default value, which results in nil/None.
       # Perhaps we should raise an error that the eth unit is not valid.
-      return self.class.safe_value(units, unit)
+      return safe_value(units, unit)
     end
 
     def eth_unit(decimals = 18)
@@ -1223,7 +1225,7 @@ module Ccxt
         27 => 'gether',  # 0.000000001
         30 => 'tether'  # 0.000000000001
       }.freeze
-      return self.class.safe_value(units, decimals)
+      return safe_value(units, decimals)
     end
 
     # Takes a number of wei and converts it to any other ether unit.
@@ -1266,460 +1268,5 @@ module Ccxt
       result_value = value * (10**self.eth_decimals(unit))
       return result_value.to_i.to_s
     end
-
-    class << self
-      ### THESE ARE REQUIRED TO TRANSPILE THE JAVASCRIPT FILES
-
-      ### CRYPTO FUNCTIONS
-
-      def hash(request, algorithm = 'md5', digest = 'hex')
-        h = OpenSSL::Digest.new(algorithm, request)
-        case digest
-        when 'hex'
-          h.hexdigest
-        when 'base64'
-          h.base64digest
-        else
-          h.digest
-        end
-      end
-
-      def hmac(request, secret, algorithm = 'md5', digest = 'hex')
-        ssl_digest = OpenSSL::Digest.new(algorithm)
-        h = OpenSSL::HMAC.new(secret, ssl_digest)
-        h.update request
-        case digest
-        when 'hex'
-          h.hexdigest
-        when 'base64'
-          Base64.strict_encode64(h.digest)
-        else
-          h.digest
-        end
-      end
-
-      def jwt(request, secret, algorithm = nil)
-        header = Exchange.encode(Exchange.json({
-          'alg' => alg,
-          'typ' => 'JWT'
-          }))
-        encodedHeader = Exchange.base64urlencode(header)
-        encodedData = Exchange.base64urlencode(Exchange.encode(Exchange.json(request)))
-        token = encodedHeader + '.' + encodedData
-        hmac = Exchange.hmac(Exchange.encode(token), Exchange.encode(secret), algorithm, 'binary')
-        signature = Exchange.base64urlencode(hmac)
-        return token + '.' + signature
-      end
-
-      # def totp(key):
-      #     def dec_to_bytes(n):
-      #         if n > 0:
-      #             return dec_to_bytes(n // 256) + bytes([n % 256])
-      #         else:
-      #             return b''
-      #
-      #     def hex_to_dec(n):
-      #         return int(n, base = 16)
-      #
-      #     def base32_to_bytes(n):
-      #         missing_padding = len(n) % 8
-      #         padding = 8 - missing_padding if missing_padding > 0 else 0
-      #         padded = n.upper() + ('=' * padding)
-      #         return base64.b32decode(padded)  # throws an error if the key is invalid
-      #
-      #     epoch = int(time.time()) // 30
-      #     hmac_res = Exchange.hmac(dec_to_bytes(epoch).rjust(8, b'\x00'), base32_to_bytes(key.replace(' ', '')), hashlib.sha1, 'hex')
-      #     offset = hex_to_dec(hmac_res[-1]) * 2
-      #     otp = str(hex_to_dec(hmac_res[offset: offset + 8]) & 0x7fffffff)
-      #     return otp[-6:]
-
-      def totp(key)
-        raise NotSupported, 'TOTP: Not implemented yet.'
-      end
-
-      ### ENCODE
-
-      # deprecated? set in JS -> Ruby transpiler
-      def json(data, params = nil)
-        return JSON.dump(data)
-      end
-
-      # deprecated? set in JS -> Ruby transpiler
-      def unjson(input)
-        return JSON.load(input)
-      end
-
-      def is_json_encoded_object(input)
-        return (input.is_a?(String) &&
-               (input.length >= 2) &&
-               ((input[0] == '{') || (input[0] == '[')))
-      end
-
-      def binary_concat(*args)
-        return args.reduce { |a, b| a + b }
-      end
-
-      def binary_to_string(string)
-        return string.encode('ascii')
-      end
-
-      #
-      # Encode a query for a URL, but not encoding special characters.
-      #
-      # @staticmethod
-      # def rawencode(params = {}):
-      #     return _urlencode.unquote(Exchange.urlencode(params))
-
-      def rawencode(params = {})
-        return Addressable::URI.encode_component(params, /./)
-      end
-
-      def base64urlencode(s)
-        return Exchange.decode(Base64.urlsafe_encode64(s, padding: false))
-      end
-
-      ### GENERIC
-
-      def aggregate(bidasks)
-        ordered = {}
-        bidasks.each do |price, volume|
-          if volume > 0
-            value = ordered.has_key?(price) ? ordered[price] : 0
-            ordered[price] = value + volume
-          end
-        end
-        ordered.sort
-      end
-
-      def array_concat(a, b)
-        return a + b
-      end
-
-      def shallow_extend(*args)
-        result = args.inject({}) { |hash1, hash2| hash1.merge(hash2) }
-        return result
-      end
-
-      def deep_extend(*args)
-        result = nil
-        args.each do |arg|
-          if arg.is_a?(Hash)
-            result = {} if !result.is_a?(Hash)
-            arg.keys.each do |k|
-              target = result.has_key?(k) ? result[k] : nil
-              result[k] = deep_extend(target, arg[k])
-            end
-          else
-            result = arg
-          end
-        end
-        return result
-      end
-
-      def encode(string)
-        return string.encode
-      end
-
-      def decode(string)
-        return string.unpack('M*')
-      end
-
-      def encode_uri_component(uri)
-        return URI.encode_www_form_component(uri)
-      end
-
-      def extract_params(string)
-        string.scan(/{([\w-]+)}/)
-      end
-
-      def implode_params(string, params)
-        params.keys.each do |key|
-          string = string.gsub("{#{key}}", params[key].to_s)
-        end
-        return string
-      end
-
-      def filterBy(array, key, value = nil)
-        return Exchange.filter_by(array, key, value)
-      end
-
-      def filter_by(array, key, value = nil)
-        if value
-          grouped = Exchange.group_by(array, key)
-          return grouped[value] if grouped.has_key? value
-
-          return []
-        else
-          return array
-        end
-      end
-
-      def groupBy(array, key)
-        return Exchange.group_by(array, key)
-      end
-
-      def group_by(array, key)
-        result = {}
-        array = self.to_array(array)
-        array = array.collect { |entry| entry[key] ? entry : nil }.compact
-        array.each do |entry|
-          result[entry[key]] ||= []
-          result[entry[key]] << entry
-        end
-        return result
-      end
-
-      def in_array(needle, haystack)
-        return haystack.include?(needle)
-      end
-
-      def index_by(array, key)
-        result = {}
-        array = self.keysort(array).values if array.is_a?(Hash)
-        array.each do |element|
-          if element.has_key?(key) && (element[key] != nil)
-            k = element[key]
-            result[k] = element
-          end
-        end
-        result
-      end
-
-      def is_empty(object)
-        return object.empty?
-      end
-
-      def keysort(hash)
-        return hash.sort_by { |k, v| k }.to_h
-      end
-
-      def omit(d, *args)
-        result = d.dup
-        args.each do |arg|
-          if arg.is_a?(Array)
-            arg.each do |key|
-              result.delete(key) if result.has_key? key
-            end
-          else
-            result.delete(arg) if result.has_key? arg
-          end
-        end
-        return result
-      end
-
-      def ordered(array)
-        return Hash(array)
-      end
-
-      def pluck(array, key)
-        return array.delete_if { |a| !a.has_key?(key) }.map { |a| a[key] }
-      end
-
-      def safe_either(method, hash, key1, key2, default_value = nil)
-        value = method.call(hash, key1)
-        if value
-          return value
-        else
-          return method.call(hash, key2, default_value)
-        end
-      end
-
-      def safe_float(hash, key, default_value = nil)
-        if hash.is_a?(Hash) && hash.has_key?(key)
-          value = hash[key] ? hash[key].to_f : nil
-        else
-          value = default_value
-        end
-        return value
-      end
-
-      def safe_float_2(hash, key1, key2, default_value = nil)
-        return self.safe_either(method(:safe_float), hash, key1, key2, default_value)
-      end
-
-      def safe_integer(hash, key, default_value = nil)
-        if hash.is_a?(Hash) && hash.has_key?(key)
-          value = hash[key] ? hash[key].to_i : nil
-        else
-          value = default_value
-        end
-        return value
-      end
-
-      def safe_integer_2(hash, key1, key2, default_value = nil)
-        return self.safe_either(method(:safe_integer), hash, key1, key2, default_value)
-      end
-
-      def safe_string(hash, key, default_value = nil)
-        if hash.is_a?(Hash) && hash.has_key?(key)
-          value = hash[key].to_s
-        else
-          value = default_value
-        end
-        return value
-      end
-
-      def safe_string_2(hash, key1, key2, default_value = nil)
-        return self.safe_either(method(:safe_string), hash, key1, key2, default_value)
-      end
-
-      def safe_value(hash, key, default_value = nil)
-        if hash.is_a?(Hash) && hash.has_key?(key)
-          value = hash[key]
-        else
-          value = default_value
-        end
-        return value
-      end
-
-      def safe_value_2(hash, key1, key2, default_value = nil)
-        return self.safe_either(method(:safe_string), hash, key1, key2, default_value)
-      end
-
-      def sort_by(array, key, descending = false)
-        # return sorted(array, key = lambda k: k[key] if k[key] is not nil else "", reverse = descending)
-        result = array.sort_by { |k| k[key] ? k[key] : '' }
-        descending ? result.reverse : result
-      end
-
-      def sum(*args)
-        array = args.delete_if { |c| !((c.is_a?(Integer) || c.is_a?(Float))) }.compact
-        return nil if array.empty?
-
-        return array.sum
-      end
-
-      def to_array(value)
-        return value.values if value.is_a?(Hash)
-
-        return value
-      end
-
-      # Deprecated, use decimal_to_precision instead
-      def truncate(num, precision = 0)
-        return num.truncate(precision)
-      end
-
-      # Deprecated, todo: remove references from subclasses
-      def truncate_to_string(num, precision = 0)
-        return num.truncate(precision).to_s
-      end
-
-      def unique(array)
-        return array.uniq
-      end
-
-      def url(path, params = {})
-        result = Exchange.implode_params(path, params)
-        query = Exchange.omit(params, Exchange.extract_params(path))
-        if query
-          result += '?' + RestClient::Utils.encode_query_string(query)
-        end
-        return result
-      end
-
-      #
-      # Encode a query for a URL, encoding special characters as necessary.
-      #
-      def urlencode(params = {})
-        if params.is_a?(Hash)
-          return RestClient::Utils.encode_query_string(params)
-        else
-          return params
-        end
-      end
-
-      ### TIME
-
-      def sec
-        self.seconds
-      end
-
-      def seconds
-        return Time.now.to_i
-      end
-
-      def usec
-        self.microseconds
-      end
-
-      def uuid
-        return SecureRandom::uuid
-      end
-
-      def microseconds
-        return (Time.now.to_f * 1000000.0).to_i
-      end
-
-      def milliseconds
-        return (Time.now.to_f * 1000.0).to_i
-      end
-
-      def msec
-        return self.milliseconds
-      end
-
-      def iso8601(timestamp = nil)
-        return nil unless timestamp.is_a?(Integer)
-        return nil if timestamp.to_i < 0
-
-        return Time.at(timestamp / 1000.0).round(3).utc.iso8601(3)
-      end
-
-      def dmy(timestamp, infix = '-')
-        utc_datetime = Time.at((timestamp/1000).to_i).utc
-        return utc_datetime.strftime('%m' + infix + '%d' + infix + '%Y')
-      end
-
-      def parse8601(timestamp)
-        return DateTime.iso8601(timestamp).strftime('%Q').to_i rescue nil
-      end
-
-      def parse_date(timestamp = nil)
-        return nil unless timestamp.is_a?(String)
-
-        return DateTime.parse(timestamp).strftime('%Q').to_i rescue nil
-      end
-
-      def ymd(timestamp, infix = '-')
-        utc_datetime = Time.at((timestamp/1000).to_i).utc
-        return utc_datetime.strftime('%Y' + infix + '%m' + infix + '%d')
-      end
-
-      def ymdhms(timestamp, infix = ' ')
-        utc_datetime = Time.at((timestamp/1000).to_i).utc
-        return utc_datetime.strftime('%Y-%m-%d' + infix + '%H:%M:%S')
-      end
-
-      # Ruby default capitalize will capitalize the first letter and lower the others.
-      def capitalize(string)
-        if string.length > 1
-          return (string[0].upcase + string[1..-1])
-        else
-          return string.upcase
-        end
-      end
-
-      def parse_timeframe(timeframe)
-        amount = timeframe[0..-1].to_i
-        unit = timeframe[-1]
-        case unit
-        when 'y'
-          scale = 60 * 60 * 24 * 365
-        when 'M'
-          scale = 60 * 60 * 24 * 30
-        when 'w'
-          scale = 60 * 60 * 24 * 7
-        when 'd'
-          scale = 60 * 60 * 24
-        when 'h'
-          scale = 60 * 60
-        else
-          scale = 60 # 1m by default
-        end
-        return amount * scale
-      end
-
-    end # class << self
   end
 end
