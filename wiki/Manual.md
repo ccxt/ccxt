@@ -725,6 +725,7 @@ Supported counting modes are:
 
 - `DECIMAL_PLACES` – counts all digits, 99% of exchanges use this counting mode
 - `SIGNIFICANT_DIGITS` – counts non-zero digits only, some exchanges (`bitfinex` and maybe a few other) implement this mode of counting decimals
+- `TICK_SIZE` – some exchanges only allow a multiple of a specific value (`bitmex` uses this mode)
 
 Supported padding modes are:
 
