@@ -21,36 +21,7 @@ module.exports = class oceanex extends Exchange {
                 'doc': 'https://api.oceanex.pro/doc/v1',
                 'referral': 'https://oceanex.pro/signup?referral=VE24QX',
             },
-            'api': {
-                'public': {
-                    'get': [
-                        'markets',
-                        'tickers/{pair}',
-                        'tickers_multi',
-                        'order_book',
-                        'order_book/multi',
-                        'fees/trading',
-                        'trades',
-                        'timestamp',
-                    ],
-                },
-                'private': {
-                    'get': [
-                        'key',
-                        'members/me',
-                        'orders',
-                        'orders/filter',
-                    ],
-                    'post': [
-                        'orders',
-                        'orders/multi',
-                        'order/delete',
-                        'order/delete/multi',
-                        'orders/clear',
-                    ],
-                },
-            },
-            'version': 'v1',
+                        'version': 'v1',
             'rateLimit': 3000,
             'has': {
                 'fetchMarkets': true,
@@ -88,6 +59,35 @@ module.exports = class oceanex extends Exchange {
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': false,
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'markets',
+                        'tickers/{pair}',
+                        'tickers_multi',
+                        'order_book',
+                        'order_book/multi',
+                        'fees/trading',
+                        'trades',
+                        'timestamp',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'key',
+                        'members/me',
+                        'orders',
+                        'orders/filter',
+                    ],
+                    'post': [
+                        'orders',
+                        'orders/multi',
+                        'order/delete',
+                        'order/delete/multi',
+                        'orders/clear',
+                    ],
+                },
             },
             'exceptions': {
                 'codes': {
