@@ -13,9 +13,8 @@ module Ccxt
     PAD_WITH_ZERO = 5
 
     def self.included(base)
+      base.send :include, ClassMethods
       base.extend ClassMethods
-      base.class_eval do
-      end
     end
 
     module ClassMethods
