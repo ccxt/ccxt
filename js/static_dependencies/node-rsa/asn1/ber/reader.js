@@ -1,7 +1,7 @@
 // Copyright 2011 Mark Cavage <mcavage@gmail.com> All rights reserved.
 
 var assert = require('assert');
-var Buffer = require('safer-buffer').Buffer;
+// var Buffer = require('safer-buffer').Buffer;
 
 var ASN1 = require('./types');
 var errors = require('./errors');
