@@ -14,7 +14,4 @@ module.exports = {
   Ber: Ber,
 
   BerReader: Ber.Reader,
-
-  BerWriter: Ber.Writer
-
 };

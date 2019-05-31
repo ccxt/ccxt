@@ -4,17 +4,11 @@ var errors = require('./errors');
 var types = require('./types');
 
 var Reader = require('./reader');
-var Writer = require('./writer');
-
 
 // --- Exports
 
 module.exports = {
-
   Reader: Reader,
-
-  Writer: Writer
-
 };
 
 for (var t in types) {
