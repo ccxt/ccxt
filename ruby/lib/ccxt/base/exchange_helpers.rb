@@ -36,15 +36,15 @@ module Ccxt::ExchangeHelpers
     end
 
     def jwt(request, secret, algorithm = nil)
-      header = Exchange.encode(Exchange.json({
+      header = encode(json({
         'alg' => alg,
         'typ' => 'JWT'
         }))
-      encodedHeader = Exchange.base64urlencode(header)
-      encodedData = Exchange.base64urlencode(Exchange.encode(Exchange.json(request)))
+      encodedHeader = base64urlencode(header)
+      encodedData = base64urlencode(encode(json(request)))
       token = encodedHeader + '.' + encodedData
-      hmac = Exchange.hmac(Exchange.encode(token), Exchange.encode(secret), algorithm, 'binary')
-      signature = Exchange.base64urlencode(hmac)
+      hmac = hmac(encode(token), encode(secret), algorithm, 'binary')
+      signature = base64urlencode(hmac)
       return token + '.' + signature
     end
 
@@ -65,7 +65,7 @@ module Ccxt::ExchangeHelpers
     #         return base64.b32decode(padded)  # throws an error if the key is invalid
     #
     #     epoch = int(time.time()) // 30
-    #     hmac_res = Exchange.hmac(dec_to_bytes(epoch).rjust(8, b'\x00'), base32_to_bytes(key.replace(' ', '')), hashlib.sha1, 'hex')
+    #     hmac_res = hmac(dec_to_bytes(epoch).rjust(8, b'\x00'), base32_to_bytes(key.replace(' ', '')), hashlib.sha1, 'hex')
     #     offset = hex_to_dec(hmac_res[-1]) * 2
     #     otp = str(hex_to_dec(hmac_res[offset: offset + 8]) & 0x7fffffff)
     #     return otp[-6:]
@@ -105,14 +105,14 @@ module Ccxt::ExchangeHelpers
     #
     # @staticmethod
     # def rawencode(params = {}):
-    #     return _urlencode.unquote(Exchange.urlencode(params))
+    #     return _urlencode.unquote(urlencode(params))
 
     def rawencode(params = {})
       return Addressable::URI.encode_component(params, /./)
     end
 
     def base64urlencode(s)
-      return Exchange.decode(Base64.urlsafe_encode64(s, padding: false))
+      return decode(Base64.urlsafe_encode64(s, padding: false))
     end
 
     ### GENERIC
@@ -177,12 +177,12 @@ module Ccxt::ExchangeHelpers
     end
 
     def filterBy(array, key, value = nil)
-      return Exchange.filter_by(array, key, value)
+      return filter_by(array, key, value)
     end
 
     def filter_by(array, key, value = nil)
       if value
-        grouped = Exchange.group_by(array, key)
+        grouped = group_by(array, key)
         return grouped[value] if grouped.has_key? value
 
         return []
@@ -192,12 +192,12 @@ module Ccxt::ExchangeHelpers
     end
 
     def groupBy(array, key)
-      return Exchange.group_by(array, key)
+      return group_by(array, key)
     end
 
     def group_by(array, key)
       result = {}
-      array = self.to_array(array)
+      array = to_array(array)
       array = array.collect { |entry| entry[key] ? entry : nil }.compact
       array.each do |entry|
         result[entry[key]] ||= []
@@ -212,7 +212,7 @@ module Ccxt::ExchangeHelpers
 
     def index_by(array, key)
       result = {}
-      array = self.keysort(array).values if array.is_a?(Hash)
+      array = keysort(array).values if array.is_a?(Hash)
       array.each do |element|
         if element.has_key?(key) && (element[key] != nil)
           k = element[key]
@@ -271,7 +271,7 @@ module Ccxt::ExchangeHelpers
     end
 
     def safe_float_2(hash, key1, key2, default_value = nil)
-      return self.safe_either(method(:safe_float), hash, key1, key2, default_value)
+      return safe_either(method(:safe_float), hash, key1, key2, default_value)
     end
 
     def safe_integer(hash, key, default_value = nil)
@@ -284,7 +284,7 @@ module Ccxt::ExchangeHelpers
     end
 
     def safe_integer_2(hash, key1, key2, default_value = nil)
-      return self.safe_either(method(:safe_integer), hash, key1, key2, default_value)
+      return safe_either(method(:safe_integer), hash, key1, key2, default_value)
     end
 
     def safe_string(hash, key, default_value = nil)
@@ -297,7 +297,7 @@ module Ccxt::ExchangeHelpers
     end
 
     def safe_string_2(hash, key1, key2, default_value = nil)
-      return self.safe_either(method(:safe_string), hash, key1, key2, default_value)
+      return safe_either(method(:safe_string), hash, key1, key2, default_value)
     end
 
     def safe_value(hash, key, default_value = nil)
@@ -310,7 +310,7 @@ module Ccxt::ExchangeHelpers
     end
 
     def safe_value_2(hash, key1, key2, default_value = nil)
-      return self.safe_either(method(:safe_string), hash, key1, key2, default_value)
+      return safe_either(method(:safe_string), hash, key1, key2, default_value)
     end
 
     def sort_by(array, key, descending = false)
@@ -347,8 +347,8 @@ module Ccxt::ExchangeHelpers
     end
 
     def url(path, params = {})
-      result = Exchange.implode_params(path, params)
-      query = Exchange.omit(params, Exchange.extract_params(path))
+      result = implode_params(path, params)
+      query = omit(params, extract_params(path))
       if query
         result += '?' + RestClient::Utils.encode_query_string(query)
       end
@@ -369,7 +369,7 @@ module Ccxt::ExchangeHelpers
     ### TIME
 
     def sec
-      self.seconds
+      seconds
     end
 
     def seconds
@@ -377,7 +377,7 @@ module Ccxt::ExchangeHelpers
     end
 
     def usec
-      self.microseconds
+      microseconds
     end
 
     def uuid
@@ -393,7 +393,7 @@ module Ccxt::ExchangeHelpers
     end
 
     def msec
-      return self.milliseconds
+      return milliseconds
     end
 
     def iso8601(timestamp = nil)
