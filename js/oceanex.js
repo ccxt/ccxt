@@ -14,6 +14,7 @@ module.exports = class oceanex extends Exchange {
             'name': 'OceanEx',
             'countries': [ 'US' ],
             'version': 'v1',
+            'rateLimit': 3000,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/58385970-794e2d80-8001-11e9-889c-0567cd79b78e.jpg',
                 'api': 'https://api.oceanex.pro',
@@ -21,8 +22,6 @@ module.exports = class oceanex extends Exchange {
                 'doc': 'https://api.oceanex.pro/doc/v1',
                 'referral': 'https://oceanex.pro/signup?referral=VE24QX',
             },
-                        'version': 'v1',
-            'rateLimit': 3000,
             'has': {
                 'fetchMarkets': true,
                 'fetchCurrencies': false,
