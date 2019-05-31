@@ -673,7 +673,6 @@ module.exports = class gdax extends Exchange {
         if ('canceled_at' in transaction && transaction['canceled_at']) {
             return 'canceled';
         }
-
         const processed = ('processed_at' in transaction && transaction['processed_at']);
         const completed = ('completed_at' in transaction && transaction['completed_at']);
         if (processed && completed) {
