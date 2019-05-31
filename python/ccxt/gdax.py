@@ -630,16 +630,17 @@ class gdax (Exchange):
         return self.parseTransactions(response, currency, since, limit)
 
     def parse_transaction_status(self, transaction):
-        if 'canceled_at' in transaction and transaction['canceled_at']:
+        canceled = self.safe_value(transaction, 'canceled_at')
+        if canceled:
             return 'canceled'
-        elif 'completed_at' in transaction and transaction['completed_at']:
+        processed = self.safe_value(transaction, 'processed_at')
+        completed = self.safe_value(transaction, 'completed_at')
+        if processed and completed:
             return 'ok'
-        elif (('canceled_at' in list(transaction.keys())) and not transaction['canceled_at']) and(('completed_at' in list(transaction.keys())) and not transaction['completed_at']) and(('processed_at' in list(transaction.keys())) and not transaction['processed_at']):
-            return 'pending'
-        elif 'processed_at' in transaction and transaction['processed_at']:
-            return 'pending'
-        else:
+        elif processed and not completed:
             return 'failed'
+        else:
+            return 'pending'
 
     def parse_transaction(self, transaction, currency=None):
         details = self.safe_value(transaction, 'details', {})
