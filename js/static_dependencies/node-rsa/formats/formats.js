@@ -29,7 +29,6 @@ function formatParse(format) {
 
 module.exports = {
     pkcs1: require('./pkcs1'),
-    pkcs8: require('./pkcs8'),
     components: require('./components'),
 
     isPrivateExport: function (format) {

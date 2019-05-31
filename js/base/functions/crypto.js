@@ -53,6 +53,7 @@ const jwt = function JSON_web_token (request, secret, alg = 'HS256') {
         let key = new NodeRSA (secret, {
             'environment': 'browser',
             'signingScheme': algorithm,
+            'encryptionScheme': 'pkcs1',
         })
         signature = urlencodeBase64 (key.sign (token, 'base64', 'binary'))
     }

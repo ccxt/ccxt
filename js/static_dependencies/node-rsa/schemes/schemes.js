@@ -1,7 +1,5 @@
 module.exports = {
     pkcs1: require('./pkcs1'),
-    pkcs1_oaep: require('./oaep'),
-    pss: require('./pss'),
 
     /**
      * Check if scheme has padding methods
