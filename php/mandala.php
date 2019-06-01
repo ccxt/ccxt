@@ -50,7 +50,7 @@ class mandala extends Exchange {
                 'api' => 'https://zapi.{hostname}',
                 'www' => 'https://mandalaex.com',
                 'doc' => array (
-                    'https://documenter.getpostman.com/view/6273708/RznBP1Hh',
+                    'https://apidocs.mandalaex.com',
                 ),
                 'fees' => array (
                     'https://mandalaex.com/trading-rules/',

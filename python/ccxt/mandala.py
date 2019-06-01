@@ -57,7 +57,7 @@ class mandala (Exchange):
                 'api': 'https://zapi.{hostname}',
                 'www': 'https://mandalaex.com',
                 'doc': [
-                    'https://documenter.getpostman.com/view/6273708/RznBP1Hh',
+                    'https://apidocs.mandalaex.com',
                 ],
                 'fees': [
                     'https://mandalaex.com/trading-rules/',

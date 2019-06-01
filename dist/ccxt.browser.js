@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.597'
+const version = '1.18.598'
 
 Exchange.ccxtVersion = version
 
@@ -8602,13 +8602,15 @@ module.exports = class binance extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         url += '/' + path;
-        if (api === 'wapi')
+        if (api === 'wapi') {
             url += '.html';
+        }
+        const userDataStream = (path === 'userDataStream');
         if (path === 'historicalTrades') {
             headers = {
                 'X-MBX-APIKEY': this.apiKey,
             };
-        } else if (path === 'userDataStream') {
+        } else if (userDataStream) {
             // v1 special case for userDataStream
             body = this.urlencode (params);
             headers = {
@@ -8634,8 +8636,13 @@ module.exports = class binance extends Exchange {
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         } else {
-            if (Object.keys (params).length)
-                url += '?' + this.urlencode (params);
+            // userDataStream endpoints are public, but POST, PUT, DELETE
+            // therefore they don't accept URL query arguments
+            // https://github.com/ccxt/ccxt/issues/5224
+            if (!userDataStream) {
+                if (Object.keys (params).length)
+                    url += '?' + this.urlencode (params);
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -56538,7 +56545,7 @@ module.exports = class mandala extends Exchange {
                 'api': 'https://zapi.{hostname}',
                 'www': 'https://mandalaex.com',
                 'doc': [
-                    'https://documenter.getpostman.com/view/6273708/RznBP1Hh',
+                    'https://apidocs.mandalaex.com',
                 ],
                 'fees': [
                     'https://mandalaex.com/trading-rules/',
