@@ -3,7 +3,6 @@
 /*  ------------------------------------------------------------------------ */
 
 const CryptoJS = require ('crypto-js')
-const JsonWebToken = require ('jsonwebtoken')
 const { capitalize } = require ('./string')
 const { stringToBase64, utf16ToBase64, urlencodeBase64 } = require ('./encode')
 
@@ -27,17 +26,7 @@ const hmac = (request, secret, hash = 'sha256', digest = 'hex') => {
 
 /*  .............................................   */
 
-const rsa  = (request, private_key) => {
-    const result = JsonWebToken.sign (request, private_key, { algorithm: 'RS256' })
-    return result
-}
-
-/*  .............................................   */
-
 const jwt = function JSON_web_token (request, secret, alg = 'HS256', hash = 'sha256') {
-    if (alg === 'RS256') {
-        return rsa (request, secret)
-    }
     const encodedHeader = urlencodeBase64 (stringToBase64 (JSON.stringify ({ 'alg': alg, 'typ': 'JWT' })))
         , encodedData = urlencodeBase64 (stringToBase64 (JSON.stringify (request)))
         , token = [ encodedHeader, encodedData ].join ('.')
