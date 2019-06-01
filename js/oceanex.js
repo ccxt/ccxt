@@ -175,9 +175,29 @@ module.exports = class oceanex extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        const response = await this.publicGetTickersPair (this.extend ({ 'pair': market['id'] }, params));
-        const data = this.safeValue (response, 'data');
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
+        };
+        const response = await this.publicGetTickersPair (this.extend (request, params));
+        //
+        //     {
+        //         "code":0,
+        //         "message":"Operation successful",
+        //         "data": {
+        //             "at":1559431729,
+        //             "ticker": {
+        //                 "buy":"0.0065",
+        //                 "sell":"0.00677",
+        //                 "low":"0.00677",
+        //                 "high":"0.00677",
+        //                 "last":"0.00677",
+        //                 "vol":"2000.0"
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
         return this.parseTicker (data, market);
     }
 
@@ -186,30 +206,56 @@ module.exports = class oceanex extends Exchange {
         if (symbols === undefined) {
             symbols = this.symbols;
         }
-        let markets = [];
-        for (let i = 0; i < symbols.length; i++) {
-            let marketId = this.marketId (symbols[i]);
-            markets.push (marketId);
-        }
-        const response = await this.publicGetTickersMulti (this.extend ({ 'markets': markets }, params));
+        const marketIds = this.marketIds (symbols);
+        const request = { 'markets': marketIds };
+        const response = await this.publicGetTickersMulti (this.extend (request, params));
+        //
+        //     {
+        //         "code":0,
+        //         "message":"Operation successful",
+        //         "data": {
+        //             "at":1559431729,
+        //             "ticker": {
+        //                 "buy":"0.0065",
+        //                 "sell":"0.00677",
+        //                 "low":"0.00677",
+        //                 "high":"0.00677",
+        //                 "last":"0.00677",
+        //                 "vol":"2000.0"
+        //             }
+        //         }
+        //     }
+        //
         const data = this.safeValue (response, 'data');
-        let result = {};
+        const result = {};
         for (let i = 0; i < data.length; i++) {
-            let ticker = data[i];
-            let marketId = this.safeValue (ticker, 'market');
-            let market = this.markets_by_id[marketId];
-            let symbol = market['symbol'];
+            const ticker = data[i];
+            const marketId = this.safeString (ticker, 'market');
+            const market = this.markets_by_id[marketId];
+            const symbol = market['symbol'];
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
     }
 
     parseTicker (data, market = undefined) {
-        let ticker = this.safeValue (data, 'ticker');
+        //
+        //         {
+        //             "at":1559431729,
+        //             "ticker": {
+        //                 "buy":"0.0065",
+        //                 "sell":"0.00677",
+        //                 "low":"0.00677",
+        //                 "high":"0.00677",
+        //                 "last":"0.00677",
+        //                 "vol":"2000.0"
+        //             }
+        //         }
+        //
+        const ticker = this.safeValue (data, 'ticker', {});
         let timestamp = this.safeInteger (data, 'at');
         if (timestamp !== undefined) {
             timestamp = timestamp * 1000;
-            // Get milliseconds
         }
         return {
             'symbol': market['symbol'],
