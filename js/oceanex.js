@@ -57,8 +57,10 @@ module.exports = class oceanex extends Exchange {
                 '1w': '1w',
             },
             'requiredCredentials': {
-                'apiKey': true,
+                'apiKey': false,
                 'secret': false,
+                'uid': true,
+                'privateKey': true,
             },
             'api': {
                 'public': {
