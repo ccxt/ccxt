@@ -88,6 +88,14 @@ module.exports = class oceanex extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': 0.1 / 100,
+                    'taker': 0.1 / 100,
+                },
+            },
             'exceptions': {
                 'codes': {
                     '-1': BadRequest,
