@@ -43,9 +43,8 @@ var _ = require('../utils')._;
 var BigInteger = require('./jsbn.js');
 var utils = require('../utils.js');
 var schemes = require('../schemes/schemes.js');
-var encryptEngines = require('../encryptEngines/encryptEngines.js');
 
-exports.BigInteger = BigInteger;
+//exports.BigInteger = BigInteger;
 module.exports.Key = (function () {
     /**
      * RSA key constructor
@@ -80,53 +79,7 @@ module.exports.Key = (function () {
             this.encryptionScheme = encryptionSchemeProvider.makeScheme(this, options);
             this.signingScheme = signingSchemeProvider.makeScheme(this, options);
         }
-
-        this.encryptEngine = encryptEngines.getEngine(this, options);
     };
-
-    /**
-     * Generate a new random private key B bits long, using public expt E
-     * @param B
-     * @param E
-     */
-    RSAKey.prototype.generate = function (B, E) {
-        var qs = B >> 1;
-        this.e = parseInt(E, 16);
-        var ee = new BigInteger(E, 16);
-        while (true) {
-            while (true) {
-                this.p = new BigInteger(B - qs, 1);
-                if (this.p.subtract(BigInteger.ONE).gcd(ee).compareTo(BigInteger.ONE) === 0 && this.p.isProbablePrime(10))
-                    break;
-            }
-            while (true) {
-                this.q = new BigInteger(qs, 1);
-                if (this.q.subtract(BigInteger.ONE).gcd(ee).compareTo(BigInteger.ONE) === 0 && this.q.isProbablePrime(10))
-                    break;
-            }
-            if (this.p.compareTo(this.q) <= 0) {
-                var t = this.p;
-                this.p = this.q;
-                this.q = t;
-            }
-            var p1 = this.p.subtract(BigInteger.ONE);
-            var q1 = this.q.subtract(BigInteger.ONE);
-            var phi = p1.multiply(q1);
-            if (phi.gcd(ee).compareTo(BigInteger.ONE) === 0) {
-                this.n = this.p.multiply(this.q);
-                if (this.n.bitLength() < B) {
-                    continue;
-                }
-                this.d = ee.modInverse(phi);
-                this.dmp1 = this.d.mod(p1);
-                this.dmq1 = this.d.mod(q1);
-                this.coeff = this.q.modInverse(this.p);
-                break;
-            }
-        }
-        this.$$recalculateCache();
-    };
-
     /**
      * Set the private key fields N, e, d and CRT params from buffers
      *
@@ -157,21 +110,6 @@ module.exports.Key = (function () {
             this.$$recalculateCache();
         } else {
             throw Error("Invalid RSA private key");
-        }
-    };
-
-    /**
-     * Set the public key fields N and e from hex strings
-     * @param N
-     * @param E
-     */
-    RSAKey.prototype.setPublic = function (N, E) {
-        if (N && E && N.length > 0 && (_.isNumber(E) || E.length > 0)) {
-            this.n = new BigInteger(N);
-            this.e = _.isNumber(E) ? E : utils.get32IntFromBuffer(E, 0);
-            this.$$recalculateCache();
-        } else {
-            throw Error("Invalid RSA public key");
         }
     };
 
@@ -208,63 +146,8 @@ module.exports.Key = (function () {
         return x.modPowInt(this.e, this.n);
     };
 
-    /**
-     * Return the PKCS#1 RSA encryption of buffer
-     * @param buffer {Buffer}
-     * @returns {Buffer}
-     */
-    RSAKey.prototype.encrypt = function (buffer, usePrivate) {
-        var buffers = [];
-        var results = [];
-        var bufferSize = buffer.length;
-        var buffersCount = Math.ceil(bufferSize / this.maxMessageLength) || 1; // total buffers count for encrypt
-        var dividedSize = Math.ceil(bufferSize / buffersCount || 1); // each buffer size
-
-        if (buffersCount == 1) {
-            buffers.push(buffer);
-        } else {
-            for (var bufNum = 0; bufNum < buffersCount; bufNum++) {
-                buffers.push(buffer.slice(bufNum * dividedSize, (bufNum + 1) * dividedSize));
-            }
-        }
-
-        for (var i = 0; i < buffers.length; i++) {
-            results.push(this.encryptEngine.encrypt(buffers[i], usePrivate));
-        }
-
-        return Buffer.concat(results);
-    };
-
-    /**
-     * Return the PKCS#1 RSA decryption of buffer
-     * @param buffer {Buffer}
-     * @returns {Buffer}
-     */
-    RSAKey.prototype.decrypt = function (buffer, usePublic) {
-        if (buffer.length % this.encryptedDataLength > 0) {
-            throw Error('Incorrect data or key');
-        }
-
-        var result = [];
-        var offset = 0;
-        var length = 0;
-        var buffersCount = buffer.length / this.encryptedDataLength;
-
-        for (var i = 0; i < buffersCount; i++) {
-            offset = i * this.encryptedDataLength;
-            length = offset + this.encryptedDataLength;
-            result.push(this.encryptEngine.decrypt(buffer.slice(offset, Math.min(length, buffer.length)), usePublic));
-        }
-
-        return Buffer.concat(result);
-    };
-
     RSAKey.prototype.sign = function (buffer) {
         return this.signingScheme.sign.apply(this.signingScheme, arguments);
-    };
-
-    RSAKey.prototype.verify = function (buffer, signature, signature_encoding) {
-        return this.signingScheme.verify.apply(this.signingScheme, arguments);
     };
 
     /**
