@@ -19,13 +19,10 @@ if (typeof constants.RSA_NO_PADDING === "undefined") {
 
 module.exports = (function () {
     var SUPPORTED_HASH_ALGORITHMS = {
-        node10: ['md4', 'md5', 'ripemd160', 'sha1', 'sha224', 'sha256', 'sha384', 'sha512'],
-        node: ['md4', 'md5', 'ripemd160', 'sha1', 'sha224', 'sha256', 'sha384', 'sha512'],
-        iojs: ['md4', 'md5', 'ripemd160', 'sha1', 'sha224', 'sha256', 'sha384', 'sha512'],
         browser: ['md5', 'ripemd160', 'sha1', 'sha256', 'sha512']
     };
 
-    var DEFAULT_ENCRYPTION_SCHEME = 'pkcs1_oaep';
+    var DEFAULT_ENCRYPTION_SCHEME = 'pkcs1';
     var DEFAULT_SIGNING_SCHEME = 'pkcs1';
 
     var DEFAULT_EXPORT_FORMAT = 'private';

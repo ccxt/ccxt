@@ -1,6 +1,6 @@
 /*
  * Basic JavaScript BN library - subset useful for RSA encryption.
- * 
+ *
  * Copyright (c) 2003-2005  Tom Wu
  * All Rights Reserved.
  *
@@ -15,9 +15,9 @@
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND, 
- * EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY 
- * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  
+ * THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY
+ * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
  *
  * IN NO EVENT SHALL TOM WU BE LIABLE FOR ANY SPECIAL, INCIDENTAL,
  * INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY KIND, OR ANY DAMAGES WHATSOEVER
@@ -112,7 +112,7 @@ function am3(i, x, w, j, c, n) {
     return c;
 }
 
-// We need to select the fastest one that works in this environment. 
+// We need to select the fastest one that works in this environment.
 //if (j_lm && (navigator.appName == "Microsoft Internet Explorer")) {
 //	BigInteger.prototype.am = am2;
 //	dbits = 30;
@@ -702,16 +702,6 @@ function bnIntValue() {
     return ((this[1] & ((1 << (32 - this.DB)) - 1)) << this.DB) | this[0];
 }
 
-//(public) return value as byte
-function bnByteValue() {
-    return (this.t == 0) ? this.s : (this[0] << 24) >> 24;
-}
-
-//(public) return value as short (assumes DB>=16)
-function bnShortValue() {
-    return (this.t == 0) ? this.s : (this[0] << 16) >> 16;
-}
-
 //(protected) return x s.t. r^x < DV
 function bnpChunkSize(r) {
     return Math.floor(Math.LN2 * this.DB / Math.log(r));
@@ -764,35 +754,6 @@ function bnpFromRadix(s, b) {
         this.dAddOffset(w, 0);
     }
     if (mi) BigInteger.ZERO.subTo(this, this);
-}
-
-//(protected) alternate constructor
-function bnpFromNumber(a, b) {
-    if ("number" == typeof b) {
-        // new BigInteger(int,int,RNG)
-        if (a < 2) this.fromInt(1);
-        else {
-            this.fromNumber(a);
-            if (!this.testBit(a - 1))	// force MSB set
-                this.bitwiseTo(BigInteger.ONE.shiftLeft(a - 1), op_or, this);
-            if (this.isEven()) this.dAddOffset(1, 0); // force odd
-            while (!this.isProbablePrime(b)) {
-                this.dAddOffset(2, 0);
-                if (this.bitLength() > a) this.subTo(BigInteger.ONE.shiftLeft(a - 1), this);
-            }
-        }
-    } else {
-        // new BigInteger(int,RNG)
-        var x = crypt.randomBytes((a >> 3) + 1)
-        var t = a & 7;
-
-        if (t > 0)
-            x[0] &= ((1 << t) - 1);
-        else
-            x[0] = 0;
-
-        this.fromByteArray(x);
-    }
 }
 
 //(public) convert to bigendian byte array
@@ -912,11 +873,6 @@ function bnXor(a) {
 function op_andnot(x, y) {
     return x & ~y;
 }
-function bnAndNot(a) {
-    var r = nbi();
-    this.bitwiseTo(a, op_andnot, r);
-    return r;
-}
 
 //(public) ~this
 function bnNot() {
@@ -924,13 +880,6 @@ function bnNot() {
     for (var i = 0; i < this.t; ++i) r[i] = this.DM & ~this[i];
     r.t = this.t;
     r.s = ~this.s;
-    return r;
-}
-
-//(public) this << n
-function bnShiftLeft(n) {
-    var r = nbi();
-    if (n < 0) this.rShiftTo(-n, r); else this.lShiftTo(n, r);
     return r;
 }
 
@@ -981,42 +930,6 @@ function cbit(x) {
         ++r;
     }
     return r;
-}
-
-//(public) return number of set bits
-function bnBitCount() {
-    var r = 0, x = this.s & this.DM;
-    for (var i = 0; i < this.t; ++i) r += cbit(this[i] ^ x);
-    return r;
-}
-
-//(public) true iff nth bit is set
-function bnTestBit(n) {
-    var j = Math.floor(n / this.DB);
-    if (j >= this.t) return (this.s != 0);
-    return ((this[j] & (1 << (n % this.DB))) != 0);
-}
-
-//(protected) this op (1<<n)
-function bnpChangeBit(n, op) {
-    var r = BigInteger.ONE.shiftLeft(n);
-    this.bitwiseTo(r, op, r);
-    return r;
-}
-
-//(public) this | (1<<n)
-function bnSetBit(n) {
-    return this.changeBit(n, op_or);
-}
-
-//(public) this & ~(1<<n)
-function bnClearBit(n) {
-    return this.changeBit(n, op_andnot);
-}
-
-//(public) this ^ (1<<n)
-function bnFlipBit(n) {
-    return this.changeBit(n, op_xor);
 }
 
 //(protected) r = this + a
@@ -1092,13 +1005,6 @@ function bnRemainder(a) {
     var r = nbi();
     this.divRemTo(a, null, r);
     return r;
-}
-
-//(public) [this/a,this%a]
-function bnDivideAndRemainder(a) {
-    var q = nbi(), r = nbi();
-    this.divRemTo(a, q, r);
-    return new Array(q, r);
 }
 
 //(protected) this *= n, this >= 0, 1 < n < DV
@@ -1464,9 +1370,7 @@ BigInteger.prototype.exp = bnpExp;
 BigInteger.prototype.chunkSize = bnpChunkSize;
 BigInteger.prototype.toRadix = bnpToRadix;
 BigInteger.prototype.fromRadix = bnpFromRadix;
-BigInteger.prototype.fromNumber = bnpFromNumber;
 BigInteger.prototype.bitwiseTo = bnpBitwiseTo;
-BigInteger.prototype.changeBit = bnpChangeBit;
 BigInteger.prototype.addTo = bnpAddTo;
 BigInteger.prototype.dMultiply = bnpDMultiply;
 BigInteger.prototype.dAddOffset = bnpDAddOffset;
@@ -1487,8 +1391,6 @@ BigInteger.prototype.modPowInt = bnModPowInt;
 
 BigInteger.prototype.clone = bnClone;
 BigInteger.prototype.intValue = bnIntValue;
-BigInteger.prototype.byteValue = bnByteValue;
-BigInteger.prototype.shortValue = bnShortValue;
 BigInteger.prototype.signum = bnSigNum;
 BigInteger.prototype.toByteArray = bnToByteArray;
 BigInteger.prototype.toBuffer = bnToBuffer;
@@ -1498,22 +1400,14 @@ BigInteger.prototype.max = bnMax;
 BigInteger.prototype.and = bnAnd;
 BigInteger.prototype.or = bnOr;
 BigInteger.prototype.xor = bnXor;
-BigInteger.prototype.andNot = bnAndNot;
 BigInteger.prototype.not = bnNot;
-BigInteger.prototype.shiftLeft = bnShiftLeft;
 BigInteger.prototype.shiftRight = bnShiftRight;
 BigInteger.prototype.getLowestSetBit = bnGetLowestSetBit;
-BigInteger.prototype.bitCount = bnBitCount;
-BigInteger.prototype.testBit = bnTestBit;
-BigInteger.prototype.setBit = bnSetBit;
-BigInteger.prototype.clearBit = bnClearBit;
-BigInteger.prototype.flipBit = bnFlipBit;
 BigInteger.prototype.add = bnAdd;
 BigInteger.prototype.subtract = bnSubtract;
 BigInteger.prototype.multiply = bnMultiply;
 BigInteger.prototype.divide = bnDivide;
 BigInteger.prototype.remainder = bnRemainder;
-BigInteger.prototype.divideAndRemainder = bnDivideAndRemainder;
 BigInteger.prototype.modPow = bnModPow;
 BigInteger.prototype.modInverse = bnModInverse;
 BigInteger.prototype.pow = bnPow;
