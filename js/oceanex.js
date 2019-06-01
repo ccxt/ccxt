@@ -31,7 +31,8 @@ module.exports = class oceanex extends Exchange {
                 'fetchOrderBooks': true,
                 'fetchTrades': true,
                 'fetchTradingLimits': false,
-                'fetchTradingFees': true,
+                'fetchTradingFees': false,
+                'fetchAllTradingFees': true,
                 'fetchFundingFees': false,
                 'fetchTime': true,
                 'fetchOrder': true,
@@ -340,31 +341,36 @@ module.exports = class oceanex extends Exchange {
 
     async fetchTime (params = {}) {
         const response = await this.publicGetTimestamp (params);
-        const data = this.safeValue (response, 'data');
-        return data;
+        let timestamp = this.safeInteger (response, 'data');
+        return timestamp * 1000;
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchAllTradingFees (params = {}) {
         const response = await this.publicGetFeesTrading (params);
         const data = this.safeValue (response, 'data');
-        let result = [];
+        const result = {};
         for (let i = 0; i < data.length; i++) {
-            let group = data[i];
-            let maker = this.safeValue (group, 'ask_fee');
-            let taker = this.safeValue (group, 'bid_fee');
-            result.push ({
+            const group = data[i];
+            const maker = this.safeValue (group, 'ask_fee', {});
+            const taker = this.safeValue (group, 'bid_fee', {});
+            const marketId = this.safeString (group, 'market');
+            let symbol = marketId;
+            if (marketId in this.markets_by_id) {
+                symbol = this.markets_by_id[marketId]['symbol'];
+            }
+            result[symbol] = {
                 'info': group,
+                'symbol': symbol,
                 'maker': this.safeFloat (maker, 'value'),
                 'taker': this.safeFloat (taker, 'value'),
-            });
+            };
         }
         return result;
     }
 
     async fetchKey (params = {}) {
         const response = await this.privateGetKey (params);
-        const data = this.safeValue (response, 'data');
-        return data;
+        return this.safeValue (response, 'data');
     }
 
     async fetchBalance (params = {}) {
