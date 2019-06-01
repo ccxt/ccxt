@@ -424,7 +424,7 @@ const rubyRegexes = [
     [ /throw ([\S]+)/g, 'raise $1'],
     [ /try {/g, 'begin'],
     [ /\}\s+catch \(([\S]+)\) {/g, 'rescue BaseError => $1'],
-    [ /([\s\(])extend(\s)/g, '$1self.extend$2' ],
+    [ /self\.extend\s*/g, 'self.shallow_extend'],
     [ /\(([^\s]+)\sin\s([^\)]+)\)/g, '($2.include?($1))' ],
     [ /\} else if/g, 'elsif' ],
     [ /else if/g, 'elsif' ],
