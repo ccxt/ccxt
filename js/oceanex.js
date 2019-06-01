@@ -662,35 +662,26 @@ module.exports = class oceanex extends Exchange {
     handleErrors (code, reason, url, method, headers, body, response) {
         // API response structure
         // HTTP code : 200 (success to send request to API) / 201 (success to create order)
-        // {"code": , (success return 0. other code indicate error)
-        //  "message": "", (if error, contain error message report as string type)
-        //  "data": []}
+        //
+        //     {"code":1011,"message":"This IP '5.228.233.138' is not allowed","data":{}}
+        //
         if (response === undefined) {
             return;
         }
         if (code === 200 || code === 201) {
-            const resCode = this.safeValue (response, 'code');
-            if (resCode === undefined) {
-                throw new ExchangeError (response);
-            }
-            const message = this.safeValue (response, 'message');
-            if (resCode !== 0) {
-                const error = JSON.parse (message);
-                const errorCode = this.safeValue (error, 'code');
-                const errorMsg = this.safeValue (error, 'message');
-                const feedback = this.id + ' ' + this.json (response);
+            const errorCode = this.safeString (response, 'code');
+            const message = this.safeString (response, 'message');
+            if ((errorCode !== undefined) && (errorCode !== '0')) {
+                const feedback = this.id + ' ' + body;
                 const codes = this.exceptions['codes'];
                 const exact = this.exceptions['exact'];
-                if (resCode in codes) {
-                    throw new codes[resCode] (feedback);
-                }
                 if (errorCode in codes) {
                     throw new codes[errorCode] (feedback);
                 }
-                if (errorMsg in exact) {
-                    throw new exact[errorMsg] (feedback);
+                if (message in exact) {
+                    throw new exact[message] (feedback);
                 }
-                throw new ExchangeError (feedback);
+                throw new ExchangeError (response);
             }
         }
     }
