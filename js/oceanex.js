@@ -363,18 +363,20 @@ module.exports = class oceanex extends Exchange {
         await this.loadMarkets ();
         const response = await this.privateGetMembersMe (params);
         const balances = this.safeValue (this.safeValue (response, 'data'), 'accounts');
-        let result = { 'info': balances };
+        const result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            let currency = this.commonCurrencyCode (this.safeValue (balance, 'currency'));
-            let account = this.account ();
-            let free = this.safeFloat (balance, 'balance');
-            let used = this.safeFloat (balance, 'locked');
-            let total = this.sum (free, used);
+            const currencyId = this.safeValue (balance, 'currency');
+            const uppercaseId = currencyId.toUpperCase ();
+            const code = this.commonCurrencyCode (uppercaseId);
+            const account = this.account ();
+            const free = this.safeFloat (balance, 'balance');
+            const used = this.safeFloat (balance, 'locked');
+            const total = this.sum (free, used);
             account['free'] = free;
             account['used'] = used;
             account['total'] = total;
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
