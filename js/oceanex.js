@@ -283,19 +283,37 @@ module.exports = class oceanex extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'market': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         const response = await this.publicGetOrderBook (this.extend (request, params));
-        const orderbook = this.safeValue (response, 'data');
+        //
+        //     {
+        //         "code":0,
+        //         "message":"Operation successful",
+        //         "data": {
+        //             "timestamp":1559433057,
+        //             "asks": [
+        //                 ["100.0","20.0"],
+        //                 ["4.74","2000.0"],
+        //                 ["1.74","4000.0"],
+        //             ],
+        //             "bids":[
+        //                 ["0.0065","5482873.4"],
+        //                 ["0.00649","4781956.2"],
+        //                 ["0.00648","2876006.8"],
+        //             ],
+        //         }
+        //     }
+        //
+        const orderbook = this.safeValue (response, 'data', {});
         let timestamp = this.safeInteger (orderbook, 'timestamp');
         if (timestamp !== undefined) {
             timestamp = timestamp * 1000;
-            // Get milliseconds
         }
         return this.parseOrderBook (orderbook, timestamp);
     }
@@ -305,26 +323,47 @@ module.exports = class oceanex extends Exchange {
         if (symbols === undefined) {
             symbols = this.symbols;
         }
-        let markets = [];
-        for (let i = 0; i < symbols.length; i++) {
-            let marketId = this.marketId (symbols[i]);
-            markets.push (marketId);
+        const marketIds = this.marketIds (symbols);
+        const request = {
+            'markets': marketIds,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
         }
-        const response = await this.publicGetOrderBookMulti (this.extend ({
-            'markets': markets,
-            'limit': limit,
-        }, params));
-        const data = this.safeValue (response, 'data');
-        let result = {};
+        const response = await this.publicGetOrderBookMulti (this.extend (request, params));
+        //
+        //     {
+        //         "code":0,
+        //         "message":"Operation successful",
+        //         "data": [
+        //             {
+        //                 "timestamp":1559433057,
+        //                 "market": "bagvet",
+        //                 "asks": [
+        //                     ["100.0","20.0"],
+        //                     ["4.74","2000.0"],
+        //                     ["1.74","4000.0"],
+        //                 ],
+        //                 "bids":[
+        //                     ["0.0065","5482873.4"],
+        //                     ["0.00649","4781956.2"],
+        //                     ["0.00648","2876006.8"],
+        //                 ],
+        //             },
+        //             ...,
+        //         ],
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = {};
         for (let i = 0; i < data.length; i++) {
-            let orderbook = data[i];
-            let marketId = this.safeValue (orderbook, 'market');
-            let market = this.markets_by_id[marketId];
-            let symbol = market['symbol'];
+            const orderbook = data[i];
+            const marketId = this.safeString (orderbook, 'market');
+            const market = this.markets_by_id[marketId];
+            const symbol = market['symbol'];
             let timestamp = this.safeInteger (orderbook, 'timestamp');
             if (timestamp !== undefined) {
                 timestamp = timestamp * 1000;
-                // Get milliseconds
             }
             result[symbol] = this.parseOrderBook (orderbook, timestamp);
         }
