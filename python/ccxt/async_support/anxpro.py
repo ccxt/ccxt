@@ -303,12 +303,14 @@ class anxpro (Exchange):
         code = self.common_currency_code(currencyId)
         transactionState = self.safe_string(transaction, 'transactionState')
         status = self.parse_transaction_status(transactionState)
+        feeCost = self.safe_float(transaction, 'fee')
+        netAmount = amount - feeCost
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'id': self.safe_string(transaction, 'uuid'),
             'currency': code,
-            'amount': amount,
+            'amount': netAmount,
             'address': address,
             'tag': tag,
             'status': status,
@@ -316,7 +318,7 @@ class anxpro (Exchange):
             'updated': updated,
             'txid': self.safe_string(transaction, 'coinTransactionId'),
             'fee': {
-                'cost': self.safe_float(transaction, 'fee'),
+                'cost': feeCost,
                 'currency': code,
             },
             'info': transaction,

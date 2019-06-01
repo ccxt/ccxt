@@ -303,12 +303,14 @@ module.exports = class anxpro extends Exchange {
         const code = this.commonCurrencyCode (currencyId);
         const transactionState = this.safeString (transaction, 'transactionState');
         const status = this.parseTransactionStatus (transactionState);
+        const feeCost = this.safeFloat (transaction, 'fee');
+        const netAmount = amount - feeCost;
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'id': this.safeString (transaction, 'uuid'),
             'currency': code,
-            'amount': amount,
+            'amount': netAmount,
             'address': address,
             'tag': tag,
             'status': status,
@@ -316,7 +318,7 @@ module.exports = class anxpro extends Exchange {
             'updated': updated,
             'txid': this.safeString (transaction, 'coinTransactionId'),
             'fee': {
-                'cost': this.safeFloat (transaction, 'fee'),
+                'cost': feeCost,
                 'currency': code,
             },
             'info': transaction,

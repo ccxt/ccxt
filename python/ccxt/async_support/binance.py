@@ -1130,11 +1130,12 @@ class binance (Exchange):
         url += '/' + path
         if api == 'wapi':
             url += '.html'
+        userDataStream = (path == 'userDataStream')
         if path == 'historicalTrades':
             headers = {
                 'X-MBX-APIKEY': self.apiKey,
             }
-        elif path == 'userDataStream':
+        elif userDataStream:
             # v1 special case for userDataStream
             body = self.urlencode(params)
             headers = {
@@ -1158,8 +1159,12 @@ class binance (Exchange):
                 body = query
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
         else:
-            if params:
-                url += '?' + self.urlencode(params)
+            # userDataStream endpoints are public, but POST, PUT, DELETE
+            # therefore they don't accept URL query arguments
+            # https://github.com/ccxt/ccxt/issues/5224
+            if not userDataStream:
+                if params:
+                    url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response):
