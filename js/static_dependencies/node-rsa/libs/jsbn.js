@@ -2,38 +2,13 @@
  * Basic JavaScript BN library - subset useful for RSA encryption.
  *
  * Copyright (c) 2003-2005  Tom Wu
- * All Rights Reserved.
+ * ~BSD license~
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY
- * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
- *
- * IN NO EVENT SHALL TOM WU BE LIABLE FOR ANY SPECIAL, INCIDENTAL,
- * INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY KIND, OR ANY DAMAGES WHATSOEVER
- * RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER OR NOT ADVISED OF
- * THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF LIABILITY, ARISING OUT
- * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- *
- * In addition, the following condition applies:
- *
- * All redistributions must retain an intact copy of this copyright notice
- * and disclaimer.
- */
-
-/*
  * Added Node.js Buffers support
  * 2014 rzcoder
+ *
+ * Deleted some stuff to save bytes
+ * frosty00
  */
 
 var _ = require('../utils')._;
@@ -66,32 +41,6 @@ function nbi() {
 // c < 3*dvalue, x < 2*dvalue, this_i < dvalue
 // We need to select the fastest one that works in this environment.
 
-// am1: use a single mult and divide to get the high bits,
-// max digit bits should be 26 because
-// max internal value = 2*dvalue^2-2*dvalue (< 2^53)
-function am1(i, x, w, j, c, n) {
-    while (--n >= 0) {
-        var v = x * this[i++] + w[j] + c;
-        c = Math.floor(v / 0x4000000);
-        w[j++] = v & 0x3ffffff;
-    }
-    return c;
-}
-// am2 avoids a big mult-and-extract completely.
-// Max digit bits should be <= 30 because we do bitwise ops
-// on values up to 2*hdvalue^2-hdvalue-1 (< 2^31)
-function am2(i, x, w, j, c, n) {
-    var xl = x & 0x7fff, xh = x >> 15;
-    while (--n >= 0) {
-        var l = this[i] & 0x7fff;
-        var h = this[i++] >> 15;
-        var m = xh * l + h * xl;
-        l = xl * l + ((m & 0x7fff) << 15) + w[j] + (c & 0x3fffffff);
-        c = (l >>> 30) + (m >>> 15) + xh * h + (c >>> 30);
-        w[j++] = l & 0x3fffffff;
-    }
-    return c;
-}
 // Alternately, set max digit bits to 28 since some
 // browsers slow down when dealing with 32-bit numbers.
 function am3(i, x, w, j, c, n) {
@@ -662,13 +611,6 @@ function bnpExp(e, z) {
     return z.revert(r);
 }
 
-// (public) this^e % m, 0 <= e < 2^32
-function bnModPowInt(e, m) {
-    var z;
-    if (e < 256 || m.isEven()) z = new Classic(m); else z = new Montgomery(m);
-    return this.exp(e, z);
-}
-
 // Copyright (c) 2005-2009  Tom Wu
 // All Rights Reserved.
 // See "LICENSE" for details.
@@ -875,13 +817,6 @@ function bnNot() {
     for (var i = 0; i < this.t; ++i) r[i] = this.DM & ~this[i];
     r.t = this.t;
     r.s = ~this.s;
-    return r;
-}
-
-//(public) this >> n
-function bnShiftRight(n) {
-    var r = nbi();
-    if (n < 0) this.lShiftTo(-n, r); else this.rShiftTo(n, r);
     return r;
 }
 
@@ -1238,43 +1173,6 @@ function bnGCD(a) {
     return y;
 }
 
-//(protected) this % n, n < 2^26
-function bnpModInt(n) {
-    if (n <= 0) return 0;
-    var d = this.DV % n, r = (this.s < 0) ? n - 1 : 0;
-    if (this.t > 0)
-        if (d === 0) r = this[0] % n;
-        else for (var i = this.t - 1; i >= 0; --i) r = (d * r + this[i]) % n;
-    return r;
-}
-
-var lowprimes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307, 311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439, 443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541, 547, 557, 563, 569, 571, 577, 587, 593, 599, 601, 607, 613, 617, 619, 631, 641, 643, 647, 653, 659, 661, 673, 677, 683, 691, 701, 709, 719, 727, 733, 739, 743, 751, 757, 761, 769, 773, 787, 797, 809, 811, 821, 823, 827, 829, 839, 853, 857, 859, 863, 877, 881, 883, 887, 907, 911, 919, 929, 937, 941, 947, 953, 967, 971, 977, 983, 991, 997];
-
-//(protected) true if probably prime (HAC 4.24, Miller-Rabin)
-function bnpMillerRabin(t) {
-    var n1 = this.subtract(BigInteger.ONE);
-    var k = n1.getLowestSetBit();
-    if (k <= 0) return false;
-    var r = n1.shiftRight(k);
-    t = (t + 1) >> 1;
-    if (t > lowprimes.length) t = lowprimes.length;
-    var a = nbi();
-    for (var i = 0; i < t; ++i) {
-        //Pick bases at random, instead of starting at 2
-        a.fromInt(lowprimes[Math.floor(Math.random() * lowprimes.length)]);
-        var y = a.modPow(r, this);
-        if (y.compareTo(BigInteger.ONE) != 0 && y.compareTo(n1) != 0) {
-            var j = 1;
-            while (j++ < k && y.compareTo(n1) != 0) {
-                y = y.modPowInt(2, this);
-                if (y.compareTo(BigInteger.ONE) === 0) return false;
-            }
-            if (y.compareTo(n1) != 0) return false;
-        }
-    }
-    return true;
-}
-
 // protected
 BigInteger.prototype.copyTo = bnpCopyTo;
 BigInteger.prototype.fromInt = bnpFromInt;
@@ -1303,9 +1201,6 @@ BigInteger.prototype.dMultiply = bnpDMultiply;
 BigInteger.prototype.dAddOffset = bnpDAddOffset;
 BigInteger.prototype.multiplyLowerTo = bnpMultiplyLowerTo;
 BigInteger.prototype.multiplyUpperTo = bnpMultiplyUpperTo;
-BigInteger.prototype.modInt = bnpModInt;
-BigInteger.prototype.millerRabin = bnpMillerRabin;
-
 
 // public
 BigInteger.prototype.toString = bnToString;
@@ -1314,7 +1209,6 @@ BigInteger.prototype.abs = bnAbs;
 BigInteger.prototype.compareTo = bnCompareTo;
 BigInteger.prototype.bitLength = bnBitLength;
 BigInteger.prototype.mod = bnMod;
-BigInteger.prototype.modPowInt = bnModPowInt;
 
 BigInteger.prototype.clone = bnClone;
 BigInteger.prototype.intValue = bnIntValue;
@@ -1328,7 +1222,6 @@ BigInteger.prototype.and = bnAnd;
 BigInteger.prototype.or = bnOr;
 BigInteger.prototype.xor = bnXor;
 BigInteger.prototype.not = bnNot;
-BigInteger.prototype.shiftRight = bnShiftRight;
 BigInteger.prototype.getLowestSetBit = bnGetLowestSetBit;
 BigInteger.prototype.add = bnAdd;
 BigInteger.prototype.subtract = bnSubtract;
