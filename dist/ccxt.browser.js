@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.598'
+const version = '1.18.599'
 
 Exchange.ccxtVersion = version
 
@@ -33478,6 +33478,7 @@ module.exports = class coolcoin extends coinegg {
                 'www': 'https://www.coolcoin.com',
                 'doc': 'https://www.coolcoin.com/help.api.html',
                 'fees': 'https://www.coolcoin.com/spend.price.html',
+                'referral': 'https://www.coolcoin.com',
             },
             'fees': {
                 'trading': {
