@@ -671,7 +671,9 @@ module.exports = class oceanex extends Exchange {
                 'uid': this.uid,
                 'data': query,
             };
-            // set apiKey: ocean.privateKey = fs.readFileSync('key.pem', 'utf8');
+            // to set the private key:
+            // const fs = require ('fs')
+            // exchange.privateKey = fs.readFileSync ('oceanex.pem', 'utf8')
             const jwt_token = this.jwt (request, this.privateKey, 'RS256');
             url += '?user_jwt=' + jwt_token;
         }
