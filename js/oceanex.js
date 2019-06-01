@@ -123,23 +123,27 @@ module.exports = class oceanex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetMarkets (this.extend ({ 'show_details': true }));
-        let result = [];
+        const request = { 'show_details': true };
+        const response = await this.publicGetMarkets (this.extend (request, params));
+        const result = [];
         const markets = this.safeValue (response, 'data');
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            let id = this.safeValue (market, 'id');
-            let symbol = this.safeValue (market, 'name');
-            let pair = symbol.split ('/');
-            let base = this.commonCurrencyCode (pair[0]);
-            let quote = this.commonCurrencyCode (pair[1]);
+            const id = this.safeValue (market, 'id');
+            const name = this.safeValue (market, 'name');
+            let [ baseId, quoteId ] = name.split ('/');
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            baseId = baseId.toLowerCase ();
+            quoteId = quoteId.toLowerCase ();
+            const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'baseId': base.toLowerCase (),
-                'quoteId': quote.toLowerCase (),
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': true,
                 'info': market,
                 'precision': {
