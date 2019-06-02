@@ -830,7 +830,7 @@ module.exports = class bittrex extends Exchange {
         else
             return this.parseOrderV3 (order, market);
     }
-    
+
     parseOrderStatus (status) {
         const statuses = {
             'CLOSED': 'closed',
