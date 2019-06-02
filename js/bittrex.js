@@ -246,6 +246,7 @@ module.exports = class bittrex extends Exchange {
                     // https://github.com/ccxt/ccxt/issues/4794
                     // 'LISK': true, // LSK
                 },
+                'subaccountId': undefined,
             },
             'commonCurrencies': {
                 'BITS': 'SWIFT',
@@ -1193,7 +1194,11 @@ module.exports = class bittrex extends Exchange {
             const subaccountId = '';
             const contentHash = this.hash ('', 'sha512', 'hex');
             const now = this.now ();
-            const preSign = [now, url, method, contentHash, subaccountId].join ('');
+            let auth = now + url + method + contentHash;
+            const subaccountId = this.safeValue (this.options, 'subaccountId');
+            if (subaccountId !== undefined) {
+                auth += subaccountId;
+            }
             const signature = this.hmac (this.encode (preSign), this.encode (this.secret), 'sha512');
             headers = {
                 'Api-Key': this.apiKey,
@@ -1201,6 +1206,9 @@ module.exports = class bittrex extends Exchange {
                 'Api-Content-Hash': contentHash,
                 'Api-Signature': signature,
             };
+            if (subaccountId !== undefined) {
+                headers['Api-Subaccount-Id'] = subaccountId;
+            }
         } else {
             this.checkRequiredCredentials ();
             url += api + '/';
