@@ -228,7 +228,7 @@ class Exchange {
         'fetchTicker' => 'fetch_ticker',
         'fetchBidsAsks' => 'fetch_bids_asks',
         'fetchTickers' => 'fetch_tickers',
-        'fetchOhlcv' => 'fetch_ohlcv',
+        'fetchOHLCV' => 'fetch_ohlcv',
         'fetchTrades' => 'fetch_trades',
         'createOrder' => 'create_order',
         'fetchOrder' => 'fetch_order',
