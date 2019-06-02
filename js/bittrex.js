@@ -917,7 +917,7 @@ module.exports = class bittrex extends Exchange {
             'average': average,
             'amount': quantity,
             'filled': fillQuantity,
-            'remaining': quantity - fillQuantity,
+            'remaining': remaining,
             'status': status.toLowerCase (),
             'fee': {
                 'cost': commission,
