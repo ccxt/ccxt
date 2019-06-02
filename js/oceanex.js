@@ -56,12 +56,6 @@ module.exports = class oceanex extends Exchange {
                 '1d': '1d',
                 '1w': '1w',
             },
-            'requiredCredentials': {
-                'apiKey': false,
-                'secret': false,
-                'uid': true,
-                'privateKey': true,
-            },
             'api': {
                 'public': {
                     'get': [
@@ -667,13 +661,13 @@ module.exports = class oceanex extends Exchange {
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
             const request = {
-                'uid': this.uid,
+                'uid': this.apiKey,
                 'data': query,
             };
             // to set the private key:
             // const fs = require ('fs')
             // exchange.privateKey = fs.readFileSync ('oceanex.pem', 'utf8')
-            const jwt_token = this.jwt (request, this.privateKey, 'RS256');
+            const jwt_token = this.jwt (request, this.secret, 'RS256');
             url += '?user_jwt=' + jwt_token;
         }
         headers = { 'Content-Type': 'application/json' };
