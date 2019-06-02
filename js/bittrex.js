@@ -343,10 +343,11 @@ module.exports = class bittrex extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetOrderbook (this.extend ({
+        const request = {
             'market': this.marketId (symbol),
             'type': 'both',
-        }, params));
+        };
+        const response = await this.publicGetOrderbook (this.extend (request, params));
         let orderbook = response['result'];
         if ('type' in params) {
             if (params['type'] === 'buy') {
@@ -374,8 +375,8 @@ module.exports = class bittrex extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-        let previous = this.safeFloat (ticker, 'PrevDay');
-        let last = this.safeFloat (ticker, 'Last');
+        const previous = this.safeFloat (ticker, 'PrevDay');
+        const last = this.safeFloat (ticker, 'Last');
         let change = undefined;
         let percentage = undefined;
         if (last !== undefined)
