@@ -26,7 +26,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'fetchDepositAddress': false,
                 'fetchClosedOrders': false,
                 'fetchFundingFees': false,
-                'fetchMyTrades': false,
+                'fetchMyTrades': false, // has to be false https://github.com/ccxt/ccxt/issues/4971
                 'fetchOHLCV': true,
                 'fetchOpenOrders': false,
                 'fetchOrder': true,
@@ -52,7 +52,11 @@ module.exports = class bitfinex2 extends bitfinex {
             'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
-                'api': 'https://api.bitfinex.com',
+                'api': {
+                    'v1': 'https://api.bitfinex.com',
+                    'public': 'https://api-pub.bitfinex.com',
+                    'private': 'https://api.bitfinex.com',
+                },
                 'www': 'https://www.bitfinex.com',
                 'doc': [
                     'https://docs.bitfinex.com/v2/docs/',
@@ -114,6 +118,7 @@ module.exports = class bitfinex2 extends bitfinex {
                         'auth/r/funding/trades/{symbol}/hist',
                         'auth/r/info/margin/{key}',
                         'auth/r/info/funding/{key}',
+                        'auth/r/ledgers/hist',
                         'auth/r/movements/hist',
                         'auth/r/movements/{currency}/hist',
                         'auth/r/stats/perf:{timeframe}/hist',
@@ -167,6 +172,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 },
             },
             'options': {
+                'precision': 'R0', // P0, P1, P2, P3, P4, R0
                 'orderTypes': {
                     'MARKET': undefined,
                     'EXCHANGE MARKET': 'market',
@@ -293,24 +299,30 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetBookSymbolPrecision (this.extend ({
+        const precision = this.safeValue (this.options, 'precision', 'R0');
+        const request = {
             'symbol': this.marketId (symbol),
-            'precision': 'R0',
-        }, params));
-        let timestamp = this.milliseconds ();
-        let result = {
+            'precision': precision,
+        };
+        if (limit !== undefined) {
+            request['len'] = limit; // 25 or 100
+        }
+        const fullRequest = this.extend (request, params);
+        const orderbook = await this.publicGetBookSymbolPrecision (fullRequest);
+        const timestamp = this.milliseconds ();
+        const result = {
             'bids': [],
             'asks': [],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
         };
+        const priceIndex = (fullRequest['precision'] === precision) ? 1 : 0;
         for (let i = 0; i < orderbook.length; i++) {
-            let order = orderbook[i];
-            let price = order[1];
-            let amount = order[2];
-            let side = (amount > 0) ? 'bids' : 'asks';
-            amount = Math.abs (amount);
+            const order = orderbook[i];
+            const price = order[priceIndex];
+            const amount = Math.abs (order[2]);
+            const side = (order[2] > 0) ? 'bids' : 'asks';
             result[side].push ([ price, amount ]);
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);
@@ -550,11 +562,12 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // this.has['fetchMyTrades'] is set to false
+        // https://github.com/ccxt/ccxt/issues/4971
         await this.loadMarkets ();
         let market = undefined;
         let request = {
             'end': this.milliseconds (),
-            '_bfx': 1,
         };
         if (since !== undefined) {
             request['start'] = since;
@@ -602,7 +615,7 @@ module.exports = class bitfinex2 extends bitfinex {
             request = api + request;
         else
             request = this.version + request;
-        let url = this.urls['api'] + '/' + request;
+        let url = this.urls['api'][api] + '/' + request;
         if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);

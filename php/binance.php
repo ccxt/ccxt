@@ -106,6 +106,7 @@ class binance extends Exchange {
                         'depth',
                         'trades',
                         'aggTrades',
+                        'historicalTrades',
                         'klines',
                         'ticker/24hr',
                         'ticker/allPrices',
@@ -141,123 +142,6 @@ class binance extends Exchange {
                     'percentage' => true,
                     'taker' => 0.001,
                     'maker' => 0.001,
-                ),
-                // should be deleted, these are outdated and inaccurate
-                'funding' => array (
-                    'tierBased' => false,
-                    'percentage' => false,
-                    'withdraw' => array (
-                        'ADA' => 1.0,
-                        'ADX' => 4.7,
-                        'AION' => 1.9,
-                        'AMB' => 11.4,
-                        'APPC' => 6.5,
-                        'ARK' => 0.1,
-                        'ARN' => 3.1,
-                        'AST' => 10.0,
-                        'BAT' => 18.0,
-                        'BCD' => 1.0,
-                        'BCH' => 0.001,
-                        'BCPT' => 10.2,
-                        'BCX' => 1.0,
-                        'BNB' => 0.7,
-                        'BNT' => 1.5,
-                        'BQX' => 1.6,
-                        'BRD' => 6.4,
-                        'BTC' => 0.001,
-                        'BTG' => 0.001,
-                        'BTM' => 5.0,
-                        'BTS' => 1.0,
-                        'CDT' => 67.0,
-                        'CMT' => 37.0,
-                        'CND' => 47.0,
-                        'CTR' => 5.4,
-                        'DASH' => 0.002,
-                        'DGD' => 0.06,
-                        'DLT' => 11.7,
-                        'DNT' => 51.0,
-                        'EDO' => 2.5,
-                        'ELF' => 6.5,
-                        'ENG' => 2.1,
-                        'ENJ' => 42.0,
-                        'EOS' => 1.0,
-                        'ETC' => 0.01,
-                        'ETF' => 1.0,
-                        'ETH' => 0.01,
-                        'EVX' => 2.5,
-                        'FUEL' => 45.0,
-                        'FUN' => 85.0,
-                        'GAS' => 0,
-                        'GTO' => 20.0,
-                        'GVT' => 0.53,
-                        'GXS' => 0.3,
-                        'HCC' => 0.0005,
-                        'HSR' => 0.0001,
-                        'ICN' => 3.5,
-                        'ICX' => 1.3,
-                        'INS' => 1.5,
-                        'IOTA' => 0.5,
-                        'KMD' => 0.002,
-                        'KNC' => 2.6,
-                        'LEND' => 54.0,
-                        'LINK' => 12.8,
-                        'LLT' => 54.0,
-                        'LRC' => 9.1,
-                        'LSK' => 0.1,
-                        'LTC' => 0.01,
-                        'LUN' => 0.29,
-                        'MANA' => 74.0,
-                        'MCO' => 0.86,
-                        'MDA' => 4.7,
-                        'MOD' => 2.0,
-                        'MTH' => 34.0,
-                        'MTL' => 1.9,
-                        'NAV' => 0.2,
-                        'NEBL' => 0.01,
-                        'NEO' => 0.0,
-                        'NULS' => 2.1,
-                        'OAX' => 8.3,
-                        'OMG' => 0.57,
-                        'OST' => 17.0,
-                        'POE' => 88.0,
-                        'POWR' => 8.6,
-                        'PPT' => 0.25,
-                        'QSP' => 21.0,
-                        'QTUM' => 0.01,
-                        'RCN' => 35.0,
-                        'RDN' => 2.2,
-                        'REQ' => 18.1,
-                        'RLC' => 4.1,
-                        'SALT' => 1.3,
-                        'SBTC' => 1.0,
-                        'SNGLS' => 42,
-                        'SNM' => 29.0,
-                        'SNT' => 32.0,
-                        'STORJ' => 5.9,
-                        'STRAT' => 0.1,
-                        'SUB' => 7.4,
-                        'TNB' => 82.0,
-                        'TNT' => 47.0,
-                        'TRIG' => 6.7,
-                        'TRX' => 129.0,
-                        'USDT' => 23.0,
-                        'VEN' => 1.8,
-                        'VIB' => 28.0,
-                        'VIBE' => 7.2,
-                        'WABI' => 3.5,
-                        'WAVES' => 0.002,
-                        'WINGS' => 9.3,
-                        'WTC' => 0.5,
-                        'XLM' => 0.01,
-                        'XMR' => 0.04,
-                        'XRP' => 0.25,
-                        'XVG' => 0.1,
-                        'XZC' => 0.02,
-                        'YOYOW' => 39.0,
-                        'ZEC' => 0.005,
-                        'ZRX' => 5.7,
-                    ),
-                    'deposit' => array (),
                 ),
             ),
             'commonCurrencies' => array (
@@ -365,17 +249,18 @@ class binance extends Exchange {
             );
             if (is_array ($filters) && array_key_exists ('PRICE_FILTER', $filters)) {
                 $filter = $filters['PRICE_FILTER'];
-                // PRICE_FILTER reports zero values for minPrice and maxPrice
+                // PRICE_FILTER reports zero values for $maxPrice
                 // since they updated $filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
-                // therefore limits['price']['min'] and limits['price']['max]
-                // don't have any meaningful value except null
-                //
-                //     $entry['limits']['price'] = array (
-                //         'min' => $this->safe_float($filter, 'minPrice'),
-                //         'max' => $this->safe_float($filter, 'maxPrice'),
-                //     );
-                //
+                // therefore limits['price']['max'] doesn't have any meaningful value except null
+                $entry['limits']['price'] = array (
+                    'min' => $this->safe_float($filter, 'minPrice'),
+                    'max' => null,
+                );
+                $maxPrice = $this->safe_float($filter, 'maxPrice');
+                if (($maxPrice !== null) && ($maxPrice > 0)) {
+                    $entry['limits']['price']['max'] = $maxPrice;
+                }
                 $entry['precision']['price'] = $this->precision_from_string($filter['tickSize']);
             }
             if (is_array ($filters) && array_key_exists ('LOT_SIZE', $filters)) {
@@ -537,6 +422,9 @@ class binance extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
+        if (is_array ($trade) && array_key_exists ('isDustTrade', $trade)) {
+            return $this->parse_dust_trade ($trade, $market);
+        }
         //
         // aggregate trades
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
@@ -978,6 +866,108 @@ class binance extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
+    public function fetch_my_dust_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        //
+        // Bianance provides an opportunity to trade insignificant ($i->e. non-tradable and non-withdrawable)
+        // token leftovers (of any asset) into `BNB` coin which in turn can be used to pay trading fees with it.
+        // The corresponding $trades history is called the `Dust Log` and can be requested via the following end-point:
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
+        //
+        $this->load_markets();
+        $request = array_merge (array (), $params);
+        $response = $this->wapiGetUserAssetDribbletLog ($request);
+        // { success =>    true,
+        //   results => { total =>    1,
+        //               $rows => array ( {     transfered_total => "1.06468458",
+        //                         service_charge_total => "0.02172826",
+        //                                      tran_id => 2701371634,
+        //                                         $logs => array ( {              tranId =>  2701371634,
+        //                                                   serviceChargeAmount => "0.00012819",
+        //                                                                   uid => "35103861",
+        //                                                                amount => "0.8012",
+        //                                                           operateTime => "2018-10-07 17:56:07",
+        //                                                      transferedAmount => "0.00628141",
+        //                                                             fromAsset => "ADA"                  } ),
+        //                                 operate_time => "2018-10-07 17:56:06"                                } ) } }
+        $rows = $response['results']['rows'];
+        $data = array ();
+        for ($i = 0; $i < count ($rows); $i++) {
+            $logs = $rows[$i]['logs'];
+            for ($j = 0; $j < count ($logs); $j++) {
+                $logs[$j]['isDustTrade'] = true;
+                $data[] = $logs[$j];
+            }
+        }
+        $trades = $this->parse_trades($data, null, $since, $limit);
+        return $this->filter_by_since_limit($trades, $since, $limit);
+    }
+
+    public function parse_dust_trade ($trade, $market = null) {
+        // array (              tranId =>  2701371634,
+        //   serviceChargeAmount => "0.00012819",
+        //                   uid => "35103861",
+        //                $amount => "0.8012",
+        //           operateTime => "2018-10-07 17:56:07",
+        //      transferedAmount => "0.00628141",
+        //             fromAsset => "ADA"                  ),
+        $order = $this->safe_string($trade, 'tranId');
+        $time = $this->safe_string($trade, 'operateTime');
+        $timestamp = $this->parse8601 ($time);
+        $datetime = $this->iso8601 ($timestamp);
+        $tradedCurrency = $this->safeCurrencyCode ($trade, 'fromAsset');
+        $earnedCurrency = $this->currency ('BNB')['code'];
+        $applicantSymbol = $earnedCurrency . '/' . $tradedCurrency;
+        $tradedCurrencyIsQuote = false;
+        if (is_array ($this->markets) && array_key_exists ($applicantSymbol, $this->markets)) {
+            $tradedCurrencyIsQuote = true;
+        }
+        //
+        // Warning
+        // Binance dust $trade `$fee` is already excluded from the `BNB` earning reported in the `Dust Log`.
+        // So the parser should either set the `$fee->cost` to `0` or add it on top of the earned
+        // BNB `$amount` (or `$cost` depending on the $trade `$side`). The second of the above options
+        // is much more illustrative and therefore preferable.
+        //
+        $fee = array (
+            'currency' => $earnedCurrency,
+            'cost' => $this->safe_float($trade, 'serviceChargeAmount'),
+        );
+        $symbol = null;
+        $amount = null;
+        $cost = null;
+        $side = null;
+        if ($tradedCurrencyIsQuote) {
+            $symbol = $applicantSymbol;
+            $amount = $this->sum ($this->safe_float($trade, 'transferedAmount'), $fee['cost']);
+            $cost = $this->safe_float($trade, 'amount');
+            $side = 'buy';
+        } else {
+            $symbol = $tradedCurrency . '/' . $earnedCurrency;
+            $amount = $this->safe_float($trade, 'amount');
+            $cost = $this->sum ($this->safe_float($trade, 'transferedAmount'), $fee['cost']);
+            $side = 'sell';
+        }
+        $price = $cost / $amount;
+        $id = null;
+        $type = null;
+        $takerOrMaker = null;
+        return array (
+            'id' => $id,
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
+            'symbol' => $symbol,
+            'order' => $order,
+            'type' => $type,
+            'takerOrMaker' => $takerOrMaker,
+            'side' => $side,
+            'amount' => $amount,
+            'price' => $price,
+            'cost' => $cost,
+            'fee' => $fee,
+            'info' => $trade,
+        );
+    }
+
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $currency = null;
@@ -1221,16 +1211,23 @@ class binance extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         $url .= '/' . $path;
-        if ($api === 'wapi')
+        if ($api === 'wapi') {
             $url .= '.html';
-        // v1 special case for userDataStream
-        if ($path === 'userDataStream') {
+        }
+        $userDataStream = ($path === 'userDataStream');
+        if ($path === 'historicalTrades') {
+            $headers = array (
+                'X-MBX-APIKEY' => $this->apiKey,
+            );
+        } else if ($userDataStream) {
+            // v1 special case for $userDataStream
             $body = $this->urlencode ($params);
             $headers = array (
                 'X-MBX-APIKEY' => $this->apiKey,
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
-        } else if (($api === 'private') || ($api === 'wapi')) {
+        }
+        if (($api === 'private') || ($api === 'wapi' && $path !== 'systemStatus')) {
             $this->check_required_credentials();
             $query = $this->urlencode (array_merge (array (
                 'timestamp' => $this->nonce (),
@@ -1248,8 +1245,13 @@ class binance extends Exchange {
                 $headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         } else {
-            if ($params)
-                $url .= '?' . $this->urlencode ($params);
+            // $userDataStream endpoints are public, but POST, PUT, DELETE
+            // therefore they don't accept URL $query arguments
+            // https://github.com/ccxt/ccxt/issues/5224
+            if (!$userDataStream) {
+                if ($params)
+                    $url .= '?' . $this->urlencode ($params);
+            }
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

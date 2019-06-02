@@ -19,6 +19,7 @@ module.exports = class bitso extends Exchange {
                 'CORS': true,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
+                'fetchOrder': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg',
@@ -313,31 +314,47 @@ module.exports = class bitso extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let side = order['side'];
-        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const id = this.safeString (order, 'oid');
+        const side = this.safeString (order, 'side');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = undefined;
-        if (market === undefined) {
-            let marketId = order['book'];
-            if (marketId in this.markets_by_id)
+        const marketId = this.safeString (order, 'book');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.commonCurrencyCode (baseId.toUpperCase ());
+                const quote = this.commonCurrencyCode (quoteId.toUpperCase ());
+                symbol = base + '/' + quote;
+            }
         }
-        if (market)
-            symbol = market['symbol'];
-        let orderType = order['type'];
-        let timestamp = this.parse8601 (order['created_at']);
-        let amount = this.safeFloat (order, 'original_amount');
-        let remaining = this.safeFloat (order, 'unfilled_amount');
-        let filled = amount - remaining;
-        let result = {
+        if (symbol === undefined) {
+            if (market !== undefined) {
+                symbol = market['symbol'];
+            }
+        }
+        const orderType = this.safeString (order, 'type');
+        const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
+        const price = this.safeFloat (order, 'price');
+        const amount = this.safeFloat (order, 'original_amount');
+        const remaining = this.safeFloat (order, 'unfilled_amount');
+        let filled = undefined;
+        if (amount !== undefined) {
+            if (remaining !== undefined) {
+                filled = amount - remaining;
+            }
+        }
+        return {
             'info': order,
-            'id': order['oid'],
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': orderType,
             'side': side,
-            'price': this.safeFloat (order, 'price'),
+            'price': price,
             'amount': amount,
             'cost': undefined,
             'remaining': remaining,
@@ -345,7 +362,6 @@ module.exports = class bitso extends Exchange {
             'status': status,
             'fee': undefined,
         };
-        return result;
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = 25, params = {}) {
@@ -377,15 +393,17 @@ module.exports = class bitso extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.privateGetOrdersOid ({
+        const response = await this.privateGetOrdersOid ({
             'oid': id,
         });
-        let numOrders = response['payload'].length;
-        if (!Array.isArray (response['payload']) || (numOrders !== 1)) {
-            throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
+        const payload = this.safeValue (response, 'payload');
+        if (Array.isArray (payload)) {
+            const numOrders = response['payload'].length;
+            if (numOrders === 1) {
+                return this.parseOrder (payload[0]);
+            }
         }
-        return this.parseOrder (response['payload'][0], market);
+        throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {

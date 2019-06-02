@@ -27,7 +27,7 @@ class bitfinex2 extends bitfinex {
                 'fetchDepositAddress' => false,
                 'fetchClosedOrders' => false,
                 'fetchFundingFees' => false,
-                'fetchMyTrades' => false,
+                'fetchMyTrades' => false, // has to be false https://github.com/ccxt/ccxt/issues/4971
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => false,
                 'fetchOrder' => true,
@@ -53,7 +53,11 @@ class bitfinex2 extends bitfinex {
             'rateLimit' => 1500,
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
-                'api' => 'https://api.bitfinex.com',
+                'api' => array (
+                    'v1' => 'https://api.bitfinex.com',
+                    'public' => 'https://api-pub.bitfinex.com',
+                    'private' => 'https://api.bitfinex.com',
+                ),
                 'www' => 'https://www.bitfinex.com',
                 'doc' => array (
                     'https://docs.bitfinex.com/v2/docs/',
@@ -115,6 +119,7 @@ class bitfinex2 extends bitfinex {
                         'auth/r/funding/trades/{symbol}/hist',
                         'auth/r/info/margin/{key}',
                         'auth/r/info/funding/{key}',
+                        'auth/r/ledgers/hist',
                         'auth/r/movements/hist',
                         'auth/r/movements/{currency}/hist',
                         'auth/r/stats/perf:{timeframe}/hist',
@@ -168,6 +173,7 @@ class bitfinex2 extends bitfinex {
                 ),
             ),
             'options' => array (
+                'precision' => 'R0', // P0, P1, P2, P3, P4, R0
                 'orderTypes' => array (
                     'MARKET' => null,
                     'EXCHANGE MARKET' => 'market',
@@ -294,10 +300,16 @@ class bitfinex2 extends bitfinex {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetBookSymbolPrecision (array_merge (array (
+        $precision = $this->safe_value($this->options, 'precision', 'R0');
+        $request = array (
             'symbol' => $this->market_id($symbol),
-            'precision' => 'R0',
-        ), $params));
+            'precision' => $precision,
+        );
+        if ($limit !== null) {
+            $request['len'] = $limit; // 25 or 100
+        }
+        $fullRequest = array_merge ($request, $params);
+        $orderbook = $this->publicGetBookSymbolPrecision ($fullRequest);
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
@@ -306,12 +318,12 @@ class bitfinex2 extends bitfinex {
             'datetime' => $this->iso8601 ($timestamp),
             'nonce' => null,
         );
+        $priceIndex = ($fullRequest['precision'] === $precision) ? 1 : 0;
         for ($i = 0; $i < count ($orderbook); $i++) {
             $order = $orderbook[$i];
-            $price = $order[1];
-            $amount = $order[2];
-            $side = ($amount > 0) ? 'bids' : 'asks';
-            $amount = abs ($amount);
+            $price = $order[$priceIndex];
+            $amount = abs ($order[2]);
+            $side = ($order[2] > 0) ? 'bids' : 'asks';
             $result[$side][] = array ( $price, $amount );
         }
         $result['bids'] = $this->sort_by($result['bids'], 0, true);
@@ -551,11 +563,12 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        // $this->has['fetchMyTrades'] is set to false
+        // https://github.com/ccxt/ccxt/issues/4971
         $this->load_markets();
         $market = null;
         $request = array (
             'end' => $this->milliseconds (),
-            '_bfx' => 1,
         );
         if ($since !== null) {
             $request['start'] = $since;
@@ -603,7 +616,7 @@ class bitfinex2 extends bitfinex {
             $request = $api . $request;
         else
             $request = $this->version . $request;
-        $url = $this->urls['api'] . '/' . $request;
+        $url = $this->urls['api'][$api] . '/' . $request;
         if ($api === 'public') {
             if ($query) {
                 $url .= '?' . $this->urlencode ($query);

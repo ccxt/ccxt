@@ -42,7 +42,7 @@ class deribit (Exchange):
                 'api': 'https://www.deribit.com',
                 'www': 'https://www.deribit.com',
                 'doc': [
-                    'https://docs.deribit.com/',
+                    'https://docs.deribit.com',
                     'https://github.com/deribit',
                 ],
                 'fees': 'https://www.deribit.com/pages/information/fees',
@@ -51,6 +51,7 @@ class deribit (Exchange):
             'api': {
                 'public': {
                     'get': [
+                        'ping',
                         'test',
                         'getinstruments',
                         'index',
@@ -373,6 +374,7 @@ class deribit (Exchange):
             'instrument': self.market_id(symbol),
             'quantity': amount,
             'type': type,
+            # 'post_only': 'false' or 'true', https://github.com/ccxt/ccxt/issues/5159
         }
         if price is not None:
             request['price'] = price
@@ -442,7 +444,7 @@ class deribit (Exchange):
             self.check_required_credentials()
             nonce = str(self.nonce())
             auth = '_=' + nonce + '&_ackey=' + self.apiKey + '&_acsec=' + self.secret + '&_action=' + query
-            if method == 'POST':
+            if params:
                 params = self.keysort(params)
                 auth += '&' + self.urlencode(params)
             hash = self.hash(self.encode(auth), 'sha256', 'base64')
@@ -453,6 +455,8 @@ class deribit (Exchange):
             if method != 'GET':
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
                 body = self.urlencode(params)
+            elif params:
+                url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response):

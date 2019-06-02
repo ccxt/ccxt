@@ -22,6 +22,7 @@ class coinmate (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
                 'api': 'https://coinmate.io/api',
                 'www': 'https://coinmate.io',
+                'fees': 'https://coinmate.io/fees',
                 'doc': [
                     'https://coinmate.docs.apiary.io',
                     'https://coinmate.io/developers',
@@ -39,6 +40,7 @@ class coinmate (Exchange):
                         'orderBook',
                         'ticker',
                         'transactions',
+                        'tradingPairs',
                     ],
                 },
                 'private': {
@@ -60,18 +62,74 @@ class coinmate (Exchange):
                     ],
                 },
             },
-            'markets': {
-                'BTC/EUR': {'id': 'BTC_EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'precision': {'amount': 4, 'price': 2}},
-                'BTC/CZK': {'id': 'BTC_CZK', 'symbol': 'BTC/CZK', 'base': 'BTC', 'quote': 'CZK', 'precision': {'amount': 4, 'price': 2}},
-                'LTC/BTC': {'id': 'LTC_BTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'precision': {'amount': 4, 'price': 5}},
-            },
             'fees': {
                 'trading': {
-                    'maker': 0.0005,
-                    'taker': 0.0035,
+                    'maker': 0.05 / 100,
+                    'taker': 0.15 / 100,
                 },
             },
         })
+
+    def fetch_markets(self, params={}):
+        response = self.publicGetTradingPairs(params)
+        #
+        #     {
+        #         "error":false,
+        #         "errorMessage":null,
+        #         "data": [
+        #             {
+        #                 "name":"BTC_EUR",
+        #                 "firstCurrency":"BTC",
+        #                 "secondCurrency":"EUR",
+        #                 "priceDecimals":2,
+        #                 "lotDecimals":8,
+        #                 "minAmount":0.0002,
+        #                 "tradesWebSocketChannelId":"trades-BTC_EUR",
+        #                 "orderBookWebSocketChannelId":"order_book-BTC_EUR",
+        #                 "tradeStatisticsWebSocketChannelId":"statistics-BTC_EUR"
+        #             },
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        result = []
+        for i in range(0, len(data)):
+            market = data[i]
+            id = self.safe_string(market, 'name')
+            baseId = self.safe_string(market, 'firstCurrency')
+            quoteId = self.safe_string(market, 'secondCurrency')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
+            symbol = base + '/' + quote
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': None,
+                'info': market,
+                'precision': {
+                    'price': self.safe_integer(market, 'priceDecimals'),
+                    'amount': self.safe_integer(market, 'lotDecimals'),
+                },
+                'limits': {
+                    'amount': {
+                        'min': self.safe_float(market, 'minAmount'),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            })
+        return result
 
     def fetch_balance(self, params={}):
         response = self.privatePostBalances()

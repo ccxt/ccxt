@@ -168,6 +168,7 @@ class bittrex extends Exchange {
                 'UUID_INVALID' => '\\ccxt\\OrderNotFound',
                 'RATE_NOT_PROVIDED' => '\\ccxt\\InvalidOrder', // createLimitBuyOrder ('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP' => '\\ccxt\\PermissionDenied',
+                'DUST_TRADE_DISALLOWED_MIN_VALUE' => '\\ccxt\\InvalidOrder',
             ),
             'options' => array (
                 // price precision by quote currency code
@@ -842,6 +843,9 @@ class bittrex extends Exchange {
         $filled = null;
         if ($amount !== null && $remaining !== null) {
             $filled = $amount - $remaining;
+            if (($status === 'closed') && ($remaining > 0)) {
+                $status = 'canceled';
+            }
         }
         if (!$cost) {
             if ($price && $filled)
@@ -1053,8 +1057,12 @@ class bittrex extends Exchange {
                         throw new AuthenticationError ($feedback);
                     }
                 }
-                if ($message === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
-                    throw new InvalidOrder ($this->id . ' order cost should be over 50k satoshi ' . $this->json ($response));
+                // https://github.com/ccxt/ccxt/issues/4932
+                // the following two lines are now redundant, see line 171 in describe()
+                //
+                //     if ($message === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
+                //         throw new InvalidOrder ($this->id . ' order cost should be over 50k satoshi ' . $this->json ($response));
+                //
                 if ($message === 'INVALID_ORDER') {
                     // Bittrex will return an ambiguous INVALID_ORDER $message
                     // upon canceling already-canceled and closed orders

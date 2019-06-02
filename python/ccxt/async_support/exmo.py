@@ -405,7 +405,7 @@ class exmo (Exchange):
             taker = fee
             maker = fee
             return {
-                'info': response,
+                # 'info': response,
                 'maker': maker,
                 'taker': taker,
             }

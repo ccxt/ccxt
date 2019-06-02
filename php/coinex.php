@@ -94,7 +94,7 @@ class coinex extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
-                    'maker' => 0.0,
+                    'maker' => 0.001,
                     'taker' => 0.001,
                 ),
                 'funding' => array (
@@ -194,7 +194,7 @@ class coinex extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'volume'),
+            'baseVolume' => $this->safe_float_2($ticker, 'vol', 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -236,7 +236,7 @@ class coinex extends Exchange {
             $limit = 20; // default
         $request = array (
             'market' => $this->market_id($symbol),
-            'merge' => '0.00000001',
+            'merge' => '0.0000000001',
             'limit' => (string) $limit,
         );
         $response = $this->publicGetMarketDepth (array_merge ($request, $params));

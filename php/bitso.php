@@ -20,6 +20,7 @@ class bitso extends Exchange {
                 'CORS' => true,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
+                'fetchOrder' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg',
@@ -314,31 +315,47 @@ class bitso extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        $side = $order['side'];
+        $id = $this->safe_string($order, 'oid');
+        $side = $this->safe_string($order, 'side');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $symbol = null;
-        if ($market === null) {
-            $marketId = $order['book'];
-            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+        $marketId = $this->safe_string($order, 'book');
+        if ($marketId !== null) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
+            } else {
+                list ($baseId, $quoteId) = explode ('_', $marketId);
+                $base = $this->common_currency_code(strtoupper ($baseId));
+                $quote = $this->common_currency_code(strtoupper ($quoteId));
+                $symbol = $base . '/' . $quote;
+            }
         }
-        if ($market)
-            $symbol = $market['symbol'];
-        $orderType = $order['type'];
-        $timestamp = $this->parse8601 ($order['created_at']);
+        if ($symbol === null) {
+            if ($market !== null) {
+                $symbol = $market['symbol'];
+            }
+        }
+        $orderType = $this->safe_string($order, 'type');
+        $timestamp = $this->parse8601 ($this->safe_string($order, 'created_at'));
+        $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'original_amount');
         $remaining = $this->safe_float($order, 'unfilled_amount');
-        $filled = $amount - $remaining;
-        $result = array (
+        $filled = null;
+        if ($amount !== null) {
+            if ($remaining !== null) {
+                $filled = $amount - $remaining;
+            }
+        }
+        return array (
             'info' => $order,
-            'id' => $order['oid'],
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $orderType,
             'side' => $side,
-            'price' => $this->safe_float($order, 'price'),
+            'price' => $price,
             'amount' => $amount,
             'cost' => null,
             'remaining' => $remaining,
@@ -346,7 +363,6 @@ class bitso extends Exchange {
             'status' => $status,
             'fee' => null,
         );
-        return $result;
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = 25, $params = array ()) {
@@ -378,15 +394,17 @@ class bitso extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
         $response = $this->privateGetOrdersOid (array (
             'oid' => $id,
         ));
-        $numOrders = is_array ($response['payload']) ? count ($response['payload']) : 0;
-        if (!gettype ($response['payload']) === 'array' && count (array_filter (array_keys ($response['payload']), 'is_string')) == 0 || ($numOrders !== 1)) {
-            throw new OrderNotFound ($this->id . ' => The order ' . $id . ' not found.');
+        $payload = $this->safe_value($response, 'payload');
+        if (gettype ($payload) === 'array' && count (array_filter (array_keys ($payload), 'is_string')) == 0) {
+            $numOrders = is_array ($response['payload']) ? count ($response['payload']) : 0;
+            if ($numOrders === 1) {
+                return $this->parse_order($payload[0]);
+            }
         }
-        return $this->parse_order($response['payload'][0], $market);
+        throw new OrderNotFound ($this->id . ' => The order ' . $id . ' not found.');
     }
 
     public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {

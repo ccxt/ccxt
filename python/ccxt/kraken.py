@@ -194,18 +194,22 @@ class kraken (Exchange):
                 'private': {
                     'post': [
                         'AddOrder',
+                        'AddExport',
                         'Balance',
                         'CancelOrder',
                         'ClosedOrders',
                         'DepositAddresses',
                         'DepositMethods',
                         'DepositStatus',
+                        'ExportStatus',
                         'Ledgers',
                         'OpenOrders',
                         'OpenPositions',
                         'QueryLedgers',
                         'QueryOrders',
                         'QueryTrades',
+                        'RetrieveExport',
+                        'RemoveExport',
                         'TradeBalance',
                         'TradesHistory',
                         'TradeVolume',
@@ -218,6 +222,7 @@ class kraken (Exchange):
             },
             'commonCurrencies': {
                 'XDG': 'DOGE',
+                'FEE': 'KFEE',
             },
             'options': {
                 'cacheDepositMethodsOnFetchDepositAddress': True,  # will issue up to two calls in fetchDepositAddress
@@ -539,6 +544,16 @@ class kraken (Exchange):
         ohlcvs = response['result'][market['id']]
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
+    def parse_ledger_entry_type(self, type):
+        types = {
+            'trade': 'trade',
+            'withdrawal': 'transaction',
+            'deposit': 'transaction',
+            'transfer': 'transfer',
+            'margin': 'margin',
+        }
+        return self.safe_string(types, type, type)
+
     def parse_ledger_entry(self, item, currency=None):
         # {'LTFK7F-N2CUX-PNY4SX': {  refid: "TSJTGT-DT7WN-GPPQMJ",
         #                               time:  1520102320.555,
@@ -553,18 +568,7 @@ class kraken (Exchange):
         account = None
         referenceId = self.safe_string(item, 'refid')
         referenceAccount = None
-        type = None
-        itemType = self.safe_string(item, 'type')
-        if itemType == 'trade':
-            type = 'trade'
-        elif itemType == 'withdrawal':
-            type = 'transaction'
-        elif itemType == 'deposit':
-            type = 'transaction'
-        elif itemType == 'margin':
-            type = 'margin'  # ← self needs to be unified
-        else:
-            raise ExchangeError(self.id + ' unsupported ledger item type: ' + itemType)
+        type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
         code = self.safeCurrencyCode(item, 'asset', currency)
         amount = self.safe_float(item, 'amount')
         if amount < 0:
@@ -621,7 +625,8 @@ class kraken (Exchange):
         #                                                 amount: "-0.2805800000",
         #                                                    fee: "0.0050000000",
         #                                                balance: "0.0000051000"           },
-        ledger = response['result']['ledger']
+        result = self.safe_value(response, 'result', {})
+        ledger = self.safe_value(result, 'ledger', {})
         keys = list(ledger.keys())
         items = []
         for i in range(0, len(keys)):
@@ -631,7 +636,7 @@ class kraken (Exchange):
             items.append(value)
         return self.parse_ledger(items, currency, since, limit)
 
-    def fetch_ledger_entrys_by_ids(self, ids, code=None, params={}):
+    def fetch_ledger_entries_by_ids(self, ids, code=None, params={}):
         # https://www.kraken.com/features/api#query-ledgers
         self.load_markets()
         ids = ','.join(ids)
@@ -659,7 +664,7 @@ class kraken (Exchange):
         return self.parse_ledger(items)
 
     def fetch_ledger_entry(self, id, code=None, params={}):
-        items = self.fetch_ledger_entrys_by_ids([id], code, params)
+        items = self.fetchLedgerEntrysByIds([id], code, params)
         return items[0]
 
     def parse_trade(self, trade, market=None):
@@ -801,8 +806,23 @@ class kraken (Exchange):
                 length = len(id)
                 id = id if (length > 1) else id[0]
         return {
-            'info': response,
             'id': id,
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+            'lastTradeTimestamp': None,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': None,
+            'average': None,
+            'filled': None,
+            'remaining': None,
+            'status': None,
+            'fee': None,
+            'trades': None,
         }
 
     def find_market_by_altname_or_id(self, id):
@@ -921,25 +941,44 @@ class kraken (Exchange):
             # 'trades': self.parse_trades(order['trades'], market),
         }
 
-    def parse_orders(self, orders, market=None, since=None, limit=None):
+    def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
         result = []
         ids = list(orders.keys())
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         for i in range(0, len(ids)):
             id = ids[i]
             order = self.extend({'id': id}, orders[id])
-            result.append(self.parse_order(order, market))
-        return self.filter_by_since_limit(result, since, limit)
+            result.append(self.extend(self.parse_order(order, market), params))
+        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
         response = self.privatePostQueryOrders(self.extend({
             'trades': True,  # whether or not to include trades in output(optional, default False)
-            'txid': id,  # comma delimited list of transaction ids to query info about(20 maximum)
+            'txid': id,  # do not comma separate a list of ids - use fetchOrdersByIds instead
             # 'userref': 'optional',  # restrict results to given user reference id(optional)
         }, params))
         orders = response['result']
         order = self.parse_order(self.extend({'id': id}, orders[id]))
         return self.extend({'info': response}, order)
+
+    def fetch_orders_by_ids(self, ids, symbol=None, params={}):
+        self.load_markets()
+        response = self.privatePostQueryOrders(self.extend({
+            'trades': True,  # whether or not to include trades in output(optional, default False)
+            'txid': ','.join(ids),  # comma delimited list of transaction ids to query info about(20 maximum)
+        }, params))
+        result = self.safe_value(response, 'result', {})
+        orders = []
+        orderIds = list(result.keys())
+        for i in range(0, len(orderIds)):
+            id = orderIds[i]
+            item = result[id]
+            order = self.parse_order(self.extend({'id': id}, item))
+            orders.append(order)
+        return orders
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

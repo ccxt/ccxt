@@ -33,7 +33,7 @@ module.exports = class deribit extends Exchange {
                 'api': 'https://www.deribit.com',
                 'www': 'https://www.deribit.com',
                 'doc': [
-                    'https://docs.deribit.com/',
+                    'https://docs.deribit.com',
                     'https://github.com/deribit',
                 ],
                 'fees': 'https://www.deribit.com/pages/information/fees',
@@ -42,6 +42,7 @@ module.exports = class deribit extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'ping',
                         'test',
                         'getinstruments',
                         'index',
@@ -383,16 +384,18 @@ module.exports = class deribit extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'instrument': this.marketId (symbol),
             'quantity': amount,
             'type': type,
+            // 'post_only': 'false' or 'true', https://github.com/ccxt/ccxt/issues/5159
         };
-        if (price !== undefined)
+        if (price !== undefined) {
             request['price'] = price;
-        let method = 'privatePost' + this.capitalize (side);
-        let response = await this[method] (this.extend (request, params));
-        let order = this.safeValue (response['result'], 'order');
+        }
+        const method = 'privatePost' + this.capitalize (side);
+        const response = await this[method] (this.extend (request, params));
+        const order = this.safeValue (response['result'], 'order');
         if (order === undefined) {
             return response;
         }
@@ -466,7 +469,7 @@ module.exports = class deribit extends Exchange {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let auth = '_=' + nonce + '&_ackey=' + this.apiKey + '&_acsec=' + this.secret + '&_action=' + query;
-            if (method === 'POST') {
+            if (Object.keys (params).length) {
                 params = this.keysort (params);
                 auth += '&' + this.urlencode (params);
             }
@@ -478,6 +481,8 @@ module.exports = class deribit extends Exchange {
             if (method !== 'GET') {
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
                 body = this.urlencode (params);
+            } else if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

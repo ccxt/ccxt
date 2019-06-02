@@ -136,9 +136,12 @@ module.exports = class bitmex extends Exchange {
                     'Invalid API Key.': AuthenticationError,
                     'Access Denied': PermissionDenied,
                     'Duplicate clOrdID': InvalidOrder,
-                    'Signature not valid': AuthenticationError,
+                    'orderQty is invalid': InvalidOrder,
+                    'Invalid price': InvalidOrder,
+                    'Invalid stopPx for ordType': InvalidOrder,
                 },
                 'broad': {
+                    'Signature not valid': AuthenticationError,
                     'overloaded': ExchangeNotAvailable,
                     'Account has insufficient Available Balance': InsufficientFunds,
                 },
@@ -280,9 +283,14 @@ module.exports = class bitmex extends Exchange {
         for (let o = 0; o < orderbook.length; o++) {
             let order = orderbook[o];
             let side = (order['side'] === 'Sell') ? 'asks' : 'bids';
-            let amount = order['size'];
-            let price = order['price'];
-            result[side].push ([ price, amount ]);
+            let amount = this.safeFloat (order, 'size');
+            let price = this.safeFloat (order, 'price');
+            // https://github.com/ccxt/ccxt/issues/4926
+            // https://github.com/ccxt/ccxt/issues/4927
+            // the exchange sometimes returns null price in the orderbook
+            if (price !== undefined) {
+                result[side].push ([ price, amount ]);
+            }
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);
         result['asks'] = this.sortBy (result['asks'], 0);
@@ -791,9 +799,12 @@ module.exports = class bitmex extends Exchange {
                 remaining = Math.max (amount - filled, 0.0);
             }
         }
+        const average = this.safeFloat (order, 'avgPx');
         let cost = undefined;
-        if (price !== undefined) {
-            if (filled !== undefined) {
+        if (filled !== undefined) {
+            if (average !== undefined) {
+                cost = average * filled;
+            } else if (price !== undefined) {
                 cost = price * filled;
             }
         }
@@ -809,6 +820,7 @@ module.exports = class bitmex extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
@@ -968,9 +980,17 @@ module.exports = class bitmex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = '/api/' + this.version + '/' + path;
-        if (method !== 'PUT')
-            if (Object.keys (params).length)
+        if (method === 'GET') {
+            if (Object.keys (params).length) {
                 query += '?' + this.urlencode (params);
+            }
+        } else {
+            const format = this.safeString (params, '_format');
+            if (format !== undefined) {
+                query += '?' + this.urlencode ({ '_format': format });
+                params = this.omit (params, '_format');
+            }
+        }
         let url = this.urls['api'] + query;
         if (api === 'private') {
             this.checkRequiredCredentials ();
@@ -984,7 +1004,7 @@ module.exports = class bitmex extends Exchange {
             expires = expires.toString ();
             auth += expires;
             headers['api-expires'] = expires;
-            if (method === 'POST' || method === 'PUT') {
+            if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
                 if (Object.keys (params).length) {
                     body = this.json (params);
                     auth += body;

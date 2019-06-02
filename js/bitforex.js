@@ -51,6 +51,7 @@ module.exports = class bitforex extends Exchange {
                         'api/v1/fund/mainAccount',
                         'api/v1/fund/allAccount',
                         'api/v1/trade/placeOrder',
+                        'api/v1/trade/placeMultiOrder',
                         'api/v1/trade/cancelOrder',
                         'api/v1/trade/orderInfo',
                         'api/v1/trade/orderInfos',
@@ -61,8 +62,8 @@ module.exports = class bitforex extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.0,
-                    'taker': 0.05 / 100,
+                    'maker': 0.1 / 100,
+                    'taker': 0.1 / 100,
                 },
                 'funding': {
                     'tierBased': false,

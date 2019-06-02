@@ -880,7 +880,7 @@ class crex24 (Exchange):
         #
         return self.parse_order(response)
 
-    def cancel_all_orders(self, symbols=None, params={}):
+    def cancel_all_orders(self, symbol=None, params={}):
         response = self.tradingPostCancelAllOrders(params)
         #
         #     [
@@ -1030,8 +1030,8 @@ class crex24 (Exchange):
         if currency is not None:
             code = currency['code']
         type = self.safe_string(transaction, 'type')
-        timestamp = self.parse8601(transaction, 'createdAt')
-        updated = self.parse8601(transaction, 'processedAt')
+        timestamp = self.parse8601(self.safe_string(transaction, 'createdAt'))
+        updated = self.parse8601(self.safe_string(transaction, 'processedAt'))
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         amount = self.safe_float(transaction, 'amount')
         feeCost = self.safe_float(transaction, 'fee')

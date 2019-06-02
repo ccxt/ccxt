@@ -34,7 +34,7 @@ class deribit extends Exchange {
                 'api' => 'https://www.deribit.com',
                 'www' => 'https://www.deribit.com',
                 'doc' => array (
-                    'https://docs.deribit.com/',
+                    'https://docs.deribit.com',
                     'https://github.com/deribit',
                 ),
                 'fees' => 'https://www.deribit.com/pages/information/fees',
@@ -43,6 +43,7 @@ class deribit extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
+                        'ping',
                         'test',
                         'getinstruments',
                         'index',
@@ -388,9 +389,11 @@ class deribit extends Exchange {
             'instrument' => $this->market_id($symbol),
             'quantity' => $amount,
             'type' => $type,
+            // 'post_only' => 'false' or 'true', https://github.com/ccxt/ccxt/issues/5159
         );
-        if ($price !== null)
+        if ($price !== null) {
             $request['price'] = $price;
+        }
         $method = 'privatePost' . $this->capitalize ($side);
         $response = $this->$method (array_merge ($request, $params));
         $order = $this->safe_value($response['result'], 'order');
@@ -467,7 +470,7 @@ class deribit extends Exchange {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $auth = '_=' . $nonce . '&_ackey=' . $this->apiKey . '&_acsec=' . $this->secret . '&_action=' . $query;
-            if ($method === 'POST') {
+            if ($params) {
                 $params = $this->keysort ($params);
                 $auth .= '&' . $this->urlencode ($params);
             }
@@ -479,6 +482,8 @@ class deribit extends Exchange {
             if ($method !== 'GET') {
                 $headers['Content-Type'] = 'application/x-www-form-urlencoded';
                 $body = $this->urlencode ($params);
+            } else if ($params) {
+                $url .= '?' . $this->urlencode ($params);
             }
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

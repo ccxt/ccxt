@@ -99,7 +99,7 @@ class coinex (Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.0,
+                    'maker': 0.001,
                     'taker': 0.001,
                 },
                 'funding': {
@@ -196,7 +196,7 @@ class coinex (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'volume'),
+            'baseVolume': self.safe_float_2(ticker, 'vol', 'volume'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -234,7 +234,7 @@ class coinex (Exchange):
             limit = 20  # default
         request = {
             'market': self.market_id(symbol),
-            'merge': '0.00000001',
+            'merge': '0.0000000001',
             'limit': str(limit),
         }
         response = await self.publicGetMarketDepth(self.extend(request, params))

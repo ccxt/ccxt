@@ -393,7 +393,7 @@ class exmo extends Exchange {
             $taker = $fee;
             $maker = $fee;
             return array (
-                'info' => $response,
+                // 'info' => $response,
                 'maker' => $maker,
                 'taker' => $taker,
             );

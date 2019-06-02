@@ -23,10 +23,12 @@ class gdax extends Exchange {
                 'fetchAccounts' => true,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
+                'createDepositAddress' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
+                'fetchOrderTrades' => true,
                 'fetchOrders' => true,
                 'fetchTransactions' => true,
                 'withdraw' => true,
@@ -110,8 +112,8 @@ class gdax extends Exchange {
                 'trading' => array (
                     'tierBased' => true, // complicated tier system per coin
                     'percentage' => true,
-                    'maker' => 0.0,
-                    'taker' => 0.3 / 100, // tiered fee starts at 0.3%
+                    'maker' => 0.15 / 100, // highest fee of all tiers
+                    'taker' => 0.25 / 100, // highest fee of all tiers
                 ),
                 'funding' => array (
                     'tierBased' => false,
@@ -154,13 +156,15 @@ class gdax extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $markets = $this->publicGetProducts ();
+        $response = $this->publicGetProducts ($params);
         $result = array ();
-        for ($p = 0; $p < count ($markets); $p++) {
-            $market = $markets[$p];
-            $id = $market['id'];
-            $base = $market['base_currency'];
-            $quote = $market['quote_currency'];
+        for ($i = 0; $i < count ($response); $i++) {
+            $market = $response[$i];
+            $id = $this->safe_string($market, 'id');
+            $baseId = $this->safe_string($market, 'base_currency');
+            $quoteId = $this->safe_string($market, 'quote_currency');
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $priceLimits = array (
                 'min' => $this->safe_float($market, 'quote_increment'),
@@ -174,14 +178,12 @@ class gdax extends Exchange {
             if (($base === 'ETH') || ($base === 'LTC')) {
                 $taker = 0.003;
             }
-            $accessible = true;
-            if (is_array ($market) && array_key_exists ('accessible', $market)) {
-                $accessible = $this->safe_value($market, 'accessible');
-            }
-            $active = ($market['status'] === 'online') && $accessible;
+            $active = $market['status'] === 'online';
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'base' => $base,
                 'quote' => $quote,
                 'precision' => $precision,
@@ -416,9 +418,9 @@ class gdax extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_time () {
-        $response = $this->publicGetTime ();
-        return $this->parse8601 ($response['iso']);
+    public function fetch_time ($params = array ()) {
+        $response = $this->publicGetTime ($params);
+        return $this->parse8601 ($this->parse8601 ($response, 'iso'));
     }
 
     public function parse_order_status ($status) {
@@ -487,6 +489,19 @@ class gdax extends Exchange {
         return $this->parse_order($response);
     }
 
+    public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+        }
+        $request = array (
+            'order_id' => $id,
+        );
+        $response = $this->privateGetFills (array_merge ($request, $params));
+        return $this->parse_trades($response, $market, $since, $limit);
+    }
+
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array (
@@ -530,15 +545,16 @@ class gdax extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         // $oid = (string) $this->nonce ();
-        $order = array (
+        $request = array (
             'product_id' => $this->market_id($symbol),
             'side' => $side,
-            'size' => $amount,
+            'size' => $this->amount_to_precision($symbol, $amount),
             'type' => $type,
         );
-        if ($type === 'limit')
-            $order['price'] = $price;
-        $response = $this->privatePostOrders (array_merge ($order, $params));
+        if ($type === 'limit') {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        $response = $this->privatePostOrders (array_merge ($request, $params));
         return $this->parse_order($response);
     }
 
@@ -547,7 +563,7 @@ class gdax extends Exchange {
         return $this->privateDeleteOrdersId (array ( 'id' => $id ));
     }
 
-    public function cancel_all_orders ($symbols = null, $params = array ()) {
+    public function cancel_all_orders ($symbol = null, $params = array ()) {
         return $this->privateDeleteOrders ($params);
     }
 
@@ -655,16 +671,18 @@ class gdax extends Exchange {
     }
 
     public function parse_transaction_status ($transaction) {
-        if (is_array ($transaction && $transaction['canceled_at']) && array_key_exists ('canceled_at', $transaction && $transaction['canceled_at'])) {
+        $canceled = $this->safe_value($transaction, 'canceled_at');
+        if ($canceled) {
             return 'canceled';
-        } else if (is_array ($transaction && $transaction['completed_at']) && array_key_exists ('completed_at', $transaction && $transaction['completed_at'])) {
+        }
+        $processed = $this->safe_value($transaction, 'processed_at');
+        $completed = $this->safe_value($transaction, 'completed_at');
+        if ($processed && $completed) {
             return 'ok';
-        } else if (((is_array ($transaction) && array_key_exists ('canceled_at', $transaction)) && !$transaction['canceled_at']) && ((is_array ($transaction) && array_key_exists ('completed_at', $transaction)) && !$transaction['completed_at']) && ((is_array ($transaction) && array_key_exists ('processed_at', $transaction)) && !$transaction['processed_at'])) {
-            return 'pending';
-        } else if (is_array ($transaction && $transaction['processed_at']) && array_key_exists ('processed_at', $transaction && $transaction['processed_at'])) {
-            return 'pending';
-        } else {
+        } else if ($processed && !$completed) {
             return 'failed';
+        } else {
+            return 'pending';
         }
     }
 
@@ -687,6 +705,7 @@ class gdax extends Exchange {
         $amount = $this->safe_float($transaction, 'amount');
         $type = $this->safe_string($transaction, 'type');
         $address = $this->safe_string($details, 'crypto_address');
+        $tag = $this->safe_string($details, 'destination_tag');
         $address = $this->safe_string($transaction, 'crypto_address', $address);
         if ($type === 'withdraw') {
             $type = 'withdrawal';
@@ -699,7 +718,7 @@ class gdax extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'address' => $address,
-            'tag' => null,
+            'tag' => $tag,
             'type' => $type,
             'amount' => $amount,
             'currency' => $code,
@@ -757,13 +776,41 @@ class gdax extends Exchange {
             // eslint-disable-next-line quotes
             throw new InvalidAddress ($this->id . " fetchDepositAddress() could not find $currency $code " . $code . " with id = " . $currencyId . " in $this->options['coinbaseAccountsByCurrencyId']");
         }
-        $response = $this->privatePostCoinbaseAccountsIdAddresses (array_merge (array (
+        $request = array (
             'id' => $account['id'],
-        ), $params));
+        );
+        $response = $this->privateGetCoinbaseAccountsIdAddresses (array_merge ($request, $params));
         $address = $this->safe_string($response, 'address');
-        // todo => figure this out
-        // $tag = $this->safe_string($response, 'addressTag');
-        $tag = null;
+        $tag = $this->safe_string($response, 'destination_tag');
+        return array (
+            'currency' => $code,
+            'address' => $this->check_address($address),
+            'tag' => $tag,
+            'info' => $response,
+        );
+    }
+
+    public function create_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $accounts = $this->safe_value($this->options, 'coinbaseAccounts');
+        if ($accounts === null) {
+            $accounts = $this->privateGetCoinbaseAccounts ();
+            $this->options['coinbaseAccounts'] = $accounts; // cache it
+            $this->options['coinbaseAccountsByCurrencyId'] = $this->index_by($accounts, 'currency');
+        }
+        $currencyId = $currency['id'];
+        $account = $this->safe_value($this->options['coinbaseAccountsByCurrencyId'], $currencyId);
+        if ($account === null) {
+            // eslint-disable-next-line quotes
+            throw new InvalidAddress ($this->id . " fetchDepositAddress() could not find $currency $code " . $code . " with id = " . $currencyId . " in $this->options['coinbaseAccountsByCurrencyId']");
+        }
+        $request = array (
+            'id' => $account['id'],
+        );
+        $response = $this->privatePostCoinbaseAccountsIdAddresses (array_merge ($request, $params));
+        $address = $this->safe_string($response, 'address');
+        $tag = $this->safe_string($response, 'destination_tag');
         return array (
             'currency' => $code,
             'address' => $this->check_address($address),

@@ -78,6 +78,9 @@ class coinone extends Exchange {
                 'ZIL/KRW' => array ( 'id' => 'zil', 'symbol' => 'ZIL/KRW', 'base' => 'ZIL', 'quote' => 'KRW', 'baseId' => 'zil', 'quoteId' => 'krw' ),
                 'KNC/KRW' => array ( 'id' => 'knc', 'symbol' => 'KNC/KRW', 'base' => 'KNC', 'quote' => 'KRW', 'baseId' => 'knc', 'quoteId' => 'krw' ),
                 'ZRX/KRW' => array ( 'id' => 'zrx', 'symbol' => 'ZRX/KRW', 'base' => 'ZRX', 'quote' => 'KRW', 'baseId' => 'zrx', 'quoteId' => 'krw' ),
+                'LUNA/KRW' => array ( 'id' => 'luna', 'symbol' => 'LUNA/KRW', 'base' => 'LUNA', 'quote' => 'KRW', 'baseId' => 'luna', 'quoteId' => 'krw' ),
+                'ATOM/KRW' => array ( 'id' => 'atom', 'symbol' => 'ATOM/KRW', 'base' => 'ATOM', 'quote' => 'KRW', 'baseId' => 'atom', 'quoteId' => 'krw' ),
+                'VNT/KRW' => array ( 'id' => 'vnt', 'symbol' => 'vnt/KRW', 'base' => 'VNT', 'quote' => 'KRW', 'baseId' => 'vnt', 'quoteId' => 'krw' ),
             ),
             'fees' => array (
                 'trading' => array (

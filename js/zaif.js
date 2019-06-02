@@ -318,16 +318,19 @@ module.exports = class zaif extends Exchange {
         };
     }
 
-    parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
-        let ids = Object.keys (orders);
+    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
         let result = [];
+        let ids = Object.keys (orders);
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            let order = orders[id];
-            let extended = this.extend (order, { 'id': id });
-            result.push (this.parseOrder (extended, market));
+            let order = this.extend ({ 'id': id }, orders[id]);
+            result.push (this.extend (this.parseOrder (order, market), params));
         }
-        return this.filterBySinceLimit (result, since, limit);
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

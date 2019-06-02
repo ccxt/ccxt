@@ -33,6 +33,8 @@ class huobipro extends Exchange {
                 'fetchMyTrades' => true,
                 'withdraw' => true,
                 'fetchCurrencies' => true,
+                'fetchDeposits' => true,
+                'fetchWithdrawals' => true,
             ),
             'timeframes' => array (
                 '1m' => '1min',
@@ -94,6 +96,7 @@ class huobipro extends Exchange {
                         'order/matchresults', // 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
                         'dw/deposit-virtual/addresses',
+                        'dw/deposit-virtual/sharedAddressWithTag', // https://github.com/ccxt/ccxt/issues/4851
                         'query/deposit-withdraw',
                         'margin/loan-orders', // 借贷订单
                         'margin/accounts/balance', // 借贷账户详情
@@ -148,6 +151,9 @@ class huobipro extends Exchange {
                 'fetchBalanceMethod' => 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod' => 'privatePostOrderOrdersPlace',
                 'language' => 'en-US',
+            ),
+            'commonCurrencies' => array (
+                'HOT' => 'Hydro Protocol', // conflict with HOT (Holo) https://github.com/ccxt/ccxt/issues/4929
             ),
         ));
     }
@@ -257,7 +263,7 @@ class huobipro extends Exchange {
                 'limits' => array (
                     'amount' => array (
                         'min' => pow (10, -$precision['amount']),
-                        'max' => pow (10, $precision['amount']),
+                        'max' => null,
                     ),
                     'price' => array (
                         'min' => pow (10, -$precision['price']),
@@ -851,15 +857,54 @@ class huobipro extends Exchange {
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
-        $response = $this->privateGetDwDepositVirtualAddresses (array_merge (array (
+        // if $code == 'EOS':
+        //     res = huobi.request('/dw/deposit-virtual/sharedAddressWithTag', 'private', 'GET', array ('currency' => 'eos', 'chain' => 'eos1'))
+        //     address_info = res['data']
+        // else:
+        //     address_info = self.broker.fetch_deposit_address($code)
+        $request = array (
             'currency' => strtolower ($currency['id']),
-        ), $params));
-        $address = $this->safe_string($response, 'data');
+        );
+        // https://github.com/ccxt/ccxt/issues/4851
+        $info = $this->safe_value($currency, 'info', array ());
+        $currencyAddressWithTag = $this->safe_value($info, 'currency-addr-with-tag');
+        $method = 'privateGetDwDepositVirtualAddresses';
+        if ($currencyAddressWithTag) {
+            $method = 'privateGetDwDepositVirtualSharedAddressWithTag';
+        }
+        $response = $this->$method (array_merge ($request, $params));
+        //
+        // privateGetDwDepositVirtualSharedAddressWithTag
+        //
+        //     {
+        //         "status" => "ok",
+        //         "$data" => {
+        //             "$address" => "huobideposit",
+        //             "$tag" => "1937002"
+        //         }
+        //     }
+        //
+        // privateGetDwDepositVirtualAddresses
+        //
+        //     {
+        //         "status" => "ok",
+        //         "$data" => "0xd7842ec9ba2bc20354e12f0e925a4e285a64187b"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        $address = null;
+        $tag = null;
+        if ($currencyAddressWithTag) {
+            $address = $this->safe_string($data, 'address');
+            $tag = $this->safe_string($data, 'tag');
+        } else {
+            $address = $this->safe_string($response, 'data');
+        }
         $this->check_address($address);
         return array (
             'currency' => $code,
             'address' => $address,
-            'tag' => null,
+            'tag' => $tag,
             'info' => $response,
         );
     }
@@ -974,5 +1019,137 @@ class huobipro extends Exchange {
                 }
             }
         }
+    }
+
+    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+        if ($code === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchDeposits() requires a $code argument');
+        }
+        if ($limit === null || $limit > 100) {
+            $limit = 100;
+        }
+        $this->load_markets();
+        $request = array ();
+        $currency = $this->currency ($code);
+        $request['currency'] = $currency['id'];
+        $request['type'] = 'deposit';
+        $request['from'] = 0; // From 'id' ... if you want to get results after a particular transaction id, pass the id in $params->from
+        $request['size'] = $limit; // Maximum transfers that can be fetched is 100
+        $response = $this->privateGetQueryDepositWithdraw (array_merge ($request, $params));
+        // return $response
+        return $this->parseTransactions ($response['data'], $currency, $since, $limit);
+    }
+
+    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+        if ($code === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchWithdrawals() requires a $code argument');
+        }
+        if ($limit === null || $limit > 100) {
+            $limit = 100;
+        }
+        $this->load_markets();
+        $request = array ();
+        $currency = $this->currency ($code);
+        $request['currency'] = $currency['id'];
+        $request['type'] = 'withdraw'; // Huobi uses withdraw for withdrawals
+        $request['from'] = 0; // From 'id' ... if you want to get results after a particular Transaction id, pass the id in $params->from
+        $request['size'] = $limit; // Maximum transfers that can be fetched is 100
+        $response = $this->privateGetQueryDepositWithdraw (array_merge ($request, $params));
+        // return $response
+        return $this->parseTransactions ($response['data'], $currency, $since, $limit);
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         'id' => 8211029,
+        //         'type' => 'deposit',
+        //         'currency' => 'eth',
+        //         'chain' => 'eth',
+        //         'tx-hash' => 'bd315....',
+        //         'amount' => 0.81162421,
+        //         'address' => '4b8b....',
+        //         'address-tag' => '',
+        //         'fee' => 0,
+        //         'state' => 'safe',
+        //         'created-at' => 1542180380965,
+        //         'updated-at' => 1542180788077
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         'id' => 6908275,
+        //         'type' => 'withdraw',
+        //         'currency' => 'btc',
+        //         'chain' => 'btc',
+        //         'tx-hash' => 'c1a1a....',
+        //         'amount' => 0.80257005,
+        //         'address' => '1QR....',
+        //         'address-tag' => '',
+        //         'fee' => 0.0005,
+        //         'state' => 'confirmed',
+        //         'created-at' => 1552107295685,
+        //         'updated-at' => 1552108032859
+        //     }
+        //
+        $timestamp = $this->safe_integer($transaction, 'created-at');
+        $updated = $this->safe_integer($transaction, 'updated-at');
+        $code = $this->safeCurrencyCode ($transaction, 'currency');
+        $type = $this->safe_string($transaction, 'type');
+        if ($type === 'withdraw') {
+            $type = 'withdrawal';
+        }
+        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
+        $tag = $this->safe_string($transaction, 'address-tag');
+        $feeCost = $this->safe_float($transaction, 'fee');
+        if ($feeCost !== null) {
+            $feeCost = abs ($feeCost);
+        }
+        return array (
+            'info' => $transaction,
+            'id' => $this->safe_string($transaction, 'id'),
+            'txid' => $this->safe_string($transaction, 'tx-hash'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'address' => $this->safe_string($transaction, 'address'),
+            'tag' => $tag,
+            'type' => $type,
+            'amount' => $this->safe_float($transaction, 'amount'),
+            'currency' => $code,
+            'status' => $status,
+            'updated' => $updated,
+            'fee' => array (
+                'currency' => $code,
+                'cost' => $feeCost,
+                'rate' => null,
+            ),
+        );
+    }
+
+    public function parse_transaction_status ($status) {
+        $statuses = array (
+            // deposit $statuses
+            'unknown' => 'failed',
+            'confirming' => 'pending',
+            'confirmed' => 'ok',
+            'safe' => 'ok',
+            'orphan' => 'failed',
+            // withdrawal $statuses
+            'submitted' => 'pending',
+            'canceled' => 'canceled',
+            'reexamine' => 'pending',
+            'reject' => 'failed',
+            'pass' => 'pending',
+            'wallet-reject' => 'failed',
+            // 'confirmed' => 'ok', // present in deposit $statuses
+            'confirm-error' => 'failed',
+            'repealed' => 'failed',
+            'wallet-transfer' => 'pending',
+            'pre-transfer' => 'pending',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 }

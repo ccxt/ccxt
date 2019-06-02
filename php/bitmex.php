@@ -137,9 +137,12 @@ class bitmex extends Exchange {
                     'Invalid API Key.' => '\\ccxt\\AuthenticationError',
                     'Access Denied' => '\\ccxt\\PermissionDenied',
                     'Duplicate clOrdID' => '\\ccxt\\InvalidOrder',
-                    'Signature not valid' => '\\ccxt\\AuthenticationError',
+                    'orderQty is invalid' => '\\ccxt\\InvalidOrder',
+                    'Invalid price' => '\\ccxt\\InvalidOrder',
+                    'Invalid stopPx for ordType' => '\\ccxt\\InvalidOrder',
                 ),
                 'broad' => array (
+                    'Signature not valid' => '\\ccxt\\AuthenticationError',
                     'overloaded' => '\\ccxt\\ExchangeNotAvailable',
                     'Account has insufficient Available Balance' => '\\ccxt\\InsufficientFunds',
                 ),
@@ -281,9 +284,14 @@ class bitmex extends Exchange {
         for ($o = 0; $o < count ($orderbook); $o++) {
             $order = $orderbook[$o];
             $side = ($order['side'] === 'Sell') ? 'asks' : 'bids';
-            $amount = $order['size'];
-            $price = $order['price'];
-            $result[$side][] = array ( $price, $amount );
+            $amount = $this->safe_float($order, 'size');
+            $price = $this->safe_float($order, 'price');
+            // https://github.com/ccxt/ccxt/issues/4926
+            // https://github.com/ccxt/ccxt/issues/4927
+            // the exchange sometimes returns null $price in the $orderbook
+            if ($price !== null) {
+                $result[$side][] = array ( $price, $amount );
+            }
         }
         $result['bids'] = $this->sort_by($result['bids'], 0, true);
         $result['asks'] = $this->sort_by($result['asks'], 0);
@@ -792,9 +800,12 @@ class bitmex extends Exchange {
                 $remaining = max ($amount - $filled, 0.0);
             }
         }
+        $average = $this->safe_float($order, 'avgPx');
         $cost = null;
-        if ($price !== null) {
-            if ($filled !== null) {
+        if ($filled !== null) {
+            if ($average !== null) {
+                $cost = $average * $filled;
+            } else if ($price !== null) {
                 $cost = $price * $filled;
             }
         }
@@ -810,6 +821,7 @@ class bitmex extends Exchange {
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
+            'average' => $average,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
@@ -969,9 +981,17 @@ class bitmex extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = '/api/' . $this->version . '/' . $path;
-        if ($method !== 'PUT')
-            if ($params)
+        if ($method === 'GET') {
+            if ($params) {
                 $query .= '?' . $this->urlencode ($params);
+            }
+        } else {
+            $format = $this->safe_string($params, '_format');
+            if ($format !== null) {
+                $query .= '?' . $this->urlencode (array ( '_format' => $format ));
+                $params = $this->omit ($params, '_format');
+            }
+        }
         $url = $this->urls['api'] . $query;
         if ($api === 'private') {
             $this->check_required_credentials();
@@ -985,7 +1005,7 @@ class bitmex extends Exchange {
             $expires = (string) $expires;
             $auth .= $expires;
             $headers['api-expires'] = $expires;
-            if ($method === 'POST' || $method === 'PUT') {
+            if ($method === 'POST' || $method === 'PUT' || $method === 'DELETE') {
                 if ($params) {
                     $body = $this->json ($params);
                     $auth .= $body;

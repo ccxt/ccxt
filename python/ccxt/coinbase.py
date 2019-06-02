@@ -165,10 +165,10 @@ class coinbase (Exchange):
             },
         })
 
-    def fetch_time(self):
-        response = self.publicGetTime()
-        data = response['data']
-        return self.parse8601(data['iso'])
+    def fetch_time(self, params={}):
+        response = self.publicGetTime(params)
+        data = self.safe_value(response, 'data', {})
+        return self.parse8601(self.safe_string(data, 'iso'))
 
     def fetch_accounts(self, params={}):
         self.load_markets()

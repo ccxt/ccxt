@@ -214,7 +214,7 @@ let testExchange = async exchange => {
         await testSymbol (exchange, symbol)
     }
 
-    if (!exchange.apiKey || (exchange.apiKey.length < 1))
+    if (!exchange.privateKey && (!exchange.apiKey || (exchange.apiKey.length < 1)))
         return true
 
     exchange.checkRequiredCredentials ()

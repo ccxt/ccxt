@@ -19,6 +19,8 @@ class bibox extends Exchange {
                 'CORS' => false,
                 'publicAPI' => false,
                 'fetchBalance' => true,
+                'fetchDeposits' => true,
+                'fetchWithdrawals' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchFundingFees' => true,
@@ -37,6 +39,9 @@ class bibox extends Exchange {
                 '15m' => '15min',
                 '30m' => '30min',
                 '1h' => '1hour',
+                '2h' => '2hour',
+                '4h' => '4hour',
+                '6h' => '6hour',
                 '12h' => '12hour',
                 '1d' => 'day',
                 '1w' => 'week',
@@ -221,9 +226,10 @@ class bibox extends Exchange {
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
-        $response = $this->publicGetMdata (array_merge (array (
+        $request = array (
             'cmd' => 'marketAll',
-        ), $params));
+        );
+        $response = $this->publicGetMdata (array_merge ($request, $params));
         $tickers = $this->parse_tickers ($response['result'], $symbols);
         return $this->index_by($tickers, 'symbol');
     }
@@ -290,23 +296,27 @@ class bibox extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $size = ($limit) ? $limit : 200;
-        $response = $this->publicGetMdata (array_merge (array (
+        $request = array (
             'cmd' => 'deals',
             'pair' => $market['id'],
-            'size' => $size,
-        ), $params));
+        );
+        if ($limit !== null) {
+            $request['size'] = $limit; // default = 200
+        }
+        $response = $this->publicGetMdata (array_merge ($request, $params));
         return $this->parse_trades($response['result'], $market, $since, $limit);
     }
 
-    public function fetch_order_book ($symbol, $limit = 200, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
             'cmd' => 'depth',
             'pair' => $market['id'],
         );
-        $request['size'] = $limit; // default = 200 ?
+        if ($limit !== null) {
+            $request['size'] = $limit; // default = 200
+        }
         $response = $this->publicGetMdata (array_merge ($request, $params));
         return $this->parse_order_book($response['result'], $this->safe_float($response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
     }
@@ -335,6 +345,9 @@ class bibox extends Exchange {
     }
 
     public function fetch_currencies ($params = array ()) {
+        if (!$this->apiKey || !$this->secret) {
+            throw new AuthenticationError ($this->id . " fetchCurrencies is an authenticated endpoint, therefore it requires 'apiKey' and 'secret' credentials. If you don't need $currency details, set exchange.has['fetchCurrencies'] = false before calling its methods.");
+        }
         $response = $this->privatePostTransfer (array (
             'cmd' => 'transfer/coinList',
             'body' => array (),
@@ -421,6 +434,143 @@ class bibox extends Exchange {
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
+    }
+
+    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $currency = null;
+        $request = array (
+            'page' => 1,
+        );
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+            $request['symbol'] = $currency['id'];
+        }
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        } else {
+            $request['size'] = 100;
+        }
+        $response = $this->privatePostTransfer (array (
+            'cmd' => 'transfer/transferInList',
+            'body' => array_merge ($request, $params),
+        ));
+        $deposits = $this->safe_value($response['result'], 'items', array ());
+        for ($i = 0; $i < count ($deposits); $i++) {
+            $deposits[$i]['type'] = 'deposit';
+        }
+        return $this->parseTransactions ($deposits, $currency, $since, $limit);
+    }
+
+    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $currency = null;
+        $request = array (
+            'page' => 1,
+        );
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+            $request['symbol'] = $currency['id'];
+        }
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        } else {
+            $request['size'] = 100;
+        }
+        $response = $this->privatePostTransfer (array (
+            'cmd' => 'transfer/transferOutList',
+            'body' => array_merge ($request, $params),
+        ));
+        $withdrawals = $this->safe_value($response['result'], 'items', array ());
+        for ($i = 0; $i < count ($withdrawals); $i++) {
+            $withdrawals[$i]['type'] = 'withdrawal';
+        }
+        return $this->parseTransactions ($withdrawals, $currency, $since, $limit);
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         'id' => 1023291,
+        //         'coin_symbol' => 'ETH',
+        //         'to_address' => '0x7263....',
+        //         'amount' => '0.49170000',
+        //         'confirmCount' => '16',
+        //         'createdAt' => 1553123867000,
+        //         'status' => 2
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         'id' => 521844,
+        //         'coin_symbol' => 'ETH',
+        //         'to_address' => '0xfd4e....',
+        //         'addr_remark' => '',
+        //         'amount' => '0.39452750',
+        //         'fee' => '0.00600000',
+        //         'createdAt' => 1553226906000,
+        //         'memo' => '',
+        //         'status' => 3
+        //     }
+        //
+        $id = $this->safe_string($transaction, 'id');
+        $address = $this->safe_string($transaction, 'to_address');
+        $code = null;
+        $currencyId = $this->safe_string($transaction, 'coin_symbol');
+        if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
+            $currency = $this->currencies_by_id[$currencyId];
+        } else {
+            $code = $this->common_currency_code($currencyId);
+        }
+        if ($currency !== null) {
+            $code = $currency['code'];
+        }
+        $timestamp = $this->safe_string($transaction, 'createdAt');
+        $tag = $this->safe_string($transaction, 'addr_remark');
+        $type = $this->safe_string($transaction, 'type');
+        $status = $this->parse_transaction_status_by_type ($this->safe_string($transaction, 'status'), $type);
+        $amount = $this->safe_float($transaction, 'amount');
+        $feeCost = $this->safe_float($transaction, 'fee');
+        if ($type === 'deposit') {
+            $feeCost = 0;
+            $tag = null;
+        }
+        $fee = array (
+            'cost' => $feeCost,
+            'currency' => $code,
+        );
+        return array (
+            'info' => $transaction,
+            'id' => $id,
+            'txid' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'address' => $address,
+            'tag' => $tag,
+            'type' => $type,
+            'amount' => $amount,
+            'currency' => $code,
+            'status' => $status,
+            'updated' => null,
+            'fee' => $fee,
+        );
+    }
+
+    public function parse_transaction_status_by_type ($status, $type = null) {
+        $statuses = array (
+            'deposit' => array (
+                '1' => 'pending',
+                '2' => 'ok',
+            ),
+            'withdrawal' => array (
+                '0' => 'pending',
+                '3' => 'ok',
+            ),
+        );
+        return $this->safe_string($this->safe_value($statuses, $type, array ()), $status, $status);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

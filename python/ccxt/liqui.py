@@ -519,15 +519,17 @@ class liqui (Exchange):
         }
         return result
 
-    def parse_orders(self, orders, market=None, since=None, limit=None):
-        ids = list(orders.keys())
+    def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
         result = []
+        ids = list(orders.keys())
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         for i in range(0, len(ids)):
             id = ids[i]
-            order = orders[id]
-            extended = self.extend(order, {'id': id})
-            result.append(self.parse_order(extended, market))
-        return self.filter_by_since_limit(result, since, limit)
+            order = self.extend({'id': id}, orders[id])
+            result.append(self.extend(self.parse_order(order, market), params))
+        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -736,6 +738,8 @@ class liqui (Exchange):
                 exact = self.exceptions['exact']
                 if code in exact:
                     raise exact[code](feedback)
+                elif message in exact:
+                    raise exact[message](feedback)
                 broad = self.exceptions['broad']
                 broadKey = self.findBroadlyMatchedKey(broad, message)
                 if broadKey is not None:

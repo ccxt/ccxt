@@ -32,10 +32,12 @@ class gdax (Exchange):
                 'fetchAccounts': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
+                'createDepositAddress': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
+                'fetchOrderTrades': True,
                 'fetchOrders': True,
                 'fetchTransactions': True,
                 'withdraw': True,
@@ -119,8 +121,8 @@ class gdax (Exchange):
                 'trading': {
                     'tierBased': True,  # complicated tier system per coin
                     'percentage': True,
-                    'maker': 0.0,
-                    'taker': 0.3 / 100,  # tiered fee starts at 0.3%
+                    'maker': 0.15 / 100,  # highest fee of all tiers
+                    'taker': 0.25 / 100,  # highest fee of all tiers
                 },
                 'funding': {
                     'tierBased': False,
@@ -162,13 +164,15 @@ class gdax (Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        markets = await self.publicGetProducts()
+        response = await self.publicGetProducts(params)
         result = []
-        for p in range(0, len(markets)):
-            market = markets[p]
-            id = market['id']
-            base = market['base_currency']
-            quote = market['quote_currency']
+        for i in range(0, len(response)):
+            market = response[i]
+            id = self.safe_string(market, 'id')
+            baseId = self.safe_string(market, 'base_currency')
+            quoteId = self.safe_string(market, 'quote_currency')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             priceLimits = {
                 'min': self.safe_float(market, 'quote_increment'),
@@ -181,13 +185,12 @@ class gdax (Exchange):
             taker = self.fees['trading']['taker']  # does not seem right
             if (base == 'ETH') or (base == 'LTC'):
                 taker = 0.003
-            accessible = True
-            if 'accessible' in market:
-                accessible = self.safe_value(market, 'accessible')
-            active = (market['status'] == 'online') and accessible
+            active = market['status'] == 'online'
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
                 'precision': precision,
@@ -403,9 +406,9 @@ class gdax (Exchange):
         response = await self.publicGetProductsIdCandles(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    async def fetch_time(self):
-        response = await self.publicGetTime()
-        return self.parse8601(response['iso'])
+    async def fetch_time(self, params={}):
+        response = await self.publicGetTime(params)
+        return self.parse8601(self.parse8601(response, 'iso'))
 
     def parse_order_status(self, status):
         statuses = {
@@ -469,6 +472,17 @@ class gdax (Exchange):
         }, params))
         return self.parse_order(response)
 
+    async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {
+            'order_id': id,
+        }
+        response = await self.privateGetFills(self.extend(request, params))
+        return self.parse_trades(response, market, since, limit)
+
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {
@@ -506,22 +520,22 @@ class gdax (Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         # oid = str(self.nonce())
-        order = {
+        request = {
             'product_id': self.market_id(symbol),
             'side': side,
-            'size': amount,
+            'size': self.amount_to_precision(symbol, amount),
             'type': type,
         }
         if type == 'limit':
-            order['price'] = price
-        response = await self.privatePostOrders(self.extend(order, params))
+            request['price'] = self.price_to_precision(symbol, price)
+        response = await self.privatePostOrders(self.extend(request, params))
         return self.parse_order(response)
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
         return await self.privateDeleteOrdersId({'id': id})
 
-    async def cancel_all_orders(self, symbols=None, params={}):
+    async def cancel_all_orders(self, symbol=None, params={}):
         return await self.privateDeleteOrders(params)
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
@@ -616,16 +630,17 @@ class gdax (Exchange):
         return self.parseTransactions(response, currency, since, limit)
 
     def parse_transaction_status(self, transaction):
-        if 'canceled_at' in transaction and transaction['canceled_at']:
+        canceled = self.safe_value(transaction, 'canceled_at')
+        if canceled:
             return 'canceled'
-        elif 'completed_at' in transaction and transaction['completed_at']:
+        processed = self.safe_value(transaction, 'processed_at')
+        completed = self.safe_value(transaction, 'completed_at')
+        if processed and completed:
             return 'ok'
-        elif (('canceled_at' in list(transaction.keys())) and not transaction['canceled_at']) and(('completed_at' in list(transaction.keys())) and not transaction['completed_at']) and(('processed_at' in list(transaction.keys())) and not transaction['processed_at']):
-            return 'pending'
-        elif 'processed_at' in transaction and transaction['processed_at']:
-            return 'pending'
-        else:
+        elif processed and not completed:
             return 'failed'
+        else:
+            return 'pending'
 
     def parse_transaction(self, transaction, currency=None):
         details = self.safe_value(transaction, 'details', {})
@@ -645,6 +660,7 @@ class gdax (Exchange):
         amount = self.safe_float(transaction, 'amount')
         type = self.safe_string(transaction, 'type')
         address = self.safe_string(details, 'crypto_address')
+        tag = self.safe_string(details, 'destination_tag')
         address = self.safe_string(transaction, 'crypto_address', address)
         if type == 'withdraw':
             type = 'withdrawal'
@@ -656,7 +672,7 @@ class gdax (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'address': address,
-            'tag': None,
+            'tag': tag,
             'type': type,
             'amount': amount,
             'currency': code,
@@ -706,13 +722,38 @@ class gdax (Exchange):
         if account is None:
             # eslint-disable-next-line quotes
             raise InvalidAddress(self.id + " fetchDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in self.options['coinbaseAccountsByCurrencyId']")
-        response = await self.privatePostCoinbaseAccountsIdAddresses(self.extend({
+        request = {
             'id': account['id'],
-        }, params))
+        }
+        response = await self.privateGetCoinbaseAccountsIdAddresses(self.extend(request, params))
         address = self.safe_string(response, 'address')
-        # todo: figure self out
-        # tag = self.safe_string(response, 'addressTag')
-        tag = None
+        tag = self.safe_string(response, 'destination_tag')
+        return {
+            'currency': code,
+            'address': self.check_address(address),
+            'tag': tag,
+            'info': response,
+        }
+
+    async def create_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        accounts = self.safe_value(self.options, 'coinbaseAccounts')
+        if accounts is None:
+            accounts = await self.privateGetCoinbaseAccounts()
+            self.options['coinbaseAccounts'] = accounts  # cache it
+            self.options['coinbaseAccountsByCurrencyId'] = self.index_by(accounts, 'currency')
+        currencyId = currency['id']
+        account = self.safe_value(self.options['coinbaseAccountsByCurrencyId'], currencyId)
+        if account is None:
+            # eslint-disable-next-line quotes
+            raise InvalidAddress(self.id + " fetchDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in self.options['coinbaseAccountsByCurrencyId']")
+        request = {
+            'id': account['id'],
+        }
+        response = await self.privatePostCoinbaseAccountsIdAddresses(self.extend(request, params))
+        address = self.safe_string(response, 'address')
+        tag = self.safe_string(response, 'destination_tag')
         return {
             'currency': code,
             'address': self.check_address(address),

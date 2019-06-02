@@ -145,9 +145,12 @@ class bitmex (Exchange):
                     'Invalid API Key.': AuthenticationError,
                     'Access Denied': PermissionDenied,
                     'Duplicate clOrdID': InvalidOrder,
-                    'Signature not valid': AuthenticationError,
+                    'orderQty is invalid': InvalidOrder,
+                    'Invalid price': InvalidOrder,
+                    'Invalid stopPx for ordType': InvalidOrder,
                 },
                 'broad': {
+                    'Signature not valid': AuthenticationError,
                     'overloaded': ExchangeNotAvailable,
                     'Account has insufficient Available Balance': InsufficientFunds,
                 },
@@ -280,9 +283,13 @@ class bitmex (Exchange):
         for o in range(0, len(orderbook)):
             order = orderbook[o]
             side = 'asks' if (order['side'] == 'Sell') else 'bids'
-            amount = order['size']
-            price = order['price']
-            result[side].append([price, amount])
+            amount = self.safe_float(order, 'size')
+            price = self.safe_float(order, 'price')
+            # https://github.com/ccxt/ccxt/issues/4926
+            # https://github.com/ccxt/ccxt/issues/4927
+            # the exchange sometimes returns null price in the orderbook
+            if price is not None:
+                result[side].append([price, amount])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
@@ -757,9 +764,12 @@ class bitmex (Exchange):
         if amount is not None:
             if filled is not None:
                 remaining = max(amount - filled, 0.0)
+        average = self.safe_float(order, 'avgPx')
         cost = None
-        if price is not None:
-            if filled is not None:
+        if filled is not None:
+            if average is not None:
+                cost = average * filled
+            elif price is not None:
                 cost = price * filled
         result = {
             'info': order,
@@ -773,6 +783,7 @@ class bitmex (Exchange):
             'price': price,
             'amount': amount,
             'cost': cost,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
@@ -914,9 +925,14 @@ class bitmex (Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = '/api/' + self.version + '/' + path
-        if method != 'PUT':
+        if method == 'GET':
             if params:
                 query += '?' + self.urlencode(params)
+        else:
+            format = self.safe_string(params, '_format')
+            if format is not None:
+                query += '?' + self.urlencode({'_format': format})
+                params = self.omit(params, '_format')
         url = self.urls['api'] + query
         if api == 'private':
             self.check_required_credentials()
@@ -930,7 +946,7 @@ class bitmex (Exchange):
             expires = str(expires)
             auth += expires
             headers['api-expires'] = expires
-            if method == 'POST' or method == 'PUT':
+            if method == 'POST' or method == 'PUT' or method == 'DELETE':
                 if params:
                     body = self.json(params)
                     auth += body

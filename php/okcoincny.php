@@ -26,6 +26,7 @@ class okcoincny extends okcoinusd {
                 ),
                 'www' => 'https://www.okcoin.cn',
                 'doc' => 'https://www.okcoin.cn/rest_getStarted.html',
+                'referral' => 'https://www.okcoin.cn',
             ),
             'markets' => array (
                 'BTC/CNY' => array ( 'id' => 'btc_cny', 'symbol' => 'BTC/CNY', 'base' => 'BTC', 'quote' => 'CNY', 'type' => 'spot', 'spot' => true, 'future' => false ),

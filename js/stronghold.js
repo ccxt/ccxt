@@ -43,7 +43,9 @@ module.exports = class stronghold extends Exchange {
                 'createDepositAddress': true,
                 'withdraw': true,
                 'fetchTicker': false,
+                'fetchTickers': false,
                 'fetchAccounts': true,
+                'fetchTransactions': true,
             },
             'api': {
                 'public': {
@@ -110,6 +112,7 @@ module.exports = class stronghold extends Exchange {
                     'XLM': 'stellar',
                     'XRP': 'ripple',
                     'LTC': 'litecoin',
+                    'SHX': 'stellar',
                 },
             },
             'exceptions': {
@@ -425,6 +428,7 @@ module.exports = class stronghold extends Exchange {
     parseTransactionStatus (status) {
         let statuses = {
             'queued': 'pending',
+            'settling': 'pending',
         };
         return this.safeString (statuses, status, status);
     }
@@ -464,7 +468,10 @@ module.exports = class stronghold extends Exchange {
             feeRate = feeCost / amount;
         }
         const direction = this.safeString (transaction, 'direction');
-        const type = (direction === 'outgoing') ? 'withdraw' : 'deposit';
+        const datetime = this.safeString (transaction, 'requestedAt');
+        const timestamp = this.parse8601 (datetime);
+        const updated = this.parse8601 (this.safeString (transaction, 'updatedAt'));
+        const type = (direction === 'outgoing' || direction === 'withdrawal') ? 'withdrawal' : 'deposit';
         const fee = {
             'cost': feeCost,
             'rate': feeRate,
@@ -478,11 +485,11 @@ module.exports = class stronghold extends Exchange {
             'fee': fee,
             'tag': undefined,
             'type': type,
-            'updated': undefined,
+            'updated': updated,
             'address': undefined,
             'txid': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': datetime,
         };
     }
 

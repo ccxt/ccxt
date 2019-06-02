@@ -3,7 +3,6 @@
 /*  ------------------------------------------------------------------------ */
 
 const functions = require ('./functions')
-    , Market    = require ('./Market')
 
 const {
     isNode
@@ -62,26 +61,9 @@ try {
 } catch (e) {
 }
 
-const journal = undefined // isNode && require ('./journal') // stub until we get a better solution for Webpack and React
-
 /*  ------------------------------------------------------------------------ */
 
 module.exports = class Exchange {
-
-    getMarket (symbol) {
-
-        if (!this.marketClasses)
-            this.marketClasses = {}
-
-        let marketClass = this.marketClasses[symbol]
-
-        if (marketClass)
-            return marketClass
-
-        marketClass = new Market (this, symbol)
-        this.marketClasses[symbol] = marketClass // only one Market instance per market
-        return marketClass
-    }
 
     describe () {
         return {
@@ -148,6 +130,7 @@ module.exports = class Exchange {
                 'twofa':      false, // 2-factor authentication (one-time password key)
                 'privateKey': false, // a "0x"-prefixed hexstring private key for a wallet
                 'walletAddress': false, // the wallet address "0x"-prefixed hexstring
+                'token':      false, // reserved for HTTP auth in some cases
             },
             'markets': undefined, // to be filled manually or by fetchMarkets
             'currencies': {}, // to be filled manually or by fetchMarkets
@@ -319,7 +302,6 @@ module.exports = class Exchange {
         this.timeout       = 10000 // milliseconds
         this.verbose       = false
         this.debug         = false
-        this.journal       = 'debug.json'
         this.userAgent     = undefined
         this.twofa         = undefined // two-factor authentication (2FA)
 
@@ -330,6 +312,7 @@ module.exports = class Exchange {
         this.password      = undefined
         this.privateKey    = undefined // a "0x"-prefixed hexstring private key for a wallet
         this.walletAddress = undefined // a wallet address "0x"-prefixed hexstring
+        this.token         = undefined // reserved for HTTP auth in some cases
 
         this.balance     = {}
         this.orderbooks  = {}
@@ -380,10 +363,6 @@ module.exports = class Exchange {
         if (this.markets)
             this.setMarkets (this.markets)
 
-        if (this.debug && journal) {
-            journal (() => this.journal, this, Object.keys (this.has))
-        }
-
         if (this.requiresWeb3 && !this.web3 && Web3) {
             const provider = (this.web3ProviderURL) ? new Web3.providers.HttpProvider (this.web3ProviderURL) : new Web3.providers.HttpProvider ()
             this.web3 = new Web3 (Web3.givenProvider || provider)
@@ -410,7 +389,7 @@ module.exports = class Exchange {
         Object.keys (this.requiredCredentials).forEach ((key) => {
             if (this.requiredCredentials[key] && !this[key]) {
                 if (error) {
-                    throw new AuthenticationError (this.id + ' requires `' + key + '`')
+                    throw new AuthenticationError (this.id + ' requires `' + key + '` credential')
                 } else {
                     return error
                 }
@@ -485,13 +464,22 @@ module.exports = class Exchange {
     setSandboxMode (enabled) {
         if (!!enabled) {
             if ('test' in this.urls) {
-                this.urls['api_backup'] = clone (this.urls['api'])
-                this.urls['api'] = clone (this.urls['test'])
+                if (typeof this.urls['api'] === 'string') {
+                    this.urls['api_backup'] = this.urls['api']
+                    this.urls['api'] = this.urls['test']
+                } else {
+                    this.urls['api_backup'] = clone (this.urls['api'])
+                    this.urls['api'] = clone (this.urls['test'])
+                }
             } else {
                 throw new NotSupported (this.id + ' does not have a sandbox URL')
             }
         } else if ('api_backup' in this.urls) {
-            this.urls['api'] = clone (this.urls['api_backup'])
+            if (typeof this.urls['api'] === 'string') {
+                this.urls['api'] = this.urls['api_backup']
+            } else {
+                this.urls['api'] = clone (this.urls['api_backup'])
+            }
         }
     }
 
@@ -1208,12 +1196,12 @@ module.exports = class Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
     }
 
-    parseTransactions (transactions, currency = undefined, since = undefined, limit = undefined) {
+    parseTransactions (transactions, currency = undefined, since = undefined, limit = undefined, params = {}) {
         // this code is commented out temporarily to catch for exchange-specific errors
         // if (!this.isArray (transactions)) {
         //     throw new ExchangeError (this.id + ' parseTransactions expected an array in the transactions argument, but got ' + typeof transactions);
         // }
-        let result = Object.values (transactions || []).map (transaction => this.parseTransaction (transaction, currency))
+        let result = Object.values (transactions || []).map (transaction => this.extend (this.parseTransaction (transaction, currency), params))
         result = this.sortBy (result, 'timestamp');
         let code = (currency !== undefined) ? currency['code'] : undefined;
         return this.filterByCurrencySinceLimit (result, code, since, limit);
@@ -1230,12 +1218,12 @@ module.exports = class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
+    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
         // this code is commented out temporarily to catch for exchange-specific errors
         // if (!this.isArray (orders)) {
         //     throw new ExchangeError (this.id + ' parseOrders expected an array in the orders argument, but got ' + typeof orders);
         // }
-        let result = Object.values (orders).map (order => this.parseOrder (order, market))
+        let result = Object.values (orders).map (order => this.extend (this.parseOrder (order, market), params))
         result = sortBy (result, 'timestamp')
         let symbol = (market !== undefined) ? market['symbol'] : undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)

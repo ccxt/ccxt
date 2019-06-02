@@ -93,7 +93,7 @@ module.exports = class coinex extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.0,
+                    'maker': 0.001,
                     'taker': 0.001,
                 },
                 'funding': {
@@ -193,7 +193,7 @@ module.exports = class coinex extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'baseVolume': this.safeFloat2 (ticker, 'vol', 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -235,7 +235,7 @@ module.exports = class coinex extends Exchange {
             limit = 20; // default
         const request = {
             'market': this.marketId (symbol),
-            'merge': '0.00000001',
+            'merge': '0.0000000001',
             'limit': limit.toString (),
         };
         let response = await this.publicGetMarketDepth (this.extend (request, params));

@@ -22,6 +22,7 @@ class coinmate extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
                 'api' => 'https://coinmate.io/api',
                 'www' => 'https://coinmate.io',
+                'fees' => 'https://coinmate.io/fees',
                 'doc' => array (
                     'https://coinmate.docs.apiary.io',
                     'https://coinmate.io/developers',
@@ -39,6 +40,7 @@ class coinmate extends Exchange {
                         'orderBook',
                         'ticker',
                         'transactions',
+                        'tradingPairs',
                     ),
                 ),
                 'private' => array (
@@ -60,18 +62,76 @@ class coinmate extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
-                'BTC/EUR' => array ( 'id' => 'BTC_EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'precision' => array ( 'amount' => 4, 'price' => 2 )),
-                'BTC/CZK' => array ( 'id' => 'BTC_CZK', 'symbol' => 'BTC/CZK', 'base' => 'BTC', 'quote' => 'CZK', 'precision' => array ( 'amount' => 4, 'price' => 2 )),
-                'LTC/BTC' => array ( 'id' => 'LTC_BTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'precision' => array ( 'amount' => 4, 'price' => 5 )),
-            ),
             'fees' => array (
                 'trading' => array (
-                    'maker' => 0.0005,
-                    'taker' => 0.0035,
+                    'maker' => 0.05 / 100,
+                    'taker' => 0.15 / 100,
                 ),
             ),
         ));
+    }
+
+    public function fetch_markets ($params = array ()) {
+        $response = $this->publicGetTradingPairs ($params);
+        //
+        //     {
+        //         "error":false,
+        //         "errorMessage":null,
+        //         "$data" => array (
+        //             array (
+        //                 "name":"BTC_EUR",
+        //                 "firstCurrency":"BTC",
+        //                 "secondCurrency":"EUR",
+        //                 "priceDecimals":2,
+        //                 "lotDecimals":8,
+        //                 "minAmount":0.0002,
+        //                 "tradesWebSocketChannelId":"trades-BTC_EUR",
+        //                 "orderBookWebSocketChannelId":"order_book-BTC_EUR",
+        //                 "tradeStatisticsWebSocketChannelId":"statistics-BTC_EUR"
+        //             ),
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        $result = array ();
+        for ($i = 0; $i < count ($data); $i++) {
+            $market = $data[$i];
+            $id = $this->safe_string($market, 'name');
+            $baseId = $this->safe_string($market, 'firstCurrency');
+            $quoteId = $this->safe_string($market, 'secondCurrency');
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
+            $symbol = $base . '/' . $quote;
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'active' => null,
+                'info' => $market,
+                'precision' => array (
+                    'price' => $this->safe_integer($market, 'priceDecimals'),
+                    'amount' => $this->safe_integer($market, 'lotDecimals'),
+                ),
+                'limits' => array (
+                    'amount' => array (
+                        'min' => $this->safe_float($market, 'minAmount'),
+                        'max' => null,
+                    ),
+                    'price' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $result;
     }
 
     public function fetch_balance ($params = array ()) {

@@ -720,7 +720,7 @@ class coss (Exchange):
             'OPEN': 'open',
             'CANCELLED': 'canceled',
             'FILLED': 'closed',
-            'PARTIAL_FILL': 'open',
+            'PARTIAL_FILL': 'closed',
             'CANCELLING': 'open',
         }
         return self.safe_string(statuses, status.upper(), status)
