@@ -596,7 +596,26 @@ module.exports = class coinex extends Exchange {
             'transfer_method': '1', // '1' = normal onchain transfer, '2' = internal local transfer from one user to another
         };
         const response = await this.privatePostBalanceCoinWithdraw (this.extend (request, params));
-        return this.parseTransaction (response, currency);
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "actual_amount": "1.00000000",
+        //             "amount": "1.00000000",
+        //             "coin_address": "1KAv3pazbTk2JnQ5xTo6fpKK7p1it2RzD4",
+        //             "coin_type": "BCH",
+        //             "coin_withdraw_id": 206,
+        //             "confirmations": 0,
+        //             "create_time": 1524228297,
+        //             "status": "audit",
+        //             "tx_fee": "0",
+        //             "tx_id": ""
+        //         },
+        //         "message": "Ok"
+        //     }
+        //
+        const transaction = this.safeValue (response, 'data', {});
+        return this.parseTransaction (transaction, currency);
     }
 
     parseTransactionStatus (status) {
