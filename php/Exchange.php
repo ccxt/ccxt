@@ -219,7 +219,7 @@ class Exchange {
         'zb',
     );
 
-    public static $camelMethods = array (
+    public static $camel_methods = array (
         'loadTimeDifference' => 'load_time_difference',
         'fetchMarkets' => 'fetch_markets',
         'calculateFee' => 'calculate_fee',
@@ -278,7 +278,7 @@ class Exchange {
         'createDepositAddress' => 'create_deposit_address',
     );
 
-    public static $staticCamelMethods = array (
+    public static $static_camel_methods = array (
         'safeFloat' => 'safe_float',
         'safeString' => 'safe_string',
         'safeInteger' => 'safe_integer',
@@ -291,6 +291,8 @@ class Exchange {
         'numberToString' => 'number_to_string',
         'hasWeb3' => 'has_web3',
     );
+
+    public $defined_rest_api;
 
     public static function split ($string, $delimiters = array (' ')) {
         return explode ($delimiters[0], str_replace ($delimiters, $delimiters[0], $string));
@@ -969,6 +971,7 @@ class Exchange {
     }
 
     public function define_rest_api ($api, $method_name, $options = array ()) {
+        $this->defined_rest_api = array ();
         foreach ($api as $type => $methods)
             foreach ($methods as $http_method => $paths)
                 foreach ($paths as $path) {
@@ -992,12 +995,11 @@ class Exchange {
                             $underscore .= $options['suffixes']['underscore'];
                     }
 
-                    $partial = function ($params = array ()) use ($path, $type, $uppercaseMethod, $method_name) {
-                        return call_user_func (array ($this, $method_name), $path, $type, $uppercaseMethod, $params);
-                    };
-
-                    $this->$camelcase  = $partial;
-                    $this->$underscore = $partial;
+                    // API definitions are stored as [$path, $type, $upperCaseMethod, $method_name]
+                    // note: no reference to $this
+                    $partial = array ($path, $type, $uppercaseMethod, $method_name);
+                    $this->defined_rest_api[$camelcase]  = $partial;
+                    $this->defined_rest_api[$underscore] = $partial;
                 }
     }
 
@@ -1935,13 +1937,16 @@ class Exchange {
     }
 
     public function __call ($function, $params) {
-        if (array_key_exists ($function, $this)) {
-            return call_user_func_array ($this->$function, $params);
-        } else if (array_key_exists ($function, self::$camelMethods)) {
-            $underscore = self::$camelMethods[$function];
+        if (array_key_exists ($function, $this->defined_rest_api)) {
+            $api_call_info = $this->defined_rest_api[$function];
+            $entry = $api_call_info[3];
+            $api_call_info[3] = $params;
+            return call_user_func_array (array ($this, $entry), $api_call_info);
+        } else if (array_key_exists ($function, self::$camel_methods)) {
+            $underscore = self::$camel_methods[$function];
             return call_user_func_array (array ($this, $underscore), $params);
-        } else if (array_key_exists ($function, self::$staticCamelMethods)) {
-            $underscore = self::$staticCamelMethods[$function];
+        } else if (array_key_exists ($function, self::$static_camel_methods)) {
+            $underscore = self::$static_camel_methods[$function];
             return call_user_func_array (array ('static', $underscore), $params);
         } else {
             throw new ExchangeError ($function . ' method not found');
@@ -1949,8 +1954,8 @@ class Exchange {
     }
 
     public static function __callStatic ($function, $params) {
-        if (array_key_exists ($function, self::$staticCamelMethods)) {
-            $underscore = self::$staticCamelMethods[$function];
+        if (array_key_exists ($function, self::$static_camel_methods)) {
+            $underscore = self::$static_camel_methods[$function];
             return call_user_func_array (array ('static', $underscore), $params);
         } else {
             throw new ExchangeError ($function . ' method not found');
