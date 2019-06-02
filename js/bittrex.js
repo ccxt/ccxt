@@ -871,7 +871,7 @@ module.exports = class bittrex extends Exchange {
             feeCurrency = market['quote'];
         } else {
             symbol = this.parseSymbol (marketSymbol);
-            const parts = symbol.split (this.options['symbolSeparator'])
+            const parts = symbol.split (this.options['symbolSeparator']);
             const quote = parts[1];
             feeCurrency = quote;
         }
