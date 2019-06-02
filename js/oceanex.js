@@ -36,9 +36,9 @@ module.exports = class oceanex extends Exchange {
                 'fetchFundingFees': false,
                 'fetchTime': true,
                 'fetchOrder': true,
+                'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
-                'fetchOrders': false,
                 'fetchBalance': true,
                 'createMarketOrder': false,
                 'createOrder': true,
@@ -392,7 +392,7 @@ module.exports = class oceanex extends Exchange {
             side = 'sell';
         }
         let symbol = undefined;
-        let marketId = this.safeValue (trade, 'market');
+        const marketId = this.safeValue (trade, 'market');
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
@@ -411,7 +411,6 @@ module.exports = class oceanex extends Exchange {
             timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         } else {
             timestamp = timestamp * 1000;
-            // Get milliseconds
         }
         return {
             'info': trade,
@@ -432,6 +431,9 @@ module.exports = class oceanex extends Exchange {
 
     async fetchTime (params = {}) {
         const response = await this.publicGetTimestamp (params);
+        //
+        //     {"code":0,"message":"Operation successful","data":1559433420}
+        //
         let timestamp = this.safeInteger (response, 'data');
         return timestamp * 1000;
     }
@@ -491,8 +493,8 @@ module.exports = class oceanex extends Exchange {
             throw new InvalidOrder (this.id + ' createOrder supports `limit` orders only.');
         }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'market': market['id'],
             'side': side,
             'ord_type': type,
@@ -520,40 +522,17 @@ module.exports = class oceanex extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a `symbol` argument');
-        }
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
-            'market': market['id'],
-            'states': ['wait'],
-            'limit': limit,
+        const request = {
+            'states': [ 'wait' ],
         };
-        const response = await this.privateGetOrdersFilter (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
-        if (data.length === 0) {
-            return [];
-        }
-        return this.parseOrders (this.safeValue (data[0], 'orders'));
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires a `symbol` argument');
-        }
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
-            'market': market['id'],
-            'states': ['done'],
-            'limit': limit,
+        const request = {
+            'states': [ 'done', 'cancel' ],
         };
-        const response = await this.privateGetOrdersFilter (this.extend (request, params));
-        const data = this.safeValue (response, 'data', []);
-        const dataLength = data.length;
-        const orders = (dataLength < 1) ? [] : this.safeValue (data[0], 'orders', []);
-        return this.parseOrders (orders, market, since, limit);
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -562,12 +541,16 @@ module.exports = class oceanex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const states = this.safeValue (params, 'states', [ 'wait', 'done', 'cancel' ]);
+        const query = this.omit (params, 'states');
         const request = {
             'market': market['id'],
-            'states': ['wait', 'done', 'cancel'],
-            'limit': limit,
+            'states': states,
         };
-        const response = await this.privateGetOrdersFilter (this.extend (request, params));
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetOrdersFilter (this.extend (request, query));
         const data = this.safeValue (response, 'data', []);
         let result = [];
         for (let i = 0; i < data.length; i++) {
@@ -601,11 +584,10 @@ module.exports = class oceanex extends Exchange {
             timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         } else {
             timestamp = timestamp * 1000;
-            // Get milliseconds
         }
-        let result = {
+        return {
             'info': order,
-            'id': this.safeValue (order, 'id'),
+            'id': this.safeString (order, 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -622,22 +604,21 @@ module.exports = class oceanex extends Exchange {
             'trades': undefined,
             'fee': undefined,
         };
-        return result;
     }
 
     parseOrderStatus (status) {
-        let statuses = {
+        const statuses = {
             'wait': 'open',
             'done': 'closed',
             'cancel': 'canceled',
         };
-        return (status in statuses) ? statuses[status] : status;
+        return this.safeString (statuses, status, status);
     }
 
     async createOrders (symbol, orders, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'market': market['id'],
             'orders': orders,
         };
@@ -645,75 +626,6 @@ module.exports = class oceanex extends Exchange {
         const response = await this.privatePostOrdersMulti (this.extend (request, params));
         const data = response['data'];
         return this.parseOrders (data);
-    }
-
-    async filterOrders (symbol, statuses = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
-            'market': market['id'],
-            'states': this.parseStatusToStates (statuses),
-            'limit': limit,
-        };
-        const response = await this.privateGetOrdersFilter (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
-        //  [
-        //     {
-        //       "num_of_orders": 0,
-        //       "state": "cancel",
-        //       "orders": []
-        //     },
-        //     {
-        //       "state": "done",
-        //       "num_of_orders": 2,
-        //       "orders": [
-        //             {
-        //               "created_at": "2018-09-28T12:40:51.000Z",
-        //               "trades_count": 1,
-        //               "remaining_volume": "0.0",
-        //               "market_id": "veteth",
-        //               "price": "1000",
-        //               "created_on": "1538138451",
-        //               "side": "buy",
-        //               "volume": "0.5",
-        //               "state": "done",
-        //               "ord_type": "limit",
-        //               "market_name": "VET/ETH",
-        //               "avg_price": "11.0",
-        //               "executed_volume": "0.5",
-        //               "market_display_name": "VET/ETH",
-        //               "id": 50
-        //             },
-        //         ]
-        //     }
-        //  ]
-        let result = [];
-        for (let i = 0; i < data.length; i++) {
-            let group = data[i];
-            result.push ({
-                'num_of_orders': this.safeValue (group, 'num_of_orders'),
-                'state': this.parseOrderStatus (this.safeValue (group, 'state')),
-                'orders': this.parseOrders (this.safeValue (group, 'orders')),
-            });
-        }
-        return result;
-    }
-
-    parseStatusToStates (statuses) {
-        if (statuses === undefined || statuses.length === 0) {
-            return [];
-        }
-        let statusParser = {
-            'open': 'wait',
-            'closed': 'done',
-            'canceled': 'cancel',
-        };
-        let result = [];
-        for (let i = 0; i < statuses.length; i++) {
-            let status = (statuses[i] in statusParser) ? statusParser[statuses[i]] : 'open';
-            result.push (status);
-        }
-        return result;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -736,7 +648,7 @@ module.exports = class oceanex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
+        const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (path === 'tickers_multi' || path === 'order_book/multi') {
                 let request = '?';
@@ -769,29 +681,25 @@ module.exports = class oceanex extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
-        // API response structure
-        // HTTP code : 200 (success to send request to API) / 201 (success to create order)
         //
         //     {"code":1011,"message":"This IP '5.228.233.138' is not allowed","data":{}}
         //
         if (response === undefined) {
             return;
         }
-        if (code === 200 || code === 201) {
-            const errorCode = this.safeString (response, 'code');
-            const message = this.safeString (response, 'message');
-            if ((errorCode !== undefined) && (errorCode !== '0')) {
-                const feedback = this.id + ' ' + body;
-                const codes = this.exceptions['codes'];
-                const exact = this.exceptions['exact'];
-                if (errorCode in codes) {
-                    throw new codes[errorCode] (feedback);
-                }
-                if (message in exact) {
-                    throw new exact[message] (feedback);
-                }
-                throw new ExchangeError (response);
+        const errorCode = this.safeString (response, 'code');
+        const message = this.safeString (response, 'message');
+        if ((errorCode !== undefined) && (errorCode !== '0')) {
+            const feedback = this.id + ' ' + body;
+            const codes = this.exceptions['codes'];
+            const exact = this.exceptions['exact'];
+            if (errorCode in codes) {
+                throw new codes[errorCode] (feedback);
             }
+            if (message in exact) {
+                throw new exact[message] (feedback);
+            }
+            throw new ExchangeError (response);
         }
     }
 };
