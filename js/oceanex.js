@@ -540,6 +540,7 @@ module.exports = class oceanex extends Exchange {
         const request = {
             'market': market['id'],
             'states': states,
+            'need_price': 'True',
         };
         if (limit !== undefined) {
             request['limit'] = limit;
