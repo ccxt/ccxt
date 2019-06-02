@@ -205,6 +205,13 @@ declare module 'ccxt' {
         id: string;
     }
 
+    export interface DepositAddressResponse {
+        currency: string;
+        address: string;
+        info: any;
+        tag?: string;
+    }
+
     // timestamp, open, high, low, close, volume
     export type OHLCV = [number, number, number, number, number, number];
 
@@ -317,7 +324,7 @@ declare module 'ccxt' {
         fetchWithdrawals (currency?: string, since?: number, limit?: number, params?: {}): Promise<Transaction[]>;
         cancelOrder (id: string, symbol?: string, params?: {}): Promise<any>;
         createDepositAddress (currency: string, params?: {}): Promise<any>;
-        fetchDepositAddress (currency: string, params?: {}): Promise<any>;
+        fetchDepositAddress (currency: string, params?: {}): Promise<DepositAddressResponse>;
         withdraw (currency: string, amount: number, address: string, tag?: string, params?: {}): Promise<WithdrawalResponse>;
         request (path: string, api?: string, method?: string, params?: any, headers?: any, body?: any): Promise<any>;
         YmdHMS (timestamp: string, infix: string) : string;
@@ -439,6 +446,7 @@ declare module 'ccxt' {
     export class mixcoins extends Exchange {}
     export class negociecoins extends Exchange {}
     export class nova extends Exchange {}
+    export class oceanex extends Exchange {}
     export class okcoincny extends okcoinusd {}
     export class okcoinusd extends Exchange {}
     export class okex extends okcoinusd {}

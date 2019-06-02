@@ -37,6 +37,7 @@ class mandala (Exchange):
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
+                'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchOrderStatus': True,
                 'fetchTickers': True,
@@ -56,7 +57,7 @@ class mandala (Exchange):
                 'api': 'https://zapi.{hostname}',
                 'www': 'https://mandalaex.com',
                 'doc': [
-                    'https://documenter.getpostman.com/view/6273708/RznBP1Hh',
+                    'https://apidocs.mandalaex.com',
                 ],
                 'fees': [
                     'https://mandalaex.com/trading-rules/',
@@ -861,8 +862,9 @@ class mandala (Exchange):
         if side is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires an order `side` extra parameter')
         params = self.omit(params, 'side')
+        id = str(id)
         request = {
-            'orderId': str(id),
+            'orderId': id,
             'side': side.upper(),
         }
         response = self.orderPostCancelMyOrder(self.extend(request, params))
@@ -876,7 +878,7 @@ class mandala (Exchange):
         return self.parse_order(response, {
             'id': id,
             'symbol': symbol,
-            'side': side,
+            'side': side.lower(),
             'status': 'canceled',
         })
 
@@ -1048,7 +1050,9 @@ class mandala (Exchange):
         #
         data = self.safe_value(response, 'data', [])
         market = self.market(symbol) if (symbol is not None) else None
-        return self.parse_orders(data, market, since, limit, {'side': side})
+        return self.parse_orders(data, market, since, limit, {
+            'side': side.lower(),
+        })
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1093,16 +1097,17 @@ class mandala (Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_order_status(self, id, symbol=None, params={}):
+    def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
         side = self.safe_string(params, 'side')
         if side is None:
-            raise ArgumentsRequired(self.id + ' fetchOrderStatus() requires an order `side` extra parameter')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires an order `side` extra parameter')
         params = self.omit(params, 'side')
+        id = str(id)
         request = {
             'key': self.apiKey,
             'side': side.upper(),
-            'orderId': str(id),
+            'orderId': id,
         }
         response = self.orderGetMyOrderStatusKeySideOrderId(self.extend(request, params))
         #
@@ -1118,8 +1123,10 @@ class mandala (Exchange):
         #     }
         #
         data = self.safe_value(response, 'data')
-        order = self.parse_order(data)
-        return order['status']
+        return self.extend(self.parse_order(data), {
+            'id': id,
+            'side': side.lower(),
+        })
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

@@ -671,16 +671,18 @@ class gdax extends Exchange {
     }
 
     public function parse_transaction_status ($transaction) {
-        if (is_array ($transaction && $transaction['canceled_at']) && array_key_exists ('canceled_at', $transaction && $transaction['canceled_at'])) {
+        $canceled = $this->safe_value($transaction, 'canceled_at');
+        if ($canceled) {
             return 'canceled';
-        } else if (is_array ($transaction && $transaction['completed_at']) && array_key_exists ('completed_at', $transaction && $transaction['completed_at'])) {
+        }
+        $processed = $this->safe_value($transaction, 'processed_at');
+        $completed = $this->safe_value($transaction, 'completed_at');
+        if ($processed && $completed) {
             return 'ok';
-        } else if (((is_array ($transaction) && array_key_exists ('canceled_at', $transaction)) && !$transaction['canceled_at']) && ((is_array ($transaction) && array_key_exists ('completed_at', $transaction)) && !$transaction['completed_at']) && ((is_array ($transaction) && array_key_exists ('processed_at', $transaction)) && !$transaction['processed_at'])) {
-            return 'pending';
-        } else if (is_array ($transaction && $transaction['processed_at']) && array_key_exists ('processed_at', $transaction && $transaction['processed_at'])) {
-            return 'pending';
-        } else {
+        } else if ($processed && !$completed) {
             return 'failed';
+        } else {
+            return 'pending';
         }
     }
 

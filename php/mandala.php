@@ -30,6 +30,7 @@ class mandala extends Exchange {
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
+                'fetchOrder' => true,
                 'fetchOrders' => true,
                 'fetchOrderStatus' => true,
                 'fetchTickers' => true,
@@ -49,7 +50,7 @@ class mandala extends Exchange {
                 'api' => 'https://zapi.{hostname}',
                 'www' => 'https://mandalaex.com',
                 'doc' => array (
-                    'https://documenter.getpostman.com/view/6273708/RznBP1Hh',
+                    'https://apidocs.mandalaex.com',
                 ),
                 'fees' => array (
                     'https://mandalaex.com/trading-rules/',
@@ -892,8 +893,9 @@ class mandala extends Exchange {
             throw new ArgumentsRequired ($this->id . ' cancelOrder() requires an order `$side` extra parameter');
         }
         $params = $this->omit ($params, 'side');
+        $id = (string) $id;
         $request = array (
-            'orderId' => (string) $id,
+            'orderId' => $id,
             'side' => strtoupper ($side),
         );
         $response = $this->orderPostCancelMyOrder (array_merge ($request, $params));
@@ -907,7 +909,7 @@ class mandala extends Exchange {
         return $this->parse_order($response, array (
             'id' => $id,
             'symbol' => $symbol,
-            'side' => $side,
+            'side' => strtolower ($side),
             'status' => 'canceled',
         ));
     }
@@ -1000,8 +1002,9 @@ class mandala extends Exchange {
             $filled = max ($amount - $remaining, 0);
         }
         if (!$cost) {
-            if ($price && $filled)
+            if ($price && $filled) {
                 $cost = $price * $filled;
+            }
         }
         if (!$price) {
             if ($cost && $filled)
@@ -1095,7 +1098,9 @@ class mandala extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array ());
         $market = ($symbol !== null) ? $this->market ($symbol) : null;
-        return $this->parse_orders($data, $market, $since, $limit, array ( 'side' => $side ));
+        return $this->parse_orders($data, $market, $since, $limit, array (
+            'side' => strtolower ($side),
+        ));
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1143,17 +1148,18 @@ class mandala extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_order_status ($id, $symbol = null, $params = array ()) {
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $side = $this->safe_string($params, 'side');
         if ($side === null) {
-            throw new ArgumentsRequired ($this->id . ' fetchOrderStatus() requires an $order `$side` extra parameter');
+            throw new ArgumentsRequired ($this->id . ' fetchOrder() requires an order `$side` extra parameter');
         }
         $params = $this->omit ($params, 'side');
+        $id = (string) $id;
         $request = array (
             'key' => $this->apiKey,
             'side' => strtoupper ($side),
-            'orderId' => (string) $id,
+            'orderId' => $id,
         );
         $response = $this->orderGetMyOrderStatusKeySideOrderId (array_merge ($request, $params));
         //
@@ -1169,8 +1175,10 @@ class mandala extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
-        $order = $this->parse_order($data);
-        return $order['status'];
+        return array_merge ($this->parse_order($data), array (
+            'id' => $id,
+            'side' => strtolower ($side),
+        ));
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
