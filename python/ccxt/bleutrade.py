@@ -152,10 +152,7 @@ class bleutrade (bittrex):
             'OPEN': 'open',
             'CANCELED': 'canceled',
         }
-        if status in statuses:
-            return statuses[status]
-        else:
-            return status
+        return self.safe_string(statuses, status, status)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         # Possible params
