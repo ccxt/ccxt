@@ -219,8 +219,78 @@ class Exchange {
         'zb',
     );
 
-    private static $camelMethods = array ();
-    private static $staticCamelMethods = array ();
+    public static $camelMethods = array (
+        'loadTimeDifference' => 'load_time_difference',
+        'fetchMarkets' => 'fetch_markets',
+        'calculateFee' => 'calculate_fee',
+        'fetchBalance' => 'fetch_balance',
+        'fetchOrderBook' => 'fetch_order_book',
+        'fetchTicker' => 'fetch_ticker',
+        'fetchBidsAsks' => 'fetch_bids_asks',
+        'fetchTickers' => 'fetch_tickers',
+        'fetchOhlcv' => 'fetch_ohlcv',
+        'fetchTrades' => 'fetch_trades',
+        'createOrder' => 'create_order',
+        'fetchOrder' => 'fetch_order',
+        'fetchOrders' => 'fetch_orders',
+        'fetchOpenOrders' => 'fetch_open_orders',
+        'fetchClosedOrders' => 'fetch_closed_orders',
+        'cancelOrder' => 'cancel_order',
+        'fetchMyTrades' => 'fetch_my_trades',
+        'fetchMyDustTrades' => 'fetch_my_dust_trades',
+        'fetchDeposits' => 'fetch_deposits',
+        'fetchWithdrawals' => 'fetch_withdrawals',
+        'fetchDepositAddress' => 'fetch_deposit_address',
+        'fetchFundingFees' => 'fetch_funding_fees',
+        'setSandboxMode' => 'set_sandbox_mode',
+        'loadMarkets' => 'load_markets',
+        'loadAccounts' => 'load_accounts',
+        'fetchL2OrderBook' => 'fetch_l2_order_book',
+        'fetchPartialBalance' => 'fetch_partial_balance',
+        'fetchFreeBalance' => 'fetch_free_balance',
+        'fetchUsedBalance' => 'fetch_used_balance',
+        'fetchTotalBalance' => 'fetch_total_balance',
+        'fetchTradingFees' => 'fetch_trading_fees',
+        'fetchTradingFee' => 'fetch_trading_fee',
+        'loadTradingLimits' => 'load_trading_limits',
+        'safeCurrencyCode' => 'safe_currency_code',
+        'fetchOrderStatus' => 'fetch_order_status',
+        'purgeCachedOrders' => 'purge_cached_orders',
+        'fetchOrderTrades' => 'fetch_order_trades',
+        'fetchTransactions' => 'fetch_transactions',
+        'fetchCurrencies' => 'fetch_currencies',
+        'editLimitBuyOrder' => 'edit_limit_buy_order',
+        'editLimitSellOrder' => 'edit_limit_sell_order',
+        'editLimitOrder' => 'edit_limit_order',
+        'editOrder' => 'edit_order',
+        'createLimitOrder' => 'create_limit_order',
+        'createMarketOrder' => 'create_market_order',
+        'createLimitBuyOrder' => 'create_limit_buy_order',
+        'createLimitSellOrder' => 'create_limit_sell_order',
+        'createMarketBuyOrder' => 'create_market_buy_order',
+        'createMarketSellOrder' => 'create_market_sell_order',
+        'commonCurrencyCode' => 'common_currency_code',
+        'marketId' => 'market_id',
+        'currencyId' => 'currency_id',
+        'ethDecimals' => 'eth_decimals',
+        'ethUnit' => 'eth_unit',
+        'cancelAllOrders' => 'cancel_all_orders',
+        'createDepositAddress' => 'create_deposit_address',
+    );
+
+    public static $staticCamelMethods = array (
+        'safeFloat' => 'safe_float',
+        'safeString' => 'safe_string',
+        'safeInteger' => 'safe_integer',
+        'safeValue' => 'safe_value',
+        'safeFloat2' => 'safe_float_2',
+        'safeString2' => 'safe_string_2',
+        'safeInteger2' => 'safe_integer_2',
+        'safeValue2' => 'safe_value_2',
+        'decimalToPrecision' => 'decimal_to_precision',
+        'numberToString' => 'number_to_string',
+        'hasWeb3' => 'has_web3',
+    );
 
     public static function split ($string, $delimiters = array (' ')) {
         return explode ($delimiters[0], str_replace ($delimiters, $delimiters[0], $string));
@@ -671,22 +741,6 @@ class Exchange {
     }
 
     public function __construct ($options = array ()) {
-
-        // Convert foo_bar into fooBar
-        $methodNames = get_class_methods($this);
-        foreach ($methodNames as $name) {
-            $camelCase = static::camelcase($name);
-            if ($camelCase === $name) {
-                continue;
-            }
-            $methodInfo = new \ReflectionMethod($this, $name);
-            if ($methodInfo->isStatic()) {
-                self::$staticCamelMethods[$camelCase] = $name;
-            } else {
-                self::$camelMethods[$camelCase] = $name;
-            }
-        }
-
         $this->curl         = curl_init ();
         $this->curl_options = array (); // overrideable by user, empty by default
 
@@ -1584,7 +1638,7 @@ class Exchange {
 
     public function fetch_order_status ($id, $symbol = null, $params = array ()) {
         $order = $this->fetch_order ($id, $symbol, $params);
-        return $order['id'];
+        return $order['status'];
     }
 
     public function purge_cached_orders ($before) {
@@ -1888,7 +1942,7 @@ class Exchange {
             return call_user_func_array (array ($this, $underscore), $params);
         } else if (array_key_exists ($function, self::$staticCamelMethods)) {
             $underscore = self::$staticCamelMethods[$function];
-            return static::$underscore (...$params);
+            return call_user_func_array (array ('static', $underscore), $params);
         } else {
             throw new ExchangeError ($function . ' method not found');
         }
@@ -1897,7 +1951,7 @@ class Exchange {
     public static function __callStatic ($function, $params) {
         if (array_key_exists ($function, self::$staticCamelMethods)) {
             $underscore = self::$staticCamelMethods[$function];
-            return static::$underscore (...$params);
+            return call_user_func_array (array ('static', $underscore), $params);
         } else {
             throw new ExchangeError ($function . ' method not found');
         }
