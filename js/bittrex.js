@@ -1176,7 +1176,7 @@ module.exports = class bittrex extends Exchange {
         if (api !== 'v2' && api !== 'v3') {
             url += this.version + '/';
         }
-        if (api === 'public') {
+        if (api === 'public' || api === 'v3public') {
             url += api + '/' + method.toLowerCase () + path;
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
