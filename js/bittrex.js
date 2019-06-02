@@ -825,10 +825,11 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        if (('OrderType' in order) || ('Type' in order))
+        if (('OrderType' in order) || ('Type' in order)) {
             return this.parseOrderV2 (order, market);
-        else
+        } else {
             return this.parseOrderV3 (order, market);
+        }
     }
 
     parseOrderStatus (status) {
