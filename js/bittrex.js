@@ -1199,7 +1199,7 @@ module.exports = class bittrex extends Exchange {
             if (subaccountId !== undefined) {
                 auth += subaccountId;
             }
-            const signature = this.hmac (this.encode (preSign), this.encode (this.secret), 'sha512');
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
             headers = {
                 'Api-Key': this.apiKey,
                 'Api-Timestamp': now,
