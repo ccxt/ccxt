@@ -1191,9 +1191,8 @@ module.exports = class bittrex extends Exchange {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
-            const subaccountId = '';
             const contentHash = this.hash ('', 'sha512', 'hex');
-            const now = this.now ();
+            const now = this.nonce ().toString ();
             let auth = now + url + method + contentHash;
             const subaccountId = this.safeValue (this.options, 'subaccountId');
             if (subaccountId !== undefined) {
