@@ -819,9 +819,9 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseSymbol (id) {
-        let [ quote, base ] = id.split (this.options['symbolSeparator']);
-        base = this.commonCurrencyCode (base);
-        quote = this.commonCurrencyCode (quote);
+        const [ quoteId, baseId ] = id.split (this.options['symbolSeparator']);
+        const base = this.commonCurrencyCode (baseId);
+        const quote = this.commonCurrencyCode (quoteId);
         return base + '/' + quote;
     }
 
@@ -871,7 +871,8 @@ module.exports = class bittrex extends Exchange {
             feeCurrency = market['quote'];
         } else {
             symbol = this.parseSymbol (marketSymbol);
-            const [ quote ] = symbol.split (this.options['symbolSeparator']);
+            const parts = symbol.split (this.options['symbolSeparator'])
+            const quote = parts[1];
             feeCurrency = quote;
         }
         const direction = this.safeString (order, 'direction');
@@ -977,15 +978,10 @@ module.exports = class bittrex extends Exchange {
         if (timestamp === undefined)
             timestamp = lastTradeTimestamp;
         let fee = undefined;
-        let commission = undefined;
-        if ('Commission' in order) {
-            commission = 'Commission';
-        } else if ('CommissionPaid' in order) {
-            commission = 'CommissionPaid';
-        }
-        if (commission) {
+        let feeCost = this.safeFloat2 (order, 'Commission', 'CommissionPaid');
+        if (feeCost !== undefined) {
             fee = {
-                'cost': parseFloat (order[commission]),
+                'cost': feeCost,
             };
             if (market !== undefined) {
                 fee['currency'] = market['quote'];
