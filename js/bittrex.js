@@ -1097,10 +1097,12 @@ module.exports = class bittrex extends Exchange {
         const request = {
             'startDate': since,
         };
-        if (limit !== undefined)
+        if (limit !== undefined) {
             request['pageSize'] = limit;
-        if (since !== undefined)
+        }
+        if (since !== undefined) {
             request['startDate'] = since;
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
