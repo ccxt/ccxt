@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.602'
+const version = '1.18.603'
 
 Exchange.ccxtVersion = version
 
@@ -60012,6 +60012,7 @@ module.exports = class oceanex extends Exchange {
         const request = {
             'market': market['id'],
             'states': states,
+            'need_price': 'True',
         };
         if (limit !== undefined) {
             request['limit'] = limit;
