@@ -1110,8 +1110,9 @@ module.exports = class bittrex extends Exchange {
         }
         const response = await this.v3GetOrdersClosed (this.extend (request, params));
         const orders = this.parseOrders (response, market, since, limit);
-        if (symbol !== undefined)
+        if (symbol !== undefined) {
             return this.filterBySymbol (orders, symbol);
+        }
         return orders;
     }
 
@@ -1152,20 +1153,18 @@ module.exports = class bittrex extends Exchange {
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let request = {
+        const currency = this.currency (code);
+        const request = {
             'currency': currency['id'],
             'quantity': amount,
             'address': address,
         };
-        if (tag)
+        if (tag !== undefined) {
             request['paymentid'] = tag;
-        let response = await this.accountGetWithdraw (this.extend (request, params));
-        let id = undefined;
-        if ('result' in response) {
-            if ('uuid' in response['result'])
-                id = response['result']['uuid'];
         }
+        const response = await this.accountGetWithdraw (this.extend (request, params));
+        const result = this.safeValue (response, 'result', {});
+        const id = this.safeString (result, 'uuid');
         return {
             'info': response,
             'id': id,
@@ -1176,20 +1175,24 @@ module.exports = class bittrex extends Exchange {
         let url = this.implodeParams (this.urls['api'][api], {
             'hostname': this.hostname,
         }) + '/';
-        if (api !== 'v2' && api !== 'v3')
+        if (api !== 'v2' && api !== 'v3') {
             url += this.version + '/';
+        }
         if (api === 'public') {
             url += api + '/' + method.toLowerCase () + path;
-            if (Object.keys (params).length)
+            if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
+            }
         } else if (api === 'v2') {
             url += path;
-            if (Object.keys (params).length)
+            if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
+            }
         } else if (api === 'v3') {
             url += path;
-            if (Object.keys (params).length)
+            if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
+            }
             const subaccountId = '';
             const contentHash = this.hash ('', 'sha512', 'hex');
             const now = this.now ();
@@ -1204,8 +1207,9 @@ module.exports = class bittrex extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             url += api + '/';
-            if (((api === 'account') && (path !== 'withdraw')) || (path === 'openorders'))
+            if (((api === 'account') && (path !== 'withdraw')) || (path === 'openorders')) {
                 url += method.toLowerCase ();
+            }
             const request = {
                 'apikey': this.apiKey,
             };
@@ -1223,7 +1227,7 @@ module.exports = class bittrex extends Exchange {
     handleErrors (code, reason, url, method, headers, body, response) {
         if (body[0] === '{') {
             // { success: false, message: "message" }
-            let success = this.safeValue (response, 'success');
+            const success = this.safeValue (response, 'success');
             if (success === undefined)
                 throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
             if (typeof success === 'string') {
@@ -1252,32 +1256,36 @@ module.exports = class bittrex extends Exchange {
                     // upon canceling already-canceled and closed orders
                     // therefore this special case for cancelOrder
                     // let url = 'https://bittrex.com/api/v1.1/market/cancel?apikey=API_KEY&uuid=ORDER_UUID'
-                    let cancel = 'cancel';
-                    let indexOfCancel = url.indexOf (cancel);
+                    const cancel = 'cancel';
+                    const indexOfCancel = url.indexOf (cancel);
                     if (indexOfCancel >= 0) {
-                        let parts = url.split ('&');
+                        const parts = url.split ('&');
                         let orderId = undefined;
                         for (let i = 0; i < parts.length; i++) {
-                            let part = parts[i];
-                            let keyValue = part.split ('=');
+                            const part = parts[i];
+                            const keyValue = part.split ('=');
                             if (keyValue[0] === 'uuid') {
                                 orderId = keyValue[1];
                                 break;
                             }
                         }
-                        if (orderId !== undefined)
+                        if (orderId !== undefined) {
                             throw new OrderNotFound (this.id + ' cancelOrder ' + orderId + ' ' + this.json (response));
-                        else
+                        } else {
                             throw new OrderNotFound (this.id + ' cancelOrder ' + this.json (response));
+                        }
                     }
                 }
-                if (message in exceptions)
+                if (message in exceptions) {
                     throw new exceptions[message] (feedback);
+                }
                 if (message !== undefined) {
-                    if (message.indexOf ('throttled. Try again') >= 0)
+                    if (message.indexOf ('throttled. Try again') >= 0) {
                         throw new DDoSProtection (feedback);
-                    if (message.indexOf ('problem') >= 0)
+                    }
+                    if (message.indexOf ('problem') >= 0) {
                         throw new ExchangeNotAvailable (feedback); // 'There was a problem processing your request.  If this problem persists, please contact...')
+                    }
                 }
                 throw new ExchangeError (feedback);
             }
