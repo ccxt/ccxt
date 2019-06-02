@@ -596,10 +596,7 @@ module.exports = class coinex extends Exchange {
             'transfer_method': '1', // '1' = normal onchain transfer, '2' = internal local transfer from one user to another
         };
         const response = await this.privatePostBalanceCoinWithdraw (this.extend (request, params));
-        return {
-            'info': response,
-            'id': this.safeString (response, 'coin_withdraw_id'),
-        };
+        return this.parseTransaction (response, currency);
     }
 
     parseTransactionStatus (status) {
