@@ -59,7 +59,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 136 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 137 cryptocurrency exchange markets and trading APIs:
 
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | id                 | name                                                                                       | ver   | doc                                                                                             | certified                                                            |
@@ -284,6 +284,8 @@ The ccxt library currently supports the following 136 cryptocurrency exchange ma
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | nova               | `Novaexchange <https://novaexchange.com>`__                                                | 2     | `API <https://novaexchange.com/remote/faq>`__                                                   |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
+| oceanex            | `OceanEx <https://oceanex.pro/signup?referral=VE24QX>`__                                   | 1     | `API <https://api.oceanex.pro/doc/v1>`__                                                        |                                                                      |
++--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | okcoincny          | `OKCoin CNY <https://www.okcoin.cn>`__                                                     | 1     | `API <https://www.okcoin.cn/rest_getStarted.html>`__                                            |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | okcoinusd          | `OKCoin USD <https://www.okcoin.com/account/register?flag=activity&channelId=600001513>`__ | 1     | `API <https://www.okcoin.com/docs/en/>`__                                                       |                                                                      |
@@ -384,14 +386,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.600/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.18.600/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.601/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.601/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.600/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.601/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.18.600",
+  "version": "1.18.601",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -463,7 +463,9 @@
     "mandalaex.com",
     "Mandala",
     "dx.exchange",
-    "DX.Exchange"
+    "DX.Exchange",
+    "oceanex.pro.com",
+    "OceanEx"
   ],
   "collective": {
     "type": "opencollective",
