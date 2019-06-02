@@ -826,26 +826,40 @@ module.exports = class bittrex extends Exchange {
 
     parseOrder (order, market = undefined) {
         if (('OrderType' in order) || ('Type' in order))
-            return this.defaultParseOrder (order, market);
+            return this.parseOrderV2 (order, market);
         else
-            return this.v3ParseOrder (order, market);
+            return this.parseOrderV3 (order, market);
+    }
+    
+    parseOrderStatus (status) {
+        const statuses = {
+            'CLOSED': 'closed',
+            'OPEN': 'open',
+            'CANCELLED': 'canceled',
+            'CANCELED': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
     }
 
-    v3ParseOrder (order, market = undefined) {
-        //   { id: '1be35109-b763-44ce-b6ea-05b6b0735c0c',
-        //     marketSymbol: 'LTC-ETH',
-        //     direction: 'BUY',
-        //     type: 'LIMIT',
-        //     quantity: '0.50000000',
-        //     limit: '0.17846699',
-        //     timeInForce: 'GOOD_TIL_CANCELLED',
-        //     fillQuantity: '0.50000000',
-        //     commission: '0.00022286',
-        //     proceeds: '0.08914915',
-        //     status: 'CLOSED',
-        //     createdAt: '2018-06-23T13:14:28.613Z',
-        //     updatedAt: '2018-06-23T13:14:30.19Z',
-        //     closedAt: '2018-06-23T13:14:30.19Z' } }
+    parseOrderV3 (order, market = undefined) {
+        //
+        //     {
+        //         id: '1be35109-b763-44ce-b6ea-05b6b0735c0c',
+        //         marketSymbol: 'LTC-ETH',
+        //         direction: 'BUY',
+        //         type: 'LIMIT',
+        //         quantity: '0.50000000',
+        //         limit: '0.17846699',
+        //         timeInForce: 'GOOD_TIL_CANCELLED',
+        //         fillQuantity: '0.50000000',
+        //         commission: '0.00022286',
+        //         proceeds: '0.08914915',
+        //         status: 'CLOSED',
+        //         createdAt: '2018-06-23T13:14:28.613Z',
+        //         updatedAt: '2018-06-23T13:14:30.19Z',
+        //         closedAt: '2018-06-23T13:14:30.19Z'
+        //     }
+        //
         const marketSymbol = this.safeString (order, 'marketSymbol');
         let symbol = undefined;
         let feeCurrency = undefined;
@@ -863,10 +877,11 @@ module.exports = class bittrex extends Exchange {
         const updatedAt = this.safeString (order, 'updatedAt');
         const closedAt = this.safeString (order, 'closedAt');
         let lastTradeTimestamp = undefined;
-        if (closedAt)
+        if (closedAt !== undefined) {
             lastTradeTimestamp = this.parse8601 (closedAt);
-        else if (updatedAt)
+        } else if (updatedAt) {
             lastTradeTimestamp = this.parse8601 (updatedAt);
+        }
         const timestamp = this.parse8601 (createdAt);
         const type = this.safeString (order, 'type');
         const quantity = this.safeFloat (order, 'quantity');
@@ -875,6 +890,20 @@ module.exports = class bittrex extends Exchange {
         const commission = this.safeFloat (order, 'commission');
         const proceeds = this.safeFloat (order, 'proceeds');
         const status = this.safeString (order, 'status');
+        let average = undefined;
+        let remaining = undefined;
+        if (fillQuantity !== undefined) {
+            if (proceeds !== undefined) {
+                if (fillQuantity) {
+                    average = proceeds / fillQuantity;
+                } else {
+                    average = 0;
+                }
+            }
+            if (quantity !== undefined) {
+                remaining = quantity - fillQuantity;
+            }
+        }
         return {
             'id': this.safeString (order, 'id'),
             'timestamp': timestamp,
@@ -882,10 +911,10 @@ module.exports = class bittrex extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type.toLowerCase (),
-            'side': direction.toLocaleLowerCase (),
+            'side': direction.toLowerCase (),
             'price': limit,
             'cost': proceeds,
-            'average': proceeds / fillQuantity,
+            'average': average,
             'amount': quantity,
             'filled': fillQuantity,
             'remaining': quantity - fillQuantity,
@@ -898,7 +927,7 @@ module.exports = class bittrex extends Exchange {
         };
     }
 
-    defaultParseOrder (order, market = undefined) {
+    parseOrderV2 (order, market = undefined) {
         let side = this.safeString2 (order, 'OrderType', 'Type');
         const isBuyOrder = (side === 'LIMIT_BUY') || (side === 'BUY');
         const isSellOrder = (side === 'LIMIT_SELL') || (side === 'SELL');
