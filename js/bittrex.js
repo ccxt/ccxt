@@ -1228,7 +1228,7 @@ module.exports = class bittrex extends Exchange {
     handleErrors (code, reason, url, method, headers, body, response) {
         if (body[0] === '{') {
             // { success: false, message: "message" }
-            const success = this.safeValue (response, 'success');
+            let success = this.safeValue (response, 'success');
             if (success === undefined)
                 throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
             if (typeof success === 'string') {
