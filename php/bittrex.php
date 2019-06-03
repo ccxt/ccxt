@@ -1206,8 +1206,8 @@ class bittrex extends Exchange {
                 $url .= '?' . $this->urlencode ($params);
             }
             $contentHash = $this->hash ('', 'sha512', 'hex');
-            $now = (string) $this->nonce ();
-            $auth = $now . $url . $method . $contentHash;
+            $timestamp = (string) $this->milliseconds ();
+            $auth = $timestamp . $url . $method . $contentHash;
             $subaccountId = $this->safe_value($this->options, 'subaccountId');
             if ($subaccountId !== null) {
                 $auth .= $subaccountId;
@@ -1215,7 +1215,7 @@ class bittrex extends Exchange {
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512');
             $headers = array (
                 'Api-Key' => $this->apiKey,
-                'Api-Timestamp' => $now,
+                'Api-Timestamp' => $timestamp,
                 'Api-Content-Hash' => $contentHash,
                 'Api-Signature' => $signature,
             );
