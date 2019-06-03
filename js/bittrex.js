@@ -49,7 +49,7 @@ module.exports = class bittrex extends Exchange {
                     'account': 'https://{hostname}/api',
                     'market': 'https://{hostname}/api',
                     'v2': 'https://{hostname}/api/v2.0/pub',
-                    'v3': 'https://api.bittrex.com/v3',
+                    'v3': 'https://api.{hostname}/v3',
                 },
                 'www': 'https://bittrex.com',
                 'doc': [
