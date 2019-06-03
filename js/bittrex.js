@@ -49,10 +49,12 @@ module.exports = class bittrex extends Exchange {
                     'account': 'https://{hostname}/api',
                     'market': 'https://{hostname}/api',
                     'v2': 'https://{hostname}/api/v2.0/pub',
+                    'v3': 'https://api.{hostname}/v3',
                 },
                 'www': 'https://bittrex.com',
                 'doc': [
                     'https://bittrex.github.io/api/',
+                    'https://bittrex.github.io/api/v3',
                     'https://www.npmjs.com/package/bittrex-node',
                 ],
                 'fees': [
@@ -61,6 +63,53 @@ module.exports = class bittrex extends Exchange {
                 ],
             },
             'api': {
+                'v3': {
+                    'get': [
+                        'account',
+                        'addresses',
+                        'addresses/{currencySymbol}',
+                        'balances',
+                        'balances/{currencySymbol}',
+                        'currencies',
+                        'currencies/{symbol}',
+                        'deposits/open',
+                        'deposits/closed',
+                        'deposits/ByTxId/{txId}',
+                        'deposits/{depositId}',
+                        'orders/closed',
+                        'orders/open',
+                        'orders/{orderId}',
+                        'ping',
+                        'subaccounts/{subaccountId}',
+                        'subaccounts',
+                        'withdrawals/open',
+                        'withdrawals/closed',
+                        'withdrawals/ByTxId/{txId}',
+                        'withdrawals/{withdrawalId}',
+                    ],
+                    'post': [
+                        'addresses',
+                        'orders',
+                        'subaccounts',
+                        'withdrawals',
+                    ],
+                    'delete': [
+                        'orders/{orderId}',
+                        'withdrawals/{withdrawalId}',
+                    ],
+                },
+                'v3public': {
+                    'get': [
+                        'markets',
+                        'markets/summaries',
+                        'markets/{marketSymbol}',
+                        'markets/{marketSymbol}/summary',
+                        'markets/{marketSymbol}/orderbook',
+                        'markets/{marketSymbol}/trades',
+                        'markets/{marketSymbol}/ticker',
+                        'markets/{marketSymbol}/candles',
+                    ],
+                },
                 'v2': {
                     'get': [
                         'currencies/GetBTCPrice',
@@ -197,6 +246,8 @@ module.exports = class bittrex extends Exchange {
                     // https://github.com/ccxt/ccxt/issues/4794
                     // 'LISK': true, // LSK
                 },
+                'subaccountId': undefined,
+                'fetchClosedOrdersMethod': 'fetch_closed_orders_v3',
             },
             'commonCurrencies': {
                 'BITS': 'SWIFT',
@@ -294,10 +345,11 @@ module.exports = class bittrex extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetOrderbook (this.extend ({
+        const request = {
             'market': this.marketId (symbol),
             'type': 'both',
-        }, params));
+        };
+        const response = await this.publicGetOrderbook (this.extend (request, params));
         let orderbook = response['result'];
         if ('type' in params) {
             if (params['type'] === 'buy') {
@@ -325,8 +377,8 @@ module.exports = class bittrex extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-        let previous = this.safeFloat (ticker, 'PrevDay');
-        let last = this.safeFloat (ticker, 'Last');
+        const previous = this.safeFloat (ticker, 'PrevDay');
+        const last = this.safeFloat (ticker, 'Last');
         let change = undefined;
         let percentage = undefined;
         if (last !== undefined)
@@ -663,13 +715,15 @@ module.exports = class bittrex extends Exchange {
         //
         // fetchDeposits
         //
-        //      {            Id:  72578097,
-        //               Amount:  0.3,
-        //             Currency: "ETH",
-        //        Confirmations:  15,
-        //          LastUpdated: "2018-06-17T07:12:14.57",
-        //                 TxId: "0xb31b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
-        //        CryptoAddress: "0x2d5f281fa51f1635abd4a60b0870a62d2a7fa404"                    }
+        //     {
+        //         Id:  72578097,
+        //         Amount:  0.3,
+        //         Currency: "ETH",
+        //         Confirmations:  15,
+        //         LastUpdated: "2018-06-17T07:12:14.57",
+        //         TxId: "0xb31b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
+        //         CryptoAddress: "0x2d5f281fa51f1635abd4a60b0870a62d2a7fa404"
+        //     }
         //
         // fetchWithdrawals
         //
@@ -691,11 +745,12 @@ module.exports = class bittrex extends Exchange {
         const amount = this.safeFloat (transaction, 'Amount');
         const address = this.safeString2 (transaction, 'CryptoAddress', 'Address');
         const txid = this.safeString (transaction, 'TxId');
-        const updated = this.parse8601 (this.safeValue (transaction, 'LastUpdated'));
-        const timestamp = this.parse8601 (this.safeString (transaction, 'Opened', updated));
-        const type = (timestamp !== undefined) ? 'withdrawal' : 'deposit';
+        const updated = this.parse8601 (this.safeString (transaction, 'LastUpdated'));
+        const opened = this.parse8601 (this.safeString (transaction, 'Opened'));
+        const timestamp = opened ? opened : updated;
+        const type = (opened === undefined) ? 'deposit' : 'withdrawal';
         let code = undefined;
-        let currencyId = this.safeString (transaction, 'Currency');
+        const currencyId = this.safeString (transaction, 'Currency');
         currency = this.safeValue (this.currencies_by_id, currencyId);
         if (currency !== undefined) {
             code = currency['code'];
@@ -736,8 +791,6 @@ module.exports = class bittrex extends Exchange {
             if (type === 'deposit') {
                 // according to https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-
                 feeCost = 0; // FIXME: remove hardcoded value that may change any time
-            } else if (type === 'withdrawal') {
-                throw new ExchangeError ('Withdrawal without fee detected!');
             }
         }
         return {
@@ -761,13 +814,118 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseSymbol (id) {
-        let [ quote, base ] = id.split (this.options['symbolSeparator']);
-        base = this.commonCurrencyCode (base);
-        quote = this.commonCurrencyCode (quote);
+        const [ quoteId, baseId ] = id.split (this.options['symbolSeparator']);
+        const base = this.commonCurrencyCode (baseId);
+        const quote = this.commonCurrencyCode (quoteId);
         return base + '/' + quote;
     }
 
     parseOrder (order, market = undefined) {
+        if (('OrderType' in order) || ('Type' in order)) {
+            return this.parseOrderV2 (order, market);
+        } else {
+            return this.parseOrderV3 (order, market);
+        }
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'CLOSED': 'closed',
+            'OPEN': 'open',
+            'CANCELLED': 'canceled',
+            'CANCELED': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderV3 (order, market = undefined) {
+        //
+        //     {
+        //         id: '1be35109-b763-44ce-b6ea-05b6b0735c0c',
+        //         marketSymbol: 'LTC-ETH',
+        //         direction: 'BUY',
+        //         type: 'LIMIT',
+        //         quantity: '0.50000000',
+        //         limit: '0.17846699',
+        //         timeInForce: 'GOOD_TIL_CANCELLED',
+        //         fillQuantity: '0.50000000',
+        //         commission: '0.00022286',
+        //         proceeds: '0.08914915',
+        //         status: 'CLOSED',
+        //         createdAt: '2018-06-23T13:14:28.613Z',
+        //         updatedAt: '2018-06-23T13:14:30.19Z',
+        //         closedAt: '2018-06-23T13:14:30.19Z'
+        //     }
+        //
+        const marketSymbol = this.safeString (order, 'marketSymbol');
+        let symbol = undefined;
+        let feeCurrency = undefined;
+        if (marketSymbol in this.markets_by_id) {
+            market = this.markets_by_id[marketSymbol];
+            symbol = market['symbol'];
+            feeCurrency = market['quote'];
+        } else {
+            symbol = this.parseSymbol (marketSymbol);
+            const parts = symbol.split (this.options['symbolSeparator']);
+            const quote = parts[1];
+            feeCurrency = quote;
+        }
+        const direction = this.safeString (order, 'direction');
+        const createdAt = this.safeString (order, 'createdAt');
+        const updatedAt = this.safeString (order, 'updatedAt');
+        const closedAt = this.safeString (order, 'closedAt');
+        let lastTradeTimestamp = undefined;
+        if (closedAt !== undefined) {
+            lastTradeTimestamp = this.parse8601 (closedAt);
+        } else if (updatedAt) {
+            lastTradeTimestamp = this.parse8601 (updatedAt);
+        }
+        const timestamp = this.parse8601 (createdAt);
+        const type = this.safeString (order, 'type');
+        const quantity = this.safeFloat (order, 'quantity');
+        const limit = this.safeFloat (order, 'limit');
+        const fillQuantity = this.safeFloat (order, 'fillQuantity');
+        const commission = this.safeFloat (order, 'commission');
+        const proceeds = this.safeFloat (order, 'proceeds');
+        const status = this.safeString (order, 'status');
+        let average = undefined;
+        let remaining = undefined;
+        if (fillQuantity !== undefined) {
+            if (proceeds !== undefined) {
+                if (fillQuantity > 0) {
+                    average = proceeds / fillQuantity;
+                } else if (proceeds === 0) {
+                    average = 0;
+                }
+            }
+            if (quantity !== undefined) {
+                remaining = quantity - fillQuantity;
+            }
+        }
+        return {
+            'id': this.safeString (order, 'id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': symbol,
+            'type': type.toLowerCase (),
+            'side': direction.toLowerCase (),
+            'price': limit,
+            'cost': proceeds,
+            'average': average,
+            'amount': quantity,
+            'filled': fillQuantity,
+            'remaining': remaining,
+            'status': status.toLowerCase (),
+            'fee': {
+                'cost': commission,
+                'currency': feeCurrency,
+            },
+            'info': order,
+        };
+    }
+
+    parseOrderV2 (order, market = undefined) {
         let side = this.safeString2 (order, 'OrderType', 'Type');
         const isBuyOrder = (side === 'LIMIT_BUY') || (side === 'BUY');
         const isSellOrder = (side === 'LIMIT_SELL') || (side === 'SELL');
@@ -815,15 +973,10 @@ module.exports = class bittrex extends Exchange {
         if (timestamp === undefined)
             timestamp = lastTradeTimestamp;
         let fee = undefined;
-        let commission = undefined;
-        if ('Commission' in order) {
-            commission = 'Commission';
-        } else if ('CommissionPaid' in order) {
-            commission = 'CommissionPaid';
-        }
-        if (commission) {
+        let feeCost = this.safeFloat2 (order, 'Commission', 'CommissionPaid');
+        if (feeCost !== undefined) {
             fee = {
-                'cost': parseFloat (order[commission]),
+                'cost': feeCost,
             };
             if (market !== undefined) {
                 fee['currency'] = market['quote'];
@@ -932,17 +1085,46 @@ module.exports = class bittrex extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const method = this.safeString (this.options, 'fetchClosedOrdersMethod', 'fetch_closed_orders_v3');
+        return await this[method] (symbol, since, limit, params);
+    }
+
+    async fetchClosedOrdersV2 (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {};
+        const request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        let response = await this.accountGetOrderhistory (this.extend (request, params));
-        let orders = this.parseOrders (response['result'], market, since, limit);
-        if (symbol !== undefined)
+        const response = await this.accountGetOrderhistory (this.extend (request, params));
+        const result = this.safeValue (response, 'result', []);
+        const orders = this.parseOrders (result, market, since, limit);
+        if (symbol !== undefined) {
             return this.filterBySymbol (orders, symbol);
+        }
+        return orders;
+    }
+
+    async fetchClosedOrdersV3 (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        if (since !== undefined) {
+            request['startDate'] = since;
+        }
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['marketSymbol'] = market['id'];
+        }
+        const response = await this.v3GetOrdersClosed (this.extend (request, params));
+        const orders = this.parseOrders (response, market, since, limit);
+        if (symbol !== undefined) {
+            return this.filterBySymbol (orders, symbol);
+        }
         return orders;
     }
 
@@ -983,20 +1165,18 @@ module.exports = class bittrex extends Exchange {
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let request = {
+        const currency = this.currency (code);
+        const request = {
             'currency': currency['id'],
             'quantity': amount,
             'address': address,
         };
-        if (tag)
+        if (tag !== undefined) {
             request['paymentid'] = tag;
-        let response = await this.accountGetWithdraw (this.extend (request, params));
-        let id = undefined;
-        if ('result' in response) {
-            if ('uuid' in response['result'])
-                id = response['result']['uuid'];
         }
+        const response = await this.accountGetWithdraw (this.extend (request, params));
+        const result = this.safeValue (response, 'result', {});
+        const id = this.safeString (result, 'uuid');
         return {
             'info': response,
             'id': id,
@@ -1007,21 +1187,47 @@ module.exports = class bittrex extends Exchange {
         let url = this.implodeParams (this.urls['api'][api], {
             'hostname': this.hostname,
         }) + '/';
-        if (api !== 'v2')
+        if (api !== 'v2' && api !== 'v3') {
             url += this.version + '/';
-        if (api === 'public') {
+        }
+        if (api === 'public' || api === 'v3public') {
             url += api + '/' + method.toLowerCase () + path;
-            if (Object.keys (params).length)
+            if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
+            }
         } else if (api === 'v2') {
             url += path;
-            if (Object.keys (params).length)
+            if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
+            }
+        } else if (api === 'v3') {
+            url += path;
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
+            const contentHash = this.hash ('', 'sha512', 'hex');
+            const now = this.nonce ().toString ();
+            let auth = now + url + method + contentHash;
+            const subaccountId = this.safeValue (this.options, 'subaccountId');
+            if (subaccountId !== undefined) {
+                auth += subaccountId;
+            }
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
+            headers = {
+                'Api-Key': this.apiKey,
+                'Api-Timestamp': now,
+                'Api-Content-Hash': contentHash,
+                'Api-Signature': signature,
+            };
+            if (subaccountId !== undefined) {
+                headers['Api-Subaccount-Id'] = subaccountId;
+            }
         } else {
             this.checkRequiredCredentials ();
             url += api + '/';
-            if (((api === 'account') && (path !== 'withdraw')) || (path === 'openorders'))
+            if (((api === 'account') && (path !== 'withdraw')) || (path === 'openorders')) {
                 url += method.toLowerCase ();
+            }
             const request = {
                 'apikey': this.apiKey,
             };
@@ -1068,45 +1274,40 @@ module.exports = class bittrex extends Exchange {
                     // upon canceling already-canceled and closed orders
                     // therefore this special case for cancelOrder
                     // let url = 'https://bittrex.com/api/v1.1/market/cancel?apikey=API_KEY&uuid=ORDER_UUID'
-                    let cancel = 'cancel';
-                    let indexOfCancel = url.indexOf (cancel);
+                    const cancel = 'cancel';
+                    const indexOfCancel = url.indexOf (cancel);
                     if (indexOfCancel >= 0) {
-                        let parts = url.split ('&');
+                        const parts = url.split ('&');
                         let orderId = undefined;
                         for (let i = 0; i < parts.length; i++) {
-                            let part = parts[i];
-                            let keyValue = part.split ('=');
+                            const part = parts[i];
+                            const keyValue = part.split ('=');
                             if (keyValue[0] === 'uuid') {
                                 orderId = keyValue[1];
                                 break;
                             }
                         }
-                        if (orderId !== undefined)
+                        if (orderId !== undefined) {
                             throw new OrderNotFound (this.id + ' cancelOrder ' + orderId + ' ' + this.json (response));
-                        else
+                        } else {
                             throw new OrderNotFound (this.id + ' cancelOrder ' + this.json (response));
+                        }
                     }
                 }
-                if (message in exceptions)
+                if (message in exceptions) {
                     throw new exceptions[message] (feedback);
+                }
                 if (message !== undefined) {
-                    if (message.indexOf ('throttled. Try again') >= 0)
+                    if (message.indexOf ('throttled. Try again') >= 0) {
                         throw new DDoSProtection (feedback);
-                    if (message.indexOf ('problem') >= 0)
+                    }
+                    if (message.indexOf ('problem') >= 0) {
                         throw new ExchangeNotAvailable (feedback); // 'There was a problem processing your request.  If this problem persists, please contact...')
+                    }
                 }
                 throw new ExchangeError (feedback);
             }
         }
-    }
-
-    appendTimezoneParse8601 (x) {
-        let length = x.length;
-        let lastSymbol = x[length - 1];
-        if ((lastSymbol === 'Z') || (x.indexOf ('+') >= 0)) {
-            return this.parse8601 (x);
-        }
-        return this.parse8601 (x + 'Z');
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
