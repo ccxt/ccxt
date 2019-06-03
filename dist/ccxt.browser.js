@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.612'
+const version = '1.18.613'
 
 Exchange.ccxtVersion = version
 
@@ -60747,7 +60747,7 @@ module.exports = class okcoinusd extends Exchange {
             },
             'options': {
                 'marketBuyPrice': false,
-                'warnOnFetchOHLCVLimitArgument': true,
+                'fetchOHLCVWarning': true,
                 'contractTypes': {
                     '1': 'this_week',
                     '2': 'next_week',
@@ -61144,8 +61144,8 @@ module.exports = class okcoinusd extends Exchange {
             'since': since === undefined ? this.milliseconds () - 86400000 : since,  // default last 24h
         });
         if (limit !== undefined) {
-            if (this.options['warnOnFetchOHLCVLimitArgument']) {
-                throw new ExchangeError (this.id + ' fetchOHLCV counts "limit" candles from current time backwards, therefore the "limit" argument for ' + this.id + ' is disabled. Set ' + this.id + '.options["warnOnFetchOHLCVLimitArgument"] = false to suppress this warning message.');
+            if (this.options['fetchOHLCVWarning']) {
+                throw new ExchangeError (this.id + ' fetchOHLCV counts "limit" candles from current time backwards, therefore the "limit" argument for ' + this.id + ' is disabled. Set ' + this.id + '.options["fetchOHLCVWarning"] = false to suppress this warning message.');
             }
             request['size'] = parseInt (limit); // max is 1440 candles
         }
