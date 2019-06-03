@@ -72,6 +72,7 @@ class bxinth extends Exchange {
             'commonCurrencies' => array (
                 'DAS' => 'DASH',
                 'DOG' => 'DOGE',
+                'LEO' => 'LeoCoin',
             ),
         ));
     }
@@ -105,17 +106,17 @@ class bxinth extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostBalance ();
-        $balance = $response['balance'];
+        $response = $this->privatePostBalance ($params);
+        $balance = $this->safe_value($response, 'balance', array ());
         $result = array ( 'info' => $balance );
-        $currencies = is_array ($balance) ? array_keys ($balance) : array ();
-        for ($c = 0; $c < count ($currencies); $c++) {
-            $currency = $currencies[$c];
-            $code = $this->common_currency_code($currency);
+        $currencyIds = is_array ($balance) ? array_keys ($balance) : array ();
+        for ($i = 0; $i < count ($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $code = $this->common_currency_code($currencyId);
             $account = array (
-                'free' => floatval ($balance[$currency]['available']),
+                'free' => $this->safe_float($balance[$currencyId], 'available'),
                 'used' => 0.0,
-                'total' => floatval ($balance[$currency]['total']),
+                'total' => $this->safe_float($balance[$currencyId], 'total'),
             );
             $account['used'] = $account['total'] - $account['free'];
             $result[$code] = $account;
@@ -125,10 +126,11 @@ class bxinth extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetOrderbook (array_merge (array (
+        $request = array (
             'pairing' => $this->market_id($symbol),
-        ), $params));
-        return $this->parse_order_book($orderbook);
+        );
+        $response = $this->publicGetOrderbook (array_merge ($request, $params));
+        return $this->parse_order_book($response);
     }
 
     public function parse_ticker ($ticker, $market = null) {

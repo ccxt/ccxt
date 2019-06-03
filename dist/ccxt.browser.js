@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.606'
+const version = '1.18.607'
 
 Exchange.ccxtVersion = version
 
@@ -3693,14 +3693,13 @@ module.exports = class Exchange {
 
     // ------------------------------------------------------------------------
     // web3 / 0x methods
-
     static hasWeb3 () {
         return Web3 && ethUtil && ethAbi && BigNumber
     }
 
     checkRequiredDependencies () {
         if (!Exchange.hasWeb3 ()) {
-            throw new ExchangeError ('The following npm modules are required:\nnpm install web3 ethereumjs-util ethereumjs-abi bignumber.js --no-save');
+            throw new ExchangeError ("The following npm modules are required:\nnpm install web3 ethereumjs-util ethereumjs-abi bignumber.js --no-save");
         }
     }
 
@@ -24449,6 +24448,7 @@ module.exports = class bxinth extends Exchange {
             'commonCurrencies': {
                 'DAS': 'DASH',
                 'DOG': 'DOGE',
+                'LEO': 'LeoCoin',
             },
         });
     }
@@ -24482,17 +24482,17 @@ module.exports = class bxinth extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostBalance ();
-        let balance = response['balance'];
-        let result = { 'info': balance };
-        let currencies = Object.keys (balance);
-        for (let c = 0; c < currencies.length; c++) {
-            let currency = currencies[c];
-            let code = this.commonCurrencyCode (currency);
-            let account = {
-                'free': parseFloat (balance[currency]['available']),
+        const response = await this.privatePostBalance (params);
+        const balance = this.safeValue (response, 'balance', {});
+        const result = { 'info': balance };
+        const currencyIds = Object.keys (balance);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.commonCurrencyCode (currencyId);
+            const account = {
+                'free': this.safeFloat (balance[currencyId], 'available'),
                 'used': 0.0,
-                'total': parseFloat (balance[currency]['total']),
+                'total': this.safeFloat (balance[currencyId], 'total'),
             };
             account['used'] = account['total'] - account['free'];
             result[code] = account;
@@ -24502,10 +24502,11 @@ module.exports = class bxinth extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetOrderbook (this.extend ({
+        const request = {
             'pairing': this.marketId (symbol),
-        }, params));
-        return this.parseOrderBook (orderbook);
+        };
+        const response = await this.publicGetOrderbook (this.extend (request, params));
+        return this.parseOrderBook (response);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -55052,6 +55053,7 @@ module.exports = class livecoin extends Exchange {
                 'eETT': 'EETT',
                 'FirstBlood': '1ST',
                 'FORTYTWO': '42',
+                'LEO': 'LeoCoin',
                 'ORE': 'Orectic',
                 'RUR': 'RUB',
                 'SCT': 'SpaceCoin',
