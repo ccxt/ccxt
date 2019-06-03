@@ -555,14 +555,31 @@ class coinex (Exchange):
             address = address + ':' + tag
         request = {
             'coin_type': currency['id'],
-            'coin_address': address,
-            'actual_amount': float(amount),
+            'coin_address': address,  # must be authorized, inter-user transfer by a registered mobile phone number or an email address is supported
+            'actual_amount': float(amount),  # the actual amount without fees, https://www.coinex.com/fees
+            'transfer_method': '1',  # '1' = normal onchain transfer, '2' = internal local transfer from one user to another
         }
         response = self.privatePostBalanceCoinWithdraw(self.extend(request, params))
-        return {
-            'info': response,
-            'id': self.safe_string(response, 'coin_withdraw_id'),
-        }
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "actual_amount": "1.00000000",
+        #             "amount": "1.00000000",
+        #             "coin_address": "1KAv3pazbTk2JnQ5xTo6fpKK7p1it2RzD4",
+        #             "coin_type": "BCH",
+        #             "coin_withdraw_id": 206,
+        #             "confirmations": 0,
+        #             "create_time": 1524228297,
+        #             "status": "audit",
+        #             "tx_fee": "0",
+        #             "tx_id": ""
+        #         },
+        #         "message": "Ok"
+        #     }
+        #
+        transaction = self.safe_value(response, 'data', {})
+        return self.parse_transaction(transaction, currency)
 
     def parse_transaction_status(self, status):
         statuses = {
