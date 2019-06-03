@@ -728,11 +728,11 @@ module.exports = class bittrex extends Exchange {
         // fetchWithdrawals
         //
         //     {
-        //         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf", //
+        //         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf",
         //         "Currency" : "XC",
         //         "Amount" : 7513.75121715,
-        //         "Address" : "EVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J", // optional
-        //         "Opened" : "2014-07-08T23:13:31.83", // optional
+        //         "Address" : "EVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
+        //         "Opened" : "2014-07-08T23:13:31.83",
         //         "Authorized" : true,
         //         "PendingPayment" : false,
         //         "TxCost" : 0.00002000,
