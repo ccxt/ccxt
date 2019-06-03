@@ -1206,8 +1206,8 @@ module.exports = class bittrex extends Exchange {
                 url += '?' + this.urlencode (params);
             }
             const contentHash = this.hash ('', 'sha512', 'hex');
-            const now = this.nonce ().toString ();
-            let auth = now + url + method + contentHash;
+            const timestamp = this.milliseconds ().toString ();
+            let auth = timestamp + url + method + contentHash;
             const subaccountId = this.safeValue (this.options, 'subaccountId');
             if (subaccountId !== undefined) {
                 auth += subaccountId;
@@ -1215,7 +1215,7 @@ module.exports = class bittrex extends Exchange {
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
             headers = {
                 'Api-Key': this.apiKey,
-                'Api-Timestamp': now,
+                'Api-Timestamp': timestamp,
                 'Api-Content-Hash': contentHash,
                 'Api-Signature': signature,
             };
