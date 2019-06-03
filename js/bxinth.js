@@ -115,7 +115,7 @@ module.exports = class bxinth extends Exchange {
             const account = {
                 'free': this.safeFloat (balance[currencyId], 'available'),
                 'used': 0.0,
-                'total': parseFloat (balance[currencyId], 'total'),
+                'total': this.safeFloat (balance[currencyId], 'total'),
             };
             account['used'] = account['total'] - account['free'];
             result[code] = account;
