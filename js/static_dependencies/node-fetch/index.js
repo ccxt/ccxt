@@ -139,11 +139,12 @@ var _require = require('stream');
 
 const PassThrough = _require.PassThrough;
 
-
+/*
 let convert;
 try {
 	convert = require('encoding').convert;
 } catch (e) {}
+*/
 
 const INTERNALS = Symbol('Body internals');
 
