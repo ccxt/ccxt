@@ -68,10 +68,12 @@ class bittrex (Exchange):
                     'account': 'https://{hostname}/api',
                     'market': 'https://{hostname}/api',
                     'v2': 'https://{hostname}/api/v2.0/pub',
+                    'v3': 'https://api.{hostname}/v3',
                 },
                 'www': 'https://bittrex.com',
                 'doc': [
                     'https://bittrex.github.io/api/',
+                    'https://bittrex.github.io/api/v3',
                     'https://www.npmjs.com/package/bittrex-node',
                 ],
                 'fees': [
@@ -80,6 +82,53 @@ class bittrex (Exchange):
                 ],
             },
             'api': {
+                'v3': {
+                    'get': [
+                        'account',
+                        'addresses',
+                        'addresses/{currencySymbol}',
+                        'balances',
+                        'balances/{currencySymbol}',
+                        'currencies',
+                        'currencies/{symbol}',
+                        'deposits/open',
+                        'deposits/closed',
+                        'deposits/ByTxId/{txId}',
+                        'deposits/{depositId}',
+                        'orders/closed',
+                        'orders/open',
+                        'orders/{orderId}',
+                        'ping',
+                        'subaccounts/{subaccountId}',
+                        'subaccounts',
+                        'withdrawals/open',
+                        'withdrawals/closed',
+                        'withdrawals/ByTxId/{txId}',
+                        'withdrawals/{withdrawalId}',
+                    ],
+                    'post': [
+                        'addresses',
+                        'orders',
+                        'subaccounts',
+                        'withdrawals',
+                    ],
+                    'delete': [
+                        'orders/{orderId}',
+                        'withdrawals/{withdrawalId}',
+                    ],
+                },
+                'v3public': {
+                    'get': [
+                        'markets',
+                        'markets/summaries',
+                        'markets/{marketSymbol}',
+                        'markets/{marketSymbol}/summary',
+                        'markets/{marketSymbol}/orderbook',
+                        'markets/{marketSymbol}/trades',
+                        'markets/{marketSymbol}/ticker',
+                        'markets/{marketSymbol}/candles',
+                    ],
+                },
                 'v2': {
                     'get': [
                         'currencies/GetBTCPrice',
@@ -216,6 +265,8 @@ class bittrex (Exchange):
                     # https://github.com/ccxt/ccxt/issues/4794
                     # 'LISK': True,  # LSK
                 },
+                'subaccountId': None,
+                'fetchClosedOrdersMethod': 'fetch_closed_orders_v3',
             },
             'commonCurrencies': {
                 'BITS': 'SWIFT',
@@ -303,10 +354,11 @@ class bittrex (Exchange):
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        response = await self.publicGetOrderbook(self.extend({
+        request = {
             'market': self.market_id(symbol),
             'type': 'both',
-        }, params))
+        }
+        response = await self.publicGetOrderbook(self.extend(request, params))
         orderbook = response['result']
         if 'type' in params:
             if params['type'] == 'buy':
@@ -641,13 +693,15 @@ class bittrex (Exchange):
         #
         # fetchDeposits
         #
-        #      {           Id:  72578097,
-        #               Amount:  0.3,
-        #             Currency: "ETH",
-        #        Confirmations:  15,
-        #          LastUpdated: "2018-06-17T07:12:14.57",
-        #                 TxId: "0xb31b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
-        #        CryptoAddress: "0x2d5f281fa51f1635abd4a60b0870a62d2a7fa404"                    }
+        #     {
+        #         Id:  72578097,
+        #         Amount:  0.3,
+        #         Currency: "ETH",
+        #         Confirmations:  15,
+        #         LastUpdated: "2018-06-17T07:12:14.57",
+        #         TxId: "0xb31b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
+        #         CryptoAddress: "0x2d5f281fa51f1635abd4a60b0870a62d2a7fa404"
+        #     }
         #
         # fetchWithdrawals
         #
@@ -669,9 +723,10 @@ class bittrex (Exchange):
         amount = self.safe_float(transaction, 'Amount')
         address = self.safe_string_2(transaction, 'CryptoAddress', 'Address')
         txid = self.safe_string(transaction, 'TxId')
-        updated = self.parse8601(self.safe_value(transaction, 'LastUpdated'))
-        timestamp = self.parse8601(self.safe_string(transaction, 'Opened', updated))
-        type = 'withdrawal' if (timestamp is not None) else 'deposit'
+        updated = self.parse8601(self.safe_string(transaction, 'LastUpdated'))
+        opened = self.parse8601(self.safe_string(transaction, 'Opened'))
+        timestamp = opened if opened else updated
+        type = 'deposit' if (opened is None) else 'withdrawal'
         code = None
         currencyId = self.safe_string(transaction, 'Currency')
         currency = self.safe_value(self.currencies_by_id, currencyId)
@@ -710,8 +765,6 @@ class bittrex (Exchange):
             if type == 'deposit':
                 # according to https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-
                 feeCost = 0  # FIXME: remove hardcoded value that may change any time
-            elif type == 'withdrawal':
-                raise ExchangeError('Withdrawal without fee detectednot ')
         return {
             'info': transaction,
             'id': id,
@@ -732,12 +785,107 @@ class bittrex (Exchange):
         }
 
     def parse_symbol(self, id):
-        quote, base = id.split(self.options['symbolSeparator'])
-        base = self.common_currency_code(base)
-        quote = self.common_currency_code(quote)
+        quoteId, baseId = id.split(self.options['symbolSeparator'])
+        base = self.common_currency_code(baseId)
+        quote = self.common_currency_code(quoteId)
         return base + '/' + quote
 
     def parse_order(self, order, market=None):
+        if ('OrderType' in list(order.keys())) or ('Type' in list(order.keys())):
+            return self.parse_order_v2(order, market)
+        else:
+            return self.parse_order_v3(order, market)
+
+    def parse_order_status(self, status):
+        statuses = {
+            'CLOSED': 'closed',
+            'OPEN': 'open',
+            'CANCELLED': 'canceled',
+            'CANCELED': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_order_v3(self, order, market=None):
+        #
+        #     {
+        #         id: '1be35109-b763-44ce-b6ea-05b6b0735c0c',
+        #         marketSymbol: 'LTC-ETH',
+        #         direction: 'BUY',
+        #         type: 'LIMIT',
+        #         quantity: '0.50000000',
+        #         limit: '0.17846699',
+        #         timeInForce: 'GOOD_TIL_CANCELLED',
+        #         fillQuantity: '0.50000000',
+        #         commission: '0.00022286',
+        #         proceeds: '0.08914915',
+        #         status: 'CLOSED',
+        #         createdAt: '2018-06-23T13:14:28.613Z',
+        #         updatedAt: '2018-06-23T13:14:30.19Z',
+        #         closedAt: '2018-06-23T13:14:30.19Z'
+        #     }
+        #
+        marketSymbol = self.safe_string(order, 'marketSymbol')
+        symbol = None
+        feeCurrency = None
+        if marketSymbol in self.markets_by_id:
+            market = self.markets_by_id[marketSymbol]
+            symbol = market['symbol']
+            feeCurrency = market['quote']
+        else:
+            symbol = self.parse_symbol(marketSymbol)
+            parts = symbol.split(self.options['symbolSeparator'])
+            quote = parts[1]
+            feeCurrency = quote
+        direction = self.safe_string(order, 'direction')
+        createdAt = self.safe_string(order, 'createdAt')
+        updatedAt = self.safe_string(order, 'updatedAt')
+        closedAt = self.safe_string(order, 'closedAt')
+        lastTradeTimestamp = None
+        if closedAt is not None:
+            lastTradeTimestamp = self.parse8601(closedAt)
+        elif updatedAt:
+            lastTradeTimestamp = self.parse8601(updatedAt)
+        timestamp = self.parse8601(createdAt)
+        type = self.safe_string(order, 'type')
+        quantity = self.safe_float(order, 'quantity')
+        limit = self.safe_float(order, 'limit')
+        fillQuantity = self.safe_float(order, 'fillQuantity')
+        commission = self.safe_float(order, 'commission')
+        proceeds = self.safe_float(order, 'proceeds')
+        status = self.safe_string(order, 'status')
+        average = None
+        remaining = None
+        if fillQuantity is not None:
+            if proceeds is not None:
+                if fillQuantity > 0:
+                    average = proceeds / fillQuantity
+                elif proceeds == 0:
+                    average = 0
+            if quantity is not None:
+                remaining = quantity - fillQuantity
+        return {
+            'id': self.safe_string(order, 'id'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': symbol,
+            'type': type.lower(),
+            'side': direction.lower(),
+            'price': limit,
+            'cost': proceeds,
+            'average': average,
+            'amount': quantity,
+            'filled': fillQuantity,
+            'remaining': remaining,
+            'status': status.lower(),
+            'fee': {
+                'cost': commission,
+                'currency': feeCurrency,
+            },
+            'info': order,
+        }
+
+    def parse_order_v2(self, order, market=None):
         side = self.safe_string_2(order, 'OrderType', 'Type')
         isBuyOrder = (side == 'LIMIT_BUY') or (side == 'BUY')
         isSellOrder = (side == 'LIMIT_SELL') or (side == 'SELL')
@@ -780,14 +928,10 @@ class bittrex (Exchange):
         if timestamp is None:
             timestamp = lastTradeTimestamp
         fee = None
-        commission = None
-        if 'Commission' in order:
-            commission = 'Commission'
-        elif 'CommissionPaid' in order:
-            commission = 'CommissionPaid'
-        if commission:
+        feeCost = self.safe_float_2(order, 'Commission', 'CommissionPaid')
+        if feeCost is not None:
             fee = {
-                'cost': float(order[commission]),
+                'cost': feeCost,
             }
             if market is not None:
                 fee['currency'] = market['quote']
@@ -881,6 +1025,10 @@ class bittrex (Exchange):
         return self.orders_to_trades(orders)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        method = self.safe_string(self.options, 'fetchClosedOrdersMethod', 'fetch_closed_orders_v3')
+        return await getattr(self, method)(symbol, since, limit, params)
+
+    async def fetch_closed_orders_v2(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {}
         market = None
@@ -888,7 +1036,25 @@ class bittrex (Exchange):
             market = self.market(symbol)
             request['market'] = market['id']
         response = await self.accountGetOrderhistory(self.extend(request, params))
-        orders = self.parse_orders(response['result'], market, since, limit)
+        result = self.safe_value(response, 'result', [])
+        orders = self.parse_orders(result, market, since, limit)
+        if symbol is not None:
+            return self.filter_by_symbol(orders, symbol)
+        return orders
+
+    async def fetch_closed_orders_v3(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {}
+        if limit is not None:
+            request['pageSize'] = limit
+        if since is not None:
+            request['startDate'] = since
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['marketSymbol'] = market['id']
+        response = await self.v3GetOrdersClosed(self.extend(request, params))
+        orders = self.parse_orders(response, market, since, limit)
         if symbol is not None:
             return self.filter_by_symbol(orders, symbol)
         return orders
@@ -933,13 +1099,11 @@ class bittrex (Exchange):
             'quantity': amount,
             'address': address,
         }
-        if tag:
+        if tag is not None:
             request['paymentid'] = tag
         response = await self.accountGetWithdraw(self.extend(request, params))
-        id = None
-        if 'result' in response:
-            if 'uuid' in response['result']:
-                id = response['result']['uuid']
+        result = self.safe_value(response, 'result', {})
+        id = self.safe_string(result, 'uuid')
         return {
             'info': response,
             'id': id,
@@ -949,9 +1113,9 @@ class bittrex (Exchange):
         url = self.implode_params(self.urls['api'][api], {
             'hostname': self.hostname,
         }) + '/'
-        if api != 'v2':
+        if api != 'v2' and api != 'v3':
             url += self.version + '/'
-        if api == 'public':
+        if api == 'public' or api == 'v3public':
             url += api + '/' + method.lower() + path
             if params:
                 url += '?' + self.urlencode(params)
@@ -959,6 +1123,25 @@ class bittrex (Exchange):
             url += path
             if params:
                 url += '?' + self.urlencode(params)
+        elif api == 'v3':
+            url += path
+            if params:
+                url += '?' + self.urlencode(params)
+            contentHash = self.hash('', 'sha512', 'hex')
+            now = str(self.nonce())
+            auth = now + url + method + contentHash
+            subaccountId = self.safe_value(self.options, 'subaccountId')
+            if subaccountId is not None:
+                auth += subaccountId
+            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
+            headers = {
+                'Api-Key': self.apiKey,
+                'Api-Timestamp': now,
+                'Api-Content-Hash': contentHash,
+                'Api-Signature': signature,
+            }
+            if subaccountId is not None:
+                headers['Api-Subaccount-Id'] = subaccountId
         else:
             self.check_required_credentials()
             url += api + '/'
@@ -1027,13 +1210,6 @@ class bittrex (Exchange):
                     if message.find('problem') >= 0:
                         raise ExchangeNotAvailable(feedback)  # 'There was a problem processing your request.  If self problem persists, please contact...')
                 raise ExchangeError(feedback)
-
-    def append_timezone_parse8601(self, x):
-        length = len(x)
-        lastSymbol = x[length - 1]
-        if (lastSymbol == 'Z') or (x.find('+') >= 0):
-            return self.parse8601(x)
-        return self.parse8601(x + 'Z')
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
