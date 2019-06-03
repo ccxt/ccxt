@@ -2701,7 +2701,8 @@ module.exports = class okex3 extends Exchange {
                 }
                 headers['Content-Type'] = 'application/json';
             }
-            headers['OK-ACCESS-SIGN'] = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64')
+            headers['OK-ACCESS-SIGN'] = this.decode (signature);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
