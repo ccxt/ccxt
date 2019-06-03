@@ -1115,9 +1115,7 @@ module.exports = class bittrex extends Exchange {
 
     async fetchClosedOrdersV3 (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'startDate': since,
-        };
+        const request = {};
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
