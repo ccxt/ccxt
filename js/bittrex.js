@@ -743,12 +743,12 @@ module.exports = class bittrex extends Exchange {
         const amount = this.safeFloat (transaction, 'Amount');
         const address = this.safeString2 (transaction, 'CryptoAddress', 'Address');
         const txid = this.safeString (transaction, 'TxId');
-        const updated = this.parse8601 (this.safeValue (transaction, 'LastUpdated'));
+        const updated = this.parse8601 (this.safeString (transaction, 'LastUpdated'));
         const opened = this.parse8601 (this.safeString (transaction, 'Opened'));
         const timestamp = opened ? opened : updated;
         const type = (opened === undefined) ? 'deposit' : 'withdrawal';
         let code = undefined;
-        let currencyId = this.safeString (transaction, 'Currency');
+        const currencyId = this.safeString (transaction, 'Currency');
         currency = this.safeValue (this.currencies_by_id, currencyId);
         if (currency !== undefined) {
             code = currency['code'];
