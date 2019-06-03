@@ -2586,7 +2586,8 @@ class okex3 (Exchange):
                     body = jsonQuery
                     auth += jsonQuery
                 headers['Content-Type'] = 'application/json'
-            headers['OK-ACCESS-SIGN'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
+            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
+            headers['OK-ACCESS-SIGN'] = self.decode(signature)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def get_path_authentication_type(self, path):
