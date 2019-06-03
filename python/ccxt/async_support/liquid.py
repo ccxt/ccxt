@@ -106,6 +106,7 @@ class liquid (Exchange):
             },
             'commonCurrencies': {
                 'WIN': 'WCOIN',
+                'HOT': 'HOT Token',
             },
             'options': {
                 'cancelOrderException': True,
