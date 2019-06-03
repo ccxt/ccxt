@@ -1128,15 +1128,15 @@ class bittrex (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
             contentHash = self.hash('', 'sha512', 'hex')
-            timestamp = str(self.milliseconds())
-            auth = timestamp + url + method + contentHash
+            nonce = str(self.nonce())
+            auth = nonce + url + method + contentHash
             subaccountId = self.safe_value(self.options, 'subaccountId')
             if subaccountId is not None:
                 auth += subaccountId
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
             headers = {
                 'Api-Key': self.apiKey,
-                'Api-Timestamp': timestamp,
+                'Api-Timestamp': nonce,
                 'Api-Content-Hash': contentHash,
                 'Api-Signature': signature,
             }
