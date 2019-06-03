@@ -715,22 +715,24 @@ module.exports = class bittrex extends Exchange {
         //
         // fetchDeposits
         //
-        //      {            Id:  72578097,
-        //               Amount:  0.3,
-        //             Currency: "ETH",
-        //        Confirmations:  15,
-        //          LastUpdated: "2018-06-17T07:12:14.57",
-        //                 TxId: "0xb31b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
-        //        CryptoAddress: "0x2d5f281fa51f1635abd4a60b0870a62d2a7fa404"                    }
+        //     {
+        //         Id:  72578097,
+        //         Amount:  0.3,
+        //         Currency: "ETH",
+        //         Confirmations:  15,
+        //         LastUpdated: "2018-06-17T07:12:14.57",
+        //         TxId: "0xb31b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
+        //         CryptoAddress: "0x2d5f281fa51f1635abd4a60b0870a62d2a7fa404"
+        //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf",
+        //         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf", //
         //         "Currency" : "XC",
         //         "Amount" : 7513.75121715,
-        //         "Address" : "EVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
-        //         "Opened" : "2014-07-08T23:13:31.83",
+        //         "Address" : "EVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J", // optional
+        //         "Opened" : "2014-07-08T23:13:31.83", // optional
         //         "Authorized" : true,
         //         "PendingPayment" : false,
         //         "TxCost" : 0.00002000,
@@ -790,15 +792,6 @@ module.exports = class bittrex extends Exchange {
                 // according to https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-
                 feeCost = 0; // FIXME: remove hardcoded value that may change any time
             }
-            //  not all have fees:
-            //    {
-            //    "Id":72935263,
-            //    "Amount":2.45738367,
-            //    "Currency":"XMR",
-            //    "Confirmations":21,
-            //    "LastUpdated":"2018-06-21T11:34:05.84",
-            //    "TxId":"dd2d30c02f88b7b4f31f441a1c03fe5a3369ceecd892b0f5aaaa1170ae19248c",
-            //    "CryptoAddress":"8431a72131824a76bc696c72e8a5facaf994a3e116764c9ea85a2ad95dca850c"}
         }
         return {
             'info': transaction,
