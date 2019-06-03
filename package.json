@@ -48,7 +48,6 @@
   },
   "types": "./ccxt.d.ts",
   "dependencies": {
-    "crypto-js": "3.1.9-1",
     "fetch-ponyfill": "4.1.0"
   },
   "devDependencies": {

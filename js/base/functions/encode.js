@@ -2,7 +2,7 @@
 
 /*  ------------------------------------------------------------------------ */
 
-const CryptoJS = require ('crypto-js')
+const CryptoJS = require ('../../static_dependencies/crypto-js/crypto-js')
 const qs       = require ('../../static_dependencies/qs/index')
 
 /*  ------------------------------------------------------------------------ */
