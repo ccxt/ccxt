@@ -63,7 +63,10 @@ module.exports = class binance extends Exchange {
                 },
                 'www': 'https://www.binance.com',
                 'referral': 'https://www.binance.com/?ref=10205187',
-                'doc': 'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
+                'doc': [
+                    'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
+                    'https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md',
+                ],
                 'fees': 'https://www.binance.com/en/fee/schedule',
             },
             'api': {
@@ -1108,11 +1111,6 @@ module.exports = class binance extends Exchange {
         }
         let status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         let amount = this.safeFloat (transaction, 'amount');
-        const feeCost = undefined;
-        let fee = {
-            'cost': feeCost,
-            'currency': code,
-        };
         return {
             'info': transaction,
             'id': id,
@@ -1126,7 +1124,7 @@ module.exports = class binance extends Exchange {
             'currency': code,
             'status': status,
             'updated': undefined,
-            'fee': fee,
+            'fee': undefined,
         };
     }
 
