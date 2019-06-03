@@ -5,7 +5,7 @@ cache:
  directories:
    # - $HOME/.cache/pip
    - $HOME/.npm
-   # - node_modules
+   - node_modules
 
 before_install:
 - set -e
