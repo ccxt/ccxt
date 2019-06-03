@@ -899,9 +899,9 @@ module.exports = class bittrex extends Exchange {
         let remaining = undefined;
         if (fillQuantity !== undefined) {
             if (proceeds !== undefined) {
-                if (fillQuantity) {
+                if (fillQuantity > 0) {
                     average = proceeds / fillQuantity;
-                } else {
+                } else if (proceeds === 0) {
                     average = 0;
                 }
             }
