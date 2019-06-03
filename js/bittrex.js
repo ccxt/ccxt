@@ -247,6 +247,7 @@ module.exports = class bittrex extends Exchange {
                     // 'LISK': true, // LSK
                 },
                 'subaccountId': undefined,
+                'fetchClosedOrdersMethod': 'fetch_closed_orders_v3',
             },
             'commonCurrencies': {
                 'BITS': 'SWIFT',
@@ -1091,6 +1092,28 @@ module.exports = class bittrex extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const method = this.safeString (this.options, 'fetchClosedOrdersMethod', 'fetch_closed_orders_v3');
+        return await this[method] (symbol, since, limit, params);
+    }
+
+    async fetchClosedOrdersV2 (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        const response = await this.accountGetOrderhistory (this.extend (request, params));
+        const result = this.safeValue (response, 'result', []);
+        const orders = this.parseOrders (result, market, since, limit);
+        if (symbol !== undefined) {
+            return this.filterBySymbol (orders, symbol);
+        }
+        return orders;
+    }
+
+    async fetchClosedOrdersV3 (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'startDate': since,
