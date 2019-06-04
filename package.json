@@ -48,7 +48,6 @@
   },
   "types": "./ccxt.d.ts",
   "dependencies": {
-    "fetch-ponyfill": "4.1.0"
   },
   "devDependencies": {
     "ansicolor": "1.1.81",
