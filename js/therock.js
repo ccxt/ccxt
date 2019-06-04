@@ -26,6 +26,7 @@ module.exports = class therock extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchOrder': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
@@ -993,6 +994,20 @@ module.exports = class therock extends Exchange {
         //
         const orders = this.safeValue (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'id': id,
+            'fund_id': market['id'],
+        };
+        const response = await this.privatePostFundsFundIdOrdersId (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
