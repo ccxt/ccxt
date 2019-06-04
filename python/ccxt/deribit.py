@@ -241,6 +241,13 @@ class deribit (Exchange):
         if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_integer(trade, 'timeStamp')
+        side = self.safe_string_2(trade, 'side', 'direction')
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'quantity')
+        cost = None
+        if amount is not None:
+            if price is not None:
+                cost = amount * price
         return {
             'info': trade,
             'id': id,
@@ -249,9 +256,11 @@ class deribit (Exchange):
             'symbol': symbol,
             'order': None,
             'type': None,
-            'side': trade['direction'],
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'quantity'),
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

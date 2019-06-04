@@ -239,6 +239,15 @@ module.exports = class deribit extends Exchange {
         if (market !== undefined)
             symbol = market['symbol'];
         let timestamp = this.safeInteger (trade, 'timeStamp');
+        const side = this.safeString2 (trade, 'side', 'direction');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'quantity');
+        let cost = undefined;
+        if (amount !== undefined) {
+            if (price !== undefined) {
+                cost = amount * price;
+            }
+        }
         return {
             'info': trade,
             'id': id,
@@ -247,9 +256,11 @@ module.exports = class deribit extends Exchange {
             'symbol': symbol,
             'order': undefined,
             'type': undefined,
-            'side': trade['direction'],
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'quantity'),
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
