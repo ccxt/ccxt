@@ -807,9 +807,31 @@ module.exports = class exmo extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         try {
-            let response = await this.privatePostOrderTrades ({
+            const request = {
                 'order_id': id.toString (),
-            });
+            };
+            const response = await this.privatePostOrderTrades (this.extend (request, params));
+            //
+            //     {
+            //         "type": "buy",
+            //         "in_currency": "BTC",
+            //         "in_amount": "1",
+            //         "out_currency": "USD",
+            //         "out_amount": "100",
+            //         "trades": [
+            //             {
+            //                 "trade_id": 3,
+            //                 "date": 1435488248,
+            //                 "type": "buy",
+            //                 "pair": "BTC_USD",
+            //                 "order_id": 12345,
+            //                 "quantity": 1,
+            //                 "price": 100,
+            //                 "amount": 100
+            //             }
+            //         ]
+            //     }
+            //
             return this.parseOrder (response);
         } catch (e) {
             if (e instanceof OrderNotFound) {
@@ -822,11 +844,13 @@ module.exports = class exmo extends Exchange {
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let market = undefined;
-        if (symbol !== undefined)
+        if (symbol !== undefined) {
             market = this.market (symbol);
-        const response = await this.privatePostOrderTrades (this.extend ({
+        }
+        const request = {
             'order_id': id.toString (),
-        }, params));
+        };
+        const response = await this.privatePostOrderTrades (this.extend (request, params));
         const trades = this.safeValue (response, 'trades');
         return this.parseTrades (trades, market, since, limit);
     }
@@ -929,33 +953,34 @@ module.exports = class exmo extends Exchange {
         let cost = this.safeFloat (order, 'amount');
         let filled = 0.0;
         let trades = [];
-        let transactions = this.safeValue (order, 'trades');
+        let transactions = this.safeValue (order, 'trades', []);
         let feeCost = undefined;
-        if (transactions !== undefined) {
-            if (Array.isArray (transactions)) {
-                for (let i = 0; i < transactions.length; i++) {
-                    let trade = this.parseTrade (transactions[i], market);
-                    if (id === undefined) {
-                        id = trade['order'];
-                    }
-                    if (timestamp === undefined) {
-                        timestamp = trade['timestamp'];
-                    }
-                    if (timestamp > trade['timestamp']) {
-                        timestamp = trade['timestamp'];
-                    }
-                    filled = this.sum (filled, trade['amount']);
-                    if (feeCost === undefined) {
-                        feeCost = 0.0;
-                    }
-                    feeCost = this.sum (feeCost, trade['fee']['cost']);
-                    if (cost === undefined) {
-                        cost = 0.0;
-                    }
-                    cost = this.sum (cost, trade['cost']);
-                    trades.push (trade);
+        let lastTradeTimestamp = undefined;
+        const numTransactions = transactions.length;
+        if (numTransactions > 0) {
+            for (let i = 0; i < numTransactions; i++) {
+                let trade = this.parseTrade (transactions[i], market);
+                if (id === undefined) {
+                    id = trade['order'];
                 }
+                if (timestamp === undefined) {
+                    timestamp = trade['timestamp'];
+                }
+                if (timestamp > trade['timestamp']) {
+                    timestamp = trade['timestamp'];
+                }
+                filled = this.sum (filled, trade['amount']);
+                if (feeCost === undefined) {
+                    feeCost = 0.0;
+                }
+                feeCost = this.sum (feeCost, trade['fee']['cost']);
+                if (cost === undefined) {
+                    cost = 0.0;
+                }
+                cost = this.sum (cost, trade['cost']);
+                trades.push (trade);
             }
+            lastTradeTimestamp = trades[numTransactions - 1]['timestamp'];
         }
         let remaining = undefined;
         if (amount !== undefined) {
@@ -990,7 +1015,7 @@ module.exports = class exmo extends Exchange {
             'id': id,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
             'symbol': symbol,
             'type': 'limit',
