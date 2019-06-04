@@ -910,6 +910,7 @@ module.exports = class therock extends Exchange {
         let trades = this.safeValue (order, 'trades');
         let cost = undefined;
         let average = undefined;
+        let lastTradeTimestamp = undefined;
         if (trades !== undefined) {
             const numTrades = trades.length;
             if (numTrades > 0) {
@@ -927,6 +928,7 @@ module.exports = class therock extends Exchange {
                 if (filled > 0) {
                     average = cost / filled;
                 }
+                lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
             } else {
                 cost = 0;
             }
@@ -936,7 +938,7 @@ module.exports = class therock extends Exchange {
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
             'symbol': symbol,
             'type': type,
