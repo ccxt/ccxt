@@ -239,7 +239,7 @@ module.exports = class deribit extends Exchange {
         if (market !== undefined)
             symbol = market['symbol'];
         let timestamp = this.safeInteger (trade, 'timeStamp');
-        const side = this.safeString (trade, 'side', 'direction');
+        const side = this.safeString2 (trade, 'side', 'direction');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'quantity');
         let cost = undefined;
