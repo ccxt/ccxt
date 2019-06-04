@@ -483,7 +483,7 @@ module.exports = class therock extends Exchange {
         let type = this.safeString (item, 'type');
         const direction = this.parseLedgerEntryDirection (type);
         type = this.parseLedgerEntryType (type);
-        if (type === 'trade') {
+        if (type === 'trade' || type === 'fee') {
             referenceId = this.safeString (item, 'trade_id');
         }
         let currencyId = this.safeString (item, 'currency');
