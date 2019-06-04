@@ -2649,6 +2649,7 @@ module.exports = class okex3 extends Exchange {
         };
         const before = undefined;
         const after = this.safeFloat (item, 'balance');
+        const status = 'ok';
         return {
             'info': item,
             'id': id,
@@ -2660,6 +2661,7 @@ module.exports = class okex3 extends Exchange {
             'amount': amount,
             'before': before, // balance before
             'after': after, // balance after
+            'status': status,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'fee': fee,

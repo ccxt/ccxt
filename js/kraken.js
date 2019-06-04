@@ -596,6 +596,7 @@ module.exports = class kraken extends Exchange {
         };
         const before = undefined;
         const after = this.safeFloat (item, 'balance');
+        const status = 'ok';
         return {
             'info': item,
             'id': id,
@@ -608,6 +609,7 @@ module.exports = class kraken extends Exchange {
             'amount': amount,
             'before': before,
             'after': after,
+            'status': status,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'fee': fee,
