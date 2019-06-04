@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.618'
+const version = '1.18.619'
 
 Exchange.ccxtVersion = version
 
@@ -50335,6 +50335,7 @@ module.exports = class kraken extends Exchange {
         };
         const before = undefined;
         const after = this.safeFloat (item, 'balance');
+        const status = 'ok';
         return {
             'info': item,
             'id': id,
@@ -50347,6 +50348,7 @@ module.exports = class kraken extends Exchange {
             'amount': amount,
             'before': before,
             'after': after,
+            'status': status,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'fee': fee,
@@ -64357,6 +64359,7 @@ module.exports = class okex3 extends Exchange {
         };
         const before = undefined;
         const after = this.safeFloat (item, 'balance');
+        const status = 'ok';
         return {
             'info': item,
             'id': id,
@@ -64368,6 +64371,7 @@ module.exports = class okex3 extends Exchange {
             'amount': amount,
             'before': before, // balance before
             'after': after, // balance after
+            'status': status,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'fee': fee,

@@ -586,6 +586,7 @@ class kraken (Exchange):
         }
         before = None
         after = self.safe_float(item, 'balance')
+        status = 'ok'
         return {
             'info': item,
             'id': id,
@@ -598,6 +599,7 @@ class kraken (Exchange):
             'amount': amount,
             'before': before,
             'after': after,
+            'status': status,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'fee': fee,

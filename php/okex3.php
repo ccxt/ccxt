@@ -2650,6 +2650,7 @@ class okex3 extends Exchange {
         );
         $before = null;
         $after = $this->safe_float($item, 'balance');
+        $status = 'ok';
         return array (
             'info' => $item,
             'id' => $id,
@@ -2661,6 +2662,7 @@ class okex3 extends Exchange {
             'amount' => $amount,
             'before' => $before, // balance $before
             'after' => $after, // balance $after
+            'status' => $status,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'fee' => $fee,
