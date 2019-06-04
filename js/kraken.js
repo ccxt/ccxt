@@ -587,10 +587,8 @@ module.exports = class kraken extends Exchange {
         }
         const time = this.safeFloat (item, 'time');
         let timestamp = undefined;
-        let datetime = undefined;
         if (time !== undefined) {
             timestamp = parseInt (time * 1000);
-            datetime = this.iso8601 (timestamp);
         }
         const fee = {
             'cost': this.safeFloat (item, 'fee'),
@@ -611,7 +609,7 @@ module.exports = class kraken extends Exchange {
             'before': before,
             'after': after,
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'fee': fee,
         };
     }
