@@ -795,7 +795,7 @@ module.exports = class dsx extends liqui {
         return this.parseOrdersById (this.safeValue (response, 'return', {}), symbol, since, limit);
     }
 
-    parseTrades (trades, market = undefined, since = undefined, limit = undefined) {
+    parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
         let result = [];
         if (Array.isArray (trades)) {
             for (let i = 0; i < trades.length; i++) {
@@ -806,7 +806,7 @@ module.exports = class dsx extends liqui {
             for (let i = 0; i < ids.length; i++) {
                 const id = ids[i];
                 const trade = this.parseTrade (trades[id], market);
-                result.push (this.extend (trade, { 'id': id }));
+                result.push (this.extend (trade, { 'id': id }, params));
             }
         }
         result = this.sortBy (result, 'timestamp');
