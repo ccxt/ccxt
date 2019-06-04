@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.625'
+const version = '1.18.626'
 
 Exchange.ccxtVersion = version
 
@@ -16436,7 +16436,7 @@ module.exports = class bitso extends Exchange {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -16591,8 +16591,10 @@ module.exports = class bitstamp extends Exchange {
                     'Your account is frozen': PermissionDenied,
                     'Please update your profile with your FATCA information, before using API.': PermissionDenied,
                     'Order not found': OrderNotFound,
+                    'Price is more than 20% below market price.': InvalidOrder,
                 },
                 'broad': {
+                    'Minimum order size is': InvalidOrder, // Minimum order size is 5.0 EUR.
                     'Check your account balance for details.': InsufficientFunds, // You have only 0.00100000 BTC available. Check your account balance for details.
                     'Ensure this value has at least': InvalidAddress, // Ensure this value has at least 25 characters (it has 4).
                 },
@@ -17435,14 +17437,17 @@ module.exports = class bitstamp extends Exchange {
         if (response === undefined) {
             return;
         }
-        // fetchDepositAddress returns {"error": "No permission found"} on apiKeys that don't have the permission required
+        //
+        //     {"error": "No permission found"} // fetchDepositAddress returns this on apiKeys that don't have the permission required
+        //     {"status": "error", "reason": {"__all__": ["Minimum order size is 5.0 EUR."]}}
+        //
         const status = this.safeString (response, 'status');
         const error = this.safeValue (response, 'error');
-        if (status === 'error' || error) {
+        if ((status === 'error') || (error !== undefined)) {
             let errors = [];
             if (typeof error === 'string') {
                 errors.push (error);
-            } else {
+            } else if (error !== undefined) {
                 const keys = Object.keys (error);
                 for (let i = 0; i < keys.length; i++) {
                     const key = keys[i];
@@ -17455,12 +17460,12 @@ module.exports = class bitstamp extends Exchange {
                 }
             }
             const reason = this.safeValue (response, 'reason', {});
-            const all = this.safeValue (reason, '__all__');
-            if (all !== undefined) {
-                if (Array.isArray (all)) {
-                    for (let i = 0; i < all.length; i++) {
-                        errors.push (all[i]);
-                    }
+            if (typeof reason === 'string') {
+                errors.push (reason);
+            } else {
+                const all = this.safeValue (reason, '__all__', []);
+                for (let i = 0; i < all.length; i++) {
+                    errors.push (all[i]);
                 }
             }
             const code = this.safeString (response, 'code');

@@ -17,6 +17,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
@@ -174,8 +175,10 @@ class bitstamp (Exchange):
                     'Your account is frozen': PermissionDenied,
                     'Please update your profile with your FATCA information, before using API.': PermissionDenied,
                     'Order not found': OrderNotFound,
+                    'Price is more than 20% below market price.': InvalidOrder,
                 },
                 'broad': {
+                    'Minimum order size is': InvalidOrder,  # Minimum order size is 5.0 EUR.
                     'Check your account balance for details.': InsufficientFunds,  # You have only 0.00100000 BTC available. Check your account balance for details.
                     'Ensure self value has at least': InvalidAddress,  # Ensure self value has at least 25 characters(it has 4).
                 },
@@ -931,14 +934,17 @@ class bitstamp (Exchange):
     def handle_errors(self, httpCode, reason, url, method, headers, body, response):
         if response is None:
             return
-        # fetchDepositAddress returns {"error": "No permission found"} on apiKeys that don't have the permission required
+        #
+        #     {"error": "No permission found"}  # fetchDepositAddress returns self on apiKeys that don't have the permission required
+        #     {"status": "error", "reason": {"__all__": ["Minimum order size is 5.0 EUR."]}}
+        #
         status = self.safe_string(response, 'status')
         error = self.safe_value(response, 'error')
-        if status == 'error' or error:
+        if (status == 'error') or (error is not None):
             errors = []
             if isinstance(error, basestring):
                 errors.append(error)
-            else:
+            elif error is not None:
                 keys = list(error.keys())
                 for i in range(0, len(keys)):
                     key = keys[i]
@@ -948,11 +954,12 @@ class bitstamp (Exchange):
                     else:
                         errors.append(value)
             reason = self.safe_value(response, 'reason', {})
-            all = self.safe_value(reason, '__all__')
-            if all is not None:
-                if isinstance(all, list):
-                    for i in range(0, len(all)):
-                        errors.append(all[i])
+            if isinstance(reason, basestring):
+                errors.append(reason)
+            else:
+                all = self.safe_value(reason, '__all__', [])
+                for i in range(0, len(all)):
+                    errors.append(all[i])
             code = self.safe_string(response, 'code')
             if code == 'API0005':
                 raise AuthenticationError(self.id + ' invalid signature, use the uid for the main account if you have subaccounts')
