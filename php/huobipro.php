@@ -664,10 +664,12 @@ class huobipro extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetOrderOrdersId (array_merge (array (
+        $request = array (
             'id' => $id,
-        ), $params));
-        return $this->parse_order($response['data']);
+        );
+        $response = $this->privateGetOrderOrdersId (array_merge ($request, $params));
+        $order = $this->safe_value($response, 'data');
+        return $this->parse_order($order);
     }
 
     public function parse_order_status ($status) {
