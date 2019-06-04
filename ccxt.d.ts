@@ -149,7 +149,7 @@ declare module 'ccxt' {
     export interface Transaction {
         info: {};
         id: string;
-        txid: string;
+        txid?: string;
         timestamp: number;
         datetime: string;
         address: string;
