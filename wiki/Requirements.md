@@ -41,6 +41,6 @@ The exchange is required to implement the following list of methods and structur
 - [`fetchDeposits`](https://github.com/ccxt/ccxt/wiki/Manual#transactions)
 - [`fetchWithdrawals`](https://github.com/ccxt/ccxt/wiki/Manual#transactions)
 - [`fetchTransactions`](https://github.com/ccxt/ccxt/wiki/Manual#transactions) + [transaction structure](https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure)
-- [`fetchLedger`](https://github.com/ccxt/ccxt/wiki/Manual#ledger) – transactions, transfers, referrals, cashbacks + [ledger entry structure](https://github.com/ccxt/ccxt/wiki/Manual#ledger-entry-structureccccccigfrubcntngfuhein)
+- [`fetchLedger`](https://github.com/ccxt/ccxt/wiki/Manual#ledger) – transactions, transfers, referrals, cashbacks + [ledger entry structure](https://github.com/ccxt/ccxt/wiki/Manual#ledger-entry-structure)
 - [`withdraw`](https://github.com/ccxt/ccxt/wiki/Manual#withdraw)
 - `transfer` – required if exchange has multiple accounts or sub-accounts

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.567'
+__version__ = '1.18.615'
 
 # -----------------------------------------------------------------------------
 
@@ -24,6 +24,15 @@ from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TRUNCATE, ROUND
 from ccxt.base.decimal_to_precision import number_to_string
 
 # -----------------------------------------------------------------------------
+
+# rsa jwt signing
+from cryptography.hazmat import backends
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
+
+# -----------------------------------------------------------------------------
+
 
 __all__ = [
     'Exchange',
@@ -949,16 +958,29 @@ class Exchange(object):
         return Exchange.decode(base64.urlsafe_b64encode(s)).replace('=', '')
 
     @staticmethod
-    def jwt(request, secret, algorithm=hashlib.sha256, alg='HS256'):
+    def jwt(request, secret, alg='HS256'):
+        algos = {
+            "RS256": hashes.SHA256(),
+            "RS384": hashes.SHA384(),
+            "RS512": hashes.SHA512(),
+            'HS256': hashlib.sha256,
+            'HS384': hashlib.sha384,
+            'HS512': hashlib.sha512,
+        }
+        algorithm = algos[alg]
         header = Exchange.encode(Exchange.json({
             'alg': alg,
             'typ': 'JWT',
         }))
-        encodedHeader = Exchange.base64urlencode(header)
-        encodedData = Exchange.base64urlencode(Exchange.encode(Exchange.json(request)))
-        token = encodedHeader + '.' + encodedData
-        hmac = Exchange.hmac(Exchange.encode(token), Exchange.encode(secret), algorithm, 'binary')
-        signature = Exchange.base64urlencode(hmac)
+        encoded_header = Exchange.base64urlencode(header)
+        encoded_data = Exchange.base64urlencode(Exchange.encode(Exchange.json(request)))
+        token = encoded_header + '.' + encoded_data
+        if alg[:2] == 'RS':
+            priv_key = load_pem_private_key(Exchange.encode(secret), None, backends.default_backend())
+            signature = priv_key.sign(Exchange.encode(token), padding.PKCS1v15(), algorithm)
+        else:
+            signature = Exchange.hmac(Exchange.encode(token), Exchange.encode(secret), algorithm, 'binary')
+        signature = Exchange.base64urlencode(signature)
         return token + '.' + signature
 
     @staticmethod

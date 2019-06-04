@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.567';
+$version = '1.18.615';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.567';
+    const VERSION = '1.18.615';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -148,7 +148,6 @@ class Exchange {
         'coss',
         'crex24',
         'crypton',
-        'cryptopia',
         'deribit',
         'dsx',
         'dx',
@@ -192,6 +191,7 @@ class Exchange {
         'mixcoins',
         'negociecoins',
         'nova',
+        'oceanex',
         'okcoincny',
         'okcoinusd',
         'okex',
@@ -1001,12 +1001,30 @@ class Exchange {
         return $hmac;
     }
 
-    public function jwt ($request, $secret, $alg = 'HS256', $hash = 'sha256') {
+    public function jwt ($request, $secret, $alg = 'HS256') {
+        $algos = array(
+            'HS256' => 'sha256',
+            'HS384' => 'sha384',
+            'HS512' => 'sha512',
+            'RS256' => \OPENSSL_ALGO_SHA256,
+            'RS384' => \OPENSSL_ALGO_SHA384,
+            'RS512' => \OPENSSL_ALGO_SHA512,
+        );
         $encodedHeader = $this->urlencodeBase64 (json_encode (array ('alg' => $alg, 'typ' => 'JWT')));
         $encodedData = $this->urlencodeBase64 (json_encode ($request, JSON_UNESCAPED_SLASHES));
         $token = $encodedHeader . '.' . $encodedData;
-        $signature = $this->urlencodeBase64 ($this->hmac ($token, $secret, $hash, 'binary'));
-        return $token . '.' . $signature;
+        $algoType = substr($alg, 0, 2);
+        if (!array_key_exists($alg, $algos)) {
+            throw new ExchangeError ($alg . ' is not a supported jwt algorithm.');
+        }
+        $algName = $algos[$alg];
+        if ($algoType === 'HS') {
+            $signature = $this->hmac ($token, $secret, $algName, 'binary');
+        } else  if ($algoType === 'RS') {
+            $signature = null;
+            \openssl_sign ($token, $signature, $secret, $algName);
+        }
+        return $token . '.' . $this->urlencodeBase64 ($signature);
     }
 
     public function raise_error ($exception_type, $url, $method = 'GET', $error = null, $details = null) {

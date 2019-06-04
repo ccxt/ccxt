@@ -585,19 +585,37 @@ module.exports = class coinex extends Exchange {
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        if (tag)
+        const currency = this.currency (code);
+        if (tag) {
             address = address + ':' + tag;
-        let request = {
+        }
+        const request = {
             'coin_type': currency['id'],
-            'coin_address': address,
-            'actual_amount': parseFloat (amount),
+            'coin_address': address, // must be authorized, inter-user transfer by a registered mobile phone number or an email address is supported
+            'actual_amount': parseFloat (amount), // the actual amount without fees, https://www.coinex.com/fees
+            'transfer_method': '1', // '1' = normal onchain transfer, '2' = internal local transfer from one user to another
         };
-        let response = await this.privatePostBalanceCoinWithdraw (this.extend (request, params));
-        return {
-            'info': response,
-            'id': this.safeString (response, 'coin_withdraw_id'),
-        };
+        const response = await this.privatePostBalanceCoinWithdraw (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "actual_amount": "1.00000000",
+        //             "amount": "1.00000000",
+        //             "coin_address": "1KAv3pazbTk2JnQ5xTo6fpKK7p1it2RzD4",
+        //             "coin_type": "BCH",
+        //             "coin_withdraw_id": 206,
+        //             "confirmations": 0,
+        //             "create_time": 1524228297,
+        //             "status": "audit",
+        //             "tx_fee": "0",
+        //             "tx_id": ""
+        //         },
+        //         "message": "Ok"
+        //     }
+        //
+        const transaction = this.safeValue (response, 'data', {});
+        return this.parseTransaction (transaction, currency);
     }
 
     parseTransactionStatus (status) {

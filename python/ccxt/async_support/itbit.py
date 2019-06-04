@@ -227,12 +227,75 @@ class itbit (Exchange):
                 }
         return result
 
+    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        walletId = self.safe_string(params, 'walletId')
+        if walletId is None:
+            raise ExchangeError(self.id + ' fetchMyTrades requires a walletId parameter')
+        request = {
+            'walletId': walletId,
+        }
+        if limit is not None:
+            request['perPage'] = limit  # default 50, max 50
+        response = await self.privateGetWalletsWalletIdFundingHistory(self.extend(request, params))
+        #     {bankName: 'USBC(usd)',
+        #         withdrawalId: 94740,
+        #         holdingPeriodCompletionDate: '2018-04-16T07:57:05.9606869',
+        #         time: '2018-04-16T07:57:05.9600000',
+        #         currency: 'USD',
+        #         transactionType: 'Withdrawal',
+        #         amount: '2186.72000000',
+        #         walletName: 'Wallet',
+        #         status: 'completed'},
+        #
+        #     {"time": "2018-01-02T19:52:22.4176503",
+        #     "amount": "0.50000000",
+        #     "status": "completed",
+        #     "txnHash": "1b6fff67ed83cb9e9a38ca4976981fc047322bc088430508fe764a127d3ace95",
+        #     "currency": "XBT",
+        #     "walletName": "Wallet",
+        #     "transactionType": "Deposit",
+        #     "destinationAddress": "3AAWTH9et4e8o51YKp9qPpmujrNXKwHWNX"}
+        items = response['fundingHistory']
+        result = []
+        for i in range(0, len(items)):
+            item = items[i]
+            time = self.safe_string(item, 'time')
+            timestamp = self.parse8601(time)
+            currency = self.safe_string(item, 'currency')
+            destinationAddress = self.safe_string(item, 'destinationAddress')
+            txnHash = self.safe_string(item, 'txnHash')
+            transactionType = self.safe_string(item, 'transactionType').lower()
+            transactionStatus = self.safe_string(item, 'status')
+            status = self.parse_transfer_status(transactionStatus)
+            result.append({
+                'id': self.safe_string(item, 'withdrawalId'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'currency': self.common_currency_code(currency),
+                'address': destinationAddress,
+                'tag': None,
+                'txid': txnHash,
+                'type': transactionType,
+                'status': status,
+                'amount': self.safe_float(item, 'amount'),
+                'fee': None,
+                'info': item,
+            })
+        return result
+
+    def parse_transfer_status(self, status):
+        options = {
+            'cancelled': 'canceled',
+            'completed': 'ok',
+        }
+        return self.safe_string(options, status, 'pending')
+
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         walletId = self.safe_string(params, 'walletId')
         if walletId is None:
             raise ExchangeError(self.id + ' fetchMyTrades requires a walletId parameter')
-        await self.load_markets()
         request = {
             'walletId': walletId,
         }
@@ -359,7 +422,8 @@ class itbit (Exchange):
         remaining = amount - filled
         fee = None
         price = self.safe_float(order, 'price')
-        cost = price * self.safe_float(order, 'volumeWeightedAveragePrice')
+        average = self.safe_float(order, 'volumeWeightedAveragePrice')
+        cost = filled * average
         return {
             'id': order['id'],
             'info': order,
@@ -372,6 +436,7 @@ class itbit (Exchange):
             'side': side,
             'price': price,
             'cost': cost,
+            'average': average,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,

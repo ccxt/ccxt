@@ -32,10 +32,12 @@ class gdax (Exchange):
                 'fetchAccounts': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
+                'createDepositAddress': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
+                'fetchOrderTrades': True,
                 'fetchOrders': True,
                 'fetchTransactions': True,
                 'withdraw': True,
@@ -470,6 +472,17 @@ class gdax (Exchange):
         }, params))
         return self.parse_order(response)
 
+    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {
+            'order_id': id,
+        }
+        response = self.privateGetFills(self.extend(request, params))
+        return self.parse_trades(response, market, since, limit)
+
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {
@@ -507,15 +520,15 @@ class gdax (Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         # oid = str(self.nonce())
-        order = {
+        request = {
             'product_id': self.market_id(symbol),
             'side': side,
             'size': self.amount_to_precision(symbol, amount),
             'type': type,
         }
         if type == 'limit':
-            order['price'] = self.price_to_precision(symbol, price)
-        response = self.privatePostOrders(self.extend(order, params))
+            request['price'] = self.price_to_precision(symbol, price)
+        response = self.privatePostOrders(self.extend(request, params))
         return self.parse_order(response)
 
     def cancel_order(self, id, symbol=None, params={}):
@@ -617,16 +630,17 @@ class gdax (Exchange):
         return self.parseTransactions(response, currency, since, limit)
 
     def parse_transaction_status(self, transaction):
-        if 'canceled_at' in transaction and transaction['canceled_at']:
+        canceled = self.safe_value(transaction, 'canceled_at')
+        if canceled:
             return 'canceled'
-        elif 'completed_at' in transaction and transaction['completed_at']:
+        processed = self.safe_value(transaction, 'processed_at')
+        completed = self.safe_value(transaction, 'completed_at')
+        if processed and completed:
             return 'ok'
-        elif (('canceled_at' in list(transaction.keys())) and not transaction['canceled_at']) and(('completed_at' in list(transaction.keys())) and not transaction['completed_at']) and(('processed_at' in list(transaction.keys())) and not transaction['processed_at']):
-            return 'pending'
-        elif 'processed_at' in transaction and transaction['processed_at']:
-            return 'pending'
-        else:
+        elif processed and not completed:
             return 'failed'
+        else:
+            return 'pending'
 
     def parse_transaction(self, transaction, currency=None):
         details = self.safe_value(transaction, 'details', {})
@@ -708,9 +722,36 @@ class gdax (Exchange):
         if account is None:
             # eslint-disable-next-line quotes
             raise InvalidAddress(self.id + " fetchDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in self.options['coinbaseAccountsByCurrencyId']")
-        response = self.privatePostCoinbaseAccountsIdAddresses(self.extend({
+        request = {
             'id': account['id'],
-        }, params))
+        }
+        response = self.privateGetCoinbaseAccountsIdAddresses(self.extend(request, params))
+        address = self.safe_string(response, 'address')
+        tag = self.safe_string(response, 'destination_tag')
+        return {
+            'currency': code,
+            'address': self.check_address(address),
+            'tag': tag,
+            'info': response,
+        }
+
+    def create_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        accounts = self.safe_value(self.options, 'coinbaseAccounts')
+        if accounts is None:
+            accounts = self.privateGetCoinbaseAccounts()
+            self.options['coinbaseAccounts'] = accounts  # cache it
+            self.options['coinbaseAccountsByCurrencyId'] = self.index_by(accounts, 'currency')
+        currencyId = currency['id']
+        account = self.safe_value(self.options['coinbaseAccountsByCurrencyId'], currencyId)
+        if account is None:
+            # eslint-disable-next-line quotes
+            raise InvalidAddress(self.id + " fetchDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in self.options['coinbaseAccountsByCurrencyId']")
+        request = {
+            'id': account['id'],
+        }
+        response = self.privatePostCoinbaseAccountsIdAddresses(self.extend(request, params))
         address = self.safe_string(response, 'address')
         tag = self.safe_string(response, 'destination_tag')
         return {

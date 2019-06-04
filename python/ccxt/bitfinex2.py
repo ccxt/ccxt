@@ -177,6 +177,7 @@ class bitfinex2 (bitfinex):
                 },
             },
             'options': {
+                'precision': 'R0',  # P0, P1, P2, P3, P4, R0
                 'orderTypes': {
                     'MARKET': None,
                     'EXCHANGE MARKET': 'market',
@@ -292,10 +293,15 @@ class bitfinex2 (bitfinex):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetBookSymbolPrecision(self.extend({
+        precision = self.safe_value(self.options, 'precision', 'R0')
+        request = {
             'symbol': self.market_id(symbol),
-            'precision': 'R0',
-        }, params))
+            'precision': precision,
+        }
+        if limit is not None:
+            request['len'] = limit  # 25 or 100
+        fullRequest = self.extend(request, params)
+        orderbook = self.publicGetBookSymbolPrecision(fullRequest)
         timestamp = self.milliseconds()
         result = {
             'bids': [],
@@ -304,12 +310,12 @@ class bitfinex2 (bitfinex):
             'datetime': self.iso8601(timestamp),
             'nonce': None,
         }
+        priceIndex = 1 if (fullRequest['precision'] == precision) else 0
         for i in range(0, len(orderbook)):
             order = orderbook[i]
-            price = order[1]
-            amount = order[2]
-            side = 'bids' if (amount > 0) else 'asks'
-            amount = abs(amount)
+            price = order[priceIndex]
+            amount = abs(order[2])
+            side = 'bids' if (order[2] > 0) else 'asks'
             result[side].append([price, amount])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)

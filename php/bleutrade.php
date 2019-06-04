@@ -150,11 +150,7 @@ class bleutrade extends bittrex {
             'OPEN' => 'open',
             'CANCELED' => 'canceled',
         );
-        if (is_array ($statuses) && array_key_exists ($status, $statuses)) {
-            return $statuses[$status];
-        } else {
-            return $status;
-        }
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {

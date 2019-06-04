@@ -389,19 +389,41 @@ class cointiger (huobipro):
         response = await self.publicGetHistoryTrade(self.extend(request, params))
         return self.parse_trades(response['data']['trade_data'], market, since, limit)
 
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_my_trades_v1(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         if limit is None:
             limit = 100
-        response = await self.privateGetOrderTrade(self.extend({
+        request = {
             'symbol': market['id'],
             'offset': 1,
             'limit': limit,
-        }, params))
+        }
+        response = await self.privateGetOrderTrade(self.extend(request, params))
         return self.parse_trades(response['data']['list'], market, since, limit)
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        week = 604800000  # milliseconds
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+        if since is None:
+            since = self.milliseconds() - week  # week ago
+        await self.load_markets()
+        market = self.market(symbol)
+        start = self.ymd(since)
+        end = self.ymd(self.sum(since, week))  # one week
+        if limit is None:
+            limit = 1000
+        request = {
+            'symbol': market['id'],
+            'start-date': start,
+            'end-date': end,
+            'size': limit,
+        }
+        response = await self.v2GetOrderMatchResults(self.extend(request, params))
+        return self.parse_trades(response['data'], market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [

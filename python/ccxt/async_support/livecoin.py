@@ -116,6 +116,7 @@ class livecoin (Exchange):
                 'eETT': 'EETT',
                 'FirstBlood': '1ST',
                 'FORTYTWO': '42',
+                'LEO': 'LeoCoin',
                 'ORE': 'Orectic',
                 'RUR': 'RUB',
                 'SCT': 'SpaceCoin',

@@ -306,7 +306,7 @@ class zaif (Exchange):
             'fee': None,
         }
 
-    def parse_orders(self, orders, market=None, since=None, limit=None):
+    def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
         result = []
         ids = list(orders.keys())
         symbol = None
@@ -315,7 +315,7 @@ class zaif (Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             order = self.extend({'id': id}, orders[id])
-            result.append(self.parse_order(order, market))
+            result.append(self.extend(self.parse_order(order, market), params))
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):

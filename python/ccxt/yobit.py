@@ -24,6 +24,7 @@ class yobit (liqui):
                 'fetchDeposits': False,
                 'fetchWithdrawals': False,
                 'fetchTransactions': False,
+                'fetchTickers': False,
                 'CORS': False,
                 'withdraw': True,
             },

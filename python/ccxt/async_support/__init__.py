@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.567'
+__version__ = '1.18.615'
 
 # -----------------------------------------------------------------------------
 
@@ -114,7 +114,6 @@ from ccxt.async_support.coolcoin import coolcoin                          # noqa
 from ccxt.async_support.coss import coss                                  # noqa: F401
 from ccxt.async_support.crex24 import crex24                              # noqa: F401
 from ccxt.async_support.crypton import crypton                            # noqa: F401
-from ccxt.async_support.cryptopia import cryptopia                        # noqa: F401
 from ccxt.async_support.deribit import deribit                            # noqa: F401
 from ccxt.async_support.dsx import dsx                                    # noqa: F401
 from ccxt.async_support.dx import dx                                      # noqa: F401
@@ -158,6 +157,7 @@ from ccxt.async_support.mercado import mercado                            # noqa
 from ccxt.async_support.mixcoins import mixcoins                          # noqa: F401
 from ccxt.async_support.negociecoins import negociecoins                  # noqa: F401
 from ccxt.async_support.nova import nova                                  # noqa: F401
+from ccxt.async_support.oceanex import oceanex                            # noqa: F401
 from ccxt.async_support.okcoincny import okcoincny                        # noqa: F401
 from ccxt.async_support.okcoinusd import okcoinusd                        # noqa: F401
 from ccxt.async_support.okex import okex                                  # noqa: F401
@@ -253,7 +253,6 @@ exchanges = [
     'coss',
     'crex24',
     'crypton',
-    'cryptopia',
     'deribit',
     'dsx',
     'dx',
@@ -297,6 +296,7 @@ exchanges = [
     'mixcoins',
     'negociecoins',
     'nova',
+    'oceanex',
     'okcoincny',
     'okcoinusd',
     'okex',

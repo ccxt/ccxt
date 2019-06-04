@@ -1211,14 +1211,16 @@ class binance extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         $url .= '/' . $path;
-        if ($api === 'wapi')
+        if ($api === 'wapi') {
             $url .= '.html';
+        }
+        $userDataStream = ($path === 'userDataStream');
         if ($path === 'historicalTrades') {
             $headers = array (
                 'X-MBX-APIKEY' => $this->apiKey,
             );
-        } else if ($path === 'userDataStream') {
-            // v1 special case for userDataStream
+        } else if ($userDataStream) {
+            // v1 special case for $userDataStream
             $body = $this->urlencode ($params);
             $headers = array (
                 'X-MBX-APIKEY' => $this->apiKey,
@@ -1243,8 +1245,13 @@ class binance extends Exchange {
                 $headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         } else {
-            if ($params)
-                $url .= '?' . $this->urlencode ($params);
+            // $userDataStream endpoints are public, but POST, PUT, DELETE
+            // therefore they don't accept URL $query arguments
+            // https://github.com/ccxt/ccxt/issues/5224
+            if (!$userDataStream) {
+                if ($params)
+                    $url .= '?' . $this->urlencode ($params);
+            }
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
