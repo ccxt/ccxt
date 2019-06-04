@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.620'
+const version = '1.18.621'
 
 Exchange.ccxtVersion = version
 
@@ -14206,6 +14206,8 @@ module.exports = class bitmex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': true,
+                'fetchLedger': true,
+                'fetchTransactions': 'emulated',
             },
             'timeframes': {
                 '1m': '1m',
@@ -14593,6 +14595,237 @@ module.exports = class bitmex extends Exchange {
         //     ]
         //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    parseLedgerEntryType (type) {
+        const types = {
+            'Withdrawal': 'transaction',
+            'RealisedPNL': 'margin',
+            'Deposit': 'transaction',
+            'Transfer': 'transfer',
+            'AffiliatePayout': 'referral',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        //     {
+        //         transactID: "69573da3-7744-5467-3207-89fd6efe7a47",
+        //         account:  24321,
+        //         currency: "XBt",
+        //         transactType: "Withdrawal", // "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
+        //         amount:  -1000000,
+        //         fee:  300000,
+        //         transactStatus: "Completed", // "Canceled", ...
+        //         address: "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
+        //         tx: "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
+        //         text: "",
+        //         transactTime: "2017-03-21T20:05:14.388Z",
+        //         walletBalance:  0, // balance after
+        //         marginBalance:  null,
+        //         timestamp: "2017-03-22T13:09:23.514Z"
+        //     }
+        //
+        const id = this.safeString (item, 'transactID');
+        const account = this.safeString (item, 'account');
+        const referenceId = this.safeString (item, 'tx');
+        const referenceAccount = undefined;
+        const type = this.parseLedgerEntryType (this.safeString (item, 'transactType'));
+        let currencyId = this.safeString (item, 'currency');
+        let code = undefined;
+        if (currencyId !== undefined) {
+            currencyId = currencyId.toUpperCase ();
+            code = this.commonCurrencyCode (currencyId);
+        }
+        let amount = this.safeFloat (item, 'amount');
+        if (amount !== undefined) {
+            amount = amount * 1e-8;
+        }
+        const timestamp = this.parse8601 (this.safeString (item, 'transactTime'));
+        let feeCost = this.safeFloat (item, 'fee', 0);
+        if (feeCost !== undefined) {
+            feeCost = feeCost * 1e-8;
+        }
+        const fee = {
+            'cost': feeCost,
+            'currency': code,
+        };
+        const after = this.safeFloat (item, 'walletBalance');
+        const before = this.sum (after, -amount);
+        let direction = undefined;
+        if (amount < 0) {
+            direction = 'out';
+            amount = Math.abs (amount) * 1e-8;
+        } else {
+            direction = 'in';
+        }
+        const status = this.parseTransactionStatus (item, 'transactStatus');
+        return {
+            'info': item,
+            'id': id,
+            'direction': direction,
+            'account': account,
+            'referenceId': referenceId,
+            'referenceAccount': referenceAccount,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'before': before,
+            'after': after,
+            'status': status,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': fee,
+        };
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const request = {
+            // 'start': 123,
+        };
+        //
+        //     if (since !== undefined) {
+        //         // date-based pagination not supported
+        //     }
+        //
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const response = await this.privateGetUserWalletHistory (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             transactID: "69573da3-7744-5467-3207-89fd6efe7a47",
+        //             account:  24321,
+        //             currency: "XBt",
+        //             transactType: "Withdrawal", // "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
+        //             amount:  -1000000,
+        //             fee:  300000,
+        //             transactStatus: "Completed", // "Canceled", ...
+        //             address: "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
+        //             tx: "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
+        //             text: "",
+        //             transactTime: "2017-03-21T20:05:14.388Z",
+        //             walletBalance:  0, // balance after
+        //             marginBalance:  null,
+        //             timestamp: "2017-03-22T13:09:23.514Z"
+        //         }
+        //     ]
+        //
+        return this.parseLedger (response, currency, since, limit);
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'start': 123,
+        };
+        //
+        //     if (since !== undefined) {
+        //         // date-based pagination not supported
+        //     }
+        //
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const response = await this.privateGetUserWalletHistory (this.extend (request, params));
+        const transactions = this.filterByArray (response, [ 'Withdrawal', 'Deposit' ], false);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        return this.parseTransactions (transactions, currency, since, limit);
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'Canceled': 'canceled',
+            'Completed': 'ok',
+            'Pending': 'pending',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        //   {
+        //      'transactID': 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
+        //      'account': 123456,
+        //      'currency': 'XBt',
+        //      'transactType': 'Withdrawal',
+        //      'amount': -100100000,
+        //      'fee': 100000,
+        //      'transactStatus': 'Completed',
+        //      'address': '385cR5DM96n1HvBDMzLHPYcw89fZAXULJP',
+        //      'tx': '3BMEXabcdefghijklmnopqrstuvwxyz123',
+        //      'text': '',
+        //      'transactTime': '2019-01-02T01:00:00.000Z',
+        //      'walletBalance': 99900000,
+        //      'marginBalance': None,
+        //      'timestamp': '2019-01-02T13:00:00.000Z'
+        //   }
+        //
+        const id = this.safeString (transaction, 'transactID');
+        // For deposits, transactTime == timestamp
+        // For withdrawals, transactTime is submission, timestamp is processed
+        const transactTime = this.parse8601 (this.safeString (transaction, 'transactTime'));
+        const timestamp = this.parse8601 (this.safeString (transaction, 'timestamp'));
+        let type = this.safeString (transaction, 'transactType');
+        if (type !== undefined) {
+            type = type.toLowerCase ();
+        }
+        // Deposits have no from address or to address, withdrawals have both
+        let address = undefined;
+        let addressFrom = undefined;
+        let addressTo = undefined;
+        if (type === 'withdrawal') {
+            address = this.safeString (transaction, 'address');
+            addressFrom = this.safeString (transaction, 'tx');
+            addressTo = address;
+        }
+        let amount = this.safeInteger (transaction, 'amount');
+        if (amount !== undefined) {
+            amount = Math.abs (amount) * 1e-8;
+        }
+        let feeCost = this.safeInteger (transaction, 'fee');
+        if (feeCost !== undefined) {
+            feeCost = feeCost * 1e-8;
+        }
+        const fee = {
+            'cost': feeCost,
+            'currency': 'BTC',
+        };
+        let status = this.safeString (transaction, 'transactStatus');
+        if (status !== undefined) {
+            status = this.parseTransactionStatus (status);
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': undefined,
+            'timestamp': transactTime,
+            'datetime': this.iso8601 (transactTime),
+            'addressFrom': addressFrom,
+            'address': address,
+            'addressTo': addressTo,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'type': type,
+            'amount': amount,
+            // BTC is the only currency on Bitmex
+            'currency': 'BTC',
+            'status': status,
+            'updated': timestamp,
+            'comment': undefined,
+            'fee': fee,
+        };
     }
 
     async fetchTicker (symbol, params = {}) {

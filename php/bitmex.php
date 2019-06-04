@@ -27,6 +27,8 @@ class bitmex extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchMyTrades' => true,
+                'fetchLedger' => true,
+                'fetchTransactions' => 'emulated',
             ),
             'timeframes' => array (
                 '1m' => '1m',
@@ -414,6 +416,237 @@ class bitmex extends Exchange {
         //     )
         //
         return $this->parse_trades($response, $market, $since, $limit);
+    }
+
+    public function parse_ledger_entry_type ($type) {
+        $types = array (
+            'Withdrawal' => 'transaction',
+            'RealisedPNL' => 'margin',
+            'Deposit' => 'transaction',
+            'Transfer' => 'transfer',
+            'AffiliatePayout' => 'referral',
+        );
+        return $this->safe_string($types, $type, $type);
+    }
+
+    public function parse_ledger_entry ($item, $currency = null) {
+        //
+        //     {
+        //         transactID => "69573da3-7744-5467-3207-89fd6efe7a47",
+        //         $account =>  24321,
+        //         $currency => "XBt",
+        //         transactType => "Withdrawal", // "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
+        //         $amount =>  -1000000,
+        //         $fee =>  300000,
+        //         transactStatus => "Completed", // "Canceled", ...
+        //         address => "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
+        //         tx => "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
+        //         text => "",
+        //         transactTime => "2017-03-21T20:05:14.388Z",
+        //         walletBalance =>  0, // balance $after
+        //         marginBalance =>  null,
+        //         $timestamp => "2017-03-22T13:09:23.514Z"
+        //     }
+        //
+        $id = $this->safe_string($item, 'transactID');
+        $account = $this->safe_string($item, 'account');
+        $referenceId = $this->safe_string($item, 'tx');
+        $referenceAccount = null;
+        $type = $this->parse_ledger_entry_type ($this->safe_string($item, 'transactType'));
+        $currencyId = $this->safe_string($item, 'currency');
+        $code = null;
+        if ($currencyId !== null) {
+            $currencyId = strtoupper ($currencyId);
+            $code = $this->common_currency_code($currencyId);
+        }
+        $amount = $this->safe_float($item, 'amount');
+        if ($amount !== null) {
+            $amount = $amount * 1e-8;
+        }
+        $timestamp = $this->parse8601 ($this->safe_string($item, 'transactTime'));
+        $feeCost = $this->safe_float($item, 'fee', 0);
+        if ($feeCost !== null) {
+            $feeCost = $feeCost * 1e-8;
+        }
+        $fee = array (
+            'cost' => $feeCost,
+            'currency' => $code,
+        );
+        $after = $this->safe_float($item, 'walletBalance');
+        $before = $this->sum ($after, -$amount);
+        $direction = null;
+        if ($amount < 0) {
+            $direction = 'out';
+            $amount = abs ($amount) * 1e-8;
+        } else {
+            $direction = 'in';
+        }
+        $status = $this->parse_transaction_status ($item, 'transactStatus');
+        return array (
+            'info' => $item,
+            'id' => $id,
+            'direction' => $direction,
+            'account' => $account,
+            'referenceId' => $referenceId,
+            'referenceAccount' => $referenceAccount,
+            'type' => $type,
+            'currency' => $code,
+            'amount' => $amount,
+            'before' => $before,
+            'after' => $after,
+            'status' => $status,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'fee' => $fee,
+        );
+    }
+
+    public function fetch_ledger ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+        }
+        $request = array (
+            // 'start' => 123,
+        );
+        //
+        //     if ($since !== null) {
+        //         // date-based pagination not supported
+        //     }
+        //
+        if ($limit !== null) {
+            $request['count'] = $limit;
+        }
+        $response = $this->privateGetUserWalletHistory (array_merge ($request, $params));
+        //
+        //     array (
+        //         {
+        //             transactID => "69573da3-7744-5467-3207-89fd6efe7a47",
+        //             account =>  24321,
+        //             $currency => "XBt",
+        //             transactType => "Withdrawal", // "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
+        //             amount =>  -1000000,
+        //             fee =>  300000,
+        //             transactStatus => "Completed", // "Canceled", ...
+        //             address => "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
+        //             tx => "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
+        //             text => "",
+        //             transactTime => "2017-03-21T20:05:14.388Z",
+        //             walletBalance =>  0, // balance after
+        //             marginBalance =>  null,
+        //             timestamp => "2017-03-22T13:09:23.514Z"
+        //         }
+        //     )
+        //
+        return $this->parse_ledger($response, $currency, $since, $limit);
+    }
+
+    public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array (
+            // 'start' => 123,
+        );
+        //
+        //     if ($since !== null) {
+        //         // date-based pagination not supported
+        //     }
+        //
+        if ($limit !== null) {
+            $request['count'] = $limit;
+        }
+        $response = $this->privateGetUserWalletHistory (array_merge ($request, $params));
+        $transactions = $this->filter_by_array($response, array ( 'Withdrawal', 'Deposit' ), false);
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+        }
+        return $this->parseTransactions ($transactions, $currency, $since, $limit);
+    }
+
+    public function parse_transaction_status ($status) {
+        $statuses = array (
+            'Canceled' => 'canceled',
+            'Completed' => 'ok',
+            'Pending' => 'pending',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        //
+        //   {
+        //      'transactID' => 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
+        //      'account' => 123456,
+        //      'currency' => 'XBt',
+        //      'transactType' => 'Withdrawal',
+        //      'amount' => -100100000,
+        //      'fee' => 100000,
+        //      'transactStatus' => 'Completed',
+        //      'address' => '385cR5DM96n1HvBDMzLHPYcw89fZAXULJP',
+        //      'tx' => '3BMEXabcdefghijklmnopqrstuvwxyz123',
+        //      'text' => '',
+        //      'transactTime' => '2019-01-02T01:00:00.000Z',
+        //      'walletBalance' => 99900000,
+        //      'marginBalance' => None,
+        //      'timestamp' => '2019-01-02T13:00:00.000Z'
+        //   }
+        //
+        $id = $this->safe_string($transaction, 'transactID');
+        // For deposits, $transactTime == $timestamp
+        // For withdrawals, $transactTime is submission, $timestamp is processed
+        $transactTime = $this->parse8601 ($this->safe_string($transaction, 'transactTime'));
+        $timestamp = $this->parse8601 ($this->safe_string($transaction, 'timestamp'));
+        $type = $this->safe_string($transaction, 'transactType');
+        if ($type !== null) {
+            $type = strtolower ($type);
+        }
+        // Deposits have no from $address or to $address, withdrawals have both
+        $address = null;
+        $addressFrom = null;
+        $addressTo = null;
+        if ($type === 'withdrawal') {
+            $address = $this->safe_string($transaction, 'address');
+            $addressFrom = $this->safe_string($transaction, 'tx');
+            $addressTo = $address;
+        }
+        $amount = $this->safe_integer($transaction, 'amount');
+        if ($amount !== null) {
+            $amount = abs ($amount) * 1e-8;
+        }
+        $feeCost = $this->safe_integer($transaction, 'fee');
+        if ($feeCost !== null) {
+            $feeCost = $feeCost * 1e-8;
+        }
+        $fee = array (
+            'cost' => $feeCost,
+            'currency' => 'BTC',
+        );
+        $status = $this->safe_string($transaction, 'transactStatus');
+        if ($status !== null) {
+            $status = $this->parse_transaction_status ($status);
+        }
+        return array (
+            'info' => $transaction,
+            'id' => $id,
+            'txid' => null,
+            'timestamp' => $transactTime,
+            'datetime' => $this->iso8601 ($transactTime),
+            'addressFrom' => $addressFrom,
+            'address' => $address,
+            'addressTo' => $addressTo,
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'type' => $type,
+            'amount' => $amount,
+            // BTC is the only $currency on Bitmex
+            'currency' => 'BTC',
+            'status' => $status,
+            'updated' => $timestamp,
+            'comment' => null,
+            'fee' => $fee,
+        );
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
