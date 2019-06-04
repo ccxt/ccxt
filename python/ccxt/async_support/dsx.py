@@ -743,7 +743,7 @@ class dsx (liqui):
         #
         return self.parse_orders_by_id(self.safe_value(response, 'return', {}), symbol, since, limit)
 
-    def parse_trades(self, trades, market=None, since=None, limit=None):
+    def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
         result = []
         if isinstance(trades, list):
             for i in range(0, len(trades)):
@@ -753,7 +753,7 @@ class dsx (liqui):
             for i in range(0, len(ids)):
                 id = ids[i]
                 trade = self.parse_trade(trades[id], market)
-                result.append(self.extend(trade, {'id': id}))
+                result.append(self.extend(trade, {'id': id}, params))
         result = self.sort_by(result, 'timestamp')
         symbol = market['symbol'] if (market is not None) else None
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)

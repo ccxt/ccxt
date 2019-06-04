@@ -144,16 +144,12 @@ module.exports = class bleutrade extends bittrex {
     }
 
     parseOrderStatus (status) {
-        let statuses = {
+        const statuses = {
             'OK': 'closed',
             'OPEN': 'open',
             'CANCELED': 'canceled',
         };
-        if (status in statuses) {
-            return statuses[status];
-        } else {
-            return status;
-        }
+        return this.safeString (statuses, status, status);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

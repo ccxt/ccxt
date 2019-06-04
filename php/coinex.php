@@ -587,18 +587,36 @@ class coinex extends Exchange {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency ($code);
-        if ($tag)
+        if ($tag) {
             $address = $address . ':' . $tag;
+        }
         $request = array (
             'coin_type' => $currency['id'],
-            'coin_address' => $address,
-            'actual_amount' => floatval ($amount),
+            'coin_address' => $address, // must be authorized, inter-user transfer by a registered mobile phone number or an email $address is supported
+            'actual_amount' => floatval ($amount), // the actual $amount without fees, https://www.coinex.com/fees
+            'transfer_method' => '1', // '1' = normal onchain transfer, '2' = internal local transfer from one user to another
         );
         $response = $this->privatePostBalanceCoinWithdraw (array_merge ($request, $params));
-        return array (
-            'info' => $response,
-            'id' => $this->safe_string($response, 'coin_withdraw_id'),
-        );
+        //
+        //     {
+        //         "$code" => 0,
+        //         "data" => array (
+        //             "actual_amount" => "1.00000000",
+        //             "$amount" => "1.00000000",
+        //             "coin_address" => "1KAv3pazbTk2JnQ5xTo6fpKK7p1it2RzD4",
+        //             "coin_type" => "BCH",
+        //             "coin_withdraw_id" => 206,
+        //             "confirmations" => 0,
+        //             "create_time" => 1524228297,
+        //             "status" => "audit",
+        //             "tx_fee" => "0",
+        //             "tx_id" => ""
+        //         ),
+        //         "message" => "Ok"
+        //     }
+        //
+        $transaction = $this->safe_value($response, 'data', array ());
+        return $this->parse_transaction ($transaction, $currency);
     }
 
     public function parse_transaction_status ($status) {

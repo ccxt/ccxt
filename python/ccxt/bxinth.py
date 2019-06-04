@@ -72,6 +72,7 @@ class bxinth (Exchange):
             'commonCurrencies': {
                 'DAS': 'DASH',
                 'DOG': 'DOGE',
+                'LEO': 'LeoCoin',
             },
         })
 
@@ -102,17 +103,17 @@ class bxinth (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privatePostBalance()
-        balance = response['balance']
+        response = self.privatePostBalance(params)
+        balance = self.safe_value(response, 'balance', {})
         result = {'info': balance}
-        currencies = list(balance.keys())
-        for c in range(0, len(currencies)):
-            currency = currencies[c]
-            code = self.common_currency_code(currency)
+        currencyIds = list(balance.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = self.common_currency_code(currencyId)
             account = {
-                'free': float(balance[currency]['available']),
+                'free': self.safe_float(balance[currencyId], 'available'),
                 'used': 0.0,
-                'total': float(balance[currency]['total']),
+                'total': self.safe_float(balance[currencyId], 'total'),
             }
             account['used'] = account['total'] - account['free']
             result[code] = account
@@ -120,10 +121,11 @@ class bxinth (Exchange):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetOrderbook(self.extend({
+        request = {
             'pairing': self.market_id(symbol),
-        }, params))
-        return self.parse_order_book(orderbook)
+        }
+        response = self.publicGetOrderbook(self.extend(request, params))
+        return self.parse_order_book(response)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()

@@ -97,6 +97,7 @@ module.exports = class liquid extends Exchange {
             },
             'commonCurrencies': {
                 'WIN': 'WCOIN',
+                'HOT': 'HOT Token',
             },
             'options': {
                 'cancelOrderException': true,

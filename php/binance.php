@@ -63,7 +63,10 @@ class binance extends Exchange {
                 ),
                 'www' => 'https://www.binance.com',
                 'referral' => 'https://www.binance.com/?ref=10205187',
-                'doc' => 'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
+                'doc' => array (
+                    'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
+                    'https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md',
+                ),
                 'fees' => 'https://www.binance.com/en/fee/schedule',
             ),
             'api' => array (
@@ -1108,11 +1111,6 @@ class binance extends Exchange {
         }
         $status = $this->parse_transaction_status_by_type ($this->safe_string($transaction, 'status'), $type);
         $amount = $this->safe_float($transaction, 'amount');
-        $feeCost = null;
-        $fee = array (
-            'cost' => $feeCost,
-            'currency' => $code,
-        );
         return array (
             'info' => $transaction,
             'id' => $id,
@@ -1126,7 +1124,7 @@ class binance extends Exchange {
             'currency' => $code,
             'status' => $status,
             'updated' => null,
-            'fee' => $fee,
+            'fee' => null,
         );
     }
 
@@ -1211,14 +1209,16 @@ class binance extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         $url .= '/' . $path;
-        if ($api === 'wapi')
+        if ($api === 'wapi') {
             $url .= '.html';
+        }
+        $userDataStream = ($path === 'userDataStream');
         if ($path === 'historicalTrades') {
             $headers = array (
                 'X-MBX-APIKEY' => $this->apiKey,
             );
-        } else if ($path === 'userDataStream') {
-            // v1 special case for userDataStream
+        } else if ($userDataStream) {
+            // v1 special case for $userDataStream
             $body = $this->urlencode ($params);
             $headers = array (
                 'X-MBX-APIKEY' => $this->apiKey,
@@ -1243,8 +1243,13 @@ class binance extends Exchange {
                 $headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         } else {
-            if ($params)
-                $url .= '?' . $this->urlencode ($params);
+            // $userDataStream endpoints are public, but POST, PUT, DELETE
+            // therefore they don't accept URL $query arguments
+            // https://github.com/ccxt/ccxt/issues/5224
+            if (!$userDataStream) {
+                if ($params)
+                    $url .= '?' . $this->urlencode ($params);
+            }
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

@@ -1469,9 +1469,10 @@ class okex3 (Exchange):
         }
         method = None
         if market['futures'] or market['swap']:
+            size = self.number_to_string(amount) if market['futures'] else self.amount_to_precision(symbol, amount)
             request = self.extend(request, {
                 'type': type,  # 1:open long 2:open short 3:close long 4:close short for futures
-                'side': self.amount_to_precision(symbol, amount),
+                'size': size,
                 'price': self.price_to_precision(symbol, price),
                 # 'match_price': '0',  # Order at best counter party price?(0:no 1:yes). The default is 0. If it is set as 1, the price parameter will be ignored. When posting orders at best bid price, order_type can only be 0(regular order).
             })
@@ -2538,6 +2539,7 @@ class okex3 (Exchange):
         }
         before = None
         after = self.safe_float(item, 'balance')
+        status = 'ok'
         return {
             'info': item,
             'id': id,
@@ -2549,6 +2551,7 @@ class okex3 (Exchange):
             'amount': amount,
             'before': before,  # balance before
             'after': after,  # balance after
+            'status': status,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'fee': fee,
@@ -2585,7 +2588,8 @@ class okex3 (Exchange):
                     body = jsonQuery
                     auth += jsonQuery
                 headers['Content-Type'] = 'application/json'
-            headers['OK-ACCESS-SIGN'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
+            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
+            headers['OK-ACCESS-SIGN'] = self.decode(signature)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def get_path_authentication_type(self, path):

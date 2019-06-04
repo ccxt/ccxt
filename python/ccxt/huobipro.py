@@ -627,10 +627,12 @@ class huobipro (Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.privateGetOrderOrdersId(self.extend({
+        request = {
             'id': id,
-        }, params))
-        return self.parse_order(response['data'])
+        }
+        response = self.privateGetOrderOrdersId(self.extend(request, params))
+        order = self.safe_value(response, 'data')
+        return self.parse_order(order)
 
     def parse_order_status(self, status):
         statuses = {

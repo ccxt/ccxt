@@ -35,6 +35,8 @@ class bitmex (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchMyTrades': True,
+                'fetchLedger': True,
+                'fetchTransactions': 'emulated',
             },
             'timeframes': {
                 '1m': '1m',
@@ -403,6 +405,218 @@ class bitmex (Exchange):
         #     ]
         #
         return self.parse_trades(response, market, since, limit)
+
+    def parse_ledger_entry_type(self, type):
+        types = {
+            'Withdrawal': 'transaction',
+            'RealisedPNL': 'margin',
+            'Deposit': 'transaction',
+            'Transfer': 'transfer',
+            'AffiliatePayout': 'referral',
+        }
+        return self.safe_string(types, type, type)
+
+    def parse_ledger_entry(self, item, currency=None):
+        #
+        #     {
+        #         transactID: "69573da3-7744-5467-3207-89fd6efe7a47",
+        #         account:  24321,
+        #         currency: "XBt",
+        #         transactType: "Withdrawal",  # "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
+        #         amount:  -1000000,
+        #         fee:  300000,
+        #         transactStatus: "Completed",  # "Canceled", ...
+        #         address: "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
+        #         tx: "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
+        #         text: "",
+        #         transactTime: "2017-03-21T20:05:14.388Z",
+        #         walletBalance:  0,  # balance after
+        #         marginBalance:  null,
+        #         timestamp: "2017-03-22T13:09:23.514Z"
+        #     }
+        #
+        id = self.safe_string(item, 'transactID')
+        account = self.safe_string(item, 'account')
+        referenceId = self.safe_string(item, 'tx')
+        referenceAccount = None
+        type = self.parse_ledger_entry_type(self.safe_string(item, 'transactType'))
+        currencyId = self.safe_string(item, 'currency')
+        code = None
+        if currencyId is not None:
+            currencyId = currencyId.upper()
+            code = self.common_currency_code(currencyId)
+        amount = self.safe_float(item, 'amount')
+        if amount is not None:
+            amount = amount * 1e-8
+        timestamp = self.parse8601(self.safe_string(item, 'transactTime'))
+        feeCost = self.safe_float(item, 'fee', 0)
+        if feeCost is not None:
+            feeCost = feeCost * 1e-8
+        fee = {
+            'cost': feeCost,
+            'currency': code,
+        }
+        after = self.safe_float(item, 'walletBalance')
+        before = self.sum(after, -amount)
+        direction = None
+        if amount < 0:
+            direction = 'out'
+            amount = abs(amount) * 1e-8
+        else:
+            direction = 'in'
+        status = self.parse_transaction_status(item, 'transactStatus')
+        return {
+            'info': item,
+            'id': id,
+            'direction': direction,
+            'account': account,
+            'referenceId': referenceId,
+            'referenceAccount': referenceAccount,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'before': before,
+            'after': after,
+            'status': status,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': fee,
+        }
+
+    async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        request = {
+            # 'start': 123,
+        }
+        #
+        #     if since is not None:
+        #         # date-based pagination not supported
+        #     }
+        #
+        if limit is not None:
+            request['count'] = limit
+        response = await self.privateGetUserWalletHistory(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             transactID: "69573da3-7744-5467-3207-89fd6efe7a47",
+        #             account:  24321,
+        #             currency: "XBt",
+        #             transactType: "Withdrawal",  # "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
+        #             amount:  -1000000,
+        #             fee:  300000,
+        #             transactStatus: "Completed",  # "Canceled", ...
+        #             address: "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
+        #             tx: "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
+        #             text: "",
+        #             transactTime: "2017-03-21T20:05:14.388Z",
+        #             walletBalance:  0,  # balance after
+        #             marginBalance:  null,
+        #             timestamp: "2017-03-22T13:09:23.514Z"
+        #         }
+        #     ]
+        #
+        return self.parse_ledger(response, currency, since, limit)
+
+    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {
+            # 'start': 123,
+        }
+        #
+        #     if since is not None:
+        #         # date-based pagination not supported
+        #     }
+        #
+        if limit is not None:
+            request['count'] = limit
+        response = await self.privateGetUserWalletHistory(self.extend(request, params))
+        transactions = self.filter_by_array(response, ['Withdrawal', 'Deposit'], False)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        return self.parseTransactions(transactions, currency, since, limit)
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            'Canceled': 'canceled',
+            'Completed': 'ok',
+            'Pending': 'pending',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        #   {
+        #      'transactID': 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
+        #      'account': 123456,
+        #      'currency': 'XBt',
+        #      'transactType': 'Withdrawal',
+        #      'amount': -100100000,
+        #      'fee': 100000,
+        #      'transactStatus': 'Completed',
+        #      'address': '385cR5DM96n1HvBDMzLHPYcw89fZAXULJP',
+        #      'tx': '3BMEXabcdefghijklmnopqrstuvwxyz123',
+        #      'text': '',
+        #      'transactTime': '2019-01-02T01:00:00.000Z',
+        #      'walletBalance': 99900000,
+        #      'marginBalance': None,
+        #      'timestamp': '2019-01-02T13:00:00.000Z'
+        #   }
+        #
+        id = self.safe_string(transaction, 'transactID')
+        # For deposits, transactTime == timestamp
+        # For withdrawals, transactTime is submission, timestamp is processed
+        transactTime = self.parse8601(self.safe_string(transaction, 'transactTime'))
+        timestamp = self.parse8601(self.safe_string(transaction, 'timestamp'))
+        type = self.safe_string(transaction, 'transactType')
+        if type is not None:
+            type = type.lower()
+        # Deposits have no from address or to address, withdrawals have both
+        address = None
+        addressFrom = None
+        addressTo = None
+        if type == 'withdrawal':
+            address = self.safe_string(transaction, 'address')
+            addressFrom = self.safe_string(transaction, 'tx')
+            addressTo = address
+        amount = self.safe_integer(transaction, 'amount')
+        if amount is not None:
+            amount = abs(amount) * 1e-8
+        feeCost = self.safe_integer(transaction, 'fee')
+        if feeCost is not None:
+            feeCost = feeCost * 1e-8
+        fee = {
+            'cost': feeCost,
+            'currency': 'BTC',
+        }
+        status = self.safe_string(transaction, 'transactStatus')
+        if status is not None:
+            status = self.parse_transaction_status(status)
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': None,
+            'timestamp': transactTime,
+            'datetime': self.iso8601(transactTime),
+            'addressFrom': addressFrom,
+            'address': address,
+            'addressTo': addressTo,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'type': type,
+            'amount': amount,
+            # BTC is the only currency on Bitmex
+            'currency': 'BTC',
+            'status': status,
+            'updated': timestamp,
+            'comment': None,
+            'fee': fee,
+        }
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

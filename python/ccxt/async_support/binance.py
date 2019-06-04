@@ -75,7 +75,10 @@ class binance (Exchange):
                 },
                 'www': 'https://www.binance.com',
                 'referral': 'https://www.binance.com/?ref=10205187',
-                'doc': 'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
+                'doc': [
+                    'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
+                    'https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md',
+                ],
                 'fees': 'https://www.binance.com/en/fee/schedule',
             },
             'api': {
@@ -1031,11 +1034,6 @@ class binance (Exchange):
                 timestamp = applyTime
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
         amount = self.safe_float(transaction, 'amount')
-        feeCost = None
-        fee = {
-            'cost': feeCost,
-            'currency': code,
-        }
         return {
             'info': transaction,
             'id': id,
@@ -1049,7 +1047,7 @@ class binance (Exchange):
             'currency': code,
             'status': status,
             'updated': None,
-            'fee': fee,
+            'fee': None,
         }
 
     async def fetch_deposit_address(self, code, params={}):
@@ -1130,11 +1128,12 @@ class binance (Exchange):
         url += '/' + path
         if api == 'wapi':
             url += '.html'
+        userDataStream = (path == 'userDataStream')
         if path == 'historicalTrades':
             headers = {
                 'X-MBX-APIKEY': self.apiKey,
             }
-        elif path == 'userDataStream':
+        elif userDataStream:
             # v1 special case for userDataStream
             body = self.urlencode(params)
             headers = {
@@ -1158,8 +1157,12 @@ class binance (Exchange):
                 body = query
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
         else:
-            if params:
-                url += '?' + self.urlencode(params)
+            # userDataStream endpoints are public, but POST, PUT, DELETE
+            # therefore they don't accept URL query arguments
+            # https://github.com/ccxt/ccxt/issues/5224
+            if not userDataStream:
+                if params:
+                    url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response):

@@ -28,7 +28,7 @@ before_install:
 - sudo -H pip install --ignore-installed six
 - sudo -H pip install --upgrade tox twine
 - pip install --upgrade setuptools
-- pip install --upgrade web3 aiohttp requests pyopenssl
+- pip install --upgrade web3 aiohttp requests cryptography pyopenssl
 - pip2 install requests[security]
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi

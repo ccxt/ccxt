@@ -160,9 +160,7 @@ class coinegg extends Exchange {
             $response = $this->webGetSymbolTickerRightCoinQuote (array (
                 'quote' => $quoteId,
             ));
-            $tickers = $response->data;
-            if ($tickers === null)
-                throw new ExchangeNotAvailable ($this->id . ' fetchMarkets() for "' . $quoteId . '" returned => "' . $this->json ($response) . '"');
+            $tickers = $this->safe_value($response, 'data', array ());
             for ($i = 0; $i < count ($tickers); $i++) {
                 $ticker = $tickers[$i];
                 $id = $ticker['symbol'];

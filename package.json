@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.18.584",
+  "version": "1.18.624",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -44,14 +44,10 @@
     "pandoc-doc-install": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/install.rst wiki/Install.md",
     "pandoc-doc-exchanges": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/exchanges.rst wiki/Exchange-Markets.md",
     "pandoc-doc-exchanges-by-country": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/exchanges-by-country.rst wiki/Exchange-Markets-By-Country.md",
-    "postinstall": "opencollective postinstall && node postinstall.js"
+    "postinstall": "node postinstall"
   },
   "types": "./ccxt.d.ts",
-  "dependencies": {
-    "crypto-js": "3.1.9-1",
-    "fetch-ponyfill": "4.1.0",
-    "opencollective": "1.0.3"
-  },
+  "dependencies": {},
   "devDependencies": {
     "ansicolor": "1.1.81",
     "as-table": "1.0.37",
@@ -464,7 +460,9 @@
     "mandalaex.com",
     "Mandala",
     "dx.exchange",
-    "DX.Exchange"
+    "DX.Exchange",
+    "oceanex.pro.com",
+    "OceanEx"
   ],
   "collective": {
     "type": "opencollective",

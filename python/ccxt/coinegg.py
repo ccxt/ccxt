@@ -18,7 +18,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
-from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
 
@@ -174,9 +173,7 @@ class coinegg (Exchange):
             response = self.webGetSymbolTickerRightCoinQuote({
                 'quote': quoteId,
             })
-            tickers = response.data
-            if tickers is None:
-                raise ExchangeNotAvailable(self.id + ' fetchMarkets() for "' + quoteId + '" returned: "' + self.json(response) + '"')
+            tickers = self.safe_value(response, 'data', [])
             for i in range(0, len(tickers)):
                 ticker = tickers[i]
                 id = ticker['symbol']
