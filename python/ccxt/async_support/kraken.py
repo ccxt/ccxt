@@ -578,10 +578,8 @@ class kraken (Exchange):
             direction = 'in'
         time = self.safe_float(item, 'time')
         timestamp = None
-        datetime = None
         if time is not None:
             timestamp = int(time * 1000)
-            datetime = self.iso8601(timestamp)
         fee = {
             'cost': self.safe_float(item, 'fee'),
             'currency': code,
@@ -601,7 +599,7 @@ class kraken (Exchange):
             'before': before,
             'after': after,
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': self.iso8601(timestamp),
             'fee': fee,
         }
 

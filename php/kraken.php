@@ -587,10 +587,8 @@ class kraken extends Exchange {
         }
         $time = $this->safe_float($item, 'time');
         $timestamp = null;
-        $datetime = null;
         if ($time !== null) {
             $timestamp = intval ($time * 1000);
-            $datetime = $this->iso8601 ($timestamp);
         }
         $fee = array (
             'cost' => $this->safe_float($item, 'fee'),
@@ -611,7 +609,7 @@ class kraken extends Exchange {
             'before' => $before,
             'after' => $after,
             'timestamp' => $timestamp,
-            'datetime' => $datetime,
+            'datetime' => $this->iso8601 ($timestamp),
             'fee' => $fee,
         );
     }
