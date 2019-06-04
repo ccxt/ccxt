@@ -3001,6 +3001,7 @@ Some exchanges don't allow to fetch all ledger entries for all assets at once, t
     'datetime': "2018-12-12T02:49:01.735Z", // string of timestamp, ISO8601
     'before': 0,                            // amount of currency on balance before
     'after': 0,                             // amount of currency on balance after
+    'status': 'ok',                         // 'ok, 'pending', 'canceled'
     'fee': {                                // object or or undefined
         'cost': 54.321,                     // absolute number on top of the amount
         'currency': 'ETH',                  // string, unified currency code, 'ETH', 'USDT'...
@@ -3023,7 +3024,11 @@ The type of the ledger entry is the type of the operation associated with it. If
 - `whatever`
 - ...
 
-The `referenceId` field holds the id of the corresponding event that was registered by adding a new item to the ledger. The ledger entry type can be associated with a regular trade or a funding transaction (deposit or withdrawal) or an internal `transfer` between two accounts of the same user. If the ledger entry is associated with an internal transfer, the `account` field will contain the id of the account that is being altered with the ledger entry in question. The `referenceAccount` field will contain the id of the opposite account the funds are transferred to/from, depending on the `direction` (`'in'` or `'out'`).
+The `referenceId` field holds the id of the corresponding event that was registered by adding a new item to the ledger.
+
+The `status` field is there to support for exchanges that include pending and canceled changes in the ledger. The ledger naturally represents the actual changes that have taken place, therefore the status is `'ok'` in most cases.
+
+The ledger entry type can be associated with a regular trade or a funding transaction (deposit or withdrawal) or an internal `transfer` between two accounts of the same user. If the ledger entry is associated with an internal transfer, the `account` field will contain the id of the account that is being altered with the ledger entry in question. The `referenceAccount` field will contain the id of the opposite account the funds are transferred to/from, depending on the `direction` (`'in'` or `'out'`).
 
 ## Overriding The Nonce
 

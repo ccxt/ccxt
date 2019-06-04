@@ -2539,6 +2539,7 @@ class okex3 (Exchange):
         }
         before = None
         after = self.safe_float(item, 'balance')
+        status = 'ok'
         return {
             'info': item,
             'id': id,
@@ -2550,6 +2551,7 @@ class okex3 (Exchange):
             'amount': amount,
             'before': before,  # balance before
             'after': after,  # balance after
+            'status': status,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'fee': fee,

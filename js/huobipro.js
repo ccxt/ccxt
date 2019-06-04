@@ -663,14 +663,16 @@ module.exports = class huobipro extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetOrderOrdersId (this.extend ({
+        const request = {
             'id': id,
-        }, params));
-        return this.parseOrder (response['data']);
+        };
+        const response = await this.privateGetOrderOrdersId (this.extend (request, params));
+        const order = this.safeValue (response, 'data');
+        return this.parseOrder (order);
     }
 
     parseOrderStatus (status) {
-        let statuses = {
+        const statuses = {
             'partial-filled': 'open',
             'partial-canceled': 'canceled',
             'filled': 'closed',
