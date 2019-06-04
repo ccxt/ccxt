@@ -509,9 +509,11 @@ module.exports = class bitmex extends Exchange {
         const request = {
             // 'start': 123,
         };
-        // if (since !== undefined) {
-        //     // date-based pagination not supported
-        // }
+        //
+        //     if (since !== undefined) {
+        //         // date-based pagination not supported
+        //     }
+        //
         if (limit !== undefined) {
             request['count'] = limit;
         }
@@ -541,9 +543,19 @@ module.exports = class bitmex extends Exchange {
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const ledger = await this.fetchLedger (code, since, limit, params);
-        const filtered = this.filterBy (ledger, 'type', 'transaction');
-        const transactions = this.pluck (filtered, 'info');
+        const request = {
+            // 'start': 123,
+        };
+        //
+        //     if (since !== undefined) {
+        //         // date-based pagination not supported
+        //     }
+        //
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const response = await this.privateGetUserWalletHistory (this.extend (request, params));
+        const transactions = this.filterByArray (response, [ 'Withdrawal', 'Deposit' ], false);
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
