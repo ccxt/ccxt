@@ -26,7 +26,8 @@ module.exports = class bitmex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': true,
-                'fetchTransactions': true,
+                'fetchLedger': true,
+                'fetchTransactions': 'emulated',
             },
             'timeframes': {
                 '1m': '1m',
@@ -416,20 +417,143 @@ module.exports = class bitmex extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    parseLedgerEntryType (type) {
+        const types = {
+            'Withdrawal': 'transaction',
+            'RealisedPNL': 'margin',
+            'Deposit': 'transaction',
+            'Transfer': 'transfer',
+            'AffiliatePayout': 'referral',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        //     {
+        //         transactID: "69573da3-7744-5467-3207-89fd6efe7a47",
+        //         account:  24321,
+        //         currency: "XBt",
+        //         transactType: "Withdrawal", // "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
+        //         amount:  -1000000,
+        //         fee:  300000,
+        //         transactStatus: "Completed", // "Canceled", ...
+        //         address: "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
+        //         tx: "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
+        //         text: "",
+        //         transactTime: "2017-03-21T20:05:14.388Z",
+        //         walletBalance:  0, // balance after
+        //         marginBalance:  null,
+        //         timestamp: "2017-03-22T13:09:23.514Z"
+        //     }
+        //
+        const id = this.safeString (item, 'transactID');
+        const account = this.safeString (item, 'account');
+        const referenceId = this.safeString (item, 'tx');
+        const referenceAccount = undefined;
+        const type = this.parseLedgerEntryType (this.safeString (item, 'transactType'));
+        let currencyId = this.safeString (item, 'currency');
+        let code = undefined;
+        if (currencyId !== undefined) {
+            currencyId = currencyId.toUpperCase ();
+            code = this.commonCurrencyCode (currencyId);
+        }
+        let amount = this.safeFloat (item, 'amount');
+        if (amount !== undefined) {
+            amount = amount * 1e-8;
+        }
+        const timestamp = this.parse8601 (this.safeString (item, 'transactTime'));
+        let feeCost = this.safeFloat (item, 'fee', 0);
+        if (feeCost !== undefined) {
+            feeCost = feeCost * 1e-8;
+        }
+        const fee = {
+            'cost': feeCost,
+            'currency': code,
+        };
+        const after = this.safeFloat (item, 'walletBalance');
+        const before = this.sum (after, -amount);
+        let direction = undefined;
+        if (amount < 0) {
+            direction = 'out';
+            amount = Math.abs (amount) * 1e-8;
+        } else {
+            direction = 'in';
+        }
+        const status = this.parseTransactionStatus (item, 'transactStatus');
+        return {
+            'info': item,
+            'id': id,
+            'direction': direction,
+            'account': account,
+            'referenceId': referenceId,
+            'referenceAccount': referenceAccount,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'before': before,
+            'after': after,
+            'status': status,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': fee,
+        };
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const request = {
+            // 'start': 123,
+        };
+        // if (since !== undefined) {
+        //     // date-based pagination not supported
+        // }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const response = await this.privateGetUserWalletHistory (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             transactID: "69573da3-7744-5467-3207-89fd6efe7a47",
+        //             account:  24321,
+        //             currency: "XBt",
+        //             transactType: "Withdrawal", // "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
+        //             amount:  -1000000,
+        //             fee:  300000,
+        //             transactStatus: "Completed", // "Canceled", ...
+        //             address: "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
+        //             tx: "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
+        //             text: "",
+        //             transactTime: "2017-03-21T20:05:14.388Z",
+        //             walletBalance:  0, // balance after
+        //             marginBalance:  null,
+        //             timestamp: "2017-03-22T13:09:23.514Z"
+        //         }
+        //     ]
+        //
+        return this.parseLedger (response, currency, since, limit);
+    }
+
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let rawTransactions = await this.privateGetUserWalletHistory ();
-        let transactions = [];
-        for (let i = 0; i < rawTransactions.length; i++) {
-            if (rawTransactions[i]['transactType'] in ['Deposit', 'Withdrawal']) {
-                transactions.push (rawTransactions[i]);
-            }
+        const ledger = await this.fetchLedger (code, since, limit, params);
+        const filtered = this.filterBy (ledger, 'type', 'transaction');
+        const transactions = this.pluck (filtered, 'info');
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
         }
-        return this.parseTransactions (transactions, undefined, since, limit);
+        return this.parseTransactions (transactions, currency, since, limit);
     }
 
     parseTransactionStatus (status) {
         const statuses = {
+            'Canceled': 'canceled',
             'Completed': 'ok',
             'Pending': 'pending',
         };
