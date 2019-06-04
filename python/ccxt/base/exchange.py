@@ -1407,16 +1407,16 @@ class Exchange(object):
             scale = 60  # 1m by default
         return amount * scale
 
-    def parse_trades(self, trades, market=None, since=None, limit=None):
+    def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
         array = self.to_array(trades)
-        array = [self.parse_trade(trade, market) for trade in array]
+        array = [self.extend(self.parse_trade(trade, market), params) for trade in array]
         array = self.sort_by(array, 'timestamp')
         symbol = market['symbol'] if market else None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit)
 
-    def parse_ledger(self, data, currency=None, since=None, limit=None):
+    def parse_ledger(self, data, currency=None, since=None, limit=None, params={}):
         array = self.to_array(data)
-        array = [self.parse_ledger_entry(item, currency) for item in array]
+        array = [self.extend(self.parse_ledger_entry(item, currency), params) for item in array]
         array = self.sort_by(array, 'timestamp')
         code = currency['code'] if currency else None
         return self.filter_by_currency_since_limit(array, code, since, limit)
@@ -1428,9 +1428,9 @@ class Exchange(object):
         code = currency['code'] if currency else None
         return self.filter_by_currency_since_limit(array, code, since, limit)
 
-    def parse_orders(self, orders, market=None, since=None, limit=None):
+    def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
         array = self.to_array(orders)
-        array = [self.parse_order(order, market) for order in array]
+        array = [self.extend(self.parse_order(order, market), params) for order in array]
         array = self.sort_by(array, 'timestamp')
         symbol = market['symbol'] if market else None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit)
