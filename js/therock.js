@@ -1007,10 +1007,7 @@ module.exports = class therock extends Exchange {
             'price': price,
         };
         const response = await this.privatePostFundsFundIdOrders (this.extend (request, params));
-        return {
-            'info': response,
-            'id': response['id'].toString (),
-        };
+        return this.parseOrder (response);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -1019,7 +1016,8 @@ module.exports = class therock extends Exchange {
             'id': id,
             'fund_id': this.marketId (symbol),
         };
-        return await this.privateDeleteFundsFundIdOrdersId (this.extend (request, params));
+        const response = await this.privateDeleteFundsFundIdOrdersId (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
