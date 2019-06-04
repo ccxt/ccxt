@@ -77,7 +77,6 @@ module.exports = class gdax extends Exchange {
                         'accounts/{id}/ledger',
                         'accounts/{id}/transfers',
                         'coinbase-accounts',
-                        'coinbase-accounts/{id}/addresses',
                         'fills',
                         'funding',
                         'orders',
@@ -779,7 +778,7 @@ module.exports = class gdax extends Exchange {
         const request = {
             'id': account['id'],
         };
-        const response = await this.privateGetCoinbaseAccountsIdAddresses (this.extend (request, params));
+        const response = await this.privatePostCoinbaseAccountsIdAddresses (this.extend (request, params));
         const address = this.safeString (response, 'address');
         const tag = this.safeString (response, 'destination_tag');
         return {
