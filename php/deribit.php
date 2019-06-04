@@ -240,6 +240,15 @@ class deribit extends Exchange {
         if ($market !== null)
             $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($trade, 'timeStamp');
+        $side = $this->safe_string_2($trade, 'side', 'direction');
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'quantity');
+        $cost = null;
+        if ($amount !== null) {
+            if ($price !== null) {
+                $cost = $amount * $price;
+            }
+        }
         return array (
             'info' => $trade,
             'id' => $id,
@@ -248,9 +257,11 @@ class deribit extends Exchange {
             'symbol' => $symbol,
             'order' => null,
             'type' => null,
-            'side' => $trade['direction'],
-            'price' => $this->safe_float($trade, 'price'),
-            'amount' => $this->safe_float($trade, 'quantity'),
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => null,
         );
     }
 

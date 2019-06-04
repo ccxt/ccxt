@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.616'
+const version = '1.18.617'
 
 Exchange.ccxtVersion = version
 
@@ -18729,8 +18729,8 @@ module.exports = class bittrex extends Exchange {
                 url += '?' + this.urlencode (params);
             }
             const contentHash = this.hash ('', 'sha512', 'hex');
-            const nonce = this.nonce ().toString ();
-            let auth = nonce + url + method + contentHash;
+            const timestamp = this.milliseconds ().toString ();
+            let auth = timestamp + url + method + contentHash;
             const subaccountId = this.safeValue (this.options, 'subaccountId');
             if (subaccountId !== undefined) {
                 auth += subaccountId;
@@ -18738,7 +18738,7 @@ module.exports = class bittrex extends Exchange {
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
             headers = {
                 'Api-Key': this.apiKey,
-                'Api-Timestamp': nonce,
+                'Api-Timestamp': timestamp,
                 'Api-Content-Hash': contentHash,
                 'Api-Signature': signature,
             };
@@ -36586,6 +36586,15 @@ module.exports = class deribit extends Exchange {
         if (market !== undefined)
             symbol = market['symbol'];
         let timestamp = this.safeInteger (trade, 'timeStamp');
+        const side = this.safeString2 (trade, 'side', 'direction');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'quantity');
+        let cost = undefined;
+        if (amount !== undefined) {
+            if (price !== undefined) {
+                cost = amount * price;
+            }
+        }
         return {
             'info': trade,
             'id': id,
@@ -36594,9 +36603,11 @@ module.exports = class deribit extends Exchange {
             'symbol': symbol,
             'order': undefined,
             'type': undefined,
-            'side': trade['direction'],
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'quantity'),
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
