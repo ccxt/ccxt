@@ -159,8 +159,10 @@ class bitstamp extends Exchange {
                     'Your account is frozen' => '\\ccxt\\PermissionDenied',
                     'Please update your profile with your FATCA information, before using API.' => '\\ccxt\\PermissionDenied',
                     'Order not found' => '\\ccxt\\OrderNotFound',
+                    'Price is more than 20% below market price.' => '\\ccxt\\InvalidOrder',
                 ),
                 'broad' => array (
+                    'Minimum order size is' => '\\ccxt\\InvalidOrder', // Minimum order size is 5.0 EUR.
                     'Check your account balance for details.' => '\\ccxt\\InsufficientFunds', // You have only 0.00100000 BTC available. Check your account balance for details.
                     'Ensure this value has at least' => '\\ccxt\\InvalidAddress', // Ensure this value has at least 25 characters (it has 4).
                 ),
@@ -1003,14 +1005,17 @@ class bitstamp extends Exchange {
         if ($response === null) {
             return;
         }
-        // fetchDepositAddress returns array ("$error" => "No permission found") on apiKeys that don't have the permission required
+        //
+        //     array ("$error" => "No permission found") // fetchDepositAddress returns this on apiKeys that don't have the permission required
+        //     array ("$status" => "$error", "$reason" => {"__all__" => ["Minimum order size is 5.0 EUR."])}
+        //
         $status = $this->safe_string($response, 'status');
         $error = $this->safe_value($response, 'error');
-        if ($status === 'error' || $error) {
+        if (($status === 'error') || ($error !== null)) {
             $errors = array ();
             if (gettype ($error) === 'string') {
                 $errors[] = $error;
-            } else {
+            } else if ($error !== null) {
                 $keys = is_array ($error) ? array_keys ($error) : array ();
                 for ($i = 0; $i < count ($keys); $i++) {
                     $key = $keys[$i];
@@ -1023,12 +1028,12 @@ class bitstamp extends Exchange {
                 }
             }
             $reason = $this->safe_value($response, 'reason', array ());
-            $all = $this->safe_value($reason, '__all__');
-            if ($all !== null) {
-                if (gettype ($all) === 'array' && count (array_filter (array_keys ($all), 'is_string')) == 0) {
-                    for ($i = 0; $i < count ($all); $i++) {
-                        $errors[] = $all[$i];
-                    }
+            if (gettype ($reason) === 'string') {
+                $errors[] = $reason;
+            } else {
+                $all = $this->safe_value($reason, '__all__', array ());
+                for ($i = 0; $i < count ($all); $i++) {
+                    $errors[] = $all[$i];
                 }
             }
             $code = $this->safe_string($response, 'code');
