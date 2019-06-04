@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.621'
+const version = '1.18.622'
 
 Exchange.ccxtVersion = version
 
@@ -3494,12 +3494,12 @@ module.exports = class Exchange {
         return indexed ? indexBy (result, key) : result
     }
 
-    parseTrades (trades, market = undefined, since = undefined, limit = undefined) {
+    parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
         // this code is commented out temporarily to catch for exchange-specific errors
         // if (!this.isArray (trades)) {
         //     throw new ExchangeError (this.id + ' parseTrades expected an array in the trades argument, but got ' + typeof trades);
         // }
-        let result = Object.values (trades || []).map (trade => this.parseTrade (trade, market))
+        let result = Object.values (trades || []).map (trade => this.extend (this.parseTrade (trade, market), params))
         result = sortBy (result, 'timestamp')
         let symbol = (market !== undefined) ? market['symbol'] : undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
@@ -3516,11 +3516,11 @@ module.exports = class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    parseLedger (data, currency = undefined, since = undefined, limit = undefined) {
+    parseLedger (data, currency = undefined, since = undefined, limit = undefined, params = {}) {
         let result = [];
         let array = Object.values (data || []);
         for (let i = 0; i < array.length; i++) {
-            result.push (this.parseLedgerEntry (array[i], currency));
+            result.push (this.extend (this.parseLedgerEntry (array[i], currency), params));
         }
         result = this.sortBy (result, 'timestamp');
         let code = (currency !== undefined) ? currency['code'] : undefined;
@@ -38001,7 +38001,7 @@ module.exports = class dsx extends liqui {
         return this.parseOrdersById (this.safeValue (response, 'return', {}), symbol, since, limit);
     }
 
-    parseTrades (trades, market = undefined, since = undefined, limit = undefined) {
+    parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
         let result = [];
         if (Array.isArray (trades)) {
             for (let i = 0; i < trades.length; i++) {
@@ -38012,7 +38012,7 @@ module.exports = class dsx extends liqui {
             for (let i = 0; i < ids.length; i++) {
                 const id = ids[i];
                 const trade = this.parseTrade (trades[id], market);
-                result.push (this.extend (trade, { 'id': id }));
+                result.push (this.extend (trade, { 'id': id }, params));
             }
         }
         result = this.sortBy (result, 'timestamp');

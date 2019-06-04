@@ -796,7 +796,7 @@ class dsx extends liqui {
         return $this->parse_orders_by_id ($this->safe_value($response, 'return', array ()), $symbol, $since, $limit);
     }
 
-    public function parse_trades ($trades, $market = null, $since = null, $limit = null) {
+    public function parse_trades ($trades, $market = null, $since = null, $limit = null, $params = array ()) {
         $result = array ();
         if (gettype ($trades) === 'array' && count (array_filter (array_keys ($trades), 'is_string')) == 0) {
             for ($i = 0; $i < count ($trades); $i++) {
@@ -807,7 +807,7 @@ class dsx extends liqui {
             for ($i = 0; $i < count ($ids); $i++) {
                 $id = $ids[$i];
                 $trade = $this->parse_trade($trades[$id], $market);
-                $result[] = array_merge ($trade, array ( 'id' => $id ));
+                $result[] = array_merge ($trade, array ( 'id' => $id ), $params);
             }
         }
         $result = $this->sort_by($result, 'timestamp');
