@@ -681,7 +681,7 @@ module.exports = class therock extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             if (Object.keys (query).length) {
-                if (method === 'post') {
+                if (method === 'POST') {
                     body = this.json (query);
                     headers['Content-Type'] = 'application/json';
                 } else {
