@@ -23,6 +23,9 @@ module.exports = class therock extends Exchange {
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
                 'fetchTransactions': 'emulated',
+                'fetchOrders': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
@@ -271,7 +274,7 @@ module.exports = class therock extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        // fetchTrades
+        // fetchTrades, fetchOrder trades
         //
         //     {      id:  4493548,
         //       fund_id: "ETHBTC",
@@ -827,6 +830,126 @@ module.exports = class therock extends Exchange {
         return this.parseTransactions (depositsAndWithdrawals, currency, since, limit);
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'active': 'open',
+            'executed': 'closed',
+            'deleted': 'canceled',
+            // don't know what this status means
+            // 'conditional': '?',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         "id": 4325578,
+        //         "fund_id":"BTCEUR",
+        //         "side":"buy",
+        //         "type":"limit",
+        //         "status":"executed",
+        //         "price":0.0102,
+        //         "amount": 50.0,
+        //         "amount_unfilled": 0.0,
+        //         "conditional_type": null,
+        //         "conditional_price": null,
+        //         "date":"2015-06-03T00:49:48.000Z",
+        //         "close_on": nil,
+        //         "leverage": 1.0,
+        //         "position_id": null,
+        //         "trades": [
+        //             {
+        //                 "id":237338,
+        //                 "fund_id":"BTCEUR",
+        //                 "amount":50,
+        //                 "price":0.0102,
+        //                 "side":"buy",
+        //                 "dark":false,
+        //                 "date":"2015-06-03T00:49:49.000Z"
+        //             }
+        //         ]
+        //     }
+        //
+        const id = this.safeString (order, 'id');
+        let symbol = undefined;
+        const marketId = this.safeString (order, 'fund_id');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        }
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const timestamp = this.parse8601 (this.safeString (order, 'date'));
+        const type = this.safeString (order, 'type');
+        const side = this.safeString (order, 'side');
+        const amount = this.safeFloat (order, 'amount');
+        const remaining = this.safeFloat (order, 'amount_unfilled');
+        let filled = undefined;
+        if (amount !== undefined) {
+            if (remaining !== undefined) {
+                filled = amount - remaining;
+            }
+        }
+        const price = this.safeFloat (order, 'price');
+        let trades = this.safeValue (order, 'trades');
+        let cost = undefined;
+        let average = undefined;
+        if (trades !== undefined) {
+            const numTrades = trades.length;
+            if (numTrades > 0) {
+                trades = this.parseTrades (trades, market, undefined, undefined, {
+                    'orderId': id,
+                });
+                // todo: determine the cost and the average price from trades
+                cost = 0;
+                filled = 0;
+                for (let i = 0; i < numTrades; i++) {
+                    const trade = trades[i];
+                    cost = this.sum (cost, trade['cost']);
+                    filled = this.sum (filled, trade['amount']);
+                }
+                if (filled > 0) {
+                    average = cost / filled;
+                }
+            } else {
+                cost = 0;
+            }
+        }
+        return {
+            'id': id,
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'average': average,
+            'remaining': remaining,
+            'fee': undefined,
+            'trades': trades,
+        };
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'status': 'active',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'status': 'executed',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
@@ -835,58 +958,68 @@ module.exports = class therock extends Exchange {
         const market = this.market (symbol);
         const request = {
             'fund_id': market['id'],
+            // 'after': '2015-02-06T08:47:26Z',
+            // 'before': '2015-02-06T08:47:26Z'
+            // 'status': 'active', // 'executed', 'conditional'
+            // 'side': 'buy', // 'sell'
+            // 'position_id': 123, // filter orders by margin position id
         };
         if (since !== undefined) {
             request['after'] = this.iso8601 (since);
         }
         const response = await this.privateGetFundsFundIdOrders (this.extend (request, params));
-        //   { orders:
-        //     [ { id: 299333648,
-        //         fund_id: 'BTCEUR',
-        //         side: 'sell',
-        //         type: 'limit',
-        //         status: 'executed',
-        //         price: 5821,
-        //         amount: 0.1,
-        //         amount_unfilled: 0,
-        //         conditional_type: null,
-        //         conditional_price: null,
-        //         date: '2018-06-18T17:38:16.129Z',
-        //         close_on: null,
-        //         dark: false,
-        //         leverage: 1,
-        //         position_id: 0 },...
         //
-        const result = [];
-        const items = response['orders'];
-        for (let i = 0; i < items.length; i++) {
-            const item = items[i];
-            const marketId = this.safeString (item, 'fund_id');
-            const timestamp = this.parse8601 (this.safeString (item, 'date'));
-            let status = this.safeString (item, 'status');
-            if (status === 'executed')
-                status = 'closed';
-            else if (status === 'active')
-                status = 'open';
-            const amount = this.safeFloat (item, 'amount');
-            const unfilled = this.safeFloat (item, 'amount_unfilled');
-            const filled = amount - unfilled;
-            result.push ({
-                'id': this.safeString (item, 'id'),
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'side': this.safeString (item, 'side'),
-                'type': this.safeString (item, 'type'),
-                'price': this.safeFloat (item, 'price'),
-                'amount': amount,
-                'remaining': unfilled,
-                'filled': filled,
-                'status': status,
-                'symbol': this.findSymbol (marketId),
-                'info': item,
-            });
+        //     {
+        //         orders: [
+        //             {
+        //                 id: 299333648,
+        //                 fund_id: 'BTCEUR',
+        //                 side: 'sell',
+        //                 type: 'limit',
+        //                 status: 'executed',
+        //                 price: 5821,
+        //                 amount: 0.1,
+        //                 amount_unfilled: 0,
+        //                 conditional_type: null,
+        //                 conditional_price: null,
+        //                 date: '2018-06-18T17:38:16.129Z',
+        //                 close_on: null,
+        //                 dark: false,
+        //                 leverage: 1,
+        //                 position_id: 0
+        //             }
+        //         ]
+        //     }
+        //
+        const orders = this.safeValue (response, 'orders', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (type === 'market') {
+            price = 0;
         }
-        return result;
+        const request = {
+            'fund_id': this.marketId (symbol),
+            'side': side,
+            'amount': amount,
+            'price': price,
+        };
+        const response = await this.privatePostFundsFundIdOrders (this.extend (request, params));
+        return {
+            'info': response,
+            'id': response['id'].toString (),
+        };
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'id': id,
+            'fund_id': this.marketId (symbol),
+        };
+        return await this.privateDeleteFundsFundIdOrdersId (this.extend (request, params));
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -979,41 +1112,6 @@ module.exports = class therock extends Exchange {
         //                        last:    null                                                                   } }
         //
         return this.parseTrades (response['trades'], market, since, limit);
-    }
-
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
-        if (type === 'market')
-            price = 0;
-        let response = await this.privatePostFundsFundIdOrders (this.extend ({
-            'fund_id': this.marketId (symbol),
-            'side': side,
-            'amount': amount,
-            'price': price,
-        }, params));
-        return {
-            'info': response,
-            'id': response['id'].toString (),
-        };
-    }
-
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        return await this.privateDeleteFundsFundIdOrdersId (this.extend ({
-            'id': id,
-            'fund_id': this.marketId (symbol),
-        }, params));
-    }
-
-    parseOrderStatus (status) {
-        const statuses = {
-            'active': 'open',
-            'executed': 'closed',
-            'deleted': 'canceled',
-            // don't know what this status means
-            // 'conditional': '?',
-        };
-        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
