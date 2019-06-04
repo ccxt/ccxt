@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidAddress } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -26,7 +26,6 @@ module.exports = class therock extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
-                'fetchOrder': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
@@ -102,6 +101,22 @@ module.exports = class therock extends Exchange {
                         'LTC': 0,
                         'EUR': 0,
                     },
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'Request already running': BadRequest,
+                    'cannot specify multiple address types': BadRequest,
+                    'Currency is not included in the list': BadRequest,
+                    'Record not found': OrderNotFound,
+                },
+                'broad': {
+                    'before must be greater than after param': BadRequest,
+                    'must be shorter than 60 days': BadRequest,
+                    'must be a multiple of (period param) in minutes': BadRequest,
+                    'Address allocation limit reached for currency': InvalidAddress,
+                    'is not a valid value for param currency': BadRequest,
+                    ' is invalid': InvalidAddress,
                 },
             },
         });
@@ -1157,10 +1172,41 @@ module.exports = class therock extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('errors' in response)
-            throw new ExchangeError (this.id + ' ' + this.json (response));
-        return response;
+    handleErrors (httpCode, reason, url, method, headers, body, response) {
+        if (response === undefined) {
+            return; // fallback to default error handler
+        }
+        //
+        //     {
+        //         "errors":
+        //         [
+        //             { "message": ":currency is not a valid value for param currency","code": "11","meta": { "key":"currency","value":":currency"} },
+        //             { "message": "Address allocation limit reached for currency :currency.","code": "13" },
+        //             { "message": "Request already running", "code": "50"},
+        //             { "message": "cannot specify multiple address types", "code": "12" },
+        //             { "message": ":address_type is invalid", "code": "12" }
+        //         ]
+        //     }
+        //
+        const errors = this.safeValue (response, 'errors', []);
+        const numErrors = errors.length;
+        if (numErrors > 0) {
+            const feedback = this.id + ' ' + body;
+            const exact = this.exceptions['exact'];
+            const broad = this.exceptions['broad'];
+            // here we throw the first error we can identify
+            for (let i = 0; i < numErrors; i++) {
+                const error = errors[i];
+                const message = this.safeString (error, 'message');
+                if (message in exact) {
+                    throw new exact[message] (feedback);
+                }
+                const broadKey = this.findBroadlyMatchedKey (broad, message);
+                if (broadKey !== undefined) {
+                    throw new broad[broadKey] (feedback);
+                }
+            }
+            throw new ExchangeError (feedback); // unknown message
+        }
     }
 };
