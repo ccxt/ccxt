@@ -32,6 +32,7 @@ namespace ccxt;
 
 use kornrunner\Eth;
 use kornrunner\Secp256k1;
+use kornrunner\Solidity;
 
 $version = '1.18.633';
 
