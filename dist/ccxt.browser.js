@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.632'
+const version = '1.18.633'
 
 Exchange.ccxtVersion = version
 
@@ -16448,6 +16448,7 @@ module.exports = class bitstamp extends Exchange {
             'countries': [ 'GB' ],
             'rateLimit': 1000,
             'version': 'v2',
+            'userAgent': this.userAgents['chrome'],
             'has': {
                 'CORS': true,
                 'fetchDepositAddress': true,
