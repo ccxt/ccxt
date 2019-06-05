@@ -1744,7 +1744,7 @@ class Exchange {
 
     public function fetch_order_status($id, $symbol = null, $params = array()) {
         $order = $this->fetch_order($id, $symbol, $params);
-        return $order['id'];
+        return $order['status'];
     }
 
     public function fetchOrderStatus($id, $market = null) {
