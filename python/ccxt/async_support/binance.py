@@ -75,7 +75,10 @@ class binance (Exchange):
                 },
                 'www': 'https://www.binance.com',
                 'referral': 'https://www.binance.com/?ref=10205187',
-                'doc': 'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
+                'doc': [
+                    'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
+                    'https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md',
+                ],
                 'fees': 'https://www.binance.com/en/fee/schedule',
             },
             'api': {
@@ -1031,11 +1034,6 @@ class binance (Exchange):
                 timestamp = applyTime
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
         amount = self.safe_float(transaction, 'amount')
-        feeCost = None
-        fee = {
-            'cost': feeCost,
-            'currency': code,
-        }
         return {
             'info': transaction,
             'id': id,
@@ -1049,7 +1047,7 @@ class binance (Exchange):
             'currency': code,
             'status': status,
             'updated': None,
-            'fee': fee,
+            'fee': None,
         }
 
     async def fetch_deposit_address(self, code, params={}):

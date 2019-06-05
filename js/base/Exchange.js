@@ -40,7 +40,7 @@ const {
 
 const { TRUNCATE, ROUND, DECIMAL_PLACES } = functions.precisionConstants
 
-const defaultFetch = typeof (fetch) === "undefined" ? require ('fetch-ponyfill') ().fetch : fetch
+const defaultFetch = typeof (fetch) === "undefined" ? require ('../static_dependencies/fetch-ponyfill/fetch-node') ().fetch : fetch
 
 // ----------------------------------------------------------------------------
 // web3 / 0x imports
@@ -1185,12 +1185,12 @@ module.exports = class Exchange {
         return indexed ? indexBy (result, key) : result
     }
 
-    parseTrades (trades, market = undefined, since = undefined, limit = undefined) {
+    parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
         // this code is commented out temporarily to catch for exchange-specific errors
         // if (!this.isArray (trades)) {
         //     throw new ExchangeError (this.id + ' parseTrades expected an array in the trades argument, but got ' + typeof trades);
         // }
-        let result = Object.values (trades || []).map (trade => this.parseTrade (trade, market))
+        let result = Object.values (trades || []).map (trade => this.extend (this.parseTrade (trade, market), params))
         result = sortBy (result, 'timestamp')
         let symbol = (market !== undefined) ? market['symbol'] : undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
@@ -1207,11 +1207,11 @@ module.exports = class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    parseLedger (data, currency = undefined, since = undefined, limit = undefined) {
+    parseLedger (data, currency = undefined, since = undefined, limit = undefined, params = {}) {
         let result = [];
         let array = Object.values (data || []);
         for (let i = 0; i < array.length; i++) {
-            result.push (this.parseLedgerEntry (array[i], currency));
+            result.push (this.extend (this.parseLedgerEntry (array[i], currency), params));
         }
         result = this.sortBy (result, 'timestamp');
         let code = (currency !== undefined) ? currency['code'] : undefined;
