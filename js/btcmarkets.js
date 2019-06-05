@@ -355,10 +355,10 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let multiplier = 100000000;
-        let side = (order['orderSide'] === 'Bid') ? 'buy' : 'sell';
-        let type = (order['ordertype'] === 'Limit') ? 'limit' : 'market';
-        let timestamp = order['creationTime'];
+        const multiplier = 100000000;
+        const side = (order['orderSide'] === 'Bid') ? 'buy' : 'sell';
+        const type = (order['ordertype'] === 'Limit') ? 'limit' : 'market';
+        const timestamp = this.safeInteger (order, 'creationTime');
         if (market === undefined) {
             market = this.market (order['instrument'] + '/' + order['currency']);
         }
@@ -368,18 +368,32 @@ module.exports = class btcmarkets extends Exchange {
         } else if (order['status'] === 'Fully Matched' || order['status'] === 'Partially Matched') {
             status = 'closed';
         }
-        let price = this.safeFloat (order, 'price') / multiplier;
-        let amount = this.safeFloat (order, 'volume') / multiplier;
-        let remaining = this.safeFloat (order, 'openVolume', 0.0) / multiplier;
-        let filled = amount - remaining;
-        let cost = price * amount;
-        let trades = this.parseMyTrades (order['trades'], market);
+        const price = this.safeFloat (order, 'price') / multiplier;
+        const amount = this.safeFloat (order, 'volume') / multiplier;
+        const remaining = this.safeFloat (order, 'openVolume', 0.0) / multiplier;
+        const filled = amount - remaining;
+        const trades = this.parseMyTrades (order['trades'], market);
+        const numTrades = trades.length;
+        let cost = filled * price;
+        let average = undefined;
+        let lastTradeTimestamp = undefined;
+        if (numTrades > 0) {
+            cost = 0;
+            for (let i = 0; i < numTrades; i++) {
+                const trade = trades[i];
+                cost = this.sum (cost, trade[i]['cost']);
+            }
+            if (filled > 0) {
+                average = cost / filled;
+            }
+            lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
+        }
         let result = {
             'info': order,
             'id': order['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': market['symbol'],
             'type': type,
             'side': side,
@@ -388,6 +402,7 @@ module.exports = class btcmarkets extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
+            'average': average,
             'status': status,
             'trades': trades,
             'fee': undefined,
