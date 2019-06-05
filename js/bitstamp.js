@@ -820,6 +820,7 @@ module.exports = class bitstamp extends Exchange {
         if (side !== undefined) {
             side = (side === '1') ? 'sell' : 'buy';
         }
+        // there is no timestamp from fetchOrder
         const time = this.safeString (order, 'datetime');
         let timestamp = undefined;
         if (time)
