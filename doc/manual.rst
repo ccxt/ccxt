@@ -928,11 +928,11 @@ In order to load markets manually beforehand call the ``loadMarkets ()`` / ``loa
 .. code:: php
 
    // PHP
-   $id = 'huobi';
+   $id = 'huobipro';
    $exchange = '\\ccxt\\' . $id;
-   $huobi = new $exchange ();
-   $markets = $huobi->load_markets ();
-   var_dump ($huobi->id, $markets);
+   $huobipro = new $exchange ();
+   $markets = $huobipro->load_markets ();
+   var_dump ($huobipro->id, $markets);
 
 Symbols And Market Ids
 ----------------------

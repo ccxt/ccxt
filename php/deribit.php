@@ -440,13 +440,19 @@ class deribit extends Exchange {
             'currency' => 'BTC',
         );
         $type = $this->safe_string($order, 'type');
+        $marketId = $this->safe_string($order, 'instrument');
+        $symbol = null;
+        if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+            $symbol = $market['symbol'];
+        }
         return array (
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
-            'symbol' => $order['instrument'],
+            'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
             'price' => $price,
@@ -464,7 +470,11 @@ class deribit extends Exchange {
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privateGetOrderstate (array ( 'orderId' => $id ));
-        return $this->parse_order($response['result']);
+        $result = $this->safe_value($response, 'result');
+        if ($result === null) {
+            throw new OrderNotFound ($this->id . ' fetchOrder() ' . $this->json ($response));
+        }
+        return $this->parse_order($result);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -507,6 +517,9 @@ class deribit extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchClosedOrders() requires a `$symbol` argument');
+        }
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -517,6 +530,9 @@ class deribit extends Exchange {
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchClosedOrders() requires a `$symbol` argument');
+        }
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
