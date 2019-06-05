@@ -842,19 +842,20 @@ module.exports = class bitstamp extends Exchange {
         const numTransactions = transactions.length;
         if (numTransactions > 0) {
             feeCost = 0.0;
-            for (let i = 0; i < transactions.length; i++) {
+            for (let i = 0; i < numTransactions; i++) {
                 let trade = this.parseTrade (this.extend ({
                     'order_id': id,
                     'side': side,
                 }, transactions[i]), market);
-                filled += trade['amount'];
-                feeCost += trade['fee']['cost'];
-                if (cost === undefined)
+                filled = this.sum (filled, trade['amount']);
+                feeCost = this.sum (feeCost, trade['fee']['cost']);
+                if (cost === undefined) {
                     cost = 0.0;
-                cost += trade['cost'];
+                }
+                cost = this.sum (cost, trade['cost']);
                 trades.push (trade);
             }
-            lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
+            lastTradeTimestamp = trades[numTransactions - 1]['timestamp'];
         }
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
         if ((status === 'closed') && (amount === undefined)) {
