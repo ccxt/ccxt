@@ -842,7 +842,6 @@ module.exports = class bitstamp extends Exchange {
         let feeCost = undefined;
         let cost = undefined;
         if (transactions !== undefined) {
-            let firstTradeTimestamp = undefined;
             if (Array.isArray (transactions)) {
                 feeCost = 0.0;
                 for (let i = 0; i < transactions.length; i++) {
@@ -859,13 +858,8 @@ module.exports = class bitstamp extends Exchange {
                     const tradeTimestamp = this.safeInteger (trade, 'timestamp');
                     if (!lastTradeTimestamp || lastTradeTimestamp < tradeTimestamp)
                         lastTradeTimestamp = tradeTimestamp;
-                    if (!firstTradeTimestamp || firstTradeTimestamp > tradeTimestamp)
-                        firstTradeTimestamp = tradeTimestamp;
                 }
             }
-            // there is no timestamp from fetchOrder, so the best we have the the first trade time
-            if (!timestamp)
-                timestamp = firstTradeTimestamp;
         }
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
         if ((status === 'closed') && (amount === undefined)) {
