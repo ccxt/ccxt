@@ -29,8 +29,7 @@ module.exports = class liquid extends Exchange {
                 'api': 'https://api.liquid.com',
                 'www': 'https://www.liquid.com',
                 'doc': [
-                    'https://developers.quoine.com',
-                    'https://developers.quoine.com/v2',
+                    'https://developers.liquid.com',
                 ],
                 'fees': 'https://help.liquid.com/getting-started-with-liquid/the-platform/fee-structure',
                 'referral': 'https://www.liquid.com?affiliate=SbzC62lt30976',
@@ -454,28 +453,51 @@ module.exports = class liquid extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let order = {
+        const request = {
             'order_type': type,
             'product_id': this.marketId (symbol),
             'side': side,
             'quantity': this.amountToPrecision (symbol, amount),
         };
         if (type === 'limit') {
-            order['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = this.priceToPrecision (symbol, price);
         }
-        let response = await this.privatePostOrders (this.extend (order, params));
+        const response = await this.privatePostOrders (this.extend (request, params));
+        //
+        //     {
+        //         "id": 2157474,
+        //         "order_type": "limit",
+        //         "quantity": "0.01",
+        //         "disc_quantity": "0.0",
+        //         "iceberg_total_quantity": "0.0",
+        //         "side": "sell",
+        //         "filled_quantity": "0.0",
+        //         "price": "500.0",
+        //         "created_at": 1462123639,
+        //         "updated_at": 1462123639,
+        //         "status": "live",
+        //         "leverage_level": 1,
+        //         "source_exchange": "QUOINE",
+        //         "product_id": 1,
+        //         "product_code": "CASH",
+        //         "funding_currency": "USD",
+        //         "currency_pair_code": "BTCUSD",
+        //         "order_fee": "0.0"
+        //     }
+        //
         return this.parseOrder (response);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let result = await this.privatePutOrdersIdCancel (this.extend ({
+        const request = {
             'id': id,
-        }, params));
-        let order = this.parseOrder (result);
+        };
+        const response = await this.privatePutOrdersIdCancel (this.extend (request, params));
+        const order = this.parseOrder (response);
         if (order['status'] === 'closed') {
             if (this.options['cancelOrderException']) {
-                throw new OrderNotFound (this.id + ' order closed already: ' + this.json (result));
+                throw new OrderNotFound (this.id + ' order closed already: ' + this.json (response));
             }
         }
         return order;
@@ -486,16 +508,15 @@ module.exports = class liquid extends Exchange {
         if (price === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder requires the price argument');
         }
-        let order = {
+        const request = {
             'order': {
                 'quantity': this.amountToPrecision (symbol, amount),
                 'price': this.priceToPrecision (symbol, price),
             },
-        };
-        let result = await this.privatePutOrdersId (this.extend ({
             'id': id,
-        }, order));
-        return this.parseOrder (result);
+        };
+        const response = await this.privatePutOrdersId (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     parseOrderStatus (status) {
@@ -508,17 +529,74 @@ module.exports = class liquid extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let orderId = this.safeString (order, 'id');
+        //
+        // createOrder
+        //
+        //     {
+        //         "id": 2157474,
+        //         "order_type": "limit",
+        //         "quantity": "0.01",
+        //         "disc_quantity": "0.0",
+        //         "iceberg_total_quantity": "0.0",
+        //         "side": "sell",
+        //         "filled_quantity": "0.0",
+        //         "price": "500.0",
+        //         "created_at": 1462123639,
+        //         "updated_at": 1462123639,
+        //         "status": "live",
+        //         "leverage_level": 1,
+        //         "source_exchange": "QUOINE",
+        //         "product_id": 1,
+        //         "product_code": "CASH",
+        //         "funding_currency": "USD",
+        //         "currency_pair_code": "BTCUSD",
+        //         "order_fee": "0.0"
+        //     }
+        //
+        // fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
+        //
+        //     {
+        //         "id": 2157479,
+        //         "order_type": "limit",
+        //         "quantity": "0.01",
+        //         "disc_quantity": "0.0",
+        //         "iceberg_total_quantity": "0.0",
+        //         "side": "sell",
+        //         "filled_quantity": "0.01",
+        //         "price": "500.0",
+        //         "created_at": 1462123639,
+        //         "updated_at": 1462123639,
+        //         "status": "filled",
+        //         "leverage_level": 2,
+        //         "source_exchange": "QUOINE",
+        //         "product_id": 1,
+        //         "product_code": "CASH",
+        //         "funding_currency": "USD",
+        //         "currency_pair_code": "BTCUSD",
+        //         "order_fee": "0.0",
+        //         "executions": [
+        //             {
+        //                 "id": 4566133,
+        //                 "quantity": "0.01",
+        //                 "price": "500.0",
+        //                 "taker_side": "buy",
+        //                 "my_side": "sell",
+        //                 "created_at": 1465396785
+        //             }
+        //         ]
+        //     }
+        //
+        const orderId = this.safeString (order, 'id');
         let timestamp = this.safeInteger (order, 'created_at');
         if (timestamp !== undefined) {
             timestamp = timestamp * 1000;
         }
         let marketId = this.safeString (order, 'product_id');
         market = this.safeValue (this.markets_by_id, marketId);
-        let status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let amount = this.safeFloat (order, 'quantity');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const amount = this.safeFloat (order, 'quantity');
         let filled = this.safeFloat (order, 'filled_quantity');
-        let price = this.safeFloat (order, 'price');
+        const price = this.safeFloat (order, 'price');
         let symbol = undefined;
         let feeCurrency = undefined;
         if (market !== undefined) {
@@ -526,41 +604,57 @@ module.exports = class liquid extends Exchange {
             feeCurrency = market['quote'];
         }
         let type = order['order_type'];
-        let executedQuantity = 0;
-        let totalValue = 0;
-        let averagePrice = this.safeFloat (order, 'average_price');
-        let trades = undefined;
-        if ('executions' in order) {
-            trades = this.parseTrades (this.safeValue (order, 'executions', []), market);
-            let numTrades = trades.length;
-            for (let i = 0; i < numTrades; i++) {
-                // php copies values upon assignment, but not references them
-                // todo rewrite this (shortly)
-                let trade = trades[i];
-                trade['order'] = orderId;
-                trade['type'] = type;
-                executedQuantity += trade['amount'];
-                totalValue += trade['cost'];
+        let tradeCost = 0;
+        let tradeFilled = 0;
+        let average = this.safeFloat (order, 'average_price');
+        const trades = this.parseTrades (this.safeValue (order, 'executions', []), market, undefined, undefined, {
+            'order': orderId,
+            'type': type,
+        });
+        const numTrades = trades.length;
+        for (let i = 0; i < numTrades; i++) {
+            // php copies values upon assignment, but not references them
+            // todo rewrite this (shortly)
+            let trade = trades[i];
+            trade['order'] = orderId;
+            trade['type'] = type;
+            tradeFilled = this.sum (tradeFilled, trade['amount']);
+            tradeCost = this.sum (tradeCost, trade['cost']);
+        }
+        let cost = undefined;
+        let lastTradeTimestamp = undefined;
+        if (numTrades > 0) {
+            lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
+            if (!average && (tradeFilled > 0)) {
+                average = tradeCost / tradeFilled;
             }
-            if (!averagePrice && (numTrades > 0) && (executedQuantity > 0)) {
-                averagePrice = totalValue / executedQuantity;
+            if (cost === undefined) {
+                cost = tradeCost;
+            }
+            if (filled === undefined) {
+                filled = tradeFilled;
             }
         }
-        let cost = filled * averagePrice;
+        let remaining = undefined;
+        if (amount !== undefined && filled !== undefined) {
+            remaining = amount - filled;
+        }
+        const side = this.safeString (order, 'side');
         return {
             'id': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'type': type,
             'status': status,
             'symbol': symbol,
-            'side': order['side'],
+            'side': side,
             'price': price,
             'amount': amount,
             'filled': filled,
             'cost': cost,
-            'remaining': amount - filled,
+            'remaining': remaining,
+            'average': average,
             'trades': trades,
             'fee': {
                 'currency': feeCurrency,
@@ -572,44 +666,72 @@ module.exports = class liquid extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let order = await this.privateGetOrdersId (this.extend ({
+        const request = {
             'id': id,
-        }, params));
-        return this.parseOrder (order);
+        };
+        const response = await this.privateGetOrdersId (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        let request = {};
+        const request = {
+            // 'funding_currency': market['quoteId'], // filter orders based on "funding" currency (quote currency)
+            // 'product_id': market['id'],
+            // 'status': 'live', // 'filled', 'cancelled'
+            // 'trading_type': 'spot', // 'margin', 'cfd'
+            'with_details': 1, // return full order details including executions
+        };
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['product_id'] = market['id'];
         }
-        let status = this.safeValue (params, 'status');
-        if (status) {
-            params = this.omit (params, 'status');
-            if (status === 'open') {
-                request['status'] = 'live';
-            } else if (status === 'closed') {
-                request['status'] = 'filled';
-            } else if (status === 'canceled') {
-                request['status'] = 'cancelled';
-            }
-        }
-        if (limit !== undefined)
+        if (limit !== undefined) {
             request['limit'] = limit;
-        let result = await this.privateGetOrders (this.extend (request, params));
-        let orders = result['models'];
+        }
+        const response = await this.privateGetOrders (this.extend (request, params));
+        //
+        //     {
+        //         "models": [
+        //             {
+        //                 "id": 2157474,
+        //                 "order_type": "limit",
+        //                 "quantity": "0.01",
+        //                 "disc_quantity": "0.0",
+        //                 "iceberg_total_quantity": "0.0",
+        //                 "side": "sell",
+        //                 "filled_quantity": "0.0",
+        //                 "price": "500.0",
+        //                 "created_at": 1462123639,
+        //                 "updated_at": 1462123639,
+        //                 "status": "live",
+        //                 "leverage_level": 1,
+        //                 "source_exchange": "QUOINE",
+        //                 "product_id": 1,
+        //                 "product_code": "CASH",
+        //                 "funding_currency": "USD",
+        //                 "currency_pair_code": "BTCUSD",
+        //                 "order_fee": "0.0",
+        //                 "executions": [], // optional
+        //             }
+        //         ],
+        //         "current_page": 1,
+        //         "total_pages": 1
+        //     }
+        //
+        const orders = this.safeValue (response, 'models', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
     fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrders (symbol, since, limit, this.extend ({ 'status': 'open' }, params));
+        const request = { 'status': 'live' };
+        return this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrders (symbol, since, limit, this.extend ({ 'status': 'closed' }, params));
+        const request = { 'status': 'filled' };
+        return this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     nonce () {
