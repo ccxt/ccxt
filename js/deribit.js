@@ -439,13 +439,19 @@ module.exports = class deribit extends Exchange {
             'currency': 'BTC',
         };
         let type = this.safeString (order, 'type');
+        let marketId = this.safeString (order, 'instrument');
+        let symbol = undefined;
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        }
         return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': order['instrument'],
+            'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
@@ -462,7 +468,7 @@ module.exports = class deribit extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetOrderstate ({ 'orderId': id });
+        const response = await this.privateGetOrderstate ({ 'orderId': id });
         return this.parseOrder (response['result']);
     }
 
