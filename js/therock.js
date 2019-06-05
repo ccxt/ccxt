@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidAddress } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -19,6 +19,13 @@ module.exports = class therock extends Exchange {
                 'CORS': false,
                 'fetchTickers': true,
                 'fetchMyTrades': true,
+                'fetchLedger': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
+                'fetchTransactions': 'emulated',
+                'fetchOrders': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
@@ -94,6 +101,22 @@ module.exports = class therock extends Exchange {
                         'LTC': 0,
                         'EUR': 0,
                     },
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'Request already running': BadRequest,
+                    'cannot specify multiple address types': BadRequest,
+                    'Currency is not included in the list': BadRequest,
+                    'Record not found': OrderNotFound,
+                },
+                'broad': {
+                    'before must be greater than after param': BadRequest,
+                    'must be shorter than 60 days': BadRequest,
+                    'must be a multiple of (period param) in minutes': BadRequest,
+                    'Address allocation limit reached for currency': InvalidAddress,
+                    'is not a valid value for param currency': BadRequest,
+                    ' is invalid': InvalidAddress,
                 },
             },
         });
@@ -267,7 +290,7 @@ module.exports = class therock extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        // fetchTrades
+        // fetchTrades, fetchOrder trades
         //
         //     {      id:  4493548,
         //       fund_id: "ETHBTC",
@@ -351,139 +374,598 @@ module.exports = class therock extends Exchange {
         };
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this._fetchTransactions ('withdraw', code, since, limit, params);
-    }
-
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this._fetchTransactions ('atm_payment', code, since, limit, params);
-    }
-
-    async _fetchTransactions (type, code = undefined, since = undefined, limit = undefined, params = {}) {
-        // types:
-        //     'affiliate_earnings'
-        //     'returned_lent_currency'
-        //     'the_rock_assessment'
-        //     'sold_shares'
-        //     'transfer_received'
-        //     'dividend_from_shares'
-        //     'insurances_reimbursement'
-        //     'pos_payment'
-        //     'paypal_payment'
-        //     'exposed_position'
-        //     'return_lent_currency'
-        //     'lent_currency'
-        //     'transfer_sent'
-        //     'linden_lab_assessment'
-        //     'position_transfer_received'
-        //     'dividend_distributed_to_holders'
-        //     'bought_shares'
-        //     'acquired_insurance'
-        //     'rollover_commission'
-        //     'acquired_currency_from_fund'
-        //     'paid_commission'
-        //     'withdraw'
-        //     'released_currency_to_fund'
-        //     'atm_payment'
-        //     'sold_currency_to_fund'
-        //     'bought_currency_from_fund'
-        const request = {
-            'after': since,
-            'type': type,
+    parseLedgerEntryDirection (direction) {
+        const directions = {
+            'affiliate_earnings': 'in',
+            'atm_payment': 'in',
+            'bought_currency_from_fund': 'out',
+            'bought_shares': 'out',
+            'paid_commission': 'out',
+            'paypal_payment': 'in',
+            'pos_payment': 'in',
+            'released_currency_to_fund': 'out',
+            'rollover_commission': 'out',
+            'sold_currency_to_fund': 'in',
+            'sold_shares': 'in',
+            'transfer_received': 'in',
+            'transfer_sent': 'out',
+            'withdraw': 'out',
+            // commented types will be shown as-is
+            // 'acquired_currency_from_fund': '',
+            // 'acquired_insurance': '',
+            // 'dividend_distributed_to_holders': '',
+            // 'dividend_from_shares': '',
+            // 'exposed_position': '',
+            // 'insurances_reimbursement': '',
+            // 'lent_currency': '',
+            // 'linden_lab_assessment': '',
+            // 'position_transfer_received': '',
+            // 'return_lent_currency': '',
+            // 'returned_lent_currency': '',
+            // 'the_rock_assessment': '',
         };
-        if (code) {
-            request['currency'] = this.currencyId (code);
+        return this.safeString (directions, direction, direction);
+    }
+
+    parseLedgerEntryType (type) {
+        const types = {
+            'affiliate_earnings': 'referral',
+            'atm_payment': 'transaction',
+            'bought_currency_from_fund': 'trade',
+            'bought_shares': 'trade',
+            'paid_commission': 'fee',
+            'paypal_payment': 'transaction',
+            'pos_payment': 'transaction',
+            'released_currency_to_fund': 'trade',
+            'rollover_commission': 'fee',
+            'sold_currency_to_fund': 'trade',
+            'sold_shares': 'trade',
+            'transfer_received': 'transfer',
+            'transfer_sent': 'transfer',
+            'withdraw': 'transaction',
+            // commented types will be shown as-is
+            // 'acquired_currency_from_fund': '',
+            // 'acquired_insurance': '',
+            // 'dividend_distributed_to_holders': '',
+            // 'dividend_from_shares': '',
+            // 'exposed_position': '',
+            // 'insurances_reimbursement': '',
+            // 'lent_currency': '',
+            // 'linden_lab_assessment': '',
+            // 'position_transfer_received': '',
+            // 'return_lent_currency': '',
+            // 'returned_lent_currency': '',
+            // 'the_rock_assessment': '',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        // withdrawal
+        //
+        //     {
+        //         "id": 21311223,
+        //         "date": "2015-06-30T13:55:11.000Z",
+        //         "type": "withdraw",
+        //         "price": 103.00,
+        //         "currency": "EUR",
+        //         "fund_id": null,
+        //         "order_id": null,
+        //         "trade_id": null,
+        //         "transfer_detail": {
+        //             "method": "wire_transfer",
+        //             "id": "F112DD3",
+        //             "recipient": "IT123456789012",
+        //             "confirmations": 0
+        //         }
+        //     }
+        //
+        // deposit
+        //
+        //     {
+        //         "id": 21311222,
+        //         "date": "2015-06-30T13:55:11.000Z",
+        //         "type": "atm_payment",
+        //         "price": 2.01291,
+        //         "currency": "BTC",
+        //         "fund_id": "null",
+        //         "order_id": null,
+        //         "trade_id": null,
+        //         "transfer_detail": {
+        //             "method": "bitcoin",
+        //             "id": "0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098",
+        //             "recipient": "mzb3NgX9Dr6jgGAu31L6jsPGB2zkaFxxyf",
+        //             "confirmations": 3
+        //         }
+        //     }
+        //
+        // trade fee
+        //
+        //     {
+        //         "id": 21311221,
+        //         "date": "2015-06-30T13:55:11.000Z",
+        //         "type": "paid_commission",
+        //         "price": 0.0001,
+        //         "fund_id": "BTCEUR",
+        //         "order_id": 12832371,
+        //         "trade_id": 12923212,
+        //         "currency": "BTC",
+        //         "transfer_detail": null
+        //     }
+        //
+        const id = this.safeString (item, 'id');
+        let referenceId = undefined;
+        let type = this.safeString (item, 'type');
+        const direction = this.parseLedgerEntryDirection (type);
+        type = this.parseLedgerEntryType (type);
+        if (type === 'trade' || type === 'fee') {
+            referenceId = this.safeString (item, 'trade_id');
         }
+        let currencyId = this.safeString (item, 'currency');
+        let code = undefined;
+        if (currencyId !== undefined) {
+            currencyId = currencyId.toUpperCase ();
+            code = this.commonCurrencyCode (currencyId);
+        }
+        const amount = this.safeFloat (item, 'price');
+        const timestamp = this.parse8601 (this.safeString (item, 'date'));
+        const status = 'ok';
+        return {
+            'info': item,
+            'id': id,
+            'direction': direction,
+            'account': undefined,
+            'referenceId': referenceId,
+            'referenceAccount': undefined,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'before': undefined,
+            'after': undefined,
+            'status': status,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': undefined,
+        };
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'page': 1,
+            // 'fund_id': 'ETHBTC', // filter by fund symbol
+            // 'currency': 'BTC', // filter by currency
+            // 'after': '2015-02-06T08:47:26Z', // filter after a certain timestamp
+            // 'before': '2015-02-06T08:47:26Z',
+            // 'type': 'withdraw',
+            // 'order_id': '12832371', // filter by a specific order ID
+            // 'trade_id': '12923212', // filter by a specific trade ID
+            // 'transfer_method': 'bitcoin', // wire_transfer, ripple, greenaddress, bitcoin, litecoin, namecoin, peercoin, dogecoin
+            // 'transfer_recipient': '1MAHLhJoz9W2ydbRf972WSgJYJ3Ui7aotm', // filter by a specific recipient (e.g. Bitcoin address, IBAN)
+            // 'transfer_id': '8261949194985b01985006724dca5d6059989e096fa95608271d00dd902327fa', // filter by a specific transfer ID (e.g. Bitcoin TX hash)
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['after'] = this.iso8601 (since);
+        }
+        const response = await this.privateGetTransactions (this.extend (request, params));
+        //
+        //     {
+        //         "transactions": [
+        //             {
+        //                 "id": 21311223,
+        //                 "date": "2015-06-30T13:55:11.000Z",
+        //                 "type": "withdraw",
+        //                 "price": 103.00,
+        //                 "currency": "EUR",
+        //                 "fund_id": null,
+        //                 "order_id": null,
+        //                 "trade_id": null,
+        //                 "transfer_detail": {
+        //                     "method": "wire_transfer",
+        //                     "id": "F112DD3",
+        //                     "recipient": "IT123456789012",
+        //                     "confirmations": 0
+        //                 }
+        //             },
+        //             {
+        //                 "id": 21311222,
+        //                 "date": "2015-06-30T13:55:11.000Z",
+        //                 "type": "atm_payment",
+        //                 "price": 2.01291,
+        //                 "currency": "BTC",
+        //                 "fund_id": "null",
+        //                 "order_id": null,
+        //                 "trade_id": null,
+        //                 "transfer_detail": {
+        //                     "method": "bitcoin",
+        //                     "id": "0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098",
+        //                     "recipient": "mzb3NgX9Dr6jgGAu31L6jsPGB2zkaFxxyf",
+        //                     "confirmations": 3
+        //                 }
+        //             },
+        //             {
+        //                 "id": 21311221,
+        //                 "date": "2015-06-30T13:55:11.000Z",
+        //                 "type": "paid_commission",
+        //                 "price": 0.0001,
+        //                 "fund_id": "BTCEUR",
+        //                 "order_id": 12832371,
+        //                 "trade_id": 12923212,
+        //                 "currency": "BTC",
+        //                 "transfer_detail": null
+        //             }
+        //         ],
+        //         "meta": {
+        //             "total_count": 1221,
+        //             "first": { "page": 1, "href": "https://api.therocktrading.com/v1/transactions?page=1" },
+        //             "previous": null,
+        //             "current": { "page": 1, "href": "https://api.therocktrading.com/v1/transactions?page=1" },
+        //             "next": { "page": 2, "href": "https://api.therocktrading.com/v1/transactions?page=2" },
+        //             "last": { "page": 1221, "href": "https://api.therocktrading.com/v1/transactions?page=1221" }
+        //         }
+        //     }
+        //
+        const transactions = this.safeValue (response, 'transactions', []);
+        return this.parseLedger (transactions, currency, since, limit);
+    }
+
+    parseTransactionType (type) {
         const types = {
             'withdraw': 'withdrawal',
             'atm_payment': 'deposit',
         };
-        const response = await this.privateGetTransactions (this.extend (request, params));
-        const items = response['transactions'];
-        const result = [];
-        for (let i = 0; i < items.length; i++) {
-            const item = items[i];
-            // fiat deposit:
-            //   { id: 16176632,
-            //     date: '2017-11-20T21:00:13.355Z',
-            //     type: 'atm_payment',
-            //     price: 5000,
-            //     currency: 'EUR',
-            //     fund_id: null,
-            //     order_id: null,
-            //     trade_id: null,
-            //     note: 'Mistral deposit',
-            //     transfer_detail:
-            //     { method: 'wire_transfer',
-            //         id: '972JQ49337DX769T',
-            //         recipient: null,
-            //         confirmations: 0 } }
-            //
-            // crypto deposit
-            //   { id: 12320397,
-            //     date: '2017-08-01T14:12:32.583Z',
-            //     type: 'atm_payment',
-            //     price: 0.01744831,
-            //     currency: 'BCH',
-            //     fund_id: null,
-            //     order_id: null,
-            //     trade_id: null,
-            //     note: null,
-            //     transfer_detail: null }
-            //
-            // fiat withdrawal
-            //   { id: 14512143,
-            //     date: '2017-09-28T08:22:21.369Z',
-            //     type: 'withdraw',
-            //     price: 2946.1,
-            //     currency: 'USD',
-            //     fund_id: null,
-            //     order_id: null,
-            //     trade_id: null,
-            //     note: '9120474235',
-            //     transfer_detail: null }
-            //
-            // crypto withdrawal
-            //   { id: 20914695,
-            //     date: '2018-02-24T07:13:23.002Z',
-            //     type: 'withdraw',
-            //     price: 2.70883607,
-            //     currency: 'BCH',
-            //     fund_id: null,
-            //     order_id: null,
-            //     trade_id: null,
-            //     note: '1MAHLhJoz9W2ydbRf972WSgJYJ3Ui7aotm',
-            //     transfer_detail:
-            //       { method: 'bitcoin_cash',
-            //         id: '8261949194985b01985006724dca5d6059989e096fa95608271d00dd902327fa',
-            //         recipient: '1MAHLhJoz9W2ydbRf972WSgJYJ3Ui7aotm',
-            //         confirmations: 0 } }
-            const type = this.safeString (item, 'type');
-            const date = this.safeString (item, 'date');
-            const currency = this.safeString (item, 'currency');
-            const timestamp = this.parse8601 (date);
-            let address = undefined;
-            let tag = undefined;
-            let txid = undefined;
-            const transferDetail = item['transfer_detail'];
-            if (transferDetail) {
-                address = this.safeString (transferDetail, 'recipient');
-                txid = this.safeString (transferDetail, 'id');
-            }
-            result.push ({
-                'id': this.safeString (item, 'id'),
-                'type': this.safeValue (types, type, type),
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'amount': this.safeFloat (item, 'price'),
-                'currency': this.commonCurrencyCode (currency),
-                'txid': txid,
-                'address': address,
-                'tag': tag,
-                'info': item,
-            });
+        return this.safeString (types, type, type);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchWithdrawals
+        //
+        //     // fiat
+        //
+        //     {
+        //         "id": 21311223,
+        //         "date": "2015-06-30T13:55:11.000Z",
+        //         "type": "withdraw",
+        //         "price": 103.00,
+        //         "currency": "EUR",
+        //         "fund_id": null,
+        //         "order_id": null,
+        //         "trade_id": null,
+        //         "transfer_detail": {
+        //             "method": "wire_transfer",
+        //             "id": "F112DD3",
+        //             "recipient": "IT123456789012",
+        //             "confirmations": 0
+        //         }
+        //     }
+        //
+        //     // crypto
+        //
+        //     {
+        //         id: 20914695,
+        //         date: '2018-02-24T07:13:23.002Z',
+        //         type: 'withdraw',
+        //         price: 2.70883607,
+        //         currency: 'BCH',
+        //         fund_id: null,
+        //         order_id: null,
+        //         trade_id: null,
+        //         note: '1MAHLhJoz9W2ydbRf972WSgJYJ3Ui7aotm',
+        //         transfer_detail: {
+        //             method: 'bitcoin_cash',
+        //             id: '8261949194985b01985006724dca5d6059989e096fa95608271d00dd902327fa',
+        //             recipient: '1MAHLhJoz9W2ydbRf972WSgJYJ3Ui7aotm',
+        //             confirmations: 0
+        //         }
+        //     }
+        //
+        //
+        // fetchDeposits
+        //
+        //     // fiat
+        //
+        //     {
+        //         id: 16176632,
+        //         date: '2017-11-20T21:00:13.355Z',
+        //         type: 'atm_payment',
+        //         price: 5000,
+        //         currency: 'EUR',
+        //         fund_id: null,
+        //         order_id: null,
+        //         trade_id: null,
+        //         note: 'Mistral deposit',
+        //         transfer_detail: {
+        //             method: 'wire_transfer',
+        //             id: '972JQ49337DX769T',
+        //             recipient: null,
+        //             confirmations: 0
+        //         }
+        //     }
+        //
+        //     // crypto
+        //
+        //     {
+        //         "id": 21311222,
+        //         "date": "2015-06-30T13:55:11.000Z",
+        //         "type": "atm_payment",
+        //         "price": 2.01291,
+        //         "currency": "BTC",
+        //         "fund_id": "null",
+        //         "order_id": null,
+        //         "trade_id": null,
+        //         "transfer_detail": {
+        //             "method": "bitcoin",
+        //             "id": "0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098",
+        //             "recipient": "mzb3NgX9Dr6jgGAu31L6jsPGB2zkaFxxyf",
+        //             "confirmations": 3
+        //         }
+        //     }
+        //
+        const id = this.safeString (transaction, 'id');
+        const type = this.parseTransactionType (this.safeString (transaction, 'type'));
+        const detail = this.safeValue (transaction, 'transfer_detail', {});
+        const txid = this.safeString (detail, 'id');
+        const address = this.safeString (detail, 'recipient');
+        let currencyId = this.safeString (transaction, 'currency');
+        let code = undefined;
+        if (currencyId !== undefined) {
+            currencyId = currencyId.toUpperCase ();
+            code = this.commonCurrencyCode (currencyId);
         }
-        return result;
+        const amount = this.safeFloat (transaction, 'price');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'date'));
+        const status = 'ok';
+        // todo parse tags
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'addressFrom': undefined,
+            'addressTo': address,
+            'address': address,
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'tag': undefined,
+            'status': status,
+            'type': type,
+            'updated': undefined,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': undefined,
+        };
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'type': 'withdraw',
+        };
+        return await this.fetchTransactions ('withdraw', code, since, limit, this.extend (request, params));
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'type': 'atm_payment',
+        };
+        return await this.fetchTransactions ('atm_payment', code, since, limit, this.extend (request, params));
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'page': 1,
+            // 'fund_id': 'ETHBTC', // filter by fund symbol
+            // 'currency': 'BTC', // filter by currency
+            // 'after': '2015-02-06T08:47:26Z', // filter after a certain timestamp
+            // 'before': '2015-02-06T08:47:26Z',
+            // 'type': 'withdraw',
+            // 'order_id': '12832371', // filter by a specific order ID
+            // 'trade_id': '12923212', // filter by a specific trade ID
+            // 'transfer_method': 'bitcoin', // wire_transfer, ripple, greenaddress, bitcoin, litecoin, namecoin, peercoin, dogecoin
+            // 'transfer_recipient': '1MAHLhJoz9W2ydbRf972WSgJYJ3Ui7aotm', // filter by a specific recipient (e.g. Bitcoin address, IBAN)
+            // 'transfer_id': '8261949194985b01985006724dca5d6059989e096fa95608271d00dd902327fa', // filter by a specific transfer ID (e.g. Bitcoin TX hash)
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['after'] = this.iso8601 (since);
+        }
+        params = this.extend (request, params);
+        const response = await this.privateGetTransactions (params);
+        //
+        //     {
+        //         "transactions": [
+        //             {
+        //                 "id": 21311223,
+        //                 "date": "2015-06-30T13:55:11.000Z",
+        //                 "type": "withdraw",
+        //                 "price": 103.00,
+        //                 "currency": "EUR",
+        //                 "fund_id": null,
+        //                 "order_id": null,
+        //                 "trade_id": null,
+        //                 "transfer_detail": {
+        //                     "method": "wire_transfer",
+        //                     "id": "F112DD3",
+        //                     "recipient": "IT123456789012",
+        //                     "confirmations": 0
+        //                 }
+        //             },
+        //             {
+        //                 "id": 21311222,
+        //                 "date": "2015-06-30T13:55:11.000Z",
+        //                 "type": "atm_payment",
+        //                 "price": 2.01291,
+        //                 "currency": "BTC",
+        //                 "fund_id": "null",
+        //                 "order_id": null,
+        //                 "trade_id": null,
+        //                 "transfer_detail": {
+        //                     "method": "bitcoin",
+        //                     "id": "0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098",
+        //                     "recipient": "mzb3NgX9Dr6jgGAu31L6jsPGB2zkaFxxyf",
+        //                     "confirmations": 3
+        //                 }
+        //             },
+        //             {
+        //                 "id": 21311221,
+        //                 "date": "2015-06-30T13:55:11.000Z",
+        //                 "type": "paid_commission",
+        //                 "price": 0.0001,
+        //                 "fund_id": "BTCEUR",
+        //                 "order_id": 12832371,
+        //                 "trade_id": 12923212,
+        //                 "currency": "BTC",
+        //                 "transfer_detail": null
+        //             }
+        //         ],
+        //         "meta": {
+        //             "total_count": 1221,
+        //             "first": { "page": 1, "href": "https://api.therocktrading.com/v1/transactions?page=1" },
+        //             "previous": null,
+        //             "current": { "page": 1, "href": "https://api.therocktrading.com/v1/transactions?page=1" },
+        //             "next": { "page": 2, "href": "https://api.therocktrading.com/v1/transactions?page=2" },
+        //             "last": { "page": 1221, "href": "https://api.therocktrading.com/v1/transactions?page=1221" }
+        //         }
+        //     }
+        //
+        const transactions = this.safeValue (response, 'transactions', []);
+        const transactionTypes = [ 'withdraw', 'atm_payment' ];
+        const depositsAndWithdrawals = this.filterByArray (transactions, 'type', transactionTypes, false);
+        return this.parseTransactions (depositsAndWithdrawals, currency, since, limit);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'active': 'open',
+            'executed': 'closed',
+            'deleted': 'canceled',
+            // don't know what this status means
+            // 'conditional': '?',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         "id": 4325578,
+        //         "fund_id":"BTCEUR",
+        //         "side":"buy",
+        //         "type":"limit",
+        //         "status":"executed",
+        //         "price":0.0102,
+        //         "amount": 50.0,
+        //         "amount_unfilled": 0.0,
+        //         "conditional_type": null,
+        //         "conditional_price": null,
+        //         "date":"2015-06-03T00:49:48.000Z",
+        //         "close_on": nil,
+        //         "leverage": 1.0,
+        //         "position_id": null,
+        //         "trades": [
+        //             {
+        //                 "id":237338,
+        //                 "fund_id":"BTCEUR",
+        //                 "amount":50,
+        //                 "price":0.0102,
+        //                 "side":"buy",
+        //                 "dark":false,
+        //                 "date":"2015-06-03T00:49:49.000Z"
+        //             }
+        //         ]
+        //     }
+        //
+        const id = this.safeString (order, 'id');
+        let symbol = undefined;
+        const marketId = this.safeString (order, 'fund_id');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        }
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const timestamp = this.parse8601 (this.safeString (order, 'date'));
+        const type = this.safeString (order, 'type');
+        const side = this.safeString (order, 'side');
+        const amount = this.safeFloat (order, 'amount');
+        const remaining = this.safeFloat (order, 'amount_unfilled');
+        let filled = undefined;
+        if (amount !== undefined) {
+            if (remaining !== undefined) {
+                filled = amount - remaining;
+            }
+        }
+        const price = this.safeFloat (order, 'price');
+        let trades = this.safeValue (order, 'trades');
+        let cost = undefined;
+        let average = undefined;
+        let lastTradeTimestamp = undefined;
+        if (trades !== undefined) {
+            const numTrades = trades.length;
+            if (numTrades > 0) {
+                trades = this.parseTrades (trades, market, undefined, undefined, {
+                    'orderId': id,
+                });
+                // todo: determine the cost and the average price from trades
+                cost = 0;
+                filled = 0;
+                for (let i = 0; i < numTrades; i++) {
+                    const trade = trades[i];
+                    cost = this.sum (cost, trade['cost']);
+                    filled = this.sum (filled, trade['amount']);
+                }
+                if (filled > 0) {
+                    average = cost / filled;
+                }
+                lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
+            } else {
+                cost = 0;
+            }
+        }
+        return {
+            'id': id,
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'average': average,
+            'remaining': remaining,
+            'fee': undefined,
+            'trades': trades,
+        };
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'status': 'active',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'status': 'executed',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -494,58 +976,80 @@ module.exports = class therock extends Exchange {
         const market = this.market (symbol);
         const request = {
             'fund_id': market['id'],
+            // 'after': '2015-02-06T08:47:26Z',
+            // 'before': '2015-02-06T08:47:26Z'
+            // 'status': 'active', // 'executed', 'conditional'
+            // 'side': 'buy', // 'sell'
+            // 'position_id': 123, // filter orders by margin position id
         };
         if (since !== undefined) {
             request['after'] = this.iso8601 (since);
         }
         const response = await this.privateGetFundsFundIdOrders (this.extend (request, params));
-        //   { orders:
-        //     [ { id: 299333648,
-        //         fund_id: 'BTCEUR',
-        //         side: 'sell',
-        //         type: 'limit',
-        //         status: 'executed',
-        //         price: 5821,
-        //         amount: 0.1,
-        //         amount_unfilled: 0,
-        //         conditional_type: null,
-        //         conditional_price: null,
-        //         date: '2018-06-18T17:38:16.129Z',
-        //         close_on: null,
-        //         dark: false,
-        //         leverage: 1,
-        //         position_id: 0 },...
         //
-        const result = [];
-        const items = response['orders'];
-        for (let i = 0; i < items.length; i++) {
-            const item = items[i];
-            const marketId = this.safeString (item, 'fund_id');
-            const timestamp = this.parse8601 (this.safeString (item, 'date'));
-            let status = this.safeString (item, 'status');
-            if (status === 'executed')
-                status = 'closed';
-            else if (status === 'active')
-                status = 'open';
-            const amount = this.safeFloat (item, 'amount');
-            const unfilled = this.safeFloat (item, 'amount_unfilled');
-            const filled = amount - unfilled;
-            result.push ({
-                'id': this.safeString (item, 'id'),
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'side': this.safeString (item, 'side'),
-                'type': this.safeString (item, 'type'),
-                'price': this.safeFloat (item, 'price'),
-                'amount': amount,
-                'remaining': unfilled,
-                'filled': filled,
-                'status': status,
-                'symbol': this.findSymbol (marketId),
-                'info': item,
-            });
+        //     {
+        //         orders: [
+        //             {
+        //                 id: 299333648,
+        //                 fund_id: 'BTCEUR',
+        //                 side: 'sell',
+        //                 type: 'limit',
+        //                 status: 'executed',
+        //                 price: 5821,
+        //                 amount: 0.1,
+        //                 amount_unfilled: 0,
+        //                 conditional_type: null,
+        //                 conditional_price: null,
+        //                 date: '2018-06-18T17:38:16.129Z',
+        //                 close_on: null,
+        //                 dark: false,
+        //                 leverage: 1,
+        //                 position_id: 0
+        //             }
+        //         ]
+        //     }
+        //
+        const orders = this.safeValue (response, 'orders', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
         }
-        return result;
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'id': id,
+            'fund_id': market['id'],
+        };
+        const response = await this.privatePostFundsFundIdOrdersId (this.extend (request, params));
+        return this.parseOrder (response);
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (type === 'market') {
+            price = 0;
+        }
+        const request = {
+            'fund_id': this.marketId (symbol),
+            'side': side,
+            'amount': amount,
+            'price': price,
+        };
+        const response = await this.privatePostFundsFundIdOrders (this.extend (request, params));
+        return this.parseOrder (response);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'id': id,
+            'fund_id': this.marketId (symbol),
+        };
+        const response = await this.privateDeleteFundsFundIdOrdersId (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -640,41 +1144,6 @@ module.exports = class therock extends Exchange {
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
-        if (type === 'market')
-            price = 0;
-        let response = await this.privatePostFundsFundIdOrders (this.extend ({
-            'fund_id': this.marketId (symbol),
-            'side': side,
-            'amount': amount,
-            'price': price,
-        }, params));
-        return {
-            'info': response,
-            'id': response['id'].toString (),
-        };
-    }
-
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        return await this.privateDeleteFundsFundIdOrdersId (this.extend ({
-            'id': id,
-            'fund_id': this.marketId (symbol),
-        }, params));
-    }
-
-    parseOrderStatus (status) {
-        const statuses = {
-            'active': 'open',
-            'executed': 'closed',
-            'deleted': 'canceled',
-            // don't know what this status means
-            // 'conditional': '?',
-        };
-        return this.safeString (statuses, status, status);
-    }
-
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
@@ -705,10 +1174,41 @@ module.exports = class therock extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('errors' in response)
-            throw new ExchangeError (this.id + ' ' + this.json (response));
-        return response;
+    handleErrors (httpCode, reason, url, method, headers, body, response) {
+        if (response === undefined) {
+            return; // fallback to default error handler
+        }
+        //
+        //     {
+        //         "errors":
+        //         [
+        //             { "message": ":currency is not a valid value for param currency","code": "11","meta": { "key":"currency","value":":currency"} },
+        //             { "message": "Address allocation limit reached for currency :currency.","code": "13" },
+        //             { "message": "Request already running", "code": "50"},
+        //             { "message": "cannot specify multiple address types", "code": "12" },
+        //             { "message": ":address_type is invalid", "code": "12" }
+        //         ]
+        //     }
+        //
+        const errors = this.safeValue (response, 'errors', []);
+        const numErrors = errors.length;
+        if (numErrors > 0) {
+            const feedback = this.id + ' ' + body;
+            const exact = this.exceptions['exact'];
+            const broad = this.exceptions['broad'];
+            // here we throw the first error we can identify
+            for (let i = 0; i < numErrors; i++) {
+                const error = errors[i];
+                const message = this.safeString (error, 'message');
+                if (message in exact) {
+                    throw new exact[message] (feedback);
+                }
+                const broadKey = this.findBroadlyMatchedKey (broad, message);
+                if (broadKey !== undefined) {
+                    throw new broad[broadKey] (feedback);
+                }
+            }
+            throw new ExchangeError (feedback); // unknown message
+        }
     }
 };
