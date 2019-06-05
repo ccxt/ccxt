@@ -821,10 +821,7 @@ module.exports = class bitstamp extends Exchange {
             side = (side === '1') ? 'sell' : 'buy';
         }
         // there is no timestamp from fetchOrder
-        const time = this.safeString (order, 'datetime');
-        let timestamp = undefined;
-        if (time)
-            timestamp = this.parse8601 (time);
+        const timestamp = this.parse8601 (this.safeString (order, 'datetime'));
         let lastTradeTimestamp = undefined;
         let symbol = undefined;
         let marketId = this.safeString (order, 'currency_pair');
@@ -839,28 +836,25 @@ module.exports = class bitstamp extends Exchange {
         let amount = this.safeFloat (order, 'amount');
         let filled = 0.0;
         let trades = [];
-        let transactions = this.safeValue (order, 'transactions');
+        let transactions = this.safeValue (order, 'transactions', []);
         let feeCost = undefined;
         let cost = undefined;
-        if (transactions !== undefined) {
-            if (Array.isArray (transactions)) {
-                feeCost = 0.0;
-                for (let i = 0; i < transactions.length; i++) {
-                    let trade = this.parseTrade (this.extend ({
-                        'order_id': id,
-                        'side': side,
-                    }, transactions[i]), market);
-                    filled += trade['amount'];
-                    feeCost += trade['fee']['cost'];
-                    if (cost === undefined)
-                        cost = 0.0;
-                    cost += trade['cost'];
-                    trades.push (trade);
-                    const tradeTimestamp = this.safeInteger (trade, 'timestamp');
-                    if (!lastTradeTimestamp || lastTradeTimestamp < tradeTimestamp)
-                        lastTradeTimestamp = tradeTimestamp;
-                }
+        const numTransactions = transactions.length;
+        if (numTransactions > 0) {
+            feeCost = 0.0;
+            for (let i = 0; i < transactions.length; i++) {
+                let trade = this.parseTrade (this.extend ({
+                    'order_id': id,
+                    'side': side,
+                }, transactions[i]), market);
+                filled += trade['amount'];
+                feeCost += trade['fee']['cost'];
+                if (cost === undefined)
+                    cost = 0.0;
+                cost += trade['cost'];
+                trades.push (trade);
             }
+            lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
         }
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
         if ((status === 'closed') && (amount === undefined)) {
