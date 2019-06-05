@@ -343,7 +343,7 @@ class btcmarkets (Exchange):
         multiplier = 100000000
         side = 'buy' if (order['orderSide'] == 'Bid') else 'sell'
         type = 'limit' if (order['ordertype'] == 'Limit') else 'market'
-        timestamp = order['creationTime']
+        timestamp = self.safe_integer(order, 'creationTime')
         if market is None:
             market = self.market(order['instrument'] + '/' + order['currency'])
         status = 'open'
@@ -355,14 +355,25 @@ class btcmarkets (Exchange):
         amount = self.safe_float(order, 'volume') / multiplier
         remaining = self.safe_float(order, 'openVolume', 0.0) / multiplier
         filled = amount - remaining
-        cost = price * amount
         trades = self.parse_my_trades(order['trades'], market)
+        numTrades = len(trades)
+        cost = filled * price
+        average = None
+        lastTradeTimestamp = None
+        if numTrades > 0:
+            cost = 0
+            for i in range(0, numTrades):
+                trade = trades[i]
+                cost = self.sum(cost, trade[i]['cost'])
+            if filled > 0:
+                average = cost / filled
+            lastTradeTimestamp = trades[numTrades - 1]['timestamp']
         result = {
             'info': order,
             'id': str(order['id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': market['symbol'],
             'type': type,
             'side': side,
@@ -371,6 +382,7 @@ class btcmarkets (Exchange):
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
+            'average': average,
             'status': status,
             'trades': trades,
             'fee': None,

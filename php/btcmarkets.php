@@ -359,7 +359,7 @@ class btcmarkets extends Exchange {
         $multiplier = 100000000;
         $side = ($order['orderSide'] === 'Bid') ? 'buy' : 'sell';
         $type = ($order['ordertype'] === 'Limit') ? 'limit' : 'market';
-        $timestamp = $order['creationTime'];
+        $timestamp = $this->safe_integer($order, 'creationTime');
         if ($market === null) {
             $market = $this->market ($order['instrument'] . '/' . $order['currency']);
         }
@@ -373,14 +373,28 @@ class btcmarkets extends Exchange {
         $amount = $this->safe_float($order, 'volume') / $multiplier;
         $remaining = $this->safe_float($order, 'openVolume', 0.0) / $multiplier;
         $filled = $amount - $remaining;
-        $cost = $price * $amount;
         $trades = $this->parse_my_trades ($order['trades'], $market);
+        $numTrades = is_array ($trades) ? count ($trades) : 0;
+        $cost = $filled * $price;
+        $average = null;
+        $lastTradeTimestamp = null;
+        if ($numTrades > 0) {
+            $cost = 0;
+            for ($i = 0; $i < $numTrades; $i++) {
+                $trade = $trades[$i];
+                $cost = $this->sum ($cost, $trade[$i]['cost']);
+            }
+            if ($filled > 0) {
+                $average = $cost / $filled;
+            }
+            $lastTradeTimestamp = $trades[$numTrades - 1]['timestamp'];
+        }
         $result = array (
             'info' => $order,
             'id' => (string) $order['id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'lastTradeTimestamp' => null,
+            'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $market['symbol'],
             'type' => $type,
             'side' => $side,
@@ -389,6 +403,7 @@ class btcmarkets extends Exchange {
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
+            'average' => $average,
             'status' => $status,
             'trades' => $trades,
             'fee' => null,
