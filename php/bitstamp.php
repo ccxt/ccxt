@@ -16,6 +16,7 @@ class bitstamp extends Exchange {
             'countries' => array ( 'GB' ),
             'rateLimit' => 1000,
             'version' => 'v2',
+            'userAgent' => $this->userAgents['chrome'],
             'has' => array (
                 'CORS' => true,
                 'fetchDepositAddress' => true,
@@ -362,6 +363,14 @@ class bitstamp extends Exchange {
         //         "$type" => 2
         //     }
         //
+        // from fetchOrder:
+        //    { $fee => '0.000019',
+        //     $price => '0.00015803',
+        //     datetime => '2018-01-07 10:45:34.132551',
+        //     btc => '0.0079015000000000',
+        //     tid => 42777395,
+        //     $type => 2, //(0 - deposit; 1 - withdrawal; 2 - $market $trade) NOT buy/sell
+        //     xrp => '50.00000000' }
         $id = $this->safe_string_2($trade, 'id', 'tid');
         $symbol = null;
         $side = null;
@@ -773,7 +782,32 @@ class bitstamp extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
+        // from fetch $order:
+        //   { $status => 'Finished',
+        //     $id => 731693945,
+        //     $transactions:
+        //     array ( { $fee => '0.000019',
+        //         $price => '0.00015803',
+        //         datetime => '2018-01-07 10:45:34.132551',
+        //         btc => '0.0079015000000000',
+        //         tid => 42777395,
+        //         type => 2,
+        //         xrp => '50.00000000' } ) }
         //
+        // partially $filled $order:
+        //   { "$id" => 468646390,
+        //     "$status" => "Canceled",
+        //     "$transactions" => [array (
+        //         "eth" => "0.23000000",
+        //         "$fee" => "0.09",
+        //         "tid" => 25810126,
+        //         "usd" => "69.8947000000000000",
+        //         "type" => 2,
+        //         "$price" => "303.89000000",
+        //         "datetime" => "2017-11-11 07:22:20.710567"
+        //     )]}
+        //
+        // from create $order response:
         //     {
         //         $price => '0.00008012',
         //         currency_pair => 'XRP/BTC',
@@ -788,7 +822,9 @@ class bitstamp extends Exchange {
         if ($side !== null) {
             $side = ($side === '1') ? 'sell' : 'buy';
         }
+        // there is no $timestamp from fetchOrder
         $timestamp = $this->parse8601 ($this->safe_string($order, 'datetime'));
+        $lastTradeTimestamp = null;
         $symbol = null;
         $marketId = $this->safe_string($order, 'currency_pair');
         if ($marketId !== null) {
@@ -802,25 +838,26 @@ class bitstamp extends Exchange {
         $amount = $this->safe_float($order, 'amount');
         $filled = 0.0;
         $trades = array ();
-        $transactions = $this->safe_value($order, 'transactions');
+        $transactions = $this->safe_value($order, 'transactions', array ());
         $feeCost = null;
         $cost = null;
-        if ($transactions !== null) {
-            if (gettype ($transactions) === 'array' && count (array_filter (array_keys ($transactions), 'is_string')) == 0) {
-                $feeCost = 0.0;
-                for ($i = 0; $i < count ($transactions); $i++) {
-                    $trade = $this->parse_trade(array_merge (array (
-                        'order_id' => $id,
-                        'side' => $side,
-                    ), $transactions[$i]), $market);
-                    $filled .= $trade['amount'];
-                    $feeCost .= $trade['fee']['cost'];
-                    if ($cost === null)
-                        $cost = 0.0;
-                    $cost .= $trade['cost'];
-                    $trades[] = $trade;
+        $numTransactions = is_array ($transactions) ? count ($transactions) : 0;
+        if ($numTransactions > 0) {
+            $feeCost = 0.0;
+            for ($i = 0; $i < $numTransactions; $i++) {
+                $trade = $this->parse_trade(array_merge (array (
+                    'order_id' => $id,
+                    'side' => $side,
+                ), $transactions[$i]), $market);
+                $filled = $this->sum ($filled, $trade['amount']);
+                $feeCost = $this->sum ($feeCost, $trade['fee']['cost']);
+                if ($cost === null) {
+                    $cost = 0.0;
                 }
+                $cost = $this->sum ($cost, $trade['cost']);
+                $trades[] = $trade;
             }
+            $lastTradeTimestamp = $trades[$numTransactions - 1]['timestamp'];
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         if (($status === 'closed') && ($amount === null)) {
@@ -863,7 +900,7 @@ class bitstamp extends Exchange {
             'id' => $id,
             'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
-            'lastTradeTimestamp' => null,
+            'lastTradeTimestamp' => $lastTradeTimestamp,
             'status' => $status,
             'symbol' => $symbol,
             'type' => null,
@@ -974,6 +1011,10 @@ class bitstamp extends Exchange {
         );
     }
 
+    public function nonce () {
+        return $this->milliseconds ();
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/';
         if ($api !== 'v1')
@@ -1008,7 +1049,7 @@ class bitstamp extends Exchange {
         //
         //     array ("$error" => "No permission found") // fetchDepositAddress returns this on apiKeys that don't have the permission required
         //     array ("$status" => "$error", "$reason" => {"__all__" => ["Minimum order size is 5.0 EUR."])}
-        //
+        //     reuse of a nonce gives => array ( $status => 'error', $reason => 'Invalid nonce', $code => 'API0004' )
         $status = $this->safe_string($response, 'status');
         $error = $this->safe_value($response, 'error');
         if (($status === 'error') || ($error !== null)) {

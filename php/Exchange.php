@@ -33,7 +33,7 @@ namespace ccxt;
 use kornrunner\Eth;
 use kornrunner\Secp256k1;
 
-$version = '1.18.631';
+$version = '1.18.633';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -48,7 +48,8 @@ const NO_PADDING = 0;
 const PAD_WITH_ZERO = 1;
 
 class Exchange {
-    const VERSION = '1.18.631';
+
+    const VERSION = '1.18.633';
 
     public static $eth_units = array (
         'wei'        => '1',
