@@ -221,23 +221,19 @@ class gateio extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $balance = $this->privatePostBalances ();
-        $result = array ( 'info' => $balance );
-        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
-        for ($i = 0; $i < count ($currencies); $i++) {
-            $currency = $currencies[$i];
-            $code = $this->common_currency_code($currency);
+        $response = $this->privatePostBalances ($params);
+        $result = array ( 'info' => $response );
+        $codes = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
+        $available = $this->safe_value($response, 'available', array ());
+        $locked = $this->safe_value($response, 'locked', array ());
+        for ($i = 0; $i < count ($codes); $i++) {
+            $code = $codes[$i];
+            $currency = $this->currencies[$code];
+            $currencyId = $currency['id'];
+            $uppercaseId = strtoupper ($currencyId);
             $account = $this->account ();
-            if (is_array ($balance) && array_key_exists ('available', $balance)) {
-                if (is_array ($balance['available']) && array_key_exists ($currency, $balance['available'])) {
-                    $account['free'] = floatval ($balance['available'][$currency]);
-                }
-            }
-            if (is_array ($balance) && array_key_exists ('locked', $balance)) {
-                if (is_array ($balance['locked']) && array_key_exists ($currency, $balance['locked'])) {
-                    $account['used'] = floatval ($balance['locked'][$currency]);
-                }
-            }
+            $account['free'] = $this->safe_float($available, $uppercaseId);
+            $account['used'] = $this->safe_float($locked, $uppercaseId);
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$code] = $account;
         }
