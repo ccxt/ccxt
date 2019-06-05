@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -424,13 +425,18 @@ class deribit (Exchange):
             'currency': 'BTC',
         }
         type = self.safe_string(order, 'type')
+        marketId = self.safe_string(order, 'instrument')
+        symbol = None
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+            symbol = market['symbol']
         return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': order['instrument'],
+            'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
@@ -447,7 +453,10 @@ class deribit (Exchange):
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
         response = self.privateGetOrderstate({'orderId': id})
-        return self.parse_order(response['result'])
+        result = self.safe_value(response, 'result')
+        if result is None:
+            raise OrderNotFound(self.id + ' fetchOrder() ' + self.json(response))
+        return self.parse_order(result)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -484,6 +493,8 @@ class deribit (Exchange):
         return self.parse_order(response['result']['order'])
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a `symbol` argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -493,6 +504,8 @@ class deribit (Exchange):
         return self.parse_orders(response['result'], market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a `symbol` argument')
         self.load_markets()
         market = self.market(symbol)
         request = {

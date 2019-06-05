@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.634'
+const version = '1.18.635'
 
 Exchange.ccxtVersion = version
 
@@ -36627,7 +36627,7 @@ module.exports = class crypton extends Exchange {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -37063,13 +37063,19 @@ module.exports = class deribit extends Exchange {
             'currency': 'BTC',
         };
         let type = this.safeString (order, 'type');
+        let marketId = this.safeString (order, 'instrument');
+        let symbol = undefined;
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        }
         return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': order['instrument'],
+            'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
@@ -37086,8 +37092,12 @@ module.exports = class deribit extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetOrderstate ({ 'orderId': id });
-        return this.parseOrder (response['result']);
+        const response = await this.privateGetOrderstate ({ 'orderId': id });
+        const result = this.safeValue (response, 'result');
+        if (result === undefined) {
+            throw new OrderNotFound (this.id + ' fetchOrder() ' + this.json (response));
+        }
+        return this.parseOrder (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -37125,27 +37135,33 @@ module.exports = class deribit extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostCancel (this.extend ({ 'orderId': id }, params));
+        const response = await this.privatePostCancel (this.extend ({ 'orderId': id }, params));
         return this.parseOrder (response['result']['order']);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a `symbol` argument');
+        }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'instrument': market['id'],
         };
-        let response = await this.privateGetGetopenorders (this.extend (request, params));
+        const response = await this.privateGetGetopenorders (this.extend (request, params));
         return this.parseOrders (response['result'], market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a `symbol` argument');
+        }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'instrument': market['id'],
         };
-        let response = await this.privateGetOrderhistory (this.extend (request, params));
+        const response = await this.privateGetOrderhistory (this.extend (request, params));
         return this.parseOrders (response['result'], market, since, limit);
     }
 
