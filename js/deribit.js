@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -501,27 +501,33 @@ module.exports = class deribit extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostCancel (this.extend ({ 'orderId': id }, params));
+        const response = await this.privatePostCancel (this.extend ({ 'orderId': id }, params));
         return this.parseOrder (response['result']['order']);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a `symbol` argument');
+        }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'instrument': market['id'],
         };
-        let response = await this.privateGetGetopenorders (this.extend (request, params));
+        const response = await this.privateGetGetopenorders (this.extend (request, params));
         return this.parseOrders (response['result'], market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a `symbol` argument');
+        }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'instrument': market['id'],
         };
-        let response = await this.privateGetOrderhistory (this.extend (request, params));
+        const response = await this.privateGetOrderhistory (this.extend (request, params));
         return this.parseOrders (response['result'], market, since, limit);
     }
 
