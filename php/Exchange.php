@@ -713,6 +713,7 @@ class Exchange {
         //     }
         // }
 
+        $this->defined_rest_api = array();
         $this->curl         = curl_init ();
         $this->curl_options = array (); // overrideable by user, empty by default
 
@@ -964,12 +965,8 @@ class Exchange {
                             $underscore .= $options['suffixes']['underscore'];
                     }
 
-                    $partial = function ($params = array ()) use ($path, $type, $uppercaseMethod, $method_name) {
-                        return call_user_func (array ($this, $method_name), $path, $type, $uppercaseMethod, $params);
-                    };
-
-                    $this->$camelcase  = $partial;
-                    $this->$underscore = $partial;
+                    $this->defined_rest_api[$camelcase] = array($path, $type, $uppercaseMethod, $method_name);
+                    $this->defined_rest_api[$underscore] = array($path, $type, $uppercaseMethod, $method_name);
                 }
     }
 
@@ -2176,8 +2173,11 @@ class Exchange {
     }
 
     public function __call ($function, $params) {
-        if (array_key_exists ($function, $this)) {
-            return call_user_func_array ($this->$function, $params);
+        if (array_key_exists ($function, $this->defined_rest_api)) {
+            $partial = $this->defined_rest_api[$function];
+            $entry = $partial[3];
+            $partial[3] = $params;
+            return call_user_func_array (array($this, $entry), $partial);
         } else {
             /* handle errors */
             throw new ExchangeError ($function . ' method not found, try underscore_notation instead of camelCase for the method being called');
