@@ -16,6 +16,7 @@ class bitstamp extends Exchange {
             'countries' => array ( 'GB' ),
             'rateLimit' => 1000,
             'version' => 'v2',
+            'userAgent' => $this->userAgents['chrome'],
             'has' => array (
                 'CORS' => true,
                 'fetchDepositAddress' => true,
