@@ -220,23 +220,19 @@ module.exports = class gateio extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let balance = await this.privatePostBalances ();
-        let result = { 'info': balance };
-        let currencies = Object.keys (this.currencies);
-        for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let code = this.commonCurrencyCode (currency);
+        const response = await this.privatePostBalances (params);
+        const result = { 'info': response };
+        const codes = Object.keys (this.currencies);
+        const available = this.safeValue (response, 'available', {});
+        const locked = this.safeValue (response, 'locked', {});
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const currency = this.currencies[code];
+            const currencyId = currency['id'];
+            const uppercaseId = currencyId.toUpperCase ();
             let account = this.account ();
-            if ('available' in balance) {
-                if (currency in balance['available']) {
-                    account['free'] = parseFloat (balance['available'][currency]);
-                }
-            }
-            if ('locked' in balance) {
-                if (currency in balance['locked']) {
-                    account['used'] = parseFloat (balance['locked'][currency]);
-                }
-            }
+            account['free'] = this.safeFloat (available, uppercaseId);
+            account['used'] = this.safeFloat (locked, uppercaseId);
             account['total'] = this.sum (account['free'], account['used']);
             result[code] = account;
         }
