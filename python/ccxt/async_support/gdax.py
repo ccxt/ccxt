@@ -584,8 +584,8 @@ class gdax (Exchange):
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
-        currency = self.currency(code)
         await self.load_markets()
+        currency = self.currency(code)
         request = {
             'currency': currency['id'],
             'amount': amount,

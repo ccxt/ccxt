@@ -778,6 +778,7 @@ class exmo extends Exchange {
         $status = 'open';
         $order = array (
             'id' => $id,
+            'info' => $response,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
@@ -794,40 +795,69 @@ class exmo extends Exchange {
             'trades' => null,
         );
         $this->orders[$id] = $order;
-        return array_merge (array ( 'info' => $response ), $order);
+        return $order;
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostOrderCancel (array ( 'order_id' => $id ));
-        if (is_array ($this->orders) && array_key_exists ($id, $this->orders))
+        $request = array ( 'order_id' => $id );
+        $response = $this->privatePostOrderCancel (array_merge ($request, $params));
+        if (is_array ($this->orders) && array_key_exists ($id, $this->orders)) {
             $this->orders[$id]['status'] = 'canceled';
+        }
         return $response;
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         try {
-            $response = $this->privatePostOrderTrades (array (
+            $request = array (
                 'order_id' => (string) $id,
+            );
+            $response = $this->privatePostOrderTrades (array_merge ($request, $params));
+            //
+            //     {
+            //         "type" => "buy",
+            //         "in_currency" => "BTC",
+            //         "in_amount" => "1",
+            //         "out_currency" => "USD",
+            //         "out_amount" => "100",
+            //         "trades" => array (
+            //             {
+            //                 "trade_id" => 3,
+            //                 "date" => 1435488248,
+            //                 "type" => "buy",
+            //                 "pair" => "BTC_USD",
+            //                 "order_id" => 12345,
+            //                 "quantity" => 1,
+            //                 "price" => 100,
+            //                 "amount" => 100
+            //             }
+            //         )
+            //     }
+            //
+            $order = $this->parse_order($response);
+            return array_merge ($order, array (
+                'id' => (string) $id,
             ));
-            return $this->parse_order($response);
         } catch (Exception $e) {
             if ($e instanceof OrderNotFound) {
                 if (is_array ($this->orders) && array_key_exists ($id, $this->orders))
                     return $this->orders[$id];
             }
         }
-        throw new OrderNotFound ($this->id . ' fetchOrder order $id ' . (string) $id . ' not found in cache.');
+        throw new OrderNotFound ($this->id . ' fetchOrder $order $id ' . (string) $id . ' not found in cache.');
     }
 
     public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $market = null;
-        if ($symbol !== null)
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
-        $response = $this->privatePostOrderTrades (array_merge (array (
+        }
+        $request = array (
             'order_id' => (string) $id,
-        ), $params));
+        );
+        $response = $this->privatePostOrderTrades (array_merge ($request, $params));
         $trades = $this->safe_value($response, 'trades');
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -901,6 +931,41 @@ class exmo extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
+        //
+        // fetchOrders, fetchOpenOrders, fetchClosedOrders
+        //
+        //     {
+        //         "order_id" => "14",
+        //         "created" => "1435517311",
+        //         "type" => "buy",
+        //         "pair" => "BTC_USD",
+        //         "$price" => "100",
+        //         "quantity" => "1",
+        //         "$amount" => "100"
+        //     }
+        //
+        // fetchOrder
+        //
+        //     {
+        //         "type" => "buy",
+        //         "in_currency" => "BTC",
+        //         "in_amount" => "1",
+        //         "out_currency" => "USD",
+        //         "out_amount" => "100",
+        //         "$trades" => array (
+        //             {
+        //                 "trade_id" => 3,
+        //                 "date" => 1435488248,
+        //                 "type" => "buy",
+        //                 "pair" => "BTC_USD",
+        //                 "order_id" => 12345,
+        //                 "quantity" => 1,
+        //                 "$price" => 100,
+        //                 "$amount" => 100
+        //             }
+        //         )
+        //     }
+        //
         $id = $this->safe_string($order, 'order_id');
         $timestamp = $this->safe_integer($order, 'created');
         if ($timestamp !== null) {
@@ -930,33 +995,29 @@ class exmo extends Exchange {
         $cost = $this->safe_float($order, 'amount');
         $filled = 0.0;
         $trades = array ();
-        $transactions = $this->safe_value($order, 'trades');
+        $transactions = $this->safe_value($order, 'trades', array ());
         $feeCost = null;
-        if ($transactions !== null) {
-            if (gettype ($transactions) === 'array' && count (array_filter (array_keys ($transactions), 'is_string')) == 0) {
-                for ($i = 0; $i < count ($transactions); $i++) {
-                    $trade = $this->parse_trade($transactions[$i], $market);
-                    if ($id === null) {
-                        $id = $trade['order'];
-                    }
-                    if ($timestamp === null) {
-                        $timestamp = $trade['timestamp'];
-                    }
-                    if ($timestamp > $trade['timestamp']) {
-                        $timestamp = $trade['timestamp'];
-                    }
-                    $filled = $this->sum ($filled, $trade['amount']);
-                    if ($feeCost === null) {
-                        $feeCost = 0.0;
-                    }
-                    $feeCost = $this->sum ($feeCost, $trade['fee']['cost']);
-                    if ($cost === null) {
-                        $cost = 0.0;
-                    }
-                    $cost = $this->sum ($cost, $trade['cost']);
-                    $trades[] = $trade;
+        $lastTradeTimestamp = null;
+        $average = null;
+        $numTransactions = is_array ($transactions) ? count ($transactions) : 0;
+        if ($numTransactions > 0) {
+            $feeCost = 0;
+            for ($i = 0; $i < $numTransactions; $i++) {
+                $trade = $this->parse_trade($transactions[$i], $market);
+                if ($id === null) {
+                    $id = $trade['order'];
                 }
+                if ($timestamp === null) {
+                    $timestamp = $trade['timestamp'];
+                }
+                if ($timestamp > $trade['timestamp']) {
+                    $timestamp = $trade['timestamp'];
+                }
+                $filled = $this->sum ($filled, $trade['amount']);
+                $feeCost = $this->sum ($feeCost, $trade['fee']['cost']);
+                $trades[] = $trade;
             }
+            $lastTradeTimestamp = $trades[$numTransactions - 1]['timestamp'];
         }
         $remaining = null;
         if ($amount !== null) {
@@ -979,9 +1040,15 @@ class exmo extends Exchange {
         if ($cost === null) {
             if ($price !== null)
                 $cost = $price * $filled;
-        } else if ($price === null) {
-            if ($filled > 0)
-                $price = $cost / $filled;
+        } else {
+            if ($filled > 0) {
+                if ($average === null) {
+                    $average = $cost / $filled;
+                }
+                if ($price === null) {
+                    $price = $cost / $filled;
+                }
+            }
         }
         $fee = array (
             'cost' => $feeCost,
@@ -991,7 +1058,7 @@ class exmo extends Exchange {
             'id' => $id,
             'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
-            'lastTradeTimestamp' => null,
+            'lastTradeTimestamp' => $lastTradeTimestamp,
             'status' => $status,
             'symbol' => $symbol,
             'type' => 'limit',
@@ -1001,6 +1068,7 @@ class exmo extends Exchange {
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
+            'average' => $average,
             'trades' => $trades,
             'fee' => $fee,
             'info' => $order,

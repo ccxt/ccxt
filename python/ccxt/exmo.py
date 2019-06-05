@@ -752,6 +752,7 @@ class exmo (Exchange):
         status = 'open'
         order = {
             'id': id,
+            'info': response,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -768,11 +769,12 @@ class exmo (Exchange):
             'trades': None,
         }
         self.orders[id] = order
-        return self.extend({'info': response}, order)
+        return order
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.privatePostOrderCancel({'order_id': id})
+        request = {'order_id': id}
+        response = self.privatePostOrderCancel(self.extend(request, params))
         if id in self.orders:
             self.orders[id]['status'] = 'canceled'
         return response
@@ -780,10 +782,35 @@ class exmo (Exchange):
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
         try:
-            response = self.privatePostOrderTrades({
+            request = {
                 'order_id': str(id),
+            }
+            response = self.privatePostOrderTrades(self.extend(request, params))
+            #
+            #     {
+            #         "type": "buy",
+            #         "in_currency": "BTC",
+            #         "in_amount": "1",
+            #         "out_currency": "USD",
+            #         "out_amount": "100",
+            #         "trades": [
+            #             {
+            #                 "trade_id": 3,
+            #                 "date": 1435488248,
+            #                 "type": "buy",
+            #                 "pair": "BTC_USD",
+            #                 "order_id": 12345,
+            #                 "quantity": 1,
+            #                 "price": 100,
+            #                 "amount": 100
+            #             }
+            #         ]
+            #     }
+            #
+            order = self.parse_order(response)
+            return self.extend(order, {
+                'id': str(id),
             })
-            return self.parse_order(response)
         except Exception as e:
             if isinstance(e, OrderNotFound):
                 if id in self.orders:
@@ -794,9 +821,10 @@ class exmo (Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        response = self.privatePostOrderTrades(self.extend({
+        request = {
             'order_id': str(id),
-        }, params))
+        }
+        response = self.privatePostOrderTrades(self.extend(request, params))
         trades = self.safe_value(response, 'trades')
         return self.parse_trades(trades, market, since, limit)
 
@@ -859,6 +887,41 @@ class exmo (Exchange):
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def parse_order(self, order, market=None):
+        #
+        # fetchOrders, fetchOpenOrders, fetchClosedOrders
+        #
+        #     {
+        #         "order_id": "14",
+        #         "created": "1435517311",
+        #         "type": "buy",
+        #         "pair": "BTC_USD",
+        #         "price": "100",
+        #         "quantity": "1",
+        #         "amount": "100"
+        #     }
+        #
+        # fetchOrder
+        #
+        #     {
+        #         "type": "buy",
+        #         "in_currency": "BTC",
+        #         "in_amount": "1",
+        #         "out_currency": "USD",
+        #         "out_amount": "100",
+        #         "trades": [
+        #             {
+        #                 "trade_id": 3,
+        #                 "date": 1435488248,
+        #                 "type": "buy",
+        #                 "pair": "BTC_USD",
+        #                 "order_id": 12345,
+        #                 "quantity": 1,
+        #                 "price": 100,
+        #                 "amount": 100
+        #             }
+        #         ]
+        #     }
+        #
         id = self.safe_string(order, 'order_id')
         timestamp = self.safe_integer(order, 'created')
         if timestamp is not None:
@@ -884,26 +947,25 @@ class exmo (Exchange):
         cost = self.safe_float(order, 'amount')
         filled = 0.0
         trades = []
-        transactions = self.safe_value(order, 'trades')
+        transactions = self.safe_value(order, 'trades', [])
         feeCost = None
-        if transactions is not None:
-            if isinstance(transactions, list):
-                for i in range(0, len(transactions)):
-                    trade = self.parse_trade(transactions[i], market)
-                    if id is None:
-                        id = trade['order']
-                    if timestamp is None:
-                        timestamp = trade['timestamp']
-                    if timestamp > trade['timestamp']:
-                        timestamp = trade['timestamp']
-                    filled = self.sum(filled, trade['amount'])
-                    if feeCost is None:
-                        feeCost = 0.0
-                    feeCost = self.sum(feeCost, trade['fee']['cost'])
-                    if cost is None:
-                        cost = 0.0
-                    cost = self.sum(cost, trade['cost'])
-                    trades.append(trade)
+        lastTradeTimestamp = None
+        average = None
+        numTransactions = len(transactions)
+        if numTransactions > 0:
+            feeCost = 0
+            for i in range(0, numTransactions):
+                trade = self.parse_trade(transactions[i], market)
+                if id is None:
+                    id = trade['order']
+                if timestamp is None:
+                    timestamp = trade['timestamp']
+                if timestamp > trade['timestamp']:
+                    timestamp = trade['timestamp']
+                filled = self.sum(filled, trade['amount'])
+                feeCost = self.sum(feeCost, trade['fee']['cost'])
+                trades.append(trade)
+            lastTradeTimestamp = trades[numTransactions - 1]['timestamp']
         remaining = None
         if amount is not None:
             remaining = amount - filled
@@ -921,9 +983,12 @@ class exmo (Exchange):
         if cost is None:
             if price is not None:
                 cost = price * filled
-        elif price is None:
+        else:
             if filled > 0:
-                price = cost / filled
+                if average is None:
+                    average = cost / filled
+                if price is None:
+                    price = cost / filled
         fee = {
             'cost': feeCost,
             'currency': feeCurrency,
@@ -932,7 +997,7 @@ class exmo (Exchange):
             'id': id,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
-            'lastTradeTimestamp': None,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
             'symbol': symbol,
             'type': 'limit',
@@ -942,6 +1007,7 @@ class exmo (Exchange):
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
+            'average': average,
             'trades': trades,
             'fee': fee,
             'info': order,
