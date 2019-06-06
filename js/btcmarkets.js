@@ -606,7 +606,7 @@ module.exports = class btcmarkets extends Exchange {
                 if (Object.keys (query).length) {
                     queryString = this.urlencode (query);
                     url += '?' + queryString;
-                    queryString += "\n"
+                    queryString += "\n";
                 }
                 auth = uri + "\n" + queryString + nonce + "\n";
             }
