@@ -2210,7 +2210,7 @@ class Exchange {
         if (array_key_exists($function, $this->defined_rest_api)) {
             $partial = $this->defined_rest_api[$function];
             $entry = $partial[3];
-            $partial[3] = $params;
+            $partial[3] = $params ? $params[0] : array ();
             return call_user_func_array(array($this, $entry), $partial);
         } else {
             /* handle errors */
