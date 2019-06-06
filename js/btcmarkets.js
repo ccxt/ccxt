@@ -595,9 +595,8 @@ module.exports = class btcmarkets extends Exchange {
                 'timestamp': nonce,
             };
             if (method === 'post') {
-                // eslint-disable-next-line quotes
                 headers['Content-Type'] = 'application/json';
-                auth = uri + "\n" + nonce + "\n"; // eslint-disable-quotes
+                auth = uri + "\n" + nonce + "\n"; // eslint-disable quotes
                 body = this.json (params);
                 auth += body;
             } else {
@@ -606,9 +605,9 @@ module.exports = class btcmarkets extends Exchange {
                 if (Object.keys (query).length) {
                     queryString = this.urlencode (query);
                     url += '?' + queryString;
-                    queryString += "\n"; // eslint-disable-quotes
+                    queryString += "\n"; // eslint-disable quotes
                 }
-                auth = uri + "\n" + queryString + nonce + "\n"; // eslint-disable-quotes
+                auth = uri + "\n" + queryString + nonce + "\n"; // eslint-disable quotes
             }
             let secret = this.base64ToBinary (this.secret);
             let signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
