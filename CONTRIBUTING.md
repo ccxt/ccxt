@@ -416,9 +416,12 @@ const b = 'api\nfoobar.com\n';
 Good:
 
 ```JavaScript
-const a = 'GET' + method.toLowerCase () + "\n" + path;
+const a = 'GET' + method.toLowerCase () + "\n" + path; // eslint-disable-line quotes
+// eslint-disable-next-line quotes
 const b = "api\nfoobar.com\n";
 ```
+
+**↑ The `eslint-*` comments are mandatory!**
 
 #### Using ternary conditionals
 
