@@ -98,6 +98,14 @@ module.exports = class btcmarkets extends Exchange {
         return this.parseTransactions (transactions, undefined, since, limit);
     }
 
+    parseTransactionStatus (status) {
+        // todo: find more statuses
+        const statuses = {
+            'Complete': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseTransaction (item, currency = undefined) {
         //   { status: 'Complete',
         //     fundTransferId: 1904311906,
@@ -155,12 +163,7 @@ module.exports = class btcmarkets extends Exchange {
         }
         const fee = this.safeFloat (item, 'fee');
         const rawStatus = this.safeString (item, 'status');
-        let status = undefined;
-        if (rawStatus === 'Complete') {
-            status = 'ok';
-        } else {
-            status = rawStatus;
-        }
+        const status = this.parseTransactionStatus (rawStatus);
         const ccy = this.safeString (item, 'currency');
         const code = this.commonCurrencyCode (ccy);
         // todo: this logic is duplicated below
