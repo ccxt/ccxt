@@ -210,8 +210,8 @@ module.exports = class bit2c extends Exchange {
             'pair': market['id'],
         }, params));
         let orders = this.safeValue (response, market['id'], {});
-        let asks = this.safeValue (orders, 'ask');
-        let bids = this.safeValue (orders, 'bid');
+        let asks = this.safeValue (orders, 'ask', []);
+        let bids = this.safeValue (orders, 'bid', []);
         return this.parseOrders (this.arrayConcat (asks, bids), market, since, limit);
     }
 
