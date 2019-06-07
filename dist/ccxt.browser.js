@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.637'
+const version = '1.18.638'
 
 Exchange.ccxtVersion = version
 
@@ -17850,6 +17850,7 @@ module.exports = class bittrex extends Exchange {
                     'market': 'https://{hostname}/api',
                     'v2': 'https://{hostname}/api/v2.0/pub',
                     'v3': 'https://api.{hostname}/v3',
+                    'v3public': 'https://api.{hostname}/v3',
                 },
                 'www': 'https://bittrex.com',
                 'doc': [
@@ -18047,6 +18048,7 @@ module.exports = class bittrex extends Exchange {
                     // 'LISK': true, // LSK
                 },
                 'subaccountId': undefined,
+                // see the implementation of fetchClosedOrdersV3 below
                 'fetchClosedOrdersMethod': 'fetch_closed_orders_v3',
             },
             'commonCurrencies': {
@@ -18430,10 +18432,19 @@ module.exports = class bittrex extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderIdField = this.getOrderIdField ();
-        let request = {};
+        const orderIdField = this.getOrderIdField ();
+        const request = {};
         request[orderIdField] = id;
-        let response = await this.marketGetCancel (this.extend (request, params));
+        const response = await this.marketGetCancel (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "message": "''",
+        //         "result": {
+        //             "uuid": "614c34e4-8d71-11e3-94b5-425861b86ab6"
+        //         }
+        //     }
+        //
         return this.extend (this.parseOrder (response), {
             'status': 'canceled',
         });
@@ -18621,10 +18632,10 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        if (('OrderType' in order) || ('Type' in order)) {
-            return this.parseOrderV2 (order, market);
-        } else {
+        if ('marketSymbol' in order) {
             return this.parseOrderV3 (order, market);
+        } else {
+            return this.parseOrderV2 (order, market);
         }
     }
 
@@ -18660,14 +18671,11 @@ module.exports = class bittrex extends Exchange {
         const marketSymbol = this.safeString (order, 'marketSymbol');
         let symbol = undefined;
         let feeCurrency = undefined;
-        if (marketSymbol in this.markets_by_id) {
-            market = this.markets_by_id[marketSymbol];
-            symbol = market['symbol'];
-            feeCurrency = market['quote'];
-        } else {
-            symbol = this.parseSymbol (marketSymbol);
-            const parts = symbol.split (this.options['symbolSeparator']);
-            const quote = parts[1];
+        if (marketSymbol !== undefined) {
+            const [ baseId, quoteId ] = marketSymbol.split ('-');
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            symbol = base + '/' + quote;
             feeCurrency = quote;
         }
         const direction = this.safeString (order, 'direction');
@@ -18726,6 +18734,25 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseOrderV2 (order, market = undefined) {
+        //
+        //     {
+        //         "Uuid": "string (uuid)",
+        //         "OrderUuid": "8925d746-bc9f-4684-b1aa-e507467aaa99",
+        //         "Exchange": "BTC-LTC",
+        //         "OrderType": "string",
+        //         "Quantity": 100000,
+        //         "QuantityRemaining": 100000,
+        //         "Limit": 1e-8,
+        //         "CommissionPaid": 0,
+        //         "Price": 0,
+        //         "PricePerUnit": null,
+        //         "Opened": "2014-07-09T03:55:48.583",
+        //         "Closed": null,
+        //         "CancelInitiated": "boolean",
+        //         "ImmediateOrCancel": "boolean",
+        //         "IsConditional": "boolean"
+        //     }
+        //
         let side = this.safeString2 (order, 'OrderType', 'Type');
         const isBuyOrder = (side === 'LIMIT_BUY') || (side === 'BUY');
         const isSellOrder = (side === 'LIMIT_SELL') || (side === 'SELL');
@@ -18918,7 +18945,14 @@ module.exports = class bittrex extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['marketSymbol'] = market['id'];
+            // because of this line we will have to rethink the entire v3
+            // in other words, markets define all the rest of the API
+            // and if v3 is reversed in comarison to v2
+            // v3 has to be a completely separate implementation then
+            // otherwise we will have to shuffle symbols and currencies everywhere
+            // which is prone to errors, as was shown here
+            // https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
+            request['marketSymbol'] = market['base'] + '-' + market['quote'];
         }
         const response = await this.v3GetOrdersClosed (this.extend (request, params));
         const orders = this.parseOrders (response, market, since, limit);
@@ -18987,11 +19021,16 @@ module.exports = class bittrex extends Exchange {
         let url = this.implodeParams (this.urls['api'][api], {
             'hostname': this.hostname,
         }) + '/';
-        if (api !== 'v2' && api !== 'v3') {
+        if (api !== 'v2' && api !== 'v3' && api !== 'v3public') {
             url += this.version + '/';
         }
-        if (api === 'public' || api === 'v3public') {
+        if (api === 'public') {
             url += api + '/' + method.toLowerCase () + path;
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
+        } else if (api === 'v3public') {
+            url += path;
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }

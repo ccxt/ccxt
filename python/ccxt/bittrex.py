@@ -69,6 +69,7 @@ class bittrex (Exchange):
                     'market': 'https://{hostname}/api',
                     'v2': 'https://{hostname}/api/v2.0/pub',
                     'v3': 'https://api.{hostname}/v3',
+                    'v3public': 'https://api.{hostname}/v3',
                 },
                 'www': 'https://bittrex.com',
                 'doc': [
@@ -266,6 +267,7 @@ class bittrex (Exchange):
                     # 'LISK': True,  # LSK
                 },
                 'subaccountId': None,
+                # see the implementation of fetchClosedOrdersV3 below
                 'fetchClosedOrdersMethod': 'fetch_closed_orders_v3',
             },
             'commonCurrencies': {
@@ -617,6 +619,15 @@ class bittrex (Exchange):
         request = {}
         request[orderIdField] = id
         response = self.marketGetCancel(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "message": "''",
+        #         "result": {
+        #             "uuid": "614c34e4-8d71-11e3-94b5-425861b86ab6"
+        #         }
+        #     }
+        #
         return self.extend(self.parse_order(response), {
             'status': 'canceled',
         })
@@ -791,10 +802,10 @@ class bittrex (Exchange):
         return base + '/' + quote
 
     def parse_order(self, order, market=None):
-        if ('OrderType' in list(order.keys())) or ('Type' in list(order.keys())):
-            return self.parse_order_v2(order, market)
-        else:
+        if 'marketSymbol' in order:
             return self.parse_order_v3(order, market)
+        else:
+            return self.parse_order_v2(order, market)
 
     def parse_order_status(self, status):
         statuses = {
@@ -827,14 +838,11 @@ class bittrex (Exchange):
         marketSymbol = self.safe_string(order, 'marketSymbol')
         symbol = None
         feeCurrency = None
-        if marketSymbol in self.markets_by_id:
-            market = self.markets_by_id[marketSymbol]
-            symbol = market['symbol']
-            feeCurrency = market['quote']
-        else:
-            symbol = self.parse_symbol(marketSymbol)
-            parts = symbol.split(self.options['symbolSeparator'])
-            quote = parts[1]
+        if marketSymbol is not None:
+            baseId, quoteId = marketSymbol.split('-')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
+            symbol = base + '/' + quote
             feeCurrency = quote
         direction = self.safe_string(order, 'direction')
         createdAt = self.safe_string(order, 'createdAt')
@@ -886,6 +894,25 @@ class bittrex (Exchange):
         }
 
     def parse_order_v2(self, order, market=None):
+        #
+        #     {
+        #         "Uuid": "string(uuid)",
+        #         "OrderUuid": "8925d746-bc9f-4684-b1aa-e507467aaa99",
+        #         "Exchange": "BTC-LTC",
+        #         "OrderType": "string",
+        #         "Quantity": 100000,
+        #         "QuantityRemaining": 100000,
+        #         "Limit": 1e-8,
+        #         "CommissionPaid": 0,
+        #         "Price": 0,
+        #         "PricePerUnit": null,
+        #         "Opened": "2014-07-09T03:55:48.583",
+        #         "Closed": null,
+        #         "CancelInitiated": "boolean",
+        #         "ImmediateOrCancel": "boolean",
+        #         "IsConditional": "boolean"
+        #     }
+        #
         side = self.safe_string_2(order, 'OrderType', 'Type')
         isBuyOrder = (side == 'LIMIT_BUY') or (side == 'BUY')
         isSellOrder = (side == 'LIMIT_SELL') or (side == 'SELL')
@@ -1052,7 +1079,14 @@ class bittrex (Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            request['marketSymbol'] = market['id']
+            # because of self line we will have to rethink the entire v3
+            # in other words, markets define all the rest of the API
+            # and if v3 is reversed in comarison to v2
+            # v3 has to be a completely separate implementation then
+            # otherwise we will have to shuffle symbols and currencies everywhere
+            # which is prone to errors, as was shown here
+            # https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
+            request['marketSymbol'] = market['base'] + '-' + market['quote']
         response = self.v3GetOrdersClosed(self.extend(request, params))
         orders = self.parse_orders(response, market, since, limit)
         if symbol is not None:
@@ -1113,10 +1147,14 @@ class bittrex (Exchange):
         url = self.implode_params(self.urls['api'][api], {
             'hostname': self.hostname,
         }) + '/'
-        if api != 'v2' and api != 'v3':
+        if api != 'v2' and api != 'v3' and api != 'v3public':
             url += self.version + '/'
-        if api == 'public' or api == 'v3public':
+        if api == 'public':
             url += api + '/' + method.lower() + path
+            if params:
+                url += '?' + self.urlencode(params)
+        elif api == 'v3public':
+            url += path
             if params:
                 url += '?' + self.urlencode(params)
         elif api == 'v2':
