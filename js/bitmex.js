@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { TICK_SIZE } = require ('./base/functions/number');
 const { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
@@ -148,6 +149,7 @@ module.exports = class bitmex extends Exchange {
                     'Account has insufficient Available Balance': InsufficientFunds,
                 },
             },
+            'precisionMode': TICK_SIZE,
             'options': {
                 // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 // https://github.com/ccxt/ccxt/issues/4789
@@ -194,10 +196,10 @@ module.exports = class bitmex extends Exchange {
             const lotSize = this.safeFloat (market, 'lotSize');
             const tickSize = this.safeFloat (market, 'tickSize');
             if (lotSize !== undefined) {
-                precision['amount'] = this.precisionFromString (this.truncate_to_string (lotSize, 16));
+                precision['amount'] = lotSize;
             }
             if (tickSize !== undefined) {
-                precision['price'] = this.precisionFromString (this.truncate_to_string (tickSize, 16));
+                precision['price'] = tickSize;
             }
             const limits = {
                 'amount': {
