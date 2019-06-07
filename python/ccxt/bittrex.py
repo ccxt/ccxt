@@ -1081,8 +1081,8 @@ class bittrex (Exchange):
             market = self.market(symbol)
             # because of self line we will have to rethink the entire v3
             # in other words, markets define all the rest of the API
-            # and if v3 is reversed in comarison to v2
-            # v3 has to be a completely separate implementation then
+            # and v3 market ids are reversed in comparison to v2
+            # v3 has to be a completely separate implementation
             # otherwise we will have to shuffle symbols and currencies everywhere
             # which is prone to errors, as was shown here
             # https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209

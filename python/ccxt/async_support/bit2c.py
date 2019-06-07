@@ -206,8 +206,8 @@ class bit2c (Exchange):
             'pair': market['id'],
         }, params))
         orders = self.safe_value(response, market['id'], {})
-        asks = self.safe_value(orders, 'ask')
-        bids = self.safe_value(orders, 'bid')
+        asks = self.safe_value(orders, 'ask', [])
+        bids = self.safe_value(orders, 'bid', [])
         return self.parse_orders(self.array_concat(asks, bids), market, since, limit)
 
     def parse_order(self, order, market=None):

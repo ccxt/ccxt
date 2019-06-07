@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.641'
+const version = '1.18.642'
 
 Exchange.ccxtVersion = version
 
@@ -9009,8 +9009,8 @@ module.exports = class bit2c extends Exchange {
             'pair': market['id'],
         }, params));
         let orders = this.safeValue (response, market['id'], {});
-        let asks = this.safeValue (orders, 'ask');
-        let bids = this.safeValue (orders, 'bid');
+        let asks = this.safeValue (orders, 'ask', []);
+        let bids = this.safeValue (orders, 'bid', []);
         return this.parseOrders (this.arrayConcat (asks, bids), market, since, limit);
     }
 
@@ -18950,8 +18950,8 @@ module.exports = class bittrex extends Exchange {
             market = this.market (symbol);
             // because of this line we will have to rethink the entire v3
             // in other words, markets define all the rest of the API
-            // and if v3 is reversed in comarison to v2
-            // v3 has to be a completely separate implementation then
+            // and v3 market ids are reversed in comparison to v2
+            // v3 has to be a completely separate implementation
             // otherwise we will have to shuffle symbols and currencies everywhere
             // which is prone to errors, as was shown here
             // https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
