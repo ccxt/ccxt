@@ -457,5 +457,12 @@ module Ccxt::ExchangeHelpers
       return amount * scale
     end
 
+    def parse_float(argument)
+      return argument.to_f
+    end
+
+    def parse_int(argument)
+      return argument.to_i
+    end
   end # class << self
 end
