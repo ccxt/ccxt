@@ -211,8 +211,8 @@ class bit2c extends Exchange {
             'pair' => $market['id'],
         ), $params));
         $orders = $this->safe_value($response, $market['id'], array ());
-        $asks = $this->safe_value($orders, 'ask');
-        $bids = $this->safe_value($orders, 'bid');
+        $asks = $this->safe_value($orders, 'ask', array ());
+        $bids = $this->safe_value($orders, 'bid', array ());
         return $this->parse_orders($this->array_concat($asks, $bids), $market, $since, $limit);
     }
 
