@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.639'
+const version = '1.18.640'
 
 Exchange.ccxtVersion = version
 
@@ -65226,6 +65226,7 @@ module.exports = class poloniex extends Exchange {
             'name': 'Poloniex',
             'countries': [ 'US' ],
             'rateLimit': 1000, // up to 6 calls per second
+            'certified': true, // 2019-06-07
             'has': {
                 'CORS': false,
                 'createDepositAddress': true,
