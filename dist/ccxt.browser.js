@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.642'
+const version = '1.18.643'
 
 Exchange.ccxtVersion = version
 
@@ -8956,21 +8956,21 @@ module.exports = class bit2c extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePostOrderAddOrder';
-        let order = {
+        const request = {
             'Amount': amount,
             'Pair': this.marketId (symbol),
         };
         if (type === 'market') {
             method += 'MarketPrice' + this.capitalize (side);
         } else {
-            order['Price'] = price;
-            order['Total'] = amount * price;
-            order['IsBid'] = (side === 'buy');
+            request['Price'] = price;
+            request['Total'] = amount * price;
+            request['IsBid'] = (side === 'buy');
         }
-        let result = await this[method] (this.extend (order, params));
+        const response = await this[method] (this.extend (request, params));
         return {
-            'info': result,
-            'id': result['NewOrder']['id'],
+            'info': response,
+            'id': response['NewOrder']['id'],
         };
     }
 
@@ -9001,16 +9001,18 @@ module.exports = class bit2c extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        if (symbol === undefined)
+        if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
-        let market = this.market (symbol);
-        let response = await this.privateGetOrderMyOrders (this.extend ({
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
             'pair': market['id'],
-        }, params));
-        let orders = this.safeValue (response, market['id'], {});
-        let asks = this.safeValue (orders, 'ask', []);
-        let bids = this.safeValue (orders, 'bid', []);
+        };
+        const response = await this.privateGetOrderMyOrders (this.extend (request, params));
+        const orders = this.safeValue (response, market['id'], {});
+        const asks = this.safeValue (orders, 'ask', []);
+        const bids = this.safeValue (orders, 'bid', []);
         return this.parseOrders (this.arrayConcat (asks, bids), market, since, limit);
     }
 
@@ -17852,8 +17854,8 @@ module.exports = class bittrex extends Exchange {
                     'account': 'https://{hostname}/api',
                     'market': 'https://{hostname}/api',
                     'v2': 'https://{hostname}/api/v2.0/pub',
-                    'v3': 'https://api.{hostname}/v3',
-                    'v3public': 'https://api.{hostname}/v3',
+                    'v3': 'https://api.bittrex.com/v3',
+                    'v3public': 'https://api.bittrex.com/v3',
                 },
                 'www': 'https://bittrex.com',
                 'doc': [
