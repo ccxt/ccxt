@@ -448,32 +448,36 @@ class fcoin extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array_merge (array (
+        $request = array (
             'order_id' => $id,
-        ), $params);
-        $response = $this->privateGetOrdersOrderId ($request);
+        );
+        $response = $this->privateGetOrdersOrderId (array_merge ($request, $params));
         return $this->parse_order($response['data']);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $result = $this->fetch_orders($symbol, $since, $limit, array ( 'states' => 'submitted,partial_filled' ));
-        return $result;
+        $request = array ( 'states' => 'submitted,partial_filled' );
+        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $result = $this->fetch_orders($symbol, $since, $limit, array ( 'states' => 'filled' ));
-        return $result;
+        $request = array ( 'states' => 'filled' );
+        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchOrders() requires a `$symbol` argument');
+        }
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
             'symbol' => $market['id'],
             'states' => 'submitted,partial_filled,partial_canceled,filled,canceled',
         );
-        if ($limit !== null)
+        if ($limit !== null) {
             $request['limit'] = $limit;
+        }
         $response = $this->privateGetOrders (array_merge ($request, $params));
         return $this->parse_orders($response['data'], $market, $since, $limit);
     }
