@@ -457,11 +457,13 @@ class bitmex (Exchange):
             'currency': code,
         }
         after = self.safe_float(item, 'walletBalance')
+        if after is not None:
+            after = after * 1e-8
         before = self.sum(after, -amount)
         direction = None
         if amount < 0:
             direction = 'out'
-            amount = abs(amount) * 1e-8
+            amount = abs(amount)
         else:
             direction = 'in'
         status = self.parse_transaction_status(item, 'transactStatus')
