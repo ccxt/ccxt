@@ -163,6 +163,8 @@ module.exports = class btcmarkets extends Exchange {
         }
         const ccy = this.safeString (item, 'currency');
         const code = this.commonCurrencyCode (ccy);
+        // todo: this logic is duplicated below
+        const amount = this.safeFloat (item, 'amount') / 100000000;
         return {
             'id': this.safeString (item, 'fundTransferId'),
             'txid': txid,
@@ -171,7 +173,7 @@ module.exports = class btcmarkets extends Exchange {
             'address': address,
             'tag': undefined,
             'type': type,
-            'amount': this.safeFloat (item, 'amount') / 100000000,
+            'amount': amount,
             'currency': code,
             'status': status,
             'updated': lastUpdate,
