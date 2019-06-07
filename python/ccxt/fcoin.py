@@ -16,6 +16,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
@@ -426,21 +427,23 @@ class fcoin (Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        request = self.extend({
+        request = {
             'order_id': id,
-        }, params)
-        response = self.privateGetOrdersOrderId(request)
+        }
+        response = self.privateGetOrdersOrderId(self.extend(request, params))
         return self.parse_order(response['data'])
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        result = self.fetch_orders(symbol, since, limit, {'states': 'submitted,partial_filled'})
-        return result
+        request = {'states': 'submitted,partial_filled'}
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        result = self.fetch_orders(symbol, since, limit, {'states': 'filled'})
-        return result
+        request = {'states': 'filled'}
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrders() requires a `symbol` argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
