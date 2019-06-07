@@ -98,7 +98,7 @@ module.exports = class btcmarkets extends Exchange {
         return this.parseTransactions (transactions, undefined, since, limit);
     }
 
-    parseTransaction (item) {
+    parseTransaction (item, currency = undefined) {
         //   { status: 'Complete',
         //     fundTransferId: 1904311906,
         //     description: 'ETH withdraw from [me@email.com] to Address: 0xF123aa44FadEa913a7da99cc2eE202Db684Ce0e3 amount: 8.28965701 fee: 0.00000000',
