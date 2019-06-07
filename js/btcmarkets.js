@@ -94,8 +94,6 @@ module.exports = class btcmarkets extends Exchange {
         if (since !== undefined)
             request['since'] = since;
         const response = await this.privateGetFundtransferHistory (this.extend (request, params));
-        if (!response['success'])
-            throw new ExchangeError (this.id + ' fetch transactions failed ' + this.json (response));
         const transactions = response['fundTransfers'];
         return this.parseTransactions (transactions, undefined, since, limit);
     }
