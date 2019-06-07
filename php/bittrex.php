@@ -49,7 +49,8 @@ class bittrex extends Exchange {
                     'account' => 'https://{hostname}/api',
                     'market' => 'https://{hostname}/api',
                     'v2' => 'https://{hostname}/api/v2.0/pub',
-                    'v3' => 'https://api.{hostname}/v3',
+                    'v3' => 'https://api.bittrex.com/v3',
+                    'v3public' => 'https://api.bittrex.com/v3',
                 ),
                 'www' => 'https://bittrex.com',
                 'doc' => array (
@@ -247,6 +248,7 @@ class bittrex extends Exchange {
                     // 'LISK' => true, // LSK
                 ),
                 'subaccountId' => null,
+                // see the implementation of fetchClosedOrdersV3 below
                 'fetchClosedOrdersMethod' => 'fetch_closed_orders_v3',
             ),
             'commonCurrencies' => array (
@@ -634,6 +636,15 @@ class bittrex extends Exchange {
         $request = array ();
         $request[$orderIdField] = $id;
         $response = $this->marketGetCancel (array_merge ($request, $params));
+        //
+        //     {
+        //         "success" => true,
+        //         "message" => "''",
+        //         "result" => {
+        //             "uuid" => "614c34e4-8d71-11e3-94b5-425861b86ab6"
+        //         }
+        //     }
+        //
         return array_merge ($this->parse_order($response), array (
             'status' => 'canceled',
         ));
@@ -821,10 +832,10 @@ class bittrex extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        if ((is_array ($order) && array_key_exists ('OrderType', $order)) || (is_array ($order) && array_key_exists ('Type', $order))) {
-            return $this->parse_order_v2 ($order, $market);
-        } else {
+        if (is_array ($order) && array_key_exists ('marketSymbol', $order)) {
             return $this->parse_order_v3 ($order, $market);
+        } else {
+            return $this->parse_order_v2 ($order, $market);
         }
     }
 
@@ -860,14 +871,11 @@ class bittrex extends Exchange {
         $marketSymbol = $this->safe_string($order, 'marketSymbol');
         $symbol = null;
         $feeCurrency = null;
-        if (is_array ($this->markets_by_id) && array_key_exists ($marketSymbol, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketSymbol];
-            $symbol = $market['symbol'];
-            $feeCurrency = $market['quote'];
-        } else {
-            $symbol = $this->parse_symbol ($marketSymbol);
-            $parts = explode ($this->options['symbolSeparator'], $symbol);
-            $quote = $parts[1];
+        if ($marketSymbol !== null) {
+            list ($baseId, $quoteId) = explode ('-', $marketSymbol);
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
+            $symbol = $base . '/' . $quote;
             $feeCurrency = $quote;
         }
         $direction = $this->safe_string($order, 'direction');
@@ -926,6 +934,25 @@ class bittrex extends Exchange {
     }
 
     public function parse_order_v2 ($order, $market = null) {
+        //
+        //     {
+        //         "Uuid" => "string (uuid)",
+        //         "OrderUuid" => "8925d746-bc9f-4684-b1aa-e507467aaa99",
+        //         "Exchange" => "BTC-LTC",
+        //         "OrderType" => "string",
+        //         "Quantity" => 100000,
+        //         "QuantityRemaining" => 100000,
+        //         "Limit" => 1e-8,
+        //         "CommissionPaid" => 0,
+        //         "Price" => 0,
+        //         "PricePerUnit" => null,
+        //         "Opened" => "2014-07-09T03:55:48.583",
+        //         "Closed" => null,
+        //         "CancelInitiated" => "boolean",
+        //         "ImmediateOrCancel" => "boolean",
+        //         "IsConditional" => "boolean"
+        //     }
+        //
         $side = $this->safe_string_2($order, 'OrderType', 'Type');
         $isBuyOrder = ($side === 'LIMIT_BUY') || ($side === 'BUY');
         $isSellOrder = ($side === 'LIMIT_SELL') || ($side === 'SELL');
@@ -1118,7 +1145,14 @@ class bittrex extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market ($symbol);
-            $request['marketSymbol'] = $market['id'];
+            // because of this line we will have to rethink the entire v3
+            // in other words, markets define all the rest of the API
+            // and v3 $market ids are reversed in comparison to v2
+            // v3 has to be a completely separate implementation
+            // otherwise we will have to shuffle symbols and currencies everywhere
+            // which is prone to errors, as was shown here
+            // https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
+            $request['marketSymbol'] = $market['base'] . '-' . $market['quote'];
         }
         $response = $this->v3GetOrdersClosed (array_merge ($request, $params));
         $orders = $this->parse_orders($response, $market, $since, $limit);
@@ -1187,11 +1221,16 @@ class bittrex extends Exchange {
         $url = $this->implode_params($this->urls['api'][$api], array (
             'hostname' => $this->hostname,
         )) . '/';
-        if ($api !== 'v2' && $api !== 'v3') {
+        if ($api !== 'v2' && $api !== 'v3' && $api !== 'v3public') {
             $url .= $this->version . '/';
         }
-        if ($api === 'public' || $api === 'v3public') {
+        if ($api === 'public') {
             $url .= $api . '/' . strtolower ($method) . $path;
+            if ($params) {
+                $url .= '?' . $this->urlencode ($params);
+            }
+        } else if ($api === 'v3public') {
+            $url .= $path;
             if ($params) {
                 $url .= '?' . $this->urlencode ($params);
             }

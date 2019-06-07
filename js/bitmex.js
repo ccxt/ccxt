@@ -471,12 +471,15 @@ module.exports = class bitmex extends Exchange {
             'cost': feeCost,
             'currency': code,
         };
-        const after = this.safeFloat (item, 'walletBalance');
+        let after = this.safeFloat (item, 'walletBalance');
+        if (after !== undefined) {
+            after = after * 1e-8;
+        }
         const before = this.sum (after, -amount);
         let direction = undefined;
         if (amount < 0) {
             direction = 'out';
-            amount = Math.abs (amount) * 1e-8;
+            amount = Math.abs (amount);
         } else {
             direction = 'in';
         }

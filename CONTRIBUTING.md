@@ -402,6 +402,27 @@ The rule of thumb is: **`+` is for string concatenation only (!)** and **`this.s
 
 The `.toFixed ()` method has [known rounding bugs](https://www.google.com/search?q=toFixed+bug) in JavaScript, and so do the other rounding methods in the other languages as well. In order to work with number formatting consistently, we need to use the [`decimalToPrecision` method as described in the Manual](https://github.com/ccxt/ccxt/wiki/Manual#methods-for-formatting-decimals).
 
+#### Escaped control characters
+
+When using strings containing control characters like `"\n"`, `"\t"`, always enclose them in double quotes (`"`), not single quotes (`'`)! Single-quoted strings are not parsed for control characters and are treated as is in many languages apart from JavaScript. Therefore for tabs and newlines to work in PHP, we need to surround them with double quotes (especially in the `sign()` implementation).
+
+Bad:
+
+```JavaScript
+const a = 'GET' + method.toLowerCase () + '\n' + path;
+const b = 'api\nfoobar.com\n';
+```
+
+Good:
+
+```JavaScript
+const a = 'GET' + method.toLowerCase () + "\n" + path; // eslint-disable-line quotes
+// eslint-disable-next-line quotes
+const b = "api\nfoobar.com\n";
+```
+
+**↑ The `eslint-*` comments are mandatory!**
+
 #### Using ternary conditionals
 
 Do not use heavy ternary (`?:`) conditionals, **always use brackets in ternary operators!**

@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.637';
+$version = '1.18.643';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.637';
+    const VERSION = '1.18.643';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -2210,7 +2210,7 @@ class Exchange {
         if (array_key_exists($function, $this->defined_rest_api)) {
             $partial = $this->defined_rest_api[$function];
             $entry = $partial[3];
-            $partial[3] = $params ? $params[0] : array ();
+            $partial[3] = $params ? $params[0] : $params;
             return call_user_func_array(array($this, $entry), $partial);
         } else {
             /* handle errors */

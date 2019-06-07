@@ -473,11 +473,14 @@ class bitmex extends Exchange {
             'currency' => $code,
         );
         $after = $this->safe_float($item, 'walletBalance');
+        if ($after !== null) {
+            $after = $after * 1e-8;
+        }
         $before = $this->sum ($after, -$amount);
         $direction = null;
         if ($amount < 0) {
             $direction = 'out';
-            $amount = abs ($amount) * 1e-8;
+            $amount = abs ($amount);
         } else {
             $direction = 'in';
         }

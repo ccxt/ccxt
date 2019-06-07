@@ -158,21 +158,21 @@ class bit2c extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privatePostOrderAddOrder';
-        $order = array (
+        $request = array (
             'Amount' => $amount,
             'Pair' => $this->market_id($symbol),
         );
         if ($type === 'market') {
             $method .= 'MarketPrice' . $this->capitalize ($side);
         } else {
-            $order['Price'] = $price;
-            $order['Total'] = $amount * $price;
-            $order['IsBid'] = ($side === 'buy');
+            $request['Price'] = $price;
+            $request['Total'] = $amount * $price;
+            $request['IsBid'] = ($side === 'buy');
         }
-        $result = $this->$method (array_merge ($order, $params));
+        $response = $this->$method (array_merge ($request, $params));
         return array (
-            'info' => $result,
-            'id' => $result['NewOrder']['id'],
+            'info' => $response,
+            'id' => $response['NewOrder']['id'],
         );
     }
 
@@ -203,16 +203,18 @@ class bit2c extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
-        if ($symbol === null)
+        if ($symbol === null) {
             throw new ArgumentsRequired ($this->id . ' fetchOpenOrders() requires a $symbol argument');
+        }
+        $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->privateGetOrderMyOrders (array_merge (array (
+        $request = array (
             'pair' => $market['id'],
-        ), $params));
+        );
+        $response = $this->privateGetOrderMyOrders (array_merge ($request, $params));
         $orders = $this->safe_value($response, $market['id'], array ());
-        $asks = $this->safe_value($orders, 'ask');
-        $bids = $this->safe_value($orders, 'bid');
+        $asks = $this->safe_value($orders, 'ask', array ());
+        $bids = $this->safe_value($orders, 'bid', array ());
         return $this->parse_orders($this->array_concat($asks, $bids), $market, $since, $limit);
     }
 
