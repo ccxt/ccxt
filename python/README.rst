@@ -51,6 +51,8 @@ Certified Cryptocurrency Exchanges
 +-----------------------------------------------------------------+----------+-----------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `kucoin <https://www.kucoin.com/ucenter/signup?rcode=E5wkqe>`__ | kucoin   | `KuCoin <https://www.kucoin.com/ucenter/signup?rcode=E5wkqe>`__ | 2   | `API <https://docs.kucoin.com>`__                                                               | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
 +-----------------------------------------------------------------+----------+-----------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
+| `poloniex <https://poloniex.com>`__                             | poloniex | `Poloniex <https://poloniex.com>`__                             | \*  | `API <https://docs.poloniex.com>`__                                                             | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
++-----------------------------------------------------------------+----------+-----------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `theocean <https://theocean.trade>`__                           | theocean | `The Ocean <https://theocean.trade>`__                          | 1   | `API <https://docs.theocean.trade>`__                                                           | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
 +-----------------------------------------------------------------+----------+-----------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `upbit <https://upbit.com>`__                                   | upbit    | `Upbit <https://upbit.com>`__                                   | 1   | `API <https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C>`__           | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
@@ -296,7 +298,7 @@ The ccxt library currently supports the following 137 cryptocurrency exchange ma
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | paymium            | `Paymium <https://www.paymium.com>`__                                                      | 1     | `API <https://github.com/Paymium/api-documentation>`__                                          |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| poloniex           | `Poloniex <https://poloniex.com>`__                                                        | \*    | `API <https://docs.poloniex.com>`__                                                             |                                                                      |
+| poloniex           | `Poloniex <https://poloniex.com>`__                                                        | \*    | `API <https://docs.poloniex.com>`__                                                             | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | quadrigacx         | `QuadrigaCX <https://www.quadrigacx.com/?ref=laiqgbp6juewva44finhtmrk>`__                  | 2     | `API <https://www.quadrigacx.com/api_info>`__                                                   |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -386,14 +388,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.639/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.18.639/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.640/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.640/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.639/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.640/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
