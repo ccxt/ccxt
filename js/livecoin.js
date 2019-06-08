@@ -106,23 +106,30 @@ module.exports = class livecoin extends Exchange {
                 'XBT': 'Bricktox',
             },
             'exceptions': {
-                '1': ExchangeError,
-                '10': AuthenticationError,
-                '100': ExchangeError, // invalid parameters
-                '101': AuthenticationError,
-                '102': AuthenticationError,
-                '103': InvalidOrder, // invalid currency
-                '104': InvalidOrder, // invalid amount
-                '105': InvalidOrder, // unable to block funds
-                '11': AuthenticationError,
-                '12': AuthenticationError,
-                '2': AuthenticationError, // "User not found"
-                '20': AuthenticationError,
-                '30': AuthenticationError,
-                '31': NotSupported,
-                '32': ExchangeError,
-                '429': DDoSProtection,
-                '503': ExchangeNotAvailable,
+                'exact': {
+                    '1': ExchangeError,
+                    '10': AuthenticationError,
+                    '100': ExchangeError, // invalid parameters
+                    '101': AuthenticationError,
+                    '102': AuthenticationError,
+                    '103': InvalidOrder, // invalid currency
+                    '104': InvalidOrder, // invalid amount
+                    '105': InvalidOrder, // unable to block funds
+                    '11': AuthenticationError,
+                    '12': AuthenticationError,
+                    '2': AuthenticationError, // "User not found"
+                    '20': AuthenticationError,
+                    '30': AuthenticationError,
+                    '31': NotSupported,
+                    '32': ExchangeError,
+                    '429': DDoSProtection,
+                    '503': ExchangeNotAvailable,
+                },
+                'broad': {
+                    'NOT FOUND': OrderNotFound,
+                    'Cannot find order': OrderNotFound,
+                    'Minimal amount is': InvalidOrder,
+                },
             },
         });
     }
@@ -869,35 +876,36 @@ module.exports = class livecoin extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
-        if (typeof body !== 'string')
-            return;
-        if (body[0] === '{') {
-            if (code >= 300) {
-                let errorCode = this.safeString (response, 'errorCode');
-                if (errorCode in this.exceptions) {
-                    let ExceptionClass = this.exceptions[errorCode];
-                    throw new ExceptionClass (this.id + ' ' + body);
-                } else {
-                    throw new ExchangeError (this.id + ' ' + body);
-                }
+        if (response === undefined) {
+            return; // fallback to default error handler
+        }
+        if (code >= 300) {
+            const feedback = this.id + ' ' + body;
+            const exact = this.exceptions['exact'];
+            const errorCode = this.safeString (response, 'errorCode');
+            if (errorCode in exact) {
+                throw new exact[errorCode] (feedback);
+            } else {
+                throw new ExchangeError (feedback);
             }
-            // returns status code 200 even if success === false
-            let success = this.safeValue (response, 'success', true);
-            if (!success) {
-                const message = this.safeString (response, 'message');
-                if (message !== undefined) {
-                    if (message.indexOf ('Cannot find order') >= 0) {
-                        throw new OrderNotFound (this.id + ' ' + body);
-                    }
-                }
-                const exception = this.safeString (response, 'exception');
-                if (exception !== undefined) {
-                    if (exception.indexOf ('Minimal amount is') >= 0) {
-                        throw new InvalidOrder (this.id + ' ' + body);
-                    }
-                }
-                throw new ExchangeError (this.id + ' ' + body);
+        }
+        // returns status code 200 even if success === false
+        const success = this.safeValue (response, 'success', true);
+        if (!success) {
+            const feedback = this.id + ' ' + body;
+            const broad = this.exceptions['broad'];
+            const message = this.safeString (response, 'message');
+            let broadKey = this.findBroadlyMatchedKey (broad, message);
+            if (broadKey !== undefined) {
+                throw new broad[broadKey] (feedback);
             }
+            const exception = this.safeString (response, 'exception');
+            broadKey = this.findBroadlyMatchedKey (broad, exception);
+            if (broadKey !== undefined) {
+                throw new broad[broadKey] (feedback);
+            }
+            throw new ExchangeError (feedback);
         }
     }
 };
+
