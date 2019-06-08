@@ -159,20 +159,20 @@ class bit2c (Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         method = 'privatePostOrderAddOrder'
-        order = {
+        request = {
             'Amount': amount,
             'Pair': self.market_id(symbol),
         }
         if type == 'market':
             method += 'MarketPrice' + self.capitalize(side)
         else:
-            order['Price'] = price
-            order['Total'] = amount * price
-            order['IsBid'] = (side == 'buy')
-        result = await getattr(self, method)(self.extend(order, params))
+            request['Price'] = price
+            request['Total'] = amount * price
+            request['IsBid'] = (side == 'buy')
+        response = await getattr(self, method)(self.extend(request, params))
         return {
-            'info': result,
-            'id': result['NewOrder']['id'],
+            'info': response,
+            'id': response['NewOrder']['id'],
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -198,13 +198,14 @@ class bit2c (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        await self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
+        await self.load_markets()
         market = self.market(symbol)
-        response = await self.privateGetOrderMyOrders(self.extend({
+        request = {
             'pair': market['id'],
-        }, params))
+        }
+        response = await self.privateGetOrderMyOrders(self.extend(request, params))
         orders = self.safe_value(response, market['id'], {})
         asks = self.safe_value(orders, 'ask', [])
         bids = self.safe_value(orders, 'bid', [])
