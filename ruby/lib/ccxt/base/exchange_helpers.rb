@@ -166,7 +166,7 @@ module Ccxt::ExchangeHelpers
     end
 
     def extract_params(string)
-      string.scan(/{([\w-]+)}/)
+      string.scan(/{([\w-]+)}/).flatten
     end
 
     def implode_params(string, params)
@@ -457,12 +457,21 @@ module Ccxt::ExchangeHelpers
       return amount * scale
     end
 
-    def parse_float(argument)
-      return argument.to_f
+    def parse_float(value)
+      return value.to_f
     end
 
-    def parse_int(argument)
-      return argument.to_i
+    def parse_int(value)
+      return value.to_i
     end
+
+    def minimum_wrapper(*values)
+      return values.min
+    end
+
+    def maximum_wrapper(*values)
+      return values.max
+    end
+
   end # class << self
 end
