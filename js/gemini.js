@@ -357,10 +357,12 @@ module.exports = class gemini extends Exchange {
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        if (limit !== undefined)
+        if (limit !== undefined) {
             request['limit_transfers'] = limit;
-        if (since !== undefined)
+        }
+        if (since !== undefined) {
             request['timestamp'] = since;
+        }
         const response = await this.privatePostTransfers (this.extend (request, params));
         return this.parseTransactions (response);
     }
@@ -384,8 +386,9 @@ module.exports = class gemini extends Exchange {
         }
         let status = 'pending';
         // When deposits show as Advanced or Complete they are available for trading.
-        if (transaction['status'])
+        if (transaction['status']) {
             status = 'ok';
+        }
         let fee = undefined;
         const feeAmount = this.safeFloat (transaction, 'feeAmount');
         if (feeAmount !== undefined) {
