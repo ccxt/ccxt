@@ -2720,7 +2720,7 @@ The second alternative is useful in cases when the user wants to calculate and s
        const symbol = 'BTC/USD'
        const amount = 2 // BTC
        const price = 9000 // USD
-       cost = amount * price = 2 * 9000 = 18000 (USD) // ← this cost goes ↓ here (instead of the amount)
+       cost = amount * price // ← instead of the amount cost goes ↓ here
        const order = await exchange.createMarketBuyOrder (symbol, cost)
        console.log (order)
    })
