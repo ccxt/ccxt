@@ -955,6 +955,36 @@ module.exports = class poloniex extends Exchange {
         return response;
     }
 
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['currencyPair'] = market['id'];
+        }
+        const response = await this.privatePostCancelAllOrders (this.extend (request, params));
+        //
+        //     {
+        //         "success": 1,
+        //         "message": "Orders canceled",
+        //         "orderNumbers": [
+        //             503749,
+        //             888321,
+        //             7315825,
+        //             7316824
+        //         ]
+        //     }
+        //
+        const orderIds = this.safeValue (response, 'orderNumbers', []);
+        for (let i = 0; i < orderIds.length; i++) {
+            const id = orderIds[i].toString ();
+            if (id in this.orders) {
+                this.orders[id]['status'] = 'canceled';
+            }
+        }
+        return response;
+    }
+
     async fetchOpenOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         id = id.toString ();
