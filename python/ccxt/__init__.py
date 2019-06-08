@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.18.651'
+__version__ = '1.18.652'
 
 # ----------------------------------------------------------------------------
 
@@ -182,7 +182,6 @@ from ccxt.okex import okex                                  # noqa: F401
 from ccxt.okex3 import okex3                                # noqa: F401
 from ccxt.paymium import paymium                            # noqa: F401
 from ccxt.poloniex import poloniex                          # noqa: F401
-from ccxt.quadrigacx import quadrigacx                      # noqa: F401
 from ccxt.rightbtc import rightbtc                          # noqa: F401
 from ccxt.southxchange import southxchange                  # noqa: F401
 from ccxt.stronghold import stronghold                      # noqa: F401
@@ -321,7 +320,6 @@ exchanges = [
     'okex3',
     'paymium',
     'poloniex',
-    'quadrigacx',
     'rightbtc',
     'southxchange',
     'stronghold',

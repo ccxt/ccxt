@@ -61,7 +61,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 137 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 136 cryptocurrency exchange markets and trading APIs:
 
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | id                 | name                                                                                       | ver   | doc                                                                                             | certified                                                            |
@@ -300,8 +300,6 @@ The ccxt library currently supports the following 137 cryptocurrency exchange ma
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | poloniex           | `Poloniex <https://www.poloniex.com/?utm_source=ccxt&utm_medium=web>`__                    | \*    | `API <https://docs.poloniex.com>`__                                                             | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| quadrigacx         | `QuadrigaCX <https://www.quadrigacx.com/?ref=laiqgbp6juewva44finhtmrk>`__                  | 2     | `API <https://www.quadrigacx.com/api_info>`__                                                   |                                                                      |
-+--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | rightbtc           | `RightBTC <https://www.rightbtc.com>`__                                                    | \*    | `API <https://52.53.159.206/api/trader/>`__                                                     |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | southxchange       | `SouthXchange <https://www.southxchange.com>`__                                            | \*    | `API <https://www.southxchange.com/Home/Api>`__                                                 |                                                                      |
@@ -388,14 +386,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.651/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.18.651/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.652/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.652/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.651/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.652/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
