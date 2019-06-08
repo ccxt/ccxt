@@ -2489,6 +2489,13 @@ const exchange = new ccxt.cex ({
 })
 ```
 
+More about it:
+
+- https://github.com/ccxt/ccxt/issues/564#issuecomment-347458566
+- https://github.com/ccxt/ccxt/issues/4914#issuecomment-478199357
+- https://github.com/ccxt/ccxt/issues/4799#issuecomment-470966769
+- https://github.com/ccxt/ccxt/issues/5197#issuecomment-496270785
+
 ##### Emulating Market Orders With Limit Orders
 
 It is also possible to emulate a `market` order with a `limit` order.
