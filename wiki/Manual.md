@@ -2454,7 +2454,12 @@ const exchange = new ccxt.cex ({
     const amount = 2 // BTC
     const price = 9000 // USD
     // cost = amount * price = 2 * 9000 = 18000 (USD)
+
+    // note that we don't use createMarketBuyOrder here, instead we use createOrder
+    // createMarketBuyOrder will omit the price and will not work when
+    // exchange.options['createMarketBuyRequiresPrice'] = true
     const order = await exchange.createOrder (symbol, 'market', 'buy', amount, price)
+
     console.log (order)
 })
 ```
@@ -2471,8 +2476,8 @@ const exchange = new ccxt.cex ({
     },
 })
 
-// or, to switch it off later, after the exchange instantiation
-// exchange.options['createMarketBuyRequiresPrice'] = false
+// or, to switch it off later, after the exchange instantiation, you can do
+exchange.options['createMarketBuyRequiresPrice'] = false
 
 ;(async () => {
 
@@ -2484,7 +2489,7 @@ const exchange = new ccxt.cex ({
     const amount = 2 // BTC
     const price = 9000 // USD
     cost = amount * price = 2 * 9000 = 18000 (USD) // ← this cost goes ↓ here (instead of the amount)
-    const order = await exchange.createOrder (symbol, 'market', 'buy', cost)
+    const order = await exchange.createMarketBuyOrder (symbol, cost)
     console.log (order)
 })
 ```
