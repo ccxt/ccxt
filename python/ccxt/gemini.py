@@ -220,8 +220,6 @@ class gemini (Exchange):
             status = 'canceled'
         price = self.safe_float(order, 'price')
         average = self.safe_float(order, 'avg_execution_price')
-        if average != 0.0:
-            price = average  # prefer filling(execution) price over the submitted price
         cost = None
         if filled is not None:
             if average is not None:
@@ -334,6 +332,10 @@ class gemini (Exchange):
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {}
+        if limit is not None:
+            request['limit_transfers'] = limit
+        if since is not None:
+            request['timestamp'] = since
         response = self.privatePostTransfers(self.extend(request, params))
         return self.parseTransactions(response)
 
@@ -346,6 +348,7 @@ class gemini (Exchange):
                 currency = self.currencies_by_id[currencyId]
         if currency is not None:
             code = currency['code']
+        address = self.safe_string(transaction, 'destination')
         type = self.safe_string(transaction, 'type')
         if type is not None:
             type = type.lower()
@@ -353,23 +356,27 @@ class gemini (Exchange):
         # When deposits show as Advanced or Complete they are available for trading.
         if transaction['status']:
             status = 'ok'
+        fee = None
+        feeAmount = self.safe_float(transaction, 'feeAmount')
+        if feeAmount is not None:
+            fee = {
+                'cost': feeAmount,
+                'currency': code,
+            }
         return {
             'info': transaction,
             'id': self.safe_string(transaction, 'eid'),
             'txid': self.safe_string(transaction, 'txHash'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'address': None,  # or is it defined?
+            'address': address,
             'tag': None,  # or is it defined?
             'type': type,  # direction of the transaction,('deposit' | 'withdraw')
             'amount': self.safe_float(transaction, 'amount'),
             'currency': code,
             'status': status,
             'updated': None,
-            'fee': {
-                'cost': None,
-                'rate': None,
-            },
+            'fee': fee,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

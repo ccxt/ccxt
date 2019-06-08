@@ -231,9 +231,6 @@ class gemini extends Exchange {
         }
         $price = $this->safe_float($order, 'price');
         $average = $this->safe_float($order, 'avg_execution_price');
-        if ($average !== 0.0) {
-            $price = $average; // prefer filling (execution) $price over the submitted $price
-        }
         $cost = null;
         if ($filled !== null) {
             if ($average !== null) {
@@ -361,6 +358,12 @@ class gemini extends Exchange {
     public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array ();
+        if ($limit !== null) {
+            $request['limit_transfers'] = $limit;
+        }
+        if ($since !== null) {
+            $request['timestamp'] = $since;
+        }
         $response = $this->privatePostTransfers (array_merge ($request, $params));
         return $this->parseTransactions ($response);
     }
@@ -377,31 +380,38 @@ class gemini extends Exchange {
         if ($currency !== null) {
             $code = $currency['code'];
         }
+        $address = $this->safe_string($transaction, 'destination');
         $type = $this->safe_string($transaction, 'type');
         if ($type !== null) {
             $type = strtolower ($type);
         }
         $status = 'pending';
         // When deposits show as Advanced or Complete they are available for trading.
-        if ($transaction['status'])
+        if ($transaction['status']) {
             $status = 'ok';
+        }
+        $fee = null;
+        $feeAmount = $this->safe_float($transaction, 'feeAmount');
+        if ($feeAmount !== null) {
+            $fee = array (
+                'cost' => $feeAmount,
+                'currency' => $code,
+            );
+        }
         return array (
             'info' => $transaction,
             'id' => $this->safe_string($transaction, 'eid'),
             'txid' => $this->safe_string($transaction, 'txHash'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'address' => null, // or is it defined?
+            'address' => $address,
             'tag' => null, // or is it defined?
             'type' => $type, // direction of the $transaction, ('deposit' | 'withdraw')
             'amount' => $this->safe_float($transaction, 'amount'),
             'currency' => $code,
             'status' => $status,
             'updated' => null,
-            'fee' => array (
-                'cost' => null,
-                'rate' => null,
-            ),
+            'fee' => $fee,
         );
     }
 
