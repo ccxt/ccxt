@@ -107,52 +107,58 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     parseTransaction (item, currency = undefined) {
-        //   { status: 'Complete',
-        //     fundTransferId: 1904311906,
-        //     description: 'ETH withdraw from [me@email.com] to Address: 0xF123aa44FadEa913a7da99cc2eE202Db684Ce0e3 amount: 8.28965701 fee: 0.00000000',
-        //     creationTime: 1529418358525,
-        //     currency: 'ETH',
-        //     amount: 828965701,
-        //     fee: 0,
-        //     transferType: 'WITHDRAW',
-        //     errorMessage: null,
-        //     lastUpdate: 1529418376754,
-        //     cryptoPaymentDetail:
-        //     { address: '0xF123aa44FadEa913a7da99cc2eE202Db684Ce0e3',
-        //       txId: '0x8fe483b6f9523559b9ebffb29624f98e86227d2660d4a1fd4785d45e51c662c2' } }
         //
-        //   { status: 'Complete',
-        //     fundTransferId: 494077500,
-        //     description: 'BITCOIN Deposit, B 0.1000',
-        //     creationTime: 1501077601015,
-        //     currency: 'BTC',
-        //     amount: 10000000,
-        //     fee: 0,
-        //     transferType: 'DEPOSIT',
-        //     errorMessage: null,
-        //     lastUpdate: 1501077601133,
-        //     cryptoPaymentDetail: null }
+        //     {
+        //         status: 'Complete',
+        //         fundTransferId: 1904311906,
+        //         description: 'ETH withdraw from [me@email.com] to Address: 0xF123aa44FadEa913a7da99cc2eE202Db684Ce0e3 amount: 8.28965701 fee: 0.00000000',
+        //         creationTime: 1529418358525,
+        //         currency: 'ETH',
+        //         amount: 828965701,
+        //         fee: 0,
+        //         transferType: 'WITHDRAW',
+        //         errorMessage: null,
+        //         lastUpdate: 1529418376754,
+        //         cryptoPaymentDetail: {
+        //             address: '0xF123aa44FadEa913a7da99cc2eE202Db684Ce0e3',
+        //             txId: '0x8fe483b6f9523559b9ebffb29624f98e86227d2660d4a1fd4785d45e51c662c2'
+        //         }
+        //     }
         //
-        //   { "fee": 0,
-        //     "amount": 56,
-        //     "status": "Complete",
-        //     "currency": "BCHABC",
-        //     "lastUpdate": 1542339164044,
-        //     "description": "BitcoinCashABC Deposit, P 0.00000056",
-        //     "creationTime": 1542339164003,
-        //     "errorMessage": null,
-        //     "transferType": "DEPOSIT",
-        //     "fundTransferId": 2527326972,
-        //     "cryptoPaymentDetail": null}
+        //     {
+        //         status: 'Complete',
+        //         fundTransferId: 494077500,
+        //         description: 'BITCOIN Deposit, B 0.1000',
+        //         creationTime: 1501077601015,
+        //         currency: 'BTC',
+        //         amount: 10000000,
+        //         fee: 0,
+        //         transferType: 'DEPOSIT',
+        //         errorMessage: null,
+        //         lastUpdate: 1501077601133,
+        //         cryptoPaymentDetail: null
+        //     }
+        //
+        //     {
+        //         "fee": 0,
+        //         "amount": 56,
+        //         "status": "Complete",
+        //         "currency": "BCHABC",
+        //         "lastUpdate": 1542339164044,
+        //         "description": "BitcoinCashABC Deposit, P 0.00000056",
+        //         "creationTime": 1542339164003,
+        //         "errorMessage": null,
+        //         "transferType": "DEPOSIT",
+        //         "fundTransferId": 2527326972,
+        //         "cryptoPaymentDetail": null
+        //     }
+        //
         const timestamp = this.safeInteger (item, 'creationTime');
         const lastUpdate = this.safeInteger (item, 'lastUpdate');
         const transferType = this.safeString (item, 'transferType');
-        let txid = undefined;
-        let address = undefined;
-        if (item['cryptoPaymentDetail']) {
-            address = this.safeString (item['cryptoPaymentDetail'], 'address');
-            txid = this.safeString (item['cryptoPaymentDetail'], 'txId');
-        }
+        const cryptoPaymentDetail = this.safeValue (item, 'cryptoPaymentDetail', {});
+        const address = this.safeString (cryptoPaymentDetail, 'address');
+        const txid = this.safeString (cryptoPaymentDetail, 'txId');
         let type = undefined;
         if (transferType === 'DEPOSIT')
             type = 'deposit';
@@ -162,12 +168,14 @@ module.exports = class btcmarkets extends Exchange {
             type = transferType;
         }
         const fee = this.safeFloat (item, 'fee');
-        const rawStatus = this.safeString (item, 'status');
-        const status = this.parseTransactionStatus (rawStatus);
+        const status = this.parseTransactionStatus (this.safeString (item, 'status'));
         const ccy = this.safeString (item, 'currency');
         const code = this.commonCurrencyCode (ccy);
         // todo: this logic is duplicated below
-        const amount = this.safeFloat (item, 'amount') / 100000000;
+        let amount = this.safeFloat (item, 'amount');
+        if (amount !== undefined) {
+            amount = amount * 1e-8;
+        }   
         return {
             'id': this.safeString (item, 'fundTransferId'),
             'txid': txid,
