@@ -559,8 +559,6 @@ module.exports = class btcmarkets extends Exchange {
         const market = this.market (symbol);
         const request = this.createPaginatedRequest (market, since, limit);
         const response = await this.privatePostOrderHistory (this.extend (request, params));
-        if (!response['success'])
-            throw new ExchangeError (this.id + ' fetch orders failed ' + this.json (response));
         return this.parseOrders (response['orders'], market);
     }
 
@@ -569,14 +567,14 @@ module.exports = class btcmarkets extends Exchange {
             throw new ArgumentsRequired (this.id + ': fetchOpenOrders requires a `symbol` argument.');
         }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = this.createPaginatedRequest (market, since, limit);
-        let response = await this.privatePostOrderOpen (this.extend (request, params));
+        const market = this.market (symbol);
+        const request = this.createPaginatedRequest (market, since, limit);
+        const response = await this.privatePostOrderOpen (this.extend (request, params));
         return this.parseOrders (response['orders'], market);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, since, limit, params);
+        const orders = await this.fetchOrders (symbol, since, limit, params);
         return this.filterBy (orders, 'status', 'closed');
     }
 
@@ -585,9 +583,9 @@ module.exports = class btcmarkets extends Exchange {
             throw new ArgumentsRequired (this.id + ': fetchMyTrades requires a `symbol` argument.');
         }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = this.createPaginatedRequest (market, since, limit);
-        let response = await this.privatePostOrderTradeHistory (this.extend (request, params));
+        const market = this.market (symbol);
+        const request = this.createPaginatedRequest (market, since, limit);
+        const response = await this.privatePostOrderTradeHistory (this.extend (request, params));
         return this.parseMyTrades (response['trades'], market);
     }
 
