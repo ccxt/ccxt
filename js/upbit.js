@@ -20,7 +20,7 @@ module.exports = class upbit extends Exchange {
             'has': {
                 'CORS': true,
                 'createDepositAddress': true,
-                'createMarketOrder': false,
+                'createMarketOrder': true,
                 'fetchDepositAddress': true,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': false,
@@ -124,13 +124,17 @@ module.exports = class upbit extends Exchange {
                     'thirdparty_agreement_required': PermissionDenied,
                     'out_of_scope': PermissionDenied,
                     'order_not_found': OrderNotFound,
-                    'insufficient_funds_ask': InsufficientFunds,
-                    'insufficient_funds_bid': InsufficientFunds,
+                    'insufficient_funds': InsufficientFunds,
                     'invalid_access_key': AuthenticationError,
                     'jwt_verification': AuthenticationError,
+                    'create_ask_error': ExchangeError,
+                    'create_bid_error': ExchangeError,
+                    'volume_too_large': InvalidOrder,
+                    'invalid_funds': InvalidOrder,
                 },
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': true,
                 'fetchTickersMaxLength': 4096, // 2048,
                 'fetchOrderBooksMaxLength': 4096, // 2048,
                 'symbolSeparator': '-',
@@ -832,8 +836,17 @@ module.exports = class upbit extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type !== 'limit') {
-            throw new InvalidOrder (this.id + ' createOrder allows limit orders only!');
+        if (type === 'market') {
+            // for market buy it requires the amount of quote currency to spend
+            if (side === 'buy') {
+                if (this.options['createMarketBuyOrderRequiresPrice']) {
+                    if (price === undefined) {
+                        throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                    } else {
+                        amount = amount * price;
+                    }
+                }
+            }
         }
         let orderSide = undefined;
         if (side === 'buy') {
@@ -848,10 +861,20 @@ module.exports = class upbit extends Exchange {
         const request = {
             'market': market['id'],
             'side': orderSide,
-            'volume': this.amountToPrecision (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
-            'ord_type': type,
         };
+        if (type === 'limit') {
+            request['volume'] = this.amountToPrecision (symbol, amount);
+            request['price'] = this.priceToPrecision (symbol, price);
+            request['ord_type'] = type;
+        } else if (type === 'market') {
+            if (side === 'buy') {
+                request['ord_type'] = 'price';
+                request['price'] = this.priceToPrecision (symbol, amount);
+            } else if (side === 'sell') {
+                request['ord_type'] = type;
+                request['volume'] = this.amountToPrecision (symbol, amount);
+            }
+        }
         const response = await this.privatePostOrders (this.extend (request, params));
         //
         //     {
@@ -1104,15 +1127,15 @@ module.exports = class upbit extends Exchange {
         //                 "price": "101000.0",
         //                 "volume": "0.22631677",
         //                 "funds": "22857.99377",
-        //                 "ask_fee": "34.286990655",
-        //                 "bid_fee": "34.286990655",
-        //                 "created_at": "2018-04-05T14:09:15+09:00",
+        //                 "ask_fee": "34.286990655", // missing in market orders
+        //                 "bid_fee": "34.286990655", // missing in market orders
+        //                 "created_at": "2018-04-05T14:09:15+09:00", // missing in market orders
         //                 "side": "bid",
         //             },
         //         ],
         //     }
         //
-        let id = this.safeString (order, 'uuid');
+        const id = this.safeString (order, 'uuid');
         let side = this.safeString (order, 'side');
         if (side === 'bid') {
             side = 'buy';
@@ -1120,25 +1143,20 @@ module.exports = class upbit extends Exchange {
             side = 'sell';
         }
         let type = this.safeString (order, 'ord_type');
-        let timestamp = this.parse8601 (this.safeString (order, 'created_at'));
-        let status = this.parseOrderStatus (this.safeString (order, 'state'));
+        const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
+        const status = this.parseOrderStatus (this.safeString (order, 'state'));
         let lastTradeTimestamp = undefined;
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'volume');
         let remaining = this.safeFloat (order, 'remaining_volume');
         let filled = this.safeFloat (order, 'executed_volume');
         let cost = undefined;
-        let average = price; // they support limit orders only for now
-        if (cost === undefined) {
-            if ((price !== undefined) && (filled !== undefined)) {
-                cost = price * filled;
-            }
+        if (type === 'price') {
+            type = 'market';
+            cost = price;
+            price = undefined;
         }
-        let orderTrades = this.safeValue (order, 'trades');
-        let trades = undefined;
-        if (orderTrades !== undefined) {
-            trades = this.parseTrades (orderTrades);
-        }
+        let average = undefined;
         let fee = undefined;
         let feeCost = this.safeFloat (order, 'paid_fee');
         let feeCurrency = undefined;
@@ -1155,25 +1173,30 @@ module.exports = class upbit extends Exchange {
             symbol = base + '/' + quote;
             feeCurrency = quote;
         }
-        if (trades !== undefined) {
-            let numTrades = trades.length;
-            if (numTrades > 0) {
-                if (lastTradeTimestamp === undefined) {
-                    lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
-                }
-                if (feeCost === undefined) {
-                    for (let i = 0; i < numTrades; i++) {
-                        let tradeFee = this.safeValue (trades[i], 'fee', {});
-                        let tradeFeeCost = this.safeFloat (tradeFee, 'cost');
-                        if (tradeFeeCost !== undefined) {
-                            if (feeCost === undefined) {
-                                feeCost = 0;
-                            }
-                            feeCost = this.sum (feeCost, tradeFeeCost);
-                        }
+        let trades = this.safeValue (order, 'trades', []);
+        trades = this.parseTrades (trades, market, undefined, undefined, { 'order': id });
+        let numTrades = trades.length;
+        if (numTrades > 0) {
+            // the timestamp in fetchOrder trades is missing
+            lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
+            let getFeesFromTrades = false;
+            if (feeCost === undefined) {
+                getFeesFromTrades = true;
+                feeCost = 0;
+            }
+            cost = 0;
+            for (let i = 0; i < numTrades; i++) {
+                const trade = trades[i];
+                cost = this.sum (cost, trade['cost']);
+                if (getFeesFromTrades) {
+                    let tradeFee = this.safeValue (trades[i], 'fee', {});
+                    let tradeFeeCost = this.safeFloat (tradeFee, 'cost');
+                    if (tradeFeeCost !== undefined) {
+                        feeCost = this.sum (feeCost, tradeFeeCost);
                     }
                 }
             }
+            average = cost / filled;
         }
         if (feeCost !== undefined) {
             fee = {
