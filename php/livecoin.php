@@ -106,23 +106,30 @@ class livecoin extends Exchange {
                 'XBT' => 'Bricktox',
             ),
             'exceptions' => array (
-                '1' => '\\ccxt\\ExchangeError',
-                '10' => '\\ccxt\\AuthenticationError',
-                '100' => '\\ccxt\\ExchangeError', // invalid parameters
-                '101' => '\\ccxt\\AuthenticationError',
-                '102' => '\\ccxt\\AuthenticationError',
-                '103' => '\\ccxt\\InvalidOrder', // invalid currency
-                '104' => '\\ccxt\\InvalidOrder', // invalid amount
-                '105' => '\\ccxt\\InvalidOrder', // unable to block funds
-                '11' => '\\ccxt\\AuthenticationError',
-                '12' => '\\ccxt\\AuthenticationError',
-                '2' => '\\ccxt\\AuthenticationError', // "User not found"
-                '20' => '\\ccxt\\AuthenticationError',
-                '30' => '\\ccxt\\AuthenticationError',
-                '31' => '\\ccxt\\NotSupported',
-                '32' => '\\ccxt\\ExchangeError',
-                '429' => '\\ccxt\\DDoSProtection',
-                '503' => '\\ccxt\\ExchangeNotAvailable',
+                'exact' => array (
+                    '1' => '\\ccxt\\ExchangeError',
+                    '10' => '\\ccxt\\AuthenticationError',
+                    '100' => '\\ccxt\\ExchangeError', // invalid parameters
+                    '101' => '\\ccxt\\AuthenticationError',
+                    '102' => '\\ccxt\\AuthenticationError',
+                    '103' => '\\ccxt\\InvalidOrder', // invalid currency
+                    '104' => '\\ccxt\\InvalidOrder', // invalid amount
+                    '105' => '\\ccxt\\InvalidOrder', // unable to block funds
+                    '11' => '\\ccxt\\AuthenticationError',
+                    '12' => '\\ccxt\\AuthenticationError',
+                    '2' => '\\ccxt\\AuthenticationError', // "User not found"
+                    '20' => '\\ccxt\\AuthenticationError',
+                    '30' => '\\ccxt\\AuthenticationError',
+                    '31' => '\\ccxt\\NotSupported',
+                    '32' => '\\ccxt\\ExchangeError',
+                    '429' => '\\ccxt\\DDoSProtection',
+                    '503' => '\\ccxt\\ExchangeNotAvailable',
+                ),
+                'broad' => array (
+                    'NOT FOUND' => '\\ccxt\\OrderNotFound',
+                    'Cannot find order' => '\\ccxt\\OrderNotFound',
+                    'Minimal amount is' => '\\ccxt\\InvalidOrder',
+                ),
             ),
         ));
     }
@@ -869,35 +876,35 @@ class livecoin extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
-        if (gettype ($body) !== 'string')
-            return;
-        if ($body[0] === '{') {
-            if ($code >= 300) {
-                $errorCode = $this->safe_string($response, 'errorCode');
-                if (is_array ($this->exceptions) && array_key_exists ($errorCode, $this->exceptions)) {
-                    $ExceptionClass = $this->exceptions[$errorCode];
-                    throw new $ExceptionClass ($this->id . ' ' . $body);
-                } else {
-                    throw new ExchangeError ($this->id . ' ' . $body);
-                }
+        if ($response === null) {
+            return; // fallback to default error handler
+        }
+        if ($code >= 300) {
+            $feedback = $this->id . ' ' . $body;
+            $exact = $this->exceptions['exact'];
+            $errorCode = $this->safe_string($response, 'errorCode');
+            if (is_array ($exact) && array_key_exists ($errorCode, $exact)) {
+                throw new $exact[$errorCode] ($feedback);
+            } else {
+                throw new ExchangeError ($feedback);
             }
-            // returns status $code 200 even if $success === false
-            $success = $this->safe_value($response, 'success', true);
-            if (!$success) {
-                $message = $this->safe_string($response, 'message');
-                if ($message !== null) {
-                    if (mb_strpos ($message, 'Cannot find order') !== false) {
-                        throw new OrderNotFound ($this->id . ' ' . $body);
-                    }
-                }
-                $exception = $this->safe_string($response, 'exception');
-                if ($exception !== null) {
-                    if (mb_strpos ($exception, 'Minimal amount is') !== false) {
-                        throw new InvalidOrder ($this->id . ' ' . $body);
-                    }
-                }
-                throw new ExchangeError ($this->id . ' ' . $body);
+        }
+        // returns status $code 200 even if $success === false
+        $success = $this->safe_value($response, 'success', true);
+        if (!$success) {
+            $feedback = $this->id . ' ' . $body;
+            $broad = $this->exceptions['broad'];
+            $message = $this->safe_string($response, 'message');
+            $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
+            if ($broadKey !== null) {
+                throw new $broad[$broadKey] ($feedback);
             }
+            $exception = $this->safe_string($response, 'exception');
+            $broadKey = $this->findBroadlyMatchedKey ($broad, $exception);
+            if ($broadKey !== null) {
+                throw new $broad[$broadKey] ($feedback);
+            }
+            throw new ExchangeError ($feedback);
         }
     }
 }

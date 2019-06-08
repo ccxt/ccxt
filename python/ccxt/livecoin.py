@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -125,23 +118,30 @@ class livecoin (Exchange):
                 'XBT': 'Bricktox',
             },
             'exceptions': {
-                '1': ExchangeError,
-                '10': AuthenticationError,
-                '100': ExchangeError,  # invalid parameters
-                '101': AuthenticationError,
-                '102': AuthenticationError,
-                '103': InvalidOrder,  # invalid currency
-                '104': InvalidOrder,  # invalid amount
-                '105': InvalidOrder,  # unable to block funds
-                '11': AuthenticationError,
-                '12': AuthenticationError,
-                '2': AuthenticationError,  # "User not found"
-                '20': AuthenticationError,
-                '30': AuthenticationError,
-                '31': NotSupported,
-                '32': ExchangeError,
-                '429': DDoSProtection,
-                '503': ExchangeNotAvailable,
+                'exact': {
+                    '1': ExchangeError,
+                    '10': AuthenticationError,
+                    '100': ExchangeError,  # invalid parameters
+                    '101': AuthenticationError,
+                    '102': AuthenticationError,
+                    '103': InvalidOrder,  # invalid currency
+                    '104': InvalidOrder,  # invalid amount
+                    '105': InvalidOrder,  # unable to block funds
+                    '11': AuthenticationError,
+                    '12': AuthenticationError,
+                    '2': AuthenticationError,  # "User not found"
+                    '20': AuthenticationError,
+                    '30': AuthenticationError,
+                    '31': NotSupported,
+                    '32': ExchangeError,
+                    '429': DDoSProtection,
+                    '503': ExchangeNotAvailable,
+                },
+                'broad': {
+                    'NOT FOUND': OrderNotFound,
+                    'Cannot find order': OrderNotFound,
+                    'Minimal amount is': InvalidOrder,
+                },
             },
         })
 
@@ -815,25 +815,27 @@ class livecoin (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response):
-        if not isinstance(body, basestring):
-            return
-        if body[0] == '{':
-            if code >= 300:
-                errorCode = self.safe_string(response, 'errorCode')
-                if errorCode in self.exceptions:
-                    ExceptionClass = self.exceptions[errorCode]
-                    raise ExceptionClass(self.id + ' ' + body)
-                else:
-                    raise ExchangeError(self.id + ' ' + body)
-            # returns status code 200 even if success == False
-            success = self.safe_value(response, 'success', True)
-            if not success:
-                message = self.safe_string(response, 'message')
-                if message is not None:
-                    if message.find('Cannot find order') >= 0:
-                        raise OrderNotFound(self.id + ' ' + body)
-                exception = self.safe_string(response, 'exception')
-                if exception is not None:
-                    if exception.find('Minimal amount is') >= 0:
-                        raise InvalidOrder(self.id + ' ' + body)
-                raise ExchangeError(self.id + ' ' + body)
+        if response is None:
+            return  # fallback to default error handler
+        if code >= 300:
+            feedback = self.id + ' ' + body
+            exact = self.exceptions['exact']
+            errorCode = self.safe_string(response, 'errorCode')
+            if errorCode in exact:
+                raise exact[errorCode](feedback)
+            else:
+                raise ExchangeError(feedback)
+        # returns status code 200 even if success == False
+        success = self.safe_value(response, 'success', True)
+        if not success:
+            feedback = self.id + ' ' + body
+            broad = self.exceptions['broad']
+            message = self.safe_string(response, 'message')
+            broadKey = self.findBroadlyMatchedKey(broad, message)
+            if broadKey is not None:
+                raise broad[broadKey](feedback)
+            exception = self.safe_string(response, 'exception')
+            broadKey = self.findBroadlyMatchedKey(broad, exception)
+            if broadKey is not None:
+                raise broad[broadKey](feedback)
+            raise ExchangeError(feedback)
