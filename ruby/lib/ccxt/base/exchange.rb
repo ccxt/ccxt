@@ -841,8 +841,13 @@ module Ccxt
     end
 
     # transpiler wrapper for #send.
-    def send_wrapper(method, args = nil)
-      return self.send(method, args)
+    def send_wrapper(method, *args)
+      puts "send_wrapper:\n  METHOD: #{method}\n  ARGS: #{args.inspect}"
+      if args.empty?
+        return self.send(method)
+      else
+        return self.send(method, args)
+      end
     end
 
     # Depends on #currencies_by_id
