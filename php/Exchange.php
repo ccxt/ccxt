@@ -2175,7 +2175,7 @@ class Exchange {
             $market = $this->find_market($string);
         }
 
-        if ((gettype($market) === 'array') && (count(array_filter(array_keys($market), 'is_string') !== 0)) {
+        if ((gettype($market) === 'array') && (count(array_filter(array_keys($market), 'is_string') !== 0))) {
             return $market['symbol'];
         }
 
