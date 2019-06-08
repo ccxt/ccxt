@@ -20,7 +20,7 @@ module.exports = class upbit extends Exchange {
             'has': {
                 'CORS': true,
                 'createDepositAddress': true,
-                'createMarketOrder': false,
+                'createMarketOrder': true,
                 'fetchDepositAddress': true,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': false,
@@ -124,10 +124,13 @@ module.exports = class upbit extends Exchange {
                     'thirdparty_agreement_required': PermissionDenied,
                     'out_of_scope': PermissionDenied,
                     'order_not_found': OrderNotFound,
-                    'insufficient_funds_ask': InsufficientFunds,
-                    'insufficient_funds_bid': InsufficientFunds,
+                    'insufficient_funds': InsufficientFunds,
                     'invalid_access_key': AuthenticationError,
                     'jwt_verification': AuthenticationError,
+                    'create_ask_error': ExchangeError,
+                    'create_bid_error': ExchangeError,
+                    'volume_too_large': InvalidOrder,
+                    'invalid_funds': InvalidOrder,
                 },
             },
             'options': {
@@ -832,9 +835,6 @@ module.exports = class upbit extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type !== 'limit') {
-            throw new InvalidOrder (this.id + ' createOrder allows limit orders only!');
-        }
         let orderSide = undefined;
         if (side === 'buy') {
             orderSide = 'bid';
@@ -848,10 +848,24 @@ module.exports = class upbit extends Exchange {
         const request = {
             'market': market['id'],
             'side': orderSide,
-            'volume': this.amountToPrecision (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
-            'ord_type': type,
         };
+        if (type === 'limit') {
+            request['volume'] = this.amountToPrecision (symbol, amount);
+            request['price'] = this.priceToPrecision (symbol, price);
+            request['ord_type'] = type;
+        } else if (type === 'market') {
+            if (side === 'buy') {
+                request['ord_type'] = 'price';
+                request['price'] = this.amountToPrecision (symbol, amount);
+                // request['volume'] = undefined;
+            } else if (side === 'sell') {
+                request['ord_type'] = type;
+                request['volume'] = this.amountToPrecision (symbol, amount);
+            }
+            // 'volume': this.amountToPrecision (symbol, amount),
+            // 'price': this.priceToPrecision (symbol, price),
+            // 'ord_type': type,
+        }
         const response = await this.privatePostOrders (this.extend (request, params));
         //
         //     {
