@@ -198,7 +198,6 @@ class Exchange {
         'okex3',
         'paymium',
         'poloniex',
-        'quadrigacx',
         'rightbtc',
         'southxchange',
         'stronghold',
