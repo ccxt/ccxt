@@ -2420,6 +2420,75 @@ if ($exchange->has['createMarketOrder']) {
 }
 ```
 
+##### Market Buys
+
+In general, when placing a `market buy` or `market sell` order the user has to specify just the amount of the base currency to buy or sell. However, with some exchanges market buy orders implement a different approach to calculating the value of the order.
+
+Suppose you're trading BTC/USD and the current market price for BTC is over 9000 USD. For a market buy or market sell you could specify an `amount` of 2 BTC and that would result in _plus or minus_ 18000 USD (more or less ;)) on your account, depending on the side of the order.
+
+**With market buys some exchanges require the total cost of the order in the quote currency**. The logic behind it is simple, instead of taking the amount of base currency to buy or sell some exchanges operate with _"how much quote currency you want to spend on buying in total"_. To place a market buy order with those exchanges you would not specify an amount of 2 BTC, instead you should somehow specify the total cost of the order, that is, 18000 USD in this example. The exchanges that treat `market buy` orders in this way have an exchange-specific option `createMarketBuyRequiresPrice` that allows specifying the total cost of a `market buy` order in two ways.
+
+The first is the default and if you specify the `price` along with the `amount` – the total cost of the order would be calculated inside the lib from those two values with a simple multiplication (`cost = amount * price`). The resulting `cost` would be the amount in USD quote currency that will be spent on this particular market buy order.
+
+```JavaScript
+// this example is oversimplified and doesn't show all the code that is
+// required to handle the errors and exchange metadata properly
+// it shows just the concept of placing a market buy order
+
+const exchange = new ccxt.cex ({
+    'apiKey': YOUR_API_KEY,
+    'secret': 'YOUR_SECRET',
+    'enableRateLimit': true,
+    // 'options': {
+    //     'createMarketBuyRequiresPrice': true, // default
+    // },
+})
+
+;(async () => {
+
+    // when `createMarketBuyRequiresPrice` is true, we can pass the price
+    // so that the total cost of the order would be calculated inside the library
+    // by multiplying the amount over price (amount * price)
+
+    const symbol = 'BTC/USD'
+    const amount = 2 // BTC
+    const price = 9000 // USD
+    // cost = amount * price = 2 * 9000 = 18000 (USD)
+    const order = await exchange.createOrder (symbol, 'market', 'buy', amount, price)
+    console.log (order)
+})
+```
+
+The second alternative is useful in cases when the user wants to calculate and specify the resulting total cost of the order himself. That can be done by setting the `createMarketBuyRequiresPrice` option to `false` to switch it off:
+
+```JavaScript
+const exchange = new ccxt.cex ({
+    'apiKey': YOUR_API_KEY,
+    'secret': 'YOUR_SECRET',
+    'enableRateLimit': true,
+    'options': {
+        'createMarketBuyRequiresPrice': false, // switch off
+    },
+})
+
+// or, to switch it off later, after the exchange instantiation
+// exchange.options['createMarketBuyRequiresPrice'] = false
+
+;(async () => {
+
+    // when `createMarketBuyRequiresPrice` is true, we can pass the price
+    // so that the total cost of the order would be calculated inside the library
+    // by multiplying the amount over price (amount * price)
+
+    const symbol = 'BTC/USD'
+    const amount = 2 // BTC
+    const price = 9000 // USD
+    cost = amount * price = 2 * 9000 = 18000 (USD) // ← this cost goes ↓ here (instead of the amount)
+    const order = await exchange.createOrder (symbol, 'market', 'buy', cost)
+    console.log (order)
+})
+```
+
 ##### Emulating Market Orders With Limit Orders
 
 It is also possible to emulate a `market` order with a `limit` order.
