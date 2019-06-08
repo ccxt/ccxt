@@ -189,7 +189,7 @@ module Ccxt
     def load_time_difference
       response = self.publicGetTime
       after = self.milliseconds
-      self.options['timeDifference'] = (after - response['serverTime']).to_i
+      self.options['timeDifference'] = parse_int(after - response['serverTime'])
       return self.options['timeDifference']
     end
 
@@ -205,7 +205,7 @@ module Ccxt
         id = market['symbol']
         # "123456" is a "test symbol/market"
         if id == '123456'
-          continue
+          next
         end
         baseId = market['baseAsset']
         quoteId = market['quoteAsset']
@@ -270,7 +270,7 @@ module Ccxt
           }
         end
         if filters.include?('MIN_NOTIONAL')
-          entry['limits']['cost']['min'] = filters['MIN_NOTIONAL']['minNotional'].to_f
+          entry['limits']['cost']['min'] = parse_float(filters['MIN_NOTIONAL']['minNotional'])
         end
         result.push(entry)
       end
@@ -294,7 +294,7 @@ module Ccxt
         'type' => takerOrMaker,
         'currency' => market[key],
         'rate' => rate,
-        'cost' => cost.to_f
+        'cost' => parse_float(cost)
       }
     end
 
@@ -310,8 +310,8 @@ module Ccxt
           currency = self.currencies_by_id[currency]['code']
         end
         account = {
-          'free' => balance['free'].to_f,
-          'used' => balance['locked'].to_f,
+          'free' => parse_float(balance['free']),
+          'used' => parse_float(balance['locked']),
           'total' => 0.0
         }
         account['total'] = self.sum(account['free'], account['used'])
@@ -329,7 +329,7 @@ module Ccxt
       if limit != nil
         request['limit'] = limit
       end # default = maximum = 100
-      response = self.publicGetDepth(shallow_extend(request, params))
+      response = self.publicGetDepth(self.shallow_extend(request, params))
       orderbook = self.parse_order_book(response)
       orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
       return orderbook
@@ -366,7 +366,7 @@ module Ccxt
     def fetch_ticker(symbol, params = {})
       self.load_markets
       market = self.market(symbol)
-      response = self.publicGetTicker24hr(shallow_extend({
+      response = self.publicGetTicker24hr(self.shallow_extend({
         'symbol' => market['id']
       }, params))
       return self.parse_ticker(response, market)
@@ -396,11 +396,11 @@ module Ccxt
     def parse_ohlcv(ohlcv, market = nil, timeframe = '1m', since = nil, limit = nil)
       return [
         ohlcv[0],
-        ohlcv[1].to_f,
-        ohlcv[2].to_f,
-        ohlcv[3].to_f,
-        ohlcv[4].to_f,
-        ohlcv[5].to_f
+        parse_float(ohlcv[1]),
+        parse_float(ohlcv[2]),
+        parse_float(ohlcv[3]),
+        parse_float(ohlcv[4]),
+        parse_float(ohlcv[5])
       ]
     end
 
@@ -417,7 +417,7 @@ module Ccxt
       if limit != nil
         request['limit'] = limit # default == max == 500
       end
-      response = self.publicGetKlines(shallow_extend(request, params))
+      response = self.publicGetKlines(self.shallow_extend(request, params))
       return self.parse_ohlcvs(response, market, timeframe, since, limit)
     end
 
@@ -550,7 +550,7 @@ module Ccxt
       #   which is different from actual trade id
       # - setting both fromId and time window results in error
       method = self.safe_value(self.options, 'fetchTradesMethod', 'publicGetTrades')
-      response = self.send_wrapper(method, shallow_extend(request, params))
+      response = self.send_wrapper(method, self.shallow_extend(request, params))
       #
       # aggregate trades
       #
@@ -614,9 +614,9 @@ module Ccxt
         if amount != nil
           remaining = amount - filled
           if self.options['parseOrderToPrecision']
-            remaining = self.amount_to_precision(symbol, remaining.to_f)
+            remaining = parse_float(self.amount_to_precision(symbol, remaining))
           end
-          remaining = Math.max(remaining, 0.0)
+          remaining = maximum_wrapper(remaining, 0.0)
         end
         if price != nil
           if cost.nil?
@@ -666,7 +666,7 @@ module Ccxt
           average = cost / filled
         end
         if self.options['parseOrderToPrecision']
-          cost = self.cost_to_precision(symbol, cost.to_f)
+          cost = parse_float(self.cost_to_precision(symbol, cost))
         end
       end
       result = {
@@ -743,7 +743,7 @@ module Ccxt
           order['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         end
       end
-      response = self.send_wrapper(method, shallow_extend(order, params))
+      response = self.send_wrapper(method, self.shallow_extend(order, params))
       return self.parse_order(response, market)
     end
 
@@ -760,9 +760,9 @@ module Ccxt
       if origClientOrderId != nil
         request['origClientOrderId'] = origClientOrderId
       else
-        request['orderId'] = (id).to_i
+        request['orderId'] = parse_int(id)
       end
-      response = self.privateGetOrder(shallow_extend(request, params))
+      response = self.privateGetOrder(self.shallow_extend(request, params))
       return self.parse_order(response, market)
     end
 
@@ -781,7 +781,7 @@ module Ccxt
       if limit != nil
         request['limit'] = limit
       end
-      response = self.privateGetAllOrders(shallow_extend(request, params))
+      response = self.privateGetAllOrders(self.shallow_extend(request, params))
       #
       #     [
       #         {
@@ -817,10 +817,10 @@ module Ccxt
       elsif self.options['warnOnFetchOpenOrdersWithoutSymbol']
         symbols = self.symbols
         numSymbols = symbols.length
-        fetchOpenOrdersRateLimit = (numSymbols / 2).to_i
+        fetchOpenOrdersRateLimit = parse_int(numSymbols / 2)
         raise(ExchangeError, self.id + ' fetchOpenOrders WARNING => fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.to_s + ' seconds. Do not call self method frequently to avoid ban. Set ' + self.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress self warning message.')
       end
-      response = self.privateGetOpenOrders(shallow_extend(request, params))
+      response = self.privateGetOpenOrders(self.shallow_extend(request, params))
       return self.parse_orders(response, market, since, limit)
     end
 
@@ -835,9 +835,9 @@ module Ccxt
       end
       self.load_markets
       market = self.market(symbol)
-      response = self.privateDeleteOrder(shallow_extend({
+      response = self.privateDeleteOrder(self.shallow_extend({
         'symbol' => market['id'],
-        'orderId' => (id).to_i,
+        'orderId' => parse_int(id),
         # 'origClientOrderId' => id
       }, params))
       return self.parse_order(response)
@@ -855,7 +855,7 @@ module Ccxt
       if limit != nil
         request['limit'] = limit
       end
-      response = self.privateGetMyTrades(shallow_extend(request, params))
+      response = self.privateGetMyTrades(self.shallow_extend(request, params))
       #
       #     [
       #         {
@@ -884,7 +884,7 @@ module Ccxt
       # https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
       #
       self.load_markets
-      request = shallow_extend({}, params)
+      request = self.shallow_extend({}, params)
       response = self.wapiGetUserAssetDribbletLog(request)
       # { success =>    true,
       #   results => { total =>    1,
@@ -989,7 +989,7 @@ module Ccxt
       if since != nil
         request['startTime'] = since
       end
-      response = self.wapiGetDepositHistory(shallow_extend(request, params))
+      response = self.wapiGetDepositHistory(self.shallow_extend(request, params))
       #
       #     {     success =>    true,
       #       depositList => [{ insertTime =>  1517425007000,
@@ -1014,7 +1014,7 @@ module Ccxt
       if since != nil
         request['startTime'] = since
       end
-      response = self.wapiGetWithdrawHistory(shallow_extend(request, params))
+      response = self.wapiGetWithdrawHistory(self.shallow_extend(request, params))
       #
       #     { withdrawList => [{      amount =>  14,
       #                             address => "0x0123456789abcdef...",
@@ -1143,7 +1143,7 @@ module Ccxt
     def fetch_deposit_address(code, params = {})
       self.load_markets
       currency = self.currency(code)
-      response = self.wapiGetDepositAddress(shallow_extend({
+      response = self.wapiGetDepositAddress(self.shallow_extend({
         'asset' => currency['id']
       }, params))
       success = self.safe_value(response, 'success')
@@ -1206,13 +1206,13 @@ module Ccxt
       request = {
         'asset' => currency['id'],
         'address' => address,
-        'amount' => amount.to_f,
+        'amount' => parse_float(amount),
         'name' => name
       }
       if tag
         request['addressTag'] = tag
       end
-      response = self.wapiPostWithdraw(shallow_extend(request, params))
+      response = self.wapiPostWithdraw(self.shallow_extend(request, params))
       return {
         'info' => response,
         'id' => self.safe_string(response, 'id')
@@ -1234,7 +1234,7 @@ module Ccxt
         }
       elsif (api == 'private') || (api == 'wapi' && path != 'systemStatus')
         self.check_required_credentials
-        query = self.urlencode(shallow_extend({
+        query = self.urlencode(self.shallow_extend({
           'timestamp' => self.nonce,
           'recvWindow' => self.options['recvWindow']
         }, params))
@@ -1265,13 +1265,13 @@ module Ccxt
       # following block cointains legacy checks against message patterns in "msg" property
       # will switch "code" checks eventually, when we know all of them
       if code >= 400
-        if body.index('Price * QTY is zero or less')
+        if body.include?('Price * QTY is zero or less')
           raise(InvalidOrder, self.id + ' order cost = amount * price is zero or less ' + body)
         end
-        if body.index('LOT_SIZE')
+        if body.include?('LOT_SIZE')
           raise(InvalidOrder, self.id + ' order amount should be evenly divisible by lot size ' + body)
         end
-        if body.index('PRICE_FILTER')
+        if body.include?('PRICE_FILTER')
           raise(InvalidOrder, self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use self.price_to_precision(symbol, amount) ' + body)
         end
       end

@@ -232,8 +232,8 @@ module Ccxt
         else
           currency = self.common_currency_code(balance['enName'])
         end
-        account['free'] = balance['available'].to_f
-        account['used'] = balance['freez'].to_f
+        account['free'] = parse_float(balance['available'])
+        account['used'] = parse_float(balance['freez'])
         account['total'] = self.sum(account['free'], account['used'])
         result[currency] = account
       end
@@ -252,7 +252,7 @@ module Ccxt
       })
       address = response['message']['datas']['key']
       tag = nil
-      if address.index('_')
+      if address.include?('_')
         arr = address.split('_')
         address = arr[0]  # WARNING => MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIES!!
         tag = arr[1]
@@ -271,7 +271,7 @@ module Ccxt
       marketFieldName = self.get_market_field_name
       request = {}
       request[marketFieldName] = market['id']
-      orderbook = self.publicGetDepth(shallow_extend(request, params))
+      orderbook = self.publicGetDepth(self.shallow_extend(request, params))
       return self.parse_order_book(orderbook)
     end
 
@@ -299,7 +299,7 @@ module Ccxt
       marketFieldName = self.get_market_field_name
       request = {}
       request[marketFieldName] = market['id']
-      response = self.publicGetTicker(shallow_extend(request, params))
+      response = self.publicGetTicker(self.shallow_extend(request, params))
       ticker = response['ticker']
       return self.parse_ticker(ticker, market)
     end
@@ -349,7 +349,7 @@ module Ccxt
       if since != nil
         request['since'] = since
       end
-      response = self.publicGetKline(shallow_extend(request, params))
+      response = self.publicGetKline(self.shallow_extend(request, params))
       data = self.safe_value(response, 'data', [])
       return self.parse_ohlcvs(data, market, timeframe, since, limit)
     end
@@ -376,7 +376,7 @@ module Ccxt
       marketFieldName = self.get_market_field_name
       request = {}
       request[marketFieldName] = market['id']
-      response = self.publicGetTrades(shallow_extend(request, params))
+      response = self.publicGetTrades(self.shallow_extend(request, params))
       return self.parse_trades(response, market, since, limit)
     end
 
@@ -391,7 +391,7 @@ module Ccxt
         'tradeType' => (side == 'buy') ? '1' : '0',
         'currency' => self.market_id(symbol)
       }
-      response = self.privateGetOrder(shallow_extend(order, params))
+      response = self.privateGetOrder(self.shallow_extend(order, params))
       return {
         'info' => response,
         'id' => response['id']
@@ -404,7 +404,7 @@ module Ccxt
         'id' => id.to_s,
         'currency' => self.market_id(symbol)
       }
-      order = shallow_extend(order, params)
+      order = self.shallow_extend(order, params)
       return self.privateGetCancelOrder(order)
     end
 
@@ -417,7 +417,7 @@ module Ccxt
         'id' => id.to_s,
         'currency' => self.market_id(symbol)
       }
-      order = shallow_extend(order, params)
+      order = self.shallow_extend(order, params)
       response = self.privateGetGetOrder(order)
       #
       #     {
@@ -453,7 +453,7 @@ module Ccxt
       end
       response = nil
       begin
-        response = self.send_wrapper(method, shallow_extend(request, params))
+        response = self.send_wrapper(method, self.shallow_extend(request, params))
       rescue BaseError => e
         if e.is_a?(OrderNotFound)
           return []
@@ -481,7 +481,7 @@ module Ccxt
       end
       response = nil
       begin
-        response = self.send_wrapper(method, shallow_extend(request, params))
+        response = self.send_wrapper(method, self.shallow_extend(request, params))
       rescue BaseError => e
         if e.is_a?(OrderNotFound)
           return []
@@ -582,7 +582,7 @@ module Ccxt
           url += '?' + self.urlencode(params)
         end
       else
-        query = self.keysort(shallow_extend({
+        query = self.keysort(self.shallow_extend({
           'method' => path,
           'accesskey' => self.apiKey
         }, params))
@@ -590,7 +590,7 @@ module Ccxt
         query = self.keysort(query)
         auth = self.rawencode(query)
         secret = self.hash(self.encode(self.secret), 'sha1')
-        signature = self.hmac(self.encode(auth), self.encode(secret), md5)
+        signature = self.hmac(self.encode(auth), self.encode(secret), 'md5')
         suffix = 'sign=' + signature + '&reqTime=' + nonce.to_s
         url += '/' + path + '?' + auth + '&' + suffix
       end

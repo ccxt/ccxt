@@ -443,7 +443,7 @@ module Ccxt
         market = details[i]
         id = self.safe_string(market, 'pair')
         if !self.in_array(id, ids)
-          continue
+          next
         end
         id = id.upcase
         baseId = id[0...3]
@@ -499,7 +499,7 @@ module Ccxt
         'type' => takerOrMaker,
         'currency' => market[key],
         'rate' => rate,
-        'cost' => self.currency_to_precision(market[key], cost.to_f)
+        'cost' => parse_float(self.currency_to_precision(market[key], cost))
       }
     end
 
@@ -522,8 +522,8 @@ module Ccxt
           # https://github.com/ccxt/ccxt/issues/4989
           if result.include?(!(uppercase))
             account = self.account
-            account['free'] = balance['available'].to_f
-            account['total'] = balance['amount'].to_f
+            account['free'] = parse_float(balance['available'])
+            account['total'] = parse_float(balance['amount'])
             account['used'] = account['total'] - account['free']
             result[uppercase] = account
           end
@@ -541,7 +541,7 @@ module Ccxt
         request['limit_bids'] = limit
         request['limit_asks'] = limit
       end
-      orderbook = self.publicGetBookSymbol(shallow_extend(request, params))
+      orderbook = self.publicGetBookSymbol(self.shallow_extend(request, params))
       return self.parse_order_book(orderbook, nil, 'bids', 'asks', 'price', 'amount')
     end
 
@@ -560,7 +560,7 @@ module Ccxt
     def fetch_ticker(symbol, params = {})
       self.load_markets
       market = self.market(symbol)
-      ticker = self.publicGetPubtickerSymbol(shallow_extend({
+      ticker = self.publicGetPubtickerSymbol(self.shallow_extend({
         'symbol' => market['id']
       }, params))
       return self.parse_ticker(ticker, market)
@@ -612,7 +612,7 @@ module Ccxt
     end
 
     def parse_trade(trade, market)
-      timestamp = (trade['timestamp'].to_f).to_i * 1000
+      timestamp = parse_int(parse_float(trade['timestamp'])) * 1000
       side = trade['type'].downcase
       orderId = self.safe_string(trade, 'order_id')
       price = self.safe_float(trade, 'price')
@@ -656,9 +656,9 @@ module Ccxt
         'limit_trades' => limit
       }
       if since != nil
-        request['timestamp'] = (since / 1000).to_i
+        request['timestamp'] = parse_int(since / 1000)
       end
-      response = self.publicGetTradesSymbol(shallow_extend(request, params))
+      response = self.publicGetTradesSymbol(self.shallow_extend(request, params))
       return self.parse_trades(response, market, since, limit)
     end
 
@@ -673,9 +673,9 @@ module Ccxt
         request['limit_trades'] = limit
       end
       if since != nil
-        request['timestamp'] = (since / 1000).to_i
+        request['timestamp'] = parse_int(since / 1000)
       end
-      response = self.privatePostMytrades(shallow_extend(request, params))
+      response = self.privatePostMytrades(self.shallow_extend(request, params))
       return self.parse_trades(response, market, since, limit)
     end
 
@@ -695,7 +695,7 @@ module Ccxt
       else
         order['price'] = self.price_to_precision(symbol, price)
       end
-      result = self.privatePostOrderNew(shallow_extend(order, params))
+      result = self.privatePostOrderNew(self.shallow_extend(order, params))
       return self.parse_order(result)
     end
 
@@ -719,13 +719,13 @@ module Ccxt
       if type != nil
         order['type'] = self.safe_string(self.options['orderTypes'], type, type)
       end
-      result = self.privatePostOrderCancelReplace(shallow_extend(order, params))
+      result = self.privatePostOrderCancelReplace(self.shallow_extend(order, params))
       return self.parse_order(result)
     end
 
     def cancel_order(id, symbol = nil, params = {})
       self.load_markets
-      return self.privatePostOrderCancel({ 'order_id' => (id).to_i })
+      return self.privatePostOrderCancel({ 'order_id' => parse_int(id) })
     end
 
     def cancel_all_orders(symbol = nil, params = {})
@@ -755,12 +755,12 @@ module Ccxt
         symbol = market['symbol']
       end
       orderType = order['type']
-      exchange = orderType.index('exchange ')
+      exchange = orderType.include?('exchange ')
       if exchange
         parts = order['type'].split(' ')
         orderType = parts[1]
       end
-      timestamp = (order['timestamp'].to_f * 1000).to_i
+      timestamp = parse_int(parse_float(order['timestamp']) * 1000)
       result = {
         'info' => order,
         'id' => order['id'].to_s,
@@ -802,7 +802,7 @@ module Ccxt
       if limit != nil
         request['limit'] = limit
       end
-      response = self.privatePostOrdersHist(shallow_extend(request, params))
+      response = self.privatePostOrdersHist(self.shallow_extend(request, params))
       orders = self.parse_orders(response, nil, since, limit)
       if symbol != nil
         orders = self.filter_by(orders, 'symbol', symbol)
@@ -813,8 +813,8 @@ module Ccxt
 
     def fetch_order(id, symbol = nil, params = {})
       self.load_markets
-      response = self.privatePostOrderStatus(shallow_extend({
-        'order_id' => (id).to_i
+      response = self.privatePostOrderStatus(self.shallow_extend({
+        'order_id' => parse_int(id)
       }, params))
       return self.parse_order(response)
     end
@@ -846,7 +846,7 @@ module Ccxt
       if since != nil
         request['start'] = since
       end
-      response = self.v2GetCandlesTradeTimeframeSymbolHist(shallow_extend(request, params))
+      response = self.v2GetCandlesTradeTimeframeSymbolHist(self.shallow_extend(request, params))
       return self.parse_ohlcvs(response, market, timeframe, since, limit)
     end
 
@@ -858,7 +858,7 @@ module Ccxt
     end
 
     def create_deposit_address(code, params = {})
-      response = self.fetch_deposit_address(code, shallow_extend({
+      response = self.fetch_deposit_address(code, self.shallow_extend({
         'renew' => 1
       }, params))
       address = self.safe_string(response, 'address')
@@ -878,7 +878,7 @@ module Ccxt
         'wallet_name' => 'exchange',
         'renew' => 0, # a value of 1 will generate a new address
       }
-      response = self.privatePostDepositNew(shallow_extend(request, params))
+      response = self.privatePostDepositNew(self.shallow_extend(request, params))
       address = response['address']
       tag = nil
       if response.include?('address_pool')
@@ -904,9 +904,9 @@ module Ccxt
         'currency' => currency['id']
       }
       if since != nil
-        request['since'] = (since / 1000).to_i
+        request['since'] = parse_int(since / 1000)
       end
-      response = self.privatePostHistoryMovements(shallow_extend(request, params))
+      response = self.privatePostHistoryMovements(self.shallow_extend(request, params))
       #
       #     [
       #         {
@@ -931,11 +931,11 @@ module Ccxt
     def parse_transaction(transaction, currency = nil)
       timestamp = self.safe_float(transaction, 'timestamp_created')
       if timestamp != nil
-        timestamp = (timestamp * 1000).to_i
+        timestamp = parse_int(timestamp * 1000)
       end
       updated = self.safe_float(transaction, 'timestamp')
       if updated != nil
-        updated = (updated * 1000).to_i
+        updated = parse_int(updated * 1000)
       end
       code = nil
       if currency.nil?
@@ -1000,7 +1000,7 @@ module Ccxt
       if tag
         request['payment_id'] = tag
       end
-      responses = self.privatePostWithdraw(shallow_extend(request, params))
+      responses = self.privatePostWithdraw(self.shallow_extend(request, params))
       response = responses[0]
       id = response['withdrawal_id']
       message = response['message']
@@ -1032,7 +1032,7 @@ module Ccxt
       end
       query = self.omit(params, self.extract_params(path))
       url = self.urls['api'] + request
-      if (api == 'public') || (path.index('/hist'))
+      if (api == 'public') || (path.include?('/hist'))
         if query
           suffix = '?' + self.urlencode(query)
           url += suffix
@@ -1042,7 +1042,7 @@ module Ccxt
       if api == 'private'
         self.check_required_credentials
         nonce = self.nonce
-        query = shallow_extend({
+        query = self.shallow_extend({
           'nonce' => nonce.to_s,
           'request' => request
         }, query)
@@ -1050,7 +1050,7 @@ module Ccxt
         query = self.encode(body)
         payload = Base64.encode64(query)
         secret = self.encode(self.secret)
-        signature = self.hmac(payload, secret, sha384)
+        signature = self.hmac(payload, secret, 'sha384')
         headers = {
           'X-BFX-APIKEY' => self.apiKey,
           'X-BFX-PAYLOAD' => self.decode(payload),

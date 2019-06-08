@@ -176,7 +176,7 @@ module Ccxt
         if swap
           type = 'swap'
           symbol = base + '/' + quote
-        elsif id.index('B_')
+        elsif id.include?('B_')
           prediction = true
           type = 'prediction'
         else
@@ -240,7 +240,7 @@ module Ccxt
     def fetch_balance(params = {})
       self.load_markets
       request = { 'currency' => 'all' }
-      response = self.privateGetUserMargin(shallow_extend(request, params))
+      response = self.privateGetUserMargin(self.shallow_extend(request, params))
       result = { 'info' => response }
       for b in (0...response.length)
         balance = response[b]
@@ -271,7 +271,7 @@ module Ccxt
       if limit != nil
         request['depth'] = limit
       end
-      orderbook = self.publicGetOrderBookL2(shallow_extend(request, params))
+      orderbook = self.publicGetOrderBookL2(self.shallow_extend(request, params))
       result = {
         'bids' => [],
         'asks' => [],
@@ -635,7 +635,7 @@ module Ccxt
         ymdhms = self.ymdhms(since)
         request['startTime'] = ymdhms # starting date filter for results
       end
-      response = self.publicGetTradeBucketed(shallow_extend(request, params))
+      response = self.publicGetTradeBucketed(self.shallow_extend(request, params))
       return self.parse_ohlcvs(response, market, timeframe, since, limit)
     end
 
@@ -802,7 +802,7 @@ module Ccxt
       remaining = nil
       if amount != nil
         if filled != nil
-          remaining = Math.max(amount - filled, 0.0)
+          remaining = maximum_wrapper(amount - filled, 0.0)
         end
       end
       average = self.safe_float(order, 'avgPx')
@@ -847,7 +847,7 @@ module Ccxt
       if limit != nil
         request['count'] = limit
       end
-      response = self.publicGetTrade(shallow_extend(request, params))
+      response = self.publicGetTrade(self.shallow_extend(request, params))
       #
       #     [
       #         {
@@ -890,11 +890,11 @@ module Ccxt
       if price != nil
         request['price'] = price
       end
-      response = self.privatePostOrder(shallow_extend(request, params))
+      response = self.privatePostOrder(self.shallow_extend(request, params))
       order = self.parse_order(response)
       id = order['id']
       self.orders[id] = order
-      return shallow_extend({ 'info' => response }, order)
+      return self.shallow_extend({ 'info' => response }, order)
     end
 
     def edit_order(id, symbol, type, side, amount = nil, price = nil, params = {})
@@ -908,25 +908,25 @@ module Ccxt
       if price != nil
         request['price'] = price
       end
-      response = self.privatePutOrder(shallow_extend(request, params))
+      response = self.privatePutOrder(self.shallow_extend(request, params))
       order = self.parse_order(response)
       self.orders[order['id']] = order
-      return shallow_extend({ 'info' => response }, order)
+      return self.shallow_extend({ 'info' => response }, order)
     end
 
     def cancel_order(id, symbol = nil, params = {})
       self.load_markets
-      response = self.privateDeleteOrder(shallow_extend({ 'orderID' => id }, params))
+      response = self.privateDeleteOrder(self.shallow_extend({ 'orderID' => id }, params))
       order = response[0]
       error = self.safe_string(order, 'error')
       if error != nil
-        if error.index('Unable to cancel order due to existing state')
+        if error.include?('Unable to cancel order due to existing state')
           raise(OrderNotFound, self.id + ' cancelOrder failed => ' + error)
         end
       end
       order = self.parse_order(order)
       self.orders[order['id']] = order
-      return shallow_extend({ 'info' => response }, order)
+      return self.shallow_extend({ 'info' => response }, order)
     end
 
     def is_fiat(currency)
@@ -953,7 +953,7 @@ module Ccxt
         # 'otpToken' => '123456', # requires if two-factor auth(OTP) is enabled
         # 'fee' => 0.001, # bitcoin network fee
       }
-      response = self.privatePostUserRequestWithdrawal(shallow_extend(request, params))
+      response = self.privatePostUserRequestWithdrawal(self.shallow_extend(request, params))
       return {
         'info' => response,
         'id' => response['transactID']

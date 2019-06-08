@@ -246,7 +246,7 @@ module Ccxt
           pieces = amountAndCode.split(' ')
           numPieces = pieces.length
           if numPieces == 2
-            amount = pieces[0].to_f
+            amount = parse_float(pieces[0])
             code = self.common_currency_code(pieces[1])
             result[code] = amount
           end
@@ -283,7 +283,7 @@ module Ccxt
         symbol = darkpool ? market['altname'] : (base + '/' + quote)
         maker = nil
         if market.include?('fees_maker')
-          maker = market['fees_maker'][0][1].to_f / 100
+          maker = parse_float(market['fees_maker'][0][1]) / 100
         end
         precision = {
           'amount' => market['lot_decimals'],
@@ -304,7 +304,7 @@ module Ccxt
           'info' => market,
           'altname' => market['altname'],
           'maker' => maker,
-          'taker' => market['fees'][0][1].to_f / 100,
+          'taker' => parse_float(market['fees'][0][1]) / 100,
           'active' => true,
           'precision' => precision,
           'limits' => {
@@ -458,22 +458,22 @@ module Ccxt
       if market
         symbol = market['symbol']
       end
-      baseVolume = ticker['v'][1].to_f
-      vwap = ticker['p'][1].to_f
+      baseVolume = parse_float(ticker['v'][1])
+      vwap = parse_float(ticker['p'][1])
       quoteVolume = nil
       if baseVolume != nil && vwap != nil
         quoteVolume = baseVolume * vwap
       end
-      last = ticker['c'][0].to_f
+      last = parse_float(ticker['c'][0])
       return {
         'symbol' => symbol,
         'timestamp' => timestamp,
         'datetime' => self.iso8601(timestamp),
-        'high' => ticker['h'][1].to_f,
-        'low' => ticker['l'][1].to_f,
-        'bid' => ticker['b'][0].to_f,
+        'high' => parse_float(ticker['h'][1]),
+        'low' => parse_float(ticker['l'][1]),
+        'bid' => parse_float(ticker['b'][0]),
         'bidVolume' => nil,
-        'ask' => ticker['a'][0].to_f,
+        'ask' => parse_float(ticker['a'][0]),
         'askVolume' => nil,
         'vwap' => vwap,
         'open' => self.safe_float(ticker, 'o'),
@@ -535,11 +535,11 @@ module Ccxt
     def parse_ohlcv(ohlcv, market = nil, timeframe = '1m', since = nil, limit = nil)
       return [
         ohlcv[0] * 1000,
-        ohlcv[1].to_f,
-        ohlcv[2].to_f,
-        ohlcv[3].to_f,
-        ohlcv[4].to_f,
-        ohlcv[6].to_f
+        parse_float(ohlcv[1]),
+        parse_float(ohlcv[2]),
+        parse_float(ohlcv[3]),
+        parse_float(ohlcv[4]),
+        parse_float(ohlcv[6])
       ]
     end
 
@@ -551,7 +551,7 @@ module Ccxt
         'interval' => self.timeframes[timeframe]
       }
       if since != nil
-        request['since'] = ((since - 1).to_i / 1000)
+        request['since'] = parse_int((since - 1) / 1000)
       end
       response = self.publicGetOHLC(self.shallow_extend(request, params))
       ohlcvs = response['result'][market['id']]
@@ -596,7 +596,7 @@ module Ccxt
       timestamp = nil
       datetime = nil
       if time != nil
-        timestamp = (time * 1000).to_i
+        timestamp = parse_int(time * 1000)
         datetime = self.iso8601(timestamp)
       end
       fee = {
@@ -633,7 +633,7 @@ module Ccxt
         request['asset'] = currency['id']
       end
       if since != nil
-        request['start'] = (since / 1000).to_i
+        request['start'] = parse_int(since / 1000)
       end
       response = self.privatePostLedgers(self.shallow_extend(request, params))
       # {  error => [],
@@ -716,7 +716,7 @@ module Ccxt
       if trade.include?('ordertxid')
         order = trade['ordertxid']
         id = self.safe_string_2(trade, 'id', 'postxid')
-        timestamp = (trade['time'] * 1000).to_i
+        timestamp = parse_int(trade['time'] * 1000)
         side = trade['type']
         type = trade['ordertype']
         price = self.safe_float(trade, 'price')
@@ -732,11 +732,11 @@ module Ccxt
           }
         end
       else
-        timestamp = (trade[2] * 1000).to_i
+        timestamp = parse_int(trade[2] * 1000)
         side = (trade[3] == 's') ? 'sell' : 'buy'
         type = (trade[4] == 'l') ? 'limit' : 'market'
-        price = trade[0].to_f
-        amount = trade[1].to_f
+        price = parse_float(trade[0])
+        amount = parse_float(trade[1])
         tradeLength = trade.length
         if tradeLength > 6
           id = trade[6]
@@ -812,7 +812,7 @@ module Ccxt
           end
           code = self.common_currency_code(code)
         end
-        balance = balances[currency].to_f
+        balance = parse_float(balances[currency])
         account = {
           'free' => balance,
           'used' => 0.0,
@@ -950,7 +950,7 @@ module Ccxt
         # delisted market ids go here
         market = self.get_delisted_market_by_id(marketId)
       end
-      timestamp = (order['opentm'] * 1000).to_i
+      timestamp = parse_int(order['opentm'] * 1000)
       amount = self.safe_float(order, 'vol')
       filled = self.safe_float(order, 'vol_exec')
       remaining = amount - filled
@@ -1053,7 +1053,7 @@ module Ccxt
         # 'ofs' = result offset
       }
       if since != nil
-        request['start'] = (since / 1000).to_i
+        request['start'] = parse_int(since / 1000)
       end
       response = self.privatePostTradesHistory(self.shallow_extend(request, params))
       #
@@ -1115,7 +1115,7 @@ module Ccxt
       self.load_markets
       request = {}
       if since != nil
-        request['start'] = (since / 1000).to_i
+        request['start'] = parse_int(since / 1000)
       end
       response = self.privatePostOpenOrders(self.shallow_extend(request, params))
       orders = self.parse_orders(response['result']['open'], nil, since, limit)
@@ -1129,7 +1129,7 @@ module Ccxt
       self.load_markets
       request = {}
       if since != nil
-        request['start'] = (since / 1000).to_i
+        request['start'] = parse_int(since / 1000)
       end
       response = self.privatePostClosedOrders(self.shallow_extend(request, params))
       orders = self.parse_orders(response['result']['closed'], nil, since, limit)

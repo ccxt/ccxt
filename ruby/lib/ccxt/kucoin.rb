@@ -183,7 +183,7 @@ module Ccxt
       response = self.publicGetTimestamp
       after = self.milliseconds
       kucoinTime = self.safe_integer(response, 'data')
-      self.options['timeDifference'] = (after - kucoinTime).to_i
+      self.options['timeDifference'] = parse_int(after - kucoinTime)
       return self.options['timeDifference']
     end
 
@@ -321,7 +321,7 @@ module Ccxt
       request = {
         'currency' => currencyId
       }
-      response = self.privateGetWithdrawalsQuotas(shallow_extend(request, params))
+      response = self.privateGetWithdrawalsQuotas(self.shallow_extend(request, params))
       data = response['data']
       withdrawFees = {}
       withdrawFees[code] = self.safe_float(data, 'withdrawMinFee')
@@ -436,7 +436,7 @@ module Ccxt
       request = {
         'symbol' => market['id']
       }
-      response = self.publicGetMarketStats(shallow_extend(request, params))
+      response = self.publicGetMarketStats(self.shallow_extend(request, params))
       #
       #     {
       #         "code" => "200000",
@@ -470,12 +470,12 @@ module Ccxt
       #     ]
       #
       return [
-        (ohlcv[0]).to_i * 1000,
-        ohlcv[1].to_f,
-        ohlcv[3].to_f,
-        ohlcv[4].to_f,
-        ohlcv[2].to_f,
-        ohlcv[5].to_f
+        parse_int(ohlcv[0]) * 1000,
+        parse_float(ohlcv[1]),
+        parse_float(ohlcv[3]),
+        parse_float(ohlcv[4]),
+        parse_float(ohlcv[2]),
+        parse_float(ohlcv[5])
       ]
     end
 
@@ -491,7 +491,7 @@ module Ccxt
       if since != nil
         request['startAt'] = since / 1000.floor
       end
-      response = self.publicGetMarketCandles(shallow_extend(request, params))
+      response = self.publicGetMarketCandles(self.shallow_extend(request, params))
       responseData = response['data']
       return self.parse_ohlcvs(responseData, market, timeframe, since, limit)
     end
@@ -500,7 +500,7 @@ module Ccxt
       self.load_markets
       currencyId = self.currencyId(code)
       request = { 'currency' => currencyId }
-      response = self.privatePostDepositAddresses(shallow_extend(request, params))
+      response = self.privatePostDepositAddresses(self.shallow_extend(request, params))
       # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
       # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
       data = self.safe_value(response, 'data', {})
@@ -521,7 +521,7 @@ module Ccxt
       self.load_markets
       currencyId = self.currencyId(code)
       request = { 'currency' => currencyId }
-      response = self.privateGetDepositAddresses(shallow_extend(request, params))
+      response = self.privateGetDepositAddresses(self.shallow_extend(request, params))
       # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
       # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
       data = self.safe_value(response, 'data', {})
@@ -543,7 +543,7 @@ module Ccxt
     def fetch_order_book(symbol, limit = nil, params = {})
       self.load_markets
       marketId = self.market_id(symbol)
-      request = shallow_extend({ 'symbol' => marketId, 'level' => 2 }, params)
+      request = self.shallow_extend({ 'symbol' => marketId, 'level' => 2 }, params)
       response = self.publicGetMarketOrderbookLevelLevel(request)
       #
       # { sequence => '1547731421688',
@@ -555,7 +555,7 @@ module Ccxt
       # level can be a string such as 2_20 or 2_100
       levelString = self.safe_string(request, 'level')
       levelParts = levelString.split('_')
-      level = (levelParts[0]).to_i
+      level = parse_int(levelParts[0])
       return self.parse_order_book(data, timestamp, 'bids', 'asks', level - 2, level - 1)
     end
 
@@ -574,7 +574,7 @@ module Ccxt
       if type != 'market'
         request['price'] = self.price_to_precision(symbol, price)
       end
-      response = self.privatePostOrders(shallow_extend(request, params))
+      response = self.privatePostOrders(self.shallow_extend(request, params))
       responseData = response['data']
       return {
         'id' => responseData['orderId'],
@@ -589,7 +589,7 @@ module Ccxt
 
     def cancel_order(id, symbol = nil, params = {})
       request = { 'orderId' => id }
-      response = self.privateDeleteOrdersOrderId(shallow_extend(request, params))
+      response = self.privateDeleteOrdersOrderId(self.shallow_extend(request, params))
       return response
     end
 
@@ -609,7 +609,7 @@ module Ccxt
       if limit != nil
         request['pageSize'] = limit
       end
-      response = self.privateGetOrders(shallow_extend(request, params))
+      response = self.privateGetOrders(self.shallow_extend(request, params))
       #
       #     {
       #         code => '200000',
@@ -675,7 +675,7 @@ module Ccxt
       if symbol != nil
         market = self.market(symbol)
       end
-      response = self.privateGetOrdersOrderId(shallow_extend(request, params))
+      response = self.privateGetOrdersOrderId(self.shallow_extend(request, params))
       responseData = response['data']
       return self.parse_order(responseData, market)
     end
@@ -796,7 +796,7 @@ module Ccxt
       if since != nil
         # if since is earlier than 2019-02-18T00:00:00Z
         if since < 1550448000000
-          request['startAt'] = (since / 1000).to_i
+          request['startAt'] = parse_int(since / 1000)
           # despite that self endpoint is called `HistOrders`
           # it returns historical trades instead of orders
           method = 'privateGetHistOrders'
@@ -804,7 +804,7 @@ module Ccxt
           request['startAt'] = since
         end
       end
-      response = self.send_wrapper(method, shallow_extend(request, params))
+      response = self.send_wrapper(method, self.shallow_extend(request, params))
       #
       #     {
       #         "currentPage" => 1,
@@ -862,7 +862,7 @@ module Ccxt
       if limit != nil
         request['pageSize'] = limit
       end
-      response = self.publicGetMarketHistories(shallow_extend(request, params))
+      response = self.publicGetMarketHistories(self.shallow_extend(request, params))
       #
       #     {
       #         "code" => "200000",
@@ -954,7 +954,7 @@ module Ccxt
       amount = self.safe_float_2(trade, 'size', 'amount')
       timestamp = self.safe_integer(trade, 'time')
       if timestamp != nil
-        timestamp = (timestamp / 1000000).to_i
+        timestamp = parse_int(timestamp / 1000000)
       else
         timestamp = self.safe_integer(trade, 'createdAt')
         # if it's a historical v1 trade, the exchange returns timestamp in seconds
@@ -1018,7 +1018,7 @@ module Ccxt
       if tag != nil
         request['memo'] = tag
       end
-      response = self.privatePostWithdrawals(shallow_extend(request, params))
+      response = self.privatePostWithdrawals(self.shallow_extend(request, params))
       #
       # { "withdrawalId" => "5bffb63303aa675e8bbe18f9" }
       #
@@ -1156,13 +1156,13 @@ module Ccxt
       if since != nil
         # if since is earlier than 2019-02-18T00:00:00Z
         if since < 1550448000000
-          request['startAt'] = (since / 1000).to_i
+          request['startAt'] = parse_int(since / 1000)
           method = 'privateGetHistDeposits'
         else
           request['startAt'] = since
         end
       end
-      response = self.send_wrapper(method, shallow_extend(request, params))
+      response = self.send_wrapper(method, self.shallow_extend(request, params))
       #
       #     {
       #         code => '200000',
@@ -1219,13 +1219,13 @@ module Ccxt
       if since != nil
         # if since is earlier than 2019-02-18T00:00:00Z
         if since < 1550448000000
-          request['startAt'] = (since / 1000).to_i
+          request['startAt'] = parse_int(since / 1000)
           method = 'privateGetHistWithdrawals'
         else
           request['startAt'] = since
         end
       end
-      response = self.send_wrapper(method, shallow_extend(request, params))
+      response = self.send_wrapper(method, self.shallow_extend(request, params))
       #
       #     {
       #         code => '200000',
@@ -1274,7 +1274,7 @@ module Ccxt
       request = {
         'type' => 'trade'
       }
-      response = self.privateGetAccounts(shallow_extend(request, params))
+      response = self.privateGetAccounts(self.shallow_extend(request, params))
       responseData = response['data']
       result = { 'info' => responseData }
       for i in (0...responseData.length)
@@ -1312,13 +1312,13 @@ module Ccxt
       if api == 'private'
         self.check_required_credentials
         timestamp = self.nonce.to_s
-        headers = shallow_extend({
+        headers = self.shallow_extend({
           'KC-API-KEY' => self.apiKey,
           'KC-API-TIMESTAMP' => timestamp,
           'KC-API-PASSPHRASE' => self.password
         }, headers)
         payload = timestamp + method + endpoint + endpart
-        signature = self.hmac(self.encode(payload), self.encode(self.secret), sha256, 'base64')
+        signature = self.hmac(self.encode(payload), self.encode(self.secret), 'sha256', 'base64')
         headers['KC-API-SIGN'] = self.decode(signature)
       end
       return { 'url' => url, 'method' => method, 'body' => body, 'headers' => headers }
@@ -1337,7 +1337,7 @@ module Ccxt
       errorCode = self.safe_string(response, 'code')
       message = self.safe_string(response, 'msg')
       exceptionClass = self.safe_value_2(self.exceptions, message, errorCode)
-      if ExceptionClass != nil
+      if exceptionClass != nil
         raise(exceptionClass, self.id + ' ' + message)
       end
     end

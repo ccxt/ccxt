@@ -327,12 +327,12 @@ module Ccxt
 
     def parse_ohlcv(ohlcv, market = nil, timeframe = '1m', since = nil, limit = nil)
       return [
-        (ohlcv[0]).to_i,   # timestamp
-        ohlcv[1].to_f, # Open
-        ohlcv[2].to_f, # High
-        ohlcv[3].to_f, # Low
-        ohlcv[4].to_f, # Close
-        ohlcv[5].to_f, # base Volume
+        parse_int(ohlcv[0]),   # timestamp
+        parse_float(ohlcv[1]), # Open
+        parse_float(ohlcv[2]), # High
+        parse_float(ohlcv[3]), # Low
+        parse_float(ohlcv[4]), # Close
+        parse_float(ohlcv[5]), # base Volume
       ]
     end
 
@@ -343,7 +343,7 @@ module Ccxt
         'symbol' => market['id'],
         'tt' => self.timeframes[timeframe]
       }
-      response = self.engineGetCs(shallow_extend(request, params))
+      response = self.engineGetCs(self.shallow_extend(request, params))
       #
       #     {       tt =>   "1m",
       #         symbol =>   "ETH_BTC",
@@ -371,7 +371,7 @@ module Ccxt
       marketId = self.market_id(symbol)
       request = { 'symbol' => marketId }
       # limit argument is not supported on COSS's end
-      response = self.engineGetDp(shallow_extend(request, params))
+      response = self.engineGetDp(self.shallow_extend(request, params))
       #
       #     { symbol =>   "COSS_ETH",
       #         asks => [["0.00065200", "214.15000000"],
@@ -519,7 +519,7 @@ module Ccxt
       request = {
         'symbol' => market['id']
       }
-      response = self.engineGetHt(shallow_extend(request, params))
+      response = self.engineGetHt(self.shallow_extend(request, params))
       #
       #     {  symbol =>   "COSS_ETH",
       #         limit =>    100,
@@ -657,7 +657,7 @@ module Ccxt
         request['limit'] = limit # max = default = 50
       end
       method = 'tradePostOrderList' + type
-      response = self.send_wrapper(method, shallow_extend(request, params))
+      response = self.send_wrapper(method, self.shallow_extend(request, params))
       #
       # fetchOrders, fetchClosedOrders
       #
@@ -724,7 +724,7 @@ module Ccxt
 
     def fetch_order(id, symbol = nil, params = {})
       self.load_markets
-      response = self.tradePostOrderDetails(shallow_extend({
+      response = self.tradePostOrderDetails(self.shallow_extend({
         'order_id' => id
       }, params))
       return self.parse_order(response)
@@ -739,7 +739,7 @@ module Ccxt
       request = {
         'order_id' => id
       }
-      response = self.tradePostOrderTradeDetail(shallow_extend(request, params))
+      response = self.tradePostOrderTradeDetail(self.shallow_extend(request, params))
       #
       #     [{         hex_id =>  null,
       #                 symbol => "COSS_ETH",
@@ -854,12 +854,12 @@ module Ccxt
       market = self.market(symbol)
       request = {
         'order_symbol' => market['id'],
-        'order_price' => self.price_to_precision(symbol, price.to_f),
-        'order_size' => self.amount_to_precision(symbol, amount.to_f),
+        'order_price' => parse_float(self.price_to_precision(symbol, price)),
+        'order_size' => parse_float(self.amount_to_precision(symbol, amount)),
         'order_side' => side.upcase,
         'type' => type
       }
-      response = self.tradePostOrderAdd(shallow_extend(request, params))
+      response = self.tradePostOrderAdd(self.shallow_extend(request, params))
       #
       #     {
       #         "order_id" => "9e5ae4dd-3369-401d-81f5-dff985e1c4ty",
@@ -890,7 +890,7 @@ module Ccxt
         'order_id' => id,
         'order_symbol' => market['id']
       }
-      response = self.tradeDeleteOrderCancel(shallow_extend(request, params))
+      response = self.tradeDeleteOrderCancel(self.shallow_extend(request, params))
       #
       #     { order_symbol => "COSS_ETH",
       #           order_id => "30f2d698-39a0-4b9f-a3a6-a179542373bd",
@@ -911,7 +911,7 @@ module Ccxt
       if api == 'trade'
         self.check_required_credentials
         timestamp = self.nonce
-        query = shallow_extend({
+        query = self.shallow_extend({
           'timestamp' => timestamp, # required(int64)
           # 'recvWindow' => 10000, # optional(int32)
         }, params)

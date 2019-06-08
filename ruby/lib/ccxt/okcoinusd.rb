@@ -345,7 +345,7 @@ module Ccxt
         active = (markets[i]['online'] != 0)
         baseNumericId = markets[i]['baseCurrency']
         quoteNumericId = markets[i]['quoteCurrency']
-        market = shallow_extend(self.fees['trading'], {
+        market = self.shallow_extend(self.fees['trading'], {
           'id' => id,
           'symbol' => symbol,
           'base' => base,
@@ -381,7 +381,7 @@ module Ccxt
           for j in (0...fiats.length)
             fiat = fiats[j]
             lowercaseFiat = fiat.downcase
-            result.push(shallow_extend(market, {
+            result.push(self.shallow_extend(market, {
               'quote' => fiat,
               'symbol' => market['base'] + '/' + fiat,
               'id' => market['base'].downcase + '_' + lowercaseFiat,
@@ -411,7 +411,7 @@ module Ccxt
         request['contract_type'] = self.options['defaultContractType'] # self_week, next_week, quarter
       end
       method += 'Depth'
-      orderbook = self.send_wrapper(method, shallow_extend(request, params))
+      orderbook = self.send_wrapper(method, self.shallow_extend(request, params))
       return self.parse_order_book(orderbook)
     end
 
@@ -498,7 +498,7 @@ module Ccxt
         request['contract_type'] = self.options['defaultContractType'] # self_week, next_week, quarter
       end
       method += 'Ticker'
-      response = self.send_wrapper(method, shallow_extend(request, params))
+      response = self.send_wrapper(method, self.shallow_extend(request, params))
       ticker = self.safe_value(response, 'ticker')
       if ticker.nil?
         raise(ExchangeError, self.id + ' fetchTicker returned an empty response => ' + self.json(response))
@@ -506,7 +506,7 @@ module Ccxt
       timestamp = self.safe_integer(response, 'date')
       if timestamp != nil
         timestamp *= 1000
-        ticker = shallow_extend(ticker, { 'timestamp' => timestamp })
+        ticker = self.shallow_extend(ticker, { 'timestamp' => timestamp })
       end
       return self.parse_ticker(ticker, market)
     end
@@ -542,7 +542,7 @@ module Ccxt
         request['contract_type'] = self.options['defaultContractType'] # self_week, next_week, quarter
       end
       method += 'Trades'
-      response = self.send_wrapper(method, shallow_extend(request, params))
+      response = self.send_wrapper(method, self.shallow_extend(request, params))
       return self.parse_trades(response, market, since, limit)
     end
 
@@ -551,13 +551,13 @@ module Ccxt
       volumeIndex = (numElements > 6) ? 6 : 5
       return [
         ohlcv[0], # timestamp
-        ohlcv[1].to_f, # Open
-        ohlcv[2].to_f, # High
-        ohlcv[3].to_f, # Low
-        ohlcv[4].to_f, # Close
-        # ohlcv[5].to_f, # quote volume
-        # ohlcv[6].to_f, # base volume
-        ohlcv[volumeIndex].to_f, # okex will return base volume in the 7th element for future markets
+        parse_float(ohlcv[1]), # Open
+        parse_float(ohlcv[2]), # High
+        parse_float(ohlcv[3]), # Low
+        parse_float(ohlcv[4]), # Close
+        # parse_float(ohlcv[5]), # quote volume
+        # parse_float(ohlcv[6]), # base volume
+        parse_float(ohlcv[volumeIndex]), # okex will return base volume in the 7th element for future markets
       ]
     end
 
@@ -578,14 +578,14 @@ module Ccxt
         if self.options['warnOnFetchOHLCVLimitArgument']
           raise(ExchangeError, self.id + ' fetchOHLCV counts "limit" candles from current time backwards, therefore the "limit" argument for ' + self.id + ' is disabled. Set ' + self.id + '.options["warnOnFetchOHLCVLimitArgument"] = false to suppress self warning message.')
         end
-        request['size'] = (limit).to_i # max is 1440 candles
+        request['size'] = parse_int(limit) # max is 1440 candles
       end
       if since != nil
         request['since'] = since
       else
         request['since'] = self.milliseconds - 86400000
       end # last 24 hours
-      response = self.send_wrapper(method, shallow_extend(request, params))
+      response = self.send_wrapper(method, self.shallow_extend(request, params))
       return self.parse_ohlcvs(response, market, timeframe, since, limit)
     end
 
@@ -630,7 +630,7 @@ module Ccxt
       }
       if market['future']
         method += 'Future'
-        order = shallow_extend(order, {
+        order = self.shallow_extend(order, {
           'contract_type' => self.options['defaultContractType'], # self_week, next_week, quarter
           'match_price' => 0, # match best counter party price? 0 or 1, ignores price if 1
           'lever_rate' => 10, # leverage rate value => 10 or 20(10 by default)
@@ -664,7 +664,7 @@ module Ccxt
       end
       params = self.omit(params, 'cost')
       method += 'Trade'
-      response = self.send_wrapper(method, shallow_extend(order, params))
+      response = self.send_wrapper(method, self.shallow_extend(order, params))
       timestamp = self.milliseconds
       return {
         'info' => response,
@@ -703,7 +703,7 @@ module Ccxt
       else
         method += 'CancelOrder'
       end
-      response = self.send_wrapper(method, shallow_extend(request, params))
+      response = self.send_wrapper(method, self.shallow_extend(request, params))
       return response
     end
 
@@ -773,8 +773,8 @@ module Ccxt
       end
       amount = self.safe_float(order, 'amount')
       filled = self.safe_float(order, 'deal_amount')
-      amount = Math.max(amount, filled)
-      remaining = Math.max(0, amount - filled)
+      amount = maximum_wrapper(amount, filled)
+      remaining = maximum_wrapper(0, amount - filled)
       if type == 'market'
         remaining = 0
       end
@@ -834,7 +834,7 @@ module Ccxt
         request['contract_type'] = self.options['defaultContractType'] # self_week, next_week, quarter
       end
       method += 'OrderInfo'
-      response = self.send_wrapper(method, shallow_extend(request, params))
+      response = self.send_wrapper(method, self.shallow_extend(request, params))
       ordersField = self.get_orders_field
       numOrders = response[ordersField].length
       if numOrders > 0
@@ -872,13 +872,13 @@ module Ccxt
         end
         if order_id_in_params
           method += 'OrdersInfo'
-          request = shallow_extend(request, {
+          request = self.shallow_extend(request, {
             'type' => status,
             'order_id' => params['order_id']
           })
         else
           method += 'OrderHistory'
-          request = shallow_extend(request, {
+          request = self.shallow_extend(request, {
             'status' => status,
             'current_page' => 1, # current page number
             'page_length' => 200, # number of orders returned per page, maximum 200
@@ -886,21 +886,21 @@ module Ccxt
         end
         params = self.omit(params, ['type', 'status'])
       end
-      response = self.send_wrapper(method, shallow_extend(request, params))
+      response = self.send_wrapper(method, self.shallow_extend(request, params))
       ordersField = self.get_orders_field
       return self.parse_orders(response[ordersField], market, since, limit)
     end
 
     def fetch_open_orders(symbol = nil, since = nil, limit = nil, params = {})
       open = 0 # 0 for unfilled orders, 1 for filled orders
-      return self.fetch_orders(symbol, since, limit, shallow_extend({
+      return self.fetch_orders(symbol, since, limit, self.shallow_extend({
         'status' => open
       }, params))
     end
 
     def fetch_closed_orders(symbol = nil, since = nil, limit = nil, params = {})
       closed = 1 # 0 for unfilled orders, 1 for filled orders
-      orders = self.fetch_orders(symbol, since, limit, shallow_extend({
+      orders = self.fetch_orders(symbol, since, limit, self.shallow_extend({
         'status' => closed
       }, params))
       return orders
@@ -943,7 +943,7 @@ module Ccxt
       if !passwordInRequest
         raise(ExchangeError, self.id + ' withdraw requires self.password set on the exchange instance or a password / trade_pwd parameter')
       end
-      response = self.privatePostWithdraw(shallow_extend(request, query))
+      response = self.privatePostWithdraw(self.shallow_extend(request, query))
       return {
         'info' => response,
         'id' => self.safe_string(response, 'withdraw_id')
@@ -961,7 +961,7 @@ module Ccxt
       end
       if api == 'private'
         self.check_required_credentials
-        query = self.keysort(shallow_extend({
+        query = self.keysort(self.shallow_extend({
           'api_key' => self.apiKey
         }, params))
         # secret key must be at the end of query
@@ -971,6 +971,7 @@ module Ccxt
         headers = { 'Content-Type' => 'application/x-www-form-urlencoded' }
       else
         if params
+          puts "#sign:\n * URL: #{url}\n * params: #{params}"
           url += '?' + self.urlencode(params)
         end
       end

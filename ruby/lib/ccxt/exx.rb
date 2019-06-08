@@ -104,8 +104,8 @@ module Ccxt
         symbol = base + '/' + quote
         active = market['isOpen'] == true
         precision = {
-          'amount' => (market['amountScale']).to_i,
-          'price' => (market['priceScale']).to_i
+          'amount' => parse_int(market['amountScale']),
+          'price' => parse_int(market['priceScale'])
         }
         result.push({
           'id' => id,
@@ -138,7 +138,7 @@ module Ccxt
 
     def parse_ticker(ticker, market = nil)
       symbol = market['symbol']
-      timestamp = (ticker['date']).to_i
+      timestamp = parse_int(ticker['date'])
       ticker = ticker['ticker']
       last = self.safe_float(ticker, 'last')
       return {
@@ -168,7 +168,7 @@ module Ccxt
     def fetch_ticker(symbol, params = {})
       self.load_markets
       market = self.market(symbol)
-      ticker = self.publicGetTicker(shallow_extend({
+      ticker = self.publicGetTicker(self.shallow_extend({
         'currency' => market['id']
       }, params))
       return self.parse_ticker(ticker, market)
@@ -183,7 +183,7 @@ module Ccxt
       for i in (0...ids.length)
         id = ids[i]
         if self.marketsById.include?(!(id))
-          continue
+          next
         end
         market = self.marketsById[id]
         symbol = market['symbol']
@@ -198,7 +198,7 @@ module Ccxt
 
     def fetch_order_book(symbol, limit = nil, params = {})
       self.load_markets
-      orderbook = self.publicGetDepth(shallow_extend({
+      orderbook = self.publicGetDepth(self.shallow_extend({
         'currency' => self.market_id(symbol)
       }, params))
       return self.parse_order_book(orderbook, orderbook['timestamp'])
@@ -229,7 +229,7 @@ module Ccxt
     def fetch_trades(symbol, since = nil, limit = nil, params = {})
       self.load_markets
       market = self.market(symbol)
-      trades = self.publicGetTrades(shallow_extend({
+      trades = self.publicGetTrades(self.shallow_extend({
         'currency' => market['id']
       }, params))
       return self.parse_trades(trades, market, since, limit)
@@ -246,9 +246,9 @@ module Ccxt
         balance = balances[id]
         currency = self.common_currency_code(id)
         account = {
-          'free' => balance['balance'].to_f,
-          'used' => balance['freeze'].to_f,
-          'total' => balance['total'].to_f
+          'free' => parse_float(balance['balance']),
+          'used' => parse_float(balance['freeze']),
+          'total' => parse_float(balance['total'])
         }
         result[currency] = account
       end
@@ -257,12 +257,12 @@ module Ccxt
 
     def parse_order(order, market = nil)
       symbol = market['symbol']
-      timestamp = (order['trade_date']).to_i
+      timestamp = parse_int(order['trade_date'])
       price = self.safe_float(order, 'price')
       cost = self.safe_float(order, 'trade_money')
       amount = self.safe_float(order, 'total_amount')
       filled = self.safe_float(order, 'trade_amount', 0.0)
-      remaining = self.amount_to_precision(symbol, amount - filled.to_f)
+      remaining = parse_float(self.amount_to_precision(symbol, amount - filled))
       status = self.safe_integer(order, 'status')
       if status == 1
         status = 'canceled'
@@ -301,7 +301,7 @@ module Ccxt
     def create_order(symbol, type, side, amount, price = nil, params = {})
       self.load_markets
       market = self.market(symbol)
-      response = self.privateGetOrder(shallow_extend({
+      response = self.privateGetOrder(self.shallow_extend({
         'currency' => market['id'],
         'type' => side,
         'price' => price,
@@ -323,7 +323,7 @@ module Ccxt
     def cancel_order(id, symbol = nil, params = {})
       self.load_markets
       market = self.market(symbol)
-      result = self.privateGetCancel(shallow_extend({
+      result = self.privateGetCancel(self.shallow_extend({
         'id' => id,
         'currency' => market['id']
       }, params))
@@ -333,7 +333,7 @@ module Ccxt
     def fetch_order(id, symbol = nil, params = {})
       self.load_markets
       market = self.market(symbol)
-      order = self.privateGetGetOrder(shallow_extend({
+      order = self.privateGetGetOrder(self.shallow_extend({
         'id' => id,
         'currency' => market['id']
       }, params))
@@ -343,7 +343,7 @@ module Ccxt
     def fetch_open_orders(symbol = nil, since = nil, limit = nil, params = {})
       self.load_markets
       market = self.market(symbol)
-      orders = self.privateGetGetOpenOrders(shallow_extend({
+      orders = self.privateGetGetOpenOrders(self.shallow_extend({
         'currency' => market['id']
       }, params))
       if !orders.is_a?(Array)
@@ -364,11 +364,11 @@ module Ccxt
         end
       else
         self.check_required_credentials
-        query = self.urlencode(self.keysort(shallow_extend({
+        query = self.urlencode(self.keysort(self.shallow_extend({
           'accesskey' => self.apiKey,
           'nonce' => self.nonce
         }, params)))
-        signed = self.hmac(self.encode(query), self.encode(self.secret), sha512)
+        signed = self.hmac(self.encode(query), self.encode(self.secret), 'sha512')
         url += '?' + query + '&signature=' + signed
         headers = {
           'Content-Type' => 'application/x-www-form-urlencoded'
