@@ -108,7 +108,7 @@ module Ccxt::ExchangeHelpers
     #     return _urlencode.unquote(urlencode(params))
 
     def rawencode(params = {})
-      return Addressable::URI.encode_component(params, /./)
+      return Addressable::URI.form_encode(params)
     end
 
     def base64urlencode(s)

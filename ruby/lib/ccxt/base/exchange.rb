@@ -101,7 +101,8 @@ module Ccxt
       @transactions = {}
       @currencies = {}
       @options = {}
-      @accounts = {}
+
+      @accounts = nil
 
       @requiredCredentials = {
         'apiKey' => true,
@@ -842,11 +843,10 @@ module Ccxt
 
     # transpiler wrapper for #send.
     def send_wrapper(method, *args)
-      puts "send_wrapper:\n  METHOD: #{method}\n  ARGS: #{args.inspect}"
       if args.empty?
         return self.send(method)
       else
-        return self.send(method, args)
+        return self.send(method, *args)
       end
     end
 
