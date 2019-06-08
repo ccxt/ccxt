@@ -36,7 +36,7 @@ module Ccxt
     attr_accessor :enableLastHttpResponse, :enableLastJsonResponse, :enableLastResponseHeaders
     attr_accessor :last_http_response, :last_json_response, :last_response_headers, :web3
     attr_accessor :commonCurrencies, :name, :countries, :timeframes, :urls
-    attr_accessor :tokenBucket, :hostname
+    attr_accessor :tokenBucket, :hostname, :accounts
 
     def initialize(config = {})
       @id = nil
@@ -809,7 +809,8 @@ module Ccxt
             lowercase_method = http_method.downcase
             camelcase_method = capitalize(lowercase_method)
             camelcase_suffix = split_path.map { |p| capitalize(p) }.join('')
-            underscore_suffix = split_path.map { |p| p.strip.downcase }.join('_')
+            lowercase_path = split_path.map { |p| p.strip.downcase }
+            underscore_suffix = split_path.delete_if(&:empty?).join('_')
 
             camelcase = api_type + camelcase_method + camelcase_suffix
             underscore = api_type + '_' + lowercase_method + '_' + underscore_suffix
