@@ -114,7 +114,7 @@ function test_trades($exchange, $symbol) {
 
 function test_symbol($exchange, $symbol) {
     test_ticker($exchange, $symbol);
-    if ('coinmarketcap' == $exchange->id) {
+    if ($exchange->id === 'coinmarketcap') {
         dump(var_export($exchange->fetchGlobal()));
     } else {
         test_order_book($exchange, $symbol);
@@ -193,7 +193,7 @@ function test_exchange($exchange) {
         }
     }
 
-    if (false === strpos($symbol, '.d')) {
+    if (strpos($symbol, '.d') === false) {
         dump(green('SYMBOL:'), green($symbol));
 
         test_symbol($exchange, $symbol);
