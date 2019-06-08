@@ -237,9 +237,10 @@ class fcoin extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $ticker = $this->marketGetTickerSymbol (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
-        ), $params));
+        );
+        $ticker = $this->marketGetTickerSymbol (array_merge ($request, $params));
         return $this->parse_ticker($ticker['data'], $market);
     }
 

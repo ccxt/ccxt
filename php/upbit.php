@@ -21,7 +21,7 @@ class upbit extends Exchange {
             'has' => array (
                 'CORS' => true,
                 'createDepositAddress' => true,
-                'createMarketOrder' => false,
+                'createMarketOrder' => true,
                 'fetchDepositAddress' => true,
                 'fetchClosedOrders' => true,
                 'fetchMyTrades' => false,
@@ -125,13 +125,17 @@ class upbit extends Exchange {
                     'thirdparty_agreement_required' => '\\ccxt\\PermissionDenied',
                     'out_of_scope' => '\\ccxt\\PermissionDenied',
                     'order_not_found' => '\\ccxt\\OrderNotFound',
-                    'insufficient_funds_ask' => '\\ccxt\\InsufficientFunds',
-                    'insufficient_funds_bid' => '\\ccxt\\InsufficientFunds',
+                    'insufficient_funds' => '\\ccxt\\InsufficientFunds',
                     'invalid_access_key' => '\\ccxt\\AuthenticationError',
                     'jwt_verification' => '\\ccxt\\AuthenticationError',
+                    'create_ask_error' => '\\ccxt\\ExchangeError',
+                    'create_bid_error' => '\\ccxt\\ExchangeError',
+                    'volume_too_large' => '\\ccxt\\InvalidOrder',
+                    'invalid_funds' => '\\ccxt\\InvalidOrder',
                 ),
             ),
             'options' => array (
+                'createMarketBuyOrderRequiresPrice' => true,
                 'fetchTickersMaxLength' => 4096, // 2048,
                 'fetchOrderBooksMaxLength' => 4096, // 2048,
                 'symbolSeparator' => '-',
@@ -833,8 +837,17 @@ class upbit extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($type !== 'limit') {
-            throw new InvalidOrder ($this->id . ' createOrder allows limit orders only!');
+        if ($type === 'market') {
+            // for $market buy it requires the $amount of quote currency to spend
+            if ($side === 'buy') {
+                if ($this->options['createMarketBuyOrderRequiresPrice']) {
+                    if ($price === null) {
+                        throw new InvalidOrder ($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
+                    } else {
+                        $amount = $amount * $price;
+                    }
+                }
+            }
         }
         $orderSide = null;
         if ($side === 'buy') {
@@ -849,10 +862,20 @@ class upbit extends Exchange {
         $request = array (
             'market' => $market['id'],
             'side' => $orderSide,
-            'volume' => $this->amount_to_precision($symbol, $amount),
-            'price' => $this->price_to_precision($symbol, $price),
-            'ord_type' => $type,
         );
+        if ($type === 'limit') {
+            $request['volume'] = $this->amount_to_precision($symbol, $amount);
+            $request['price'] = $this->price_to_precision($symbol, $price);
+            $request['ord_type'] = $type;
+        } else if ($type === 'market') {
+            if ($side === 'buy') {
+                $request['ord_type'] = 'price';
+                $request['price'] = $this->price_to_precision($symbol, $amount);
+            } else if ($side === 'sell') {
+                $request['ord_type'] = $type;
+                $request['volume'] = $this->amount_to_precision($symbol, $amount);
+            }
+        }
         $response = $this->privatePostOrders (array_merge ($request, $params));
         //
         //     {
@@ -1105,9 +1128,9 @@ class upbit extends Exchange {
         //                 "$price" => "101000.0",
         //                 "volume" => "0.22631677",
         //                 "funds" => "22857.99377",
-        //                 "ask_fee" => "34.286990655",
-        //                 "bid_fee" => "34.286990655",
-        //                 "created_at" => "2018-04-05T14:09:15+09:00",
+        //                 "ask_fee" => "34.286990655", // missing in $market orders
+        //                 "bid_fee" => "34.286990655", // missing in $market orders
+        //                 "created_at" => "2018-04-05T14:09:15+09:00", // missing in $market orders
         //                 "$side" => "bid",
         //             ),
         //         ),
@@ -1129,17 +1152,12 @@ class upbit extends Exchange {
         $remaining = $this->safe_float($order, 'remaining_volume');
         $filled = $this->safe_float($order, 'executed_volume');
         $cost = null;
-        $average = $price; // they support limit orders only for now
-        if ($cost === null) {
-            if (($price !== null) && ($filled !== null)) {
-                $cost = $price * $filled;
-            }
+        if ($type === 'price') {
+            $type = 'market';
+            $cost = $price;
+            $price = null;
         }
-        $orderTrades = $this->safe_value($order, 'trades');
-        $trades = null;
-        if ($orderTrades !== null) {
-            $trades = $this->parse_trades($orderTrades);
-        }
+        $average = null;
         $fee = null;
         $feeCost = $this->safe_float($order, 'paid_fee');
         $feeCurrency = null;
@@ -1156,25 +1174,30 @@ class upbit extends Exchange {
             $symbol = $base . '/' . $quote;
             $feeCurrency = $quote;
         }
-        if ($trades !== null) {
-            $numTrades = is_array ($trades) ? count ($trades) : 0;
-            if ($numTrades > 0) {
-                if ($lastTradeTimestamp === null) {
-                    $lastTradeTimestamp = $trades[$numTrades - 1]['timestamp'];
-                }
-                if ($feeCost === null) {
-                    for ($i = 0; $i < $numTrades; $i++) {
-                        $tradeFee = $this->safe_value($trades[$i], 'fee', array ());
-                        $tradeFeeCost = $this->safe_float($tradeFee, 'cost');
-                        if ($tradeFeeCost !== null) {
-                            if ($feeCost === null) {
-                                $feeCost = 0;
-                            }
-                            $feeCost = $this->sum ($feeCost, $tradeFeeCost);
-                        }
+        $trades = $this->safe_value($order, 'trades', array ());
+        $trades = $this->parse_trades($trades, $market, null, null, array ( 'order' => $id ));
+        $numTrades = is_array ($trades) ? count ($trades) : 0;
+        if ($numTrades > 0) {
+            // the $timestamp in fetchOrder $trades is missing
+            $lastTradeTimestamp = $trades[$numTrades - 1]['timestamp'];
+            $getFeesFromTrades = false;
+            if ($feeCost === null) {
+                $getFeesFromTrades = true;
+                $feeCost = 0;
+            }
+            $cost = 0;
+            for ($i = 0; $i < $numTrades; $i++) {
+                $trade = $trades[$i];
+                $cost = $this->sum ($cost, $trade['cost']);
+                if ($getFeesFromTrades) {
+                    $tradeFee = $this->safe_value($trades[$i], 'fee', array ());
+                    $tradeFeeCost = $this->safe_float($tradeFee, 'cost');
+                    if ($tradeFeeCost !== null) {
+                        $feeCost = $this->sum ($feeCost, $tradeFeeCost);
                     }
                 }
             }
+            $average = $cost / $filled;
         }
         if ($feeCost !== null) {
             $fee = array (

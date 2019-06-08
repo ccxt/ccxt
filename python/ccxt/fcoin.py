@@ -243,9 +243,10 @@ class fcoin (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        ticker = self.marketGetTickerSymbol(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        ticker = self.marketGetTickerSymbol(self.extend(request, params))
         return self.parse_ticker(ticker['data'], market)
 
     def parse_ticker(self, ticker, market=None):

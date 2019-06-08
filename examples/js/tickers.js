@@ -58,6 +58,14 @@ let printTickers = async (id) => {
 
         for (let symbol of exchange.symbols)
             if ((symbol.indexOf ('.d') < 0)) { // skip darkpool symbols
+
+                const market = exchange.markets[symbol];
+
+                if (!market['active']) {
+                    log.red (exchange.id + ' ' + symbol + ' inactive');
+                    continue;
+                }
+
                 await sleep (exchange.rateLimit)
                 await printTicker (exchange, symbol)
             }

@@ -53,7 +53,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 
 # Exchanges
 
-The ccxt library currently supports the following 137 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 136 cryptocurrency exchange markets and trading APIs:
 
 |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;logo&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;                                                                                                       | id                 | name                                                                                    | ver   | doc                                                                                          | certified                                                                                                                  |
 |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|-----------------------------------------------------------------------------------------|:-----:|:--------------------------------------------------------------------------------------------:|----------------------------------------------------------------------------------------------------------------------------|
@@ -126,7 +126,7 @@ The ccxt library currently supports the following 137 cryptocurrency exchange ma
 |[![crex24](https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg)](https://crex24.com/?refid=slxsjsjtil8xexl9hksr)                               | crex24             | [CREX24](https://crex24.com/?refid=slxsjsjtil8xexl9hksr)                                | 2     | [API](https://docs.crex24.com/trade-api/v2)                                                  |                                                                                                                             | Estonia                                 |
 |[![crypton](https://user-images.githubusercontent.com/1294454/41334251-905b5a78-6eed-11e8-91b9-f3aa435078a1.jpg)](https://cryptonbtc.com)                                                      | crypton            | [Crypton](https://cryptonbtc.com)                                                       | 1     | [API](https://cryptonbtc.docs.apiary.io/)                                                    |                                                                                                                             | EU                                      |
 |[![deribit](https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg)](https://www.deribit.com/reg-1189.4038)                                       | deribit            | [Deribit](https://www.deribit.com/reg-1189.4038)                                        | 1     | [API](https://docs.deribit.com)                                                              |                                                                                                                             | Netherlands                             |
-|[![dsx](https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg)](https://dsx.uk)                                                                  | dsx                | [DSX](https://dsx.uk)                                                                   | 2     | [API](https://api.dsx.uk)                                                                    |                                                                                                                             | UK                                      |
+|[![dsx](https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg)](https://dsx.uk)                                                                  | dsx                | [DSX](https://dsx.uk)                                                                   | 2     | [API](https://dsx.uk/developers/publicApiV2)                                                 |                                                                                                                             | UK                                      |
 |[![dx](https://user-images.githubusercontent.com/1294454/57979980-6483ff80-7a2d-11e9-9224-2aa20665703b.jpg)](https://dx.exchange/registration?dx_cid=20&dx_scname=100001100000038139)          | dx                 | [DX.Exchange](https://dx.exchange/registration?dx_cid=20&dx_scname=100001100000038139)  | 1     | [API](https://apidocs.dx.exchange)                                                           |                                                                                                                             | UK, EU                                  |
 |[![ethfinex](https://user-images.githubusercontent.com/1294454/37555526-7018a77c-29f9-11e8-8835-8e415c038a18.jpg)](https://www.ethfinex.com)                                                   | ethfinex           | [Ethfinex](https://www.ethfinex.com)                                                    | 1     | [API](https://bitfinex.readme.io/v1/docs)                                                    |                                                                                                                             | British Virgin Islands                  |
 |[![exmo](https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg)](https://exmo.me/?ref=131685)                                                    | exmo               | [EXMO](https://exmo.me/?ref=131685)                                                     | 1     | [API](https://exmo.me/en/api_doc?ref=131685)                                                 |                                                                                                                             | Spain, Russia                           |
@@ -173,8 +173,7 @@ The ccxt library currently supports the following 137 cryptocurrency exchange ma
 |[![okex](https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg)](https://www.okex.com)                                                           | okex               | [OKEX](https://www.okex.com)                                                            | 1     | [API](https://github.com/okcoin-okex/API-docs-OKEx.com)                                      |                                                                                                                             | China, US                               |
 |[![okex3](https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg)](https://www.okex.com)                                                          | okex3              | [OKEX](https://www.okex.com)                                                            | 3     | [API](https://www.okex.com/docs/en/)                                                         |                                                                                                                             | China, US                               |
 |[![paymium](https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg)](https://www.paymium.com)                                                     | paymium            | [Paymium](https://www.paymium.com)                                                      | 1     | [API](https://github.com/Paymium/api-documentation)                                          |                                                                                                                             | France, EU                              |
-|[![poloniex](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)](https://poloniex.com)                                                       | poloniex           | [Poloniex](https://poloniex.com)                                                        | *     | [API](https://docs.poloniex.com)                                                             | [![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | US                                      |
-|[![quadrigacx](https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg)](https://www.quadrigacx.com/?ref=laiqgbp6juewva44finhtmrk)                 | quadrigacx         | [QuadrigaCX](https://www.quadrigacx.com/?ref=laiqgbp6juewva44finhtmrk)                  | 2     | [API](https://www.quadrigacx.com/api_info)                                                   |                                                                                                                             | Canada                                  |
+|[![poloniex](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)](https://www.poloniex.com/?utm_source=ccxt&utm_medium=web)                   | poloniex           | [Poloniex](https://www.poloniex.com/?utm_source=ccxt&utm_medium=web)                    | *     | [API](https://docs.poloniex.com)                                                             | [![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | US                                      |
 |[![rightbtc](https://user-images.githubusercontent.com/1294454/42633917-7d20757e-85ea-11e8-9f53-fffe9fbb7695.jpg)](https://www.rightbtc.com)                                                   | rightbtc           | [RightBTC](https://www.rightbtc.com)                                                    | *     | [API](https://52.53.159.206/api/trader/)                                                     |                                                                                                                             | United Arab Emirates                    |
 |[![southxchange](https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg)](https://www.southxchange.com)                                           | southxchange       | [SouthXchange](https://www.southxchange.com)                                            | *     | [API](https://www.southxchange.com/Home/Api)                                                 |                                                                                                                             | Argentina                               |
 |[![stronghold](https://user-images.githubusercontent.com/1294454/52160042-98c1f300-26be-11e9-90dd-da8473944c83.jpg)](https://stronghold.co)                                                    | stronghold         | [Stronghold](https://stronghold.co)                                                     | 1     | [API](https://docs.stronghold.co)                                                            |                                                                                                                             |                                         |
@@ -2420,6 +2419,89 @@ if ($exchange->has['createMarketOrder']) {
     ...
 }
 ```
+
+##### Market Buys
+
+In general, when placing a `market buy` or `market sell` order the user has to specify just the amount of the base currency to buy or sell. However, with some exchanges market buy orders implement a different approach to calculating the value of the order.
+
+Suppose you're trading BTC/USD and the current market price for BTC is over 9000 USD. For a market buy or market sell you could specify an `amount` of 2 BTC and that would result in _plus or minus_ 18000 USD (more or less ;)) on your account, depending on the side of the order.
+
+**With market buys some exchanges require the total cost of the order in the quote currency!** The logic behind it is simple, instead of taking the amount of base currency to buy or sell some exchanges operate with _"how much quote currency you want to spend on buying in total"_.
+
+To place a market buy order with those exchanges you would not specify an amount of 2 BTC, instead you should somehow specify the total cost of the order, that is, 18000 USD in this example. The exchanges that treat `market buy` orders in this way have an exchange-specific option `createMarketBuyRequiresPrice` that allows specifying the total cost of a `market buy` order in two ways.
+
+The first is the default and if you specify the `price` along with the `amount` the total cost of the order would be calculated inside the lib from those two values with a simple multiplication (`cost = amount * price`). The resulting `cost` would be the amount in USD quote currency that will be spent on this particular market buy order.
+
+```JavaScript
+// this example is oversimplified and doesn't show all the code that is
+// required to handle the errors and exchange metadata properly
+// it shows just the concept of placing a market buy order
+
+const exchange = new ccxt.cex ({
+    'apiKey': YOUR_API_KEY,
+    'secret': 'YOUR_SECRET',
+    'enableRateLimit': true,
+    // 'options': {
+    //     'createMarketBuyRequiresPrice': true, // default
+    // },
+})
+
+;(async () => {
+
+    // when `createMarketBuyRequiresPrice` is true, we can pass the price
+    // so that the total cost of the order would be calculated inside the library
+    // by multiplying the amount over price (amount * price)
+
+    const symbol = 'BTC/USD'
+    const amount = 2 // BTC
+    const price = 9000 // USD
+    // cost = amount * price = 2 * 9000 = 18000 (USD)
+
+    // note that we don't use createMarketBuyOrder here, instead we use createOrder
+    // createMarketBuyOrder will omit the price and will not work when
+    // exchange.options['createMarketBuyRequiresPrice'] = true
+    const order = await exchange.createOrder (symbol, 'market', 'buy', amount, price)
+
+    console.log (order)
+})
+```
+
+The second alternative is useful in cases when the user wants to calculate and specify the resulting total cost of the order himself. That can be done by setting the `createMarketBuyRequiresPrice` option to `false` to switch it off:
+
+```JavaScript
+const exchange = new ccxt.cex ({
+    'apiKey': YOUR_API_KEY,
+    'secret': 'YOUR_SECRET',
+    'enableRateLimit': true,
+    'options': {
+        'createMarketBuyRequiresPrice': false, // switch off
+    },
+})
+
+// or, to switch it off later, after the exchange instantiation, you can do
+exchange.options['createMarketBuyRequiresPrice'] = false
+
+;(async () => {
+
+    // when `createMarketBuyRequiresPrice` is true, we can pass the price
+    // so that the total cost of the order would be calculated inside the library
+    // by multiplying the amount over price (amount * price)
+
+    const symbol = 'BTC/USD'
+    const amount = 2 // BTC
+    const price = 9000 // USD
+    cost = amount * price // ← instead of the amount cost goes ↓ here
+    const order = await exchange.createMarketBuyOrder (symbol, cost)
+    console.log (order)
+})
+```
+
+More about it:
+
+- https://github.com/ccxt/ccxt/issues/564#issuecomment-347458566
+- https://github.com/ccxt/ccxt/issues/4914#issuecomment-478199357
+- https://github.com/ccxt/ccxt/issues/4799#issuecomment-470966769
+- https://github.com/ccxt/ccxt/issues/5197#issuecomment-496270785
 
 ##### Emulating Market Orders With Limit Orders
 

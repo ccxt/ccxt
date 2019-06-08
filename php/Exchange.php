@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.643';
+$version = '1.18.656';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -51,7 +51,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.643';
+    const VERSION = '1.18.656';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -199,7 +199,6 @@ class Exchange {
         'okex3',
         'paymium',
         'poloniex',
-        'quadrigacx',
         'rightbtc',
         'southxchange',
         'stronghold',
@@ -311,15 +310,15 @@ class Exchange {
         $amount = substr($timeframe, 0, -1);
         $unit = substr($timeframe, -1);
         $scale = 1;
-        if ('y' === $unit) {
+        if ($unit === 'y') {
             $scale = 60 * 60 * 24 * 365;
-        } elseif ('M' === $unit) {
+        } elseif ($unit === 'M') {
             $scale = 60 * 60 * 24 * 30;
-        } elseif ('w' === $unit) {
+        } elseif ($unit === 'w') {
             $scale = 60 * 60 * 24 * 7;
-        } elseif ('d' === $unit) {
+        } elseif ($unit === 'd') {
             $scale = 60 * 60 * 24;
-        } elseif ('h' === $unit) {
+        } elseif ($unit === 'h') {
             $scale = 60 * 60;
         } else {
             $scale = 60;
@@ -349,7 +348,7 @@ class Exchange {
             $openingTime = floor($trade['timestamp'] / $ms) * $ms; // shift to the edge of m/h/d (but not M)
             $j = count($ohlcvs);
 
-            if (0 == $j || $openingTime >= $ohlcvs[$j - 1][0] + $ms) {
+            if (($j == 0) || ($openingTime >= $ohlcvs[$j - 1][0] + $ms)) {
                 // moved to a new timeframe -> create a new candle from opening trade
                 $ohlcvs[] = array(
                     $openingTime,
@@ -481,7 +480,7 @@ class Exchange {
 
     public static function implode_params($string, $params) {
         foreach ($params as $key => $value) {
-            if ('array' !== gettype($value)) {
+            if (gettype($value) !== 'array') {
                 $string = implode($value, mb_split('{' . preg_quote($key) . '}', $string));
             }
         }
@@ -613,11 +612,16 @@ class Exchange {
         if (!$timedata || $timedata['error_count'] > 0 || $timedata['warning_count'] > 0 || (isset($timedata['relative']) && count($timedata['relative']) > 0)) {
             return null;
         }
-        if (false === $timedata['hour'] || false === $timedata['minute'] || false === $timedata['second'] || false === $timedata['year'] || false === $timedata['month'] || false === $timedata['day']) {
+        if (($timedata['hour'] === false) ||
+            ($timedata['minute'] === false) ||
+            ($timedata['second'] === false) ||
+            ($timedata['year'] === false) ||
+            ($timedata['month'] === false) ||
+            ($timedata['day'] === false)) {
             return null;
         }
         $time = strtotime($timestamp);
-        if (false === $time) {
+        if ($time === false) {
             return null;
         }
         $time *= 1000;
@@ -697,9 +701,9 @@ class Exchange {
             throw new InvalidAddress($this->id . ' address is undefined');
         }
 
-        if ((1 === count(array_unique(str_split($address)))) ||
+        if ((count(array_unique(str_split($address))) === 1) ||
             (strlen($address) < $this->minFundingAddressLength) ||
-            (false !== strpos($address, ' '))) {
+            (strpos($address, ' ') !== false)) {
             throw new InvalidAddress($this->id . ' address is invalid or has less than ' . strval($this->minFundingAddressLength) . ' characters: "' . strval($address) . '"');
         }
 
@@ -929,7 +933,7 @@ class Exchange {
             }
         }
 
-        if ('&' !== $this->urlencode_glue) {
+        if ($this->urlencode_glue !== '&') {
             if ($this->urlencode_glue_warning) {
                 throw new ExchangeError(this . id . ' warning! The glue symbol for HTTP queries ' .
                     ' is changed from its default value & to ' . $this->urlencode_glue . ' in php.ini' .
@@ -1041,9 +1045,9 @@ class Exchange {
             throw new ExchangeError($alg . ' is not a supported jwt algorithm.');
         }
         $algName = $algos[$alg];
-        if ('HS' === $algoType) {
+        if ($algoType === 'HS') {
             $signature = $this->hmac($token, $secret, $algName, 'binary');
-        } elseif ('RS' === $algoType) {
+        } elseif ($algoType === 'RS') {
             $signature = null;
             \openssl_sign($token, $signature, $secret, $algName);
         }
@@ -1092,7 +1096,7 @@ class Exchange {
         $keys = is_array($broad) ? array_keys($broad) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            if (false !== mb_strpos($string, $key)) {
+            if (mb_strpos($string, $key) !== false) {
                 return $key;
             }
         }
@@ -1145,10 +1149,10 @@ class Exchange {
         curl_setopt($this->curl, CURLOPT_SSL_VERIFYPEER, false);
 
         if ($this->userAgent) {
-            if ('string' == gettype($this->userAgent)) {
+            if (gettype($this->userAgent) == 'string') {
                 curl_setopt($this->curl, CURLOPT_USERAGENT, $this->userAgent);
                 $verbose_headers = array_merge($verbose_headers, array('User-Agent' => $this->userAgent));
-            } elseif (('array' == gettype($this->userAgent)) && array_key_exists('User-Agent', $this->userAgent)) {
+            } elseif ((gettype($this->userAgent) == 'array') && array_key_exists('User-Agent', $this->userAgent)) {
                 curl_setopt($this->curl, CURLOPT_USERAGENT, $this->userAgent['User-Agent']);
                 $verbose_headers = array_merge($verbose_headers, $this->userAgent);
             }
@@ -1156,20 +1160,19 @@ class Exchange {
 
         curl_setopt($this->curl, CURLOPT_ENCODING, '');
 
-        if ('GET' == $method) {
+        if ($method == 'GET') {
             curl_setopt($this->curl, CURLOPT_HTTPGET, true);
-        } elseif ('POST' == $method) {
+        } elseif ($method == 'POST') {
             curl_setopt($this->curl, CURLOPT_POST, true);
             curl_setopt($this->curl, CURLOPT_POSTFIELDS, $body);
-        } elseif ('PUT' == $method) {
+        } elseif ($method == 'PUT') {
             curl_setopt($this->curl, CURLOPT_CUSTOMREQUEST, 'PUT');
             curl_setopt($this->curl, CURLOPT_POSTFIELDS, $body);
-
             $headers[] = 'X-HTTP-Method-Override: PUT';
-        } elseif ('PATCH' == $method) {
+        } elseif ($method == 'PATCH') {
             curl_setopt($this->curl, CURLOPT_CUSTOMREQUEST, 'PATCH');
             curl_setopt($this->curl, CURLOPT_POSTFIELDS, $body);
-        } elseif ('DELETE' == $method) {
+        } elseif ($method === 'DELETE') {
             curl_setopt($this->curl, CURLOPT_CUSTOMREQUEST, 'DELETE');
             curl_setopt($this->curl, CURLOPT_POSTFIELDS, $body);
 
@@ -1263,8 +1266,8 @@ class Exchange {
 
         $this->handle_errors($http_status_code, $curl_error, $url, $method, $response_headers, $result ? $result : null, $json_response);
 
-        if (false === $result) {
-            if (28 == $curl_errno) { // CURLE_OPERATION_TIMEDOUT
+        if ($result === false) {
+            if ($curl_errno == 28) { // CURLE_OPERATION_TIMEDOUT
                 $this->raise_error('RequestTimeout', $url, $method, $curl_errno, $curl_error);
             }
 
@@ -1278,7 +1281,7 @@ class Exchange {
 
         if (array_key_exists($string_code, $this->httpExceptions)) {
             $error_class = $this->httpExceptions[$string_code];
-            if ('ExchangeNotAvailable' === $error_class) {
+            if ($error_class === 'ExchangeNotAvailable') {
                 if (preg_match('#cloudflare|incapsula|overload|ddos#i', $result)) {
                     $error_class = 'DDoSProtection';
                 } else {
@@ -1653,7 +1656,7 @@ class Exchange {
         } else {
             $code = $this->common_currency_code($currency_id);
         }
-        if (null !== $currency) {
+        if ($currency !== null) {
             $code = $currency['code'];
         }
         return $code;
@@ -1709,7 +1712,7 @@ class Exchange {
         $objects = array_values($objects);
 
         // return all of them if no $symbols were passed in the first argument
-        if (null === $values) {
+        if ($values === null) {
             return $indexed ? static::index_by($objects, $key) : $objects;
         }
 
@@ -2155,7 +2158,7 @@ class Exchange {
         if (!isset($this->markets)) {
             throw new ExchangeError($this->id . ' markets not loaded');
         }
-        if ('string' === gettype($string)) {
+        if (gettype($string) === 'string') {
             if (isset($this->markets_by_id[$string])) {
                 return $this->markets_by_id[$string];
             }
@@ -2173,7 +2176,7 @@ class Exchange {
             $market = $this->find_market($string);
         }
 
-        if ('array' === gettype($market) && 0 !== count(array_filter(array_keys($market), 'is_string'))) {
+        if ((gettype($market) === 'array') && (count(array_filter(array_keys($market), 'is_string') !== 0))) {
             return $market['symbol'];
         }
 
@@ -2184,7 +2187,7 @@ class Exchange {
         if (!isset($this->markets)) {
             throw new ExchangeError($this->id . ' markets not loaded');
         }
-        if (('string' === gettype($symbol)) && isset($this->markets[$symbol])) {
+        if ((gettype($symbol) === 'string') && isset($this->markets[$symbol])) {
             return $this->markets[$symbol];
         }
 
@@ -2252,7 +2255,7 @@ class Exchange {
         $nonfiltered = get_object_vars($this);
         $filtered = array();
         foreach ($nonfiltered as $key => $value) {
-            if ((false !== strpos($key, 'has')) && ('has' !== $key)) {
+            if ((strpos($key, 'has') !== false) && (key !== 'has')) {
                 $filtered[$key] = $value;
             }
         }
@@ -2280,7 +2283,7 @@ class Exchange {
             throw new BaseError('Invalid number');
         }
 
-        assert(ROUND === $roundingMode || TRUNCATE === $roundingMode);
+        assert(($roundingMode === ROUND) || ($roundingMode === TRUNCATE));
 
         $result = '';
 
@@ -2290,10 +2293,10 @@ class Exchange {
                 throw new BaseError ('TICK_SIZE cant be used with negative numPrecisionDigits');
             }
             $toNearest = pow(10, abs($numPrecisionDigits));
-            if (ROUND === $roundingMode) {
+            if ($roundingMode === ROUND) {
                 $result = (string) ($toNearest * static::decimal_to_precision($x / $toNearest, $roundingMode, 0, DECIMAL_PLACES, $paddingMode));
             }
-            if (TRUNCATE === $roundingMode) {
+            if ($roundingMode === TRUNCATE) {
                 $result = static::decimal_to_precision($x - $x % $toNearest, $roundingMode, 0, DECIMAL_PLACES, $paddingMode);
             }
             return $result;
@@ -2332,30 +2335,30 @@ class Exchange {
         }
 
 
-        if (ROUND === $roundingMode) {
-            if (DECIMAL_PLACES === $countingMode) {
+        if ($roundingMode === ROUND) {
+            if ($countingMode === DECIMAL_PLACES) {
                 // Requested precision of 100 digits was truncated to PHP maximum of 53 digits
                 $numPrecisionDigits = min(14, $numPrecisionDigits);
                 $result = number_format(round($x, $numPrecisionDigits, PHP_ROUND_HALF_UP), $numPrecisionDigits, '.', '');
-            } elseif (SIGNIFICANT_DIGITS === $countingMode) {
+            } elseif ($countingMode === SIGNIFICANT_DIGITS) {
                 $significantPosition = log(abs($x), 10) % 10;
                 if ($significantPosition > 0) {
                     ++$significantPosition;
                 }
                 $result = (string) round($x, $numPrecisionDigits - $significantPosition, PHP_ROUND_HALF_UP);
             }
-        } elseif (TRUNCATE === $roundingMode) {
+        } elseif ($roundingMode === TRUNCATE) {
             $dotIndex = strpos($x, '.');
             $dotPosition = $dotIndex ?: 0;
-            if (DECIMAL_PLACES === $countingMode) {
+            if ($countingMode === DECIMAL_PLACES) {
                 if ($dotIndex) {
                     list($before, $after) = explode('.', $x);
                     $result = $before . '.' . substr($after, 0, $numPrecisionDigits);
                 } else {
                     $result = $x;
                 }
-            } elseif (SIGNIFICANT_DIGITS === $countingMode) {
-                if (0 === $numPrecisionDigits) {
+            } elseif ($countingMode === SIGNIFICANT_DIGITS) {
+                if ($numPrecisionDigits === 0) {
                     return '0';
                 }
                 $significantPosition = log(abs($x), 10) % 10;
@@ -2377,37 +2380,37 @@ class Exchange {
         }
 
         $hasDot = false !== strpos($result, '.');
-        if (NO_PADDING === $paddingMode) {
-            if ('' === $result && 0 === $numPrecisionDigits) {
+        if ($paddingMode === NO_PADDING) {
+            if (($result === '')  && ($numPrecisionDigits === 0)) {
                 return '0';
             }
             if ($hasDot) {
                 $result = rtrim($result, '0');
                 $result = rtrim($result, '.');
             }
-        } elseif (PAD_WITH_ZERO === $paddingMode) {
+        } elseif ($paddingMode === PAD_WITH_ZERO) {
             if ($hasDot) {
-                if (DECIMAL_PLACES === $countingMode) {
+                if ($countingMode === DECIMAL_PLACES) {
                     list($before, $after) = explode('.', $result, 2);
                     $result = $before . '.' . str_pad($after, $numPrecisionDigits, '0');
-                } elseif (SIGNIFICANT_DIGITS === $countingMode) {
+                } elseif ($countingMode === SIGNIFICANT_DIGITS) {
                     if ($result < 1) {
                         $result = str_pad($result, strcspn($result, '123456789') + $numPrecisionDigits, '0');
                     }
                 }
             } else {
-                if (DECIMAL_PLACES === $countingMode) {
+                if ($countingMode === DECIMAL_PLACES) {
                     if ($numPrecisionDigits > 0) {
                         $result = $result . '.' . str_repeat('0', $numPrecisionDigits);
                     }
-                } elseif (SIGNIFICANT_DIGITS === $countingMode) {
+                } elseif ($countingMode === SIGNIFICANT_DIGITS) {
                     if ($numPrecisionDigits > strlen($result)) {
                         $result = $result . '.' . str_repeat('0', ($numPrecisionDigits - strlen($result)));
                     }
                 }
             }
         }
-        if (('-0' === $result) || ($result === '-0.' . str_repeat('0', max(strlen($result) - 3, 0)))) {
+        if (($result === '-0') || ($result === '-0.' . str_repeat('0', max(strlen($result) - 3, 0)))) {
             $result = substr($result, 1);
         }
         return $result;
@@ -2416,14 +2419,14 @@ class Exchange {
     public static function number_to_string($x) {
         // avoids scientific notation for too large and too small numbers
         $s = (string) $x;
-        if (false === strpos($x, 'E')) {
+        if (strpos($x, 'E') === false) {
             return $s;
         }
         $splitted = explode('E', $s);
         $number = $splitted[0];
         $exp = (int) $splitted[1];
         $len_after_dot = 0;
-        if (false !== strpos($number, '.')) {
+        if (strpos($number, '.') !== false) {
             $splitted = explode('.', $number);
             $len_after_dot = strlen($splitted[1]);
         }
@@ -2625,7 +2628,7 @@ class Exchange {
             static $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
             $tmp = '';
             foreach (str_split($s) as $c) {
-                if (false === ($v = strpos($alphabet, $c))) {
+                if (($v = strpos($alphabet, $c)) === false) {
                     $v = 0;
                 }
                 $tmp .= sprintf('%05b', $v);

@@ -636,7 +636,7 @@ module.exports = class oceanex extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
-        const response = await this.privatePostOrdersClear (this.extend (params));
+        const response = await this.privatePostOrdersClear (params);
         const data = this.safeValue (response, 'data');
         return this.parseOrders (data);
     }

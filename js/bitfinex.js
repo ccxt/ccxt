@@ -914,14 +914,14 @@ module.exports = class bitfinex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a currency code argument');
         }
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let request = {
+        const currency = this.currency (code);
+        const request = {
             'currency': currency['id'],
         };
         if (since !== undefined) {
             request['since'] = parseInt (since / 1000);
         }
-        let response = await this.privatePostHistoryMovements (this.extend (request, params));
+        const response = await this.privatePostHistoryMovements (this.extend (request, params));
         //
         //     [
         //         {
@@ -944,6 +944,22 @@ module.exports = class bitfinex extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
+        //
+        //     {
+        //         "id": 12042490,
+        //         "fee": "-0.02",
+        //         "txid": "EA5B5A66000B66855865EFF2494D7C8D1921FCBE996482157EBD749F2C85E13D",
+        //         "type": "DEPOSIT",
+        //         "amount": "2099.849999",
+        //         "method": "RIPPLE",
+        //         "status": "COMPLETED",
+        //         "address": "2505189261",
+        //         "currency": "XRP",
+        //         "timestamp": "1551730524.0",
+        //         "description": "EA5B5A66000B66855865EFF2494D7C8D1921FCBE996482157EBD749F2C85E13D",
+        //         "timestamp_created": "1551730523.0"
+        //     }
+        //
         let timestamp = this.safeFloat (transaction, 'timestamp_created');
         if (timestamp !== undefined) {
             timestamp = parseInt (timestamp * 1000);
@@ -979,7 +995,7 @@ module.exports = class bitfinex extends Exchange {
             'txid': this.safeString (transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'address': this.safeString (transaction, 'address'),
+            'address': this.safeString (transaction, 'address'), // todo: this is actually the tag for XRP transfers (the address is missing)
             'tag': undefined, // refix it properly for the tag from description
             'type': type,
             'amount': this.safeFloat (transaction, 'amount'),

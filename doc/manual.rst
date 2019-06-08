@@ -55,7 +55,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 Exchanges
 =========
 
-The ccxt library currently supports the following 137 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 136 cryptocurrency exchange markets and trading APIs:
 
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 |        logo                                                                               | id                 | name                                                                                       | ver   | doc                                                                                             | certified                                                            |
@@ -198,7 +198,7 @@ The ccxt library currently supports the following 137 cryptocurrency exchange ma
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `deribit <https://www.deribit.com/reg-1189.4038>`__                                       | deribit            | `Deribit <https://www.deribit.com/reg-1189.4038>`__                                        | 1     | `API <https://docs.deribit.com>`__                                                              |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `dsx <https://dsx.uk>`__                                                                  | dsx                | `DSX <https://dsx.uk>`__                                                                   | 2     | `API <https://api.dsx.uk>`__                                                                    |                                                                      |
+| `dsx <https://dsx.uk>`__                                                                  | dsx                | `DSX <https://dsx.uk>`__                                                                   | 2     | `API <https://dsx.uk/developers/publicApiV2>`__                                                 |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `dx <https://dx.exchange/registration?dx_cid=20&dx_scname=100001100000038139>`__          | dx                 | `DX.Exchange <https://dx.exchange/registration?dx_cid=20&dx_scname=100001100000038139>`__  | 1     | `API <https://apidocs.dx.exchange>`__                                                           |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -292,9 +292,7 @@ The ccxt library currently supports the following 137 cryptocurrency exchange ma
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `paymium <https://www.paymium.com>`__                                                     | paymium            | `Paymium <https://www.paymium.com>`__                                                      | 1     | `API <https://github.com/Paymium/api-documentation>`__                                          |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `poloniex <https://poloniex.com>`__                                                       | poloniex           | `Poloniex <https://poloniex.com>`__                                                        | \*    | `API <https://docs.poloniex.com>`__                                                             | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
-+-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `quadrigacx <https://www.quadrigacx.com/?ref=laiqgbp6juewva44finhtmrk>`__                 | quadrigacx         | `QuadrigaCX <https://www.quadrigacx.com/?ref=laiqgbp6juewva44finhtmrk>`__                  | 2     | `API <https://www.quadrigacx.com/api_info>`__                                                   |                                                                      |
+| `poloniex <https://www.poloniex.com/?utm_source=ccxt&utm_medium=web>`__                   | poloniex           | `Poloniex <https://www.poloniex.com/?utm_source=ccxt&utm_medium=web>`__                    | \*    | `API <https://docs.poloniex.com>`__                                                             | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `rightbtc <https://www.rightbtc.com>`__                                                   | rightbtc           | `RightBTC <https://www.rightbtc.com>`__                                                    | \*    | `API <https://52.53.159.206/api/trader/>`__                                                     |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -2647,6 +2645,90 @@ The exchange will close your market order for the best price available. You are 
    if ($exchange->has['createMarketOrder']) {
        ...
    }
+
+Market Buys
+'''''''''''
+
+In general, when placing a ``market buy`` or ``market sell`` order the user has to specify just the amount of the base currency to buy or sell. However, with some exchanges market buy orders implement a different approach to calculating the value of the order.
+
+Suppose you’re trading BTC/USD and the current market price for BTC is over 9000 USD. For a market buy or market sell you could specify an ``amount`` of 2 BTC and that would result in *plus or minus* 18000 USD (more or less ;)) on your account, depending on the side of the order.
+
+**With market buys some exchanges require the total cost of the order in the quote currency!** The logic behind it is simple, instead of taking the amount of base currency to buy or sell some exchanges operate with *“how much quote currency you want to spend on buying in total”*.
+
+To place a market buy order with those exchanges you would not specify an amount of 2 BTC, instead you should somehow specify the total cost of the order, that is, 18000 USD in this example. The exchanges that treat ``market buy`` orders in this way have an exchange-specific option ``createMarketBuyRequiresPrice`` that allows specifying the total cost of a ``market buy`` order in two ways.
+
+The first is the default and if you specify the ``price`` along with the ``amount`` the total cost of the order would be calculated inside the lib from those two values with a simple multiplication (``cost = amount * price``). The resulting ``cost`` would be the amount in USD quote currency that will be spent on this particular market buy order.
+
+.. code:: javascript
+
+   // this example is oversimplified and doesn't show all the code that is
+   // required to handle the errors and exchange metadata properly
+   // it shows just the concept of placing a market buy order
+
+   const exchange = new ccxt.cex ({
+       'apiKey': YOUR_API_KEY,
+       'secret': 'YOUR_SECRET',
+       'enableRateLimit': true,
+       // 'options': {
+       //     'createMarketBuyRequiresPrice': true, // default
+       // },
+   })
+
+   ;(async () => {
+
+       // when `createMarketBuyRequiresPrice` is true, we can pass the price
+       // so that the total cost of the order would be calculated inside the library
+       // by multiplying the amount over price (amount * price)
+
+       const symbol = 'BTC/USD'
+       const amount = 2 // BTC
+       const price = 9000 // USD
+       // cost = amount * price = 2 * 9000 = 18000 (USD)
+
+       // note that we don't use createMarketBuyOrder here, instead we use createOrder
+       // createMarketBuyOrder will omit the price and will not work when
+       // exchange.options['createMarketBuyRequiresPrice'] = true
+       const order = await exchange.createOrder (symbol, 'market', 'buy', amount, price)
+
+       console.log (order)
+   })
+
+The second alternative is useful in cases when the user wants to calculate and specify the resulting total cost of the order himself. That can be done by setting the ``createMarketBuyRequiresPrice`` option to ``false`` to switch it off:
+
+.. code:: javascript
+
+   const exchange = new ccxt.cex ({
+       'apiKey': YOUR_API_KEY,
+       'secret': 'YOUR_SECRET',
+       'enableRateLimit': true,
+       'options': {
+           'createMarketBuyRequiresPrice': false, // switch off
+       },
+   })
+
+   // or, to switch it off later, after the exchange instantiation, you can do
+   exchange.options['createMarketBuyRequiresPrice'] = false
+
+   ;(async () => {
+
+       // when `createMarketBuyRequiresPrice` is true, we can pass the price
+       // so that the total cost of the order would be calculated inside the library
+       // by multiplying the amount over price (amount * price)
+
+       const symbol = 'BTC/USD'
+       const amount = 2 // BTC
+       const price = 9000 // USD
+       cost = amount * price // ← instead of the amount cost goes ↓ here
+       const order = await exchange.createMarketBuyOrder (symbol, cost)
+       console.log (order)
+   })
+
+More about it:
+
+-  https://github.com/ccxt/ccxt/issues/564#issuecomment-347458566
+-  https://github.com/ccxt/ccxt/issues/4914#issuecomment-478199357
+-  https://github.com/ccxt/ccxt/issues/4799#issuecomment-470966769
+-  https://github.com/ccxt/ccxt/issues/5197#issuecomment-496270785
 
 Emulating Market Orders With Limit Orders
 '''''''''''''''''''''''''''''''''''''''''

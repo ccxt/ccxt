@@ -903,6 +903,22 @@ class bitfinex (Exchange):
         return self.parseTransactions(response, currency, since, limit)
 
     def parse_transaction(self, transaction, currency=None):
+        #
+        #     {
+        #         "id": 12042490,
+        #         "fee": "-0.02",
+        #         "txid": "EA5B5A66000B66855865EFF2494D7C8D1921FCBE996482157EBD749F2C85E13D",
+        #         "type": "DEPOSIT",
+        #         "amount": "2099.849999",
+        #         "method": "RIPPLE",
+        #         "status": "COMPLETED",
+        #         "address": "2505189261",
+        #         "currency": "XRP",
+        #         "timestamp": "1551730524.0",
+        #         "description": "EA5B5A66000B66855865EFF2494D7C8D1921FCBE996482157EBD749F2C85E13D",
+        #         "timestamp_created": "1551730523.0"
+        #     }
+        #
         timestamp = self.safe_float(transaction, 'timestamp_created')
         if timestamp is not None:
             timestamp = int(timestamp * 1000)
@@ -931,7 +947,7 @@ class bitfinex (Exchange):
             'txid': self.safe_string(transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'address': self.safe_string(transaction, 'address'),
+            'address': self.safe_string(transaction, 'address'),  # todo: self is actually the tag for XRP transfers(the address is missing)
             'tag': None,  # refix it properly for the tag from description
             'type': type,
             'amount': self.safe_float(transaction, 'amount'),

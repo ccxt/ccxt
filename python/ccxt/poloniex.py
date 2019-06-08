@@ -38,7 +38,7 @@ class poloniex (Exchange):
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
-                'fetchDeposits': 'emulated',
+                'fetchDeposits': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrder': True,  # True endpoint for a single open order
@@ -52,7 +52,8 @@ class poloniex (Exchange):
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
-                'fetchWithdrawals': 'emulated',  # but almost True )
+                'fetchWithdrawals': True,
+                'cancelAllOrders': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -69,9 +70,10 @@ class poloniex (Exchange):
                     'public': 'https://poloniex.com/public',
                     'private': 'https://poloniex.com/tradingApi',
                 },
-                'www': 'https://poloniex.com',
+                'www': 'https://www.poloniex.com',
                 'doc': 'https://docs.poloniex.com',
                 'fees': 'https://poloniex.com/fees',
+                'referral': 'https://www.poloniex.com/?utm_source=ccxt&utm_medium=web',
             },
             'api': {
                 'public': {
@@ -90,6 +92,7 @@ class poloniex (Exchange):
                         'buy',
                         'cancelLoanOffer',
                         'cancelOrder',
+                        'cancelAllOrders',
                         'closeMarginPosition',
                         'createLoanOffer',
                         'generateNewAddress',
@@ -894,6 +897,32 @@ class poloniex (Exchange):
             raise e
         if id in self.orders:
             self.orders[id]['status'] = 'canceled'
+        return response
+
+    def cancel_all_orders(self, symbol=None, params={}):
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['currencyPair'] = market['id']
+        response = self.privatePostCancelAllOrders(self.extend(request, params))
+        #
+        #     {
+        #         "success": 1,
+        #         "message": "Orders canceled",
+        #         "orderNumbers": [
+        #             503749,
+        #             888321,
+        #             7315825,
+        #             7316824
+        #         ]
+        #     }
+        #
+        orderIds = self.safe_value(response, 'orderNumbers', [])
+        for i in range(0, len(orderIds)):
+            id = str(orderIds[i])
+            if id in self.orders:
+                self.orders[id]['status'] = 'canceled'
         return response
 
     def fetch_open_order(self, id, symbol=None, params={}):

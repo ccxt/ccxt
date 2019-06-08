@@ -24,7 +24,7 @@ class poloniex extends Exchange {
                 'fetchClosedOrders' => 'emulated',
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
-                'fetchDeposits' => 'emulated',
+                'fetchDeposits' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrder' => true, // true endpoint for a single open order
@@ -38,7 +38,8 @@ class poloniex extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchTransactions' => true,
-                'fetchWithdrawals' => 'emulated', // but almost true )
+                'fetchWithdrawals' => true,
+                'cancelAllOrders' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array (
@@ -55,9 +56,10 @@ class poloniex extends Exchange {
                     'public' => 'https://poloniex.com/public',
                     'private' => 'https://poloniex.com/tradingApi',
                 ),
-                'www' => 'https://poloniex.com',
+                'www' => 'https://www.poloniex.com',
                 'doc' => 'https://docs.poloniex.com',
                 'fees' => 'https://poloniex.com/fees',
+                'referral' => 'https://www.poloniex.com/?utm_source=ccxt&utm_medium=web',
             ),
             'api' => array (
                 'public' => array (
@@ -76,6 +78,7 @@ class poloniex extends Exchange {
                         'buy',
                         'cancelLoanOffer',
                         'cancelOrder',
+                        'cancelAllOrders',
                         'closeMarginPosition',
                         'createLoanOffer',
                         'generateNewAddress',
@@ -950,8 +953,39 @@ class poloniex extends Exchange {
             }
             throw $e;
         }
-        if (is_array ($this->orders) && array_key_exists ($id, $this->orders))
+        if (is_array ($this->orders) && array_key_exists ($id, $this->orders)) {
             $this->orders[$id]['status'] = 'canceled';
+        }
+        return $response;
+    }
+
+    public function cancel_all_orders ($symbol = null, $params = array ()) {
+        $request = array ();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['currencyPair'] = $market['id'];
+        }
+        $response = $this->privatePostCancelAllOrders (array_merge ($request, $params));
+        //
+        //     {
+        //         "success" => 1,
+        //         "message" => "Orders canceled",
+        //         "orderNumbers" => array (
+        //             503749,
+        //             888321,
+        //             7315825,
+        //             7316824
+        //         )
+        //     }
+        //
+        $orderIds = $this->safe_value($response, 'orderNumbers', array ());
+        for ($i = 0; $i < count ($orderIds); $i++) {
+            $id = (string) $orderIds[$i];
+            if (is_array ($this->orders) && array_key_exists ($id, $this->orders)) {
+                $this->orders[$id]['status'] = 'canceled';
+            }
+        }
         return $response;
     }
 
