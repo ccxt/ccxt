@@ -2270,7 +2270,7 @@ class Exchange {
     }
 
     public static function decimal_to_precision($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {
-        if (TICK_SIZE === $countingMode) {
+        if ($countingMode === TICK_SIZE) {
             if (!(is_float ($numPrecisionDigits) || is_int($numPrecisionDigits)))
                 throw new BaseError('Precision must be an integer or float for TICK_SIZE');
         } else {
@@ -2289,7 +2289,7 @@ class Exchange {
 
         // Special handling for negative precision
         if ($numPrecisionDigits < 0) {
-            if (TICK_SIZE === $countingMode) {
+            if ($countingMode === TICK_SIZE) {
                 throw new BaseError ('TICK_SIZE cant be used with negative numPrecisionDigits');
             }
             $toNearest = pow(10, abs($numPrecisionDigits));
