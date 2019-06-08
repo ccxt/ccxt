@@ -23,7 +23,7 @@ module.exports = class poloniex extends Exchange {
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchDeposits': 'emulated',
+                'fetchDeposits': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': true, // true endpoint for a single open order
@@ -37,7 +37,8 @@ module.exports = class poloniex extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
-                'fetchWithdrawals': 'emulated', // but almost true )
+                'fetchWithdrawals': true,
+                'cancelAllOrders': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -54,9 +55,10 @@ module.exports = class poloniex extends Exchange {
                     'public': 'https://poloniex.com/public',
                     'private': 'https://poloniex.com/tradingApi',
                 },
-                'www': 'https://poloniex.com',
+                'www': 'https://www.poloniex.com',
                 'doc': 'https://docs.poloniex.com',
                 'fees': 'https://poloniex.com/fees',
+                'referral': 'https://www.poloniex.com/?utm_source=ccxt&utm_medium=web',
             },
             'api': {
                 'public': {
@@ -75,6 +77,7 @@ module.exports = class poloniex extends Exchange {
                         'buy',
                         'cancelLoanOffer',
                         'cancelOrder',
+                        'cancelAllOrders',
                         'closeMarginPosition',
                         'createLoanOffer',
                         'generateNewAddress',
@@ -949,8 +952,39 @@ module.exports = class poloniex extends Exchange {
             }
             throw e;
         }
-        if (id in this.orders)
+        if (id in this.orders) {
             this.orders[id]['status'] = 'canceled';
+        }
+        return response;
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['currencyPair'] = market['id'];
+        }
+        const response = await this.privatePostCancelAllOrders (this.extend (request, params));
+        //
+        //     {
+        //         "success": 1,
+        //         "message": "Orders canceled",
+        //         "orderNumbers": [
+        //             503749,
+        //             888321,
+        //             7315825,
+        //             7316824
+        //         ]
+        //     }
+        //
+        const orderIds = this.safeValue (response, 'orderNumbers', []);
+        for (let i = 0; i < orderIds.length; i++) {
+            const id = orderIds[i].toString ();
+            if (id in this.orders) {
+                this.orders[id]['status'] = 'canceled';
+            }
+        }
         return response;
     }
 

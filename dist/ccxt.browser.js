@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.644'
+const version = '1.18.649'
 
 Exchange.ccxtVersion = version
 
@@ -55747,23 +55747,30 @@ module.exports = class livecoin extends Exchange {
                 'XBT': 'Bricktox',
             },
             'exceptions': {
-                '1': ExchangeError,
-                '10': AuthenticationError,
-                '100': ExchangeError, // invalid parameters
-                '101': AuthenticationError,
-                '102': AuthenticationError,
-                '103': InvalidOrder, // invalid currency
-                '104': InvalidOrder, // invalid amount
-                '105': InvalidOrder, // unable to block funds
-                '11': AuthenticationError,
-                '12': AuthenticationError,
-                '2': AuthenticationError, // "User not found"
-                '20': AuthenticationError,
-                '30': AuthenticationError,
-                '31': NotSupported,
-                '32': ExchangeError,
-                '429': DDoSProtection,
-                '503': ExchangeNotAvailable,
+                'exact': {
+                    '1': ExchangeError,
+                    '10': AuthenticationError,
+                    '100': ExchangeError, // invalid parameters
+                    '101': AuthenticationError,
+                    '102': AuthenticationError,
+                    '103': InvalidOrder, // invalid currency
+                    '104': InvalidOrder, // invalid amount
+                    '105': InvalidOrder, // unable to block funds
+                    '11': AuthenticationError,
+                    '12': AuthenticationError,
+                    '2': AuthenticationError, // "User not found"
+                    '20': AuthenticationError,
+                    '30': AuthenticationError,
+                    '31': NotSupported,
+                    '32': ExchangeError,
+                    '429': DDoSProtection,
+                    '503': ExchangeNotAvailable,
+                },
+                'broad': {
+                    'NOT FOUND': OrderNotFound,
+                    'Cannot find order': OrderNotFound,
+                    'Minimal amount is': InvalidOrder,
+                },
             },
         });
     }
@@ -56510,38 +56517,39 @@ module.exports = class livecoin extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
-        if (typeof body !== 'string')
-            return;
-        if (body[0] === '{') {
-            if (code >= 300) {
-                let errorCode = this.safeString (response, 'errorCode');
-                if (errorCode in this.exceptions) {
-                    let ExceptionClass = this.exceptions[errorCode];
-                    throw new ExceptionClass (this.id + ' ' + body);
-                } else {
-                    throw new ExchangeError (this.id + ' ' + body);
-                }
+        if (response === undefined) {
+            return; // fallback to default error handler
+        }
+        if (code >= 300) {
+            const feedback = this.id + ' ' + body;
+            const exact = this.exceptions['exact'];
+            const errorCode = this.safeString (response, 'errorCode');
+            if (errorCode in exact) {
+                throw new exact[errorCode] (feedback);
+            } else {
+                throw new ExchangeError (feedback);
             }
-            // returns status code 200 even if success === false
-            let success = this.safeValue (response, 'success', true);
-            if (!success) {
-                const message = this.safeString (response, 'message');
-                if (message !== undefined) {
-                    if (message.indexOf ('Cannot find order') >= 0) {
-                        throw new OrderNotFound (this.id + ' ' + body);
-                    }
-                }
-                const exception = this.safeString (response, 'exception');
-                if (exception !== undefined) {
-                    if (exception.indexOf ('Minimal amount is') >= 0) {
-                        throw new InvalidOrder (this.id + ' ' + body);
-                    }
-                }
-                throw new ExchangeError (this.id + ' ' + body);
+        }
+        // returns status code 200 even if success === false
+        const success = this.safeValue (response, 'success', true);
+        if (!success) {
+            const feedback = this.id + ' ' + body;
+            const broad = this.exceptions['broad'];
+            const message = this.safeString (response, 'message');
+            let broadKey = this.findBroadlyMatchedKey (broad, message);
+            if (broadKey !== undefined) {
+                throw new broad[broadKey] (feedback);
             }
+            const exception = this.safeString (response, 'exception');
+            broadKey = this.findBroadlyMatchedKey (broad, exception);
+            if (broadKey !== undefined) {
+                throw new broad[broadKey] (feedback);
+            }
+            throw new ExchangeError (feedback);
         }
     }
 };
+
 
 },{"./base/Exchange":8,"./base/errors":9,"./base/functions/number":15}],120:[function(require,module,exports){
 'use strict';
@@ -61012,7 +61020,7 @@ module.exports = class oceanex extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
-        const response = await this.privatePostOrdersClear (this.extend (params));
+        const response = await this.privatePostOrdersClear (params);
         const data = this.safeValue (response, 'data');
         return this.parseOrders (data);
     }
@@ -65259,7 +65267,7 @@ module.exports = class poloniex extends Exchange {
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchDeposits': 'emulated',
+                'fetchDeposits': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': true, // true endpoint for a single open order
@@ -65273,7 +65281,8 @@ module.exports = class poloniex extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
-                'fetchWithdrawals': 'emulated', // but almost true )
+                'fetchWithdrawals': true,
+                'cancelAllOrders': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -65290,9 +65299,10 @@ module.exports = class poloniex extends Exchange {
                     'public': 'https://poloniex.com/public',
                     'private': 'https://poloniex.com/tradingApi',
                 },
-                'www': 'https://poloniex.com',
+                'www': 'https://www.poloniex.com',
                 'doc': 'https://docs.poloniex.com',
                 'fees': 'https://poloniex.com/fees',
+                'referral': 'https://www.poloniex.com/?utm_source=ccxt&utm_medium=web',
             },
             'api': {
                 'public': {
@@ -65311,6 +65321,7 @@ module.exports = class poloniex extends Exchange {
                         'buy',
                         'cancelLoanOffer',
                         'cancelOrder',
+                        'cancelAllOrders',
                         'closeMarginPosition',
                         'createLoanOffer',
                         'generateNewAddress',
@@ -66185,8 +66196,39 @@ module.exports = class poloniex extends Exchange {
             }
             throw e;
         }
-        if (id in this.orders)
+        if (id in this.orders) {
             this.orders[id]['status'] = 'canceled';
+        }
+        return response;
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['currencyPair'] = market['id'];
+        }
+        const response = await this.privatePostCancelAllOrders (this.extend (request, params));
+        //
+        //     {
+        //         "success": 1,
+        //         "message": "Orders canceled",
+        //         "orderNumbers": [
+        //             503749,
+        //             888321,
+        //             7315825,
+        //             7316824
+        //         ]
+        //     }
+        //
+        const orderIds = this.safeValue (response, 'orderNumbers', []);
+        for (let i = 0; i < orderIds.length; i++) {
+            const id = orderIds[i].toString ();
+            if (id in this.orders) {
+                this.orders[id]['status'] = 'canceled';
+            }
+        }
         return response;
     }
 

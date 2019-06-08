@@ -637,7 +637,7 @@ class oceanex extends Exchange {
     }
 
     public function cancel_all_orders ($symbol = null, $params = array ()) {
-        $response = $this->privatePostOrdersClear (array_merge ($params));
+        $response = $this->privatePostOrdersClear ($params);
         $data = $this->safe_value($response, 'data');
         return $this->parse_orders($data);
     }
