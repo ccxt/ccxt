@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.647'
+const version = '1.18.648'
 
 Exchange.ccxtVersion = version
 
@@ -65299,7 +65299,7 @@ module.exports = class poloniex extends Exchange {
                     'public': 'https://poloniex.com/public',
                     'private': 'https://poloniex.com/tradingApi',
                 },
-                'www': 'https://poloniex.com',
+                'www': 'https://www.poloniex.com/?utm_source=ccxt&utm_medium=web',
                 'doc': 'https://docs.poloniex.com',
                 'fees': 'https://poloniex.com/fees',
             },

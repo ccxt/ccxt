@@ -70,7 +70,7 @@ class poloniex (Exchange):
                     'public': 'https://poloniex.com/public',
                     'private': 'https://poloniex.com/tradingApi',
                 },
-                'www': 'https://poloniex.com',
+                'www': 'https://www.poloniex.com/?utm_source=ccxt&utm_medium=web',
                 'doc': 'https://docs.poloniex.com',
                 'fees': 'https://poloniex.com/fees',
             },
