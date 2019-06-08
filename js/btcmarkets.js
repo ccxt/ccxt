@@ -175,7 +175,7 @@ module.exports = class btcmarkets extends Exchange {
         let amount = this.safeFloat (item, 'amount');
         if (amount !== undefined) {
             amount = amount * 1e-8;
-        }   
+        }
         return {
             'id': this.safeString (item, 'fundTransferId'),
             'txid': txid,
