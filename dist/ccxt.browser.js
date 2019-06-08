@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.654'
+const version = '1.18.655'
 
 Exchange.ccxtVersion = version
 
@@ -40932,10 +40932,11 @@ module.exports = class fcoin extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let ticker = await this.marketGetTickerSymbol (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'symbol': market['id'],
-        }, params));
+        };
+        const ticker = await this.marketGetTickerSymbol (this.extend (request, params));
         return this.parseTicker (ticker['data'], market);
     }
 
