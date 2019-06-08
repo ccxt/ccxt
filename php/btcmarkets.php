@@ -50,9 +50,10 @@ class btcmarkets extends Exchange {
                     'get' => array (
                         'account/balance',
                         'account/{id}/tradingfee',
+                        'fundtransfer/history',
                         'v2/order/open',
                         'v2/order/open/{id}',
-                        'v2/order/history/{id}',
+                        'v2/order/history/{instrument}/{currency}/',
                         'v2/order/trade/history/{id}',
                         'v2/transaction/history/{currency}',
                     ),
@@ -86,6 +87,116 @@ class btcmarkets extends Exchange {
         ));
     }
 
+    public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array ();
+        if ($limit !== null)
+            $request['limit'] = $limit;
+        if ($since !== null)
+            $request['since'] = $since;
+        $response = $this->privateGetFundtransferHistory (array_merge ($request, $params));
+        $transactions = $response['fundTransfers'];
+        return $this->parseTransactions ($transactions, null, $since, $limit);
+    }
+
+    public function parse_transaction_status ($status) {
+        // todo => find more $statuses
+        $statuses = array (
+            'Complete' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction ($item, $currency = null) {
+        //
+        //     {
+        //         $status => 'Complete',
+        //         fundTransferId => 1904311906,
+        //         description => 'ETH withdraw from [me@email.com] to Address => 0xF123aa44FadEa913a7da99cc2eE202Db684Ce0e3 $amount => 8.28965701 $fee => 0.00000000',
+        //         creationTime => 1529418358525,
+        //         $currency => 'ETH',
+        //         $amount => 828965701,
+        //         $fee => 0,
+        //         $transferType => 'WITHDRAW',
+        //         errorMessage => null,
+        //         $lastUpdate => 1529418376754,
+        //         $cryptoPaymentDetail => {
+        //             $address => '0xF123aa44FadEa913a7da99cc2eE202Db684Ce0e3',
+        //             txId => '0x8fe483b6f9523559b9ebffb29624f98e86227d2660d4a1fd4785d45e51c662c2'
+        //         }
+        //     }
+        //
+        //     {
+        //         $status => 'Complete',
+        //         fundTransferId => 494077500,
+        //         description => 'BITCOIN Deposit, B 0.1000',
+        //         creationTime => 1501077601015,
+        //         $currency => 'BTC',
+        //         $amount => 10000000,
+        //         $fee => 0,
+        //         $transferType => 'DEPOSIT',
+        //         errorMessage => null,
+        //         $lastUpdate => 1501077601133,
+        //         $cryptoPaymentDetail => null
+        //     }
+        //
+        //     {
+        //         "$fee" => 0,
+        //         "$amount" => 56,
+        //         "$status" => "Complete",
+        //         "$currency" => "BCHABC",
+        //         "$lastUpdate" => 1542339164044,
+        //         "description" => "BitcoinCashABC Deposit, P 0.00000056",
+        //         "creationTime" => 1542339164003,
+        //         "errorMessage" => null,
+        //         "$transferType" => "DEPOSIT",
+        //         "fundTransferId" => 2527326972,
+        //         "$cryptoPaymentDetail" => null
+        //     }
+        //
+        $timestamp = $this->safe_integer($item, 'creationTime');
+        $lastUpdate = $this->safe_integer($item, 'lastUpdate');
+        $transferType = $this->safe_string($item, 'transferType');
+        $cryptoPaymentDetail = $this->safe_value($item, 'cryptoPaymentDetail', array ());
+        $address = $this->safe_string($cryptoPaymentDetail, 'address');
+        $txid = $this->safe_string($cryptoPaymentDetail, 'txId');
+        $type = null;
+        if ($transferType === 'DEPOSIT')
+            $type = 'deposit';
+        else if ($transferType === 'WITHDRAW') {
+            $type = 'withdrawal';
+        } else {
+            $type = $transferType;
+        }
+        $fee = $this->safe_float($item, 'fee');
+        $status = $this->parse_transaction_status ($this->safe_string($item, 'status'));
+        $ccy = $this->safe_string($item, 'currency');
+        $code = $this->common_currency_code($ccy);
+        // todo => this logic is duplicated below
+        $amount = $this->safe_float($item, 'amount');
+        if ($amount !== null) {
+            $amount = $amount * 1e-8;
+        }
+        return array (
+            'id' => $this->safe_string($item, 'fundTransferId'),
+            'txid' => $txid,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'address' => $address,
+            'tag' => null,
+            'type' => $type,
+            'amount' => $amount,
+            'currency' => $code,
+            'status' => $status,
+            'updated' => $lastUpdate,
+            'fee' => array (
+                'currency' => $code,
+                'cost' => $fee,
+            ),
+            'info' => $item,
+        );
+    }
+
     public function fetch_markets ($params = array ()) {
         $response = $this->publicGetV2MarketActive ();
         $result = array ();
@@ -98,6 +209,7 @@ class btcmarkets extends Exchange {
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            // todo => refactor this
             $fee = ($quote === 'AUD') ? 0.0085 : 0.0022;
             $pricePrecision = 2;
             $amountPrecision = 4;
@@ -488,16 +600,25 @@ class btcmarkets extends Exchange {
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
-            // eslint-disable-next-line quotes
-            $auth = $uri . "\n" . $nonce . "\n";
+            $auth = null;
             $headers = array (
-                'Content-Type' => 'application/json',
                 'apikey' => $this->apiKey,
                 'timestamp' => $nonce,
             );
-            if ($method === 'POST') {
+            if ($method === 'post') {
+                $headers['Content-Type'] = 'application/json';
+                $auth = $uri . "\n" . $nonce . "\n"; // eslint-disable-line quotes
                 $body = $this->json ($params);
                 $auth .= $body;
+            } else {
+                $query = $this->ksort ($this->omit ($params, $this->extract_params($path)));
+                $queryString = '';
+                if ($query) {
+                    $queryString = $this->urlencode ($query);
+                    $url .= '?' . $queryString;
+                    $queryString .= "\n"; // eslint-disable-line quotes
+                }
+                $auth = $uri . "\n" . $queryString . $nonce . "\n"; // eslint-disable-line quotes
             }
             $secret = base64_decode ($this->secret);
             $signature = $this->hmac ($this->encode ($auth), $secret, 'sha512', 'base64');

@@ -57,9 +57,10 @@ class btcmarkets (Exchange):
                     'get': [
                         'account/balance',
                         'account/{id}/tradingfee',
+                        'fundtransfer/history',
                         'v2/order/open',
                         'v2/order/open/{id}',
-                        'v2/order/history/{id}',
+                        'v2/order/history/{instrument}/{currency}/',
                         'v2/order/trade/history/{id}',
                         'v2/transaction/history/{currency}',
                     ],
@@ -92,6 +93,111 @@ class btcmarkets (Exchange):
             },
         })
 
+    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {}
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None:
+            request['since'] = since
+        response = self.privateGetFundtransferHistory(self.extend(request, params))
+        transactions = response['fundTransfers']
+        return self.parseTransactions(transactions, None, since, limit)
+
+    def parse_transaction_status(self, status):
+        # todo: find more statuses
+        statuses = {
+            'Complete': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction(self, item, currency=None):
+        #
+        #     {
+        #         status: 'Complete',
+        #         fundTransferId: 1904311906,
+        #         description: 'ETH withdraw from [me@email.com] to Address: 0xF123aa44FadEa913a7da99cc2eE202Db684Ce0e3 amount: 8.28965701 fee: 0.00000000',
+        #         creationTime: 1529418358525,
+        #         currency: 'ETH',
+        #         amount: 828965701,
+        #         fee: 0,
+        #         transferType: 'WITHDRAW',
+        #         errorMessage: null,
+        #         lastUpdate: 1529418376754,
+        #         cryptoPaymentDetail: {
+        #             address: '0xF123aa44FadEa913a7da99cc2eE202Db684Ce0e3',
+        #             txId: '0x8fe483b6f9523559b9ebffb29624f98e86227d2660d4a1fd4785d45e51c662c2'
+        #         }
+        #     }
+        #
+        #     {
+        #         status: 'Complete',
+        #         fundTransferId: 494077500,
+        #         description: 'BITCOIN Deposit, B 0.1000',
+        #         creationTime: 1501077601015,
+        #         currency: 'BTC',
+        #         amount: 10000000,
+        #         fee: 0,
+        #         transferType: 'DEPOSIT',
+        #         errorMessage: null,
+        #         lastUpdate: 1501077601133,
+        #         cryptoPaymentDetail: null
+        #     }
+        #
+        #     {
+        #         "fee": 0,
+        #         "amount": 56,
+        #         "status": "Complete",
+        #         "currency": "BCHABC",
+        #         "lastUpdate": 1542339164044,
+        #         "description": "BitcoinCashABC Deposit, P 0.00000056",
+        #         "creationTime": 1542339164003,
+        #         "errorMessage": null,
+        #         "transferType": "DEPOSIT",
+        #         "fundTransferId": 2527326972,
+        #         "cryptoPaymentDetail": null
+        #     }
+        #
+        timestamp = self.safe_integer(item, 'creationTime')
+        lastUpdate = self.safe_integer(item, 'lastUpdate')
+        transferType = self.safe_string(item, 'transferType')
+        cryptoPaymentDetail = self.safe_value(item, 'cryptoPaymentDetail', {})
+        address = self.safe_string(cryptoPaymentDetail, 'address')
+        txid = self.safe_string(cryptoPaymentDetail, 'txId')
+        type = None
+        if transferType == 'DEPOSIT':
+            type = 'deposit'
+        elif transferType == 'WITHDRAW':
+            type = 'withdrawal'
+        else:
+            type = transferType
+        fee = self.safe_float(item, 'fee')
+        status = self.parse_transaction_status(self.safe_string(item, 'status'))
+        ccy = self.safe_string(item, 'currency')
+        code = self.common_currency_code(ccy)
+        # todo: self logic is duplicated below
+        amount = self.safe_float(item, 'amount')
+        if amount is not None:
+            amount = amount * 1e-8
+        return {
+            'id': self.safe_string(item, 'fundTransferId'),
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'address': address,
+            'tag': None,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': lastUpdate,
+            'fee': {
+                'currency': code,
+                'cost': fee,
+            },
+            'info': item,
+        }
+
     def fetch_markets(self, params={}):
         response = self.publicGetV2MarketActive()
         result = []
@@ -104,6 +210,7 @@ class btcmarkets (Exchange):
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
+            # todo: refactor self
             fee = 0.0085 if (quote == 'AUD') else 0.0022
             pricePrecision = 2
             amountPrecision = 4
@@ -456,16 +563,24 @@ class btcmarkets (Exchange):
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
-            # eslint-disable-next-line quotes
-            auth = uri + "\n" + nonce + "\n"
+            auth = None
             headers = {
-                'Content-Type': 'application/json',
                 'apikey': self.apiKey,
                 'timestamp': nonce,
             }
-            if method == 'POST':
+            if method == 'post':
+                headers['Content-Type'] = 'application/json'
+                auth = uri + "\n" + nonce + "\n"  # eslint-disable-line quotes
                 body = self.json(params)
                 auth += body
+            else:
+                query = self.ksort(self.omit(params, self.extract_params(path)))
+                queryString = ''
+                if query:
+                    queryString = self.urlencode(query)
+                    url += '?' + queryString
+                    queryString += "\n"  # eslint-disable-line quotes
+                auth = uri + "\n" + queryString + nonce + "\n"  # eslint-disable-line quotes
             secret = base64.b64decode(self.secret)
             signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
             headers['signature'] = self.decode(signature)
