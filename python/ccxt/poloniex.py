@@ -38,7 +38,7 @@ class poloniex (Exchange):
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
-                'fetchDeposits': 'emulated',
+                'fetchDeposits': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrder': True,  # True endpoint for a single open order
@@ -52,7 +52,7 @@ class poloniex (Exchange):
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
-                'fetchWithdrawals': 'emulated',  # but almost True )
+                'fetchWithdrawals': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -90,6 +90,7 @@ class poloniex (Exchange):
                         'buy',
                         'cancelLoanOffer',
                         'cancelOrder',
+                        'cancelAllOrders',
                         'closeMarginPosition',
                         'createLoanOffer',
                         'generateNewAddress',
