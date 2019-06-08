@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.646'
+const version = '1.18.647'
 
 Exchange.ccxtVersion = version
 
@@ -61020,7 +61020,7 @@ module.exports = class oceanex extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
-        const response = await this.privatePostOrdersClear (this.extend (params));
+        const response = await this.privatePostOrdersClear (params);
         const data = this.safeValue (response, 'data');
         return this.parseOrders (data);
     }
@@ -65282,6 +65282,7 @@ module.exports = class poloniex extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
+                'cancelAllOrders': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -66194,8 +66195,39 @@ module.exports = class poloniex extends Exchange {
             }
             throw e;
         }
-        if (id in this.orders)
+        if (id in this.orders) {
             this.orders[id]['status'] = 'canceled';
+        }
+        return response;
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['currencyPair'] = market['id'];
+        }
+        const response = await this.privatePostCancelAllOrders (this.extend (request, params));
+        //
+        //     {
+        //         "success": 1,
+        //         "message": "Orders canceled",
+        //         "orderNumbers": [
+        //             503749,
+        //             888321,
+        //             7315825,
+        //             7316824
+        //         ]
+        //     }
+        //
+        const orderIds = this.safeValue (response, 'orderNumbers', []);
+        for (let i = 0; i < orderIds.length; i++) {
+            const id = orderIds[i].toString ();
+            if (id in this.orders) {
+                this.orders[id]['status'] = 'canceled';
+            }
+        }
         return response;
     }
 

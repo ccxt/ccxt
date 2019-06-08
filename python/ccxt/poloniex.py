@@ -53,6 +53,7 @@ class poloniex (Exchange):
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
+                'cancelAllOrders': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -895,6 +896,32 @@ class poloniex (Exchange):
             raise e
         if id in self.orders:
             self.orders[id]['status'] = 'canceled'
+        return response
+
+    def cancel_all_orders(self, symbol=None, params={}):
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['currencyPair'] = market['id']
+        response = self.privatePostCancelAllOrders(self.extend(request, params))
+        #
+        #     {
+        #         "success": 1,
+        #         "message": "Orders canceled",
+        #         "orderNumbers": [
+        #             503749,
+        #             888321,
+        #             7315825,
+        #             7316824
+        #         ]
+        #     }
+        #
+        orderIds = self.safe_value(response, 'orderNumbers', [])
+        for i in range(0, len(orderIds)):
+            id = str(orderIds[i])
+            if id in self.orders:
+                self.orders[id]['status'] = 'canceled'
         return response
 
     def fetch_open_order(self, id, symbol=None, params={}):

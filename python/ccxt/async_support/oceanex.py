@@ -590,7 +590,7 @@ class oceanex (Exchange):
         return self.parse_orders(data)
 
     async def cancel_all_orders(self, symbol=None, params={}):
-        response = await self.privatePostOrdersClear(self.extend(params))
+        response = await self.privatePostOrdersClear(params)
         data = self.safe_value(response, 'data')
         return self.parse_orders(data)
 
