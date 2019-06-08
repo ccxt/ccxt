@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, DDoSProtection } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -152,26 +152,24 @@ module.exports = class coinegg extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let quoteIds = this.options['quoteIds'];
-        let result = [];
+        const quoteIds = this.options['quoteIds'];
+        const result = [];
         for (let b = 0; b < quoteIds.length; b++) {
-            let quoteId = quoteIds[b];
-            let response = await this.webGetSymbolTickerRightCoinQuote ({
+            const quoteId = quoteIds[b];
+            const response = await this.webGetSymbolTickerRightCoinQuote ({
                 'quote': quoteId,
             });
-            let tickers = response.data;
-            if (tickers === undefined)
-                throw new ExchangeNotAvailable (this.id + ' fetchMarkets() for "' + quoteId + '" returned: "' + this.json (response) + '"');
+            const tickers = this.safeValue (response, 'data', []);
             for (let i = 0; i < tickers.length; i++) {
-                let ticker = tickers[i];
-                let id = ticker['symbol'];
-                let baseId = id.split ('_')[0];
+                const ticker = tickers[i];
+                const id = ticker['symbol'];
+                const baseId = id.split ('_')[0];
                 let base = baseId.toUpperCase ();
                 let quote = quoteId.toUpperCase ();
                 base = this.commonCurrencyCode (base);
                 quote = this.commonCurrencyCode (quote);
-                let symbol = base + '/' + quote;
-                let precision = {
+                const symbol = base + '/' + quote;
+                const precision = {
                     'amount': 8,
                     'price': 8,
                 };

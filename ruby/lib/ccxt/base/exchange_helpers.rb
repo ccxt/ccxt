@@ -262,12 +262,13 @@ module Ccxt::ExchangeHelpers
     end
 
     def safe_float(hash, key, default_value = nil)
-      if hash.is_a?(Hash) && hash.has_key?(key)
-        value = hash[key] ? hash[key].to_f : nil
-      else
-        value = default_value
-      end
-      return value
+      return default_value if key.nil?
+      return default_value unless hash.is_a?(Hash)
+      return default_value unless hash.has_key?(key)
+
+      value = hash[key]
+      return default_value unless value.respond_to?(:to_f)
+      return value.to_f
     end
 
     def safe_float_2(hash, key1, key2, default_value = nil)
@@ -275,12 +276,13 @@ module Ccxt::ExchangeHelpers
     end
 
     def safe_integer(hash, key, default_value = nil)
-      if hash.is_a?(Hash) && hash.has_key?(key)
-        value = hash[key] ? hash[key].to_i : nil
-      else
-        value = default_value
-      end
-      return value
+      return default_value if key.nil?
+      return default_value unless hash.is_a?(Hash)
+      return default_value unless hash.has_key?(key)
+
+      value = hash[key]
+      return default_value unless value.respond_to?(:to_i)
+      return value.to_i
     end
 
     def safe_integer_2(hash, key1, key2, default_value = nil)
