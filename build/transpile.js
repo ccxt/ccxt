@@ -414,7 +414,8 @@ const rubyRegexes = [
     [ /([^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
     // TODO: [ /([^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
     [ /([^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
-    [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
+    [ /\(Object\.keys\s*\((.*)\)\.length\)/g, '($1.size > 0)' ], // looking for a boolean, not the length
+    [ /Object\.keys\s*\((.*)\)\.length/g, '$1.size' ], // looking for the length
     [ /Object\.keys\s*\((.*)\)/g, '$1.keys' ],
     [ /\[([^\]]+)\]\.join\s*\(([^\)]+)\)/g, "$2.join([$1])" ],
     // [ /hash \(([^,]+)\, \'(sha[0-9])\'/g, "hash($1, '$2'" ],
@@ -458,15 +459,18 @@ const rubyRegexes = [
     [ /Math\.pow\s*\(([^\)]+),\s*([^\)]+)\)/g, '$1**$2' ],
     [ /Math\.round\s*\(([^\)]+)\)/g, '$1.round' ],
     [ /Math\.ceil\s*\(([^\)]+)\)/g, '$1.ceil' ],
-    [ /Math\.log/g, 'Math.log' ],
+    // [ /Math\.log/g, 'Math.log' ],
     [ /(^|\s)\/\//g, '$1#' ],
     [ /([^\n\s]) #/g, '$1 #' ],
     [ /\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0/g, '.include?($1)' ],
-    [ /\.indexOf\s*\(([^\)]+)\)/g, '.include?($2)' ],
+    [ /([^\s]+).indexOf\s*\(([^\)]+)\)\s*\<\s*0/g, '!$1.include?($2)' ],  
+    [ /\.indexOf\s*\(([^\)]+)\)/g, '.include?($1)' ],
     [ /([^\s]+\s*\(\))\.toString\s+\(\)/g, '$1.to_s' ],
     [ /([^\s]+)\.toString \(\)/g, '$1.to_s' ],
     [ /([^\s]+)\.join\s*\(\s*([^\)\[\]]+?)\s*\)/g, '$1.join($2)' ],
-    [ /Math\.(max|min)\s*\(([^\)]),\s*([^\)])\)\s/g, '[$2, $3].$1' ],
+    // [ /Math\.(max|min)\s*\(([^\)]),\s*([^\)])\)\s/g, '[$2, $3].$1' ],
+    [ /Math\.max\s*/g, 'maximum_wrapper'],
+    [ /Math\.min\s*/g, 'minimum_wrapper'],
     [ / = new /g, ' = ' ], // Ruby does not have a 'new' keyword
     [ /console\.log\s/g, 'puts' ],
     [ /([^:+=\/\*\s-\|\&]+) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
