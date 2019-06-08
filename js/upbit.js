@@ -1142,7 +1142,7 @@ module.exports = class upbit extends Exchange {
         } else {
             side = 'sell';
         }
-        const type = this.safeString (order, 'ord_type');
+        let type = this.safeString (order, 'ord_type');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         let lastTradeTimestamp = undefined;
@@ -1151,6 +1151,11 @@ module.exports = class upbit extends Exchange {
         let remaining = this.safeFloat (order, 'remaining_volume');
         let filled = this.safeFloat (order, 'executed_volume');
         let cost = undefined;
+        if (type === 'price') {
+            type = 'market';
+            cost = price;
+            price = undefined;
+        }
         let average = undefined;
         let fee = undefined;
         let feeCost = this.safeFloat (order, 'paid_fee');
