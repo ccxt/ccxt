@@ -24,7 +24,7 @@ class fybsg extends fybse {
                 'doc' => 'https://fyb.docs.apiary.io',
             ),
             'markets' => array (
-                'BTC/SGD' => array ( 'id' => 'SGD', 'symbol' => 'BTC/SGD', 'base' => 'BTC', 'quote' => 'SGD' ),
+                'BTC/SGD' => array( 'id' => 'SGD', 'symbol' => 'BTC/SGD', 'base' => 'BTC', 'quote' => 'SGD' ),
             ),
         ));
     }

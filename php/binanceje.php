@@ -45,7 +45,7 @@ class binanceje extends binance {
                         'BTC' => 0.0005,
                         'ETH' => 0.01,
                     ),
-                    'deposit' => array (),
+                    'deposit' => array(),
                 ),
             ),
         ));

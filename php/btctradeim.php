@@ -56,7 +56,7 @@ class btctradeim extends coinegg {
             $code = $this->safe_string($response, 'code');
             if ($code !== '0') {
                 $message = $this->safe_string($response, 'msg', 'Error');
-                throw new ExchangeError ($message);
+                throw new ExchangeError($message);
             }
             return $data;
         }

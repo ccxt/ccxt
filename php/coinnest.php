@@ -75,7 +75,7 @@ class coinnest extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $quote = 'KRW';
-        $quoteId = strtolower ($quote);
+        $quoteId = strtolower($quote);
         // todo => rewrite this for web endpoint
         $coins = array (
             'btc',
@@ -114,11 +114,11 @@ class coinnest extends Exchange {
             'spc',
             'put',
         );
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($coins); $i++) {
             $baseId = $coins[$i];
             $id = $baseId . '/' . $quoteId;
-            $base = $this->common_currency_code(strtoupper ($baseId));
+            $base = $this->common_currency_code(strtoupper($baseId));
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -214,19 +214,19 @@ class coinnest extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostAccountBalance ($params);
-        $result = array ( 'info' => $response );
-        $balancKeys = is_array ($response) ? array_keys ($response) : array ();
+        $result = array( 'info' => $response );
+        $balancKeys = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count ($balancKeys); $i++) {
             $key = $balancKeys[$i];
-            $parts = explode ('_', $key);
+            $parts = explode('_', $key);
             if (strlen ($parts) !== 2)
                 continue;
             $type = $parts[1];
             if ($type !== 'reserved' && $type !== 'balance')
                 continue;
-            $currency = strtoupper ($parts[0]);
+            $currency = strtoupper($parts[0]);
             $currency = $this->common_currency_code($currency);
-            if (!(is_array ($result) && array_key_exists ($currency, $result))) {
+            if (!(is_array($result) && array_key_exists($currency, $result))) {
                 $result[$currency] = array (
                     'free' => 0.0,
                     'used' => 0.0,
@@ -236,7 +236,7 @@ class coinnest extends Exchange {
             $type = ($type === 'reserved' ? 'used' : 'free');
             $result[$currency][$type] = floatval ($response[$key]);
             $otherType = ($type === 'used' ? 'free' : 'used');
-            if (is_array ($result[$currency]) && array_key_exists ($otherType, $result[$currency]))
+            if (is_array($result[$currency]) && array_key_exists($otherType, $result[$currency]))
                 $result[$currency]['total'] = $this->sum ($result[$currency]['free'], $result[$currency]['used']);
         }
         return $this->parse_balance($result);
@@ -360,9 +360,9 @@ class coinnest extends Exchange {
             )));
             $secret = $this->hash ($this->secret);
             $body .= '&signature=' . $this->hmac ($this->encode ($body), $this->encode ($secret));
-            $headers = array ( 'Content-type' => 'application/x-www-form-urlencoded' );
+            $headers = array( 'Content-type' => 'application/x-www-form-urlencoded' );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -377,7 +377,7 @@ class coinnest extends Exchange {
                 '106' => '\\ccxt\\DDoSProtection',
             ), $status, '\\ccxt\\ExchangeError');
             $message = $this->safe_string($response, 'msg', $this->json ($response));
-            throw new $ErrorClass ($message);
+            throw new $ErrorClass($message);
         }
         return $response;
     }

@@ -158,7 +158,7 @@ class gdax extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $response = $this->publicGetProducts ($params);
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($response); $i++) {
             $market = $response[$i];
             $id = $this->safe_string($market, 'id');
@@ -229,7 +229,7 @@ class gdax extends Exchange {
         //         ),
         //     )
         //
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($response); $i++) {
             $account = $response[$i];
             $accountId = $this->safe_string($account, 'id');
@@ -248,7 +248,7 @@ class gdax extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balances = $this->privateGetAccounts ($params);
-        $result = array ( 'info' => $balances );
+        $result = array( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $currency = $balance['currency'];
@@ -281,9 +281,9 @@ class gdax extends Exchange {
         $timestamp = $this->parse8601 ($this->safe_value($ticker, 'time'));
         $bid = null;
         $ask = null;
-        if (is_array ($ticker) && array_key_exists ('bid', $ticker))
+        if (is_array($ticker) && array_key_exists('bid', $ticker))
             $bid = $this->safe_float($ticker, 'bid');
-        if (is_array ($ticker) && array_key_exists ('ask', $ticker))
+        if (is_array($ticker) && array_key_exists('ask', $ticker))
             $ask = $this->safe_float($ticker, 'ask');
         $last = $this->safe_float($ticker, 'price');
         return array (
@@ -324,7 +324,7 @@ class gdax extends Exchange {
         $takerOrMaker = null;
         if ($market !== null) {
             $feeCurrency = $market['quote'];
-            if (is_array ($trade) && array_key_exists ('liquidity', $trade)) {
+            if (is_array($trade) && array_key_exists('liquidity', $trade)) {
                 $takerOrMaker = ($trade['liquidity'] === 'T') ? 'taker' : 'maker';
                 $feeRate = $market[$takerOrMaker];
             }
@@ -366,7 +366,7 @@ class gdax extends Exchange {
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         // as of 2018-08-23
         if ($symbol === null) {
-            throw new ArgumentsRequired ($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -440,7 +440,7 @@ class gdax extends Exchange {
         $timestamp = $this->parse8601 ($order['created_at']);
         $symbol = null;
         if ($market === null) {
-            if (is_array ($this->markets_by_id) && array_key_exists ($order['product_id'], $this->markets_by_id))
+            if (is_array($this->markets_by_id) && array_key_exists($order['product_id'], $this->markets_by_id))
                 $market = $this->markets_by_id[$order['product_id']];
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
@@ -519,7 +519,7 @@ class gdax extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array ();
+        $request = array();
         $market = null;
         if ($symbol !== null) {
             $market = $this->market ($symbol);
@@ -561,7 +561,7 @@ class gdax extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privateDeleteOrdersId (array ( 'id' => $id ));
+        return $this->privateDeleteOrdersId (array( 'id' => $id ));
     }
 
     public function cancel_all_orders ($symbol = null, $params = array ()) {
@@ -594,21 +594,21 @@ class gdax extends Exchange {
             'amount' => $amount,
         );
         $method = 'privatePostDeposits';
-        if (is_array ($params) && array_key_exists ('payment_method_id', $params)) {
+        if (is_array($params) && array_key_exists('payment_method_id', $params)) {
             // deposit from a payment_method, like a bank account
             $method .= 'PaymentMethod';
-        } else if (is_array ($params) && array_key_exists ('coinbase_account_id', $params)) {
+        } else if (is_array($params) && array_key_exists('coinbase_account_id', $params)) {
             // deposit into GDAX account from a Coinbase account
             $method .= 'CoinbaseAccount';
         } else {
             // deposit methodotherwise we did not receive a supported deposit location
             // relevant docs link for the Googlers
             // https://docs.gdax.com/#deposits
-            throw new NotSupported ($this->id . ' deposit() requires one of `coinbase_account_id` or `payment_method_id` extra params');
+            throw new NotSupported($this->id . ' deposit() requires one of `coinbase_account_id` or `payment_method_id` extra params');
         }
         $response = $this->$method (array_merge ($request, $params));
         if (!$response)
-            throw new ExchangeError ($this->id . ' deposit() error => ' . $this->json ($response));
+            throw new ExchangeError($this->id . ' deposit() error => ' . $this->json ($response));
         return array (
             'info' => $response,
             'id' => $response['id'],
@@ -624,9 +624,9 @@ class gdax extends Exchange {
             'amount' => $amount,
         );
         $method = 'privatePostWithdrawals';
-        if (is_array ($params) && array_key_exists ('payment_method_id', $params)) {
+        if (is_array($params) && array_key_exists('payment_method_id', $params)) {
             $method .= 'PaymentMethod';
-        } else if (is_array ($params) && array_key_exists ('coinbase_account_id', $params)) {
+        } else if (is_array($params) && array_key_exists('coinbase_account_id', $params)) {
             $method .= 'CoinbaseAccount';
         } else {
             $method .= 'Crypto';
@@ -634,7 +634,7 @@ class gdax extends Exchange {
         }
         $response = $this->$method (array_merge ($request, $params));
         if (!$response)
-            throw new ExchangeError ($this->id . ' withdraw() error => ' . $this->json ($response));
+            throw new ExchangeError($this->id . ' withdraw() error => ' . $this->json ($response));
         return array (
             'info' => $response,
             'id' => $response['id'],
@@ -648,13 +648,13 @@ class gdax extends Exchange {
         $id = $this->safe_string($params, 'id'); // $account $id
         if ($id === null) {
             if ($code === null) {
-                throw new ArgumentsRequired ($this->id . ' fetchTransactions() requires a $currency $code argument if no $account $id specified in params');
+                throw new ArgumentsRequired($this->id . ' fetchTransactions() requires a $currency $code argument if no $account $id specified in params');
             }
             $currency = $this->currency ($code);
             $accountsByCurrencyCode = $this->index_by($this->accounts, 'currency');
             $account = $this->safe_value($accountsByCurrencyCode, $code);
             if ($account === null) {
-                throw new ExchangeError ($this->id . ' fetchTransactions() could not find $account $id for ' . $code);
+                throw new ExchangeError($this->id . ' fetchTransactions() could not find $account $id for ' . $code);
             }
             $id = $account['id'];
         }
@@ -688,14 +688,14 @@ class gdax extends Exchange {
     }
 
     public function parse_transaction ($transaction, $currency = null) {
-        $details = $this->safe_value($transaction, 'details', array ());
+        $details = $this->safe_value($transaction, 'details', array());
         $id = $this->safe_string($transaction, 'id');
         $txid = $this->safe_string($details, 'crypto_transaction_hash');
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'created_at'));
         $updated = $this->parse8601 ($this->safe_string($transaction, 'processed_at'));
         $code = null;
         $currencyId = $this->safe_string($transaction, 'currency');
-        if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
+        if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
             $currency = $this->currencies_by_id[$currencyId];
             $code = $currency['code'];
         } else {
@@ -759,7 +759,7 @@ class gdax extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function fetch_deposit_address ($code, $params = array ()) {
@@ -775,7 +775,7 @@ class gdax extends Exchange {
         $account = $this->safe_value($this->options['coinbaseAccountsByCurrencyId'], $currencyId);
         if ($account === null) {
             // eslint-disable-next-line quotes
-            throw new InvalidAddress ($this->id . " fetchDepositAddress() could not find $currency $code " . $code . " with id = " . $currencyId . " in $this->options['coinbaseAccountsByCurrencyId']");
+            throw new InvalidAddress($this->id . " fetchDepositAddress() could not find $currency $code " . $code . " with id = " . $currencyId . " in $this->options['coinbaseAccountsByCurrencyId']");
         }
         $request = array (
             'id' => $account['id'],
@@ -804,7 +804,7 @@ class gdax extends Exchange {
         $account = $this->safe_value($this->options['coinbaseAccountsByCurrencyId'], $currencyId);
         if ($account === null) {
             // eslint-disable-next-line quotes
-            throw new InvalidAddress ($this->id . " fetchDepositAddress() could not find $currency $code " . $code . " with id = " . $currencyId . " in $this->options['coinbaseAccountsByCurrencyId']");
+            throw new InvalidAddress($this->id . " fetchDepositAddress() could not find $currency $code " . $code . " with id = " . $currencyId . " in $this->options['coinbaseAccountsByCurrencyId']");
         }
         $request = array (
             'id' => $account['id'],
@@ -826,24 +826,24 @@ class gdax extends Exchange {
                 $message = $response['message'];
                 $feedback = $this->id . ' ' . $message;
                 $exact = $this->exceptions['exact'];
-                if (is_array ($exact) && array_key_exists ($message, $exact)) {
-                    throw new $exact[$message] ($feedback);
+                if (is_array($exact) && array_key_exists($message, $exact)) {
+                    throw new $exact[$message]($feedback);
                 }
                 $broad = $this->exceptions['broad'];
                 $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
                 if ($broadKey !== null) {
-                    throw new $broad[$broadKey] ($feedback);
+                    throw new $broad[$broadKey]($feedback);
                 }
-                throw new ExchangeError ($feedback); // unknown $message
+                throw new ExchangeError($feedback); // unknown $message
             }
-            throw new ExchangeError ($this->id . ' ' . $body);
+            throw new ExchangeError($this->id . ' ' . $body);
         }
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('message', $response)) {
-            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        if (is_array($response) && array_key_exists('message', $response)) {
+            throw new ExchangeError($this->id . ' ' . $this->json ($response));
         }
         return $response;
     }

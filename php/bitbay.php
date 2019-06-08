@@ -147,19 +147,19 @@ class bitbay extends Exchange {
         //     { 'BSV-USD':
         //      array ( market:
         //        array ( code => 'BSV-USD',
-        //          first => array ( currency => 'BSV', minOffer => '0.00035', scale => 8 ),
-        //          second => array ( currency => 'USD', minOffer => '5', scale => 2 ) ),
+        //          first => array( currency => 'BSV', minOffer => '0.00035', scale => 8 ),
+        //          second => array( currency => 'USD', minOffer => '5', scale => 2 ) ),
         //       time => '1557569762154',
         //           highestBid => '52.31',
         //       lowestAsk => '62.99',
         //       rate => '63',
         //       previousRate => '51.21' ),
         //      ...
-        $response = $this->v1_01PublicGetTradingTicker (array ());
+        $response = $this->v1_01PublicGetTradingTicker (array());
         if ($response['status'] !== 'Ok')
-            throw new ExchangeError ($this->id . ' tickers query failed ' . $this->json ($response));
-        $result = array ();
-        $symbols = is_array ($response['items']) ? array_keys ($response['items']) : array ();
+            throw new ExchangeError($this->id . ' tickers query failed ' . $this->json ($response));
+        $result = array();
+        $symbols = is_array($response['items']) ? array_keys($response['items']) : array();
         for ($i = 0; $i < count ($symbols); $i++) {
             $symbol = $symbols[$i];
             $item = $response['items'][$symbol];
@@ -199,11 +199,11 @@ class bitbay extends Exchange {
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array_merge (array (
-            'markets' => $symbol ? [$this->market_id($symbol)] : array (),
+            'markets' => $symbol ? [$this->market_id($symbol)] : array(),
         ), $params);
-        $response = $this->v1_01PrivateGetTradingHistoryTransactions (array ( 'query' => $this->json ($request) ));
+        $response = $this->v1_01PrivateGetTradingHistoryTransactions (array( 'query' => $this->json ($request) ));
         if ($response['status'] !== 'Ok')
-            throw new ExchangeError ($this->id . ' balances query failed ' . $this->json ($response));
+            throw new ExchangeError($this->id . ' balances query failed ' . $this->json ($response));
         //   { status => 'Ok',
         //     totalRows => '67',
         //     $items:
@@ -226,16 +226,16 @@ class bitbay extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostInfo ();
-        if (is_array ($response) && array_key_exists ('balances', $response)) {
+        if (is_array($response) && array_key_exists('balances', $response)) {
             $balance = $response['balances'];
-            $result = array ( 'info' => $balance );
-            $codes = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
+            $result = array( 'info' => $balance );
+            $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
             for ($i = 0; $i < count ($codes); $i++) {
                 $code = $codes[$i];
                 $currency = $this->currencies[$code];
                 $id = $currency['id'];
                 $account = $this->account ();
-                if (is_array ($balance) && array_key_exists ($id, $balance)) {
+                if (is_array($balance) && array_key_exists($id, $balance)) {
                     $account['free'] = floatval ($balance[$id]['available']);
                     $account['used'] = floatval ($balance[$id]['locked']);
                     $account['total'] = $this->sum ($account['free'], $account['used']);
@@ -244,7 +244,7 @@ class bitbay extends Exchange {
             }
             return $this->parse_balance($result);
         }
-        throw new ExchangeError ($this->id . ' empty $balance $response ' . $this->json ($response));
+        throw new ExchangeError($this->id . ' empty $balance $response ' . $this->json ($response));
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
@@ -290,7 +290,7 @@ class bitbay extends Exchange {
     }
 
     public function parse_trade ($trade, $market) {
-        if (is_array ($trade) && array_key_exists ('tid', $trade)) {
+        if (is_array($trade) && array_key_exists('tid', $trade)) {
             return $this->parse_public_trade ($trade, $market);
         } else {
             return $this->parse_my_trade ($trade, $market);
@@ -331,7 +331,7 @@ class bitbay extends Exchange {
             'order' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $this->find_symbol(str_replace ('-', '', $marketId)),
+            'symbol' => $this->find_symbol(str_replace('-', '', $marketId)),
             'type' => $type,
             'side' => $userAction === 'Buy' ? 'buy' : 'sell',
             'price' => $price,
@@ -368,7 +368,7 @@ class bitbay extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type !== 'limit')
-            throw new ExchangeError ($this->id . ' allows limit orders only');
+            throw new ExchangeError($this->id . ' allows limit orders only');
         $market = $this->market ($symbol);
         return $this->privatePostTrade (array_merge (array (
             'type' => $side,
@@ -380,7 +380,7 @@ class bitbay extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostCancel (array ( 'id' => $id ));
+        return $this->privatePostCancel (array( 'id' => $id ));
     }
 
     public function is_fiat ($currency) {
@@ -389,7 +389,7 @@ class bitbay extends Exchange {
             'EUR' => true,
             'PLN' => true,
         );
-        if (is_array ($fiatCurrencies) && array_key_exists ($currency, $fiatCurrencies))
+        if (is_array($fiatCurrencies) && array_key_exists($currency, $fiatCurrencies))
             return true;
         return false;
     }
@@ -466,7 +466,7 @@ class bitbay extends Exchange {
                 'API-Hash' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
@@ -475,14 +475,14 @@ class bitbay extends Exchange {
         if (strlen ($body) < 2)
             return;
         if (($body[0] === '{') || ($body[0] === '[')) {
-            if (is_array ($response) && array_key_exists ('code', $response)) {
+            if (is_array($response) && array_key_exists('code', $response)) {
                 //
                 // bitbay returns the integer 'success' => 1 key from their private API
                 // or an integer 'code' value from 0 to 510 and an error message
                 //
-                //      array ( 'success' => 1, ... )
-                //      array ( 'code' => 502, 'message' => 'Invalid sign' )
-                //      array ( 'code' => 0, 'message' => 'offer funds not exceeding minimums' )
+                //      array( 'success' => 1, ... )
+                //      array( 'code' => 502, 'message' => 'Invalid sign' )
+                //      array( 'code' => 0, 'message' => 'offer funds not exceeding minimums' )
                 //
                 //      400 At least one parameter wasn't set
                 //      401 Invalid order type
@@ -504,10 +504,10 @@ class bitbay extends Exchange {
                 $code = $response['code']; // always an integer
                 $feedback = $this->id . ' ' . $this->json ($response);
                 $exceptions = $this->exceptions;
-                if (is_array ($this->exceptions) && array_key_exists ($code, $this->exceptions)) {
-                    throw new $exceptions[$code] ($feedback);
+                if (is_array($this->exceptions) && array_key_exists($code, $this->exceptions)) {
+                    throw new $exceptions[$code]($feedback);
                 } else {
-                    throw new ExchangeError ($feedback);
+                    throw new ExchangeError($feedback);
                 }
             }
         }

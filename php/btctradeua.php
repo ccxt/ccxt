@@ -50,23 +50,23 @@ class btctradeua extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BCH/UAH' => array ( 'id' => 'bch_uah', 'symbol' => 'BCH/UAH', 'base' => 'BCH', 'quote' => 'UAH' ),
-                'BTC/UAH' => array ( 'id' => 'btc_uah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'precision' => array ( 'price' => 1 ), 'limits' => array ( 'amount' => array ( 'min' => 0.0000000001 ))),
-                'DASH/BTC' => array ( 'id' => 'dash_btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC' ),
-                'DASH/UAH' => array ( 'id' => 'dash_uah', 'symbol' => 'DASH/UAH', 'base' => 'DASH', 'quote' => 'UAH' ),
-                'DOGE/BTC' => array ( 'id' => 'doge_btc', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC' ),
-                'DOGE/UAH' => array ( 'id' => 'doge_uah', 'symbol' => 'DOGE/UAH', 'base' => 'DOGE', 'quote' => 'UAH' ),
-                'ETH/UAH' => array ( 'id' => 'eth_uah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH' ),
-                'ITI/UAH' => array ( 'id' => 'iti_uah', 'symbol' => 'ITI/UAH', 'base' => 'ITI', 'quote' => 'UAH' ),
-                'KRB/UAH' => array ( 'id' => 'krb_uah', 'symbol' => 'KRB/UAH', 'base' => 'KRB', 'quote' => 'UAH' ),
-                'LTC/BTC' => array ( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
-                'LTC/UAH' => array ( 'id' => 'ltc_uah', 'symbol' => 'LTC/UAH', 'base' => 'LTC', 'quote' => 'UAH' ),
-                'NVC/BTC' => array ( 'id' => 'nvc_btc', 'symbol' => 'NVC/BTC', 'base' => 'NVC', 'quote' => 'BTC' ),
-                'NVC/UAH' => array ( 'id' => 'nvc_uah', 'symbol' => 'NVC/UAH', 'base' => 'NVC', 'quote' => 'UAH' ),
-                'PPC/BTC' => array ( 'id' => 'ppc_btc', 'symbol' => 'PPC/BTC', 'base' => 'PPC', 'quote' => 'BTC' ),
-                'SIB/UAH' => array ( 'id' => 'sib_uah', 'symbol' => 'SIB/UAH', 'base' => 'SIB', 'quote' => 'UAH' ),
-                'XMR/UAH' => array ( 'id' => 'xmr_uah', 'symbol' => 'XMR/UAH', 'base' => 'XMR', 'quote' => 'UAH' ),
-                'ZEC/UAH' => array ( 'id' => 'zec_uah', 'symbol' => 'ZEC/UAH', 'base' => 'ZEC', 'quote' => 'UAH' ),
+                'BCH/UAH' => array( 'id' => 'bch_uah', 'symbol' => 'BCH/UAH', 'base' => 'BCH', 'quote' => 'UAH' ),
+                'BTC/UAH' => array( 'id' => 'btc_uah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'precision' => array ( 'price' => 1 ), 'limits' => array( 'amount' => array ( 'min' => 0.0000000001 ))),
+                'DASH/BTC' => array( 'id' => 'dash_btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC' ),
+                'DASH/UAH' => array( 'id' => 'dash_uah', 'symbol' => 'DASH/UAH', 'base' => 'DASH', 'quote' => 'UAH' ),
+                'DOGE/BTC' => array( 'id' => 'doge_btc', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC' ),
+                'DOGE/UAH' => array( 'id' => 'doge_uah', 'symbol' => 'DOGE/UAH', 'base' => 'DOGE', 'quote' => 'UAH' ),
+                'ETH/UAH' => array( 'id' => 'eth_uah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH' ),
+                'ITI/UAH' => array( 'id' => 'iti_uah', 'symbol' => 'ITI/UAH', 'base' => 'ITI', 'quote' => 'UAH' ),
+                'KRB/UAH' => array( 'id' => 'krb_uah', 'symbol' => 'KRB/UAH', 'base' => 'KRB', 'quote' => 'UAH' ),
+                'LTC/BTC' => array( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
+                'LTC/UAH' => array( 'id' => 'ltc_uah', 'symbol' => 'LTC/UAH', 'base' => 'LTC', 'quote' => 'UAH' ),
+                'NVC/BTC' => array( 'id' => 'nvc_btc', 'symbol' => 'NVC/BTC', 'base' => 'NVC', 'quote' => 'BTC' ),
+                'NVC/UAH' => array( 'id' => 'nvc_uah', 'symbol' => 'NVC/UAH', 'base' => 'NVC', 'quote' => 'UAH' ),
+                'PPC/BTC' => array( 'id' => 'ppc_btc', 'symbol' => 'PPC/BTC', 'base' => 'PPC', 'quote' => 'BTC' ),
+                'SIB/UAH' => array( 'id' => 'sib_uah', 'symbol' => 'SIB/UAH', 'base' => 'SIB', 'quote' => 'UAH' ),
+                'XMR/UAH' => array( 'id' => 'xmr_uah', 'symbol' => 'XMR/UAH', 'base' => 'XMR', 'quote' => 'UAH' ),
+                'ZEC/UAH' => array( 'id' => 'zec_uah', 'symbol' => 'ZEC/UAH', 'base' => 'ZEC', 'quote' => 'UAH' ),
             ),
             'fees' => array (
                 'trading' => array (
@@ -91,8 +91,8 @@ class btctradeua extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostBalance ();
-        $result = array ( 'info' => $response );
-        if (is_array ($response) && array_key_exists ('accounts', $response)) {
+        $result = array( 'info' => $response );
+        if (is_array($response) && array_key_exists('accounts', $response)) {
             $accounts = $response['accounts'];
             for ($b = 0; $b < count ($accounts); $b++) {
                 $account = $accounts[$b];
@@ -117,15 +117,15 @@ class btctradeua extends Exchange {
             'symbol' => $market['id'],
         ), $params));
         $orderbook = array (
-            'bids' => array (),
-            'asks' => array (),
+            'bids' => array(),
+            'asks' => array(),
         );
         if ($bids) {
-            if (is_array ($bids) && array_key_exists ('list', $bids))
+            if (is_array($bids) && array_key_exists('list', $bids))
                 $orderbook['bids'] = $bids['list'];
         }
         if ($asks) {
-            if (is_array ($asks) && array_key_exists ('list', $asks))
+            if (is_array($asks) && array_key_exists('list', $asks))
                 $orderbook['asks'] = $asks['list'];
         }
         return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'currency_trade');
@@ -199,17 +199,17 @@ class btctradeua extends Exchange {
             'декабря' => '12',
         );
         $month = null;
-        if (is_array ($months) && array_key_exists ($cyrillic, $months))
+        if (is_array($months) && array_key_exists($cyrillic, $months))
             $month = $months[$cyrillic];
         return $month;
     }
 
     public function parse_cyrillic_datetime ($cyrillic) {
-        $parts = explode (' ', $cyrillic);
+        $parts = explode(' ', $cyrillic);
         $day = $parts[0];
         $month = $this->convert_cyrillic_month_name_to_string ($parts[1]);
         if (!$month)
-            throw new ExchangeError ($this->id . ' parseTrade() null $month name => ' . $cyrillic);
+            throw new ExchangeError($this->id . ' parseTrade() null $month name => ' . $cyrillic);
         $year = $parts[2];
         $hms = $parts[4];
         $hmsLength = is_array ($hms) ? count ($hms) : 0;
@@ -219,11 +219,11 @@ class btctradeua extends Exchange {
         if (strlen ($day) === 1) {
             $day = '0' . $day;
         }
-        $ymd = implode ('-', array ($year, $month, $day));
+        $ymd = implode('-', array($year, $month, $day));
         $ymdhms = $ymd . 'T' . $hms;
         $timestamp = $this->parse8601 ($ymdhms);
         // server reports local time, adjust to UTC
-        $md = implode ('', array ($month, $day));
+        $md = implode('', array($month, $day));
         $md = intval ($md);
         // a special case for DST
         // subtract 2 hours during winter
@@ -255,9 +255,9 @@ class btctradeua extends Exchange {
         ), $params));
         // they report each trade twice (once for both of the two sides of the fill)
         // deduplicate $trades for that reason
-        $trades = array ();
+        $trades = array();
         for ($i = 0; $i < count ($response); $i++) {
-            if (fmod ($response[$i]['id'], 2)) {
+            if (fmod($response[$i]['id'], 2)) {
                 $trades[] = $response[$i];
             }
         }
@@ -266,7 +266,7 @@ class btctradeua extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type === 'market')
-            throw new ExchangeError ($this->id . ' allows limit orders only');
+            throw new ExchangeError($this->id . ' allows limit orders only');
         $market = $this->market ($symbol);
         $method = 'privatePost' . $this->capitalize ($side) . 'Id';
         $order = array (
@@ -279,7 +279,7 @@ class btctradeua extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostRemoveOrderId (array ( 'id' => $id ));
+        return $this->privatePostRemoveOrderId (array( 'id' => $id ));
     }
 
     public function parse_order ($trade, $market) {
@@ -304,7 +304,7 @@ class btctradeua extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null)
-            throw new ArgumentsRequired ($this->id . ' fetchOpenOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
         $market = $this->market ($symbol);
         $response = $this->privatePostMyOrdersSymbol (array_merge (array (
             'symbol' => $market['id'],
@@ -337,6 +337,6 @@ class btctradeua extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

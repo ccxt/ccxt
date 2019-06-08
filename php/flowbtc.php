@@ -73,7 +73,7 @@ class flowbtc extends Exchange {
     public function fetch_markets ($params = array ()) {
         $response = $this->publicPostGetProductPairs ();
         $markets = $response['productPairs'];
-        $result = array ();
+        $result = array();
         for ($p = 0; $p < count ($markets); $p++) {
             $market = $markets[$p];
             $id = $market['name'];
@@ -114,7 +114,7 @@ class flowbtc extends Exchange {
         $this->load_markets();
         $response = $this->privatePostGetAccountInfo ();
         $balances = $response['currencies'];
-        $result = array ( 'info' => $response );
+        $result = array( 'info' => $response );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $currency = $balance['name'];
@@ -216,12 +216,12 @@ class flowbtc extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        if (is_array ($params) && array_key_exists ('ins', $params)) {
+        if (is_array($params) && array_key_exists('ins', $params)) {
             return $this->privatePostCancelOrder (array_merge (array (
                 'serverOrderId' => $id,
             ), $params));
         }
-        throw new ExchangeError ($this->id . ' requires `ins` $symbol parameter for cancelling an order');
+        throw new ExchangeError($this->id . ' requires `ins` $symbol parameter for cancelling an order');
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -238,20 +238,20 @@ class flowbtc extends Exchange {
             $body = $this->json (array_merge (array (
                 'apiKey' => $this->apiKey,
                 'apiNonce' => $nonce,
-                'apiSig' => strtoupper ($signature),
+                'apiSig' => strtoupper($signature),
             ), $params));
             $headers = array (
                 'Content-Type' => 'application/json',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('isAccepted', $response))
+        if (is_array($response) && array_key_exists('isAccepted', $response))
             if ($response['isAccepted'])
                 return $response;
-        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        throw new ExchangeError($this->id . ' ' . $this->json ($response));
     }
 }

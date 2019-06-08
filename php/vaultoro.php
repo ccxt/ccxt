@@ -61,7 +61,7 @@ class vaultoro extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $result = array ();
+        $result = array();
         $markets = $this->publicGetMarkets ();
         $market = $markets['data'];
         $baseId = $market['MarketCurrency'];
@@ -86,12 +86,12 @@ class vaultoro extends Exchange {
         $this->load_markets();
         $response = $this->privateGetBalance ();
         $balances = $response['data'];
-        $result = array ( 'info' => $balances );
+        $result = array( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
-            $currencyId = strtoupper ($balance['currency_code']);
+            $currencyId = strtoupper($balance['currency_code']);
             $code = $currencyId;
-            if (is_array ($this->currencies_by_id[$currencyId]) && array_key_exists ($currencyId, $this->currencies_by_id[$currencyId]))
+            if (is_array($this->currencies_by_id[$currencyId]) && array_key_exists($currencyId, $this->currencies_by_id[$currencyId]))
                 $code = $this->currencies_by_id[$currencyId]['code'];
             $free = $balance['cash'];
             $used = $balance['reserved'];
@@ -178,7 +178,7 @@ class vaultoro extends Exchange {
         $market = $this->market ($symbol);
         $method = 'privatePost' . $this->capitalize ($side) . 'SymbolType';
         $response = $this->$method (array_merge (array (
-            'symbol' => strtolower ($market['quoteId']),
+            'symbol' => strtolower($market['quoteId']),
             'type' => $type,
             'gld' => $amount,
             'price' => $price || 1,
@@ -214,6 +214,6 @@ class vaultoro extends Exchange {
                 'X-Signature' => $this->hmac ($this->encode ($url), $this->encode ($this->secret)),
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

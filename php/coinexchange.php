@@ -569,7 +569,7 @@ class coinexchange extends Exchange {
         $response = $this->publicGetGetcurrencies ($params);
         $currencies = $response['result'];
         $precision = $this->precision['amount'];
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $id = $currency['CurrencyID'];
@@ -584,11 +584,11 @@ class coinexchange extends Exchange {
                 'limits' => array (
                     'amount' => array (
                         'min' => null,
-                        'max' => pow (10, $precision),
+                        'max' => pow(10, $precision),
                     ),
                     'price' => array (
-                        'min' => pow (10, -$precision),
-                        'max' => pow (10, $precision),
+                        'min' => pow(10, -$precision),
+                        'max' => pow(10, $precision),
                     ),
                     'cost' => array (
                         'min' => null,
@@ -596,7 +596,7 @@ class coinexchange extends Exchange {
                     ),
                     'withdraw' => array (
                         'min' => null,
-                        'max' => pow (10, $precision),
+                        'max' => pow(10, $precision),
                     ),
                 ),
                 'info' => $currency,
@@ -608,7 +608,7 @@ class coinexchange extends Exchange {
     public function fetch_markets ($params = array ()) {
         $response = $this->publicGetGetmarkets ();
         $markets = $response['result'];
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $market['MarketID'];
@@ -637,7 +637,7 @@ class coinexchange extends Exchange {
         $symbol = null;
         if ($market === null) {
             $marketId = $ticker['MarketID'];
-            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))
                 $market = $this->markets_by_id[$marketId];
             else
                 $symbol = $marketId;
@@ -683,7 +683,7 @@ class coinexchange extends Exchange {
         $this->load_markets();
         $response = $this->publicGetGetmarketsummaries ($params);
         $tickers = $response['result'];
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($tickers); $i++) {
             $ticker = $this->parse_ticker($tickers[$i]);
             $symbol = $ticker['symbol'];
@@ -706,7 +706,7 @@ class coinexchange extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -714,7 +714,7 @@ class coinexchange extends Exchange {
         $success = $this->safe_integer($response, 'success');
         if ($success !== 1) {
             $message = $this->safe_string($response, 'message', 'Error');
-            throw new ExchangeError ($message);
+            throw new ExchangeError($message);
         }
         return $response;
     }

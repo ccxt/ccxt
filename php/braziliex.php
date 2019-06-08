@@ -78,7 +78,7 @@ class braziliex extends Exchange {
     public function fetch_currencies_from_cache ($params = array ()) {
         // this method is $now redundant
         // currencies are $now fetched before markets
-        $options = $this->safe_value($this->options, 'fetchCurrencies', array ());
+        $options = $this->safe_value($this->options, 'fetchCurrencies', array());
         $timestamp = $this->safe_integer($options, 'timestamp');
         $expires = $this->safe_integer($options, 'expires', 1000);
         $now = $this->milliseconds ();
@@ -150,13 +150,13 @@ class braziliex extends Exchange {
             'timestamp' => $this->milliseconds (),
             'response' => $response,
         );
-        $ids = is_array ($response) ? array_keys ($response) : array ();
-        $result = array ();
+        $ids = is_array($response) ? array_keys($response) : array();
+        $result = array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $currency = $response[$id];
             $precision = $this->safe_integer($currency, 'decimal');
-            $uppercase = strtoupper ($id);
+            $uppercase = strtoupper($id);
             $code = $this->common_currency_code($uppercase);
             $active = $this->safe_integer($currency, 'active') === 1;
             $maintenance = $this->safe_integer($currency, 'under_maintenance');
@@ -186,12 +186,12 @@ class braziliex extends Exchange {
                 ),
                 'limits' => array (
                     'amount' => array (
-                        'min' => pow (10, -$precision),
-                        'max' => pow (10, $precision),
+                        'min' => pow(10, -$precision),
+                        'max' => pow(10, $precision),
                     ),
                     'price' => array (
-                        'min' => pow (10, -$precision),
-                        'max' => pow (10, $precision),
+                        'min' => pow(10, -$precision),
+                        'max' => pow(10, $precision),
                     ),
                     'cost' => array (
                         'min' => null,
@@ -199,7 +199,7 @@ class braziliex extends Exchange {
                     ),
                     'withdraw' => array (
                         'min' => $this->safe_float($currency, 'MinWithdrawal'),
-                        'max' => pow (10, $precision),
+                        'max' => pow(10, $precision),
                     ),
                     'deposit' => array (
                         'min' => $this->safe_float($currency, 'minDeposit'),
@@ -234,19 +234,19 @@ class braziliex extends Exchange {
         //         ...
         //     }
         //
-        $ids = is_array ($response) ? array_keys ($response) : array ();
-        $result = array ();
+        $ids = is_array($response) ? array_keys($response) : array();
+        $result = array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $market = $response[$id];
-            list ($baseId, $quoteId) = explode ('_', $id);
-            $uppercaseBaseId = strtoupper ($baseId);
-            $uppercaseQuoteId = strtoupper ($quoteId);
+            list($baseId, $quoteId) = explode('_', $id);
+            $uppercaseBaseId = strtoupper($baseId);
+            $uppercaseQuoteId = strtoupper($quoteId);
             $base = $this->common_currency_code($uppercaseBaseId);
             $quote = $this->common_currency_code($uppercaseQuoteId);
             $symbol = $base . '/' . $quote;
-            $baseCurrency = $this->safe_value($currencies, $baseId, array ());
-            $quoteCurrency = $this->safe_value($currencies, $quoteId, array ());
+            $baseCurrency = $this->safe_value($currencies, $baseId, array());
+            $quoteCurrency = $this->safe_value($currencies, $quoteId, array());
             $quoteIsFiat = $this->safe_integer($quoteCurrency, 'is_fiat', 0);
             $minCost = null;
             if ($quoteIsFiat) {
@@ -262,7 +262,7 @@ class braziliex extends Exchange {
             );
             $result[] = array (
                 'id' => $id,
-                'symbol' => strtoupper ($symbol),
+                'symbol' => strtoupper($symbol),
                 'base' => $base,
                 'quote' => $quote,
                 'baseId' => $baseId,
@@ -271,12 +271,12 @@ class braziliex extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => pow (10, -$precision['amount']),
-                        'max' => pow (10, $precision['amount']),
+                        'min' => pow(10, -$precision['amount']),
+                        'max' => pow(10, $precision['amount']),
                     ),
                     'price' => array (
-                        'min' => pow (10, -$precision['price']),
-                        'max' => pow (10, $precision['price']),
+                        'min' => pow(10, -$precision['price']),
+                        'max' => pow(10, $precision['price']),
                     ),
                     'cost' => array (
                         'min' => $minCost,
@@ -334,9 +334,9 @@ class braziliex extends Exchange {
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $tickers = $this->publicGetTicker ($params);
-        $result = array ();
+        $result = array();
         $timestamp = $this->milliseconds ();
-        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
+        $ids = is_array($tickers) ? array_keys($tickers) : array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $market = $this->markets_by_id[$id];
@@ -360,7 +360,7 @@ class braziliex extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         $timestamp = null;
-        if (is_array ($trade) && array_key_exists ('date_exec', $trade)) {
+        if (is_array($trade) && array_key_exists('date_exec', $trade)) {
             $timestamp = $this->parse8601 ($trade['date_exec']);
         } else {
             $timestamp = $this->parse8601 ($trade['date']);
@@ -398,8 +398,8 @@ class braziliex extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balances = $this->privatePostCompleteBalance ($params);
-        $result = array ( 'info' => $balances );
-        $currencies = is_array ($balances) ? array_keys ($balances) : array ();
+        $result = array( 'info' => $balances );
+        $currencies = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count ($currencies); $i++) {
             $id = $currencies[$i];
             $balance = $balances[$id];
@@ -420,7 +420,7 @@ class braziliex extends Exchange {
         if ($market === null) {
             $marketId = $this->safe_string($order, 'market');
             if ($marketId)
-                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))
                     $market = $this->markets_by_id[$marketId];
         }
         if ($market)
@@ -435,7 +435,7 @@ class braziliex extends Exchange {
         $filled = $amount * $filledPercentage;
         $remaining = floatval ($this->amount_to_precision($symbol, $amount - $filled));
         $info = $order;
-        if (is_array ($info) && array_key_exists ('info', $info))
+        if (is_array($info) && array_key_exists('info', $info))
             $info = $order['info'];
         return array (
             'id' => $order['order_number'],
@@ -470,18 +470,18 @@ class braziliex extends Exchange {
         ), $params));
         $success = $this->safe_integer($response, 'success');
         if ($success !== 1)
-            throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
-        $parts = explode (' / ', $response['message']);
+            throw new InvalidOrder($this->id . ' ' . $this->json ($response));
+        $parts = explode(' / ', $response['message']);
         $parts = mb_substr ($parts, 1);
-        $feeParts = explode (' ', $parts[5]);
+        $feeParts = explode(' ', $parts[5]);
         $order = $this->parse_order(array (
             'timestamp' => $this->milliseconds (),
             'order_number' => $response['order_number'],
-            'type' => strtolower ($parts[0]),
-            'market' => strtolower ($parts[0]),
-            'amount' => explode (' ', $parts[2])[1],
-            'price' => explode (' ', $parts[3])[1],
-            'total' => explode (' ', $parts[4])[1],
+            'type' => strtolower($parts[0]),
+            'market' => strtolower($parts[0]),
+            'amount' => explode(' ', $parts[2])[1],
+            'price' => explode(' ', $parts[3])[1],
+            'total' => explode(' ', $parts[4])[1],
             'fee' => array (
                 'cost' => floatval ($feeParts[1]),
                 'currency' => $feeParts[2],
@@ -560,18 +560,18 @@ class braziliex extends Exchange {
                 'Sign' => $this->decode ($signature),
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('success', $response)) {
+        if (is_array($response) && array_key_exists('success', $response)) {
             $success = $this->safe_integer($response, 'success');
             if ($success === 0) {
                 $message = $this->safe_string($response, 'message');
                 if ($message === 'Invalid APIKey')
-                    throw new AuthenticationError ($message);
-                throw new ExchangeError ($message);
+                    throw new AuthenticationError($message);
+                throw new ExchangeError($message);
             }
         }
         return $response;
